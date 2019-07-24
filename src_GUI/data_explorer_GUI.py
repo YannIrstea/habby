@@ -15,10 +15,11 @@ https://github.com/YannIrstea/habby
 
 """
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
-from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, \
-    QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
-from src_GUI import preferences_GUI
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
+    QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QSpacerItem,\
+    QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
+from src_GUI.preferences_GUI import load_project_preferences, QHLine, DoubleClicOutputGroup
+from src_GUI.tools_GUI import QGroupBoxCollapsible
 from src import hdf5_mod
 from src import plot_mod
 from multiprocessing import Process, Queue, Value
@@ -90,8 +91,6 @@ class DataExplorerFrame(QFrame):
         self.name_prj = name_prj
         self.send_log = send_log
         self.nb_plot = 0
-        self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
-        self.plot_process_list = MyProcessList()
         self.init_ui()
         self.plot_production_stoped = False
 
@@ -124,6 +123,197 @@ class DataExplorerFrame(QFrame):
         self.names_hdf5_layout.addWidget(self.names_hdf5_QListWidget)
 
         """ Figure producer """
+        self.plot_group = FigureProducerGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Figure viewer/expoter"))
+        self.plot_group.setChecked(False)
+
+        """ export """
+        # interpolation group
+        self.dataexporter_group = DataExporterGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Data exporter"))
+        self.dataexporter_group.setChecked(True)
+
+        """ File information """
+        # attributes hdf5
+        self.hdf5_attributes_qtableview = QTableView(self)
+        self.hdf5_attributes_qtableview.setFrameShape(QFrame.NoFrame)
+        self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.hdf5_attributes_qtableview.verticalHeader().setVisible(False)
+        self.hdf5_attributes_qtableview.horizontalHeader().setVisible(False)
+
+        """ File selection """
+        # SELECTION FILE
+        selectionfile_layout = QHBoxLayout()
+        selectionfile_layout.addLayout(self.types_hdf5_layout)
+        selectionfile_layout.addLayout(self.names_hdf5_layout)
+        selectionfile_group = QGroupBox(self.tr("File selection"))
+        selectionfile_group.setLayout(selectionfile_layout)
+
+        """ File information """
+        # ATTRIBUTE GROUP
+        attributes_layout = QVBoxLayout()
+        attributes_layout.addWidget(self.hdf5_attributes_qtableview)
+        attributes_group = QGroupBox(self.tr("File informations"))
+        attributes_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        attributes_group.setLayout(attributes_layout)
+
+        # first line layout (selection + (graphic+export))
+        hbox_layout = QHBoxLayout()
+        hbox_layout.addWidget(selectionfile_group)
+
+        vbox_plot_export_layout = QVBoxLayout()
+        vbox_plot_export_layout.addWidget(self.plot_group)
+        vbox_plot_export_layout.addWidget(self.dataexporter_group)
+        vbox_plot_export_layout.setAlignment(Qt.AlignTop)
+        hbox_layout.addLayout(vbox_plot_export_layout)
+
+        # second line layout (attribute)
+        vbox_layout = QVBoxLayout()
+        vbox_layout.addWidget(attributes_group)
+
+        # global layout
+        global_layout = QVBoxLayout(self)
+        global_layout.addLayout(hbox_layout)
+        global_layout.addLayout(vbox_layout)
+
+        # add layout to group
+        self.setFrameShape(QFrame.NoFrame)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def resize_width_lists(self):
+        # names
+        if self.names_hdf5_QListWidget.count() != 0:
+            self.names_hdf5_QListWidget.setFixedWidth(
+                self.names_hdf5_QListWidget.sizeHintForColumn(0) + self.names_hdf5_QListWidget.sizeHintForColumn(
+                    0) * 0.1)
+        if self.names_hdf5_QListWidget.count() == 0:
+            self.names_hdf5_QListWidget.setFixedWidth(150)
+        # variables
+        if self.variable_QListWidget.count() != 0:
+            self.variable_QListWidget.setFixedWidth(
+                self.variable_QListWidget.sizeHintForColumn(0) + self.variable_QListWidget.sizeHintForColumn(0) * 0.1)
+        else:
+            self.variable_QListWidget.setFixedWidth(50)
+        # units
+        if self.units_QListWidget.count() != 0:
+            self.units_QListWidget.setFixedWidth(
+                self.units_QListWidget.sizeHintForColumn(0) + self.units_QListWidget.sizeHintForColumn(0) * 0.1)
+        else:
+            self.units_QListWidget.setFixedWidth(50)
+
+    def types_hdf5_change(self):
+        """
+        Ajust item list according to hdf5 type selected by user
+        """
+        index = self.types_hdf5_QComboBox.currentIndex()
+        # nothing
+        if index == 0:
+            self.names_hdf5_QListWidget.clear()
+            self.plot_group.variable_QListWidget.clear()
+            self.plot_group.units_QListWidget.clear()
+            self.dataexporter_group.change_layout(0)
+        # hydraulic
+        if index == 1:
+            names = hdf5_mod.get_filename_by_type("hydraulic", self.path_prj + r"/hdf5/")
+            self.names_hdf5_QListWidget.clear()
+            self.plot_group.variable_QListWidget.clear()
+            self.dataexporter_group.change_layout(0)
+            if names:
+                # change list widget
+                self.names_hdf5_QListWidget.addItems(names)
+                self.dataexporter_group.change_layout(1)
+        # substrate
+        if index == 2:
+            names = hdf5_mod.get_filename_by_type("substrate", self.path_prj + r"/hdf5/")
+            self.names_hdf5_QListWidget.clear()
+            self.plot_group.variable_QListWidget.clear()
+            self.dataexporter_group.change_layout(0)
+            if names:
+                # change list widget
+                self.names_hdf5_QListWidget.addItems(names)
+                self.dataexporter_group.change_layout(2)
+        # merge hab
+        if index == 3:
+            names = hdf5_mod.get_filename_by_type("habitat", self.path_prj + r"/hdf5/")
+            self.names_hdf5_QListWidget.clear()
+            self.plot_group.variable_QListWidget.clear()
+            self.dataexporter_group.change_layout(0)
+            if names:
+                # change list widget
+                self.names_hdf5_QListWidget.addItems(names)
+                self.dataexporter_group.change_layout(3)
+
+        # update progress bar
+        self.plot_group.count_plot()
+
+    def names_hdf5_change(self):
+        """
+        Ajust item list according to hdf5 filename selected by user
+        """
+        selection = self.names_hdf5_QListWidget.selectedItems()
+        self.plot_group.variable_QListWidget.clear()
+        self.plot_group.units_QListWidget.clear()
+        self.plot_group.reach_QListWidget.clear()
+
+        # one file selected
+        if len(selection) == 1:
+            hdf5name = selection[0].text()
+            self.plot_group.units_QListWidget.clear()
+
+            # create hdf5 class
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+
+            # hydraulic
+            if self.types_hdf5_QComboBox.currentIndex() == 1:
+                self.plot_group.variable_QListWidget.addItems(hdf5.variables)
+                if hdf5.reach_name:
+                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+
+            # substrat
+            if self.types_hdf5_QComboBox.currentIndex() == 2:
+                if hdf5.variables:  # if not False (from constant substrate) add items else nothing
+                    self.plot_group.variable_QListWidget.addItems(hdf5.variables)
+                    if hdf5.reach_name:
+                        self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+
+            # hab
+            if self.types_hdf5_QComboBox.currentIndex() == 3:
+                self.plot_group.variable_QListWidget.addItems(hdf5.variables)
+                if hdf5.reach_name:
+                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+
+            # display hdf5 attributes
+            tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
+            self.hdf5_attributes_qtableview.setModel(tablemodel)
+            header = self.hdf5_attributes_qtableview.horizontalHeader()
+            header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+            header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            self.hdf5_attributes_qtableview.verticalHeader().setDefaultSectionSize(self.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
+
+        else:
+            self.hdf5_attributes_qtableview.setModel(None)
+
+        # count plot
+        self.plot_group.count_plot()
+        # count exports
+        self.dataexporter_group.count_export()
+
+
+class FigureProducerGroup(QGroupBoxCollapsible):
+    """
+    This class is a subclass of class QGroupBox.
+    """
+
+    def __init__(self, path_prj, name_prj, send_log, title):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.send_log = send_log
+        self.setTitle(title)
+        self.plot_process_list = MyProcessList()
+        self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+        self.init_ui()
+
+    def init_ui(self):
         # variable_QListWidget
         self.variable_hdf5_QLabel = QLabel(self.tr('variables'))
         self.variable_QListWidget = QListWidget()
@@ -189,23 +379,6 @@ class DataExplorerFrame(QFrame):
         self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
 
-        """ File information """
-        # attributes hdf5
-        self.hdf5_attributes_qtableview = QTableView(self)
-        self.hdf5_attributes_qtableview.setFrameShape(QFrame.NoFrame)
-        self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.hdf5_attributes_qtableview.verticalHeader().setVisible(False)
-        self.hdf5_attributes_qtableview.horizontalHeader().setVisible(False)
-
-        """ File selection """
-        # SELECTION FILE
-        selectionfile_layout = QHBoxLayout()
-        selectionfile_layout.addLayout(self.types_hdf5_layout)
-        selectionfile_layout.addLayout(self.names_hdf5_layout)
-        selectionfile_group = QGroupBox(self.tr("File selection"))
-        selectionfile_group.setLayout(selectionfile_layout)
-
-        """ Figure producer """
         # PLOT GROUP
         plot_layout = QHBoxLayout()
         plot_layout.addLayout(self.variable_hdf5_layout, 4)  # stretch factor
@@ -222,55 +395,8 @@ class DataExplorerFrame(QFrame):
         plot_layout2.addLayout(plot_type_layout)
         # plot_layout2.addWidget(self.progress_bar)
         plot_layout2.addWidget(self.plot_process_list.progress_bar)
-        plot_group = QGroupBox(self.tr("Figure producer"))
-        plot_group.setLayout(plot_layout2)
-
-        """ File information """
-        # ATTRIBUTE GROUP
-        attributes_layout = QVBoxLayout()
-        attributes_layout.addWidget(self.hdf5_attributes_qtableview)
-        attributes_group = QGroupBox(self.tr("File informations"))
-        attributes_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        attributes_group.setLayout(attributes_layout)
-
-        # first line layout (selection + graphic)
-        hbox_layout = QHBoxLayout()
-        hbox_layout.addWidget(selectionfile_group)
-        hbox_layout.addWidget(plot_group)
-
-        # second line layout (attribute)
-        vbox_layout = QVBoxLayout()
-        vbox_layout.addWidget(attributes_group)
-
-        # global layout
-        global_layout = QVBoxLayout(self)
-        global_layout.addLayout(hbox_layout)
-        global_layout.addLayout(vbox_layout)
-
-        # add layout to group
-        self.setFrameShape(QFrame.NoFrame)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-    def resize_width_lists(self):
-        # names
-        if self.names_hdf5_QListWidget.count() != 0:
-            self.names_hdf5_QListWidget.setFixedWidth(
-                self.names_hdf5_QListWidget.sizeHintForColumn(0) + self.names_hdf5_QListWidget.sizeHintForColumn(
-                    0) * 0.1)
-        if self.names_hdf5_QListWidget.count() == 0:
-            self.names_hdf5_QListWidget.setFixedWidth(150)
-        # variables
-        if self.variable_QListWidget.count() != 0:
-            self.variable_QListWidget.setFixedWidth(
-                self.variable_QListWidget.sizeHintForColumn(0) + self.variable_QListWidget.sizeHintForColumn(0) * 0.1)
-        else:
-            self.variable_QListWidget.setFixedWidth(50)
-        # units
-        if self.units_QListWidget.count() != 0:
-            self.units_QListWidget.setFixedWidth(
-                self.units_QListWidget.sizeHintForColumn(0) + self.units_QListWidget.sizeHintForColumn(0) * 0.1)
-        else:
-            self.units_QListWidget.setFixedWidth(50)
+        #plot_group = QGroupBoxCollapsible(self.tr("Figure exporter/viewer"))
+        self.setLayout(plot_layout2)
 
     def count_plot(self):
         """
@@ -343,208 +469,15 @@ class DataExplorerFrame(QFrame):
             self.plot_process_list.progress_bar.setValue(0)
             self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
-    def types_hdf5_change(self):
-        """
-        Ajust item list according to hdf5 type selected by user
-        """
-        index = self.types_hdf5_QComboBox.currentIndex()
-        # nothing
-        if index == 0:
-            self.names_hdf5_QListWidget.clear()
-            self.variable_QListWidget.clear()
-            self.units_QListWidget.clear()
-        # hydraulic
-        if index == 1:
-            # get list of file name by type
-            names = hdf5_mod.get_filename_by_type("hydraulic", self.path_prj + r"/hdf5/")
-            self.names_hdf5_QListWidget.clear()
-            self.variable_QListWidget.clear()
-            if names:
-                # change list widget
-                self.names_hdf5_QListWidget.addItems(names)
-        # substrate
-        if index == 2:
-            # get list of file name by type
-            names = hdf5_mod.get_filename_by_type("substrate", self.path_prj + r"/hdf5/")
-            self.names_hdf5_QListWidget.clear()
-            self.variable_QListWidget.clear()
-            if names:
-                # change list widget
-                self.names_hdf5_QListWidget.addItems(names)
-        # merge hab
-        if index == 3:
-            # get list of file name by type
-            names = hdf5_mod.get_filename_by_type("habitat", self.path_prj + r"/hdf5/")
-            self.names_hdf5_QListWidget.clear()
-            self.variable_QListWidget.clear()
-            if names:
-                # change list widget
-                self.names_hdf5_QListWidget.addItems(names)
-
-        # update progress bar
-        self.count_plot()
-
-    def names_hdf5_change(self):
-        """
-        Ajust item list according to hdf5 filename selected by user
-        """
-        selection = self.names_hdf5_QListWidget.selectedItems()
-        self.variable_QListWidget.clear()
-        self.units_QListWidget.clear()
-        self.reach_QListWidget.clear()
-
-        # one file selected
-        if len(selection) == 1:
-            hdf5name = selection[0].text()
-            self.units_QListWidget.clear()
-
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
-
-            # hydraulic
-            if self.types_hdf5_QComboBox.currentIndex() == 1:
-                self.variable_QListWidget.addItems(hdf5.variables)
-                if hdf5.reach_name:
-                    self.reach_QListWidget.addItems(hdf5.reach_name)
-
-            # substrat
-            if self.types_hdf5_QComboBox.currentIndex() == 2:
-                if hdf5.variables:  # if not False (from constant substrate) add items else nothing
-                    self.variable_QListWidget.addItems(hdf5.variables)
-                    if hdf5.reach_name:
-                        self.reach_QListWidget.addItems(hdf5.reach_name)
-
-            # hab
-            if self.types_hdf5_QComboBox.currentIndex() == 3:
-                self.variable_QListWidget.addItems(hdf5.variables)
-                if hdf5.reach_name:
-                    self.reach_QListWidget.addItems(hdf5.reach_name)
-
-            # display hdf5 attributes
-            tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
-            self.hdf5_attributes_qtableview.setModel(tablemodel)
-            header = self.hdf5_attributes_qtableview.horizontalHeader()
-            header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-            header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.hdf5_attributes_qtableview.verticalHeader().setDefaultSectionSize(self.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
-
-        else:
-            self.hdf5_attributes_qtableview.setModel(None)
-        # # more than one file selected
-        # elif len(selection) > 1:
-        #     # clear attributes hdf5_attributes_qtableview
-        #     self.hdf5_attributes_qtableview.setModel(None)
-        #     nb_file = len(selection)
-        #     hdf5name = []
-        #     units = []
-        #     variables = []
-        #     for i in range(nb_file):
-        #         hdf5name.append(selection[i].text())
-        #         # create hdf5 class
-        #         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[i].text())
-        #         hdf5.get_hdf5_units_name()
-        #         hdf5.get_hdf5_variables()
-        #         units.append(hdf5.units_name)
-        #         variables_a = hdf5.variables
-        #         variables.append(variables_a)
-        #
-        #     # variables or units are differents
-        #     if not all(x == units[0] for x in units) or not all(x == variables[0] for x in variables):
-        #         # clean
-        #         self.names_hdf5_QListWidget.clearSelection()
-        #         self.units_QListWidget.clear()
-        #         # message to user
-        #         msg2 = QMessageBox(self)
-        #         msg2.setIcon(QMessageBox.Warning)
-        #         msg2.setWindowTitle(self.tr("Warning"))
-        #         msg2.setText(
-        #             self.tr("The selected files don't have same units !"))
-        #         msg2.setStandardButtons(QMessageBox.Ok)
-        #         msg2.show()
-        #
-        #     # same units
-        #     if all(x == units[0] for x in units) and all(x == variables[0] for x in variables):  # OK
-        #         units = units[0]
-        #         variables = variables[0]
-        #         self.units_QListWidget.clear()
-        #         self.variable_QListWidget.clear()
-        #         # hydraulic
-        #         if self.types_hdf5_QComboBox.currentIndex() == 1:
-        #             self.variable_QListWidget.addItems(variables)
-        #             self.units_QListWidget.addItems(units)
-        #         # substrat
-        #         if self.types_hdf5_QComboBox.currentIndex() == 2:
-        #             variables_without_duplicate = [x for i, x in enumerate(variables) if i == variables.index(x)][0]
-        #             if not False in variables_without_duplicate:  # if not False (from constant substrate) add items else nothing
-        #                 self.variable_QListWidget.addItems(variables_without_duplicate)
-        #                 units_without_duplicate = [x for i, x in enumerate(units) if i == units.index(x)][0]
-        #                 self.units_QListWidget.addItems(units_without_duplicate)
-        #         # merge hab
-        #         if self.types_hdf5_QComboBox.currentIndex() == 3:  # merge hab
-        #             self.variable_QListWidget.addItems(variables)
-        #             self.units_QListWidget.addItems(units)
-        # else:
-        #     self.hdf5_attributes_qtableview.setModel(None)
-        # count plot
-        self.count_plot()
-
-    def reach_hdf5_change(self):
-        """
-         Ajust item list according to hdf5 filename selected by user
-         """
-        selection_file = self.names_hdf5_QListWidget.selectedItems()
-        selection_reach = self.reach_QListWidget.selectedItems()
-        self.units_QListWidget.clear()
-
-        # one file selected
-        if len(selection_reach) == 1:
-            hdf5name = selection_file[0].text()
-            self.units_QListWidget.clear()
-
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
-
-            # add
-            self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
-
-        # more than one file selected
-        elif len(selection_reach) > 1:
-            # clear attributes hdf5_attributes_qtableview
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection_file[0].text())
-            hdf5.open_hdf5_file(False)
-            # check if units are equal between reachs
-            units_equal = True
-            for reach_num in range(len(hdf5.units_name) - 1):
-                if hdf5.units_name[reach_num] != hdf5.units_name[reach_num + 1]:
-                    units_equal = False
-            if units_equal:  # homogene units between reach
-                self.units_QListWidget.addItems(hdf5.units_name[0])
-            if not units_equal:  # heterogne units between reach
-                # clean
-                self.units_QListWidget.clear()
-                # message to user
-                msg2 = QMessageBox(self)
-                msg2.setIcon(QMessageBox.Warning)
-                msg2.setWindowTitle(self.tr("Warning"))
-                msg2.setText(
-                    self.tr("The selected files don't have same units !"))
-                msg2.setStandardButtons(QMessageBox.Ok)
-                msg2.show()
-
-        # count plot
-        self.count_plot()
-
     def collect_data_from_gui(self):
         """
         Get selected values by user
         """
         # types
-        types_hdf5 = self.types_hdf5_QComboBox.currentText()
+        types_hdf5 = self.parent().types_hdf5_QComboBox.currentText()
 
         # names
-        selection = self.names_hdf5_QListWidget.selectedItems()
+        selection = self.parent().names_hdf5_QListWidget.selectedItems()
         names_hdf5 = []
         for i in range(len(selection)):
             names_hdf5.append(selection[i].text())
@@ -595,6 +528,53 @@ class DataExplorerFrame(QFrame):
         types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
         self.plot(types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type)
 
+    def reach_hdf5_change(self):
+        """
+         Ajust item list according to hdf5 filename selected by user
+         """
+        selection_file = self.parent().names_hdf5_QListWidget.selectedItems()
+        selection_reach = self.reach_QListWidget.selectedItems()
+        self.units_QListWidget.clear()
+
+        # one file selected
+        if len(selection_reach) == 1:
+            hdf5name = selection_file[0].text()
+            self.units_QListWidget.clear()
+
+            # create hdf5 class
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+
+            # add
+            self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
+
+        # more than one file selected
+        elif len(selection_reach) > 1:
+            # clear attributes hdf5_attributes_qtableview
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection_file[0].text())
+            hdf5.open_hdf5_file(False)
+            # check if units are equal between reachs
+            units_equal = True
+            for reach_num in range(len(hdf5.units_name) - 1):
+                if hdf5.units_name[reach_num] != hdf5.units_name[reach_num + 1]:
+                    units_equal = False
+            if units_equal:  # homogene units between reach
+                self.units_QListWidget.addItems(hdf5.units_name[0])
+            if not units_equal:  # heterogne units between reach
+                # clean
+                self.units_QListWidget.clear()
+                # message to user
+                msg2 = QMessageBox(self)
+                msg2.setIcon(QMessageBox.Warning)
+                msg2.setWindowTitle(self.tr("Warning"))
+                msg2.setText(
+                    self.tr("The selected files don't have same units !"))
+                msg2.setStandardButtons(QMessageBox.Ok)
+                msg2.show()
+
+        # count plot
+        self.count_plot()
+
     def plot(self, types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type):
         """
         Plot
@@ -643,7 +623,7 @@ class DataExplorerFrame(QFrame):
             self.plot_production_stoped = False
 
             # figure option
-            project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
+            project_preferences = load_project_preferences(self.path_prj,
                                                                self.name_prj)
             project_preferences['type_plot'] = export_type  # "display", "export", "both"
 
@@ -831,6 +811,358 @@ class DataExplorerFrame(QFrame):
         self.plot_button.setEnabled(True)
         # disable stop button
         self.plot_stop_button.setEnabled(False)
+
+
+class DataExporterGroup(QGroupBoxCollapsible):
+    """
+    This class is a subclass of class QGroupBox.
+    """
+
+    def __init__(self, path_prj, name_prj, send_log, title):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.send_log = send_log
+        self.setTitle(title)
+        self.plot_process_list = MyProcessList()
+        self.current_type = 0
+        self.checkbox_list = []
+        self.nb_export = 0
+        self.all_export_keys_available = ["mesh_whole_profile",
+                                          "point_whole_profile",
+                                          "mesh_units",
+                                          "point_units",
+                                          "elevation_whole_profile",
+                                          "variables_units",
+                                          "detailled_text",
+                                          "fish_information"]
+        self.init_ui()
+
+    def init_ui(self):
+        # connect double click to group
+        self.doubleclick_check_uncheck_filter = DoubleClicOutputGroup()
+        self.installEventFilter(self.doubleclick_check_uncheck_filter)
+        self.doubleclick_check_uncheck_filter.double_clic_signal.connect(self.check_uncheck_all_checkboxs_at_once)
+
+        """ hyd_export widgets """
+        self.mesh_whole_profile_hyd = QCheckBox("")
+        self.mesh_whole_profile_hyd.setObjectName("mesh_whole_profile_hyd")
+        self.mesh_whole_profile_hyd.stateChanged.connect(self.count_export)
+        self.point_whole_profile_hyd = QCheckBox("")
+        self.point_whole_profile_hyd.setObjectName("point_whole_profile_hyd")
+        self.point_whole_profile_hyd.stateChanged.connect(self.count_export)
+        self.mesh_units_hyd = QCheckBox("")
+        self.mesh_units_hyd.setObjectName("mesh_units_hyd")
+        self.mesh_units_hyd.stateChanged.connect(self.count_export)
+        self.point_units_hyd = QCheckBox("")
+        self.point_units_hyd.setObjectName("point_units_hyd")
+        self.point_units_hyd.stateChanged.connect(self.count_export)
+        self.elevation_whole_profile_hyd = QCheckBox("")
+        self.elevation_whole_profile_hyd.setObjectName("elevation_whole_profile_hyd")
+        self.elevation_whole_profile_hyd.stateChanged.connect(self.count_export)
+        self.variables_units_hyd = QCheckBox("")
+        self.variables_units_hyd.setObjectName("variables_units_hyd")
+        self.variables_units_hyd.stateChanged.connect(self.count_export)
+        self.detailled_text_hyd = QCheckBox("")
+        self.detailled_text_hyd.setObjectName("detailled_text_hyd")
+        self.detailled_text_hyd.stateChanged.connect(self.count_export)
+        self.hyd_checkbox_list = [self.mesh_whole_profile_hyd,
+                                  self.point_whole_profile_hyd,
+                                  self.mesh_units_hyd,
+                                  self.point_units_hyd,
+                                  self.elevation_whole_profile_hyd,
+                                  self.variables_units_hyd,
+                                  self.detailled_text_hyd]
+
+        """ hab_export widgets """
+        self.mesh_units_hab = QCheckBox("")
+        self.mesh_units_hab.setObjectName("mesh_units_hab")
+        self.mesh_units_hab.stateChanged.connect(self.count_export)
+        self.point_units_hab = QCheckBox("")
+        self.point_units_hab.setObjectName("point_units_hab")
+        self.point_units_hab.stateChanged.connect(self.count_export)
+        self.elevation_whole_profile_hab = QCheckBox("")
+        self.elevation_whole_profile_hab.setObjectName("elevation_whole_profile_hab")
+        self.elevation_whole_profile_hab.stateChanged.connect(self.count_export)
+        self.variables_units_hab = QCheckBox("")
+        self.variables_units_hab.setObjectName("variables_units_hab")
+        self.variables_units_hab.stateChanged.connect(self.count_export)
+        self.detailled_text_hab = QCheckBox("")
+        self.detailled_text_hab.setObjectName("detailled_text_hab")
+        self.detailled_text_hab.stateChanged.connect(self.count_export)
+        self.fish_information_hab = QCheckBox("")
+        self.fish_information_hab.setObjectName("fish_information_hab")
+        self.fish_information_hab.stateChanged.connect(self.count_export)
+        self.hab_checkbox_list = [self.mesh_units_hab,
+                                  self.point_units_hab,
+                                  self.elevation_whole_profile_hab,
+                                  self.variables_units_hab,
+                                  self.detailled_text_hab,
+                                  self.fish_information_hab]
+
+        """ data_exporter widgets """
+        self.data_exporter_run_pushbutton = QPushButton(self.tr("run"))
+        self.data_exporter_run_pushbutton.clicked.connect(self.start_export)
+        self.data_exporter_run_pushbutton.setFixedWidth(110)
+        self.data_exporter_run_pushbutton.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.data_exporter_run_pushbutton.setEnabled(True)
+        self.data_exporter_stop_pushbutton = QPushButton(self.tr("stop"))
+        self.data_exporter_stop_pushbutton.clicked.connect(self.stop_export)
+        self.data_exporter_stop_pushbutton.setEnabled(False)
+        self.data_exporter_stop_pushbutton.setFixedWidth(110)
+        self.data_exporter_stop_pushbutton.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+
+        """ empty layout """
+        self.empty_export_layout = QGridLayout()
+        self.empty_export_widget = QWidget()
+        self.empty_export_widget.setLayout(self.empty_export_layout)
+
+        """ hyd_export layout """
+        self.hyd_export_layout = QGridLayout()
+        # row 1
+        self.hyd_export_layout.addWidget(QLabel("Geopackage (.gpkg)"), 1, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Mesh whole profile")), 1, 1)
+        self.hyd_export_layout.addWidget(self.mesh_whole_profile_hyd, 1, 2, Qt.AlignCenter)
+        # row 2
+        self.hyd_export_layout.addWidget(QLabel("Geopackage (.gpkg)"), 2, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Point whole profile")), 2, 1)
+        self.hyd_export_layout.addWidget(self.point_whole_profile_hyd, 2, 2, Qt.AlignCenter)
+        # row 3
+        self.hyd_export_layout.addWidget(QLabel("Geopackage (.gpkg)"), 3, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Mesh units")), 3, 1)
+        self.hyd_export_layout.addWidget(self.mesh_units_hyd, 3, 2, Qt.AlignCenter)
+        # row 4
+        self.hyd_export_layout.addWidget(QLabel("Geopackage (.gpkg)"), 4, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Point units")), 4, 1)
+        self.hyd_export_layout.addWidget(self.point_units_hyd, 4, 2, Qt.AlignCenter)
+        # row 5
+        self.hyd_export_layout.addWidget(QHLine(), 5, 0, 1, 3)
+        # row 6
+        self.hyd_export_layout.addWidget(QLabel("3D (.stl)"), 6, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Mesh whole profile")), 6, 1)
+        self.hyd_export_layout.addWidget(self.elevation_whole_profile_hyd, 6, 2, Qt.AlignCenter)
+        # row 7
+        self.hyd_export_layout.addWidget(QLabel("3D (.pvd, .vtu)"), 7, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Variables units")), 7, 1)
+        self.hyd_export_layout.addWidget(self.variables_units_hyd, 7, 2, Qt.AlignCenter)
+        # row 8
+        self.hyd_export_layout.addWidget(QHLine(), 8, 0, 1, 3)
+        # row 9
+        self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 9, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled txt file")), 9, 1)
+        self.hyd_export_layout.addWidget(self.detailled_text_hyd, 9, 2, Qt.AlignCenter)
+        # hyd_export_widget
+        self.hyd_export_widget = QWidget()
+        self.hyd_export_widget.hide()
+        self.hyd_export_widget.setLayout(self.hyd_export_layout)
+
+        """ hab_export_layout """
+        self.hab_export_layout = QGridLayout()
+        # row 3
+        self.hab_export_layout.addWidget(QLabel("Geopackage (.gpkg)"), 3, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Mesh units")), 3, 1)
+        self.hab_export_layout.addWidget(self.mesh_units_hab, 3, 2, Qt.AlignCenter)
+        # row 4
+        self.hab_export_layout.addWidget(QLabel("Geopackage (.gpkg)"), 4, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Point units")), 4, 1)
+        self.hab_export_layout.addWidget(self.point_units_hab, 4, 2, Qt.AlignCenter)
+        # row 5
+        self.hab_export_layout.addWidget(QHLine(), 5, 0, 1, 4)
+        # row 6
+        self.hab_export_layout.addWidget(QLabel("3D (.stl)"), 6, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Mesh whole profile")), 6, 1)
+        self.hab_export_layout.addWidget(self.elevation_whole_profile_hab, 6, 2, Qt.AlignCenter)
+        # row 7
+        self.hab_export_layout.addWidget(QLabel("3D (.pvd, .vtu)"), 7, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Variables units")), 7, 1)
+        self.hab_export_layout.addWidget(self.variables_units_hab, 7, 2, Qt.AlignCenter)
+        # row 9
+        self.hab_export_layout.addWidget(QHLine(), 9, 0, 1, 4)
+        # row 10
+        self.hab_export_layout.addWidget(QLabel("Text (.txt)"), 10, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled txt file")), 10, 1)
+        self.hab_export_layout.addWidget(self.detailled_text_hab, 10, 2, Qt.AlignCenter)
+        # row 11
+        self.hab_export_layout.addWidget(QLabel("Text (.pdf)"), 11, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 11, 1)
+        self.hab_export_layout.addWidget(self.fish_information_hab, 11, 2, Qt.AlignCenter)
+        # hab_export_widget
+        self.hab_export_widget = QWidget()
+        self.hab_export_widget.hide()
+        self.hab_export_widget.setLayout(self.hab_export_layout)
+
+        """ run_stop_layout """
+        run_stop_layout = QVBoxLayout()
+        run_stop_layout.addWidget(self.data_exporter_run_pushbutton)
+        run_stop_layout.addWidget(self.data_exporter_stop_pushbutton)
+
+
+        """ data_exporter layout """
+        self.data_exporter_layout = QGridLayout()
+        self.data_exporter_layout.addWidget(self.empty_export_widget, 0, 0)
+        self.data_exporter_layout.addWidget(self.hyd_export_widget, 0, 0)
+        self.data_exporter_layout.addWidget(self.hab_export_widget, 0, 0)
+        self.data_exporter_layout.addLayout(run_stop_layout, 0, 1)
+        self.data_exporter_layout.addWidget(self.plot_process_list.progress_bar, 1, 0, 1, 2)
+        self.setLayout(self.data_exporter_layout)
+
+    def change_layout(self, type):
+        if type == 0:
+            self.empty_export_widget.show()
+            self.hyd_export_widget.hide()
+            self.hab_export_widget.hide()
+            self.checkbox_list = []
+            self.current_type = 0
+        if type == 1:
+            self.empty_export_widget.hide()
+            self.hyd_export_widget.show()
+            self.hab_export_widget.hide()
+            self.checkbox_list = self.hyd_checkbox_list
+            self.current_type = 1
+        if type == 2:
+            self.empty_export_widget.show()
+            self.hyd_export_widget.hide()
+            self.hab_export_widget.hide()
+            self.checkbox_list = []
+            self.current_type = 2
+        if type == 3:
+            self.empty_export_widget.hide()
+            self.hyd_export_widget.hide()
+            self.hab_export_widget.show()
+            self.checkbox_list = self.hab_checkbox_list
+            self.current_type = 3
+
+    def check_uncheck_all_checkboxs_at_once(self):
+        checked = False
+
+        if self.current_type == 0:
+            self.checkbox_list = []
+
+        if self.current_type == 1:
+            checked = self.mesh_whole_profile_hyd.isChecked()
+
+        if self.current_type == 2:
+            self.checkbox_list = []
+            checked = False
+
+        if self.current_type == 3:
+            checked = self.mesh_units_hab.isChecked()
+
+        # uncheck all
+        if checked:
+            [checkbox.setChecked(False) for checkbox in self.checkbox_list]
+        else:
+            [checkbox.setChecked(True) for checkbox in self.checkbox_list]
+
+    def collect_data_from_gui(self):
+        """
+        Get selected values by user
+        """
+        # types
+        types_hdf5 = self.parent().types_hdf5_QComboBox.currentText()
+
+        # names
+        selection = self.parent().names_hdf5_QListWidget.selectedItems()
+        names_hdf5 = []
+        for i in range(len(selection)):
+            names_hdf5.append(selection[i].text())
+
+        # exports
+        export_names = [checkbox.objectName() for checkbox in self.checkbox_list]
+        export_activated = [checkbox.isChecked() for checkbox in self.checkbox_list]
+        export_dict = dict(zip(export_names, export_activated))
+
+
+        # store values
+        return types_hdf5, names_hdf5, export_dict
+
+    def count_export(self):
+        """
+        count number of export to produce and ajust progress bar range
+        """
+        types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
+
+        if types_hdf5 and names_hdf5 and any(export_dict.values()):
+            self.nb_export = len(names_hdf5)
+
+            # set prog
+            if self.nb_export != 0:
+                self.plot_process_list.progress_bar.setRange(0, self.nb_export)
+            self.plot_process_list.progress_bar.setValue(0)
+            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_export))
+        else:
+            self.nb_export = 0
+            # set prog
+            self.plot_process_list.progress_bar.setValue(0)
+            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
+
+    def start_export(self):
+        types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
+        if not types_hdf5:
+            self.send_log.emit('Error: No hdf5 type selected.')
+        if not names_hdf5:
+            self.send_log.emit('Error: No hdf5 file selected.')
+        if self.nb_export == 0:
+            self.send_log.emit('Error: No export choosen.')
+
+        # Go export
+        if types_hdf5 and names_hdf5:
+            # disable
+            self.data_exporter_run_pushbutton.setEnabled(False)
+            # active stop button
+            self.data_exporter_stop_pushbutton.setEnabled(True)
+            self.export_production_stoped = False
+
+            # figure option
+            project_preferences = load_project_preferences(self.path_prj,
+                                                           self.name_prj)
+
+            # check plot process done
+            if self.plot_process_list.check_all_plot_closed():
+                self.plot_process_list.new_plots(self.nb_export)
+            else:
+                self.plot_process_list.add_plots(self.nb_export)
+
+            # progress bar
+            self.plot_process_list.progress_bar.setValue(0)
+            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_export))
+            QCoreApplication.processEvents()
+
+            # loop on all desired hdf5 file
+            for name_hdf5 in names_hdf5:
+                if not self.export_production_stoped:  # stop loop with button
+                    # fake temporary project_preferences
+                    if self.current_type == 1:  # hydraulic
+                        index_dict = 0
+                    else:
+                        index_dict = 1
+
+                    # set to False all export before setting specific export to True
+                    for key in self.all_export_keys_available:
+                        project_preferences[key][index_dict] = False
+
+                    # setting specific export to True
+                    for key in export_dict.keys():
+                        project_preferences[key[:-4]][index_dict] = export_dict[key]
+
+                    # create hdf5 class by file
+                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name_hdf5)
+
+                    # export all cases
+                    state = Value("i", 0)
+                    habitat_map_process = Process(target=hdf5.export_all_output,
+                                                  args=(state,
+                                                        project_preferences))
+                    self.plot_process_list.append((habitat_map_process, state))
+
+
+            # activate
+            self.data_exporter_run_pushbutton.setEnabled(True)
+            # disable stop button
+            self.data_exporter_stop_pushbutton.setEnabled(False)
+
+    def stop_export(self):
+        aa = 1
 
 
 class MyProcessList(list):

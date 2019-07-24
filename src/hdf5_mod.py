@@ -59,6 +59,7 @@ class Hdf5Management:
         self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.xml')
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
+        self.export_source = "auto"  # or "manual" if export launched from data explorer
         # hdf5 file attributes
         self.path = os.path.join(path_prj, "hdf5")  # relative path
         self.filename = hdf5_filename  # filename with extension
@@ -1096,7 +1097,35 @@ class Hdf5Management:
         self.export_paraview()
         self.export_spu_txt()
         self.export_detailled_mesh_txt()
-        self.export_pdf(path_bio)
+        self.export_pdf()
+
+    # EXPORT ALL
+    def export_all_output(self, state, project_preferences, path_bio=""):
+        self.export_source = "manual"
+        # read hdf5 data (get desired units)
+        if self.hdf5_type == "hydraulic":
+            # load hydraulic data
+            self.load_hdf5_hyd(whole_profil=True)
+        if self.hdf5_type == "substrate":
+            # load substrate data
+            self.load_hdf5_sub()
+        if self.hdf5_type == "habitat":
+            # load habitat data
+            self.load_hdf5_hab(whole_profil=True)
+
+        # fake temporary project_preferences
+        self.project_preferences = project_preferences
+
+        # exports
+        self.export_mesh_gpkg()
+        self.export_point_gpkg()
+        self.export_stl()
+        self.export_paraview()
+        self.export_detailled_mesh_txt()
+        self.export_detailled_point_txt()
+        self.export_pdf()
+
+        state.value = 1  # process finished
 
     # EXPORT SHP
     def export_mesh_shp(self):
@@ -1774,7 +1803,7 @@ class Hdf5Management:
                 fish_names = []
 
         # if fish : not need point (only created when .hab creation)
-        if fish_names:
+        if fish_names and self.export_source == "auto":
             return
 
         # CRS
@@ -2346,7 +2375,7 @@ class Hdf5Management:
                     # write file
                     f.write(data_here)
 
-    def export_pdf(self, path_bio):
+    def export_pdf(self):
         """
         # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
         This functionc create a pdf with information about the fish.

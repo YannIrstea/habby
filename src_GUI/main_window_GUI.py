@@ -250,7 +250,7 @@ class MainWindows(QMainWindow):
 
         # bio_model_explorer_dialog
         self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+                                                                self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
         self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
         self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
         self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)

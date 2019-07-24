@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QFrame, QSizePolicy, QSpacerItem, QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
+from PyQt5.QtWidgets import QFrame, QSizePolicy, QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QComboBox, QMessageBox, QFormLayout, QCheckBox
 
 try:
@@ -193,7 +193,7 @@ class PreferenceWindow(QDialog):
 
         # exports options
         self.layout_available_exports = QGridLayout()
-        available_exports_group = QGroupBox(self.tr("Output"))
+        available_exports_group = QGroupBox(self.tr("Default exports"))
         self.doubleclick_check_uncheck_filter = DoubleClicOutputGroup()
         available_exports_group.installEventFilter(self.doubleclick_check_uncheck_filter)
         self.doubleclick_check_uncheck_filter.double_clic_signal.connect(self.check_uncheck_all_checkboxs_at_once)
@@ -205,37 +205,37 @@ class PreferenceWindow(QDialog):
         self.layout_available_exports.addWidget(QLabel(".hyd"), 0, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(QLabel(".hab"), 0, 3, Qt.AlignCenter)
         # row 1
-        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 1, 0)
+        self.layout_available_exports.addWidget(QLabel("Geopackage (.gpkg)"), 1, 0)
         self.layout_available_exports.addWidget(QLabel(self.tr("Mesh whole profile")), 1, 1)
         self.layout_available_exports.addWidget(self.mesh_whole_profile_hyd, 1, 2, Qt.AlignCenter)
         # row 2
-        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 2, 0)
+        self.layout_available_exports.addWidget(QLabel("Geopackage (.gpkg)"), 2, 0)
         self.layout_available_exports.addWidget(QLabel(self.tr("Point whole profile")), 2, 1)
         self.layout_available_exports.addWidget(self.point_whole_profile_hyd, 2, 2, Qt.AlignCenter)
         # row 3
-        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 3, 0)
+        self.layout_available_exports.addWidget(QLabel("Geopackage (.gpkg)"), 3, 0)
         self.layout_available_exports.addWidget(QLabel(self.tr("Mesh units")), 3, 1)
         self.layout_available_exports.addWidget(self.mesh_units_hyd, 3, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(self.mesh_units_hab, 3, 3, Qt.AlignCenter)
         # row 4
-        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 4, 0)
+        self.layout_available_exports.addWidget(QLabel("Geopackage (.gpkg)"), 4, 0)
         self.layout_available_exports.addWidget(QLabel(self.tr("Point units")), 4, 1)
         self.layout_available_exports.addWidget(self.point_units_hyd, 4, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(self.point_units_hab, 4, 3, Qt.AlignCenter)
         # row 5
         self.layout_available_exports.addWidget(QHLine(), 5, 0, 1, 4)
         # row 6
-        self.layout_available_exports.addWidget(vertical_exaggeration, 6, 0, 1, 2)
-        self.layout_available_exports.addWidget(self.vertical_exaggeration_lineedit, 6, 2, 1, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(QLabel("3D (.stl)"), 6, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh whole profile")), 6, 1)
+        self.layout_available_exports.addWidget(self.elevation_whole_profile_hyd, 6, 2, Qt.AlignCenter)
         # row 7
-        self.layout_available_exports.addWidget(QLabel("3D (.stl)"), 7, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh whole profile")), 7, 1)
-        self.layout_available_exports.addWidget(self.elevation_whole_profile_hyd, 7, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(QLabel("3D (.pvd, .vtu)"), 7, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Variables units")), 7, 1)
+        self.layout_available_exports.addWidget(self.variables_units_hyd, 7, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(self.variables_units_hab, 7, 3, Qt.AlignCenter)
         # row 8
-        self.layout_available_exports.addWidget(QLabel("3D (.pvd, .vtu)"), 8, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Variables units")), 8, 1)
-        self.layout_available_exports.addWidget(self.variables_units_hyd, 8, 2, Qt.AlignCenter)
-        self.layout_available_exports.addWidget(self.variables_units_hab, 8, 3, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(vertical_exaggeration, 8, 0, 1, 2)
+        self.layout_available_exports.addWidget(self.vertical_exaggeration_lineedit, 8, 2, 1, 2, Qt.AlignCenter)
         # row 9
         self.layout_available_exports.addWidget(QHLine(), 9, 0, 1, 4)
         # row 10
