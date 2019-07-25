@@ -29,7 +29,9 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
 from PyQt5.QtGui import QIcon
 import h5py
 from multiprocessing import Process, Queue, Value
-from sridentify import Sridentify
+from osgeo import ogr
+from osgeo import osr
+
 from src import hec_ras1D_mod
 from src import hec_ras2D_mod
 from src import telemac_mod
@@ -5344,9 +5346,16 @@ class SubstrateW(SubHydroW):
                         "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
                     epsg_code = "unknown"
                 if os.path.isfile(os.path.join(dirname, blob + ".prj")):
-                    ident = Sridentify()
-                    ident.from_file(os.path.join(dirname, blob + ".prj"))
-                    epsg_code = ident.get_epsg()
+                    # ident = Sridentify()
+                    # ident.from_file(os.path.join(dirname, blob + ".prj"))
+                    # epsg_code = ident.get_epsg()
+                    driver = ogr.GetDriverByName('ESRI Shapefile')
+                    file_shp = driver.Open(os.path.join(dirname, blob + ".shp"))
+                    layer = file_shp.GetLayer()
+                    inSpatialRef  = layer.GetSpatialRef()
+                    sr = osr.SpatialReference(str(inSpatialRef))
+                    res = sr.AutoIdentifyEPSG()
+                    epsg_code = int(sr.GetAuthorityCode(None))
 
                 # save to attributes
                 self.namefile[0] = filename
