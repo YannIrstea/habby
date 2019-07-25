@@ -1100,7 +1100,7 @@ class Hdf5Management:
         self.export_pdf()
 
     # EXPORT ALL
-    def export_all_output(self, state, project_preferences, path_bio=""):
+    def export_all_output(self, state, project_preferences):
         self.export_source = "manual"
         # read hdf5 data (get desired units)
         if self.hdf5_type == "hydraulic":

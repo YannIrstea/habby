@@ -27,6 +27,33 @@ from src import tools_mod
 from src import plot_mod
 
 
+class QGroupBoxCollapsible(QGroupBox):
+    def __init__(self):
+        super().__init__()
+        # group title
+        self.setCheckable(True)
+        self.setStyleSheet(
+            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
+        )
+        #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
+        self.toggled.connect(lambda: self.toggle_group(self))
+        self.setChecked(True)
+
+    def toggle_group(self, ctrl):
+        state = ctrl.isChecked()
+        if state:
+            ctrl.setFixedHeight(ctrl.sizeHint().height())
+        else:
+            ctrl.setFixedHeight(30)
+
+
 class ToolsTab(QScrollArea):
     """
     This class contains the tab with Graphic production biological information (the curves of preference).
@@ -87,33 +114,6 @@ class ToolsTab(QScrollArea):
             names = [""] + names
             # change list widget
             self.interpolation_group.hab_filenames_qcombobox.addItems(names)
-
-
-class QGroupBoxCollapsible(QGroupBox):
-    def __init__(self):
-        super().__init__()
-        # group title
-        self.setCheckable(True)
-        self.setStyleSheet(
-            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-        )
-        #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
-        self.toggled.connect(lambda: self.toggle_group(self))
-        self.setChecked(True)
-
-    def toggle_group(self, ctrl):
-        state = ctrl.isChecked()
-        if state:
-            ctrl.setFixedHeight(ctrl.sizeHint().height())
-        else:
-            ctrl.setFixedHeight(30)
 
 
 class InterpolationGroup(QGroupBoxCollapsible):
@@ -610,5 +610,3 @@ class MyTableModel(QStandardItemModel):
         for row_nb in range(len(self.rownames)):
             data_to_get.append(self.item(row_nb, col_index).text())
         return data_to_get
-
-

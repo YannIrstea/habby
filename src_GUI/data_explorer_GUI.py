@@ -22,7 +22,7 @@ from src_GUI.preferences_GUI import load_project_preferences, QHLine, DoubleClic
 from src_GUI.tools_GUI import QGroupBoxCollapsible
 from src import hdf5_mod
 from src import plot_mod
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process, Value
 import os
 
 
@@ -1032,6 +1032,10 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.hab_export_widget.show()
             self.checkbox_list = self.hab_checkbox_list
             self.current_type = 3
+        # refresh group gui
+        if self.isChecked():  # if open
+            self.setChecked(False)  # close group
+            self.setChecked(True)  # open group
 
     def check_uncheck_all_checkboxs_at_once(self):
         checked = False
@@ -1163,7 +1167,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_stop_pushbutton.setEnabled(False)
 
     def stop_export(self):
-        aa = 1
+        # stop plot production
+        self.export_production_stoped = True
+        # activate
+        self.plot_button.setEnabled(True)
+        # disable stop button
+        self.plot_stop_button.setEnabled(False)
 
 
 class MyProcessList(list):
