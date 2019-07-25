@@ -68,7 +68,7 @@ class UserPreferences(AppDataFolders):
         # MODEL BIO
         self.create_or_update_biology_models_json()
 
-    # preferences
+    # PREFERENCES
     def create_and_clear_temp_folder(self):
         # if not exist : craete it
         if not os.path.isdir(self.user_preferences_temp_path):
@@ -239,4 +239,4 @@ class UserPreferences(AppDataFolders):
 
 user_preferences = UserPreferences()
 user_preferences.create_user_preferences_structure()
-print("create instance", user_preferences)
+#print("create instance", user_preferences)

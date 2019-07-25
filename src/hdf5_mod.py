@@ -53,8 +53,8 @@ class Hdf5Management:
         self.hdf5_version = h5py.version.hdf5_version
         # project attributes
         self.path_prj = path_prj  # relative path to project
-        self.path_shp = os.path.join(self.path_prj, r"output\shapefiles")
-        self.path_visualisation = os.path.join(self.path_prj, r"output\visualisation")
+        self.path_shp = os.path.join(self.path_prj, "output", "GIS")
+        self.path_visualisation = os.path.join(self.path_prj, "output", "3D")
         self.name_prj = os.path.basename(path_prj)  # name of project
         self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.xml')
         # hdf5 attributes fix

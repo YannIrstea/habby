@@ -23,6 +23,7 @@ from src_GUI.tools_GUI import QGroupBoxCollapsible
 from src import hdf5_mod
 from src import plot_mod
 from multiprocessing import Process, Queue, Value
+import os
 
 
 class DataExplorerTab(QScrollArea):
@@ -212,7 +213,7 @@ class DataExplorerFrame(QFrame):
             self.dataexporter_group.change_layout(0)
         # hydraulic
         if index == 1:
-            names = hdf5_mod.get_filename_by_type("hydraulic", self.path_prj + r"/hdf5/")
+            names = hdf5_mod.get_filename_by_type("hydraulic", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
             self.dataexporter_group.change_layout(0)
@@ -222,7 +223,7 @@ class DataExplorerFrame(QFrame):
                 self.dataexporter_group.change_layout(1)
         # substrate
         if index == 2:
-            names = hdf5_mod.get_filename_by_type("substrate", self.path_prj + r"/hdf5/")
+            names = hdf5_mod.get_filename_by_type("substrate", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
             self.dataexporter_group.change_layout(0)
@@ -232,7 +233,7 @@ class DataExplorerFrame(QFrame):
                 self.dataexporter_group.change_layout(2)
         # merge hab
         if index == 3:
-            names = hdf5_mod.get_filename_by_type("habitat", self.path_prj + r"/hdf5/")
+            names = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
             self.dataexporter_group.change_layout(0)
@@ -631,8 +632,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
 
             # path
-            path_hdf5 = self.path_prj + r"/hdf5/"
-            path_im = self.path_prj + r"/output/figures/"
+            path_hdf5 = os.path.join(self.path_prj, "hdf5")
+            path_im = os.path.join(self.path_prj, "output", "figures")
 
             # check plot process done
             if self.plot_process_list.check_all_plot_closed():
