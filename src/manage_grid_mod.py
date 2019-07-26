@@ -29,10 +29,7 @@ import bisect
 import sys
 from src_GUI import preferences_GUI
 from src import calcul_hab_mod
-from src.tools_mod import profileit
-
-
-# np.set_printoptions(threshold=np.inf)
+from src.dev_tools import profileit
 
 
 def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1):
