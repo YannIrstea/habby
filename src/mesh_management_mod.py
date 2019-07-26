@@ -301,72 +301,227 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                     vel_before = hdf5_hydro.data_2d["v"][reach_num][unit_num]
                     height_before = hdf5_hydro.data_2d["h"][reach_num][unit_num]
 
-                    # find intersection betweeen hydrology and substrate
-                    [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
-                        find_sub_and_cross2(extent_hyd,extent_sub,hdf5_sub.data_2d["tin"][reach_num][0],
-                                           hdf5_sub.data_2d["xy"][reach_num][0],
-                                           hdf5_sub.data_2d["sub"][reach_num][0],
-                                           hdf5_hydro.data_2d["tin"][reach_num][unit_num],
-                                           hdf5_hydro.data_2d["xy"][reach_num][unit_num],
-                                           progress_value, delta,
-                                           first_time)
+                    ikle_sub=hdf5_sub.data_2d["tin"][reach_num][0]
+                    coord_p_sub=hdf5_sub.data_2d["xy"][reach_num][0]
+                    ikle= hdf5_hydro.data_2d["tin"][reach_num][unit_num]
+                    coord_p = hdf5_hydro.data_2d["xy"][reach_num][unit_num]
+
+
+                    extent_all = [int(min(extent_hyd[0], extent_sub[0]) / 10) * 10 - 10,
+                                  int(min(extent_hyd[1], extent_sub[1]) / 10) * 10 - 10,
+                                  int(max(extent_hyd[2], extent_sub[2]) / 10) * 10 + 10,
+                                  int(max(extent_hyd[3], extent_sub[3]) / 10) * 10 + 10]
+                    dx, dy, dxy = extent_all[2] - extent_all[0], extent_all[3] - extent_all[1], 10
+                    nbgridx, nbgridy = int(dx / dxy), int(dy / dxy)
+
+                    coord_p_subx = coord_p_sub[:, 0]
+                    coord_p_suby = coord_p_sub[:, 1]
+                    # for each substrate element get xmin, xmax ,ymin,ymax
+                    px = np.array(
+                        [coord_p_subx[ikle_sub[:, 0]], coord_p_subx[ikle_sub[:, 1]], coord_p_subx[ikle_sub[:, 2]]])
+                    py = np.array(
+                        [coord_p_suby[ikle_sub[:, 0]], coord_p_suby[ikle_sub[:, 1]], coord_p_suby[ikle_sub[:, 2]]])
+                    max_px = np.max(px, 0)
+                    min_px = np.min(px, 0)
+                    max_py = np.max(py, 0)
+                    min_py = np.min(py, 0)
+                    ixgmin = ((min_px - extent_all[0]) / dxy + 1).astype(int)
+                    ixgmax = ((max_px - extent_all[0]) / dxy + 1).astype(int)
+                    iygmin = ((min_py - extent_all[1]) / dxy + 1).astype(int)
+                    iygmax = ((max_py - extent_all[1]) / dxy + 1).astype(int)
+                    repsub = []
+                    # build the list of couple (of grid position (by a single number) associata with  substrate element index)
+                    for isub in range(len(ikle_sub)):
+                        for ix in range(ixgmin[isub], ixgmax[isub] + 1):
+                            for iy in range(iygmin[isub], iygmax[isub] + 1):
+                                repsub.append([ix + (iy - 1) * nbgridx, isub])
+                    arepsub = np.array(repsub)
+                    # sort by grid cell index,substrate element index
+                    arepsub = arepsub[np.lexsort((arepsub[:, 1], arepsub[:, 0]))]
+
+                    ipnew = len(coord_p)
+
+                    # TODO factoriser cf ci-dessus
+                    coord_p_hydx = coord_p[:, 0]
+                    coord_p_hydy = coord_p[:, 1]
+                    px = np.array([coord_p_hydx[ikle[:, 0]], coord_p_hydx[ikle[:, 1]], coord_p_hydx[ikle[:, 2]]])
+                    py = np.array([coord_p_hydy[ikle[:, 0]], coord_p_hydy[ikle[:, 1]], coord_p_hydy[ikle[:, 2]]])
+                    max_px = np.max(px, 0)
+                    min_px = np.min(px, 0)
+                    max_py = np.max(py, 0)
+                    min_py = np.min(py, 0)
+                    ixgmin = ((min_px - extent_all[0]) / dxy + 1).astype(int)
+                    ixgmax = ((max_px - extent_all[0]) / dxy + 1).astype(int)
+                    iygmin = ((min_py - extent_all[1]) / dxy + 1).astype(int)
+                    iygmax = ((max_py - extent_all[1]) / dxy + 1).astype(int)
+
+                    for ik in range(len(ikle)): # for all hydraulic mesh
+                        lsub = []
+                        for ix in range(ixgmin[ik], ixgmax[ik] + 1):
+                            for iy in range(iygmin[ik], iygmax[ik] + 1):
+                                lsub.append(arepsub[np.ix_(arepsub[:, 0] == ix + (iy - 1) * nbgridx, np.array(
+                                    [False, True]))].tolist())  # list of grid cells indexes
+                        ssub = {yy for x in lsub for y in x for yy in
+                                y}  # a set with the list of substrate element index that can intersect the hydraulic mesh
+                        pxh = [coord_p_hydx[ikle[ik, 0]], coord_p_hydx[ikle[ik, 1]], coord_p_hydx[ikle[ik, 2]]]
+                        pyh = [coord_p_hydy[ikle[ik, 0]], coord_p_hydy[ikle[ik, 1]], coord_p_hydy[ikle[ik, 2]]]
+                        detA=(pxh[1]-pxh[0])*(pyh[2]-pyh[0])-(pxh[2]-pxh[0])*(pyh[1]-pyh[0])
+                        if detA==0:
+                            #TODDO
+                            print ('flat mesh impossible to manage')
+                        else:
+
+
+
+                            for isub in ssub:
+                                pxs = [coord_p_subx[ikle_sub[isub, 0]], coord_p_subx[ikle_sub[isub, 1]],
+                                       coord_p_subx[ikle_sub[isub, 2]]]
+                                pys = [coord_p_suby[ikle_sub[isub, 0]], coord_p_suby[ikle_sub[isub, 1]],
+                                       coord_p_suby[ikle_sub[isub, 2]]]
+                                #check if nodes of sub mesh ar in the hydraulic mesh
+                                linsub=[False]*3
+                                inewsub
+                                for i in range(3):
+                                    xaff=((pyh[2]-pyh[0])*(pxs[i]-pxh[0])-(pxh[2]-pxh[0])*(pys[i]-pyh[0]))/detA
+                                    yaff = ((pyh[0] - pyh[1]) * (pxs[i] - pxh[0]) + (pxh[1] - pxh[0]) * (
+                                                pys[i] - pyh[0])) / detA
+                                    if xaff>0 and yaff>0 and yaff<-xaff+1:
+                                        linsub[i]=True
+                                    if not False in linsub: #sub mesh inside hydraulic mesh
+                                        hgj
+
+
+
+
+                        toto = 6
+
+                        # inside_trigon(pt, p0, p1, p2):
+                        # """
+                        # This function check if a point is in a triangle using the barycentric coordinates.
+                        #
+                        # :param pt: the point to determine if it is in or not
+                        # :param p0: the first point of triangle
+                        # :param p1: the second point of triangle
+                        # :param p2: the third point of triangle
+                        # :return: A boolean (Ture if pt inside of triangle)
+                        # """
+                        # p0x = p0[0]
+                        # p0y = p0[1]
+                        # p1x = p1[0]
+                        # p1y = p1[1]
+                        # p2x = p2[0]
+                        # p2y = p2[1]
+                        #
+                        # area = 0.5 * (-p1y * p2x + p0y * (-p1x + p2x) + p0x * (p1y - p2y) + p1x * p2y)
+                        # if area != 0:
+                        #     s = 1 / (2 * area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * pt[0] + (p0x - p2x) * pt[1])
+                        #     t = 1 / (2 * area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * pt[0] + (p1x - p0x) * pt[1])
+                        # else:
+                        #     return False
+                        #
+                        # if s >= 0 and t >= 0 and 1 - s - t >= 0:
+                        #     return True
+                        # else:
+                        #     return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    # # find intersection betweeen hydrology and substrate
                     # [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
-                    #     find_sub_and_cross(hdf5_sub.data_2d["tin"][reach_num][0],
+                    #     find_sub_and_cross2(extent_hyd,
+                    #                         extent_sub,
+                    #                         hdf5_sub.data_2d["tin"][reach_num][0],
                     #                        hdf5_sub.data_2d["xy"][reach_num][0],
                     #                        hdf5_sub.data_2d["sub"][reach_num][0],
                     #                        hdf5_hydro.data_2d["tin"][reach_num][unit_num],
                     #                        hdf5_hydro.data_2d["xy"][reach_num][unit_num],
                     #                        progress_value, delta,
                     #                        first_time)
+                    # unit_merge(reach_num,
+                    #            unit_num,
+                    #            extent_sub,
+                    #            hdf5_sub.data_2d,
+                    #            extent_hyd,
+                    #            hdf5_hydro.data_2d,
+                    #            progress_value,
+                    #            delta)
+                    # # [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
+                    # #     find_sub_and_cross(hdf5_sub.data_2d["tin"][reach_num][0],
+                    # #                        hdf5_sub.data_2d["xy"][reach_num][0],
+                    # #                        hdf5_sub.data_2d["sub"][reach_num][0],
+                    # #                        hdf5_hydro.data_2d["tin"][reach_num][unit_num],
+                    # #                        hdf5_hydro.data_2d["xy"][reach_num][unit_num],
+                    # #                        progress_value, delta,
+                    # #                        first_time)
+                    #
+                    #
+                    #
+                    #
+                    # # if no intersection found at t==0
+                    # if len(data_crossing[0]) < 1:
+                    #     if warn_inter:
+                    #         print('Warning: No intersection between the grid and the substrate for one reach for'
+                    #               ' one or more time steps.\n')
+                    #         warn_inter = False
+                    #     try:
+                    #         # sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
+                    #         sub_data_here = default_data
+                    #     except ValueError:
+                    #         print('Error: no float in substrate. (only float accepted for now).\n')
+                    #         return failload
+                    #     sub_array_by_unit.append(sub_data_here)
+                    #     vel_by_unit.append(vel_before)
+                    #     height_by_unit.append(height_before)
+                    #     ikle_all_by_unit.append(ikle_before)
+                    #     point_all_by_unit.append(point_before)
+                    #     point_z_all_by_unit.append(point_z_before)
+                    #
+                    # else:
+                    #
+                    #     # create the new grid based on intersection found
+                    #     [ikle_here, point_all_here, new_data_sub, vel_new, height_new, z_values_new] = \
+                    #         create_merge_grid(ikle_before,
+                    #                           point_before,
+                    #                           data_sub,
+                    #                           vel_before,
+                    #                           height_before,
+                    #                           point_z_before,
+                    #                           ikle_sub,
+                    #                           default_data,
+                    #                           data_crossing,
+                    #                           sub_cell)
+                    #
+                    #     # check that each triangle of the grid is clock-wise (useful for shapefile)
+                    #     ikle_here = check_clockwise(ikle_here, point_all_here)
 
-
-
-
-                    # if no intersection found at t==0
-                    if len(data_crossing[0]) < 1:
-                        if warn_inter:
-                            print('Warning: No intersection between the grid and the substrate for one reach for'
-                                  ' one or more time steps.\n')
-                            warn_inter = False
-                        try:
-                            # sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
-                            sub_data_here = default_data
-                        except ValueError:
-                            print('Error: no float in substrate. (only float accepted for now).\n')
-                            return failload
-                        sub_array_by_unit.append(sub_data_here)
-                        vel_by_unit.append(vel_before)
-                        height_by_unit.append(height_before)
-                        ikle_all_by_unit.append(ikle_before)
-                        point_all_by_unit.append(point_before)
-                        point_z_all_by_unit.append(point_z_before)
-
-                    else:
-
-                        # create the new grid based on intersection found
-                        [ikle_here, point_all_here, new_data_sub, vel_new, height_new, z_values_new] = \
-                            create_merge_grid(ikle_before,
-                                              point_before,
-                                              data_sub,
-                                              vel_before,
-                                              height_before,
-                                              point_z_before,
-                                              ikle_sub,
-                                              default_data,
-                                              data_crossing,
-                                              sub_cell)
-
-                        # check that each triangle of the grid is clock-wise (useful for shapefile)
-                        ikle_here = check_clockwise(ikle_here, point_all_here)
-
-                        # print('TIME NEW GRID')
-                        # print(c - b)
-                        sub_array_by_unit.append(new_data_sub)
-                        vel_by_unit.append(vel_new)
-                        height_by_unit.append(height_new)
-                        point_z_all_by_unit.append(z_values_new)
-                        ikle_all_by_unit.append(np.array(ikle_here))
-                        point_all_by_unit.append(np.array(point_all_here))
+                    # print('TIME NEW GRID')
+                    # print(c - b)
+                    sub_array_by_unit.append(new_data_sub)
+                    vel_by_unit.append(vel_new)
+                    height_by_unit.append(height_new)
+                    point_z_all_by_unit.append(z_values_new)
+                    ikle_all_by_unit.append(np.array(ikle_here))
+                    point_all_by_unit.append(np.array(point_all_here))
 
                 ikle_both.append(ikle_all_by_unit)
                 point_all_both.append(point_all_by_unit)
@@ -385,6 +540,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             data_2d_merge["v"] = vel_all_both
             data_2d_merge["h"] = height_all_both
             data_2d_merge["z"] = z_all_both
+            #TODO YLC
+            #data_2d_merge["i_whole_profile"] = i_whole_profile_all_both
 
     return data_2d_merge, data_2d_whole_merge, merge_description
 
@@ -496,7 +653,7 @@ def find_sub_and_cross2(extent_hyd,extent_sub,ikle_sub, coord_p_sub, data_sub, i
 
 
 
-    pass
+    return
 
 
 
