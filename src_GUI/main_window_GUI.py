@@ -241,7 +241,7 @@ class MainWindows(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # preferences
-        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.send_log.connect(self.central_widget.write_log)
 
@@ -250,7 +250,7 @@ class MainWindows(QMainWindow):
 
         # bio_model_explorer_dialog
         self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+                                                                self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
         self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
         self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
         self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
@@ -449,7 +449,7 @@ class MainWindows(QMainWindow):
                 self.central_widget.bioinfo_tab.lang = 'English'
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
@@ -875,16 +875,17 @@ class MainWindows(QMainWindow):
             if hasattr(self, "bio_model_explorer_dialog"):
                 if not self.bio_model_explorer_dialog:
                     self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
                     self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
                         self.central_widget.write_log)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
                 else:
                     self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon,
-                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
             else:
                 self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
                 self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
                     self.central_widget.write_log)
                 self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
@@ -1048,13 +1049,13 @@ class MainWindows(QMainWindow):
 
             # path shapefile
             if pathshapefile_child is None:
-                pathshapefile_text = os.path.join("output", "shapefiles")
+                pathshapefile_text = os.path.join("output", "GIS")
             else:
                 pathshapefile_text = pathin_child.text
 
             # path visualisation
             if pathpara_child is None:
-                pathpara_text = os.path.join("output", "visualisation")
+                pathpara_text = os.path.join("output", "3D")
             else:
                 pathpara_text = pathin_child.text
 
@@ -1120,7 +1121,7 @@ class MainWindows(QMainWindow):
         self.central_widget.update_hydro_hdf5_name()
 
         # save_preferences
-        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_dialog.save_preferences()
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.send_log.connect(self.central_widget.write_log)
@@ -1265,7 +1266,7 @@ class MainWindows(QMainWindow):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # check if project open somewhere else
         self.check_concurrency()
@@ -1324,7 +1325,7 @@ class MainWindows(QMainWindow):
         self.central_widget.statmod_tab.open_estimhab_hdf5()
 
         # write the new langugage in the figure option to be able to get the title, axis in the right language
-        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # check if project open somewhere else
         self.check_concurrency()
@@ -1458,7 +1459,7 @@ class MainWindows(QMainWindow):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
     def change_name_project(self):
         """

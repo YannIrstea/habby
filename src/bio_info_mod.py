@@ -710,7 +710,7 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                 data[i] = root.find(".//" + att)
                 # None is null for python 3
                 if data[i] is not None:
-                    print("data[i]", preffile, data[i])
+                    #print("data[i]", preffile, data[i])
                     if data[i].text:
                         data[i] = data[i].text.strip()
                     else:

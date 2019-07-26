@@ -360,10 +360,10 @@ def load_telemac(namefilet, pathfilet):
 
     # data 2d dict
     data_2d = dict()
-    data_2d["h"] = h
-    data_2d["v"] = v
+    data_2d["h"] = np.array(h, dtype=np.float64)
+    data_2d["v"] = np.array(v, dtype=np.float64)
+    data_2d["z"] = np.array(z, dtype=np.float64)
     data_2d["xy"] = coord_p
-    data_2d["z"] = z
     data_2d["tin"] = ikle
     data_2d["xy_center"] = coord_c
 

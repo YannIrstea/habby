@@ -1090,7 +1090,7 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     else:
         mar = None
     erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
+    #types_plot = project_preferences['type_plot']
     # prep data
     if len(types.keys()) > 1:  # date
         data_presence = True

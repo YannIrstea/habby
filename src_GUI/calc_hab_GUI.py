@@ -757,7 +757,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             pref_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
             stages_chosen.append(stage)
             name_fish_sh_text = code_bio_model + "_" + stage
-            name_fish_sh.append(name_fish_sh_text[:8])
+            name_fish_sh.append(name_fish_sh_text)
             # name_fish_sel += name_fish + ','
             xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
             # if self.data_fish[j][0] == fish_item_text:

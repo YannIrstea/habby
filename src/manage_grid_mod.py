@@ -29,6 +29,7 @@ import bisect
 import sys
 from src_GUI import preferences_GUI
 from src import calcul_hab_mod
+from src.tools_mod import profileit
 
 
 # np.set_printoptions(threshold=np.inf)
@@ -1057,6 +1058,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
         return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
+@profileit
 def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, min_height=0.001):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
@@ -1091,20 +1093,24 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
     mikle_keep = ikle_type == 3
     ipt_all_ok_wetdry = []
-    if all(mikle_keep):  # all meshes are entirely wet
+    # all meshes are entirely wet
+    if all(mikle_keep):
         print('Warning: all meshes are entirely wet')
         iklekeep=ikle
         point_all_ok=point_all
         water_height_ok=water_height
         velocity_ok=velocity
-    elif not True in mikle_keep:  # all meshes are entirely dry
+    # all meshes are entirely dry
+    elif not True in mikle_keep:
         print('Error: all meshes are entirely dry')
         return failload
-    elif not CutMeshPartialyDry:  # only the dry meshes are cut (but not the partially ones)
+    # only the dry meshes are cut (but not the partially ones)
+    elif not CutMeshPartialyDry:
         mikle_keep = ikle_type != 0
         iklekeep = ikle[mikle_keep, ...]
         ind_whole = ind_whole[mikle_keep, ...]
-    else:            # we cut  the dry meshes and  the partially ones
+    # we cut  the dry meshes and  the partially ones
+    else:
         jpn = jpn0
         ind_whole2 = []
         for i, iklec in enumerate(ikle):
@@ -1179,9 +1185,10 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         iklekeep = ikle[mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
         ind_whole = ind_whole[mikle_keep, ...]
         ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
+
     ipt_iklenew_unique = np.unique(iklekeep)
 
-    if ipt_all_ok_wetdry: # presence of partially wet/dry meshes cutted that we want
+    if ipt_all_ok_wetdry:  # presence of partially wet/dry meshes cutted that we want
         ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry, dtype=typeikle), axis=0)
         ipt_iklenew_unique = np.unique(ipt_iklenew_unique)
 

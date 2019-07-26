@@ -27,6 +27,33 @@ from src import tools_mod
 from src import plot_mod
 
 
+class QGroupBoxCollapsible(QGroupBox):
+    def __init__(self):
+        super().__init__()
+        # group title
+        self.setCheckable(True)
+        self.setStyleSheet(
+            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
+        )
+        #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
+        self.toggled.connect(lambda: self.toggle_group(self))
+        self.setChecked(True)
+
+    def toggle_group(self, ctrl):
+        state = ctrl.isChecked()
+        if state:
+            ctrl.setFixedHeight(ctrl.sizeHint().height())
+        else:
+            ctrl.setFixedHeight(30)
+
+
 class ToolsTab(QScrollArea):
     """
     This class contains the tab with Graphic production biological information (the curves of preference).
@@ -60,11 +87,11 @@ class ToolsTab(QScrollArea):
         tools_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # interpolation group
-        self.interpolation_group = InterpolationGroup(self.path_prj, self.name_prj, self.send_log)
+        self.interpolation_group = InterpolationGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Interpolation tool"))
         self.interpolation_group.setChecked(True)
 
         # other tool
-        self.newtool_group = OtherToolToCreate(self.path_prj, self.name_prj, self.send_log)
+        self.newtool_group = OtherToolToCreate(self.path_prj, self.name_prj, self.send_log, self.tr("New tools to come"))
         self.newtool_group.setChecked(False)
 
         # vertical layout
@@ -89,48 +116,23 @@ class ToolsTab(QScrollArea):
             self.interpolation_group.hab_filenames_qcombobox.addItems(names)
 
 
-class QGroupBoxCollapsible(QGroupBox):
-    def __init__(self):
-        super().__init__()
-        self.setCheckable(True)
-        self.setStyleSheet(
-            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-        )
-        #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
-        self.toggled.connect(lambda: self.toggle_group(self))
-        self.setChecked(True)
-
-    def toggle_group(self, ctrl):
-        state = ctrl.isChecked()
-        if state:
-            ctrl.setFixedHeight(ctrl.sizeHint().height())
-        else:
-            ctrl.setFixedHeight(30)
-
-
 class InterpolationGroup(QGroupBoxCollapsible):
     """
     This class is a subclass of class QGroupBox.
     """
 
-    def __init__(self, path_prj, name_prj, send_log):
+    def __init__(self, path_prj, name_prj, send_log, title):
         super().__init__()
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.send_log = send_log
+        self.setTitle(title)
         self.init_ui()
         # Signal Connection
 
     def init_ui(self):
-        # group title
-        self.setTitle(self.tr("Interpolation tool"))
+        # # group title
+        # self.setTitle(self.tr("Interpolation tool"))
 
         """ Available data """
         habitat_filenames_qlabel = QLabel(self.tr('Select an habitat file'))
@@ -557,16 +559,17 @@ class OtherToolToCreate(QGroupBoxCollapsible):
     This class is a subclass of class QGroupBox.
     """
 
-    def __init__(self, path_prj, name_prj, send_log):
+    def __init__(self, path_prj, name_prj, send_log, title):
         super().__init__()
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.send_log = send_log
+        self.setTitle(title)
         self.init_ui()
 
     def init_ui(self):
-        # group title
-        self.setTitle(self.tr("New tools to come"))
+        # # group title
+        # self.setTitle(self.tr("New tools to come"))
         hbox_layout = QHBoxLayout()
         spacer = QSpacerItem(1, 50)
         self.qpushbutton_test = QPushButton("test")
@@ -607,5 +610,3 @@ class MyTableModel(QStandardItemModel):
         for row_nb in range(len(self.rownames)):
             data_to_get.append(self.item(row_nb, col_index).text())
         return data_to_get
-
-
