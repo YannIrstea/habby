@@ -660,25 +660,26 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def get_current_hab_informations(self):
         # create hdf5 class
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.m_all.currentText())
-        hdf5.open_hdf5_file(False)
+        if self.m_all.currentText():
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.m_all.currentText())
+            hdf5.open_hdf5_file(False)
 
-        # init
-        required_dict = dict(
-            dimension_ok=False,
-            z_presence_ok=False,
-            percentage_ok=False,
-            fish_list=[])
+            # init
+            required_dict = dict(
+                dimension_ok=False,
+                z_presence_ok=False,
+                percentage_ok=False,
+                fish_list=[])
 
-        if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
-            required_dict["dimension_ok"] = True
-        if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
-            required_dict["z_presence_ok"] = True
-        if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
-            required_dict["percentage_ok"] = True
-        required_dict["fish_list"] = hdf5.fish_list
+            if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
+                required_dict["dimension_ok"] = True
+            if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
+                required_dict["z_presence_ok"] = True
+            if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
+                required_dict["percentage_ok"] = True
+            required_dict["fish_list"] = hdf5.fish_list
 
-        self.current_hab_informations_dict = required_dict
+            self.current_hab_informations_dict = required_dict
 
     def remove_duplicates(self):
         index_to_keep = [idx for idx, item in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]) if item not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"][:idx]]

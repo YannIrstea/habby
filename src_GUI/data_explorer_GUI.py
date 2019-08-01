@@ -134,7 +134,7 @@ class DataExplorerFrame(QFrame):
 
         """ remove_fish """
         self.habitatvalueremover_group = HabitatValueRemover(self.path_prj, self.name_prj, self.send_log, self.tr("Habitat value remover"))
-        self.habitatvalueremover_group.setChecked(True)
+        self.habitatvalueremover_group.setChecked(False)
 
         """ File information """
         # attributes hdf5
