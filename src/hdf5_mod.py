@@ -237,7 +237,7 @@ class Hdf5Management:
 
             # estithic sort for GUI (classic variables + fish variables (alphanumeric))
             variables.sort(key=str.lower)  # sort alphanumeric
-            list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+            list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant", 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
             list_to_gui = [x for x in list_to_gui if x in variables]  # remove variable not present in hdf5
 
             for variable_index, variable in enumerate(list_to_gui):
