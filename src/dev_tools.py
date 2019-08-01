@@ -15,12 +15,17 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import cProfile, pstats, io
+import cProfile
+import pstats
+import io
 
 from src.user_preferences_mod import user_preferences
 
 
 def profileit(func):
+    """ Decorator to analyse computational time funtion. Output txt file created in temp folder in user AppData folder.
+    For developper, if used (import of this decorator),
+    it will recreate/reimport the class and recreate AppData structure. """
     def wrapper(*args, **kwargs):
         path_stat = user_preferences.user_preferences_temp_path
         datafn = func.__name__ + ".txt"  # Name the data file sensibly

@@ -29,7 +29,7 @@ import bisect
 import sys
 from src_GUI import preferences_GUI
 from src import calcul_hab_mod
-from src.dev_tools import profileit
+#from src.dev_tools import profileit
 
 
 def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1):
@@ -1055,7 +1055,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
         return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
-@profileit
+#@profileit
 def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, min_height=0.001):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
