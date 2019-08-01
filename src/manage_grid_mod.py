@@ -14,21 +14,23 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-import numpy as np
-import triangle
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
-import time
-import scipy.interpolate
-import scipy.spatial.qhull as qhull
+import bisect
 import copy
 import os
-import bisect
 import sys
-from src_GUI import preferences_GUI
+import time
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.interpolate
+import scipy.spatial.qhull as qhull
+import triangle
+
 from src import calcul_hab_mod
+from src_GUI import preferences_GUI
+
+
 #from src.dev_tools import profileit
 
 
@@ -1209,6 +1211,34 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
 
     return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
 
+
+def slopebottom_lopeenergy_shearstress_max(xy1, z1, h1, v1, xy2, z2, h2, v2, xy3, z3, h3, v3):
+    """
+    For a given mesh
+    calculation of :
+    the maxim slope of the bottom
+    the maximum slope of the energy surface
+    the shear stress (using the maximum slope of the energy surface)
+    :param xy1::param z1::param xy2::param z2::param xy3::param z3: bottom coordinate of the 3 nodes of the mesh
+    :param h1::param v1::param h2::param v2::param h3::param v3: water depths and velocities of the 3 mesh vertices
+    :return: maxim slope of the bottom [m/m],maximum slope of the energy surface[m/m],shear stress [Pa] or 3 np.inf values if the mesh is in the vertical plane
+    """
+    ro = 999.7  # [kg/m3]  density of water 10Â°C /1 atm
+    g = 9.80665  # [m/s2] standard acceleration due to gravity
+    w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
+
+    u = (xy2[:, 1] - xy1[:, 1]) * (z3 - z1) - (z2 - z1) * (xy3[:, 1] - xy1[:, 1])
+    v = (xy3[:, 0] - xy1[:, 0]) * (z2 - z1) - (z3 - z1) * (xy2[:, 0] - xy1[:, 0])
+    with np.errstate(divide='ignore', invalid='ignore'):
+        maxslopebottom = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
+    zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * g), z2 + h2 + v2 ** 2 / (2 * g), z3 + h3 + v3 ** 2 / (2 * g)
+    u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
+    v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
+    with np.errstate(divide='ignore', invalid='ignore'):
+        maxslopeenergy = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
+    shearstress = ro * g * (h1 + h2 + h3) * maxslopeenergy / 3
+
+    return maxslopebottom, maxslopeenergy, shearstress
 
 
 def linear_z_cross(p1, p2, h1, h2):
