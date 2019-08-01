@@ -42,6 +42,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     :param get_fig: usually False, If True return the figure
         (to modfied it more)
     """
+
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         if not project_preferences:

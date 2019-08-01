@@ -24,7 +24,6 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
-import shapefile
 from time import time
 
 from src import hdf5_mod
