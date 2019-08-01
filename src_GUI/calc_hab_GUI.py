@@ -135,6 +135,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # the available merged data
         l0 = QLabel(self.tr('<b> Substrate and hydraulic data </b>'))
         self.m_all = QComboBox()
+        self.m_all.currentTextChanged.connect(self.check_uncheck_allmodels_presence)
 
         # create lists with the possible fishes
         # right buttons for both QListWidget managed in the MainWindows class
@@ -312,6 +313,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hyd_mode_qtablewidget.setRowCount(0)
         self.sub_mode_qtablewidget.clear()
         self.sub_mode_qtablewidget.setRowCount(0)
+        self.presence_qtablewidget.clear()
+        self.presence_qtablewidget.setRowCount(0)
         self.selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=[],
                                                      hydraulic_mode_list=[],
                                                      substrate_mode_list=[])
@@ -328,6 +331,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     self.selected_aquatic_animal_qtablewidget.removeRow(index)
                     self.hyd_mode_qtablewidget.removeRow(index)
                     self.sub_mode_qtablewidget.removeRow(index)
+                    self.presence_qtablewidget.removeRow(index)
 
             # remove element list in dict
             for key in self.selected_aquatic_animal_dict.keys():
@@ -429,6 +433,33 @@ class BioInfo(estimhab_GUI.StatModUseful):
             #self.sender().setPalette(pal)
         else:
             self.sender().setStyleSheet(self.combobox_style_user)
+        # check if exist
+        self.check_if_model_exist_in_hab(model_index)
+
+    def check_if_model_exist_in_hab(self, model_index):
+        # 1 column
+        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
+        # 2 column
+        hyd_opt_str = self.hyd_mode_qtablewidget.cellWidget(model_index, 0).currentText()
+        # 3 column
+        sub_opt_str = self.sub_mode_qtablewidget.cellWidget(model_index, 0).currentText()
+        # 4 column
+        item_checkbox = self.presence_qtablewidget.cellWidget(model_index, 0).layout().itemAt(0).widget()
+
+        # get full name
+        fish_name_full = name_fish + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str
+
+        # check or not
+        if fish_name_full in self.current_hab_informations_dict["fish_list"]:
+            item_checkbox.setChecked(True)
+        else:
+            item_checkbox.setChecked(False)
+
+    def check_uncheck_allmodels_presence(self):
+        self.get_current_hab_informations()
+        for model_index in range(self.selected_aquatic_animal_qtablewidget.rowCount()):
+            self.check_if_model_exist_in_hab(model_index)
 
     def change_general_hyd_combobox(self):
         model_index = int(self.sender().objectName())
@@ -450,7 +481,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         model_index = int(self.sender().objectName())
         new_sub_mode_index = self.sender().currentIndex()
-        # change color if default choosen
+
+        self.get_current_hab_informations()
+
         # get info
         item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
@@ -462,6 +495,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.sender().setStyleSheet(self.combobox_style_default)
         else:
             self.sender().setStyleSheet(self.combobox_style_user)
+        # check if exist
+        self.check_if_model_exist_in_hab(model_index)
 
     def change_general_sub_combobox(self):
         model_index = int(self.sender().objectName())
@@ -477,6 +512,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
     def fill_selected_models_listwidets(self, new_item_text_dict):
+        print("fill_selected_models_listwidets")
         # if new added remove duplicates
         if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
             # index_to_keep = [new_item_text_dict["selected_aquatic_animal_list"].index(x) for x in new_item_text_dict["selected_aquatic_animal_list"] if x not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]]
@@ -488,6 +524,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.selected_aquatic_animal_dict["hydraulic_mode_list"].extend(new_item_text_dict["hydraulic_mode_list"])
             self.selected_aquatic_animal_dict["substrate_mode_list"].extend(new_item_text_dict["substrate_mode_list"])
             self.selected_aquatic_animal_dict = sort_homogoeneous_dict_list_by_on_key(self.selected_aquatic_animal_dict, "selected_aquatic_animal_list")
+
+        # get_current_hab_informations
+        self.get_current_hab_informations()
 
         # total_item
         total_item = len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])
@@ -524,25 +563,25 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # get default_hydraulic_type
             hydraulic_type_available = user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
             # create combobox
-            item_combobox = QComboBox()
-            item_combobox.setObjectName(str(index))
-            item_combobox.addItems(hydraulic_type_available)
+            item_combobox_hyd = QComboBox()
+            item_combobox_hyd.setObjectName(str(index))
+            item_combobox_hyd.addItems(hydraulic_type_available)
             choosen_index = self.selected_aquatic_animal_dict["hydraulic_mode_list"][index]
             default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
             if choosen_index == default_choice_index:
-                item_combobox.setStyleSheet(self.combobox_style_default)
-                # pal = item_combobox.palette()
+                item_combobox_hyd.setStyleSheet(self.combobox_style_default)
+                # pal = item_combobox_hyd.palette()
                 # pal.setColor(QPalette.Button, QColor(Qt.green))
                 # pal.setColor(QPalette.Button, QColor(Qt.green))
-                # item_combobox.setPalette(pal)
+                # item_combobox_hyd.setPalette(pal)
             else:
-                item_combobox.setStyleSheet(self.combobox_style_user)
-            item_combobox.model().item(default_choice_index).setBackground(QColor(self.default_color))
-            item_combobox.setCurrentIndex(choosen_index)
-            item_combobox.currentIndexChanged.connect(self.color_hyd_combobox)
-            item_combobox.activated.connect(self.change_general_hyd_combobox)
+                item_combobox_hyd.setStyleSheet(self.combobox_style_user)
+            item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
+            item_combobox_hyd.setCurrentIndex(choosen_index)
+            item_combobox_hyd.currentIndexChanged.connect(self.color_hyd_combobox)
+            item_combobox_hyd.activated.connect(self.change_general_hyd_combobox)
             # add combobox item
-            self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
+            self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox_hyd)
             self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
             """ SUB """
@@ -550,28 +589,34 @@ class BioInfo(estimhab_GUI.StatModUseful):
             substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][
                 index_stage]
             # create combobox
-            item_combobox = QComboBox()
-            item_combobox.setObjectName(str(index))
-            item_combobox.addItems(substrate_type_available)
+            item_combobox_sub = QComboBox()
+            item_combobox_sub.setObjectName(str(index))
+            item_combobox_sub.addItems(substrate_type_available)
             choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
             default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
             if choosen_index == default_choice_index:
-                item_combobox.setStyleSheet(self.combobox_style_default)
+                item_combobox_sub.setStyleSheet(self.combobox_style_default)
             else:
-                item_combobox.setStyleSheet(self.combobox_style_user)
-            item_combobox.model().item(default_choice_index).setBackground(QColor(self.default_color))
-            item_combobox.setCurrentIndex(choosen_index)
-            item_combobox.currentIndexChanged.connect(self.color_sub_combobox)
-            item_combobox.activated.connect(self.change_general_sub_combobox)
+                item_combobox_sub.setStyleSheet(self.combobox_style_user)
+            item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
+            item_combobox_sub.setCurrentIndex(choosen_index)
+            item_combobox_sub.currentIndexChanged.connect(self.color_sub_combobox)
+            item_combobox_sub.activated.connect(self.change_general_sub_combobox)
             # add combobox item
-            self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
+            self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox_sub)
             self.sub_mode_qtablewidget.setRowHeight(index, 27)
 
             """ EXIST """
             item_checkbox = QCheckBox()
             item_checkbox.setEnabled(False)
-            item_checkbox.setChecked(False)
             item_checkbox.setObjectName(str(index))
+            # get full name
+            fish_name_full = name_fish + "_" + stage + "_" + item_combobox_hyd.currentText() + "_" + item_combobox_sub.currentText()
+            # check or not
+            if fish_name_full in self.current_hab_informations_dict["fish_list"]:
+                item_checkbox.setChecked(True)
+            else:
+                item_checkbox.setChecked(False)
             cell_widget = QWidget()
             lay_out = QHBoxLayout(cell_widget)
             lay_out.addWidget(item_checkbox)
@@ -615,24 +660,26 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def get_current_hab_informations(self):
         # create hdf5 class
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.m_all.currentText())
-        hdf5.open_hdf5_file(False)
+        if self.m_all.currentText():
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.m_all.currentText())
+            hdf5.open_hdf5_file(False)
 
-        # init
-        required_dict = dict(
-            dimension_ok=False,
-            z_presence_ok=False,
-            percentage_ok=False,
-            fish_list=[])
+            # init
+            required_dict = dict(
+                dimension_ok=False,
+                z_presence_ok=False,
+                percentage_ok=False,
+                fish_list=[])
 
-        if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
-            required_dict["dimension_ok"] = True
-        if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
-            required_dict["z_presence_ok"] = True
-        if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
-            required_dict["percentage_ok"] = True
+            if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
+                required_dict["dimension_ok"] = True
+            if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
+                required_dict["z_presence_ok"] = True
+            if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
+                required_dict["percentage_ok"] = True
+            required_dict["fish_list"] = hdf5.fish_list
 
-        return required_dict
+            self.current_hab_informations_dict = required_dict
 
     def remove_duplicates(self):
         index_to_keep = [idx for idx, item in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]) if item not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"][:idx]]
@@ -724,6 +771,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
 
+        # check_uncheck_allmodels_presence
+        self.check_uncheck_allmodels_presence()
+
     def run_habitat_value(self):
         """
         This function runs HABBY to get the habitat value based on the data in a "merged" hdf5 file and the chosen
@@ -743,123 +793,119 @@ class BioInfo(estimhab_GUI.StatModUseful):
         pref_list = []
         stages_chosen = []
         name_fish_list = []
+        hyd_opt_list = []
+        sub_opt_list = []
         name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
         xmlfiles = []
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
-            # get info from list widget
-            label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
-            fish_item_text = label.text()
-            name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
-            name_fish_sel += fish_item_text + ","
-            name_fish_list.append(name_fish)
-            index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
-            pref_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
-            stages_chosen.append(stage)
-            name_fish_sh_text = code_bio_model + "_" + stage
-            name_fish_sh.append(name_fish_sh_text)
-            # name_fish_sel += name_fish + ','
-            xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
-            # if self.data_fish[j][0] == fish_item_text:
-            #     #pref_list.append(self.data_fish[j][2])
-            #     #stages_chosen.append(self.data_fish[j][1])
-            #     if int(project_preferences['fish_name_type']) == 0:  # latin name
-            #         name_fish.append(self.data_fish[j][7])
-            #     elif int(project_preferences['fish_name_type']) == 1:  # french common name
-            #         name_fish.append(self.data_fish[j][3])
-            #     elif int(project_preferences['fish_name_type']) == 2:  # english common name
-            #         name_fish.append(self.data_fish[j][4])
-            #     elif int(project_preferences['fish_name_type']) == 3:  # code onema
-            #         name_fish.append(self.data_fish[j][5])
-            #     else:
-            #         name_fish.append(self.data_fish[j][5])
-            #     #name_fish_sh.append(self.data_fish[j][5][:3] + self.data_fish[j][1][:3])
-            #     #name_fish_sel += fish_item.text() + ','
-            #     #xmlfiles.append(self.data_fish[j][2])
+            # check if not exist
+            if not self.presence_qtablewidget.cellWidget(i, 0).layout().itemAt(0).widget().isChecked():
+                # get info from 1 list widget
+                label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
+                fish_item_text = label.text()
+                name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
+                name_fish_sel += fish_item_text + ","
+                name_fish_list.append(name_fish)
+                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                pref_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
+                stages_chosen.append(stage)
+                name_fish_sh_text = code_bio_model + "_" + stage
+                name_fish_sh.append(name_fish_sh_text)
+                # name_fish_sel += name_fish + ','
+                xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
+                # get info from 2 list widget
+                hyd_opt_list.append(self.hyd_mode_qtablewidget.cellWidget(i, 0).currentText())
+                # get info from 3 list widget
+                sub_opt_list.append(self.sub_mode_qtablewidget.cellWidget(i, 0).currentText())
 
-        # save the selected fish in the xml project file
-        try:
+        if xmlfiles:
+            # save the selected fish in the xml project file
             try:
-                filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-                docxml = ET.parse(filename_path_pro)
-                root = docxml.getroot()
-            except IOError:
-                print("Warning: the xml project file does not exist \n")
+                try:
+                    filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+                    docxml = ET.parse(filename_path_pro)
+                    root = docxml.getroot()
+                except IOError:
+                    print("Warning: the xml project file does not exist \n")
+                    return
+            except ET.ParseError:
+                print("Warning: the xml project file is not well-formed.\n")
                 return
-        except ET.ParseError:
-            print("Warning: the xml project file is not well-formed.\n")
-            return
-        hab_child = root.find(".//Habitat")
-        if hab_child is None:
-            blob = ET.SubElement(root, "Habitat")
             hab_child = root.find(".//Habitat")
-        fish_child = root.find(".//Habitat/Fish_Selected")
-        if fish_child is None:
-            blob = ET.SubElement(hab_child, "Fish_Selected")
+            if hab_child is None:
+                blob = ET.SubElement(root, "Habitat")
+                hab_child = root.find(".//Habitat")
             fish_child = root.find(".//Habitat/Fish_Selected")
-        fish_child.text = name_fish_sel[:-1]  # last comma
-        docxml.write(filename_path_pro)
+            if fish_child is None:
+                blob = ET.SubElement(hab_child, "Fish_Selected")
+                fish_child = root.find(".//Habitat/Fish_Selected")
+            fish_child.text = name_fish_sel[:-1]  # last comma
+            docxml.write(filename_path_pro)
 
-        # get the name of the merged file
-        path_hdf5 = self.find_path_hdf5_est()
-        ind = self.m_all.currentIndex()
-        if len(self.hdf5_merge) > 0:
-            hdf5_file = self.hdf5_merge[ind]
+            # get the name of the merged file
+            path_hdf5 = self.find_path_hdf5_est()
+            ind = self.m_all.currentIndex()
+            if len(self.hdf5_merge) > 0:
+                hdf5_file = self.hdf5_merge[ind]
+            else:
+                self.runhab.setDisabled(False)
+                self.send_log.emit('Error: No merged hydraulic files available.')
+                return
+
+            # show progressbar
+            self.nativeParentWidget().progress_bar.setRange(0, 100)
+            self.nativeParentWidget().progress_bar.setValue(0)
+            self.nativeParentWidget().progress_bar.setVisible(True)
+
+            # get the path where to save the different outputs (function in estimhab_GUI.py)
+            path_txt = self.find_path_text_est()
+            path_im = self.find_path_im_est()
+            path_shp = self.find_path_output_est("Path_Shape")
+            path_para = self.find_path_output_est("Path_Visualisation")
+
+            # get the type of option choosen for the habitat calculation
+            run_choice = dict(hyd_opt=hyd_opt_list,
+                              sub_opt=sub_opt_list)
+
+            # only useful if we want to also show the 2d figure in the GUI
+            self.hdf5_file = hdf5_file
+            self.path_hdf5 = path_hdf5
+            path_im_bioa = os.path.join(os.getcwd(), self.path_im_bio)
+
+            # send the calculation of habitat and the creation of output
+            self.timer.start(100)  # to refresh progress info
+            self.q4 = Queue()
+            self.progress_value = Value("i", 0)
+            self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
+                             args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
+                                   name_fish_list, name_fish_sh, run_choice,
+                                   self.path_bio, path_txt, self.progress_value,
+                                   self.q4, False, project_preferences, path_im_bioa,
+                                   xmlfiles))
+            self.p.name = "Habitat calculation"
+            self.p.start()
+
+            # log
+            self.send_log.emit("py    file1='" + hdf5_file + "'")
+            self.send_log.emit("py    path1= os.path.join(path_prj, 'hdf5')")
+            self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
+            self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
+            self.send_log.emit("py    type=" + str(run_choice))
+            self.send_log.emit("py    name_fish1 = ['" + "', '".join(name_fish) + "']")
+            self.send_log.emit("py    name_fish2 = ['" + "', '".join(name_fish_sh) + "']")
+            self.send_log.emit(
+                "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_list, stages, name_fish1, name_fish2, type, "
+                "path_bio, path_prj, path_prj, path_prj, path_prj, [], True, [])")
+            self.send_log.emit("restart RUN_HABITAT")
+            self.send_log.emit("restart    file1: " + hdf5_file)
+            self.send_log.emit("restart    list of preference file: " + ",".join(pref_list))
+            self.send_log.emit("restart    stages chosen: " + ",".join(stages_chosen))
+            self.send_log.emit("restart    type of calculation: " + str(run_choice))
         else:
+            # disable the button
             self.runhab.setDisabled(False)
-            self.send_log.emit('Error: No merged hydraulic files available.')
-            return
-
-        # show progressbar
-        self.nativeParentWidget().progress_bar.setRange(0, 100)
-        self.nativeParentWidget().progress_bar.setValue(0)
-        self.nativeParentWidget().progress_bar.setVisible(True)
-
-        # get the path where to save the different outputs (function in estimhab_GUI.py)
-        path_txt = self.find_path_text_est()
-        path_im = self.find_path_im_est()
-        path_shp = self.find_path_output_est("Path_Shape")
-        path_para = self.find_path_output_est("Path_Visualisation")
-
-        # get the type of option choosen for the habitat calculation
-        run_choice = self.general_option_sub_combobox.currentIndex()
-        # TODO: change run choices with sub and hyd
-        run_choice = 0
-
-        # only useful if we want to also show the 2d figure in the GUI
-        self.hdf5_file = hdf5_file
-        self.path_hdf5 = path_hdf5
-        path_im_bioa = os.path.join(os.getcwd(), self.path_im_bio)
-
-        # send the calculation of habitat and the creation of output
-        self.timer.start(100)  # to refresh progress info
-        self.q4 = Queue()
-        self.progress_value = Value("i", 0)
-        self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
-                         args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
-                               name_fish_list, name_fish_sh, run_choice,
-                               self.path_bio, path_txt, self.progress_value,
-                               self.q4, False, project_preferences, path_im_bioa,
-                               xmlfiles))
-        self.p.name = "Habitat calculation"
-        self.p.start()
-
-        # log
-        self.send_log.emit("py    file1='" + hdf5_file + "'")
-        self.send_log.emit("py    path1= os.path.join(path_prj, 'hdf5')")
-        self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
-        self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
-        self.send_log.emit("py    type=" + str(run_choice))
-        self.send_log.emit("py    name_fish1 = ['" + "', '".join(name_fish) + "']")
-        self.send_log.emit("py    name_fish2 = ['" + "', '".join(name_fish_sh) + "']")
-        self.send_log.emit(
-            "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_list, stages, name_fish1, name_fish2, type, "
-            "path_bio, path_prj, path_prj, path_prj, path_prj, [], True, [])")
-        self.send_log.emit("restart RUN_HABITAT")
-        self.send_log.emit("restart    file1: " + hdf5_file)
-        self.send_log.emit("restart    list of preference file: " + ",".join(pref_list))
-        self.send_log.emit("restart    stages chosen: " + ",".join(stages_chosen))
-        self.send_log.emit("restart    type of calculation: " + str(run_choice))
+            self.send_log.emit(self.tr('# Nothing to compute ! Models selected and their options may exist in .hab'))
 
     def show_prog(self):
         """
@@ -906,6 +952,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
             self.running_time = 0
             self.nativeParentWidget().kill_process.setVisible(False)
+            # check_uncheck_allmodels_presence
+            self.check_uncheck_allmodels_presence()
 
         if not self.p.is_alive():
             # enable the button to call this functin directly again
@@ -914,6 +962,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # put the timer back to zero
             self.running_time = 0
             self.send_log.emit("clear status bar")
+            # check_uncheck_allmodels_presence
+            self.check_uncheck_allmodels_presence()
 
 
 if __name__ == '__main__':

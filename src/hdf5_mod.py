@@ -1099,6 +1099,66 @@ class Hdf5Management:
         self.export_detailled_mesh_txt()
         self.export_pdf()
 
+    def remove_fish_hab(self, fish_names_to_remove):
+        """
+        Method to remove all data of specific aquatic animal.
+        Data to remove : attributes general and datasets.
+        """
+        # get actual attributes (hab_fish_list, hab_fish_number, hab_fish_pref_list, hab_fish_shortname_list, hab_fish_stage_list)
+        hab_fish_list_before = self.file_object.attrs["hab_fish_list"].split(", ")
+        hab_fish_pref_list_before = self.file_object.attrs["hab_fish_pref_list"].split(", ")
+        hab_fish_shortname_list_before = self.file_object.attrs["hab_fish_shortname_list"].split(", ")
+        hab_fish_stage_list_before = self.file_object.attrs["hab_fish_stage_list"].split(", ")
+
+        # get index
+        fish_index_to_remove_list = []
+        for fish_name_to_remove in fish_names_to_remove:
+            if fish_name_to_remove in hab_fish_list_before:
+                fish_index_to_remove_list.append(hab_fish_list_before.index(fish_name_to_remove))
+        fish_index_to_remove_list.sort()
+
+        # change lists
+        for index in reversed(fish_index_to_remove_list):
+            hab_fish_list_before.pop(index)
+            hab_fish_pref_list_before.pop(index)
+            hab_fish_shortname_list_before.pop(index)
+            hab_fish_stage_list_before.pop(index)
+
+        # change attributes
+        self.file_object.attrs["hab_fish_number"] = str(len(hab_fish_list_before))
+        self.file_object.attrs["hab_fish_list"] = ", ".join(hab_fish_list_before)
+        self.file_object.attrs["hab_fish_pref_list"] = ", ".join(hab_fish_pref_list_before)
+        self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(hab_fish_shortname_list_before)
+        self.file_object.attrs["hab_fish_stage_list"] = ", ".join(hab_fish_stage_list_before)
+
+        # remove data
+        # load the number of reach
+        try:
+            nb_r = int(self.file_object.attrs["hyd_reach_number"])
+        except KeyError:
+            print(
+                'Error: the number of time step is missing from :' + self.filename)
+            return
+
+        # load the number of time steps
+        try:
+            nb_t = int(self.file_object.attrs["hyd_unit_number"])
+        except KeyError:
+            print('Error: the number of time step is missing from :' + self.filename)
+            return
+
+        # data_2D
+        data_group = self.file_object['data_2D']
+        # REACH GROUP
+        for reach_num in range(nb_r):
+            reach_group = data_group["reach_" + str(reach_num)]
+            # UNIT GROUP
+            for unit_num in range(nb_t):
+                unit_group = reach_group["unit_" + str(unit_num)]
+                mesh_group = unit_group["mesh"]
+                for fish_name_to_remove in fish_names_to_remove:
+                    del mesh_group[fish_name_to_remove]
+
     # EXPORT ALL
     def export_all_output(self, state, project_preferences):
         self.export_source = "manual"
@@ -1597,7 +1657,8 @@ class Hdf5Management:
                     if not crs.ExportToWkt():  # '' == crs unknown
                         layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
                     else:  # crs known
-                        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint,  options = ['DESCRIPTION=testaaaaa'])
+                        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint,
+                                               options=['DESCRIPTION=testaaaaa'])
                     # create fields (no width no precision to be specified with GPKG)
                     layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
                     defn = layer.GetLayerDefn()

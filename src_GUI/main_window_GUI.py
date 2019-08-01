@@ -298,7 +298,8 @@ class MainWindows(QMainWindow):
         self.process_alive(close=True, isalive=False)
 
         # save model selection calhab
-        self.central_widget.bioinfo_tab.save_selected_aquatic_animal_list_calc_hab()
+        if hasattr(self.central_widget, "bioinfo_tab"):
+            self.central_widget.bioinfo_tab.save_selected_aquatic_animal_list_calc_hab()
 
         # save settings
         self.user_preferences.data["wind_position"] = (self.geometry().x(),

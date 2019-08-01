@@ -20,7 +20,6 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import json
 import os
-import shutil
 
 from habby import AppDataFolders
 from src import bio_info_mod

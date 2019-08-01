@@ -18,7 +18,6 @@ import os
 import numpy as np
 import urllib
 from copy import deepcopy
-import cProfile, pstats, io
 
 
 # INTERPOLATION TOOLS
@@ -312,18 +311,3 @@ def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
     return dict_to_sort
 
 
-def profileit(func):
-    def wrapper(*args, **kwargs):
-        path_stat = os.getcwd()  # habby folder
-        datafn = func.__name__ + ".profile"  # Name the data file sensibly
-        prof = cProfile.Profile()
-        retval = prof.runcall(func, *args, **kwargs)
-        s = io.StringIO()
-        sortby = 'cumulative'
-        ps = pstats.Stats(prof, stream=s).sort_stats(sortby)
-        ps.print_stats()
-        with open(os.path.join(path_stat, datafn), 'w') as perf_file:
-            perf_file.write(s.getvalue())
-        return retval
-
-    return wrapper

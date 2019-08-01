@@ -47,7 +47,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     :param stages_chosen: the stage chosen (youngs, adults, etc.). List with the same length as bio_names.
     :param fish_names: the name of the chosen fish
     :param name_fish_sh: In a shapefile, max 8 character for the column name. Hence, a modified name_fish is needed.
-    :param run_choice: an int fron 0 to n. Gives which calculation method should be used
+    :param run_choice: dict with two lists : one for hyd opt and second for sub opt
     :param path_bio: The path to the biological folder (with all files given in bio_names)
     :param path_txt: the path where to save the text file
     :param path_shp: the path where to save shapefile
@@ -84,7 +84,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 20
 
     # calcuation habitat
-    [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
+    [vh_all_t_sp, area_all, spu_all, area_c_all] = \
         calc_hab(hdf5.data_2d,
                  hdf5.data_description,
                  hdf5_file,
@@ -105,7 +105,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
 
     # name fish with stage
     for fish_ind, fish_name in enumerate(fish_names):
-        fish_names[fish_ind] = fish_name + "_" + stages_chosen[fish_ind]
+        stage_i = stages_chosen[fish_ind]
+        hyd_opt_i = run_choice["hyd_opt"][fish_ind]
+        sub_opt_i = run_choice["sub_opt"][fish_ind]
+        fish_names[fish_ind] = fish_name + "_" + stage_i + "_" + hyd_opt_i + "_" + sub_opt_i
 
     # progress
     progress_value.value = 90
@@ -125,7 +128,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
         return
 
 
-def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages, opt, progress_value):
+def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages, run_choice, progress_value):
     """
     This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
@@ -137,7 +140,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     :param bio_names: the name of the xml biological data
     :param stages: the stage chosen (youngs, adults, etc.). List with the same length as bio_names.
     :param path_bio: The path to the biological folder (with all files given in bio_names
-    :param opt: an int fron 0 to n. Gives which calculation method should be used
+    :param run_choice: dict with two lists : one for hyd opt and second for sub opt
     :return: the habiatat value for all species, all time, all reach, all cells.
     """
     failload = [-99], [-99], [-99], [-99], [-99], [-99]
@@ -174,8 +177,11 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     # for each suitability curve
     for idx, bio_name in enumerate(xmlfile):
         # load bio data
-        #xmlfile = os.path.join(path_bio, bio_name)
         [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name)
+        # hyd opt
+        hyd_opt = run_choice["hyd_opt"][idx]
+        # sub opt
+        sub_opt = run_choice["sub_opt"][idx]
         if pref_height == [-99]:
             print('Error: preference file could not be loaded. \n')
             return failload
@@ -187,40 +193,13 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 pref_height = pref_height[idx2]
                 pref_vel = pref_vel[idx2]
                 pref_sub = pref_sub[idx2]
-                #print(idx2, stade_bio)
 
-                # calcul (one function for each calculation options)
-                if opt == 0:  # pg
-                    # optmization possibility: feed_back the vel_c_att_t and height_c_all_t and area_all_t
-                    # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
-                    #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg,
-                    #                   pref_vel, pref_height, pref_sub)
-                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value = \
-                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, progress_value, delta)
-                elif opt == 1:  # dom
-                    # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
-                    #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
-                    #                   pref_vel, pref_height, pref_sub)
-                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, progress_value, delta)
-                elif opt == 2:  # percentage
-                    sub_per = hdf5_mod.load_sub_percent(merge_name, path_merge)
-                    if len(sub_per) == 1:
-                        print('Error: Substrate data in percentage form is not found. Habitat by percentage cannot be'
-                              ' computed. \n')
-                        return failload
-                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
-                        calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, sub_per,
-                                      pref_vel, pref_height, pref_sub, progress_value, delta, True)
-                elif opt == 3:
-                    # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
-                    #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
-                    #                   pref_vel, pref_height, pref_sub, False, False)
-                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, progress_value, delta, take_sub=False)
-                else:
-                    print('Error: the calculation method is not found. \n')
-                    return failload
+                # compute
+                vh_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value = \
+                    calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt,
+                                  progress_value, delta)
+
+                # append data
                 vh_all_t_sp.append(vh_all_t)
                 spu_all_t_sp.append(spu_all_t)
 
@@ -232,10 +211,10 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
             print('Error: the name of the fish stage are not coherent \n')
             return failload
 
-    return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp, area_c_all_t
+    return vh_all_t_sp, area_all_t, spu_all_t_sp, area_c_all_t
 
 
-def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, progress_value, delta, percent=False, take_sub=True):
+def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, progress_value, delta, percent=False, take_sub=True):
     # ikle_all_t, point_all_t, vel, height, sub,
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
@@ -255,29 +234,17 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
 
     """
 
-    # if len(height) != len(vel) or len(height) != len(sub):
-    #     return [-99], [-99], [-99], [-99], [-99], [-99]
     s_pref_c = 1
 
-    # vh_all_t = [[]]  # time step 0 is whole profile, no data
-    # spu_all_t = [[]]
-    # area_all_t = [[]]
-    # height_c_all_t = [[[-1]]]
-    # vel_c_att_t = [[[-1]]]
-    # area_c_all_t = [[[-1]]]
 
     vh_all_t = []  # time step 0 is whole profile, no data
     spu_all_t = []
     area_all_t = []
-    height_c_all_t = []
-    vel_c_att_t = []
     area_c_all_t = []
 
     # for each reach
     for reach_num in range(len(data_2d["tin"])):
         vh_all = []
-        height_c = []
-        vel_c = []
         area_all = []
         area_c_all = []
         spu_all = []
@@ -286,65 +253,28 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
         delta = (90 - prog) / len(data_2d["h"][reach_num])
         # for each unit
         for unit_num in range(len(data_2d["h"][reach_num])):
-            # height_t = height[t]
-            # vel_t = vel[t]
-            # sub_t = sub[t]
-            # ikle_t = ikle_all_t[t]
-            # point_t = point_all_t[t]
             height_t = data_2d["h"][reach_num][unit_num]
             vel_t = data_2d["v"][reach_num][unit_num]
             sub_t = data_2d["sub"][reach_num][unit_num]
             ikle_t = data_2d["tin"][reach_num][unit_num]
             point_t = data_2d["xy"][reach_num][unit_num]
-            # # if failed before
-            # if vel_t[0][0] == -99:
-            #     vh_all = [[-99]]
-            #     vel_c = [[-99]]
-            #     height_c = [[-99]]
-            #     area = [[-99]]
-            # else:
-            # for r in range(0, len(height_t)):
-            #
-            #     # # preparation
-            #     # ikle = np.array(ikle_t[r])
-            #     # h = np.array(height_t[r])
-            #     # v = np.array(vel_t[r])
-            #     # s = np.array(sub_t[r])
-            #     # p = np.array(point_t[r])
-
             if len(ikle_t) == 0:
                 print('Warning: The connectivity table was not well-formed for one reach (1) \n')
                 vh = [-99]
-                v_cell = [-99]
-                h_cell = [-99]
                 area_reach = [-99]
                 spu_reach = -99
                 area = [-99]
             elif len(ikle_t[0]) < 3:
                 print('Warning: The connectivity table was not well-formed for one reach (2) \n')
                 vh = [-99]
-                v_cell = [-99]
-                h_cell = [-99]
                 area_reach = [-99]
                 spu_reach = -99
                 area = [-99]
             else:
-                # get data by cells
-                v1 = vel_t[ikle_t[:, 0]]
-                v2 = vel_t[ikle_t[:, 1]]
-                v3 = vel_t[ikle_t[:, 2]]
-                v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-
-                h1 = height_t[ikle_t[:, 0]]
-                h2 = height_t[ikle_t[:, 1]]
-                h3 = height_t[ikle_t[:, 2]]
-                h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
-
                 # get area (based on Heron's formula)
                 p1 = point_t[ikle_t[:, 0], :]
                 p2 = point_t[ikle_t[:, 1], :]
                 p3 = point_t[ikle_t[:, 2], :]
-
                 d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
                 d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
                 d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
@@ -353,13 +283,37 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
                 area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
                 area = area ** 0.5
                 area_reach = np.sum(area)
-                # get pref value
-                h_pref_c = find_pref_value(h_cell, pref_height)
-                v_pref_c = find_pref_value(v_cell, pref_vel)
 
-                # choix type de substrat (selon combobox choix utilisateur) conversion sandre / cemagref si besoin
-                s = sub_t[:, 0]
-                if percent:
+                """ hydraulic pref """
+                # get H pref value
+                if hyd_opt in ["HV", "H"]:
+                    h1 = height_t[ikle_t[:, 0]]
+                    h2 = height_t[ikle_t[:, 1]]
+                    h3 = height_t[ikle_t[:, 2]]
+                    h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+                    #h_pref_c = find_pref_value(h_cell, pref_height)
+                    h_pref_c = np.interp(h_cell, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
+                # get V pref value
+                if hyd_opt in ["HV", "V"]:
+                    v1 = vel_t[ikle_t[:, 0]]
+                    v2 = vel_t[ikle_t[:, 1]]
+                    v3 = vel_t[ikle_t[:, 2]]
+                    v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+                    #v_pref_c = find_pref_value(v_cell, pref_vel)
+                    v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
+
+                """ substrate pref """
+                if sub_opt == "Neglect":  # Neglect
+                    s_pref_c = np.array([1] * len(sub_t))
+                elif sub_opt == "Coarser-Dominant":  # Coarser-Dominant
+                    s_pref_c_coarser = find_pref_value(sub_t[:, 0], pref_sub)
+                    s_pref_c_dom = find_pref_value(sub_t[:, 1], pref_sub)
+                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                elif sub_opt == "Coarser":  # Coarser
+                    s_pref_c = find_pref_value(sub_t[:, 0], pref_sub)
+                elif sub_opt == "Dominant":  # Dominant
+                    s_pref_c = find_pref_value(sub_t[:, 1], pref_sub)
+                else:  # percentage
                     for st in range(0, 8):
                         s0 = s[:, st]
                         sthere = np.zeros((len(s0),)) + st + 1
@@ -368,22 +322,27 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
                             s_pref_c = s_pref_st * s0 / 100
                         else:
                             s_pref_c += s0 / 100 * s_pref_st
-                else:
-                    s_pref_c = find_pref_value(s, pref_sub)
+
+                """ compute habitat value """
                 try:
-                    if take_sub:
+                    # HV
+                    if "H" in hyd_opt and "V" in hyd_opt:
                         vh = h_pref_c * v_pref_c * s_pref_c
+                    # H
+                    elif "H" in hyd_opt:
+                        vh = h_pref_c * s_pref_c
+                    # V
+                    elif "V" in hyd_opt:
+                        vh = v_pref_c * s_pref_c
+                    # Neglect
                     else:
-                        vh = h_pref_c * v_pref_c
-                    vh = np.round(vh, 7)  # necessary for  shapefile, do not get above 8 digits of precision
+                        vh = s_pref_c
                 except ValueError:
                     print('Error: One time step misses substrate, velocity or water height value \n')
                     vh = [-99]
                 spu_reach = np.sum(vh * area)
 
             vh_all.append(list(vh))
-            vel_c.append(v_cell)
-            height_c.append(h_cell)
             area_all.append(area_reach)
             area_c_all.append(area)
             spu_all.append(spu_reach)
@@ -392,13 +351,11 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
             progress_value.value = int(prog)
 
         vh_all_t.append(vh_all)
-        vel_c_att_t.append(vel_c)
-        height_c_all_t.append(height_c)
         spu_all_t.append(spu_all)
         area_all_t.append(area_all)
         area_c_all_t.append(area_c_all)
 
-    return vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value
+    return vh_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value
 
 
 def find_pref_value(data, pref):
