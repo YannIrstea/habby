@@ -130,7 +130,11 @@ class DataExplorerFrame(QFrame):
         """ export """
         # interpolation group
         self.dataexporter_group = DataExporterGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Data exporter"))
-        self.dataexporter_group.setChecked(True)
+        self.dataexporter_group.setChecked(False)
+
+        """ remove_fish """
+        self.habitatvalueremover_group = HabitatValueRemover(self.path_prj, self.name_prj, self.send_log, self.tr("Habitat value remover"))
+        self.habitatvalueremover_group.setChecked(True)
 
         """ File information """
         # attributes hdf5
@@ -163,6 +167,7 @@ class DataExplorerFrame(QFrame):
         vbox_plot_export_layout = QVBoxLayout()
         vbox_plot_export_layout.addWidget(self.plot_group)
         vbox_plot_export_layout.addWidget(self.dataexporter_group)
+        vbox_plot_export_layout.addWidget(self.habitatvalueremover_group)
         vbox_plot_export_layout.setAlignment(Qt.AlignTop)
         hbox_layout.addLayout(vbox_plot_export_layout)
 
@@ -253,6 +258,7 @@ class DataExplorerFrame(QFrame):
         self.plot_group.variable_QListWidget.clear()
         self.plot_group.units_QListWidget.clear()
         self.plot_group.reach_QListWidget.clear()
+        self.habitatvalueremover_group.existing_animal_QListWidget.clear()
 
         # one file selected
         if len(selection) == 1:
@@ -281,6 +287,7 @@ class DataExplorerFrame(QFrame):
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
                 if hdf5.reach_name:
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+                    self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
 
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
@@ -315,7 +322,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.init_ui()
 
     def init_ui(self):
-        # variable_QListWidget
+        # existing_animal_QListWidget
         self.variable_hdf5_QLabel = QLabel(self.tr('variables'))
         self.variable_QListWidget = QListWidget()
         self.variable_QListWidget.setMinimumWidth(130)
@@ -1173,6 +1180,66 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.plot_button.setEnabled(True)
         # disable stop button
         self.plot_stop_button.setEnabled(False)
+
+
+class HabitatValueRemover(QGroupBoxCollapsible):
+    """
+    This class is a subclass of class QGroupBox.
+    """
+
+    def __init__(self, path_prj, name_prj, send_log, title):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.send_log = send_log
+        self.setTitle(title)
+        self.init_ui()
+
+    def init_ui(self):
+        """ widgets """
+        existing_animal_title_QLabel = QLabel(self.tr('Existing aquatic animal habitat values :'))
+        self.existing_animal_QListWidget = QListWidget()
+        self.existing_animal_QListWidget.setMinimumWidth(130)
+        self.existing_animal_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+
+        self.remove_animal_button = QPushButton(self.tr("remove selected animals"))
+        self.remove_animal_button.clicked.connect(self.remove_animal_selected)
+
+        """ layout """
+        existing_animal_layout = QVBoxLayout()
+        existing_animal_layout.addWidget(existing_animal_title_QLabel)
+        existing_animal_layout.addWidget(self.existing_animal_QListWidget)
+        button_layout = QVBoxLayout()
+        button_layout.addWidget(self.remove_animal_button)
+        button_layout.setAlignment(Qt.AlignBottom)
+
+        plot_layout = QHBoxLayout()
+        plot_layout.addLayout(existing_animal_layout, 4)  # stretch factor
+        plot_layout.addLayout(button_layout, 1)  # stretch factor
+        self.setLayout(plot_layout)
+
+    def remove_animal_selected(self):
+        file_selection = self.parent().names_hdf5_QListWidget.selectedItems()
+        if len(file_selection) == 1:
+            hdf5name = file_selection[0].text()
+        else:
+            print("Warning: No file selected.")
+            return
+
+        # selected fish
+        selection = self.existing_animal_QListWidget.selectedItems()
+        fish_names = []
+        for i in range(len(selection)):
+            fish_names.append(selection[i].text())
+
+        # remove
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+        hdf5.open_hdf5_file(False)
+        hdf5.remove_fish_hab(fish_names)
+
+        # refresh
+        self.parent().names_hdf5_change()
+
 
 
 class MyProcessList(list):
