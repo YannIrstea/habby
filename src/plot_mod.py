@@ -19,6 +19,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+from matplotlib.lines import Line2D
 import mplcursors
 import time
 import os
@@ -876,8 +877,12 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         mar = 'o'
     else:
         mar = None
+    mar2 = "v"
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
+    # colors
+    color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
     # prep data
     name_hdf5 = name_hdf5[:-4]
     area_all = list(map(float, data_description["total_wet_area"][reach_num]))
@@ -973,9 +978,18 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         # SPU
         spu_ax = fig.add_subplot(211)
         x_data = list(map(float, unit_name))
-        for name_fish_value in name_fish_origin:
+        for fish_index, name_fish_value in enumerate(name_fish_origin):
             y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
-            plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
+            # plot line
+            plt.plot(x_data, y_data_spu, c=color_list[fish_index], label=name_fish_value, marker=None)
+            # plot points
+            for unit_index, percent in enumerate(data_description["percent_area_unknown"][name_fish_value][reach_num]):
+                if percent == 0.0:
+                    markers = mar
+                else:
+                    markers = mar2
+                plt.scatter(x_data[unit_index], y_data_spu[unit_index], c=color_list[fish_index], label=name_fish_value, marker=markers)
+
         if project_preferences['language'] == 0:
             # plt.xlabel('Computational step [ ]')
             plt.ylabel('WUA [m$^2$]')
@@ -987,7 +1001,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
             # plt.xlabel('Computational step [ ]')
             plt.ylabel('WUA [m$^2$]')
             plt.title(f'Weighted Usable Area - {reach_name}')
-        plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
+        plt.legend(name_fish_origin, fancybox=True, framealpha=0.5)  # make the legend transparent
         # spu_ax.xaxis.set_ticklabels([])
         if len(unit_name[0]) > 5:
             rot = 'vertical'
@@ -1001,10 +1015,19 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
             plt.xticks(x_data[::10], [], rotation=rot)
         # VH
         hv_ax = fig.add_subplot(212)
-        for name_fish_value in name_fish_origin:
-            y_data_hv = [b / m for b,m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
+        for fish_index, name_fish_value in enumerate(name_fish_origin):
+            y_data_hv = [b / m for b, m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
                                                         area_all)]
-            plt.plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
+            # plot line
+            plt.plot(x_data, y_data_hv, c=color_list[fish_index], label=name_fish_value, marker=None)
+            # plot points
+            for unit_index, percent in enumerate(data_description["percent_area_unknown"][name_fish_value][reach_num]):
+                if percent == 0.0:
+                    markers = mar
+                else:
+                    markers = mar2
+                plt.scatter(x_data[unit_index], y_data_hv[unit_index], c=color_list[fish_index], label=name_fish_value, marker=markers)
+
         if project_preferences['language'] == 0:
             plt.xlabel('Computational step [' + unit_type + ']')
             plt.ylabel('HV (WUA/A) []')
@@ -1018,6 +1041,10 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
             plt.ylabel('HV (WUA/A) []')
             plt.title(f'Habitat Value - {reach_name}')
         plt.ylim(0, 1)
+        # legend markers
+        legend_elements = [Line2D([0], [0], marker=mar, color='black', label='Complete', markerfacecolor='black'),
+                           Line2D([0], [0], marker=mar2, color='black', label='Incomplete', markerfacecolor='black')]
+        plt.legend(handles=legend_elements, fancybox=True, framealpha=0.5)  # make the legend transparent
         # view data with mouse
         # get data with mouse
         mplcursors.cursor()
@@ -1037,7 +1064,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 plt.xticks(x_data[::10], unit_name[::10], rotation=45)
         plt.tight_layout()
         if types_plot == "image export" or types_plot == "both":
-            if not erase_id:
+            if not erase1:
                 name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_hdf5 + '_' + reach_name
