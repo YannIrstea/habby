@@ -249,6 +249,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_unit_type"] = description_from_indexHYDRAU_file[hyd_file]["unit_type"]
         hyd_description["hyd_varying_mesh"] = data_2d_whole_profile["unit_correspondence"]
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
+        hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
 
         if hyd_description["hyd_varying_mesh"]:
             hyd_description["hyd_unit_z_equal"] = False

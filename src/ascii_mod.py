@@ -156,6 +156,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_list"] = hydrau_description["unit_list"]
     hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
+    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
 
     hyd_description["hyd_varying_mesh"] = data_description["varying_mesh"]
     if data_description["varying_mesh"]:
