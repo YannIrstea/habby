@@ -2542,6 +2542,7 @@ class CentralW(QWidget):
             print("tools_tab.refresh_hab_filenames()")
             self.tools_tab.refresh_hab_filenames()
 
+
 class EmptyTab(QWidget):
     """
     This class is  used to fill empty tabs with something during the developement.

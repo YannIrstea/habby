@@ -135,7 +135,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # the available merged data
         l0 = QLabel(self.tr('<b> Substrate and hydraulic data </b>'))
         self.m_all = QComboBox()
-        self.m_all.currentTextChanged.connect(self.check_uncheck_allmodels_presence)
+        self.m_all.currentTextChanged.connect(lambda: self.fill_selected_models_listwidets([]))
 
         # create lists with the possible fishes
         # right buttons for both QListWidget managed in the MainWindows class
@@ -283,7 +283,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.setColumnWidth(0, self.exist_title_label.width())
         self.presence_qtablewidget.setFixedWidth(self.exist_title_label.width())
 
-        self.fill_selected_models_listwidets([])
+        #self.fill_selected_models_listwidets([])
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
@@ -511,7 +511,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
     def fill_selected_models_listwidets(self, new_item_text_dict):
-        print("fill_selected_models_listwidets")
+        print("fill_selected_models_listwidets", self.sender())
         # if new added remove duplicates
         if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
             # index_to_keep = [new_item_text_dict["selected_aquatic_animal_list"].index(x) for x in new_item_text_dict["selected_aquatic_animal_list"] if x not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]]
@@ -739,6 +739,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.send_log.emit("Warning: the xml project file is not well-formed.")
             return
 
+        self.m_all.blockSignals(True)
         self.m_all.clear()
         self.tooltip = []
         self.hdf5_merge = []
@@ -748,6 +749,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         files = reversed(files)  # get the newest first
 
         path_hdf5 = self.find_path_hdf5_est()
+
         # add it to the list
         if files is not None:
             for idx, f in enumerate(files):
@@ -770,8 +772,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
 
+        self.m_all.blockSignals(False)
+
         # check_uncheck_allmodels_presence
-        self.check_uncheck_allmodels_presence()
+        self.fill_selected_models_listwidets([])
 
     def run_habitat_value(self):
         """
