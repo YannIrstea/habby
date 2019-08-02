@@ -23,7 +23,7 @@ from copy import deepcopy
 import numpy as np
 import triangle
 import matplotlib.pyplot as plt
-import shapefile
+#import shapefile
 
 
 def quadrangles_to_triangles(ikle4,xy,z,h,v):

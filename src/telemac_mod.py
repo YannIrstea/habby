@@ -126,6 +126,9 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         data_2d["h"] = [[]]  # always one reach
         data_2d["v"] = [[]]  # always one reach
         data_2d["z"] = [[]]  # always one reach
+        data_2d["max_slope_bottom"] = [[]]  # always one reach
+        data_2d["max_slope_energy"] = [[]]  # always one reach
+        data_2d["shear_stress"] = [[]]  # always one reach
         # get unit list from telemac file
         file_list = description_from_indexHYDRAU_file[hyd_file]["filename_source"].split(", ")
         if len(file_list) > 1:
@@ -198,6 +201,20 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                                                                                         project_preferences[
                                                                                             "CutMeshPartialyDry"],
                                                                                         minwh)
+
+            max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                                                                   z1=xy_cuted[tin_data[:, 0]][:, 2],
+                                                                   h1=h_data[tin_data[:, 0]],
+                                                                   v1=v_data[tin_data[:, 0]],
+                                                                   xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                                                                   z2=xy_cuted[tin_data[:, 1]][:, 2],
+                                                                   h2=h_data[tin_data[:, 1]],
+                                                                   v2=v_data[tin_data[:, 1]],
+                                                                   xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                                                                   z3=xy_cuted[tin_data[:, 2]][:, 2],
+                                                                   h3=h_data[tin_data[:, 2]],
+                                                                   v3=v_data[tin_data[:, 2]])
+
             if not isinstance(tin_data, np.ndarray):
                 print("Error: cut_2d_grid")
                 q.put(mystdout)
@@ -210,6 +227,9 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             data_2d["h"][0].append(h_data)
             data_2d["v"][0].append(v_data)
             data_2d["z"][0].append(xy_cuted[:, 2])
+            data_2d["max_slope_bottom"][0].append(max_slope_bottom)
+            data_2d["max_slope_energy"][0].append(max_slope_energy)
+            data_2d["shear_stress"][0].append(shear_stress)
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress
@@ -229,6 +249,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_unit_type"] = description_from_indexHYDRAU_file[hyd_file]["unit_type"]
         hyd_description["hyd_varying_mesh"] = data_2d_whole_profile["unit_correspondence"]
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
+        hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
 
         if hyd_description["hyd_varying_mesh"]:
             hyd_description["hyd_unit_z_equal"] = False

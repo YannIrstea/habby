@@ -24,7 +24,6 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
-import shapefile
 from time import time
 
 from src import hdf5_mod
@@ -114,7 +113,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 90
 
     # saving hdf5 data of the habitat value
-    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio)
+    hdf5.add_fish_hab(vh_all_t_sp, area_all, area_c_all,spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio)
 
     # progress
     progress_value.value = 100
@@ -196,7 +195,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
 
                 # compute
                 vh_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value = \
-                    calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt,
+                    calc_hab_norm(data_2d, data_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt,
                                   progress_value, delta)
 
                 # append data
@@ -214,7 +213,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     return vh_all_t_sp, area_all_t, spu_all_t_sp, area_c_all_t
 
 
-def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, progress_value, delta, percent=False, take_sub=True):
+def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, progress_value, delta, percent=False, take_sub=True):
     # ikle_all_t, point_all_t, vel, height, sub,
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
@@ -340,7 +339,9 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, hyd
                 except ValueError:
                     print('Error: One time step misses substrate, velocity or water height value \n')
                     vh = [-99]
-                spu_reach = np.sum(vh * area)
+                spu_reach = np.nansum(vh * area)
+                if any(np.isnan(vh)):
+                    print(f"Warning: The suitability curve range of {name_fish} is not sufficient according to the hydraulics of unit {unit_num}.")
 
             vh_all.append(list(vh))
             area_all.append(area_reach)

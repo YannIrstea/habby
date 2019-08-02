@@ -1340,12 +1340,14 @@ class SubHydroW(QWidget):
 
             if child1 is not None:
                 if len(child1) > 0:
-                    name = child1[-1].text
                     if type not in ("hdf5_substrate", "hdf5_mergedata"):  # hydraulic
+                        name = child1[-1].text
                         self.last_hydraulic_file_name_label.setText(name)
                     if type == "hdf5_substrate":  # substrate
+                        name = root.findall('.//hdf5_substrate')[0].text
                         self.last_sub_file_name_label.setText(name)
                     if type == "hdf5_mergedata":  # merge
+                        name = root.findall('.//hdf5_habitat')[0].text
                         self.last_merge_file_name_label.setText(name)
 
                     # # QToolTip

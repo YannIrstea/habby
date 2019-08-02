@@ -1241,7 +1241,6 @@ class HabitatValueRemover(QGroupBoxCollapsible):
         self.parent().names_hdf5_change()
 
 
-
 class MyProcessList(list):
     """
     This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.

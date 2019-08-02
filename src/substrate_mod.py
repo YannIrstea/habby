@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 import sys
 from io import StringIO
-import shapefile
+#import shapefile
 import os
 import numpy as np
 from scipy.spatial import Voronoi

@@ -275,6 +275,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         if not hdf5name:
             # clean
             self.disable_and_clean_group_widgets(False)
+            self.hab_reach_qcombobox.clear()
         # file
         if hdf5name:
             # clean
