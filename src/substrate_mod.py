@@ -1345,6 +1345,53 @@ def voronoi_finite_polygons_2d(vor, radius=None):
     return new_regions, np.asarray(new_vertices)
 
 
+def pref_substrate_dominant_from_percentage_description(prefsub, c1):
+    """
+    aiming the calculation for each mesh of the substrate preferences for the dominant substrate (there can be several)
+
+    :param prefsub: substrate preferences for each substrate class
+    :param c1: np.array each line is for a given mesh the area percentage description for each substrate class
+    :return: preferences for each mesh number of preferences equal to the number of meshes
+    """
+    b = np.amax(c1, axis=1).reshape(c1.shape[0], 1)
+    e = (c1 == b) * 1
+    return np.sum(e * prefsub, axis=1) / np.sum(e, axis=1)
+
+
+def pref_substrate_coarser_from_percentage_description(prefsub, c1):
+    """
+    aiming the calculation for each mesh of the substrate preferences for the coarser substrate
+    :param prefsub: substrate preferences for each substrate class
+    :param c1: np.array each line is for a given mesh the area percentage description for each substrate class
+    :return: preferences for each mesh number of preferences equal to the number of meshes
+    """
+    codsub = list(range(1, len(prefsub) + 1))
+    return prefsub[np.amax((c1 != 0) * codsub, axis=1) - 1]
+
+# prefsub=np.array([0.1,0.2,0.25,0.5,1,0.3,0.7,0.6])
+# #la description du substrat par maille est sous forme de % pour ici les 8 classes substrat Cemagref
+# c1=np.array([[ 8, 15,  12, 20, 11, 20,  0,  14],
+#        [ 1, 10,  2, 11,  6, 34,  2, 34],
+#        [15, 15,  15,  10, 10, 11, 12,  12],
+#        [27,  4,  8,  8,  0,  2, 34, 17],
+#        [34,  6,  4, 27,  2,  9, 14,  4],
+#        [ 1, 16, 10, 11, 20, 29, 11,  2],
+#        [26,  46,  5, 20,  3, 0,  0,  0],
+#        [22,  19,  2, 19, 32,  6, 0,  0],
+#        [ 8,  1, 24,  3, 22, 13, 25,  4],
+#        [17,  7,  6, 11, 36,  7,  9,  7],
+#        [ 9, 11, 26, 32,  3,  0,  0, 19]])
+#
+
+
+#vhdom=pref_substrate_dominant_from_percentage_description(prefsub,c1)
+##>>> vhdom
+##array([0.4       , 0.45      , 0.18333333, 0.7       , 0.1       ,
+##       0.3       , 0.2       , 1.        , 0.7       , 1.        ,
+##       0.5       ])
+#vhcoarser=pref_substrate_coarser_from_percentage_description(prefsub,c1)
+#array([0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 1. , 0.3, 0.6, 0.6, 0.6])
+
 def main():
     """
     Used to test this module.
