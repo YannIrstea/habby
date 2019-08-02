@@ -268,7 +268,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.exist_title_label, 2, 3)
         self.layout4.addWidget(self.presence_qtablewidget, 3, 3, 1, 1)
 
-
         # 5e column
         self.layout4.addWidget(self.general_scrollbar, 3, 4, 1, 1)
 

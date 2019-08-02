@@ -2147,7 +2147,7 @@ class CentralW(QWidget):
         self.tab_widget.currentChanged.connect(self.save_on_change_tab)
 
         # update plot item in plot tab
-        self.tab_widget.currentChanged.connect(self.update_plot_items_in_plot_tab)
+        self.tab_widget.currentChanged.connect(self.update_specific_tab)
 
         self.keyboard_change_tab_filter = AltTabPressEater()
         self.tab_widget.installEventFilter(self.keyboard_change_tab_filter)
@@ -2528,10 +2528,19 @@ class CentralW(QWidget):
                 self.chronicle_tab.merge_all.addItem(self.bioinfo_tab.m_all.itemText(i))
                 self.chronicle_tab.merge_all.setItemData(i, self.bioinfo_tab.tooltip[i], Qt.ToolTipRole)
 
-    def update_plot_items_in_plot_tab(self):
-        if self.tab_widget.currentIndex() == 9:
-            self.data_explorer_tab.data_explorer_frame.types_hdf5_change()
-
+    def update_specific_tab(self):
+        # calc hab
+        if self.tab_widget.currentIndex() == 3:
+            print("self.bioinfo_tab.update_merge_list()")
+            self.bioinfo_tab.update_merge_list()
+        # data_explorer_tab
+        elif self.tab_widget.currentIndex() == 4:
+            print("data_explorer_tab.refresh_type()")
+            self.data_explorer_tab.refresh_type()
+        # tools_tab
+        elif self.tab_widget.currentIndex() == 5:
+            print("tools_tab.refresh_hab_filenames()")
+            self.tools_tab.refresh_hab_filenames()
 
 class EmptyTab(QWidget):
     """
