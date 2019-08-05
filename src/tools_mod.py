@@ -292,6 +292,36 @@ def get_prj_from_epsg_web(epsg_code):
     return output
 
 
+def remove_image(name, path, format1):
+    """
+    This is a small function used to erase images if erase_id is True. We have a function because different format
+    czan be used and because it is done often in the functions above.
+
+    :param name: the name of the file t be erase (without the extension)
+    :param path: the path to the file
+    :param format1: the type of format
+    :return:
+    """
+    if format1 == 0:
+        ext = ['.png', '.pdf']
+    elif format1 == 1:
+        ext = ['.png']
+    elif format1 == 2:
+        ext = ['jpg']
+    elif format1 == 3:
+        ext = ['.pdf']
+    else:
+        return True
+    for e in ext:
+        if os.path.isfile(os.path.join(path, name + e)):
+            try:
+                os.remove(os.path.join(path, name + e))
+            except PermissionError:
+                print('Warning: Figures used by an other program. could not be erased \n')
+                return False
+    return True
+
+
 def isstranumber(a):
     try:
         float(a)

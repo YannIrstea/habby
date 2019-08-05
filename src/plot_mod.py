@@ -26,7 +26,7 @@ import os
 from datetime import datetime as dt
 
 from src_GUI import preferences_GUI
-from src import calcul_hab_mod
+from src import tools_mod
 
 
 def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
@@ -273,7 +273,7 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=project_preferences['resolution'], transparent=True)
         else:
-            test = calcul_hab_mod.remove_image(filename, path_im, format1)
+            test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
@@ -349,7 +349,7 @@ def plot_map_elevation(state, data_xy, data_z, project_preferences, data_descrip
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=project_preferences['resolution'], transparent=True)
         else:
-            test = calcul_hab_mod.remove_image(filename, path_im, format1)
+            test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
@@ -441,7 +441,7 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=project_preferences['resolution'], transparent=True)
             else:
-                test = calcul_hab_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
@@ -537,7 +537,7 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=project_preferences['resolution'], transparent=True)
             else:
-                test = calcul_hab_mod.remove_image(filename, path_im, format1)
+                test = tools_mod.remove_image(filename, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
@@ -712,7 +712,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                          '.jpg'), dpi=project_preferences['resolution'], transparent=True)
         else:
-            test = calcul_hab_mod.remove_image("substrate_coars_dom", path_im, format)
+            test = tools_mod.remove_image("substrate_coars_dom", path_im, format)
             if not test:
                 return
             if format == 0 or format == 1:
@@ -825,7 +825,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
                     "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=project_preferences['resolution'], transparent=True)
         else:
-            test = calcul_hab_mod.remove_image(filename, path_im, format1)
+            test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:
                 return
             if format1 == 0 or format1 == 1:
@@ -962,7 +962,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0]
-                test = calcul_hab_mod.remove_image(name, path_im, format1)
+                test = tools_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
 
@@ -1068,7 +1068,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_hdf5 + '_' + reach_name
-                test = calcul_hab_mod.remove_image(name, path_im, format1)
+                test = tools_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
             if format1 == 0 or format1 == 1:
@@ -1199,7 +1199,7 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
                 name = 'WUA_' + name_base + '_Reach_' + str(0) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_base + '_Reach_' + str(0)
-                test = calcul_hab_mod.remove_image(name, path_im, format1)
+                test = tools_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
 
