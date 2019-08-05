@@ -669,7 +669,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                 name_hdf5=hdf5.data_description["hyd_filename"])
                     if types_hdf5 == "substrate":  # load substrate data
                         hdf5.load_hdf5_sub(convert_to_coarser_dom=True)
-                        data_description = dict(reach_list=hdf5.data_description["hyd_reach_list"].split(", "),
+                        data_description = dict(reach_list=hdf5.data_description["sub_reach_list"].split(", "),
                                                 reach_number=hdf5.data_description["sub_reach_number"],
                                                 unit_number=hdf5.data_description["sub_unit_number"],
                                                 unit_type=hdf5.data_description["sub_unit_type"],

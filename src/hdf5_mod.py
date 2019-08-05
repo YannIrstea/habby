@@ -22,9 +22,7 @@ import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-#import shapefile
 from stl import mesh
-#from shapely.geometry import Polygon
 from osgeo import osr
 from osgeo import ogr
 
@@ -39,7 +37,6 @@ from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
-from src.tools_mod import get_prj_from_epsg_web
 from src_GUI import preferences_GUI
 from habby import HABBY_VERSION
 
@@ -101,19 +98,21 @@ class Hdf5Management:
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
                 self.get_hdf5_attributes()
+
                 # create basename_output_reach_unit for output files
-                self.basename_output_reach_unit = []
-                for reach_num, reach_name in enumerate(self.reach_name):
-                    self.basename_output_reach_unit.append([])
-                    for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                        unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name)
-                        self.basename_output_reach_unit[reach_num].append(self.basename + "_" + reach_name + "_" + str(unit_name2))
-                self.units_name_output = []
-                for reach_num, reach_name in enumerate(self.reach_name):
-                    self.units_name_output.append([])
-                    for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                        unit_name2 = str(unit_name).replace(".", "_") + "_" + self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/", "")  #["/", ".", "," and " "] are forbidden for gpkg in ArcMap
-                        self.units_name_output[reach_num].append(unit_name2)
+                if self.extension != ".sub":
+                    self.basename_output_reach_unit = []
+                    for reach_num, reach_name in enumerate(self.reach_name):
+                        self.basename_output_reach_unit.append([])
+                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                            unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name)
+                            self.basename_output_reach_unit[reach_num].append(self.basename + "_" + reach_name + "_" + str(unit_name2))
+                    self.units_name_output = []
+                    for reach_num, reach_name in enumerate(self.reach_name):
+                        self.units_name_output.append([])
+                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                            unit_name2 = str(unit_name).replace(".", "_") + "_" + self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/", "")  #["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                            self.units_name_output[reach_num].append(unit_name2)
 
         except OSError:
             print('Error: the hdf5 file could not be loaded.')
@@ -270,8 +269,8 @@ class Hdf5Management:
         """ get_hdf5_units_name """
         # to attributes
         if self.hdf5_type == "substrate":
-            self.units_name = []
-            self.nb_unit = 0
+            self.units_name = [["unit_0"]]
+            self.nb_unit = 1
         else:
             self.units_name = self.file_object["unit_by_reach"].value.transpose().astype(np.str).tolist()
             self.nb_unit = len(self.units_name)
@@ -617,9 +616,8 @@ class Hdf5Management:
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
                     mesh_group.create_dataset(name="sub",
-                                              shape=[len(data_2d["sub"][unit_num][0]),
-                                                     int(sub_description_system["sub_class_number"])],
-                                              data=list(zip(*data_2d["sub"][unit_num])))
+                                              shape=[data_2d["sub"][unit_num].shape[0], data_2d["sub"][unit_num].shape[1]],
+                                              data=data_2d["sub"][unit_num])
                     mesh_group.create_dataset(name="tin",
                                               shape=[len(data_2d["tin"][unit_num]), 3],
                                               data=data_2d["tin"][unit_num])
@@ -1345,7 +1343,7 @@ class Hdf5Management:
                         # if erase_id == True
                         if self.project_preferences['erase_id']:
                             # gpkg file update
-                            ds = driver.Open(os.path.join(self.path_shp, filename), 1)  # 0 means read-only. 1 means writeable.
+                            ds = driver.Open(os.path.join(self.path_shp, filename), 1)
                             layer_names = [ds.GetLayer(i).GetName() for i in range(ds.GetLayerCount())]
                         # if erase_id == False
                         else:

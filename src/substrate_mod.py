@@ -16,7 +16,6 @@ https://github.com/YannIrstea/habby
 """
 import sys
 from io import StringIO
-#import shapefile
 import os
 import numpy as np
 from scipy.spatial import Voronoi
@@ -25,6 +24,9 @@ import triangle as tr
 from random import randrange
 from shapely.geometry import MultiPoint, Polygon, Point
 from PyQt5.QtWidgets import QMessageBox
+from osgeo import osr
+from osgeo import ogr
+
 from src import hdf5_mod
 from src.tools_mod import get_prj_from_epsg_web
 from src import manage_grid_mod
@@ -163,37 +165,66 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     :return: True (triangle shapefile produced) False (error)
     """
     # init
-    shapefile_type = 5  # polygon
+    # shapefile_type = 5  # polygon in pyshp
+    shapefile_type = 3  # polygon in ogr
     prj = False  # presence of the .prj accompanying the shapefile
 
-    # read source shapefile
     in_shp_abs_path = os.path.join(path_file, filename)
     in_shp_basename_abs_path = os.path.splitext(in_shp_abs_path)[0]
-    sf = shapefile.Reader(in_shp_abs_path)
-    if sf.shapeType != shapefile_type:
+
+    # read source shapefile
+    # sf = shapefile.Reader(in_shp_abs_path)
+    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+    ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
+    layer = ds.GetLayer(0)  # one layer in shapefile
+    layer_defn = layer.GetLayerDefn()
+
+    # get geom type
+    # if sf.shapeType != shapefile_type:
+    #     print("file is not polygon type")
+    #     return False
+    if layer.GetGeomType() != shapefile_type:
         print("file is not polygon type")
         return False
-    shapes = sf.shapes()
-    records = sf.records()
-    fields = sf.fields[1:]
-    if os.path.isfile(in_shp_basename_abs_path + ".prj"):
-        prj = open(in_shp_basename_abs_path + ".prj", "r").read()
+
+    # fields = sf.fields[1:]
+    header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+
+    # shapes = sf.shapes()
+    # records = sf.records()
+
+    # get EPSG
+    crs = layer.GetSpatialRef()
 
     # Extract list of points and segments from shp
     vertices_array = []  # point
     segments_array = []  # segment index or connectivity table
     holes_array = []
     inextpoint = 0
-    for i in range(len(shapes)):  # for each polygon
-        if len(shapes[i].parts) > 1:  # polygon a trous
-            index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
+    records = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+    for feature_ind, feature in enumerate(layer):
+        records[feature_ind] = [feature.GetField(j) for j in header_list]
+        shape_geom = feature.geometry()
+        if shape_geom.GetGeometryCount() > 1:  # polygon a trous
+            # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
+            index_hole = [0]
+            all_coord = []
+            for part_num, part in enumerate(range(shape_geom.GetGeometryCount())):
+                geom_part = shape_geom.GetGeometryRef(part_num)
+                coord_part = eval(geom_part.ExportToJson())
+                all_coord.extend(coord_part["coordinates"])
+                if part_num == shape_geom.GetGeometryCount() - 1:  # last
+                    index_hole.append(index_hole[-1] + len(coord_part["coordinates"]))
+                else:
+                    index_hole.append(len(coord_part["coordinates"]))
+
             new_points = []
             lnbptspolys = []
             for j in range(len(index_hole) - 1):
-                new_points.extend(shapes[i].points[index_hole[j]:index_hole[j + 1] - 1])
+                new_points.extend(all_coord[index_hole[j]:index_hole[j + 1] - 1])
                 lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
                 if j > 0:  # hole presence : creating a single point inside the hole using triangulation
-                    vertices_hole = np.array(shapes[i].points[index_hole[j]:index_hole[j + 1] - 1])
+                    vertices_hole = np.array(all_coord[index_hole[j]:index_hole[j + 1] - 1])
                     segments_hole = []
                     for k in range(lnbptspolys[-1]):
                         segments_hole.append([k % lnbptspolys[-1], (k + 1) % lnbptspolys[-1]])
@@ -205,7 +236,9 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
                     p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
                     holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
         else:
-            new_points = list((shapes[i].points[:-1]))  # taking off the first redundant description point
+            # new_points = list((shapes[i].points[:-1]))  # taking off the first redundant description point
+            feature_geom_coord_dict = eval(shape_geom.ExportToJson())
+            new_points = feature_geom_coord_dict['coordinates'][0][:-1]
             lnbptspolys = [len(new_points)]
         # add
         vertices_array.extend(new_points)  # add the points to list
@@ -252,7 +285,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
 
     # get geometry and attributes of triangles
     triangle_geom_list = []
-    triangle_records_list = []
+    triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
     for i in range(len(polygon_triangle["triangles"])):
         # triangle coords
         p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]].tolist()
@@ -263,30 +296,57 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
         xmean = (p1[0] + p2[0] + p3[0]) / 3
         ymean = (p1[1] + p2[1] + p3[1]) / 3
         polyg_center = (xmean, ymean)
+        layer.ResetReading()  # reset the read position to the start
         # if center in polygon: get attributes
-        for j in range(len(shapes)):  # for each polygon
-            if len(shapes[j].parts) > 1:  # hole presence
-                point_list = shapes[j].points[:shapes[j].parts[1]-2]
-            else:
-                point_list = shapes[j].points[:-1]
+        for j, feature in enumerate(layer):
+            shape_geom = feature.geometry()
+            geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
+            coord_part = eval(geom_part.ExportToJson())
+            point_list = coord_part["coordinates"][:-1]
             if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
-                triangle_records_list.append(records[j])
+                triangle_records_list[i] = records[j]
+
+    # close file
+    ds.Destroy()
 
     # write triangulate shapefile
     out_shp_basename = os.path.splitext(filename)[0]
     out_shp_filename = out_shp_basename + "_triangulated.shp"
     out_shp_path = os.path.join(path_prj, "input")
     out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
-    out_shp_basename_abs_path = os.path.splitext(out_shp_abs_path)[0]
-    w = shapefile.Writer(shapefile_type)
-    for field in fields:
-        w.field(*field)
+    ds = driver.CreateDataSource(out_shp_abs_path)
+    if not crs.ExportToWkt():  # '' == crs unknown
+        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
+    else:  # crs known
+        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
+
+    for field in header_list:
+        layer.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
+
+    defn = layer.GetLayerDefn()
+    layer.StartTransaction()  # faster
     for i in range(len(triangle_geom_list)):
-        w.poly(parts=[triangle_geom_list[i]])
-        w.record(*triangle_records_list[i])
-    w.save(out_shp_abs_path)
-    if prj:
-        open(out_shp_basename_abs_path + ".prj", "w").write(prj)
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        for point_ind in [0, 1, 2, 0]:
+            ring.AddPoint(triangle_geom_list[i][point_ind][0], triangle_geom_list[i][point_ind][1])
+        # Create polygon
+        poly = ogr.Geometry(ogr.wkbPolygon)
+        poly.AddGeometry(ring)
+        # Create a new feature
+        feat = ogr.Feature(defn)
+        for field_num, field in enumerate(header_list):
+            feat.SetField(field, int(triangle_records_list[i][field_num]))
+        # set geometry
+        feat.SetGeometry(poly)
+        # create
+        layer.CreateFeature(feat)
+
+    # Save and close everything
+    layer.CommitTransaction()  # faster
+
+    # close file
+    ds.Destroy()
+
     return True
 
 
@@ -399,8 +459,8 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
 def shp_validity(filename, path_prj, code_type, dominant_case=1):
     ind = 0
 
-    # open shape file (think about zero or one to start! )
-    sf = open_shp(filename, path_prj)
+    driver = ogr.GetDriverByName('GPKG')  # GPKG
+    ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
 
     fields = sf.fields
 
@@ -568,16 +628,15 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
     sys.stdout = mystdout = StringIO()
 
     # open shape file
-    sf = open_shp(filename, path_file)
+    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+    ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
+    layer = ds.GetLayer(0)  # one layer in shapefile
+    layer_defn = layer.GetLayerDefn()
 
-    # get sub data in the shape file
-    fields = sf.fields
-    header_list = []
-    for i, field in enumerate(fields):
-        if i > 0:
-            header_list.append(field[0])
-    records = sf.records()
-    sub_array = list(zip(*records))
+    header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+    sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+    for feature_ind, feature in enumerate(layer):
+        sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
 
     # check data validity
     data_validity, sub_description_system = data_substrate_validity(header_list,
@@ -589,6 +648,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
     sub_description_system["sub_class_number"] = str(len(sub_array))
     sub_description_system["sub_default_values"] = default_values
     sub_description_system["sub_reach_number"] = "1"
+    sub_description_system["sub_reach_list"] = "unknown"
     sub_description_system["sub_unit_number"] = "1"
     sub_description_system["sub_unit_list"] = "0.0"
     sub_description_system["sub_unit_type"] = "unknown"
@@ -606,12 +666,20 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
             ind = 0
 
             # open shape file (think about zero or one to start! )
-            sf = open_shp(filename, os.path.join(path_prj, "input"))
+            #sf = open_shp(filename, os.path.join(path_prj, "input"))
+            driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+            ds = driver.Open(os.path.join(path_prj, "input", filename), 0)  # 0 means read-only. 1 means writeable.
+            layer = ds.GetLayer(0)  # one layer in shapefile
+            layer_defn = layer.GetLayerDefn()
 
             # get point coordinates and connectivity table in two lists
-            shapes = sf.shapes()
-            for i in range(0, len(shapes)):
-                p_all = shapes[i].points
+            sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+            for feature_ind, feature in enumerate(layer):
+                sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
+                shape_geom = feature.geometry()
+                geom_part = shape_geom.GetGeometryRef(0)  # only one if triangular mesh
+                coord_part = eval(geom_part.ExportToJson())
+                p_all = coord_part["coordinates"]
                 tin_i = []
                 for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
                     try:
@@ -622,13 +690,10 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                 tin.append(tin_i)
 
             # get data
-            records = sf.records()
-            sub_array = list(zip(*records))
-
             data_2d = dict()
             data_2d["tin"] = [np.array(tin)]
             data_2d["xy"] = [np.array(xy)]
-            data_2d["sub"] = [np.array(sub_array)]
+            data_2d["sub"] = [sub_array]
             data_2d["nb_unit"] = 1
             data_2d["nb_reach"] = 1
 
