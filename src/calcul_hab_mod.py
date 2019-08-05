@@ -26,9 +26,10 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from time import time
 
+from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import bio_info_mod
-from src_GUI import preferences_GUI
+from src.substrate_mod import pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_names, name_fish_sh, run_choice, path_bio,
@@ -191,7 +192,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 found_stage += 1
                 pref_height = pref_height[idx2]
                 pref_vel = pref_vel[idx2]
-                pref_sub = pref_sub[idx2]
+                pref_sub = np.array(pref_sub[idx2])
 
                 # compute
                 vh_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value = \
@@ -290,7 +291,6 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                     h2 = height_t[ikle_t[:, 1]]
                     h3 = height_t[ikle_t[:, 2]]
                     h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
-                    #h_pref_c = find_pref_value(h_cell, pref_height)
                     h_pref_c = np.interp(h_cell, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
                 # get V pref value
                 if hyd_opt in ["HV", "V"]:
@@ -298,20 +298,30 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                     v2 = vel_t[ikle_t[:, 1]]
                     v3 = vel_t[ikle_t[:, 2]]
                     v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-                    #v_pref_c = find_pref_value(v_cell, pref_vel)
                     v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
 
                 """ substrate pref """
                 if sub_opt == "Neglect":  # Neglect
                     s_pref_c = np.array([1] * len(sub_t))
                 elif sub_opt == "Coarser-Dominant":  # Coarser-Dominant
-                    s_pref_c_coarser = find_pref_value(sub_t[:, 0], pref_sub)
-                    s_pref_c_dom = find_pref_value(sub_t[:, 1], pref_sub)
-                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                    if hab_description["sub_classification_method"] == "percentage":
+                        s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                        s_pref_c_dom = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                        s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                    elif hab_description["sub_classification_method"] == "coarser-dominant":
+                        s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
+                        s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
+                        s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
                 elif sub_opt == "Coarser":  # Coarser
-                    s_pref_c = find_pref_value(sub_t[:, 0], pref_sub)
+                    if hab_description["sub_classification_method"] == "percentage":
+                        s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                    elif hab_description["sub_classification_method"] == "coarser-dominant":
+                        s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
                 elif sub_opt == "Dominant":  # Dominant
-                    s_pref_c = find_pref_value(sub_t[:, 1], pref_sub)
+                    if hab_description["sub_classification_method"] == "percentage":
+                        s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                    elif hab_description["sub_classification_method"] == "coarser-dominant":
+                        s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
                 else:  # percentage
                     for st in range(0, 8):
                         s0 = s[:, st]
