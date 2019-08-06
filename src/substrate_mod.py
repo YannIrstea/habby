@@ -595,7 +595,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                                                                     sub_classification_code)
 
     sub_description_system["sub_filename_source"] = filename
-    sub_description_system["sub_class_number"] = str(len(sub_array))
+    sub_description_system["sub_class_number"] = str(len(sub_array[0]))
     sub_description_system["sub_default_values"] = default_values
     sub_description_system["sub_reach_number"] = "1"
     sub_description_system["sub_reach_list"] = "unknown"
