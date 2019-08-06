@@ -383,9 +383,8 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
     # if percentage type
     if sub_classification_method == "percentage":
         # all case : sum == 100 % ?
-        sub_array2 = list(zip(*sub_array))  # retransforme data by features
-        for e in range(0, len(sub_array2)):  # for all features
-            if sum(sub_array2[e]) != 100:
+        for e in range(0, len(sub_array)):  # for all features
+            if sum(sub_array[e]) != 100:
                 print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
                 return False, sub_description_system
         # code type Cemagref S1 ==> S8
