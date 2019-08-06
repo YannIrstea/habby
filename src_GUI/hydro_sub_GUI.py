@@ -114,7 +114,7 @@ class Hydro2W(QScrollArea):
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__()
+        super(Hydro2W, self).__init__()
         self.tab_name = "hydraulic"
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -1367,7 +1367,7 @@ class HEC_RAS1D(SubHydroW):
     """
 
     def __init__(self, path_prj, name_prj):
-        super().__init__(path_prj, name_prj)
+        super(HEC_RAS1D, self).__init__(path_prj, name_prj)
         self.inter = QComboBox()
         self.init_iu()
 
@@ -1626,7 +1626,7 @@ class Rubar2D(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(Rubar2D, self).__init__(path_prj, name_prj)
         self.init_iu()
 
     def init_iu(self):
@@ -1817,7 +1817,7 @@ class Mascaret(SubHydroW):
     """
 
     def __init__(self, path_prj, name_prj):
-        super().__init__(path_prj, name_prj)
+        super(Mascaret, self).__init__(path_prj, name_prj)
         self.inter = QComboBox()
         self.init_iu()
 
@@ -2111,7 +2111,7 @@ class River2D(SubHydroW):
      """
 
     def __init__(self, path_prj, name_prj):
-        super().__init__(path_prj, name_prj)
+        super(River2D, self).__init__(path_prj, name_prj)
         self.mystdout = None
         self.init_iu()
 
@@ -2385,7 +2385,7 @@ class Rubar1D(SubHydroW):
     """
 
     def __init__(self, path_prj, name_prj):
-        super().__init__(path_prj, name_prj)
+        super(Rubar1D, self).__init__(path_prj, name_prj)
         self.inter = QComboBox()
         self.init_iu()
 
@@ -2631,7 +2631,7 @@ class HEC_RAS2D(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(HEC_RAS2D, self).__init__(path_prj, name_prj)
         self.init_iu()
 
     def init_iu(self):
@@ -3122,7 +3122,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(TELEMAC, self).__init__(path_prj, name_prj)
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
         # update the attibutes
@@ -3564,7 +3564,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(ASCII, self).__init__(path_prj, name_prj)
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
         self.multi_reach = False
@@ -4023,7 +4023,7 @@ class LAMMI(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(LAMMI, self).__init__(path_prj, name_prj)
 
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
         # the third path is the directory when the output files are found. Only useful, if the output files were moved
@@ -4226,7 +4226,7 @@ class SW2D(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(SW2D, self).__init__(path_prj, name_prj)
         self.init_iu()
 
     def init_iu(self):
@@ -4402,7 +4402,7 @@ class IBER2D(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(IBER2D, self).__init__(path_prj, name_prj)
         self.init_iu()
 
     def init_iu(self):
@@ -4645,7 +4645,7 @@ class HabbyHdf5(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
 
-        super().__init__(path_prj, name_prj)
+        super(HabbyHdf5, self).__init__(path_prj, name_prj)
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.model_type = 'Imported_hydro'
@@ -4929,7 +4929,7 @@ class SubstrateW(SubHydroW):
     """
 
     def __init__(self, path_prj, name_prj):
-        super().__init__(path_prj, name_prj)
+        super(SubstrateW, self).__init__(path_prj, name_prj)
         # update attribute
         self.tab_name = "substrate"
         self.attributexml = ['substrate_path', 'att_name']
