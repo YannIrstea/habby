@@ -377,8 +377,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
     return data_2d_merge, data_2d_whole_merge, merge_description
 
 
-
-
 def find_sub_and_cross2(extent_hyd,extent_sub,ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_value, delta, first_time=False):
     # extent xmin,ymin,xmax,ymax
     extent_all = [int(min(extent_hyd[0], extent_sub[0]) / 10) * 10-10, int(min(extent_hyd[1], extent_sub[1]) / 10) * 10-10,
@@ -487,7 +485,6 @@ def find_sub_and_cross2(extent_hyd,extent_sub,ikle_sub, coord_p_sub, data_sub, i
 
 
     return
-
 
 
 def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_value, delta, first_time=False):
@@ -1195,7 +1192,7 @@ def create_merge_grid(ikle, coord_p, data_sub, vel, height, point_z, ikle_sub,
 
     # create the new substrate data
     #print('create the new substrate data')
-    data_sub_ok = np.zeros((len(sub_cell), len(default_data)))
+    data_sub_ok = np.zeros((len(sub_cell), len(default_data)), dtype=np.int)
     for i, s in enumerate(sub_cell):
         #print(i, s)
         if s == -99 or s == -1:
