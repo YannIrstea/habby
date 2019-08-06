@@ -5806,23 +5806,6 @@ class SubstrateW(SubHydroW):
             name_hdf5merge = hdf5_name_hyd[:-4] + "_" + hdf5_name_sub[:-4] + ".hab"
             self.hdf5_merge_lineedit.setText(name_hdf5merge)
 
-    def get_attribute_from_shp(self):
-        """
-        This function opens a shapefile and obtain the attribute. It then update the GUI
-        to reflect this and also update the label as needed.
-        """
-        lob, ext = os.path.splitext(self.namefile[0])
-        if ext == '.shp':
-            self.e2.clear()
-            att_list = substrate_mod.get_all_attribute(self.namefile[0],
-                                                       self.pathfile[0])  # list of attribute with info []
-            for i in range(0, len(att_list)):
-                self.e2.addItem(str(att_list[i][0]))
-            self.e2.setEnabled(True)
-        else:
-            self.e2.setDisabled(True)
-            self.e2.clear()
-
     def log_txt(self, code_type):
         """
         This function gives the log for the substrate in text form. this is in a function because it is used twice in

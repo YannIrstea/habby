@@ -19,19 +19,18 @@ import copy
 import os
 import sys
 import time
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.interpolate
 import scipy.spatial.qhull as qhull
 import triangle
+#from src.dev_tools import profileit
 
 from src_GUI import preferences_GUI
 from src import tools_mod
 
 
-#from src.dev_tools import profileit
 
 
 def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1):

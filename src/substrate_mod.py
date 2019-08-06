@@ -28,55 +28,7 @@ from osgeo import osr
 from osgeo import ogr
 
 from src import hdf5_mod
-from src.tools_mod import get_prj_from_epsg_web
 from src import manage_grid_mod
-
-
-def open_shp(filename, path):
-    """
-    This function open a ArcGIS shpaefile.
-
-    :param filename: the name of the shapefile
-    :param path: the path to this shapefile
-    :return: a shapefile object as define in the model
-    """
-
-    # test extension and if the file exist
-    blob, ext = os.path.splitext(filename)
-    if ext != '.shp':
-        print('Warning: the file does not have a .shp extension.')
-    file = os.path.join(path, filename)
-    if not os.path.isfile(file):
-        print("Error: The shapefile " + filename + " does not exist.")
-        return [-99], [-99], [-99]
-    # read shp
-    try:
-        sf = shapefile.Reader(file)
-    except shapefile.ShapefileException:
-        print('Error: Cannot open the shapefile ' + filename + ', or one of the associated files (.shx, .dbf)')
-        return [-99], [-99], [-99]
-
-    return sf
-
-
-def get_all_attribute(filename, path):
-    """
-    This function open a shapefile and get the list of all the attibute which is contains in it.
-
-    :param filename: the name of the shpae file
-    :param path: the path to this shapefile
-    :return: a list with the name and information of all attribute. The form of each element of the list
-             is [name(str), type (F,N), int, int]
-    """
-
-    sf = open_shp(filename, path)
-    fields = sf.fields
-    if len(fields) > 1:
-        fields = fields[1:]
-    else:
-        print('Warning: No attibute found in the shapefile.')
-
-    return fields
 
 
 def get_useful_attribute(attributes):
@@ -173,7 +125,6 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     in_shp_basename_abs_path = os.path.splitext(in_shp_abs_path)[0]
 
     # read source shapefile
-    # sf = shapefile.Reader(in_shp_abs_path)
     driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
     ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
     layer = ds.GetLayer(0)  # one layer in shapefile
@@ -899,7 +850,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     header = data.split("\n")[sub_end_info_habby_index].split("\t")[2:]
     fake_field = [None] * len(header)  # fake fields like shapefile
     header = list(zip(header, fake_field))
-    [attribute_type, attribute_name] = get_useful_attribute(header)
+    [attribute_type, _] = get_useful_attribute(header)
 
     data = data.split("\n")[sub_header_index:]
 
@@ -920,7 +871,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
 
     x = []
     y = []
-    sub_array = [[] for i in range(sub_class_number)]
+    sub_array = [[] for _ in range(sub_class_number)]
 
     for line in data:
         try:
@@ -965,12 +916,6 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     # voronoi_finite_polygons_2d (all points)
     regions, vertices = voronoi_finite_polygons_2d(vor, 200)
 
-    # create extent from points
-    #rect_extent = point_in[:, 0].min(), point_in[:, 1].min(), point_in[:, 0].max(), point_in[:, 1].max()
-
-    # clip from point extent + 200m
-    #regions, vertices = clip_polygons_from_rect(regions, vertices, rect_extent)
-
     # convex_hull buffer to cut polygons
     list_points = [Point(i) for i in point_in]
     convex_hull = MultiPoint(list_points).convex_hull.buffer(200)
@@ -988,7 +933,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
         return False
 
-    sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_class_number)]
+    sub_array2 = [np.zeros(len(list_polyg), ) for _ in range(sub_class_number)]
 
     for e in range(0, len(list_polyg)):
         polygon = list_polyg[e]
@@ -1000,41 +945,64 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
 
     sub_array2 = [np.zeros(len(regions), ) for i in range(sub_class_number)]
 
-
-    # export sub initial voronoi in a shapefile
-    w = shapefile.Writer(shapefile.POLYGON)
-    w.autoBalance = 1
-
-    if sub_classification_method == 'coarser-dominant':
-        w.field('coarser', 'N', 10, 0)
-        w.field('dom', 'N', 10, 0)
-    if sub_classification_method == 'percentage':
-        for i in range(sub_class_number):
-            w.field('S' + str(i + 1), 'N', 10, 0)
-
-    #for i, polygon in enumerate(list_polyg):  # for each polygon
-    for i, region in enumerate(regions):  # for each polygon
-        #coord_list = list(polygon.exterior.coords)
-        coord_list = vertices[region].tolist()
-        w.poly(parts=[coord_list])  # the double [[]] is important or it bugs, but why?
-        for k in range(sub_class_number):
-            sub_array2[k][i] = sub_array[k][i]
-        data_here = [item[i] for item in sub_array2]
-        w.record(*data_here)
-
     # filename output
     name, ext = os.path.splitext(filename)
     sub_filename_voronoi_shp = name + '_voronoi' + '.shp'
     sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
-    w.save(sub_filename_voronoi_shp_path)
-    # write .prj
+    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+    ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
+    crs = osr.SpatialReference()
     if sub_epsg_code != "unknown":
         try:
-            string_prj = get_prj_from_epsg_web(int(sub_epsg_code))
-            open(os.path.join(path_shp, os.path.splitext(sub_filename_voronoi_shp)[0]) + ".prj", "w").write(string_prj)
+            crs.ImportFromEPSG(int(sub_epsg_code))
         except:
             print("Warning : Can't write .prj from EPSG code :", sub_epsg_code)
-    return sub_filename_voronoi_shp  # xy, ikle, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg
+
+    if not crs.ExportToWkt():  # '' == crs unknown
+        layer = ds.CreateLayer(name=name + '_voronoi' + "_triangulated", geom_type=ogr.wkbPolygon)
+    else:  # crs known
+        layer = ds.CreateLayer(name=name + '_voronoi' + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
+
+    if sub_classification_method == 'coarser-dominant':
+        layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))  # Add one attribute
+        layer.CreateField(ogr.FieldDefn('dom', ogr.OFTInteger))  # Add one attribute
+    if sub_classification_method == 'percentage':
+        for i in range(sub_class_number):
+            layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))  # Add one attribute
+
+    defn = layer.GetLayerDefn()
+    field_names = [defn.GetFieldDefn(i).GetName() for i in range(defn.GetFieldCount())]
+
+    layer.StartTransaction()  # faster
+    #for i, region in enumerate(regions):  # for each polygon no buffer
+    for i, polygon in enumerate(list_polyg):  # for each polygon with buffer
+        #coord_list = vertices[region].tolist()  # no buffer
+        coord_list = list(polygon.exterior.coords)  # with buffer
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        for point in coord_list:
+            ring.AddPoint(*point)
+        # Create polygon
+        poly = ogr.Geometry(ogr.wkbPolygon)
+        poly.AddGeometry(ring)
+        # Create a new feature
+        feat = ogr.Feature(defn)
+        for k in range(sub_class_number):
+            sub_array2[k][i] = sub_array[k][i]
+        data_here = [item[i] for item in sub_array2]
+        for field_num, field in enumerate(field_names):
+            feat.SetField(field, data_here[field_num])
+        # set geometry
+        feat.SetGeometry(poly)
+        # create
+        layer.CreateFeature(feat)
+
+    # Save and close everything
+    layer.CommitTransaction()  # faster
+
+    # close file
+    ds.Destroy()
+
+    return sub_filename_voronoi_shp
 
 
 def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
@@ -1129,146 +1097,6 @@ def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
     return ikle, point_all, sub_pg, sub_dom
 
 
-def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribute_type, nb_point=200, path_out='.'):
-    """
-    This function takes an hydrological hdf5 as inputs and create a shapefile of substrate and a text file of substrate
-    which can be used as input for habby. The substrate data is random. So it is mainly useful to test an hydrological
-    input.
-
-    The created shape file is rectangular with a size based on min/max of the hydrological coordinates. The substrate
-    grid is not the same as the hydrological grids (which is good to test the programm). In addition, one side of the shp
-    is smaller than the hydrological grid to test the 'default substrate' option (which is used if the substrate
-    shapefile is not big enough).
-
-    :param h5name: the name of the hydrological hdf5 file
-    :param path: the path to this file
-    :param new_name: the name of the create shape file wihtout the shp (string)
-    :param code_type: the code type for the substrate (Sandre, Cemagref, Const_cemagref, or EDF). All subtrate value
-           to 4 for Const_cemagref.
-    :param attribute_type: if the substrate is given in the type coarser/dominant/..(0) or in percenctage (1)
-    :param nb_point: the number of point needed (more points results in smaller substrate form)
-    :param path_out: the path where to save the new substrate shape
-    """
-
-    # load hydro hdf5
-    [ikle_all_t, point_all, inter_vel_all, inter_height_all] = hdf5_mod.load_hdf5_hyd_and_merge(h5name, path)
-
-    # get min max of coord
-    minx = 1e40
-    maxx = -1e40
-    miny = 1e40
-    maxy = -1e40
-    point_all = np.array(point_all[0])  # full profile
-    for r in range(0, len(point_all)):
-        maxx_here = max(point_all[r][:, 0])
-        minx_here = min(point_all[r][:, 0])
-        maxy_here = max(point_all[r][:, 1])
-        miny_here = min(point_all[r][:, 1])
-        if maxx_here > maxx:
-            maxx = maxx_here
-        if minx_here < minx:
-            minx = minx_here
-        if maxy_here > maxy:
-            maxy = maxy_here
-        if miny_here < miny:
-            miny = miny_here
-
-    # to test the case where substrate shp does not cover the whole reach
-    # miny *= 0.90
-
-    # get random coordinate
-    point_new = []
-    for p in range(0, nb_point):
-        x = uniform(minx, maxx)
-        y = uniform(miny, maxy)
-        point_new.append([x, y])
-
-    # get a new substrate grid
-    dict_point = dict(vertices=point_new)
-    grid_sub = tr.triangulate(dict_point)
-    try:
-        ikle_r = list(grid_sub['triangles'])
-        point_all_r = list(grid_sub['vertices'])
-    except KeyError:
-        print('Warning: Reach with an empty grid.\n')
-        return
-
-    # gett random substrate data for shapefile
-    data_sub = []
-    data_sub_txt = []
-    for i in range(0, len(ikle_r)):
-        if attribute_type == 0:
-            if code_type == 'EDF' or code_type == 'Cemagref':
-                s1 = randrange(1, 8)
-                s2 = randrange(1, 8)
-            elif code_type == 'Sandre':
-                s1 = randrange(1, 12)
-                s2 = randrange(1, 12)
-            elif code_type == 'Const_cemagref':
-                s1 = 4
-                s2 = 4
-            else:
-                print('code not recognized')
-                return
-            data_sub.append([s1, s2])  # coarser, dominant
-            if i < len(point_new):
-                data_sub_txt.append([s1, s2])
-        elif attribute_type == 1:
-            data_sub_here = []
-            if code_type == 'EDF' or code_type == 'Cemagref':
-                for j in range(0, 8):
-                    sx = randrange(1, 100)
-                    data_sub_here.append(sx)
-            elif code_type == 'Sandre':
-                for j in range(0, 12):
-                    sx = randrange(1, 100)
-                    data_sub_here.append(sx)
-            else:
-                print('code not recognized')
-                return
-            data_sub.append(data_sub_here)
-        else:
-            print('Error: the attribute type should 1 or 0')
-            return
-
-    # pass the substrate data to shapefile
-    w = shapefile.Writer(shapefile.POLYGON)
-    if attribute_type == 0:
-        w.field('PG', 'F', 10, 8)
-        w.field('DM', 'F', 10, 8)
-    elif attribute_type == 1:
-        if code_type == 'EDF' or code_type == 'Cemagref':
-            for j in range(1, 9):  # we want to start with S1 to get the corresponding class
-                w.field('S' + str(j), 'F', 10, 8)
-        elif code_type == 'Sandre':
-            for j in range(1, 13):
-                w.field('S' + str(j), 'F', 10, 8)
-
-    for i in range(0, len(ikle_r)):
-        p1 = list(point_all_r[ikle_r[i][0]])
-        p2 = list(point_all_r[ikle_r[i][1]])
-        p3 = list(point_all_r[ikle_r[i][2]])
-        w.poly(parts=[[p1, p2, p3, p1]])  # the double [[]] is important or it bugs, but why?
-    for i in range(0, len(ikle_r)):
-        if attribute_type == 0:
-            w.record(data_sub[i][0], data_sub[i][1])  # data_sub[i] does not work
-        elif attribute_type == 1:
-            if code_type == 'EDF' or code_type == 'Cemagref':
-                w.record(data_sub[i][0], data_sub[i][1], data_sub[i][2], data_sub[i][3], data_sub[i][4], data_sub[i][5],
-                         data_sub[i][6], data_sub[i][7])
-            elif code_type == 'Sandre':
-                w.record(data_sub[i][0], data_sub[i][1], data_sub[i][2], data_sub[i][3], data_sub[i][4], data_sub[i][5],
-                         data_sub[i][6], data_sub[i][7], data_sub[i][8], data_sub[i][9], data_sub[i][10],
-                         data_sub[i][11])
-    w.autoBalance = 1
-    w.save(os.path.join(path_out, new_name + '.shp'))
-
-    # pass to text file
-    if attribute_type == 0:
-        data = np.hstack((np.array(point_new), np.array(data_sub_txt)))
-        np.savetxt(os.path.join(path_out, new_name + '.txt'), data)
-
-
 def clip_polygons_from_rect(polygon_regions, polygon_vertices, rect):
     # create rect_sides (clockwise)
     xMin = rect[0] - 200
@@ -1281,18 +1109,6 @@ def clip_polygons_from_rect(polygon_regions, polygon_vertices, rect):
     bottom_side = [[xMax, yMin], [xMin, yMin]]
     extent = [xMin, yMin, xMax, yMax]
     rect_sides = np.stack([left_side, top_side, right_side, bottom_side])
-
-    # # init
-    # shapefile_type = 5  # polygon
-    # # write shapefile
-    # out_shp_abs_path = os.path.join(r"C:\temp_out", "create_polygon_shp_from_data.shp")
-    # w = shapefile.Writer(shapefile_type)
-    # w.autoBalance = 1
-    # w.fields = [('empty', 'N', 10, 0)]
-    # w.poly(parts=rect_sides.tolist())
-    # aa = list([0.0])
-    # w.record(*aa)
-    # w.save(out_shp_abs_path)
 
     # for each polygon
     for i, region in enumerate(polygon_regions):  # for each polygon

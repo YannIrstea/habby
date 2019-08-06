@@ -23,7 +23,6 @@ from copy import deepcopy
 import numpy as np
 import triangle
 import matplotlib.pyplot as plt
-#import shapefile
 
 
 def quadrangles_to_triangles(ikle4,xy,z,h,v):
@@ -1273,24 +1272,6 @@ def finit_element_interpolation(newp, point_old, data_old):
                            (x2 - x3) * (y2 - y1) - (x2 - x1) * (y2 - y3))
 
     return valm
-
-
-def export_one_mesh_and_new_point(x1, y1, val1, x2, y2, val2, x3, y3, val3, xm, ym, valm):
-    # export triangle
-    fileOUT = os.path.join(r"C:\Users\quentin.royer\Documents\TAF\PROJETS_HABBY\Test_QR\DefaultProj", "test.shp")
-    w = shapefile.Writer(shapefile.POINTZ)
-    w.field('x', 'F', 10, 10)
-    w.field('y', 'F', 10, 10)
-    w.field('z', 'F', 10, 10)
-    w.point(x1, y1, val1, shapeType=11)
-    w.point(x2, y2, val2, shapeType=11)
-    w.point(x3, y3, val3, shapeType=11)
-    w.point(xm, ym, valm)
-    w.record(*[x1, y1, val1])
-    w.record(*[x2, y2, val2])
-    w.record(*[x3, y3, val3])
-    w.record(*[xm, ym, valm])
-    w.save(fileOUT)
 
 
 def check_clockwise(ikle, point):
