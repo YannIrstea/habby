@@ -406,6 +406,7 @@ class Hdf5Management:
                 # UNIT GROUP
                 for unit_num in range(int(hyd_description["hyd_unit_number"])):
                     unit_group = reach_group.create_group('unit_' + str(unit_num))
+                    unit_group.attrs['total_wet_area'] = data_2d["total_wet_area"][reach_num][unit_num]
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
                     mesh_group.create_dataset(name="tin",
@@ -528,6 +529,7 @@ class Hdf5Management:
         data_2d["max_slope_bottom"] = []
         data_2d["max_slope_energy"] = []
         data_2d["shear_stress"] = []
+        data_2d["total_wet_area"] = []
         data_group = 'data_2D'
         # for all reach
         for r in range(0, int(self.file_object.attrs['hyd_reach_number'])):
@@ -538,6 +540,7 @@ class Hdf5Management:
             max_slope_bottom = []
             max_slope_energy = []
             shear_stress = []
+            total_wet_area = []
             xy_list = []
             h_list = []
             v_list = []
@@ -547,6 +550,8 @@ class Hdf5Management:
                 mesh_group = unit_group + "/mesh"
                 node_group = unit_group + "/node"
                 try:
+                    # unit
+                    total_wet_area.append(self.file_object[unit_group].attrs['total_wet_area'])
                     # mesh
                     tin_list.append(self.file_object[mesh_group + "/tin"][:])
                     i_whole_profile_list.append(self.file_object[mesh_group + "/i_whole_profile"][:])
@@ -567,6 +572,7 @@ class Hdf5Management:
             data_2d["max_slope_bottom"].append(max_slope_bottom)
             data_2d["max_slope_energy"].append(max_slope_energy)
             data_2d["shear_stress"].append(shear_stress)
+            data_2d["total_wet_area"].append(total_wet_area)
             data_2d["xy"].append(xy_list)
             data_2d["h"].append(h_list)
             data_2d["v"].append(v_list)
@@ -805,6 +811,7 @@ class Hdf5Management:
             # UNIT GROUP
             for unit_num in range(int(merge_description["hyd_unit_number"])):
                 unit_group = reach_group.create_group('unit_' + str(unit_num))
+                unit_group.attrs['total_wet_area'] = data_2d["total_wet_area"][reach_num][unit_num]
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
                 mesh_group.create_dataset(name="tin",
@@ -828,8 +835,8 @@ class Hdf5Management:
                                               shape=[len(data_2d["shear_stress"][reach_num][unit_num]), 1],
                                               data=data_2d["shear_stress"][reach_num][unit_num])
                 mesh_group.create_dataset(name="sub",
-                                          shape=[len(data_2d["sub"][reach_num][unit_num]),
-                                                 len(data_2d["sub"][reach_num][unit_num][0])],
+                                          shape=[data_2d["sub"][reach_num][unit_num].shape[0],
+                                                 data_2d["sub"][reach_num][unit_num].shape[1]],
                                           data=data_2d["sub"][reach_num][unit_num])
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
@@ -937,6 +944,7 @@ class Hdf5Management:
         data_2d["max_slope_bottom"] = []
         data_2d["max_slope_energy"] = []
         data_2d["shear_stress"] = []
+        data_2d["total_wet_area"] = []
         # fish dict
         if fish_names == "all":  # "all"
             fish_names_total_list = self.file_object.attrs["hab_fish_list"].split(", ")
@@ -971,6 +979,7 @@ class Hdf5Management:
             data_2d["max_slope_bottom"].append([])
             data_2d["max_slope_energy"].append([])
             data_2d["shear_stress"].append([])
+            data_2d["total_wet_area"].append([])
             if fish_names_total_list:
                 data_description["total_wet_area"].append([])
                 for fish_name in fish_names_total_list:
@@ -982,6 +991,8 @@ class Hdf5Management:
                 mesh_group = unit_group + "/mesh"
                 node_group = unit_group + "/node"
                 try:
+                    # unit
+                    data_2d["total_wet_area"][reach_num].append(self.file_object[unit_group].attrs['total_wet_area'])
                     # mesh
                     data_2d["tin"][reach_num].append(self.file_object[mesh_group + "/tin"][:])
                     data_2d["i_whole_profile"][reach_num].append(self.file_object[mesh_group + "/i_whole_profile"][:])
@@ -1023,7 +1034,7 @@ class Hdf5Management:
             self.data_2d = data_2d
             self.data_description = data_description
 
-    def add_fish_hab(self, vh_cell, area_all, area_c_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio):
+    def add_fish_hab(self, vh_cell, area_c_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -1072,7 +1083,7 @@ class Hdf5Management:
             # UNIT GROUP
             for unit_num in range(nb_t):
                 unit_group = reach_group["unit_" + str(unit_num)]
-                unit_group.attrs['total_wet_area'] = str(area_all[reach_num][unit_num])
+                total_wet_area = unit_group.attrs["total_wet_area"]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
                 # HV by celle for each fish
@@ -1097,9 +1108,9 @@ class Hdf5Management:
                     if any(np.isnan(vh_cell[fish_num][reach_num][unit_num])):
                         area = np.sum(area_c_all[reach_num][unit_num][np.argwhere(~np.isnan(vh_cell[fish_num][reach_num][unit_num]))])
                         HV = spu_all[fish_num][reach_num][unit_num] / area
-                        percent_area_unknown = (1 - (area / area_all[reach_num][unit_num])) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
+                        percent_area_unknown = (1 - (area / total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
                     else:
-                        HV = spu_all[fish_num][reach_num][unit_num] / area_all[reach_num][unit_num]
+                        HV = spu_all[fish_num][reach_num][unit_num] / total_wet_area
                         percent_area_unknown = 0.0
 
                     fish_data_set.attrs['HV'] = str(HV)
@@ -1236,6 +1247,7 @@ class Hdf5Management:
         self.export_gpkg()
         self.export_stl()
         self.export_paraview()
+        self.export_spu_txt()
         self.export_detailled_mesh_txt()
         self.export_detailled_point_txt()
         if self.fish_list:
@@ -1353,96 +1365,7 @@ class Hdf5Management:
                             ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
                             layer_names = []
 
-            # DATA 2D WHOLE PROFILE point
-            if self.project_preferences['point_whole_profile'][index]:  # only on .hyd creation
-                # for all units (selected or all)
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                    # layer_name
-                    if not self.data_description['hyd_varying_mesh']:
-                        layer_name = "point_wholeprofile_allunits"
-                    else:
-                        layer_name = "point_wholeprofile_" + self.units_name_output[reach_num][unit_num]
 
-                    # create layer
-                    if not crs.ExportToWkt():  # '' == crs unknown
-                        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
-                    else:  # crs known
-                        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint,
-                                               options=['DESCRIPTION=testaaaaa'])
-                    # create fields (no width no precision to be specified with GPKG)
-                    layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
-                    defn = layer.GetLayerDefn()
-                    layer.StartTransaction()  # faster
-
-                    # for each point
-                    for point_num in range(0, len(self.data_2d_whole["xy"][reach_num][unit_num])):
-                        # data geom (get the triangle coordinates)
-                        x = self.data_2d_whole["xy"][reach_num][unit_num][point_num][0]
-                        y = self.data_2d_whole["xy"][reach_num][unit_num][point_num][1]
-                        z = self.data_2d_whole["z"][reach_num][unit_num][point_num]
-                        # Create a point
-                        point = ogr.Geometry(ogr.wkbPoint)
-                        point.AddPoint(x, y, z)
-                        # Create a new feature
-                        feat = ogr.Feature(defn)
-                        feat.SetField('elevation', z)
-                        # set geometry
-                        feat.SetGeometry(point)
-                        # create
-                        layer.CreateFeature(feat)
-
-                    # Save and close everything
-                    layer.CommitTransaction()  # faster
-
-                    # stop loop in this case (if one unit in whole profile)
-                    if not self.data_description['hyd_varying_mesh']:
-                        break
-
-            # DATA 2D point
-            if self.project_preferences['point_units'][index]:
-                # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                    # name
-                    layer_name = "point_" + self.units_name_output[reach_num][unit_num]
-                    layer_exist = False
-
-                    # create layer
-                    if not crs.ExportToWkt():  # '' == crs unknown
-                        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
-                    else:  # crs known
-                        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint)
-
-                    # create fields (no width no precision to be specified with GPKG)
-                    layer.CreateField(ogr.FieldDefn('height', ogr.OFTReal))  # Add one attribute
-                    layer.CreateField(ogr.FieldDefn('velocity', ogr.OFTReal))  # Add one attribute
-                    layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
-                    defn = layer.GetLayerDefn()
-                    layer.StartTransaction()  # faster
-
-                    # for each point
-                    for point_num in range(0, len(self.data_2d["xy"][reach_num][unit_num])):
-                        # data geom (get the triangle coordinates)
-                        x = self.data_2d["xy"][reach_num][unit_num][point_num][0]
-                        y = self.data_2d["xy"][reach_num][unit_num][point_num][1]
-                        z = self.data_2d["z"][reach_num][unit_num][point_num]
-                        h = self.data_2d["h"][reach_num][unit_num][point_num]
-                        v = self.data_2d["v"][reach_num][unit_num][point_num]
-
-                        # Create a point
-                        point = ogr.Geometry(ogr.wkbPoint)
-                        point.AddPoint(x, y, z)
-                        # Create a new feature
-                        feat = ogr.Feature(defn)
-                        feat.SetField('height', h)
-                        feat.SetField('velocity', v)
-                        feat.SetField('elevation', z)
-                        # set geometry
-                        feat.SetGeometry(point)
-                        # create
-                        layer.CreateFeature(feat)
-
-                    # Save and close everything
-                    layer.CommitTransaction()  # faster
 
             # DATA 2D WHOLE PROFILE mesh
             if self.project_preferences['mesh_whole_profile'][index]:  # only on .hyd creation
@@ -1588,16 +1511,22 @@ class Hdf5Management:
                             h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
                             # conveyance
                             conveyance = v_mean_mesh * h_mean_mesh
-                            # change inf values to nan
-                            self.data_2d["max_slope_bottom"][reach_num][unit_num][self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
-                            self.data_2d["max_slope_energy"][reach_num][unit_num][self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
-                            self.data_2d["shear_stress"][reach_num][unit_num][self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
-                            max_slope_bottom = self.data_2d["max_slope_bottom"][reach_num][unit_num][mesh_num][0]
-                            max_slope_energy = self.data_2d["max_slope_energy"][reach_num][unit_num][mesh_num][0]
-                            shear_stress = self.data_2d["shear_stress"][reach_num][unit_num][mesh_num][0]
+                            # other
+                            if len(self.data_2d["max_slope_bottom"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
+                                max_slope_bottom = None
+                                max_slope_energy = None
+                                shear_stress = None
+                            else:
+                                # change inf values to nan
+                                self.data_2d["max_slope_bottom"][reach_num][unit_num][self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
+                                self.data_2d["max_slope_energy"][reach_num][unit_num][self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
+                                self.data_2d["shear_stress"][reach_num][unit_num][self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
+                                max_slope_bottom = self.data_2d["max_slope_bottom"][reach_num][unit_num][mesh_num][0]
+                                max_slope_energy = self.data_2d["max_slope_energy"][reach_num][unit_num][mesh_num][0]
+                                shear_stress = self.data_2d["shear_stress"][reach_num][unit_num][mesh_num][0]
                             # i_whole_profile
                             if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
-                                i_whole_profile = 0
+                                i_whole_profile = None
                             else:
                                 i_whole_profile = int(self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0])
                             # data geom (get the triangle coordinates)
@@ -1652,6 +1581,103 @@ class Hdf5Management:
                             layer.CreateFeature(feat)
 
                         # close layer
+                        layer.CommitTransaction()  # faster
+
+            # DATA 2D WHOLE PROFILE point
+            if self.project_preferences['point_whole_profile'][index]:  # only on .hyd creation
+                # for all units (selected or all)
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    # layer_name
+                    if not self.data_description['hyd_varying_mesh']:
+                        layer_name = "point_wholeprofile_allunits"
+                    else:
+                        layer_name = "point_wholeprofile_" + self.units_name_output[reach_num][unit_num]
+
+                    # create layer
+                    if not crs.ExportToWkt():  # '' == crs unknown
+                        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
+                    else:  # crs known
+                        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint,
+                                               options=['DESCRIPTION=testaaaaa'])
+                    # create fields (no width no precision to be specified with GPKG)
+                    layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
+                    defn = layer.GetLayerDefn()
+                    layer.StartTransaction()  # faster
+
+                    # for each point
+                    for point_num in range(0, len(self.data_2d_whole["xy"][reach_num][unit_num])):
+                        # data geom (get the triangle coordinates)
+                        x = self.data_2d_whole["xy"][reach_num][unit_num][point_num][0]
+                        y = self.data_2d_whole["xy"][reach_num][unit_num][point_num][1]
+                        z = self.data_2d_whole["z"][reach_num][unit_num][point_num]
+                        # Create a point
+                        point = ogr.Geometry(ogr.wkbPoint)
+                        point.AddPoint(x, y, z)
+                        # Create a new feature
+                        feat = ogr.Feature(defn)
+                        feat.SetField('elevation', z)
+                        # set geometry
+                        feat.SetGeometry(point)
+                        # create
+                        layer.CreateFeature(feat)
+
+                    # Save and close everything
+                    layer.CommitTransaction()  # faster
+
+                    # stop loop in this case (if one unit in whole profile)
+                    if not self.data_description['hyd_varying_mesh']:
+                        break
+
+            # DATA 2D point
+            if self.project_preferences['point_units'][index]:
+                # for each unit
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    # name
+                    layer_name = "point_" + self.units_name_output[reach_num][unit_num]
+                    layer_exist = False
+
+                    # if layer exist
+                    if layer_name in layer_names:
+                        layer_exist = True
+
+                    # if layer not exist
+                    if not layer_exist or not fish_names:  # not exist or merge case
+                        # create layer
+                        if not crs.ExportToWkt():  # '' == crs unknown
+                            layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
+                        else:  # crs known
+                            layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint)
+
+                        # create fields (no width no precision to be specified with GPKG)
+                        layer.CreateField(ogr.FieldDefn('height', ogr.OFTReal))  # Add one attribute
+                        layer.CreateField(ogr.FieldDefn('velocity', ogr.OFTReal))  # Add one attribute
+                        layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
+                        defn = layer.GetLayerDefn()
+                        layer.StartTransaction()  # faster
+
+                        # for each point
+                        for point_num in range(0, len(self.data_2d["xy"][reach_num][unit_num])):
+                            # data geom (get the triangle coordinates)
+                            x = self.data_2d["xy"][reach_num][unit_num][point_num][0]
+                            y = self.data_2d["xy"][reach_num][unit_num][point_num][1]
+                            z = self.data_2d["z"][reach_num][unit_num][point_num]
+                            h = self.data_2d["h"][reach_num][unit_num][point_num]
+                            v = self.data_2d["v"][reach_num][unit_num][point_num]
+
+                            # Create a point
+                            point = ogr.Geometry(ogr.wkbPoint)
+                            point.AddPoint(x, y, z)
+                            # Create a new feature
+                            feat = ogr.Feature(defn)
+                            feat.SetField('height', h)
+                            feat.SetField('velocity', v)
+                            feat.SetField('elevation', z)
+                            # set geometry
+                            feat.SetGeometry(point)
+                            # create
+                            layer.CreateFeature(feat)
+
+                        # Save and close everything
                         layer.CommitTransaction()  # faster
 
             # close file
@@ -1783,23 +1809,29 @@ class Hdf5Management:
                         h3 = self.data_2d["h"][reach_num][unit_num][node3]
                         h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
                         h_mean_mesh_list.append(h_mean_mesh)
-                        # other
-                        max_slope_bottom.append(self.data_2d["max_slope_bottom"][reach_num][unit_num][mesh_num][0])
-                        max_slope_energy.append(self.data_2d["max_slope_energy"][reach_num][unit_num][mesh_num][0])
-                        shear_stress.append(self.data_2d["shear_stress"][reach_num][unit_num][mesh_num][0])
 
                     cellData['height'] = np.array(h_mean_mesh_list)
                     cellData['velocity'] = np.array(v_mean_mesh_list)
-                    # change inf values to nan
-                    self.data_2d["max_slope_bottom"][reach_num][unit_num][
-                        self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
-                    self.data_2d["max_slope_energy"][reach_num][unit_num][
-                        self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
-                    self.data_2d["shear_stress"][reach_num][unit_num][
-                        self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
-                    cellData['max_slope_bottom'] = self.data_2d["max_slope_bottom"][reach_num][unit_num][:,0]
-                    cellData['max_slope_energy'] = self.data_2d["max_slope_energy"][reach_num][unit_num][:,0]
-                    cellData['shear_stress'] = self.data_2d["shear_stress"][reach_num][unit_num][:,0]
+
+                    # other
+                    if len(self.data_2d["max_slope_bottom"][reach_num][unit_num]) != len(
+                            self.data_2d["tin"][reach_num][unit_num]):
+                        fake_array = np.array([0.0] * len(self.data_2d["tin"][reach_num][unit_num]),
+                                                                dtype=np.float64)
+                        cellData['max_slope_bottom'] = fake_array
+                        cellData['max_slope_energy'] = fake_array
+                        cellData['shear_stress'] = fake_array
+                    else:
+                        # change inf values to nan
+                        self.data_2d["max_slope_bottom"][reach_num][unit_num][
+                            self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
+                        self.data_2d["max_slope_energy"][reach_num][unit_num][
+                            self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
+                        self.data_2d["shear_stress"][reach_num][unit_num][
+                            self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
+                        cellData['max_slope_bottom'] = self.data_2d["max_slope_bottom"][reach_num][unit_num][:, 0]
+                        cellData['max_slope_energy'] = self.data_2d["max_slope_energy"][reach_num][unit_num][:, 0]
+                        cellData['shear_stress'] = self.data_2d["shear_stress"][reach_num][unit_num][:, 0]
 
                     # create the grid and the vtu files
                     name_file = os.path.join(self.path_visualisation, self.basename_output_reach_unit[reach_num][unit_num])
@@ -1841,90 +1873,99 @@ class Hdf5Management:
         path_txt = os.path.join(self.data_description["path_project"], "output", "text")
         if not os.path.exists(path_txt):
             print('Error: the path to the text file is not found. Text files not created \n')
-
-        sim_name = self.units_name
-        fish_shortnames = self.data_description["hab_fish_shortname_list"].split(", ")
-        fish_names = self.data_description["hab_fish_list"].split(", ")
-        unit_type = self.data_description["hyd_unit_type"][
-                    self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
-                        "hyd_unit_type"].find(']')]
-
-        if not self.project_preferences['erase_id']:
-            if self.project_preferences['language'] == 0:
-                name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        if self.project_preferences['habitat_text'][index]:
+            sim_name = self.units_name
+            fish_names = self.data_description["hab_fish_list"].split(", ")
+            if fish_names == ['']:
+                fish_names = []
+                fish_shortnames = []
             else:
-                name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-        else:
-            if self.project_preferences['language'] == 0:
-                name = self.basename + '_wua.txt'
+                fish_shortnames = self.data_description["hab_fish_shortname_list"].split(", ")
+            unit_type = self.data_description["hyd_unit_type"][
+                        self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
+                            "hyd_unit_type"].find(']')]
+
+            if not self.project_preferences['erase_id']:
+                if self.project_preferences['language'] == 0:
+                    name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                else:
+                    name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
             else:
-                name = self.basename + '_spu.txt'
-            if os.path.isfile(os.path.join(path_txt, name)):
-                try:
-                    os.remove(os.path.join(path_txt, name))
-                except PermissionError:
-                    print('Error: Could not modify text file as it is open in another program. \n')
-                    return
+                if self.project_preferences['language'] == 0:
+                    name = self.basename + '_wua.txt'
+                else:
+                    name = self.basename + '_spu.txt'
+                if os.path.isfile(os.path.join(path_txt, name)):
+                    try:
+                        os.remove(os.path.join(path_txt, name))
+                    except PermissionError:
+                        print('Error: Could not modify text file as it is open in another program. \n')
+                        return
 
-        name = os.path.join(path_txt, name)
+            name = os.path.join(path_txt, name)
 
-        # open text to write
-        with open(name, 'wt', encoding='utf-8') as f:
+            # open text to write
+            with open(name, 'wt', encoding='utf-8') as f:
 
-            # header 1
-            if self.project_preferences['language'] == 0:
-                header = 'reach\tunit\treach_area'
-            else:
-                header = 'troncon\tunit\taire_troncon'
-            if self.project_preferences['language'] == 0:
-                header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
-                header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
-                header += "".join(['\t%unknown' + str(i) for i in range(len(fish_names))])
-            else:
-                header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
-                header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
-                header += "".join(['\t%inconnu' + str(i) for i in range(len(fish_names))])
-            header += '\n'
-            f.write(header)
-            # header 2
-            header = '[]\t[' + unit_type + ']\t[m2]'
-            header += "".join(['\t[]' for _ in range(len(fish_names))])
-            header += "".join(['\t[m2]' for _ in range(len(fish_names))])
-            header += "".join(['\t[%m2]' for _ in range(len(fish_names))])
-            header += '\n'
-            f.write(header)
-            # header 3
-            header = 'all\tall\tall '
-            for fish_name in fish_names * 3:
-                header += '\t' + fish_name.replace(' ', '_')
-            header += '\n'
-            f.write(header)
+                # header 1
+                if self.project_preferences['language'] == 0:
+                    header = 'reach\tunit\treach_area'
+                else:
+                    header = 'troncon\tunit\taire_troncon'
+                if self.project_preferences['language'] == 0:
+                    header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\t%unknown' + str(i) for i in range(len(fish_names))])
+                else:
+                    header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\t%inconnu' + str(i) for i in range(len(fish_names))])
+                header += '\n'
+                f.write(header)
+                # header 2
+                header = '[]\t[' + unit_type + ']\t[m2]'
+                header += "".join(['\t[]' for _ in range(len(fish_names))])
+                header += "".join(['\t[m2]' for _ in range(len(fish_names))])
+                header += "".join(['\t[%m2]' for _ in range(len(fish_names))])
+                header += '\n'
+                f.write(header)
+                # header 3
+                header = 'all\tall\tall '
+                for fish_name in fish_names * 3:
+                    header += '\t' + fish_name.replace(' ', '_')
+                header += '\n'
+                f.write(header)
 
-            for reach_num in range(0, len(self.data_description["total_wet_area"])):
-                for unit_num in range(0, len(self.data_description["total_wet_area"][reach_num])):
-                    area_reach = self.data_description["total_wet_area"][reach_num][unit_num]
-                    if not sim_name:
-                        data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
-                    else:
-                        data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(area_reach)
-                    # HV
-                    for fish_name in fish_names:
-                        try:
+                for reach_num in range(0, len(self.data_2d["total_wet_area"])):
+                    for unit_num in range(0, len(self.data_2d["total_wet_area"][reach_num])):
+                        area_reach = self.data_2d["total_wet_area"][reach_num][unit_num]
+                        if not sim_name:
+                            data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
+                        else:
+                            data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(area_reach)
+                        # HV
+                        for fish_name in fish_names:
+                            try:
+                                wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
+                                data_here += '\t' + str(float(wua_fish) / float(area_reach))
+                            except TypeError:
+                                data_here += '\t' + 'NaN'
+                        # WUA
+                        for fish_name in fish_names:
                             wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
-                            data_here += '\t' + str(float(wua_fish) / float(area_reach))
-                        except TypeError:
-                            data_here += '\t' + 'NaN'
-                    # WUA
-                    for fish_name in fish_names:
-                        wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
-                        data_here += '\t' + str(wua_fish)
-                    # %unknwon
-                    for fish_name in fish_names:
-                        wua_fish = self.data_description["percent_area_unknown"][fish_name][reach_num][unit_num]
-                        data_here += '\t' + str(wua_fish)
+                            data_here += '\t' + str(wua_fish)
+                        # %unknwon
+                        for fish_name in fish_names:
+                            wua_fish = self.data_description["percent_area_unknown"][fish_name][reach_num][unit_num]
+                            data_here += '\t' + str(wua_fish)
 
-                    data_here += '\n'
-                    f.write(data_here)
+                        data_here += '\n'
+                        f.write(data_here)
 
     def export_detailled_mesh_txt(self):
         """

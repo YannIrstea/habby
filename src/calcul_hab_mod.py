@@ -84,7 +84,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 20
 
     # calcuation habitat
-    [vh_all_t_sp, area_all, spu_all, area_c_all] = \
+    [vh_all_t_sp, spu_all, area_c_all] = \
         calc_hab(hdf5.data_2d,
                  hdf5.data_description,
                  hdf5_file,
@@ -114,7 +114,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 90
 
     # saving hdf5 data of the habitat value
-    hdf5.add_fish_hab(vh_all_t_sp, area_all, area_c_all,spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio)
+    hdf5.add_fish_hab(vh_all_t_sp, area_c_all,spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio)
 
     # progress
     progress_value.value = 100
@@ -146,9 +146,6 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     failload = [-99], [-99], [-99], [-99], [-99], [-99]
     vh_all_t_sp = []
     spu_all_t_sp = []
-    vel_c_att_t = []
-    height_c_all_t = []
-    area_all_t = []  # area by reach
     area_c_all_t = []  # area by cell for each reach each time step
     found_stage = 0
 
@@ -159,16 +156,6 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     if len(xmlfile) == 0:
         print('Error: No fish species chosen. \n')
         return failload
-
-    # load merge
-    # test if file exists in load_hdf5_hyd
-    # [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all, sub_description_system] = \
-    #     hdf5_mod.load_hdf5_hyd_and_merge(merge_name, path_merge, merge=True)
-    # create hdf5 class by file
-
-    # if data_description["sub_classification_method"] == "coarser-dominant":
-    #     substrate_all_pg = substrate_all[0]
-    #     substrate_all_dom = substrate_all[1]
 
     # progress
     prog = progress_value.value
@@ -195,7 +182,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 pref_sub = np.array(pref_sub[idx2])
 
                 # compute
-                vh_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value = \
+                vh_all_t, spu_all_t, area_c_all_t, progress_value = \
                     calc_hab_norm(data_2d, data_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt,
                                   progress_value, delta)
 
@@ -203,19 +190,14 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 vh_all_t_sp.append(vh_all_t)
                 spu_all_t_sp.append(spu_all_t)
 
-        # # progress
-        # prog += delta
-        # progress_value.value = int(prog)
-
         if found_stage == 0:
             print('Error: the name of the fish stage are not coherent \n')
             return failload
 
-    return vh_all_t_sp, area_all_t, spu_all_t_sp, area_c_all_t
+    return vh_all_t_sp, spu_all_t_sp, area_c_all_t
 
 
 def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, progress_value, delta, percent=False, take_sub=True):
-    # ikle_all_t, point_all_t, vel, height, sub,
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
     all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
@@ -235,17 +217,13 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
     """
 
     s_pref_c = 1
-
-
     vh_all_t = []  # time step 0 is whole profile, no data
     spu_all_t = []
-    area_all_t = []
     area_c_all_t = []
 
     # for each reach
     for reach_num in range(len(data_2d["tin"])):
         vh_all = []
-        area_all = []
         area_c_all = []
         spu_all = []
         # progress
@@ -261,13 +239,11 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
             if len(ikle_t) == 0:
                 print('Warning: The connectivity table was not well-formed for one reach (1) \n')
                 vh = [-99]
-                area_reach = [-99]
                 spu_reach = -99
                 area = [-99]
             elif len(ikle_t[0]) < 3:
                 print('Warning: The connectivity table was not well-formed for one reach (2) \n')
                 vh = [-99]
-                area_reach = [-99]
                 spu_reach = -99
                 area = [-99]
             else:
@@ -282,7 +258,6 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
                 area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
                 area = area ** 0.5
-                area_reach = np.sum(area)
 
                 """ hydraulic pref """
                 # get H pref value
@@ -354,7 +329,6 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                     print(f"Warning: The suitability curve range of {name_fish} is not sufficient according to the hydraulics of unit {unit_num}.")
 
             vh_all.append(list(vh))
-            area_all.append(area_reach)
             area_c_all.append(area)
             spu_all.append(spu_reach)
             # progress
@@ -363,10 +337,9 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
 
         vh_all_t.append(vh_all)
         spu_all_t.append(spu_all)
-        area_all_t.append(area_all)
         area_c_all_t.append(area_c_all)
 
-    return vh_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value
+    return vh_all_t, spu_all_t, area_c_all_t, progress_value
 
 
 def find_pref_value(data, pref):

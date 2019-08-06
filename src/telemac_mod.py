@@ -129,6 +129,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         data_2d["max_slope_bottom"] = [[]]  # always one reach
         data_2d["max_slope_energy"] = [[]]  # always one reach
         data_2d["shear_stress"] = [[]]  # always one reach
+        data_2d["total_wet_area"] = [[]]
         # get unit list from telemac file
         file_list = description_from_indexHYDRAU_file[hyd_file]["filename_source"].split(", ")
         if len(file_list) > 1:
@@ -202,23 +203,37 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                                                                                             "CutMeshPartialyDry"],
                                                                                         minwh)
 
-            max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
-                                                                   z1=xy_cuted[tin_data[:, 0]][:, 2],
-                                                                   h1=h_data[tin_data[:, 0]],
-                                                                   v1=v_data[tin_data[:, 0]],
-                                                                   xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
-                                                                   z2=xy_cuted[tin_data[:, 1]][:, 2],
-                                                                   h2=h_data[tin_data[:, 1]],
-                                                                   v2=v_data[tin_data[:, 1]],
-                                                                   xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
-                                                                   z3=xy_cuted[tin_data[:, 2]][:, 2],
-                                                                   h3=h_data[tin_data[:, 2]],
-                                                                   v3=v_data[tin_data[:, 2]])
-
             if not isinstance(tin_data, np.ndarray):
                 print("Error: cut_2d_grid")
                 q.put(mystdout)
                 return
+
+            max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                z1=xy_cuted[tin_data[:, 0]][:, 2],
+                h1=h_data[tin_data[:, 0]],
+                v1=v_data[tin_data[:, 0]],
+                xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                z2=xy_cuted[tin_data[:, 1]][:, 2],
+                h2=h_data[tin_data[:, 1]],
+                v2=v_data[tin_data[:, 1]],
+                xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                z3=xy_cuted[tin_data[:, 2]][:, 2],
+                h3=h_data[tin_data[:, 2]],
+                v3=v_data[tin_data[:, 2]])
+
+            # get area (based on Heron's formula)
+            p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+            p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+            p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+            d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
+            d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
+            d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
+            s2 = (d1 + d2 + d3) / 2
+            area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
+            area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+            area = area ** 0.5
+            area_reach = np.sum(area)
 
             # save data in dict
             data_2d["tin"][0].append(tin_data)
@@ -230,6 +245,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             data_2d["max_slope_bottom"][0].append(max_slope_bottom)
             data_2d["max_slope_energy"][0].append(max_slope_energy)
             data_2d["shear_stress"][0].append(shear_stress)
+            data_2d["total_wet_area"][0].append(area_reach)
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress

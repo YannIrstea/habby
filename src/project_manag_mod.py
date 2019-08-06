@@ -193,6 +193,7 @@ def create_default_project_preferences():
     project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
     project_preferences['elevation_whole_profile'] = [False, False]  # mesh .stl of topography whole profile (vertical_exaggeration)
     project_preferences['variables_units'] = [False, False]  # mesh .pvd and .vtu by unit (vertical_exaggeration)
+    project_preferences['habitat_text'] = [False, True]  # .txt with detail values by mesh
     project_preferences['detailled_text'] = [False, False]  # .txt with detail values by mesh
     project_preferences['fish_information'] = [False, False]  # image of fish informations
 

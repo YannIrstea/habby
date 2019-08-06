@@ -895,6 +895,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.variables_units_hab = QCheckBox("")
         self.variables_units_hab.setObjectName("variables_units_hab")
         self.variables_units_hab.stateChanged.connect(self.count_export)
+        self.habitat_text_hab = QCheckBox("")
+        self.habitat_text_hab.setObjectName("habitat_text_hab")
+        self.habitat_text_hab.stateChanged.connect(self.count_export)
         self.detailled_text_hab = QCheckBox("")
         self.detailled_text_hab.setObjectName("detailled_text_hab")
         self.detailled_text_hab.stateChanged.connect(self.count_export)
@@ -905,6 +908,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                   self.point_units_hab,
                                   self.elevation_whole_profile_hab,
                                   self.variables_units_hab,
+                                  self.habitat_text_hab,
                                   self.detailled_text_hab,
                                   self.fish_information_hab]
 
@@ -957,7 +961,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hyd_export_layout.addWidget(QHLine(), 8, 0, 1, 3)
         # row 9
         self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 9, 0)
-        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled txt file")), 9, 1)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled mesh")), 9, 1)
         self.hyd_export_layout.addWidget(self.detailled_text_hyd, 9, 2, Qt.AlignCenter)
         # hyd_export_widget
         self.hyd_export_widget = QWidget()
@@ -988,12 +992,16 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hab_export_layout.addWidget(QHLine(), 9, 0, 1, 4)
         # row 10
         self.hab_export_layout.addWidget(QLabel("Text (.txt)"), 10, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled txt file")), 10, 1)
-        self.hab_export_layout.addWidget(self.detailled_text_hab, 10, 2, Qt.AlignCenter)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Global habitat values")), 10, 1)
+        self.hab_export_layout.addWidget(self.habitat_text_hab, 10, 2, Qt.AlignCenter)
         # row 11
-        self.hab_export_layout.addWidget(QLabel("Text (.pdf)"), 11, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 11, 1)
-        self.hab_export_layout.addWidget(self.fish_information_hab, 11, 2, Qt.AlignCenter)
+        self.hab_export_layout.addWidget(QLabel("Text (.txt)"), 11, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled habitat values")), 11, 1)
+        self.hab_export_layout.addWidget(self.detailled_text_hab, 11, 2, Qt.AlignCenter)
+        # row 12
+        self.hab_export_layout.addWidget(QLabel("Text (.pdf)"), 12, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 12, 1)
+        self.hab_export_layout.addWidget(self.fish_information_hab, 12, 2, Qt.AlignCenter)
         # hab_export_widget
         self.hab_export_widget = QWidget()
         self.hab_export_widget.hide()
@@ -1083,7 +1091,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
         export_names = [checkbox.objectName() for checkbox in self.checkbox_list]
         export_activated = [checkbox.isChecked() for checkbox in self.checkbox_list]
         export_dict = dict(zip(export_names, export_activated))
-
 
         # store values
         return types_hdf5, names_hdf5, export_dict
