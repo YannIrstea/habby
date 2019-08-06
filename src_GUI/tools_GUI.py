@@ -250,20 +250,29 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hbox_layout.addWidget(require_data_group, 3)  # stretch factor
         self.setLayout(hbox_layout)
 
-    def disable_and_clean_group_widgets(self, checker):
+    def disable_and_clean_group_widgets(self, disable):
+        """
+        Disable and clean widgets.
+        :param checker:
+        :return:
+        """
+        print("Disable and clean widgets.", disable)
         # available
         self.unit_min_qlabel.setText("")
         self.unit_max_qlabel.setText("")
         self.unit_type_qlabel.setText("")
         self.fish_available_qlistwidget.clear()
-        self.export_empty_text_pushbutton.setEnabled(checker)
-        self.fromtext_qpushbutton.setEnabled(checker)
+        self.export_empty_text_pushbutton.setDisabled(disable)
         # desired
         self.from_qlineedit.setText("")
+        self.from_qlineedit.setDisabled(disable)
         self.to_qlineedit.setText("")
+        self.to_qlineedit.setDisabled(disable)
         self.by_qlineedit.setText("")
-        self.plot_chronicle_qpushbutton.setEnabled(checker)
-        self.export_txt_chronicle_qpushbutton.setEnabled(checker)
+        self.by_qlineedit.setDisabled(disable)
+        self.fromtext_qpushbutton.setDisabled(disable)
+        self.plot_chronicle_qpushbutton.setDisabled(disable)
+        self.export_txt_chronicle_qpushbutton.setDisabled(disable)
         self.require_unit_qtableview.model().clear()
 
     def names_hab_change(self):
@@ -274,17 +283,14 @@ class InterpolationGroup(QGroupBoxCollapsible):
         # no file
         if not hdf5name:
             # clean
-            self.disable_and_clean_group_widgets(False)
             self.hab_reach_qcombobox.clear()
         # file
         if hdf5name:
             # clean
-            self.disable_and_clean_group_widgets(True)
-
+            self.hab_reach_qcombobox.clear()
             # create hdf5 class to get hdf5 inforamtions
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file()
-            self.hab_reach_qcombobox.clear()
             if len(hdf5.reach_name) == 1:
                 reach_names = hdf5.reach_name
             else:
@@ -292,15 +298,16 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.hab_reach_qcombobox.addItems(reach_names)
 
     def reach_hab_change(self):
-        #print("reach change")
         hdf5name = self.hab_filenames_qcombobox.currentText()
         reach_name = self.hab_reach_qcombobox.currentText()
         # no file
         if not reach_name:
             # clean
-            self.disable_and_clean_group_widgets(False)
+            self.disable_and_clean_group_widgets(True)
         # file
         if reach_name:
+            # clean
+            self.disable_and_clean_group_widgets(False)
             # clean
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file()
@@ -449,8 +456,19 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 self.send_log.emit('Error: The file has not been exported as it may be opened by another program.')
 
     def plot_chronicle(self):
+        # is fish ?
+        selection = self.fish_available_qlistwidget.selectedItems()
+        fish_names = [item.text() for item in selection]
+        if fish_names == [""] or fish_names == []:
+            self.send_log.emit('Error: There no selected fish.')
+            return
+
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
+
+        if not hdf5name:
+            self.send_log.emit('Error: There no selected fish.')
+            return
 
         # fish names and units names from tableview
         fish_names_hv_spu = self.mytablemodel.colnames
@@ -499,6 +517,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                             project_preferences)
 
     def export_chronicle(self):
+        # is fish ?
+        selection = self.fish_available_qlistwidget.selectedItems()
+        fish_names = [item.text() for item in selection]
+        if fish_names == [""] or fish_names == []:
+            self.send_log.emit('Error: There no selected fish.')
+            return
+
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
 

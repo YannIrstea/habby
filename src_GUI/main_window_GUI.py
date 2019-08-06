@@ -2531,15 +2531,12 @@ class CentralW(QWidget):
     def update_specific_tab(self):
         # calc hab
         if self.tab_widget.currentIndex() == 3:
-            print("self.bioinfo_tab.update_merge_list()")
             self.bioinfo_tab.update_merge_list()
         # data_explorer_tab
         elif self.tab_widget.currentIndex() == 4:
-            print("data_explorer_tab.refresh_type()")
             self.data_explorer_tab.refresh_type()
         # tools_tab
         elif self.tab_widget.currentIndex() == 5:
-            print("tools_tab.refresh_hab_filenames()")
             self.tools_tab.refresh_hab_filenames()
 
 

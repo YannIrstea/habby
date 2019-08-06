@@ -908,7 +908,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         else:
             # disable the button
             self.runhab.setDisabled(False)
-            self.send_log.emit(self.tr('# Nothing to compute ! Models selected and their options may exist in .hab'))
+            self.send_log.emit(self.tr('Warning: Nothing to compute ! Models selected and their options exist in .hab'))
 
     def show_prog(self):
         """
