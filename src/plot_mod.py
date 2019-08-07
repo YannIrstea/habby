@@ -1059,7 +1059,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
         plt.close()
 
 
-def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
@@ -1080,10 +1080,12 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
 
     # title and filename
     if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : valeur d'habitat\n{fish_name} - {reach_name} - {unit_name} {unit_type}"
+        title = f"{name_hdf5[:-4]} : valeur d'habitat\n{fish_name} - {reach_name} - {unit_name} {unit_type}\n" \
+            f"surface inconnue : {percent_unknown:3.2f} %"
         filename = f"{name_hdf5[:-4]}_VH_{fish_short_name}_{reach_name}_{unit_name}"
     else:
-        title = f"{name_hdf5[:-4]} : habitat value\n{fish_name} - {reach_name} - {unit_name} {unit_type}"
+        title = f"{name_hdf5[:-4]} : habitat value\n{fish_name} - {reach_name} - {unit_name} {unit_type}\n" \
+            f"unknwon area : {percent_unknown:3.2f} %"
         filename = f"{name_hdf5[:-4]}_HSI_{fish_short_name}_{reach_name}_{unit_name}"
 
     # prep data

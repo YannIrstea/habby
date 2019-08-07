@@ -677,13 +677,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                            whole_profil=False,
                                            convert_to_coarser_dom=True)
                         data_description = dict(hdf5.data_description)
+                        # change name attributes
                         data_description["reach_list"] = hdf5.data_description["hyd_reach_list"].split(", ")
                         data_description["reach_number"] = hdf5.data_description["hyd_reach_number"]
                         data_description["unit_number"] = hdf5.data_description["hyd_unit_number"]
                         data_description["unit_type"] = hdf5.data_description["hyd_unit_type"]
                         data_description["units_index"] = units_index
                         data_description["name_hdf5"] = hdf5.data_description["hab_filename"]
-                        data_description["sub_classification_code"] = hdf5.data_description["sub_classification_code"]
 
                     # for each reach
                     for reach_name in reach:
@@ -832,6 +832,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                             hdf5.data_2d["xy"][reach_num][unit_num],
                                                                             hdf5.data_2d["tin"][reach_num][unit_num],
                                                                             hdf5.data_2d["hv_data"][fish_name][reach_num][unit_num],
+                                                                            data_description["percent_area_unknown"][fish_name][reach_num][unit_num],
                                                                             data_description,
                                                                             project_preferences,
                                                                             path_im,
