@@ -22,9 +22,9 @@ import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from stl import mesh
-from osgeo import osr
 from osgeo import ogr
+from osgeo import osr
+from stl import mesh
 
 try:
     import xml.etree.cElementTree as ET
@@ -106,12 +106,15 @@ class Hdf5Management:
                         self.basename_output_reach_unit.append([])
                         for unit_num, unit_name in enumerate(self.units_name[reach_num]):
                             unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name)
-                            self.basename_output_reach_unit[reach_num].append(self.basename + "_" + reach_name + "_" + str(unit_name2))
+                            self.basename_output_reach_unit[reach_num].append(
+                                self.basename + "_" + reach_name + "_" + str(unit_name2))
                     self.units_name_output = []
                     for reach_num, reach_name in enumerate(self.reach_name):
                         self.units_name_output.append([])
                         for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                            unit_name2 = str(unit_name).replace(".", "_") + "_" + self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/", "")  #["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                            unit_name2 = str(unit_name).replace(".", "_") + "_" + \
+                                         self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
+                                                                                                            "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
                             self.units_name_output[reach_num].append(unit_name2)
 
         except OSError:
@@ -234,7 +237,8 @@ class Hdf5Management:
 
             # estithic sort for GUI (classic variables + fish variables (alphanumeric))
             variables.sort(key=str.lower)  # sort alphanumeric
-            list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant", 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
+            list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
+                           'max_slope_bottom', 'max_slope_energy', 'shear_stress']
             list_to_gui = [x for x in list_to_gui if x in variables]  # remove variable not present in hdf5
 
             for variable_index, variable in enumerate(list_to_gui):
@@ -245,7 +249,8 @@ class Hdf5Management:
             self.variables = variables
 
         """ get_hdf5_fish_names """
-        variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant", 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
+        variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
+                               'max_slope_bottom', 'max_slope_energy', 'shear_stress']
         fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
         self.fish_list = fish_list
 
@@ -336,7 +341,8 @@ class Hdf5Management:
             self.file_object.create_dataset(name="unit_by_reach",
                                             shape=[len(hyd_description["hyd_unit_list"][0]),
                                                    len(hyd_description["hyd_unit_list"])],
-                                            data=np.array(hyd_description["hyd_unit_list"]).astype(np.float64).transpose())
+                                            data=np.array(hyd_description["hyd_unit_list"]).astype(
+                                                np.float64).transpose())
 
             # whole_profile
             data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
@@ -384,7 +390,8 @@ class Hdf5Management:
                                 unit_group = reach_group.create_group('unit_' + str(unit_num2))
                                 node_group = unit_group.create_group('node')
                                 node_group.create_dataset(name="z",
-                                                          shape=[len(data_2d_whole_profile["z"][reach_num][unit_num2]), 1],
+                                                          shape=[len(data_2d_whole_profile["z"][reach_num][unit_num2]),
+                                                                 1],
                                                           data=data_2d_whole_profile["z"][reach_num][unit_num2])
                         else:
                             node_group.create_dataset(name="z",
@@ -622,7 +629,8 @@ class Hdf5Management:
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
                     mesh_group.create_dataset(name="sub",
-                                              shape=[data_2d["sub"][unit_num].shape[0], data_2d["sub"][unit_num].shape[1]],
+                                              shape=[data_2d["sub"][unit_num].shape[0],
+                                                     data_2d["sub"][unit_num].shape[1]],
                                               data=data_2d["sub"][unit_num])
                     mesh_group.create_dataset(name="tin",
                                               shape=[len(data_2d["tin"][unit_num]), 3],
@@ -743,7 +751,9 @@ class Hdf5Management:
     # HABITAT
     def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description, project_preferences):
         # model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d
-        attributes_to_remove = ("hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type", "hdf5_type")
+        attributes_to_remove = (
+        "hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type",
+        "hdf5_type")
 
         # create a new hdf5
         self.open_hdf5_file(new=True)
@@ -764,7 +774,8 @@ class Hdf5Management:
         self.file_object.create_dataset(name="unit_by_reach",
                                         shape=[len(merge_description["hyd_unit_list"][0]),
                                                len(merge_description["hyd_unit_list"])],
-                                        data=np.array(merge_description["hyd_unit_list"]).astype(np.float64).transpose())
+                                        data=np.array(merge_description["hyd_unit_list"]).astype(
+                                            np.float64).transpose())
         # np.array(merge_description["hyd_unit_list"]).astype(np.float64).reshape(list(reversed(np.array(merge_description["hyd_unit_list"]).shape)))
         # data_2D_whole_profile profile
         data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
@@ -1001,17 +1012,22 @@ class Hdf5Management:
                     data_2d["shear_stress"][reach_num].append(self.file_object[mesh_group + "/shear_stress"][:])
                     if convert_to_coarser_dom and data_description["sub_classification_method"] != "coarser-dominant":
                         sub_array = self.file_object[mesh_group + "/sub"][:]
-                        # dominant case = 1 ==> biggest substrate for plot
                         sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
                         data_2d["sub"][reach_num].append(np.array(list(zip(sub_coarser, sub_dominant))))
                     else:
                         data_2d["sub"][reach_num].append(self.file_object[mesh_group + "/sub"][:])
+                        source = data_2d["sub"][reach_num][unit_num]
+
                     if fish_names_total_list:
                         for fish_name in fish_names_total_list:
-                            data_2d["hv_data"][fish_name][reach_num].append(self.file_object[mesh_group + "/" + fish_name][:].flatten())
-                            data_description["total_WUA_area"][fish_name][reach_num].append(self.file_object[mesh_group + "/" + fish_name].attrs["WUA"])
-                            data_description["percent_area_unknown"][fish_name][reach_num].append(float(self.file_object[mesh_group + "/" + fish_name].attrs["percent_area_unknown [%m2]"]))
-                        data_description["total_wet_area"][reach_num].append(self.file_object[unit_group].attrs["total_wet_area"])
+                            data_2d["hv_data"][fish_name][reach_num].append(
+                                self.file_object[mesh_group + "/" + fish_name][:].flatten())
+                            data_description["total_WUA_area"][fish_name][reach_num].append(
+                                self.file_object[mesh_group + "/" + fish_name].attrs["WUA"])
+                            data_description["percent_area_unknown"][fish_name][reach_num].append(float(
+                                self.file_object[mesh_group + "/" + fish_name].attrs["percent_area_unknown [%m2]"]))
+                        data_description["total_wet_area"][reach_num].append(
+                            self.file_object[unit_group].attrs["total_wet_area"])
                     # node
                     data_2d["xy"][reach_num].append(self.file_object[node_group + "/xy"][:])
                     data_2d["z"][reach_num].append(self.file_object[node_group + "/z"][:].flatten())
@@ -1034,7 +1050,8 @@ class Hdf5Management:
             self.data_2d = data_2d
             self.data_description = data_description
 
-    def add_fish_hab(self, vh_cell, area_c_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio):
+    def add_fish_hab(self, vh_cell, area_c_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh,
+                     project_preferences, path_bio):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -1106,9 +1123,11 @@ class Hdf5Management:
                     fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
 
                     if any(np.isnan(vh_cell[fish_num][reach_num][unit_num])):
-                        area = np.sum(area_c_all[reach_num][unit_num][np.argwhere(~np.isnan(vh_cell[fish_num][reach_num][unit_num]))])
+                        area = np.sum(area_c_all[reach_num][unit_num][
+                                          np.argwhere(~np.isnan(vh_cell[fish_num][reach_num][unit_num]))])
                         HV = spu_all[fish_num][reach_num][unit_num] / area
-                        percent_area_unknown = (1 - (area / total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
+                        percent_area_unknown = (1 - (
+                                    area / total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
                     else:
                         HV = spu_all[fish_num][reach_num][unit_num] / total_wet_area
                         percent_area_unknown = 0.0
@@ -1139,7 +1158,7 @@ class Hdf5Management:
             xml_names.append(mesh_group[fish_name].attrs['pref_file'])
             stage_names.append(mesh_group[fish_name].attrs['stage'])
             names_short.append(mesh_group[fish_name].attrs['short_name'])
-            #fish_names_total_list[fish_ind]
+            # fish_names_total_list[fish_ind]
 
         # set to attributes
         self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
@@ -1323,7 +1342,7 @@ class Hdf5Management:
                     # if erase_id == False : create with new name
                     else:
                         filename = self.basename + "_" + self.reach_name[reach_num] + "_allunits_" + time.strftime(
-                                    "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
+                            "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
 
                     # gpkg file creation
                     ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
@@ -1344,7 +1363,7 @@ class Hdf5Management:
                         # if erase_id == False
                         else:
                             filename = self.basename + "_" + self.reach_name[reach_num] + "_allunits_" + time.strftime(
-                                        "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
+                                "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
 
                         # gpkg file creation
                         ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
@@ -1360,12 +1379,10 @@ class Hdf5Management:
                         # if erase_id == False
                         else:
                             filename = self.basename + "_" + self.reach_name[reach_num] + "_allunits_" + time.strftime(
-                                        "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
+                                "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
                             # gpkg file creation
                             ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
                             layer_names = []
-
-
 
             # DATA 2D WHOLE PROFILE mesh
             if self.project_preferences['mesh_whole_profile'][index]:  # only on .hyd creation
@@ -1437,7 +1454,8 @@ class Hdf5Management:
                         if fish_names:
                             layer = ds.GetLayer(unit_num)
                             layer_defn = layer.GetLayerDefn()
-                            field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+                            field_names = [layer_defn.GetFieldDefn(i).GetName() for i in
+                                           range(layer_defn.GetFieldCount())]
                             # erase all fish field
                             for fish_num, fish_name in enumerate(fish_names):
                                 if fish_name in field_names:
@@ -1512,20 +1530,25 @@ class Hdf5Management:
                             # conveyance
                             conveyance = v_mean_mesh * h_mean_mesh
                             # other
-                            if len(self.data_2d["max_slope_bottom"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
+                            if len(self.data_2d["max_slope_bottom"][reach_num][unit_num]) != len(
+                                    self.data_2d["tin"][reach_num][unit_num]):
                                 max_slope_bottom = None
                                 max_slope_energy = None
                                 shear_stress = None
                             else:
                                 # change inf values to nan
-                                self.data_2d["max_slope_bottom"][reach_num][unit_num][self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
-                                self.data_2d["max_slope_energy"][reach_num][unit_num][self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
-                                self.data_2d["shear_stress"][reach_num][unit_num][self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
+                                self.data_2d["max_slope_bottom"][reach_num][unit_num][
+                                    self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
+                                self.data_2d["max_slope_energy"][reach_num][unit_num][
+                                    self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
+                                self.data_2d["shear_stress"][reach_num][unit_num][
+                                    self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
                                 max_slope_bottom = self.data_2d["max_slope_bottom"][reach_num][unit_num][mesh_num][0]
                                 max_slope_energy = self.data_2d["max_slope_energy"][reach_num][unit_num][mesh_num][0]
                                 shear_stress = self.data_2d["shear_stress"][reach_num][unit_num][mesh_num][0]
                             # i_whole_profile
-                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
+                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(
+                                    self.data_2d["tin"][reach_num][unit_num]):
                                 i_whole_profile = None
                             else:
                                 i_whole_profile = int(self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0])
@@ -1734,8 +1757,6 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['variables_units'][index]:
-            file_names_all = []
-
             if self.extension == ".hab":
                 # format the name of species and stage
                 name_fish = self.data_description["hab_fish_list"].split(", ")
@@ -1756,7 +1777,9 @@ class Hdf5Management:
                     y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
                     try:
                         z = np.ascontiguousarray((
-                        self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * self.project_preferences["vertical_exaggeration"])
+                                                         self.data_2d["z"][reach_num][unit_num] +
+                                                         self.data_2d["h"][reach_num][unit_num]) *
+                                                 self.project_preferences["vertical_exaggeration"])
                     except Warning:
                         print('oh no!')
 
@@ -1777,22 +1800,23 @@ class Hdf5Management:
                                 cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            cellData["sub_coarser"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[0]
-                            cellData["sub_dominant"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[1]
+                            cellData["sub_coarser"] = np.ascontiguousarray(
+                                self.data_2d["sub"][reach_num][unit_num][:, 0])
+                            cellData["sub_dominant"] = np.ascontiguousarray(
+                                self.data_2d["sub"][reach_num][unit_num][:, 1])
+
                         if self.data_description["sub_classification_method"] == 'percentage':
                             if self.data_description["sub_classification_code"] == "Cemagref":
                                 sub_class_number = 8
                             if self.data_description["sub_classification_code"] == "Sandre":
                                 sub_class_number = 12
                             for i in range(sub_class_number):
-                                cellData['S' + str(i + 1)] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[i]
+                                cellData['S' + str(i + 1)] = np.ascontiguousarray(
+                                    self.data_2d["sub"][reach_num][unit_num][:, i])
 
                     # hydrau data creation for each mesh
                     v_mean_mesh_list = []
                     h_mean_mesh_list = []
-                    max_slope_bottom = []
-                    max_slope_energy = []
-                    shear_stress = []
 
                     for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
                         node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
@@ -1814,27 +1838,38 @@ class Hdf5Management:
                     cellData['velocity'] = np.array(v_mean_mesh_list)
 
                     # other
-                    if len(self.data_2d["max_slope_bottom"][reach_num][unit_num]) != len(
-                            self.data_2d["tin"][reach_num][unit_num]):
+                    other_length = len(self.data_2d["max_slope_bottom"][reach_num][unit_num])
+                    base_length = len(self.data_2d["tin"][reach_num][unit_num])
+                    if other_length != base_length:
                         fake_array = np.array([0.0] * len(self.data_2d["tin"][reach_num][unit_num]),
-                                                                dtype=np.float64)
+                                              dtype=np.float64)
                         cellData['max_slope_bottom'] = fake_array
                         cellData['max_slope_energy'] = fake_array
                         cellData['shear_stress'] = fake_array
                     else:
+                        # change incoherent values to nan
+                        with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
+                            self.data_2d["max_slope_bottom"][reach_num][unit_num][
+                                self.data_2d["max_slope_bottom"][reach_num][unit_num] > 0.55] = np.NaN  # 0.55
+                            self.data_2d["max_slope_energy"][reach_num][unit_num][
+                                self.data_2d["max_slope_energy"][reach_num][unit_num] > 0.08] = np.NaN  # 0.08
+                            self.data_2d["shear_stress"][reach_num][unit_num][
+                                self.data_2d["shear_stress"][reach_num][unit_num] > 800] = np.NaN  # 800
                         # change inf values to nan
                         self.data_2d["max_slope_bottom"][reach_num][unit_num][
-                            self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
+                            self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.NaN
                         self.data_2d["max_slope_energy"][reach_num][unit_num][
-                            self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
+                            self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.NaN
                         self.data_2d["shear_stress"][reach_num][unit_num][
-                            self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
+                            self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.NaN
+
                         cellData['max_slope_bottom'] = self.data_2d["max_slope_bottom"][reach_num][unit_num][:, 0]
                         cellData['max_slope_energy'] = self.data_2d["max_slope_energy"][reach_num][unit_num][:, 0]
                         cellData['shear_stress'] = self.data_2d["shear_stress"][reach_num][unit_num][:, 0]
 
                     # create the grid and the vtu files
-                    name_file = os.path.join(self.path_visualisation, self.basename_output_reach_unit[reach_num][unit_num])
+                    name_file = os.path.join(self.path_visualisation,
+                                             self.basename_output_reach_unit[reach_num][unit_num])
                     if self.project_preferences['erase_id']:  # erase file if exist ?
                         if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
                             try:
@@ -1866,7 +1901,8 @@ class Hdf5Management:
                 if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
                     name_here = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + '.shp'
-            paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all, part_timestep_indice)
+            paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
+                                  part_timestep_indice)
 
     # EXPORT TXT
     def export_spu_txt(self):
@@ -1947,7 +1983,8 @@ class Hdf5Management:
                         if not sim_name:
                             data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
                         else:
-                            data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(area_reach)
+                            data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(
+                                area_reach)
                         # HV
                         for fish_name in fish_names:
                             try:
@@ -1999,9 +2036,11 @@ class Hdf5Management:
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                 if not self.project_preferences['erase_id']:
                     if self.project_preferences['language'] == 0:
-                        name = self.basename + "_detailledmesh_unit" + str(unit_num) + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                        name = self.basename + "_detailledmesh_unit" + str(unit_num) + "_" + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
                     else:
-                        name = self.basename + "_mailledetaillee_unit" + str(unit_num) + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                        name = self.basename + "_mailledetaillee_unit" + str(unit_num) + "_" + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
                 else:
                     if self.project_preferences['language'] == 0:
                         name = self.basename + "_detailledmesh_unit" + str(unit_num) + ".txt"
@@ -2046,7 +2085,8 @@ class Hdf5Management:
                     # header 2
                     header = '[]\t[m2]\t[m/s]\t[m]\t[]\t[]\t[]'
                     if self.type_for_xml == "hdf5_habitat" and fish_names:
-                        header += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in range(sub_class_number))
+                        header += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
+                                          range(sub_class_number))
                         header += "".join(['\t[' + fish + ']' for fish in fish_shortnames])
                     f.write(header)
 
@@ -2083,14 +2123,16 @@ class Hdf5Management:
                             area_str = str(s2 * (s2 - d1) * (s2 - d2) * (s2 - d3))
 
                             data_here += '\n'
-                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
+                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{str(
+                                node1)}\t{str(node2)}\t{str(node3)}"
 
                             if self.type_for_xml == "hdf5_habitat":
                                 sub = self.data_2d["sub"][reach_num][unit_num][mesh_num]
                                 data_here += "\t" + "\t".join(str(e) for e in sub.tolist())
                                 if fish_names:
                                     for fish_name in fish_names:
-                                        data_here += f"\t{str(self.data_2d['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
+                                        data_here += f"\t{str(
+                                            self.data_2d['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
                     # write file
                     f.write(data_here)
 
@@ -2187,7 +2229,7 @@ class Hdf5Management:
             # get data
             xmlfiles = self.data_description["hab_fish_pref_list"].split(", ")
             stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
-            #path_im_bio = path_bio
+            # path_im_bio = path_bio
             path_out = os.path.join(self.path_prj, "output", "figures")
 
             plt.close()
