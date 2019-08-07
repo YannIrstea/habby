@@ -50,7 +50,7 @@ class PreferenceWindow(QDialog):
         # list with the available color map
         self.namecmap = ['coolwarm', 'jet', 'magma', 'viridis', 'inferno', 'plasma', 'Blues',
                          'Greens', 'Greys', 'Oranges', 'Purples',
-                         'Reds', 'gist_earth', 'terrain', 'ocean', ]
+                         'Reds', 'gist_earth', 'terrain', 'ocean']
         self.msg2 = QMessageBox()
         self.init_iu()
 

@@ -559,6 +559,333 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
             plt.close()
 
 
+def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
+    types_plot = project_preferences['type_plot']
+    erase1 = project_preferences['erase_id']
+
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : Pente maximale du fond - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_pente_fond_max_{reach_name}_{unit_name}"
+
+    else:
+        title = f"{name_hdf5[:-4]} : Maximum slope bottom - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_max_slope_bottom_{reach_name}_{unit_name}"
+
+    # prep data
+    slope_data = slope_data[:, 0]
+    # create mask
+    masked_array = np.ma.array(slope_data, mask=np.isnan(slope_data))
+
+    # preplot
+    fig = plt.figure(filename)
+    ax = plt.axes()
+
+    # plot the habitat value
+    cmap = plt.get_cmap(project_preferences['color_map2'])
+    cmap.set_bad(color='black', alpha=1.0)
+
+    n = len(slope_data)
+    norm = mpl.colors.Normalize(vmin=0, vmax=max(slope_data))
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = coord_p[int(ikle[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)  # , edgecolor='w'
+        patches.append(polygon)
+
+    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    collection.set_array(masked_array)
+    ax.add_collection(collection)
+    ax.autoscale_view()
+    ax.ticklabel_format(useOffset=False)
+
+    plt.axis('equal')
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    plt.title(title)
+    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+
+    # colorbar
+    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+    if project_preferences['language'] == 0:
+        cb1.set_label('Maximum slope bottom []')
+    elif project_preferences['language'] == 1:
+        cb1.set_label('Pente maximale du fond []')
+    else:
+        cb1.set_label('slope []')
+
+    # save figure
+    if types_plot == "image export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=project_preferences['resolution'], transparent=True)
+        else:
+            test = tools_mod.remove_image(filename, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                            transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "interactive" or types_plot == "both":
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
+        plt.show()
+    if types_plot == "image export":
+        plt.close()
+
+
+def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
+    types_plot = project_preferences['type_plot']
+    erase1 = project_preferences['erase_id']
+
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : Pente maximale d'énergie - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_pente_energie_{reach_name}_{unit_name}"
+
+    else:
+        title = f"{name_hdf5[:-4]} : Maximum slope energy - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_max_slope_energy_{reach_name}_{unit_name}"
+
+    # prep data
+    slope_data = slope_data[:, 0]
+    # create mask
+    masked_array = np.ma.array(slope_data, mask=np.isnan(slope_data))
+
+    # preplot
+    fig = plt.figure(filename)
+    ax = plt.axes()
+
+    # plot the habitat value
+    cmap = plt.get_cmap(project_preferences['color_map2'])
+    cmap.set_bad(color='black', alpha=1.0)
+
+    n = len(slope_data)
+    norm = mpl.colors.Normalize(vmin=0, vmax=max(slope_data))
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = coord_p[int(ikle[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)  # , edgecolor='w'
+        patches.append(polygon)
+
+    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    collection.set_array(masked_array)
+    ax.add_collection(collection)
+    ax.autoscale_view()
+    ax.ticklabel_format(useOffset=False)
+
+    plt.axis('equal')
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    plt.title(title)
+    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+
+    # colorbar
+    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+    if project_preferences['language'] == 0:
+        cb1.set_label('Maximum slope energy []')
+    elif project_preferences['language'] == 1:
+        cb1.set_label("Pente maximale d'énergie []")
+    else:
+        cb1.set_label('slope []')
+
+    # save figure
+    if types_plot == "image export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=project_preferences['resolution'], transparent=True)
+        else:
+            test = tools_mod.remove_image(filename, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                            transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "interactive" or types_plot == "both":
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
+        plt.show()
+    if types_plot == "image export":
+        plt.close()
+
+
+def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
+    types_plot = project_preferences['type_plot']
+    erase1 = project_preferences['erase_id']
+
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : Contrainte de cisaillement - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_contrainte_cisaillement_{reach_name}_{unit_name}"
+
+    else:
+        title = f"{name_hdf5[:-4]} : Shear stress - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_shear_stress_{reach_name}_{unit_name}"
+
+    # prep data
+    shear_stress = shear_stress[:, 0]
+    # create mask
+    masked_array = np.ma.array(shear_stress, mask=np.isnan(shear_stress))
+
+    # preplot
+    fig = plt.figure(filename)
+    ax = plt.axes()
+
+    # plot the habitat value
+    cmap = plt.get_cmap(project_preferences['color_map2'])
+    cmap.set_bad(color='black', alpha=1.0)
+
+    n = len(shear_stress)
+    norm = mpl.colors.Normalize(vmin=0, vmax=max(shear_stress))
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = coord_p[int(ikle[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)  # , edgecolor='w'
+        patches.append(polygon)
+
+    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    collection.set_array(masked_array)
+    ax.add_collection(collection)
+    ax.autoscale_view()
+    ax.ticklabel_format(useOffset=False)
+
+    plt.axis('equal')
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    plt.title(title)
+    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+
+    # colorbar
+    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+    if project_preferences['language'] == 0:
+        cb1.set_label('Shear stress []')
+    elif project_preferences['language'] == 1:
+        cb1.set_label("Contraite de cisaillement []")
+    else:
+        cb1.set_label('Shear stress []')
+
+    # save figure
+    if types_plot == "image export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=project_preferences['resolution'], transparent=True)
+        else:
+            test = tools_mod.remove_image(filename, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                            transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "interactive" or types_plot == "both":
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
+        plt.show()
+    if types_plot == "image export":
+        plt.close()
+
+
 def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_im, project_preferences={}, reach_name="", unit_name=0.0):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
@@ -759,6 +1086,9 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
         title = f"{name_hdf5[:-4]} : habitat value\n{fish_name} - {reach_name} - {unit_name} {unit_type}"
         filename = f"{name_hdf5[:-4]}_HSI_{fish_short_name}_{reach_name}_{unit_name}"
 
+    # prep data
+    masked_array = np.ma.array(vh, mask=np.isnan(vh))  # create mask
+
     # preplot
     fig = plt.figure(filename)
     ax = plt.axes()
@@ -767,7 +1097,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
 
     # plot the habitat value
     cmap = plt.get_cmap(project_preferences['color_map2'])
-    # colors = cmap(vh.tolist())
+    cmap.set_bad(color='black', alpha=1.0)
 
     n = len(vh)
     patches = []
@@ -776,31 +1106,22 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
         for j in range(0, 3):
             verts_j = coord_p[int(ikle[i][j]), :]
             verts.append(verts_j)
-        polygon = Polygon(verts, closed=True, edgecolor='w')
+        polygon = Polygon(verts, closed=True)
         patches.append(polygon)
 
     collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
     # collection.set_color(colors) too slow
-    collection.set_array(vh)
+    collection.set_array(masked_array)
     ax.add_collection(collection)
     ax.autoscale_view()
     ax.ticklabel_format(useOffset=False)
     plt.axis('equal')
-    # cbar = plt.colorbar()
-    # cbar.ax.set_ylabel('Substrate')
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title)
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
 
     # colorbar
-    # Set norm to correspond to the data for which
-    # the colorbar will be used.
-    # ColorbarBase derives from ScalarMappable and puts a colorbar
-    # in a specified axes, so it has everything needed for a
-    # standalone colorbar.  There are many more kwargs, but the
-    # following gives a basic continuous colorbar with ticks
-    # and labels.
     cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
     if project_preferences['language'] == 0:
         cb1.set_label('HV []')

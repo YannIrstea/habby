@@ -14,16 +14,18 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
+import os
+from multiprocessing import Process, Value
+
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
-    QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QSpacerItem,\
-    QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
-from src_GUI.preferences_GUI import load_project_preferences, QHLine, DoubleClicOutputGroup
-from src_GUI.tools_GUI import QGroupBoxCollapsible
+    QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, \
+    QSizePolicy, QScrollArea, QProgressBar, QTableView
+
 from src import hdf5_mod
 from src import plot_mod
-from multiprocessing import Process, Value
-import os
+from src_GUI.preferences_GUI import load_project_preferences, QHLine, DoubleClicOutputGroup
+from src_GUI.tools_GUI import QGroupBoxCollapsible
 
 
 class DataExplorerTab(QScrollArea):
@@ -318,7 +320,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.setTitle(title)
         self.plot_process_list = MyProcessList()
-        self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+        self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity",
+                                    "coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress"]
         self.init_ui()
 
     def init_ui(self):
@@ -593,13 +596,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         :param units_index: list of integer representing the position of units in hdf5 file
         :param export_type: string representing plot types production ("display", "export", "both")
         """
-        # print("types_hdf5 : ", types_hdf5)
-        # print("names_hdf5 : ", names_hdf5)
-        # print("variables : ", variables)
-        # print("units : ", units)
-        # print("units_index : ", units_index)
-        # print("export_type : ", export_type)
-
         if not types_hdf5:
             self.send_log.emit('Error: No hdf5 type selected.')
         if not names_hdf5:
@@ -786,6 +782,45 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      reach_name,
                                                                      units[unit_num]))
                                     self.plot_process_list.append((susbtrat_process, state))
+                                if "max_slope_bottom" in variables and not self.plot_production_stoped:  # height
+                                    state = Value("i", 0)
+                                    slope_bottom_process = Process(target=plot_mod.plot_map_slope_bottom,
+                                                                   args=(state,
+                                                                         hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                         hdf5.data_2d["tin"][reach_num][unit_num],
+                                                                         hdf5.data_2d["max_slope_bottom"][reach_num][unit_num],
+                                                                         data_description,
+                                                                         project_preferences,
+                                                                         path_im,
+                                                                         reach_name,
+                                                                         units[unit_num]))
+                                    self.plot_process_list.append((slope_bottom_process, state))
+                                if "max_slope_energy" in variables and not self.plot_production_stoped:  # height
+                                    state = Value("i", 0)
+                                    slope_bottom_process = Process(target=plot_mod.plot_map_slope_energy,
+                                                                   args=(state,
+                                                                         hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                         hdf5.data_2d["tin"][reach_num][unit_num],
+                                                                         hdf5.data_2d["max_slope_energy"][reach_num][unit_num],
+                                                                         data_description,
+                                                                         project_preferences,
+                                                                         path_im,
+                                                                         reach_name,
+                                                                         units[unit_num]))
+                                    self.plot_process_list.append((slope_bottom_process, state))
+                                if "shear_stress" in variables and not self.plot_production_stoped:  # height
+                                    state = Value("i", 0)
+                                    slope_bottom_process = Process(target=plot_mod.plot_map_shear_stress,
+                                                                   args=(state,
+                                                                         hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                         hdf5.data_2d["tin"][reach_num][unit_num],
+                                                                         hdf5.data_2d["shear_stress"][reach_num][unit_num],
+                                                                         data_description,
+                                                                         project_preferences,
+                                                                         path_im,
+                                                                         reach_name,
+                                                                         units[unit_num]))
+                                    self.plot_process_list.append((slope_bottom_process, state))
                                 if fish_names and not self.plot_production_stoped:  # habitat data (maps)
                                     # map by fish
                                     for fish_index, fish_name in enumerate(fish_names):
