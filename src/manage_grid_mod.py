@@ -1237,6 +1237,20 @@ def slopebottom_lopeenergy_shearstress_max(xy1, z1, h1, v1, xy2, z2, h2, v2, xy3
         maxslopeenergy = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
     shearstress = ro * g * (h1 + h2 + h3) * maxslopeenergy / 3
 
+    # change inf values to nan
+    if np.inf in maxslopebottom:
+        maxslopebottom[maxslopebottom == np.inf] = np.NaN
+    if np.inf in maxslopeenergy:
+        maxslopeenergy[maxslopeenergy == np.inf] = np.NaN
+    if np.inf in shearstress:
+        shearstress[shearstress == np.inf] = np.NaN
+
+    # change incoherent values to nan
+    with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
+        maxslopebottom[maxslopebottom > 0.55] = np.NaN  # 0.55
+        maxslopeenergy[maxslopeenergy > 0.08] = np.NaN  # 0.08
+        shearstress[shearstress > 800] = np.NaN  # 800
+
     return maxslopebottom, maxslopeenergy, shearstress
 
 

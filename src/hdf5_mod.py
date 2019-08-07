@@ -1016,7 +1016,6 @@ class Hdf5Management:
                         data_2d["sub"][reach_num].append(np.array(list(zip(sub_coarser, sub_dominant))))
                     else:
                         data_2d["sub"][reach_num].append(self.file_object[mesh_group + "/sub"][:])
-                        source = data_2d["sub"][reach_num][unit_num]
 
                     if fish_names_total_list:
                         for fish_name in fish_names_total_list:
@@ -1536,13 +1535,6 @@ class Hdf5Management:
                                 max_slope_energy = None
                                 shear_stress = None
                             else:
-                                # change inf values to nan
-                                self.data_2d["max_slope_bottom"][reach_num][unit_num][
-                                    self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.nan
-                                self.data_2d["max_slope_energy"][reach_num][unit_num][
-                                    self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.nan
-                                self.data_2d["shear_stress"][reach_num][unit_num][
-                                    self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.nan
                                 max_slope_bottom = self.data_2d["max_slope_bottom"][reach_num][unit_num][mesh_num][0]
                                 max_slope_energy = self.data_2d["max_slope_energy"][reach_num][unit_num][mesh_num][0]
                                 shear_stress = self.data_2d["shear_stress"][reach_num][unit_num][mesh_num][0]
@@ -1847,22 +1839,6 @@ class Hdf5Management:
                         cellData['max_slope_energy'] = fake_array
                         cellData['shear_stress'] = fake_array
                     else:
-                        # change incoherent values to nan
-                        with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
-                            self.data_2d["max_slope_bottom"][reach_num][unit_num][
-                                self.data_2d["max_slope_bottom"][reach_num][unit_num] > 0.55] = np.NaN  # 0.55
-                            self.data_2d["max_slope_energy"][reach_num][unit_num][
-                                self.data_2d["max_slope_energy"][reach_num][unit_num] > 0.08] = np.NaN  # 0.08
-                            self.data_2d["shear_stress"][reach_num][unit_num][
-                                self.data_2d["shear_stress"][reach_num][unit_num] > 800] = np.NaN  # 800
-                        # change inf values to nan
-                        self.data_2d["max_slope_bottom"][reach_num][unit_num][
-                            self.data_2d["max_slope_bottom"][reach_num][unit_num] == np.inf] = np.NaN
-                        self.data_2d["max_slope_energy"][reach_num][unit_num][
-                            self.data_2d["max_slope_energy"][reach_num][unit_num] == np.inf] = np.NaN
-                        self.data_2d["shear_stress"][reach_num][unit_num][
-                            self.data_2d["shear_stress"][reach_num][unit_num] == np.inf] = np.NaN
-
                         cellData['max_slope_bottom'] = self.data_2d["max_slope_bottom"][reach_num][unit_num][:, 0]
                         cellData['max_slope_energy'] = self.data_2d["max_slope_energy"][reach_num][unit_num][:, 0]
                         cellData['shear_stress'] = self.data_2d["shear_stress"][reach_num][unit_num][:, 0]
