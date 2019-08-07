@@ -2123,16 +2123,14 @@ class Hdf5Management:
                             area_str = str(s2 * (s2 - d1) * (s2 - d2) * (s2 - d3))
 
                             data_here += '\n'
-                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{str(
-                                node1)}\t{str(node2)}\t{str(node3)}"
+                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
 
                             if self.type_for_xml == "hdf5_habitat":
                                 sub = self.data_2d["sub"][reach_num][unit_num][mesh_num]
                                 data_here += "\t" + "\t".join(str(e) for e in sub.tolist())
                                 if fish_names:
                                     for fish_name in fish_names:
-                                        data_here += f"\t{str(
-                                            self.data_2d['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
+                                        data_here += f"\t{str(self.data_2d['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
                     # write file
                     f.write(data_here)
 
@@ -2514,7 +2512,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # create attributes
     file.attrs['software'] = 'HABBY'
-    file.attrs['software_version'] = str(VERSION)
+    file.attrs['software_version'] = str(HABBY_VERSION)
     file.attrs['path_project'] = path_prj
     file.attrs['name_project'] = name_prj
     file.attrs['hdf5_version'] = h5py.version.hdf5_version
@@ -2763,7 +2761,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
 
         # create attributes
         file.attrs['software'] = 'HABBY'
-        file.attrs['software_version'] = str(VERSION)
+        file.attrs['software_version'] = str(HABBY_VERSION)
         file.attrs['path_project'] = path_prj
         file.attrs['name_project'] = name_prj
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
@@ -2826,7 +2824,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
 
         # create attributes
         file.attrs['software'] = 'HABBY'
-        file.attrs['software_version'] = str(VERSION)
+        file.attrs['software_version'] = str(HABBY_VERSION)
         file.attrs['path_project'] = path_prj
         file.attrs['name_project'] = name_prj
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
