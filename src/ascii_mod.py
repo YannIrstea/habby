@@ -64,6 +64,10 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     data_2d["h"] = []
     data_2d["v"] = []
     data_2d["z"] = []
+    data_2d["max_slope_bottom"] = []
+    data_2d["max_slope_energy"] = []
+    data_2d["shear_stress"] = []
+    data_2d["total_wet_area"] = []
 
     # progress from 10 to 90 : from 0 to len(units_index)
     delta = int(80 / int(data_description["reach_number"]))
@@ -77,6 +81,10 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         data_2d["h"].append([])
         data_2d["v"].append([])
         data_2d["z"].append([])
+        data_2d["max_slope_bottom"].append([])
+        data_2d["max_slope_energy"].append([])
+        data_2d["shear_stress"].append([])
+        data_2d["total_wet_area"].append([])
 
         # index to remove (from user selection GUI)
         index_to_remove = []
@@ -108,6 +116,33 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     q.put(mystdout)
                     return
 
+                max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                    xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                    z1=xy_cuted[tin_data[:, 0]][:, 2],
+                    h1=h_data[tin_data[:, 0]],
+                    v1=v_data[tin_data[:, 0]],
+                    xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                    z2=xy_cuted[tin_data[:, 1]][:, 2],
+                    h2=h_data[tin_data[:, 1]],
+                    v2=v_data[tin_data[:, 1]],
+                    xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                    z3=xy_cuted[tin_data[:, 2]][:, 2],
+                    h3=h_data[tin_data[:, 2]],
+                    v3=v_data[tin_data[:, 2]])
+
+                # get area (based on Heron's formula)
+                p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+                p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+                p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+                d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
+                d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
+                d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
+                s2 = (d1 + d2 + d3) / 2
+                area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
+                area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+                area = area ** 0.5
+                area_reach = np.sum(area)
+
                 # get substrate after cuting mesh
                 if sub_presence:
                     sub = data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile]
@@ -119,20 +154,25 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                 data_2d["h"][reach_num].append(h_data)
                 data_2d["v"][reach_num].append(v_data)
                 data_2d["z"][reach_num].append(xy_cuted[:, 2])
+                data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
+                data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
+                data_2d["shear_stress"][reach_num].append(shear_stress)
+                data_2d["total_wet_area"][reach_num].append(area_reach)
                 if sub_presence:
                     data_2d["sub"][reach_num].append(sub)
-
             # erase unit in whole_profile
             else:
                 index_to_remove.append(unit_num)
 
+        # remove unused keys
+        del data_2d_whole_profile["i_whole_profile"]
+        del data_2d_whole_profile["h"]
+        del data_2d_whole_profile["v"]
+
         # index to remove (from user selection GUI)
         for index in reversed(index_to_remove):
             data_2d_whole_profile["tin"][reach_num].pop(index)
-            data_2d_whole_profile["i_whole_profile"][reach_num].pop(index)
             data_2d_whole_profile["xy"][reach_num].pop(index)
-            data_2d_whole_profile["h"][reach_num].pop(index)
-            data_2d_whole_profile["v"][reach_num].pop(index)
             data_2d_whole_profile["z"][reach_num].pop(index)
 
     # ALL CASE SAVE TO HDF5
