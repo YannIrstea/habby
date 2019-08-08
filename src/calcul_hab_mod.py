@@ -158,13 +158,13 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
         return failload
 
     # progress
-    prog = progress_value.value
-    delta = (90 - 20) / len(xmlfile)
+    delta = (90 - progress_value.value) / len(xmlfile)
 
     # for each suitability curve
     for idx, bio_name in enumerate(xmlfile):
         # load bio data
         [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name)
+
         # hyd opt
         hyd_opt = run_choice["hyd_opt"][idx]
         # sub opt
@@ -177,9 +177,18 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
         for idx2, stade_bio in enumerate(stade_bios):
             if stages[idx] == stade_bio:
                 found_stage += 1
+
                 pref_height = pref_height[idx2]
                 pref_vel = pref_vel[idx2]
                 pref_sub = np.array(pref_sub[idx2])
+
+                # if the last value ends in 0 then change the corresponding value to x at 100 m
+                if pref_height[1][-1] == 0:
+                    print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
+                    pref_height[0][-1] = 100
+                if pref_vel[1][-1] == 0:
+                    print(f"Warning: Last x velocity value set to 100m/s : {name_fish} {stade_bio}")
+                    pref_vel[0][-1] = 100
 
                 # compute
                 vh_all_t, spu_all_t, area_c_all_t, progress_value = \
@@ -221,14 +230,20 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
     spu_all_t = []
     area_c_all_t = []
 
+    # progress
+    prog = progress_value.value
+    delta_reach = delta / len(data_2d["h"])
+
     # for each reach
     for reach_num in range(len(data_2d["tin"])):
         vh_all = []
         area_c_all = []
         spu_all = []
+
         # progress
-        prog = progress_value.value
-        delta = (90 - prog) / len(data_2d["h"][reach_num])
+        delta_unit = delta_reach / len(data_2d["h"][reach_num])
+        warning_unit_list = []
+
         # for each unit
         for unit_num in range(len(data_2d["h"][reach_num])):
             height_t = data_2d["h"][reach_num][unit_num]
@@ -326,18 +341,22 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                     vh = [-99]
                 spu_reach = np.nansum(vh * area)
                 if any(np.isnan(vh)):
-                    print(f"Warning: The suitability curve range of {name_fish} is not sufficient according to the hydraulics of unit {unit_num}.")
+                    warning_unit_list.append(unit_num)
 
             vh_all.append(list(vh))
             area_c_all.append(area)
             spu_all.append(spu_reach)
+
             # progress
-            prog += delta
+            prog += delta_unit
             progress_value.value = int(prog)
 
         vh_all_t.append(vh_all)
         spu_all_t.append(spu_all)
         area_c_all_t.append(area_c_all)
+        if warning_unit_list:
+            print(f"Warning: The suitability curve range of {name_fish} is not sufficient according to the hydraulics of unit n°" +
+                  ", ".join(str(x) for x in warning_unit_list) + " of reach n°" + str(reach_num))
 
     return vh_all_t, spu_all_t, area_c_all_t, progress_value
 
