@@ -55,6 +55,15 @@ class Hdf5Management:
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
+        # export available list
+        self.available_export_list = ["mesh_whole_profile",  # GPKG
+                                      "point_whole_profile",  # GPKG
+                                      "mesh_units",  # GPKG
+                                      "point_units",  # GPKG
+                                      "elevation_whole_profile",  # stl
+                                      "variables_units",  # PVD
+                                      "detailled_text",  # txt
+                                      "fish_information"]  # pdf
         # hdf5 file attributes
         self.path = os.path.join(path_prj, "hdf5")  # relative path
         self.filename = hdf5_filename  # filename with extension
@@ -333,7 +342,10 @@ class Hdf5Management:
             if attribute_name in ("hyd_unit_list", "hyd_unit_list_full"):
                 pass
             else:
-                self.file_object.attrs[attribute_name] = attribute_value
+                if type(attribute_value) == bool:
+                    self.file_object.attrs[attribute_name] = str(attribute_value)
+                else:
+                    self.file_object.attrs[attribute_name] = attribute_value
 
         # data by type of model (2D)
         if int(hyd_description["hyd_model_dimension"]) <= 2:
@@ -453,15 +465,19 @@ class Hdf5Management:
         # save XML
         self.save_xml(hyd_description["hyd_model_type"])
 
-        # reload to add new data to attributes
-        self.load_hdf5_hyd(whole_profil=True)
+        # reload to export data or not
+        for key in self.available_export_list:
+            if True in project_preferences[key]:
+                # load
+                self.load_hdf5_hyd(whole_profil=True)
 
-        # exports
-        self.export_gpkg()
-        self.export_stl()
-        self.export_paraview()
-        self.export_detailled_mesh_txt()
-        self.export_detailled_point_txt()
+                # exports
+                self.export_gpkg()
+                self.export_stl()
+                self.export_paraview()
+                self.export_detailled_mesh_txt()
+                self.export_detailled_point_txt()
+                break
 
     def load_hdf5_hyd(self, units_index="all", whole_profil=False):
         # open an hdf5
@@ -476,7 +492,10 @@ class Hdf5Management:
         # get attributes
         hyd_description = dict()
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
-            hyd_description[attribute_name] = attribute_value
+            if attribute_value == "True" or attribute_value == "False":
+                hyd_description[attribute_name] = eval(attribute_value)
+            else:
+                hyd_description[attribute_name] = attribute_value
 
         # dataset for unit_list
         hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"].value.transpose().tolist()
@@ -750,7 +769,6 @@ class Hdf5Management:
 
     # HABITAT
     def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description, project_preferences):
-        # model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d
         attributes_to_remove = (
         "hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type",
         "hdf5_type")
@@ -764,7 +782,11 @@ class Hdf5Management:
         # create hab attributes
         for attribute_name, attribute_value in list(merge_description.items()):
             if attribute_name not in attributes_to_remove:
-                self.file_object.attrs[attribute_name] = attribute_value
+                if type(attribute_value) == bool:
+                    self.file_object.attrs[attribute_name] = str(attribute_value)
+                else:
+                    self.file_object.attrs[attribute_name] = attribute_value
+
         self.file_object.attrs["hab_fish_list"] = ", ".join([])
         self.file_object.attrs["hab_fish_number"] = str(0)
         self.file_object.attrs["hab_fish_pref_list"] = ", ".join([])
@@ -873,11 +895,17 @@ class Hdf5Management:
         # save XML
         self.save_xml("Habitat")  # uppercase for xml
 
-        # reload to set data to attributes
-        self.load_hdf5_hab(whole_profil=True)
-        self.export_gpkg()
-        self.export_paraview()
-        self.export_detailled_point_txt()
+        # reload to export data or not
+        for key in self.available_export_list:
+            if True in project_preferences[key]:
+                # load
+                self.load_hdf5_hab(whole_profil=True)
+
+                # exports
+                self.export_gpkg()
+                self.export_paraview()
+                self.export_detailled_point_txt()
+                break
 
     def load_hdf5_hab(self, units_index="all", fish_names="all", whole_profil=False, convert_to_coarser_dom=False):
         # open an hdf5
@@ -892,7 +920,10 @@ class Hdf5Management:
         # get hab attributes
         data_description = dict()
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
-            data_description[attribute_name] = attribute_value
+            if attribute_value == "True" or attribute_value == "False":
+                data_description[attribute_name] = eval(attribute_value)
+            else:
+                data_description[attribute_name] = attribute_value
 
         if fish_names != "all":
             fish_names_existing = data_description["hab_fish_list"].split(", ")
