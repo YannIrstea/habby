@@ -29,7 +29,8 @@ from src_GUI import preferences_GUI
 from src import tools_mod
 
 
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[],
+                           aquatic_animal_type="fish"):
     """
     This function is used to plot the preference curves.
 
@@ -63,6 +64,11 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
     else:
         title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
+
+    # prep data
+    if aquatic_animal_type == "invertebrate":
+        aa = 1
+
 
     if len(stade) > 1:  # if you take this out, the command
         # axarr[x,x] does not work as axarr is only 1D
@@ -100,35 +106,51 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             axarr[s, 2].set_xlim([0.4, 8.6])
 
     else:
-        f, axarr = plt.subplots(3, 1, sharey='row')
-        f.canvas.set_window_title(title_plot)
-        plt.suptitle(title_plot)
-        axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
-        if project_preferences['language'] == 0:
-            axarr[0].set_xlabel('Water height [m]')
-            axarr[0].set_ylabel('Coeff. pref. ')
-        else:
-            axarr[0].set_xlabel("Hauteur d'eau [m]")
-            axarr[0].set_ylabel('Coeff. pref. ')
-        axarr[0].set_ylim([0, 1.1])
+        # fish
+        if aquatic_animal_type == "fish":
+            f, axarr = plt.subplots(3, 1, sharey='row')
+            f.canvas.set_window_title(title_plot)
+            plt.suptitle(title_plot)
+            axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
+            if project_preferences['language'] == 0:
+                axarr[0].set_xlabel('Water height [m]')
+                axarr[0].set_ylabel('Coeff. pref. ')
+            else:
+                axarr[0].set_xlabel("Hauteur d'eau [m]")
+                axarr[0].set_ylabel('Coeff. pref. ')
+            axarr[0].set_ylim([0, 1.1])
 
-        axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
-        if project_preferences['language'] == 0:
-            axarr[1].set_xlabel('Velocity [m/sec]')
-        else:
-            axarr[1].set_xlabel('Vitesse [m/sec]')
-        axarr[1].set_ylabel('Coeff. pref. ')
-        axarr[1].set_ylim([0, 1.1])
+            axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
+            if project_preferences['language'] == 0:
+                axarr[1].set_xlabel('Velocity [m/sec]')
+            else:
+                axarr[1].set_xlabel('Vitesse [m/sec]')
+            axarr[1].set_ylabel('Coeff. pref. ')
+            axarr[1].set_ylim([0, 1.1])
 
-        if len(sub[0][0]) > 2:
-            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
-        if project_preferences['language'] == 0:
-            axarr[2].set_xlabel('Substrate []')
-        else:
-            axarr[2].set_xlabel('Substrat []')
-        axarr[2].set_ylabel('Coeff. pref. ')
-        axarr[2].set_ylim([0, 1.1])
-        axarr[2].set_xlim([0.4, 8.6])
+            if len(sub[0][0]) > 2:
+                axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
+            if project_preferences['language'] == 0:
+                axarr[2].set_xlabel('Substrate []')
+            else:
+                axarr[2].set_xlabel('Substrat []')
+            axarr[2].set_ylabel('Coeff. pref. ')
+            axarr[2].set_ylim([0, 1.1])
+            axarr[2].set_xlim([0.4, 8.6])
+
+        # invertebrate
+        elif aquatic_animal_type == "invertebrate":
+            f, axarr = plt.subplots(1, 1, sharey='row')
+            f.canvas.set_window_title(title_plot)
+            plt.suptitle(title_plot)
+            axarr.plot(height[0][0], height[0][1], '-b', marker=mar)
+            if project_preferences['language'] == 0:
+                axarr.set_xlabel('HEM [HFST]')
+                axarr.set_ylabel('Coeff. pref. ')
+            else:
+                axarr.set_xlabel("Hauteur d'eau [m]")
+                axarr.set_ylabel('Coeff. pref. ')
+            axarr.set_ylim([0, 1.1])
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     # output for plot_GUI
@@ -1200,7 +1222,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         mar = 'o'
     else:
         mar = None
-    mar2 = "v"
+    mar2 = "2"
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     # colors
@@ -1281,7 +1303,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.tight_layout()
         # export or not
         if types_plot == "image export" or types_plot == "both":
-            if not erase_id:
+            if not project_preferences['erase_id']:
                 name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0]

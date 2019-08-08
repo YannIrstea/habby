@@ -800,6 +800,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         sub_opt_list = []
         name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
+        aquatic_animal_type = []
         xmlfiles = []
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # check if not exist
@@ -821,6 +822,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 hyd_opt_list.append(self.hyd_mode_qtablewidget.cellWidget(i, 0).currentText())
                 # get info from 3 list widget
                 sub_opt_list.append(self.sub_mode_qtablewidget.cellWidget(i, 0).currentText())
+                aquatic_animal_type.append(user_preferences.biological_models_dict["aquatic_animal_type"][index_fish])
 
         if xmlfiles:
             # save the selected fish in the xml project file
@@ -884,7 +886,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                              args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
                                    name_fish_list, name_fish_sh, run_choice,
                                    self.path_bio, path_txt, self.progress_value,
-                                   self.q4, False, project_preferences, path_im_bioa,
+                                   self.q4, False, project_preferences, aquatic_animal_type,
                                    xmlfiles))
             self.p.name = "Habitat calculation"
             self.p.start()

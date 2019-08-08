@@ -932,6 +932,7 @@ class Hdf5Management:
                 if fish_name not in fish_names_existing:
                     all_fish_exist = False
                     print("Error :", fish_name, "habitat don't exist in", self.filename)
+                    return
             if not all_fish_exist:
                 return
 

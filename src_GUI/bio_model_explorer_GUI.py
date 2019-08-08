@@ -782,9 +782,11 @@ class BioModelInfoSelection(QScrollArea):
         # get the file
         i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
+        aquatic_animal_type = self.biological_models_dict_gui["aquatic_animal_type"][i]
 
         # open the pref
-        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile)
+        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                                                                                         aquatic_animal_type)
         # plot the pref
         project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         # do the plot
@@ -800,7 +802,8 @@ class BioModelInfoSelection(QScrollArea):
                                       name_fish,
                                       stages,
                                       False,
-                                      project_preferences))
+                                      project_preferences,
+                                      aquatic_animal_type))
         self.plot_process_list.append((curve_process, state))
 
     def show_hydrosignature(self):

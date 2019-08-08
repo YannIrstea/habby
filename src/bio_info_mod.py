@@ -876,7 +876,7 @@ def get_hydrosignature(xmlfile):
     return data
 
 
-def read_pref(xmlfile):
+def read_pref(xmlfile, aquatic_animal_type="fish"):
     """
     This function reads the preference curve from the xml file and
      get the subtrate, height and velocity data.
@@ -891,6 +891,7 @@ def read_pref(xmlfile):
     """
     failload = [-99], [-99], [-99], [-99], '-99', [-99]
     xml_name = os.path.basename(xmlfile)
+    h_all, vel_all, sub_all = [], [], []
 
     # load the file
     try:
@@ -925,64 +926,87 @@ def read_pref(xmlfile):
     if name_fish is not None:
         name_fish = name_fish.text.strip()
 
-    # velocity
-    vel_all = []
-    pref_vel = root.findall(".//PreferenceVelocity")
-    for pref_vel_i in pref_vel:
-        vel = [[], []]
-        vel[0] = list(map(float, pref_vel_i.getchildren()[0].text.split(" ")))
-        vel[1] = list(map(float, pref_vel_i.getchildren()[1].text.split(" ")))
-        if not vel[0]:
-            print('Error: Velocity data was not found \n')
-            return failload
+    # fish case
+    if aquatic_animal_type == "fish":
+        # velocity
+        vel_all = []
+        pref_vel = root.findall(".//PreferenceVelocity")
+        for pref_vel_i in pref_vel:
+            vel = [[], []]
+            vel[0] = list(map(float, pref_vel_i.getchildren()[0].text.split(" ")))
+            vel[1] = list(map(float, pref_vel_i.getchildren()[1].text.split(" ")))
+            if not vel[0]:
+                print('Error: Velocity data was not found \n')
+                return failload
 
-        # check increasing velocity
-        if vel[0] != sorted(vel[0]):
-            print('Error: Velocity data is not sorted for the xml file '
-                  + xml_name + '.\n')
-            return failload
+            # check increasing velocity
+            if vel[0] != sorted(vel[0]):
+                print('Error: Velocity data is not sorted for the xml file '
+                      + xml_name + '.\n')
+                return failload
 
-        # manage units
-        vel = change_unit(vel, pref_vel_i.getchildren()[0].attrib["Unit"])
-        vel_all.append(vel)
+            # manage units
+            vel = change_unit(vel, pref_vel_i.getchildren()[0].attrib["Unit"])
+            vel_all.append(vel)
 
-    # height
-    h_all = []
-    pref_hei = root.findall(".//PreferenceHeightOfWater")
-    for pref_hei_i in pref_hei:
-        height = [[], []]
-        height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
-        height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
+        # height
+        h_all = []
+        pref_hei = root.findall(".//PreferenceHeightOfWater")
+        for pref_hei_i in pref_hei:
+            height = [[], []]
+            height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
+            height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
 
-        if not height[0]:
-            print('Error: Height data was not found \n')
-            return failload
+            if not height[0]:
+                print('Error: Height data was not found \n')
+                return failload
 
-        # check increasing velocity
-        if height[0] != sorted(height[0]):
-            print('Error: Height data is not sorted for the xml file '
-                  + xml_name + '.\n')
-            return failload
-        # manage units
-        height = change_unit(height,  pref_hei_i.getchildren()[0].attrib["Unit"])
-        h_all.append(height)
+            # check increasing velocity
+            if height[0] != sorted(height[0]):
+                print('Error: Height data is not sorted for the xml file '
+                      + xml_name + '.\n')
+                return failload
+            # manage units
+            height = change_unit(height,  pref_hei_i.getchildren()[0].attrib["Unit"])
+            h_all.append(height)
 
-    # substrate
-    sub_all = []
-    pref_sub = root.findall(".//PreferenceSubstrate")
-    if pref_sub:
-        for pref_sub_i in pref_sub:
-            sub = [[], []]
-            sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
-            sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
-            sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
-            if not sub[0]:
-                # case without substrate
-                sub = [[0, 1], [1, 1]]
-            sub_all.append(sub)
-    else:
-        for i in range(len(stages)):
-            sub_all.append([[0, 1], [1, 1]])
+        # substrate
+        sub_all = []
+        pref_sub = root.findall(".//PreferenceSubstrate")
+        if pref_sub:
+            for pref_sub_i in pref_sub:
+                sub = [[], []]
+                sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
+                sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
+                sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
+                if not sub[0]:
+                    # case without substrate
+                    sub = [[0, 1], [1, 1]]
+                sub_all.append(sub)
+        else:
+            for i in range(len(stages)):
+                sub_all.append([[0, 1], [1, 1]])
+
+    # fish case
+    if aquatic_animal_type == "invertebrate":
+        # HEM
+        h_all = []  # fake height (HEM)
+        pref_hei = root.findall(".//PreferenceShearStress")
+        for pref_hei_i in pref_hei:
+            height = [[], []]
+            height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
+            height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
+
+            if not height[0]:
+                print('Error: Height data was not found \n')
+                return failload
+
+            # check increasing velocity
+            if height[0] != sorted(height[0]):
+                print('Error: Height data is not sorted for the xml file '
+                      + xml_name + '.\n')
+                return failload
+            h_all.append(height)
 
     return h_all, vel_all, sub_all, code_fish, name_fish, stages
 

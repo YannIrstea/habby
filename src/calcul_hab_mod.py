@@ -25,6 +25,7 @@ import matplotlib as mpl
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from time import time
+from scipy.interpolate import interp1d
 
 from src_GUI import preferences_GUI
 from src import hdf5_mod
@@ -34,7 +35,7 @@ from src.substrate_mod import pref_substrate_dominant_from_percentage_descriptio
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_names, name_fish_sh, run_choice, path_bio,
                         path_txt, progress_value, q=[], print_cmd=False, project_preferences={},
-                        path_im_bio='', xmlfiles=[]):
+                        aquatic_animal_type="fish", xmlfiles=[]):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
@@ -92,6 +93,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
                  pref_list,
                  stages_chosen,
                  run_choice,
+                 aquatic_animal_type,
                  progress_value)
 
     # valid ?
@@ -114,7 +116,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 90
 
     # saving hdf5 data of the habitat value
-    hdf5.add_fish_hab(vh_all_t_sp, area_c_all,spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio)
+    hdf5.add_fish_hab(vh_all_t_sp, area_c_all, spu_all, fish_names, pref_list, stages_chosen,
+                      name_fish_sh, project_preferences, path_bio)
 
     # progress
     progress_value.value = 100
@@ -128,7 +131,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
         return
 
 
-def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages, run_choice, progress_value):
+def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages, run_choice, aquatic_animal_type, progress_value):
     """
     This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
@@ -162,8 +165,9 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
 
     # for each suitability curve
     for idx, bio_name in enumerate(xmlfile):
+        aquatic_animal_type_select = aquatic_animal_type[idx]
         # load bio data
-        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name)
+        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name, aquatic_animal_type_select)
 
         # hyd opt
         hyd_opt = run_choice["hyd_opt"][idx]
@@ -177,23 +181,30 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
         for idx2, stade_bio in enumerate(stade_bios):
             if stages[idx] == stade_bio:
                 found_stage += 1
+                # fish case
+                if aquatic_animal_type_select == "fish":
+                    pref_height = pref_height[idx2]
+                    pref_vel = pref_vel[idx2]
+                    pref_sub = np.array(pref_sub[idx2])
 
-                pref_height = pref_height[idx2]
-                pref_vel = pref_vel[idx2]
-                pref_sub = np.array(pref_sub[idx2])
-
-                # if the last value ends in 0 then change the corresponding value to x at 100 m
-                if pref_height[1][-1] == 0:
-                    print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
-                    pref_height[0][-1] = 100
-                if pref_vel[1][-1] == 0:
-                    print(f"Warning: Last x velocity value set to 100m/s : {name_fish} {stade_bio}")
-                    pref_vel[0][-1] = 100
+                    # if the last value ends in 0 then change the corresponding value to x at 100 m
+                    if pref_height[1][-1] == 0:
+                        print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
+                        pref_height[0][-1] = 100
+                    if pref_vel[1][-1] == 0:
+                        print(f"Warning: Last x velocity value set to 100m/s : {name_fish} {stade_bio}")
+                        pref_vel[0][-1] = 100
+                # invertebrate case
+                elif aquatic_animal_type_select == "invertebrate":
+                    pref_height = pref_height[idx2]
+                    if pref_height[1][-1] == 0:
+                        print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
+                        pref_height[0][-1] = 100
 
                 # compute
                 vh_all_t, spu_all_t, area_c_all_t, progress_value = \
                     calc_hab_norm(data_2d, data_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt,
-                                  progress_value, delta)
+                                  progress_value, delta, aquatic_animal_type_select)
 
                 # append data
                 vh_all_t_sp.append(vh_all_t)
@@ -206,7 +217,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     return vh_all_t_sp, spu_all_t_sp, area_c_all_t
 
 
-def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, progress_value, delta, percent=False, take_sub=True):
+def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, progress_value, delta, aquatic_animal_type_select="fish", take_sub=True):
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
     all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
@@ -242,15 +253,21 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
 
         # progress
         delta_unit = delta_reach / len(data_2d["h"][reach_num])
-        warning_unit_list = []
+        warning_range_list = []
+
+        if aquatic_animal_type_select == "invertebrate":
+            warning_shearstress_list = []
 
         # for each unit
         for unit_num in range(len(data_2d["h"][reach_num])):
             height_t = data_2d["h"][reach_num][unit_num]
             vel_t = data_2d["v"][reach_num][unit_num]
+            if aquatic_animal_type_select == "invertebrate":
+                shear_stress_t = data_2d["shear_stress"][reach_num][unit_num]
             sub_t = data_2d["sub"][reach_num][unit_num]
             ikle_t = data_2d["tin"][reach_num][unit_num]
             point_t = data_2d["xy"][reach_num][unit_num]
+
             if len(ikle_t) == 0:
                 print('Warning: The connectivity table was not well-formed for one reach (1) \n')
                 vh = [-99]
@@ -274,76 +291,103 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
                 area = area ** 0.5
 
-                """ hydraulic pref """
-                # get H pref value
-                if hyd_opt in ["HV", "H"]:
-                    h1 = height_t[ikle_t[:, 0]]
-                    h2 = height_t[ikle_t[:, 1]]
-                    h3 = height_t[ikle_t[:, 2]]
-                    h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
-                    h_pref_c = np.interp(h_cell, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
-                # get V pref value
-                if hyd_opt in ["HV", "V"]:
-                    v1 = vel_t[ikle_t[:, 0]]
-                    v2 = vel_t[ikle_t[:, 1]]
-                    v3 = vel_t[ikle_t[:, 2]]
-                    v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-                    v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
+                # HEM
+                if aquatic_animal_type_select == "invertebrate":
+                    """ HEM pref """
+                    # get pref x and y
+                    pref_shearstress = pref_height[0]
+                    pref_values = pref_height[1]
+                    # nterp1d(...... kind='previous') for values <0.0771
+                    pref_shearstress = [0.0] + pref_shearstress
+                    pref_values = pref_values + [pref_values[-1]]
+                    # check range suitability VS range input data
+                    if max(pref_shearstress) < np.nanmax(shear_stress_t):
+                        warning_range_list.append(unit_num)
+                    # hem_interp_function
+                    hem_interp_f = interp1d(pref_shearstress, pref_values,
+                                            kind='previous', bounds_error=False, fill_value=np.nan)
+                    vh = hem_interp_f(shear_stress_t.flatten())
+                    if any(np.isnan(shear_stress_t)):
+                        warning_shearstress_list.append(unit_num)
 
-                """ substrate pref """
-                if sub_opt == "Neglect":  # Neglect
-                    s_pref_c = np.array([1] * len(sub_t))
-                elif sub_opt == "Coarser-Dominant":  # Coarser-Dominant
-                    if hab_description["sub_classification_method"] == "percentage":
-                        s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
-                        s_pref_c_dom = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
-                        s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                    elif hab_description["sub_classification_method"] == "coarser-dominant":
-                        s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
-                        s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
-                        s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                elif sub_opt == "Coarser":  # Coarser
-                    if hab_description["sub_classification_method"] == "percentage":
-                        s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
-                    elif hab_description["sub_classification_method"] == "coarser-dominant":
-                        s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
-                elif sub_opt == "Dominant":  # Dominant
-                    if hab_description["sub_classification_method"] == "percentage":
-                        s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
-                    elif hab_description["sub_classification_method"] == "coarser-dominant":
-                        s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
-                else:  # percentage
-                    for st in range(0, 8):
-                        s0 = s[:, st]
-                        sthere = np.zeros((len(s0),)) + st + 1
-                        s_pref_st = find_pref_value(sthere, pref_sub)
-                        if st == 0:
-                            s_pref_c = s_pref_st * s0 / 100
+                # fish case
+                if aquatic_animal_type_select == "fish":
+                    """ hydraulic pref """
+                    # get H pref value
+                    if hyd_opt in ["HV", "H"]:
+                        h1 = height_t[ikle_t[:, 0]]
+                        h2 = height_t[ikle_t[:, 1]]
+                        h3 = height_t[ikle_t[:, 2]]
+                        h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+                        # check range suitability VS range input data
+                        if max(pref_height[0]) < h_cell.max():
+                            warning_range_list.append(unit_num)
+                        h_pref_c = np.interp(h_cell, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
+
+                    # get V pref value
+                    if hyd_opt in ["HV", "V"]:
+                        v1 = vel_t[ikle_t[:, 0]]
+                        v2 = vel_t[ikle_t[:, 1]]
+                        v3 = vel_t[ikle_t[:, 2]]
+                        v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+                        # check range suitability VS range input data
+                        if max(pref_vel[0]) < v_cell.max():
+                            warning_range_list.append(unit_num)
+                        v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
+
+                    """ substrate pref """
+                    if sub_opt == "Neglect":  # Neglect
+                        s_pref_c = np.array([1] * len(sub_t))
+                    elif sub_opt == "Coarser-Dominant":  # Coarser-Dominant
+                        if hab_description["sub_classification_method"] == "percentage":
+                            s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                            s_pref_c_dom = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                            s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                        elif hab_description["sub_classification_method"] == "coarser-dominant":
+                            s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
+                            s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
+                            s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                    elif sub_opt == "Coarser":  # Coarser
+                        if hab_description["sub_classification_method"] == "percentage":
+                            s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                        elif hab_description["sub_classification_method"] == "coarser-dominant":
+                            s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
+                    elif sub_opt == "Dominant":  # Dominant
+                        if hab_description["sub_classification_method"] == "percentage":
+                            s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                        elif hab_description["sub_classification_method"] == "coarser-dominant":
+                            s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
+                    else:  # percentage
+                        for st in range(0, 8):
+                            s0 = s[:, st]
+                            sthere = np.zeros((len(s0),)) + st + 1
+                            s_pref_st = find_pref_value(sthere, pref_sub)
+                            if st == 0:
+                                s_pref_c = s_pref_st * s0 / 100
+                            else:
+                                s_pref_c += s0 / 100 * s_pref_st
+
+                    """ compute habitat value """
+                    try:
+                        # HV
+                        if "H" in hyd_opt and "V" in hyd_opt:
+                            vh = h_pref_c * v_pref_c * s_pref_c
+                        # H
+                        elif "H" in hyd_opt:
+                            vh = h_pref_c * s_pref_c
+                        # V
+                        elif "V" in hyd_opt:
+                            vh = v_pref_c * s_pref_c
+                        # Neglect
                         else:
-                            s_pref_c += s0 / 100 * s_pref_st
+                            vh = s_pref_c
+                    except ValueError:
+                        print('Error: One time step misses substrate, velocity or water height value \n')
+                        vh = [-99]
 
-                """ compute habitat value """
-                try:
-                    # HV
-                    if "H" in hyd_opt and "V" in hyd_opt:
-                        vh = h_pref_c * v_pref_c * s_pref_c
-                    # H
-                    elif "H" in hyd_opt:
-                        vh = h_pref_c * s_pref_c
-                    # V
-                    elif "V" in hyd_opt:
-                        vh = v_pref_c * s_pref_c
-                    # Neglect
-                    else:
-                        vh = s_pref_c
-                except ValueError:
-                    print('Error: One time step misses substrate, velocity or water height value \n')
-                    vh = [-99]
                 spu_reach = np.nansum(vh * area)
-                if any(np.isnan(vh)):
-                    warning_unit_list.append(unit_num)
 
-            vh_all.append(list(vh))
+            vh_all.append(vh)
             area_c_all.append(area)
             spu_all.append(spu_reach)
 
@@ -354,9 +398,16 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
         vh_all_t.append(vh_all)
         spu_all_t.append(spu_all)
         area_c_all_t.append(area_c_all)
-        if warning_unit_list:
-            print(f"Warning: The suitability curve range of {name_fish} is not sufficient according to the hydraulics of unit n°" +
-                  ", ".join(str(x) for x in warning_unit_list) + " of reach n°" + str(reach_num))
+        if warning_range_list:
+            warning_range_list = list(set(warning_range_list))
+            warning_range_list.sort()
+            print(f"Warning: Unknown habitat values produced for {name_fish}, his suitability curve range is not sufficient according to the hydraulics of unit n°" +
+                  ", ".join(str(x) for x in warning_range_list) + " of reach n°" + str(reach_num))
+        # HEM
+        if aquatic_animal_type_select == "invertebrate":
+            if warning_shearstress_list:
+                print(f"Warning: Unknown habitat values produced for {name_fish}, the shear stress data present unknown values in unit n°" +
+                      ", ".join(str(x) for x in warning_shearstress_list) + " of reach n°" + str(reach_num))
 
     return vh_all_t, spu_all_t, area_c_all_t, progress_value
 
