@@ -792,6 +792,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the figure options and the type of output to be created
         project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
+        # remove duplicate
+        full_name_fish = self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]
+        if len(full_name_fish) != len(set(full_name_fish)):
+            self.send_log.emit('Warning: The list of selected models has duplicates, these have been deleted before the calculation.')
+        self.selected_aquatic_animal_dict["selected_aquatic_animal_list"] = list(set(full_name_fish))
+
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
         stages_chosen = []
