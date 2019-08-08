@@ -164,16 +164,16 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
             else:
                 index_to_remove.append(unit_num)
 
-        # remove unused keys
-        del data_2d_whole_profile["i_whole_profile"]
-        del data_2d_whole_profile["h"]
-        del data_2d_whole_profile["v"]
-
         # index to remove (from user selection GUI)
         for index in reversed(index_to_remove):
             data_2d_whole_profile["tin"][reach_num].pop(index)
             data_2d_whole_profile["xy"][reach_num].pop(index)
             data_2d_whole_profile["z"][reach_num].pop(index)
+
+    # remove unused keys
+    del data_2d_whole_profile["i_whole_profile"]
+    del data_2d_whole_profile["h"]
+    del data_2d_whole_profile["v"]
 
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress

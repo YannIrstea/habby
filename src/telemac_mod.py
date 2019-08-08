@@ -264,8 +264,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_unit_number"] = description_from_indexHYDRAU_file[hyd_file]["unit_number"]
         hyd_description["hyd_unit_type"] = description_from_indexHYDRAU_file[hyd_file]["unit_type"]
         hyd_description["hyd_varying_mesh"] = data_2d_whole_profile["unit_correspondence"]
-        hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
-        hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
+        hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["CutMeshPartialyDry"]
 
         if hyd_description["hyd_varying_mesh"]:
             hyd_description["hyd_unit_z_equal"] = False
@@ -278,6 +277,9 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
             description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
+        # remove unused keys
+        del data_2d_whole_profile["xy_center"]
 
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(description_from_indexHYDRAU_file[hyd_file]["path_prj"],
