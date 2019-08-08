@@ -117,7 +117,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
 
     # saving hdf5 data of the habitat value
     hdf5.add_fish_hab(vh_all_t_sp, area_c_all, spu_all, fish_names, pref_list, stages_chosen,
-                      name_fish_sh, project_preferences, path_bio)
+                      name_fish_sh, project_preferences, aquatic_animal_type)
 
     # progress
     progress_value.value = 100
@@ -306,7 +306,8 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                     # hem_interp_function
                     hem_interp_f = interp1d(pref_shearstress, pref_values,
                                             kind='previous', bounds_error=False, fill_value=np.nan)
-                    vh = hem_interp_f(shear_stress_t.flatten())
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        vh = hem_interp_f(shear_stress_t.flatten())
                     if any(np.isnan(shear_stress_t)):
                         warning_shearstress_list.append(unit_num)
 

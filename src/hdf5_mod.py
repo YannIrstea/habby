@@ -1082,7 +1082,7 @@ class Hdf5Management:
             self.data_description = data_description
 
     def add_fish_hab(self, vh_cell, area_c_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh,
-                     project_preferences, path_bio):
+                     project_preferences, aquatic_animal_type):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -1197,6 +1197,7 @@ class Hdf5Management:
         self.file_object.attrs["hab_fish_pref_list"] = ", ".join(xml_names)
         self.file_object.attrs["hab_fish_stage_list"] = ", ".join(stage_names)
         self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(names_short)
+        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(aquatic_animal_type)
 
         if fish_replaced:
             fish_replaced = set(fish_replaced)
@@ -1292,8 +1293,6 @@ class Hdf5Management:
         self.project_preferences = project_preferences
 
         # exports
-        # self.export_mesh_gpkg()
-        # self.export_point_gpkg()
         self.export_gpkg()
         self.export_stl()
         self.export_paraview()
@@ -2237,6 +2236,8 @@ class Hdf5Management:
             stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
             # path_im_bio = path_bio
             path_out = os.path.join(self.path_prj, "output", "figures")
+            # hab_aquatic_animal_type_list
+            hab_aquatic_animal_type_list = self.data_description["hab_aquatic_animal_type_list"].split(", ")
 
             plt.close()
             plt.rcParams['figure.figsize'] = 21, 29.7  # a4
@@ -2265,7 +2266,7 @@ class Hdf5Management:
                 # read pref
                 xmlfile = f
                 [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
-                    bio_info_mod.read_pref(xmlfile)
+                    bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
 
                 # read additionnal info
                 attributes = ['Description', 'Image', 'French_common_name',
@@ -2279,7 +2280,8 @@ class Hdf5Management:
                 # create figure
                 fake_value = Value("i", 0)
                 [f, axarr] = plot_mod.plot_suitability_curve(fake_value, h_all, vel_all, sub_all, code_fish, name_fish,
-                                                             stages, True, self.project_preferences)
+                                                             stages, True, self.project_preferences,
+                                                             hab_aquatic_animal_type_list[idx])
 
                 # modification of the orginal preference fig
                 # (0,0) is bottom left - 1 is the end of the page in x and y direction
