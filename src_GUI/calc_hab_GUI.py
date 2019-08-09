@@ -547,6 +547,20 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.clear()
         self.presence_qtablewidget.setRowCount(total_item)
 
+        # block HEM
+        if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
+            self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
+            self.send_log.emit("Warning: Hydraulic HEM computation option is disable (hydraulic data in .hab are not of 2D type or do not contain z-values).")
+        else:
+            self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(True)
+
+        # block_percentage
+        if not self.current_hab_informations_dict["percentage_ok"]:
+            self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(False)
+            self.send_log.emit("Warning: Substrate percentage computation option is disable (substrtate classification method in .hab is not in percentage).")
+        else:
+            self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(True)
+
         # add new item if not exist
         for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
             # add label item
@@ -577,6 +591,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             else:
                 item_combobox_hyd.setStyleSheet(self.combobox_style_user)
             item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
+            if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
+                if "HEM" in hydraulic_type_available:
+                    item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setEnabled(False)
             item_combobox_hyd.setCurrentIndex(choosen_index)
             item_combobox_hyd.currentIndexChanged.connect(self.color_hyd_combobox)
             item_combobox_hyd.activated.connect(self.change_general_hyd_combobox)
@@ -588,6 +605,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # get default_substrate_type
             substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][
                 index_stage]
+
             # create combobox
             item_combobox_sub = QComboBox()
             item_combobox_sub.setObjectName(str(index))
@@ -599,6 +617,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             else:
                 item_combobox_sub.setStyleSheet(self.combobox_style_user)
             item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
+            if not self.current_hab_informations_dict["percentage_ok"]:
+                if "Percentage" in substrate_type_available:
+                    item_combobox_sub.model().item(substrate_type_available.index("Percentage")).setEnabled(False)
             item_combobox_sub.setCurrentIndex(choosen_index)
             item_combobox_sub.currentIndexChanged.connect(self.color_sub_combobox)
             item_combobox_sub.activated.connect(self.change_general_sub_combobox)
