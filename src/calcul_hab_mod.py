@@ -30,7 +30,7 @@ from scipy.interpolate import interp1d
 from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import bio_info_mod
-from src.substrate_mod import pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
+from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_names, name_fish_sh, run_choice, path_bio,
@@ -280,16 +280,23 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 area = [-99]
             else:
                 # get area (based on Heron's formula)
-                p1 = point_t[ikle_t[:, 0], :]
-                p2 = point_t[ikle_t[:, 1], :]
-                p3 = point_t[ikle_t[:, 2], :]
-                d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
-                d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
-                d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
-                s2 = (d1 + d2 + d3) / 2
-                area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-                area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-                area = area ** 0.5
+                pa = point_t[ikle_t[:, 0], :]
+                pb = point_t[ikle_t[:, 1], :]
+                pc = point_t[ikle_t[:, 2], :]
+
+                # # get area (based on Heron's formula)
+                # d1 = np.sqrt((pb[:, 0] - pa[:, 0]) ** 2 + (pb[:, 1] - pa[:, 1]) ** 2)
+                # d2 = np.sqrt((pc[:, 0] - pb[:, 0]) ** 2 + (pc[:, 1] - pb[:, 1]) ** 2)
+                # d3 = np.sqrt((pc[:, 0] - pa[:, 0]) ** 2 + (pc[:, 1] - pa[:, 1]) ** 2)
+                # s2 = (d1 + d2 + d3) / 2
+                # area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
+                # area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+                # area = area ** 0.5
+                # area_reach = np.sum(area)
+
+                # get area2
+                area = 0.5 * abs(
+                    (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
 
                 # HEM
                 if aquatic_animal_type_select == "invertebrate":
@@ -337,36 +344,48 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                         v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
 
                     """ substrate pref """
-                    if sub_opt == "Neglect":  # Neglect
+                    # Neglect
+                    if sub_opt == "Neglect":
                         s_pref_c = np.array([1] * len(sub_t))
-                    elif sub_opt == "Coarser-Dominant":  # Coarser-Dominant
-                        if hab_description["sub_classification_method"] == "percentage":
-                            s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
-                            s_pref_c_dom = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
-                            s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                        elif hab_description["sub_classification_method"] == "coarser-dominant":
-                            s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
-                            s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
-                            s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                    elif sub_opt == "Coarser":  # Coarser
-                        if hab_description["sub_classification_method"] == "percentage":
-                            s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
-                        elif hab_description["sub_classification_method"] == "coarser-dominant":
-                            s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
-                    elif sub_opt == "Dominant":  # Dominant
-                        if hab_description["sub_classification_method"] == "percentage":
-                            s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
-                        elif hab_description["sub_classification_method"] == "coarser-dominant":
-                            s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
-                    else:  # percentage
-                        for st in range(0, 8):
-                            s0 = s[:, st]
-                            sthere = np.zeros((len(s0),)) + st + 1
-                            s_pref_st = find_pref_value(sthere, pref_sub)
-                            if st == 0:
-                                s_pref_c = s_pref_st * s0 / 100
+                    else:
+                        # convert classification code sandre to cemagref
+                        if hab_description["sub_classification_code"] == "Sandre":
+                            if hab_description["sub_classification_method"] == "percentage":
+                                sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
                             else:
-                                s_pref_c += s0 / 100 * s_pref_st
+                                sub_t = sandre_to_cemagref_array(sub_t)
+                        # Coarser-Dominant
+                        if sub_opt == "Coarser-Dominant":
+                            if hab_description["sub_classification_method"] == "percentage":
+                                s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                                s_pref_c_dom = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                                s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                            elif hab_description["sub_classification_method"] == "coarser-dominant":
+                                s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
+                                s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
+                                s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                        # Coarser
+                        elif sub_opt == "Coarser":
+                            if hab_description["sub_classification_method"] == "percentage":
+                                s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                            elif hab_description["sub_classification_method"] == "coarser-dominant":
+                                s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
+                        # Dominant
+                        elif sub_opt == "Dominant":
+                            if hab_description["sub_classification_method"] == "percentage":
+                                s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                            elif hab_description["sub_classification_method"] == "coarser-dominant":
+                                s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
+                        # percentage
+                        else:
+                            for st in range(0, 8):
+                                s0 = s[:, st]
+                                sthere = np.zeros((len(s0),)) + st + 1
+                                s_pref_st = find_pref_value(sthere, pref_sub)
+                                if st == 0:
+                                    s_pref_c = s_pref_st * s0 / 100
+                                else:
+                                    s_pref_c += s0 / 100 * s_pref_st
 
                     """ compute habitat value """
                     try:

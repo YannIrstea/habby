@@ -222,17 +222,23 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                 h3=h_data[tin_data[:, 2]],
                 v3=v_data[tin_data[:, 2]])
 
-            # get area (based on Heron's formula)
-            p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-            p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-            p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-            d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
-            d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
-            d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
-            s2 = (d1 + d2 + d3) / 2
-            area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-            area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-            area = area ** 0.5
+            # get points coord
+            pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+            pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+            pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+
+            # # get area (based on Heron's formula)
+            # d1 = np.sqrt((pb[:, 0] - pa[:, 0]) ** 2 + (pb[:, 1] - pa[:, 1]) ** 2)
+            # d2 = np.sqrt((pc[:, 0] - pb[:, 0]) ** 2 + (pc[:, 1] - pb[:, 1]) ** 2)
+            # d3 = np.sqrt((pc[:, 0] - pa[:, 0]) ** 2 + (pc[:, 1] - pa[:, 1]) ** 2)
+            # s2 = (d1 + d2 + d3) / 2
+            # area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
+            # area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+            # area = area ** 0.5
+            # area_reach = np.sum(area)
+
+            # get area2
+            area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
             area_reach = np.sum(area)
 
             # save data in dict

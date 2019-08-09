@@ -716,44 +716,83 @@ def edf_to_cemagref_by_percentage(records):
     return new_record
 
 
-def sandre_to_cemagref(records):
+def sandre_to_cemagref(record_sandre_values):
     """
-    This function passes the substrate data from the code type "Sandre" to the code type "Cemagref". This function is
-    not optimized yet. For the definition of the code, see the tabular at the 14 of the LAMMI manual.
-
-    :param records: the substrate data in code samdre
-    :return: the substrate data in code cemagref
-
+    This function change the subtrate value from sandre code to cemagref code
+    :param record_sandre_values: one record sandre
+    :return: record_cemagref_values: one record cemagref
     """
-
-    new_record = []
-    for r in records:
+    record_cemagref_values = []
+    for r in record_sandre_values:
         if r == 1:
-            new_record.append(1)
+            record_cemagref_values.append(1)
         elif r == 2:
-            new_record.append(2)
+            record_cemagref_values.append(2)
         elif r == 3:
-            new_record.append(3)
+            record_cemagref_values.append(3)
         elif r == 4:
-            new_record.append(3)
+            record_cemagref_values.append(3)
         elif r == 5:
-            new_record.append(4)
+            record_cemagref_values.append(4)
         elif r == 6:
-            new_record.append(4)
+            record_cemagref_values.append(4)
         elif r == 7:
-            new_record.append(5)
+            record_cemagref_values.append(5)
         elif r == 8:
-            new_record.append(5)
+            record_cemagref_values.append(5)
         elif r == 9:
-            new_record.append(6)
+            record_cemagref_values.append(6)
         elif r == 10:
-            new_record.append(6)
+            record_cemagref_values.append(6)
         elif r == 11:
-            new_record.append(7)
+            record_cemagref_values.append(7)
         elif r == 12:
-            new_record.append(8)
+            record_cemagref_values.append(8)
+    return record_cemagref_values
 
-    return new_record
+
+def sandre_to_cemagref_array(records_sandre_array):
+    """
+    This function change the subtrate value array from sandre code to cemagref code
+    :param records_sandre_array: all records sandre
+    :return: records_cemagref_array: all records cemagref
+    """
+    records_cemagref_array = np.empty((0, records_sandre_array.shape[1]), np.int)
+    for record_sandre_values in records_sandre_array:
+        record_cemagref_values = sandre_to_cemagref(record_sandre_values)
+        records_cemagref_array = np.append(records_cemagref_array, [record_cemagref_values], axis=0)
+    return records_cemagref_array
+
+
+def sandre_to_cemagref_by_percentage(record_sandre):
+    """
+    This function change the subtrate data in a percentage form from sandre code to cemagref code
+    :param record_sandre: one record sandre
+    :return: record_cemagref: one record cemagref
+    """
+    record_cemagref = [0, 0, 0, 0, 0, 0, 0, 0]  # cemagref
+    record_cemagref[0] = record_sandre[0]
+    record_cemagref[1] = record_sandre[1]
+    record_cemagref[2] = (record_sandre[2] + record_sandre[3]) * 0.5
+    record_cemagref[3] = (record_sandre[4] + record_sandre[5]) * 0.5
+    record_cemagref[4] = (record_sandre[6] + record_sandre[7]) * 0.5
+    record_cemagref[5] = (record_sandre[8] + record_sandre[9]) * 0.5
+    record_cemagref[6] = record_sandre[10]
+    record_cemagref[7] = record_sandre[11]
+    return record_cemagref
+
+
+def sandre_to_cemagref_by_percentage_array(records_sandre_array):
+    """
+    This function change the subtrate data array in a percentage form from sandre code to cemagref code
+    :param records_sandre_array: all records sandre
+    :return: records_cemagref_array: all records cemagref
+    """
+    records_cemagref_array = np.empty((0, 8), np.int)
+    for record_sandre in records_sandre_array:
+        record_cemagref = sandre_to_cemagref_by_percentage(record_sandre)
+        records_cemagref_array = np.append(records_cemagref_array, [record_cemagref], axis=0)
+    return records_cemagref_array
 
 
 def percentage_to_domcoarse(sub_data, dominant_case):
