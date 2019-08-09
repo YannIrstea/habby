@@ -211,22 +211,21 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab.clicked.connect(self.run_habitat_value)
 
         # 5 column
-        #self.general_scrollbar = QScrollBar(self.presence_qtablewidget)
-        self.general_scrollbar = self.presence_qtablewidget.verticalScrollBar()
+        self.presence_scrollbar = self.presence_qtablewidget.verticalScrollBar()
 
         # scroll bar together
         self.selected_aquatic_animal_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setEnabled(False)
+        self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setEnabled(True)
+        self.selected_aquatic_animal_qtablewidget.verticalScrollBar().valueChanged.connect(self.change_scroll_position)
         self.hyd_mode_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.hyd_mode_qtablewidget.verticalScrollBar().setEnabled(False)
+        self.hyd_mode_qtablewidget.verticalScrollBar().valueChanged.connect(self.change_scroll_position)
         self.sub_mode_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.sub_mode_qtablewidget.verticalScrollBar().setEnabled(False)
+        self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(self.change_scroll_position)
         self.presence_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        #self.presence_qtablewidget.verticalScrollBar().setEnabled(False)
-        self.general_scrollbar.valueChanged.connect(self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue)
-        self.general_scrollbar.valueChanged.connect(self.hyd_mode_qtablewidget.verticalScrollBar().setValue)
-        self.general_scrollbar.valueChanged.connect(self.sub_mode_qtablewidget.verticalScrollBar().setValue)
-        #self.general_scrollbar.valueChanged.connect(self.presence_qtablewidget.verticalScrollBar().setValue)
+        self.presence_qtablewidget.verticalScrollBar().setEnabled(True)
+        self.presence_qtablewidget.verticalScrollBar().valueChanged.connect(self.change_scroll_position)
 
         # fill hdf5 list
         self.update_merge_list()
@@ -245,7 +244,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         layout_prov.addWidget(self.remove_sel_bio_model_pushbutton)
         layout_prov.addWidget(self.create_duplicate_from_selection_pushbutton)
         layout_prov.addWidget(self.remove_duplicate_model_pushbutton)
-        #layout_prov.setAlignment()
         self.layout4.addLayout(layout_prov, 1, 0, 1, 3, Qt.AlignLeft)
 
         # 1 column
@@ -269,13 +267,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.presence_qtablewidget, 3, 3, 1, 1)
 
         # 5e column
-        self.layout4.addWidget(self.general_scrollbar, 3, 4, 1, 1)
+        self.layout4.addWidget(self.presence_scrollbar, 3, 4, 1, 1)
 
         self.layout4.addWidget(self.runhab, 5, 2, 1, 3, Qt.AlignRight)
         self.layout4.setColumnStretch(0, 30)
         self.layout4.setColumnStretch(1, 10)
         self.layout4.setColumnStretch(2, 10)
-        #self.layout4.setColumnStretch(3, 1)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
@@ -283,7 +280,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.setColumnWidth(0, self.exist_title_label.width())
         self.presence_qtablewidget.setFixedWidth(self.exist_title_label.width())
 
-        #self.fill_selected_models_listwidets([])
+    def change_scroll_position(self, index):
+        self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue(index)
+        self.hyd_mode_qtablewidget.verticalScrollBar().setValue(index)
+        self.sub_mode_qtablewidget.verticalScrollBar().setValue(index)
+        self.presence_qtablewidget.verticalScrollBar().setValue(index)
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
