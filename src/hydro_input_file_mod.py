@@ -284,7 +284,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
             hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
-            hydrau_description["unit_list_full"] = unit_name_from_file
+            hydrau_description["unit_list_full"] = data_index_file[headers[discharge_index]]
             hydrau_description["unit_list_tf"] = []
             hydrau_description["unit_number"] = str(1)
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
