@@ -119,6 +119,11 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     hdf5.add_fish_hab(vh_all_t_sp, area_c_all, spu_all, fish_names, pref_list, stages_chosen,
                       name_fish_sh, project_preferences, aquatic_animal_type)
 
+    # copy xml curves to input project folder
+    names = [os.path.basename(pref_list[i]) for i in range(len(pref_list))]
+    paths = [os.path.join(os.getcwd(), os.path.dirname(pref_list[i])) for i in range(len(pref_list))]
+    hdf5_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input"))
+
     # progress
     progress_value.value = 100
 
@@ -1533,3 +1538,4 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, project_preferences,
                     plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+
