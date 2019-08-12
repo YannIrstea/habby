@@ -3911,6 +3911,11 @@ class ASCII(SubHydroW):  # QGroupBox
                 for reach_num in range(int(self.hydrau_description["reach_number"])):
                     for unit_num in range(int(self.hydrau_description["unit_number"])):
                         self.hydrau_description["unit_list_tf"][reach_num][unit_num] = selected_list[unit_num]
+            else:
+                self.hydrau_description["unit_list"] = [unit_list]
+                self.hydrau_description["unit_list_full"] = [unit_list_full]
+                self.hydrau_description["unit_list_tf"] = [selected_list]
+                self.hydrau_description["unit_number"] = str(selected)
 
         # set text
         text = str(selected) + "/" + str(total)

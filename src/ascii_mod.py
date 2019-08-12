@@ -179,9 +179,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     progress_value.value = 90  # progress
 
     # change unit from according to user selection
-    for reach_units_index in range(len(hydrau_description["unit_list"])):
-        hydrau_description["unit_list"][reach_units_index] = [x for x, y in zip(hydrau_description["unit_list"][reach_units_index], hydrau_description["unit_list_tf"][reach_units_index]) if y]
-    hydrau_description["unit_number"] = str(len(hydrau_description["unit_list"][reach_units_index]))
+    hydrau_description["unit_number"] = str(len(hydrau_description["unit_list"][0]))  # same unit len for each reach
 
     # hyd description
     hyd_description = dict()

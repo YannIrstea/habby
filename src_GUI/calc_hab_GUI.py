@@ -513,7 +513,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
     def fill_selected_models_listwidets(self, new_item_text_dict):
-        print("fill_selected_models_listwidets", self.sender())
+        #print("fill_selected_models_listwidets", self.sender())
         # if new added remove duplicates
         if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
             # index_to_keep = [new_item_text_dict["selected_aquatic_animal_list"].index(x) for x in new_item_text_dict["selected_aquatic_animal_list"] if x not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]]

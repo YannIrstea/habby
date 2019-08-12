@@ -173,6 +173,8 @@ class Hdf5Management:
     def get_hdf5_attributes(self):
         # get attributes
         hdf5_attributes_dict = dict(self.file_object.attrs.items())
+
+        # sort
         hdf5_attributes_dict_keys = sorted(hdf5_attributes_dict.keys())
         attributes_to_the_end = ['name_project', 'path_project', 'software', 'software_version', 'h5py_version',
                                  'hdf5_version']
@@ -340,7 +342,7 @@ class Hdf5Management:
         # create hyd attributes
         for attribute_name, attribute_value in list(hyd_description.items()):
             if attribute_name in ("hyd_unit_list", "hyd_unit_list_full"):
-                pass
+                self.file_object.attrs[attribute_name] = str(attribute_value)
             else:
                 if type(attribute_value) == bool:
                     self.file_object.attrs[attribute_name] = str(attribute_value)
