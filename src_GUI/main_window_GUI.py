@@ -302,10 +302,11 @@ class MainWindows(QMainWindow):
             self.central_widget.bioinfo_tab.save_selected_aquatic_animal_list_calc_hab()
 
         # save settings
-        self.user_preferences.data["wind_position"] = (self.geometry().x(),
-                                                       self.geometry().y(),
-                                                       self.geometry().width(),
-                                                       self.geometry().height())
+        if not self.isMaximized():
+            self.user_preferences.data["wind_position"] = (self.geometry().x(),
+                                                           self.geometry().y(),
+                                                           self.geometry().width(),
+                                                           self.geometry().height())
         self.user_preferences.data["theme"] = self.actual_theme
         self.user_preferences.data["selected_tabs"] = (self.physic_tabs, self.stat_tabs, self.research_tabs)
         self.user_preferences.save_user_preferences_json()
