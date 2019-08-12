@@ -19,10 +19,8 @@ from io import StringIO
 import os
 import numpy as np
 from scipy.spatial import Voronoi
-from random import uniform
 import triangle as tr
-from random import randrange
-from shapely.geometry import MultiPoint, Polygon, Point
+from json import loads as jsonload
 from PyQt5.QtWidgets import QMessageBox
 from osgeo import osr
 from osgeo import ogr
@@ -954,9 +952,13 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     # voronoi_finite_polygons_2d (all points)
     regions, vertices = voronoi_finite_polygons_2d(vor, 200)
 
-    # convex_hull buffer to cut polygons
-    list_points = [Point(i) for i in point_in]
-    convex_hull = MultiPoint(list_points).convex_hull.buffer(200)
+    # convex_hull buffer to cut polygons (ogr)
+    multipoint_geom = ogr.Geometry(ogr.wkbMultiPoint)
+    for point_coord in point_in:
+        point_geom = ogr.Geometry(ogr.wkbPoint)
+        point_geom.AddPoint(*point_coord)
+        multipoint_geom.AddGeometry(point_geom)
+    convex_hull = multipoint_geom.ConvexHull().Buffer(200)
 
     # for each polyg voronoi
     list_polyg = []
@@ -964,7 +966,16 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         polygon = vertices[region]
         shape = list(polygon.shape)
         shape[0] += 1
-        list_polyg.append(Polygon(np.append(polygon, polygon[0]).reshape(*shape)).intersection(convex_hull))
+        # ogr
+        ring = ogr.Geometry(ogr.wkbLinearRing)  # Create ring
+        for polyg_point_ind in list(range(len(polygon))) + [0]:
+            ring.AddPoint(*polygon[polyg_point_ind])
+        poly = ogr.Geometry(ogr.wkbPolygon)  # Create polygon
+        poly.AddGeometry(ring)
+        if poly.Intersect(convex_hull):
+            list_polyg.append(poly.Intersection(convex_hull))
+        else:
+            list_polyg.append(poly)
 
     # find one sub data by polyg
     if len(list_polyg) == 0:
@@ -975,8 +986,8 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
 
     for e in range(0, len(list_polyg)):
         polygon = list_polyg[e]
-        centerx = np.float64(polygon.centroid.x)
-        centery = np.float64(polygon.centroid.y)
+        centerx = np.float64(polygon.Centroid().GetX())
+        centery = np.float64(polygon.Centroid().GetY())
         nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
         for k in range(sub_class_number):
             sub_array2[k][e] = sub_array[k][nearest_ind]
@@ -1012,10 +1023,10 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     field_names = [defn.GetFieldDefn(i).GetName() for i in range(defn.GetFieldCount())]
 
     layer.StartTransaction()  # faster
-    #for i, region in enumerate(regions):  # for each polygon no buffer
     for i, polygon in enumerate(list_polyg):  # for each polygon with buffer
-        #coord_list = vertices[region].tolist()  # no buffer
-        coord_list = list(polygon.exterior.coords)  # with buffer
+        polygon.SetCoordinateDimension(2)
+        geojson = jsonload(polygon.ExportToJson())
+        coord_list = geojson["coordinates"][0]
         ring = ogr.Geometry(ogr.wkbLinearRing)
         for point in coord_list:
             ring.AddPoint(*point)
