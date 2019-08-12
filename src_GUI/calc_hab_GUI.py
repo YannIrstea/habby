@@ -55,6 +55,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.imfish = ''
+        self.current_hab_informations_dict = None
         # find the path bio
         try:
             try:
@@ -547,109 +548,111 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.clear()
         self.presence_qtablewidget.setRowCount(total_item)
 
-        # block HEM
-        if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
-            self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
-            self.send_log.emit("Warning: Hydraulic HEM computation option is disable (hydraulic data in .hab are not of 2D type or do not contain z-values).")
-        else:
-            self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(True)
-
-        # block_percentage
-        if not self.current_hab_informations_dict["percentage_ok"]:
-            self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(False)
-            self.send_log.emit("Warning: Substrate percentage computation option is disable (substrtate classification method in .hab is not in percentage).")
-        else:
-            self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(True)
-
-        # add new item if not exist
-        for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
-            # add label item
-            self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, QLabel(item_str))
-            self.selected_aquatic_animal_qtablewidget.setRowHeight(index, 27)
-
-            # get info
-            name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-            index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
-            # get stage index
-            index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
-
-            """ HYD """
-            # get default_hydraulic_type
-            hydraulic_type_available = user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
-            # create combobox
-            item_combobox_hyd = QComboBox()
-            item_combobox_hyd.setObjectName(str(index))
-            item_combobox_hyd.addItems(hydraulic_type_available)
-            choosen_index = self.selected_aquatic_animal_dict["hydraulic_mode_list"][index]
-            default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
-            if choosen_index == default_choice_index:
-                item_combobox_hyd.setStyleSheet(self.combobox_style_default)
-                # pal = item_combobox_hyd.palette()
-                # pal.setColor(QPalette.Button, QColor(Qt.green))
-                # pal.setColor(QPalette.Button, QColor(Qt.green))
-                # item_combobox_hyd.setPalette(pal)
-            else:
-                item_combobox_hyd.setStyleSheet(self.combobox_style_user)
-            item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
+        # if .hab :
+        if self.current_hab_informations_dict:
+            # block HEM
             if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
-                if "HEM" in hydraulic_type_available:
-                    item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setEnabled(False)
-            item_combobox_hyd.setCurrentIndex(choosen_index)
-            item_combobox_hyd.currentIndexChanged.connect(self.color_hyd_combobox)
-            item_combobox_hyd.activated.connect(self.change_general_hyd_combobox)
-            # add combobox item
-            self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox_hyd)
-            self.hyd_mode_qtablewidget.setRowHeight(index, 27)
-
-            """ SUB """
-            # get default_substrate_type
-            substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][
-                index_stage]
-
-            # create combobox
-            item_combobox_sub = QComboBox()
-            item_combobox_sub.setObjectName(str(index))
-            item_combobox_sub.addItems(substrate_type_available)
-            choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
-            default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
-            if choosen_index == default_choice_index:
-                item_combobox_sub.setStyleSheet(self.combobox_style_default)
+                self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
+                self.send_log.emit("Warning: Hydraulic HEM computation option is disable (hydraulic data in .hab are not of 2D type or do not contain z-values).")
             else:
-                item_combobox_sub.setStyleSheet(self.combobox_style_user)
-            item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
+                self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(True)
+
+            # block_percentage
             if not self.current_hab_informations_dict["percentage_ok"]:
-                if "Percentage" in substrate_type_available:
-                    item_combobox_sub.model().item(substrate_type_available.index("Percentage")).setEnabled(False)
-            item_combobox_sub.setCurrentIndex(choosen_index)
-            item_combobox_sub.currentIndexChanged.connect(self.color_sub_combobox)
-            item_combobox_sub.activated.connect(self.change_general_sub_combobox)
-            # add combobox item
-            self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox_sub)
-            self.sub_mode_qtablewidget.setRowHeight(index, 27)
-
-            """ EXIST """
-            item_checkbox = QCheckBox()
-            item_checkbox.setEnabled(False)
-            item_checkbox.setObjectName(str(index))
-            # get full name
-            fish_name_full = name_fish + "_" + stage + "_" + item_combobox_hyd.currentText() + "_" + item_combobox_sub.currentText()
-            # check or not
-            if fish_name_full in self.current_hab_informations_dict["fish_list"]:
-                item_checkbox.setChecked(True)
+                self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(False)
+                self.send_log.emit("Warning: Substrate percentage computation option is disable (substrtate classification method in .hab is not in percentage).")
             else:
-                item_checkbox.setChecked(False)
-            cell_widget = QWidget()
-            lay_out = QHBoxLayout(cell_widget)
-            lay_out.addWidget(item_checkbox)
-            lay_out.setAlignment(Qt.AlignCenter)
-            lay_out.setContentsMargins(0, 0, 0, 0)
-            cell_widget.setLayout(lay_out)
-            # add item_checkbox
-            self.presence_qtablewidget.setCellWidget(index, 0, cell_widget)
-            self.presence_qtablewidget.setRowHeight(index, 27)
+                self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(True)
 
-        # general
-        self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
+            # add new item if not exist
+            for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
+                # add label item
+                self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, QLabel(item_str))
+                self.selected_aquatic_animal_qtablewidget.setRowHeight(index, 27)
+
+                # get info
+                name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
+                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                # get stage index
+                index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
+
+                """ HYD """
+                # get default_hydraulic_type
+                hydraulic_type_available = user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
+                # create combobox
+                item_combobox_hyd = QComboBox()
+                item_combobox_hyd.setObjectName(str(index))
+                item_combobox_hyd.addItems(hydraulic_type_available)
+                choosen_index = self.selected_aquatic_animal_dict["hydraulic_mode_list"][index]
+                default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+                if choosen_index == default_choice_index:
+                    item_combobox_hyd.setStyleSheet(self.combobox_style_default)
+                    # pal = item_combobox_hyd.palette()
+                    # pal.setColor(QPalette.Button, QColor(Qt.green))
+                    # pal.setColor(QPalette.Button, QColor(Qt.green))
+                    # item_combobox_hyd.setPalette(pal)
+                else:
+                    item_combobox_hyd.setStyleSheet(self.combobox_style_user)
+                item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
+                if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
+                    if "HEM" in hydraulic_type_available:
+                        item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setEnabled(False)
+                item_combobox_hyd.setCurrentIndex(choosen_index)
+                item_combobox_hyd.currentIndexChanged.connect(self.color_hyd_combobox)
+                item_combobox_hyd.activated.connect(self.change_general_hyd_combobox)
+                # add combobox item
+                self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox_hyd)
+                self.hyd_mode_qtablewidget.setRowHeight(index, 27)
+
+                """ SUB """
+                # get default_substrate_type
+                substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][
+                    index_stage]
+
+                # create combobox
+                item_combobox_sub = QComboBox()
+                item_combobox_sub.setObjectName(str(index))
+                item_combobox_sub.addItems(substrate_type_available)
+                choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
+                default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
+                if choosen_index == default_choice_index:
+                    item_combobox_sub.setStyleSheet(self.combobox_style_default)
+                else:
+                    item_combobox_sub.setStyleSheet(self.combobox_style_user)
+                item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
+                if not self.current_hab_informations_dict["percentage_ok"]:
+                    if "Percentage" in substrate_type_available:
+                        item_combobox_sub.model().item(substrate_type_available.index("Percentage")).setEnabled(False)
+                item_combobox_sub.setCurrentIndex(choosen_index)
+                item_combobox_sub.currentIndexChanged.connect(self.color_sub_combobox)
+                item_combobox_sub.activated.connect(self.change_general_sub_combobox)
+                # add combobox item
+                self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox_sub)
+                self.sub_mode_qtablewidget.setRowHeight(index, 27)
+
+                """ EXIST """
+                item_checkbox = QCheckBox()
+                item_checkbox.setEnabled(False)
+                item_checkbox.setObjectName(str(index))
+                # get full name
+                fish_name_full = name_fish + "_" + stage + "_" + item_combobox_hyd.currentText() + "_" + item_combobox_sub.currentText()
+                # check or not
+                if fish_name_full in self.current_hab_informations_dict["fish_list"]:
+                    item_checkbox.setChecked(True)
+                else:
+                    item_checkbox.setChecked(False)
+                cell_widget = QWidget()
+                lay_out = QHBoxLayout(cell_widget)
+                lay_out.addWidget(item_checkbox)
+                lay_out.setAlignment(Qt.AlignCenter)
+                lay_out.setContentsMargins(0, 0, 0, 0)
+                cell_widget.setLayout(lay_out)
+                # add item_checkbox
+                self.presence_qtablewidget.setCellWidget(index, 0, cell_widget)
+                self.presence_qtablewidget.setRowHeight(index, 27)
+
+            # general
+            self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
 
     def create_duplicate_from_selection(self):
         # selected items
