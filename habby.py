@@ -218,4 +218,5 @@ if __name__ == '__main__':
     appdatafolders.create_appdata_folders()
     sys.excepthook = appdatafolders.crash_management_output  # catch exception before crashes program write it in habby_crash.log
     multiprocessing.freeze_support()  # necessary to freeze the application with parallel process
+    multiprocessing.set_start_method("spawn")  # enable plot.show() on linux system
     main()
