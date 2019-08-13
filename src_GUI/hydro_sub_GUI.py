@@ -5362,7 +5362,11 @@ class SubstrateW(SubHydroW):
                     inSpatialRef  = layer.GetSpatialRef()
                     sr = osr.SpatialReference(str(inSpatialRef))
                     res = sr.AutoIdentifyEPSG()
-                    epsg_code = int(sr.GetAuthorityCode(None))
+                    epsg_code_str = sr.GetAuthorityCode(None)
+                    if epsg_code_str:
+                        epsg_code = int(epsg_code_str)
+                    else:
+                        epsg_code = "unknown"
 
                 # save to attributes
                 self.namefile[0] = filename

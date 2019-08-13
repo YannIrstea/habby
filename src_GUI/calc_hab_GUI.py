@@ -553,14 +553,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # block HEM
             if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
-                self.send_log.emit("Warning: Hydraulic HEM computation option is disable (hydraulic data in .hab are not of 2D type or do not contain z-values).")
+                self.send_log.emit("Warning: Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values).")
             else:
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(True)
 
             # block_percentage
             if not self.current_hab_informations_dict["percentage_ok"]:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(False)
-                self.send_log.emit("Warning: Substrate percentage computation option is disable (substrtate classification method in .hab is not in percentage).")
+                self.send_log.emit("Warning: Substrate percentage computation option is disable for habitat calculation (substrtate classification method in .hab is not in percentage).")
             else:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(True)
 
