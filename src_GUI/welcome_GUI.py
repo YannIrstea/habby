@@ -129,7 +129,7 @@ class WelcomeW(QScrollArea):
         self.setPalette(p)
 
         # if the directory of the project does not exist, let the general tab empty
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isdir(self.path_prj) or not os.path.isfile(fname):
             pass
         # otherwise, fill it
@@ -203,7 +203,7 @@ class WelcomeW(QScrollArea):
         # ,change the project path in the xml file and copy the xml at the chosen location
         # if a project directory exist copy it as long as no project directory exist at the end location
         path_old = self.path_prj
-        fname_old = os.path.join(path_old, self.name_prj + '.xml')
+        fname_old = os.path.join(path_old, self.name_prj + '.habby')
         new_path = os.path.join(dir_name, self.name_prj)
         if os.path.isfile(fname_old) and self.e1.text() == self.name_prj:
             # write new project path
@@ -213,7 +213,7 @@ class WelcomeW(QScrollArea):
                 root = doc.getroot()
                 path_child = root.find(".//Path_Project")
                 path_child.text = self.path_prj  # new name
-                fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+                fname = os.path.join(self.path_prj, self.name_prj + '.habby')
                 try:
                     shutil.copytree(path_old, self.path_prj)
                 except shutil.Error:
@@ -221,7 +221,7 @@ class WelcomeW(QScrollArea):
                     return
                 self.send_log.emit('The files in the project folder have been copied to the new location.')
                 try:
-                    shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.xml'))
+                    shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.habby'))
                 except shutil.Error:
                     self.send_log.emit('Could not copy the project. Permission Error?')
                     return

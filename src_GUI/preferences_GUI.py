@@ -500,7 +500,7 @@ class PreferenceWindow(QDialog):
             project_preferences['CutMeshPartialyDry'] = False
 
         # save the data in the xml file
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         # save the name and the path in the xml .prj file
         if not os.path.isfile(fname):

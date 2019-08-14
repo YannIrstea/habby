@@ -633,7 +633,7 @@ class SubHydroW(QWidget):
         this order is given in the definition of the class of each hydrological model.
 
         """
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -823,7 +823,7 @@ class SubHydroW(QWidget):
 
         """
         filename_path_file = self.pathfile[i]
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
@@ -865,7 +865,7 @@ class SubHydroW(QWidget):
 
         path_im = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -896,7 +896,7 @@ class SubHydroW(QWidget):
 
         path_hdf5 = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -919,7 +919,7 @@ class SubHydroW(QWidget):
 
         path_input = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -951,7 +951,7 @@ class SubHydroW(QWidget):
 
         path_out = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -978,7 +978,7 @@ class SubHydroW(QWidget):
         """
         data = 'no_data'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -1322,7 +1322,7 @@ class SubHydroW(QWidget):
         to the GUI on the QLabel self.lm2. It also add a QToolTip with the name of substrate and hydraulic files used
         to create this merge file. If there is no file found, this function do nothing.
         """
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
             self.send_log.emit('Error: The project is not saved. '
@@ -1442,7 +1442,7 @@ class HEC_RAS1D(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit('')
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # load button
@@ -1672,7 +1672,7 @@ class Rubar2D(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # load button
@@ -1890,7 +1890,7 @@ class Mascaret(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # load button
@@ -2162,7 +2162,7 @@ class River2D(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
         spacer = QSpacerItem(1, 100)
 
@@ -2407,7 +2407,7 @@ class Rubar1D(SubHydroW):
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
         self.was_model_loaded_before(1)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # label with the file name
@@ -2453,7 +2453,7 @@ class Rubar1D(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # load button
@@ -2690,7 +2690,7 @@ class HEC_RAS2D(SubHydroW):
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
         #     self.gethdf5_name_gui()
         #     if self.h2d_t2.text()[-4:] in self.extension[0]:
         #         self.get_ascii_model_description()
@@ -2753,7 +2753,7 @@ class HEC_RAS2D(SubHydroW):
         # lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         # self.hname = QLineEdit(self.name_hdf5)
         # self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
         #     self.gethdf5_name_gui()
         #
         # # load button
@@ -3182,7 +3182,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
         #     self.gethdf5_name_gui()
         #     if self.h2d_t2.text()[-4:] in self.extension[0]:
         #         self.get_ascii_model_description()
@@ -3622,7 +3622,7 @@ class ASCII(SubHydroW):  # QGroupBox
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
         #     self.gethdf5_name_gui()
         #     if self.h2d_t2.text()[-4:] in self.extension[0]:
         #         self.get_ascii_model_description()
@@ -4075,7 +4075,7 @@ class LAMMI(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # load button
@@ -4277,7 +4277,7 @@ class SW2D(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # load button
@@ -4478,7 +4478,7 @@ class IBER2D(SubHydroW):
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
         # load button
@@ -4816,7 +4816,7 @@ class HabbyHdf5(SubHydroW):
             return
 
         # save the new file name in the xml file of the project
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(filename_prj):
             self.send_log.emit('Error: No project saved. Please create a project first in the General tab.\n')
             return
@@ -5837,7 +5837,7 @@ class SubstrateW(SubHydroW):
         in the GUI.
         """
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()

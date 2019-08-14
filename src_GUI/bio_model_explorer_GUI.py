@@ -90,7 +90,7 @@ class BioModelExplorerWindow(QDialog):
         self.source_str = source_str
 
         # load dicoselect in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         doc = ET.parse(fname)
         root = doc.getroot()
         # geo data
@@ -879,7 +879,7 @@ class BioModelInfoSelection(QScrollArea):
         dicoselect["selected"] = self.dicoselect["selected"].tolist()
 
         # save dicoselect in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         doc = ET.parse(fname)
         root = doc.getroot()
         # geo data

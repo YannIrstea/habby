@@ -213,7 +213,7 @@ class Stathab:
         """
         self.load_ok = False
         # find the path to the xml file
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(fname):
             print('Error: The xml project file was not found. Save the project in the General Tab. \n')
             return
@@ -444,7 +444,7 @@ class Stathab:
             fname_no_path = ''
 
         # write info in the xml project file
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(filename_prj):
             print('Error: No project saved. Please create a project first in the Start tab.\n')
             return
@@ -1264,7 +1264,7 @@ class Stathab:
 
         path_hdf5 = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()

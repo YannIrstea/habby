@@ -112,7 +112,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # see if a directory was selected before for Stathab
         # see if an hdf5 was selected before for Stathab
         # if both are there, reload as the last time
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_prj):
             doc = ET.parse(filename_prj)
             root = doc.getroot()
@@ -294,7 +294,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.firstitemreach = []
 
         # save the directory in the project file
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(filename_prj):
             self.send_log.emit('Error: No project saved. Please create a project first in the General tab.')
             return
@@ -625,7 +625,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit("Warning: The file should be of habby type.\n")
 
         # save the directory in the project file
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(filename_prj):
             self.send_log.emit('Error: No project saved. Please create a project first in the General tab.')
             return

@@ -89,7 +89,7 @@ def save_fstress(path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, dat
     file.close()
 
     # save the new hdf5 name in the xml project file
-    fnamep = os.path.join(path_prj, name_prj + '.xml')
+    fnamep = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(fnamep):
         print("The project is not saved. Save the project in the Start tab before saving FStress data")
     else:

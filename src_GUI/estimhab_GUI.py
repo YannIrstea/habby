@@ -126,7 +126,7 @@ class StatModUseful(QScrollArea):
         """
 
         # open the xml file
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -157,7 +157,7 @@ class StatModUseful(QScrollArea):
         # to insure the existence of a path
         path_im = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -188,7 +188,7 @@ class StatModUseful(QScrollArea):
 
         path_hdf5 = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -215,7 +215,7 @@ class StatModUseful(QScrollArea):
 
         path_text = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -247,7 +247,7 @@ class StatModUseful(QScrollArea):
 
         path_out = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -274,7 +274,7 @@ class StatModUseful(QScrollArea):
 
         path_input = 'no_path'
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -519,7 +519,7 @@ class EstimhabW(StatModUseful):
         This function opens the hdf5 data created by estimhab
         """
 
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(fname):
             doc = ET.parse(fname)
             root = doc.getroot()

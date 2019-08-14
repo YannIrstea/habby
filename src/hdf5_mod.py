@@ -51,7 +51,7 @@ class Hdf5Management:
         self.path_shp = os.path.join(self.path_prj, "output", "GIS")
         self.path_visualisation = os.path.join(self.path_prj, "output", "3D")
         self.name_prj = os.path.basename(path_prj)  # name of project
-        self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.xml')
+        self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.habby')
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
@@ -2665,7 +2665,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     else:
         type_hdf5 = "hdf5_hydrodata"
 
-    filename_prj = os.path.join(path_prj, name_prj + '.xml')
+    filename_prj = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(filename_prj):
         print('Error: No project saved. Please create a project first in the General tab.\n')
         return
@@ -2853,7 +2853,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
         file.close()
 
     # save the file to the xml of the project
-    filename_prj = os.path.join(path_prj, name_prj + '.xml')
+    filename_prj = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(filename_prj):
         print('Error: No project saved. Please create a project first in the General tab.\n')
         return
@@ -3653,7 +3653,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         model_name2 = model_name
 
     # open the xml project file
-    filename_path_pro = os.path.join(path_prj, name_prj + '.xml')
+    filename_path_pro = os.path.join(path_prj, name_prj + '.habby')
     if os.path.isfile(filename_path_pro):
         doc = ET.parse(filename_path_pro)
         root = doc.getroot()

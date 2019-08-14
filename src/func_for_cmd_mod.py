@@ -88,7 +88,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
     if not os.path.isdir(path_prj):
         print('Error: the path to the project does not exists \n')
         return
-    file_prof = os.path.join(path_prj, name_prj + '.xml')
+    file_prof = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(file_prof):
         print('Error: the xml project is not found \n')
         return
@@ -1557,9 +1557,9 @@ def habby_restart(file_comm, name_prj, path_prj, path_bio):
                         name_prj = arg1[1].strip()
                         if not os.path.isdir(path_prj):
                             os.mkdir(path_prj)
-                        if not os.path.isfile(os.path.join(path_prj, name_prj + '.xml')):
-                            filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.xml'))
-                            copyfile(filename_empty, os.path.join(path_prj, name_prj + '.xml'))
+                        if not os.path.isfile(os.path.join(path_prj, name_prj + '.habby')):
+                            filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.habby'))
+                            copyfile(filename_empty, os.path.join(path_prj, name_prj + '.habby'))
 
                     else:
                         print('Error: the project folder is not found.\n')

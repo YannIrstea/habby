@@ -59,7 +59,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # find the path bio
         try:
             try:
-                docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.xml'))
+                docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.habby'))
                 root = docxml.getroot()
             except IOError:
                 # self.send_log.emit("Warning: the xml p file does not exist.")
@@ -292,7 +292,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def load_selected_aquatic_animal_dict(self):
         # load selected_aquatic_animal_dict in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         doc = ET.parse(fname)
         root = doc.getroot()
         # geo data
@@ -731,7 +731,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                                                      self.general_option_sub_combobox.currentIndex()])
 
         # save in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         doc = ET.parse(fname)
         root = doc.getroot()
         # geo data
@@ -751,7 +751,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         We add a "tooltip" which indicates the orginal hydraulic and substrate files.
         """
 
-        xmlfile = os.path.join(self.path_prj, self.name_prj + '.xml')
+        xmlfile = os.path.join(self.path_prj, self.name_prj + '.habby')
         # open the file
         try:
             try:
@@ -859,7 +859,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # save the selected fish in the xml project file
             try:
                 try:
-                    filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+                    filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
                     docxml = ET.parse(filename_path_pro)
                     root = docxml.getroot()
                 except IOError:

@@ -33,7 +33,7 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
 
     # save the data in the xml file
     # open the xml project file
-    fname = os.path.join(path_prj, name_prj + '.xml')
+    fname = os.path.join(path_prj, name_prj + '.habby')
     # save the name and the path in the xml .prj file
     if not os.path.isfile(fname):
         # print('Error: project is not found \n')
@@ -63,13 +63,13 @@ def load_project_preferences(path_prj, name_prj):
     """
 
     project_preferences = create_default_project_preferences()
-    fname = os.path.join(path_prj, name_prj + '.xml')
+    fname = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(fname) and name_prj != '':  # no project exists
         pass
     elif name_prj == '':
         pass
     elif not os.path.isfile(fname):  # the project is not found
-        print('Warning: No project file (.xml) found.\n')
+        print('Warning: No project file (.habby) found.\n')
     else:
         doc = ET.parse(fname)
         root = doc.getroot()
@@ -293,7 +293,7 @@ def create_project_structure(path_prj, logon, version, username_prj, descri_prj,
 
     # save new xml file
     if name_prj != '':
-        fname = os.path.join(path_prj, name_prj + '.xml')
+        fname = os.path.join(path_prj, name_prj + '.habby')
         tree.write(fname)
 
     # create a default directory for the figures and the hdf5

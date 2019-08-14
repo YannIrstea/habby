@@ -186,7 +186,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         """
 
         # look in the xml project file if an Fstress model exist
-        fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(fnamep):
             self.send_log.emit("The project is not saved. Save the project in the Start tab before saving FStress data.")
             return

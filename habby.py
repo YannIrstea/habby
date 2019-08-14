@@ -34,7 +34,7 @@ class AppDataFolders:
     """
 
     def __init__(self):
-        print("__init__AppDataFolders")
+        #print("__init__AppDataFolders")
         # folders Irstea/HABBY
         appauthor = "Irstea"
         appname = "HABBY"
@@ -91,9 +91,23 @@ def main():
     For more complicated case, one can directly do a python script using
     the function from HABBY.
     """
+    # current working directory
+    if os.path.basename(sys.argv[0]) == "habby.py":  # from script
+        os.chdir(os.path.dirname(sys.argv[0]))  # change current working directory
+    else:  # from exe
+        try:
+            this_file = __file__
+        except NameError:
+            this_file = sys.argv[0]
+        this_file = os.path.abspath(this_file)
+        if getattr(sys, 'frozen', False):
+            application_path = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+        else:
+            application_path = os.path.dirname(this_file)
+        os.chdir(application_path)  # change current working directory
 
-    # graphical user interface is called if no argument
-    if len(sys.argv) == 1:
+    # GUI
+    if len(sys.argv) <= 2:
         """
         GUI
         """
@@ -109,7 +123,15 @@ def main():
         app.processEvents()
 
         # create windows
-        ex = main_window_GUI.MainWindows()
+        if len(sys.argv) == 1:
+            ex = main_window_GUI.MainWindows()
+        if len(sys.argv) == 2:
+            project_path = sys.argv[1]
+            if os.path.exists(project_path):
+                ex = main_window_GUI.MainWindows(project_path)
+            else:
+                return
+
         app.setActiveWindow(ex)
 
         # close the splash screen
@@ -118,9 +140,7 @@ def main():
         # close
         sys.exit(app.exec_())
 
-        # os._exit()
-
-    # otherwise we use the command line
+    # command line
     else:
         """
         command line
@@ -180,13 +200,13 @@ def main():
                   + '. Habby needs write permission \n.')
 
         # create an empty project if not existing before
-        filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.xml'))
+        filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.habby'))
 
         if not os.path.isdir(path_prj):
             os.makedirs(path_prj)
-        if not os.path.isfile(os.path.join(path_prj, name_prj + '.xml')):
+        if not os.path.isfile(os.path.join(path_prj, name_prj + '.habby')):
             func_for_cmd_mod.copyfile(filename_empty,
-                                      os.path.join(path_prj, name_prj + '.xml'))
+                                      os.path.join(path_prj, name_prj + '.habby'))
 
         # check if enough argument
         if len(sys.argv) == 0 or len(sys.argv) == 1:

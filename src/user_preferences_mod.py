@@ -60,7 +60,7 @@ class UserPreferences(AppDataFolders):
 
     # GENERAL
     def create_user_preferences_structure(self):
-        print("create_user_preferences_structure")
+        #print("create_user_preferences_structure")
         # preferences
         self.create_and_clear_temp_folder()
         self.create_or_load_user_preferences()

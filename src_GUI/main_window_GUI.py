@@ -70,7 +70,7 @@ class MainWindows(QMainWindow):
     in each language. If a new qm is added for a new language, it should be added here to the list.
 
     Now, two important attributes are defined: self.name_prj and self.path_prj. These attribute will be communicated to
-    children classes. For each project, an xml file is created. This “project” file should be called name_prj.xml
+    children classes. For each project, an xml file is created. This “project” file should be called name_prj.habby
     and should be situated in the path indicated by self.path_prj.
 
     We call the central_widget which contains the different tabs.
@@ -83,7 +83,7 @@ class MainWindows(QMainWindow):
     We show the created widget.
     """
 
-    def __init__(self):
+    def __init__(self, name_path=None):
 
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
@@ -105,8 +105,12 @@ class MainWindows(QMainWindow):
         # name_path_set = self.settings.value('path_prj')
         # # print(name_path_set)
         # language_set = self.settings.value('language_code')
-        name_prj_set = self.user_preferences.data["name_prj"]
-        name_path_set = self.user_preferences.data["path_prj"]
+        if not name_path:
+            name_prj_set = self.user_preferences.data["name_prj"]
+            name_path_set = self.user_preferences.data["path_prj"]
+        else:
+            name_prj_set = os.path.basename(name_path).split(".")[0]
+            name_path_set = os.path.dirname(name_path)
         language_set = self.user_preferences.data["language"]
         self.actual_theme = self.user_preferences.data["theme"]
 
@@ -159,7 +163,7 @@ class MainWindows(QMainWindow):
         else:
             self.path_prj = '.'
         # if xml project dont exist remove path and name
-        if not os.path.isfile(os.path.join(self.path_prj, self.name_prj + ".xml")):
+        if not os.path.isfile(os.path.join(self.path_prj, self.name_prj + ".habby")):
             self.name_prj = ''
             self.path_prj = '.'
         if recent_projects_set:
@@ -227,10 +231,10 @@ class MainWindows(QMainWindow):
         # connect the signals of the welcome tab with the different functions (careful if changes this copy 3 times
         # in set_langue and save_project
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
-        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # right click
@@ -468,11 +472,11 @@ class MainWindows(QMainWindow):
         self.my_toolbar()
         # reconnect signal for the welcome tab
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
-        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
         self.central_widget.welcome_tab.save_info_signal.connect(self.central_widget.save_info_projet)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
         # re-connect signals for the other tabs
         self.central_widget.connect_signal_fig_and_drop()
@@ -529,7 +533,7 @@ class MainWindows(QMainWindow):
         openprj = QAction(self.tr('Open'), self)
         openprj.setShortcut('Ctrl+O')
         openprj.setStatusTip(self.tr('Open an exisiting project'))
-        openprj.triggered.connect(self.open_project)
+        openprj.triggered.connect(self.open_project_dialog)
         recent_proj_menu = []
         for j in range(0, min(self.nb_recent, len(self.recent_project))):
             recent_proj_menu.append(QAction(self.recent_project[j], self))
@@ -785,7 +789,7 @@ class MainWindows(QMainWindow):
         # create the actions of the toolbar
         openAction = QAction(icon_open, self.tr('Open project'), self)
         openAction.setStatusTip(self.tr('Open an existing project'))
-        openAction.triggered.connect(self.open_project)
+        openAction.triggered.connect(self.open_project_dialog)
 
         newAction = QAction(icon_new, self.tr('New project'), self)
         newAction.setStatusTip(self.tr('Create a new project'))
@@ -825,7 +829,7 @@ class MainWindows(QMainWindow):
 
     def recreate_tabs_attributes(self):
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             if hasattr(self.central_widget, "welcome_tab"):
                 if not self.central_widget.welcome_tab:
                     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
@@ -976,7 +980,7 @@ class MainWindows(QMainWindow):
         e3here = self.central_widget.welcome_tab.e3
         self.descri_prj = e3here.toPlainText()
 
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         # update user option and re-do (the whole) menu
         self.user_preferences.data["name_prj"] = self.name_prj
@@ -1066,7 +1070,7 @@ class MainWindows(QMainWindow):
             pathbio_child.text = self.path_bio_default
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
-            fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+            fname = os.path.join(self.path_prj, self.name_prj + '.habby')
             doc.write(fname)
 
             # create needed folder if not there yet
@@ -1145,7 +1149,7 @@ class MainWindows(QMainWindow):
         # enabled lowest part
         self.central_widget.welcome_tab.lowpart.setEnabled(True)
 
-    def open_project(self):
+    def open_project_dialog(self):
         """
         This function is used to open an existing habby project by selecting an xml project file. Called by
         my_menu_bar()
@@ -1157,16 +1161,23 @@ class MainWindows(QMainWindow):
         path_here = os.path.dirname(self.path_prj)
         if not path_here:
             path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
-        filename_path = QFileDialog.getOpenFileName(self, self.tr('Open File'), path_here, "XML (*.xml)")[0]
+        filename_path = QFileDialog.getOpenFileName(self, self.tr('Open File'), path_here, "XML (*.habby)")[0]
         if not filename_path:  # cancel
             return
         blob, ext_xml = os.path.splitext(filename_path)
-        if ext_xml == '.xml':
+        if ext_xml == '.habby':
             pass
         else:
-            self.central_widget.write_log("Error: File should be of type XML\n")
+            self.central_widget.write_log("Error: File should be of type .habby\n")
             return
 
+        self.open_project(filename_path)
+
+    def open_project(self, filename_path):
+        """
+        This function is used to open an existing habby project by selecting an xml project file. Called by
+        my_menu_bar()
+        """
         # load the xml file
         try:
             try:
@@ -1191,7 +1202,7 @@ class MainWindows(QMainWindow):
             return
 
         # check coherence
-        if self.name_prj + '.xml' != os.path.basename(filename_path):
+        if self.name_prj + '.habby' != os.path.basename(filename_path):
             self.central_widget.write_log('Warning: xml file name is not coherent with project name. '
                                           'New project name: ' + os.path.basename(filename_path))
             self.name_prj = os.path.basename(filename_path)
@@ -1261,10 +1272,10 @@ class MainWindows(QMainWindow):
 
         # reconnect method to button
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
-        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
@@ -1286,7 +1297,7 @@ class MainWindows(QMainWindow):
         self.end_concurrency()
 
         # get the project file
-        filename_path = os.path.join(self.recent_project_path[j], self.recent_project[j] + '.xml')
+        filename_path = os.path.join(self.recent_project_path[j], self.recent_project[j] + '.habby')
 
         # load the xml file
         try:
@@ -1393,7 +1404,7 @@ class MainWindows(QMainWindow):
                 self.msg2.show()
 
         # check if there is not another project with the same path_name
-        fname = os.path.join(self.createnew.e2.text(), name_prj_here, name_prj_here + '.xml')
+        fname = os.path.join(self.createnew.e2.text(), name_prj_here, name_prj_here + '.habby')
         if os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("An HABBY project already exists."))
@@ -1439,7 +1450,7 @@ class MainWindows(QMainWindow):
             self.save_project()
 
         # change the path_im
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         self.path_im = os.path.join(self.path_prj, 'figures')
         doc = ET.parse(fname)
         root = doc.getroot()
@@ -1454,10 +1465,10 @@ class MainWindows(QMainWindow):
 
         # reconnect method to button
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
-        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
@@ -1468,7 +1479,7 @@ class MainWindows(QMainWindow):
         This function is used to change the name of the current project. To do this, it copies the xml
         project with a new name and copy the file for the log with a new name
         """
-        fname_old = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname_old = os.path.join(self.path_prj, self.name_prj + '.habby')
         old_path_prj = self.path_prj
 
         # get new name from the user
@@ -1477,7 +1488,7 @@ class MainWindows(QMainWindow):
         if ok:
             name_prj_here = str(text)
             # check if file already exist
-            fname = os.path.join(self.path_prj, name_prj_here + '.xml')
+            fname = os.path.join(self.path_prj, name_prj_here + '.habby')
             new_path_prj = os.path.join(os.path.dirname(self.path_prj), name_prj_here)
             if os.path.isfile(fname) or os.path.isdir(new_path_prj):
                 self.msg2.setIcon(QMessageBox.Warning)
@@ -1540,7 +1551,7 @@ class MainWindows(QMainWindow):
         """
 
         # load the xml file
-        filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.xml'))
+        filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.habby'))
 
         try:
             try:
@@ -1625,7 +1636,7 @@ class MainWindows(QMainWindow):
 
         # create an empty hdf5 file using all default prop.
         fname_no_path = self.name_prj + '_ESTIMHAB' + '.hab'
-        fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(fnamep):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save project"))
@@ -1808,7 +1819,7 @@ class MainWindows(QMainWindow):
             self.central_widget.logon = True
 
         # save the option in the xml file
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         doc = ET.parse(fname)
         root = doc.getroot()
         savelog_child = root.find(".//Save_Log")
@@ -1834,7 +1845,7 @@ class MainWindows(QMainWindow):
         """
         # get path im
         path_im = '.'
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -2072,7 +2083,7 @@ class CentralW(QWidget):
 
         self.welcome_tab = welcome_GUI.WelcomeW(path_prj, name_prj)
         self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
-        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
             self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
@@ -2116,7 +2127,7 @@ class CentralW(QWidget):
         self.update_hydro_hdf5_name()
 
         # get the log option (should we take log or not)
-        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
         if not os.path.isdir(self.path_prj_c) \
                 or not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
@@ -2191,7 +2202,7 @@ class CentralW(QWidget):
         This function add the different tab to habby (used by init and by save_project). Careful, if you change the
         position of the Option tab, you should also modify the variable self.opttab in init
         """
-        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
         if os.path.isfile(fname) and self.name_prj_c != '':
             # allways uptodate
             if self.parent():
@@ -2245,7 +2256,7 @@ class CentralW(QWidget):
 
         self.welcome_tab.send_log.connect(self.write_log)
 
-        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
             self.hydro_tab.send_log.connect(self.write_log)
             self.hydro_tab.hecras1D.send_log.connect(self.write_log)
             self.hydro_tab.hecras2D.send_log.connect(self.write_log)
@@ -2273,7 +2284,7 @@ class CentralW(QWidget):
         improve readability.
         """
 
-        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
@@ -2318,7 +2329,7 @@ class CentralW(QWidget):
         if self.name_prj_c == '':
             return
         # read xml file to find the path to the log file
-        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
         if os.path.isfile(fname):
             doc = ET.parse(fname)
             root = doc.getroot()
@@ -2428,13 +2439,13 @@ class CentralW(QWidget):
 
         """
 
-        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
             # clear QCombox from Hydro2W() and Substratew()
             self.substrate_tab.drop_hyd.clear()
             self.hydro_tab.drop_hyd.clear()
 
             # get the hdf5 path
-            filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+            filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
             if os.path.isfile(filename_path_pro):
                 doc = ET.parse(filename_path_pro)
                 root = doc.getroot()
@@ -2483,7 +2494,7 @@ class CentralW(QWidget):
         e3here = self.welcome_tab.e3
         self.descri_prj = e3here.toPlainText()
 
-        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
 
         if not os.path.isfile(fname):
             self.write_log('Error: The project file is not found. \n')
