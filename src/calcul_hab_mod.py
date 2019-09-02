@@ -202,9 +202,9 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 # invertebrate case
                 elif aquatic_animal_type_select == "invertebrate":
                     pref_height = pref_height[idx2]
-                    if pref_height[1][-1] == 0:
+                    if pref_height[-1] == 0:
                         print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
-                        pref_height[0][-1] = 100
+                        pref_height[-1] = 100
 
                 # compute
                 vh_all_t, spu_all_t, area_c_all_t, progress_value = \
@@ -307,8 +307,8 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 if aquatic_animal_type_select == "invertebrate":
                     """ HEM pref """
                     # get pref x and y
-                    pref_shearstress = pref_height[0]
-                    pref_values = pref_height[1]
+                    pref_shearstress = pref_height
+                    pref_values = pref_sub[0]
                     # nterp1d(...... kind='previous') for values <0.0771
                     pref_shearstress = [0.0] + pref_shearstress
                     pref_values = pref_values + [pref_values[-1]]

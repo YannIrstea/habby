@@ -5,7 +5,7 @@
 <MadeBy>Irstea Former Cemagref</MadeBy>
 <Invertebrate>
 <CdAppelTaxon SchemeAgencyID="SANDRE">368</CdAppelTaxon>
-<LatinName>Baetis fuscatus</LatinName>
+<LatinName>Baetis fuscatus (Linnaeus, 1760)</LatinName>
 <ComNames>
   <ComName Language="French">Éphémère à deux filets</ComName>
   <ComName Language="English"></ComName>
@@ -27,13 +27,14 @@ Buffagni, A., Armanini, D.G., Cazzola, M., Alba-Tercedor, J., López-Rodríguez,
 Schmidt-Kloiber, A. & Hering D. (2015): www.freshwaterecology.info - an online tool that unifies, standardises and codifies more than 20,000 European freshwater organisms and their ecological preferences. Ecological Indicators 53: 271-282. doi: 10.1016/j.ecolind.2015.02.007.
  ]]>
 </Description>
-<Image>BFUS01.png</Image>
+<Image>BFUS01.jpg</Image>
 </General>
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="larva">
 <PreferenceShearStress>
-<ShearStressValues Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</ShearStressValues>
+<MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7 17.9</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
+<HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</HemisphereNumber>
 <PreferenceValues>0.11 0.16 0.21 0.28 0.37 0.48 0.60 0.73 0.84 0.93 0.98 1 0.98 0.93 0.86 0.78 0.69 0.60 0.51 0.44 0.37</PreferenceValues>
 </PreferenceShearStress>
 </Stage>

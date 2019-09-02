@@ -784,26 +784,42 @@ class BioModelInfoSelection(QScrollArea):
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
         aquatic_animal_type = self.biological_models_dict_gui["aquatic_animal_type"][i]
 
-        # open the pref
-        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
-                                                                                         aquatic_animal_type)
+
         # plot the pref
         project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         # do the plot
         if not hasattr(self, 'plot_process_list'):
             self.plot_process_list = MyProcessList()
         state = Value("i", 0)
-        curve_process = Process(target=plot_mod.plot_suitability_curve,
-                                args=(state,
-                                      h_all,
-                                      vel_all,
-                                      sub_all,
-                                      code_fish,
-                                      name_fish,
-                                      stages,
-                                      False,
-                                      project_preferences,
-                                      aquatic_animal_type))
+        if aquatic_animal_type == "fish":
+            # open the pref
+            [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                                                                                             aquatic_animal_type)
+            curve_process = Process(target=plot_mod.plot_suitability_curve,
+                                    args=(state,
+                                          h_all,
+                                          vel_all,
+                                          sub_all,
+                                          code_fish,
+                                          name_fish,
+                                          stages,
+                                          False,
+                                          project_preferences))
+        if aquatic_animal_type == "invertebrate":
+            # open the pref
+            [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                                                                                             aquatic_animal_type)
+            curve_process = Process(target=plot_mod.plot_suitability_curve_invertebrate,
+                                    args=(state,
+                                          shear_stress_all,
+                                          hem_all,
+                                          hv_all,
+                                          code_fish,
+                                          name_fish,
+                                          stages,
+                                          False,
+                                          project_preferences))
+        # append
         self.plot_process_list.append((curve_process, state))
 
     def show_hydrosignature(self):

@@ -5,7 +5,7 @@
 <MadeBy>Irstea Former Cemagref</MadeBy>
 <Invertebrate>
 <CdAppelTaxon SchemeAgencyID="SANDRE">157</CdAppelTaxon>
-<LatinName>Dinocras cephalotes</LatinName>
+<LatinName>Dinocras cephalotes (Curtis, 1827)</LatinName>
 <ComNames>
   <ComName Language="French">Perles</ComName>
   <ComName Language="English">Stoneflies</ComName>
@@ -30,13 +30,14 @@ Schmidt-Kloiber, A. & Hering D. (2015): www.freshwaterecology.info - an online t
 http://www.opie-benthos.fr
 ]]>
 </Description>
-<Image>DCEP01.png</Image>
+<Image>DCEP01.jpg</Image>
 </General>
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="larva">
 <PreferenceShearStress>
-<ShearStressValues Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</ShearStressValues>
+<MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7 17.9</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
+<HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</HemisphereNumber>
 <PreferenceValues>0.10 0.13 0.18 0.23 0.30 0.39 0.49 0.59 0.70 0.80 0.88 0.94 0.98 1 1 0.98 0.94 0.90 0.85 0.79 0.74</PreferenceValues>
 </PreferenceShearStress>
 </Stage>

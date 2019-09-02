@@ -29,8 +29,7 @@ from src_GUI import preferences_GUI
 from src import tools_mod
 
 
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[],
-                           aquatic_animal_type="fish"):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
     """
     This function is used to plot the preference curves.
 
@@ -64,11 +63,6 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
     else:
         title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
-
-    # prep data
-    if aquatic_animal_type == "invertebrate":
-        aa = 1
-
 
     if len(stade) > 1:  # if you take this out, the command
         # axarr[x,x] does not work as axarr is only 1D
@@ -106,51 +100,108 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             axarr[s, 2].set_xlim([0.4, 8.6])
 
     else:
-        # fish
-        if aquatic_animal_type == "fish":
-            f, axarr = plt.subplots(3, 1, sharey='row')
-            f.canvas.set_window_title(title_plot)
-            plt.suptitle(title_plot)
-            axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
-            if project_preferences['language'] == 0:
-                axarr[0].set_xlabel('Water height [m]')
-                axarr[0].set_ylabel('Coeff. pref. ')
-            else:
-                axarr[0].set_xlabel("Hauteur d'eau [m]")
-                axarr[0].set_ylabel('Coeff. pref. ')
-            axarr[0].set_ylim([0, 1.1])
+        f, axarr = plt.subplots(3, 1, sharey='row')
+        f.canvas.set_window_title(title_plot)
+        plt.suptitle(title_plot)
+        axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
+        if project_preferences['language'] == 0:
+            axarr[0].set_xlabel('Water height [m]')
+            axarr[0].set_ylabel('Coeff. pref. ')
+        else:
+            axarr[0].set_xlabel("Hauteur d'eau [m]")
+            axarr[0].set_ylabel('Coeff. pref. ')
+        axarr[0].set_ylim([0, 1.1])
 
-            axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
-            if project_preferences['language'] == 0:
-                axarr[1].set_xlabel('Velocity [m/sec]')
-            else:
-                axarr[1].set_xlabel('Vitesse [m/sec]')
-            axarr[1].set_ylabel('Coeff. pref. ')
-            axarr[1].set_ylim([0, 1.1])
+        axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
+        if project_preferences['language'] == 0:
+            axarr[1].set_xlabel('Velocity [m/sec]')
+        else:
+            axarr[1].set_xlabel('Vitesse [m/sec]')
+        axarr[1].set_ylabel('Coeff. pref. ')
+        axarr[1].set_ylim([0, 1.1])
 
-            if len(sub[0][0]) > 2:
-                axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
-            if project_preferences['language'] == 0:
-                axarr[2].set_xlabel('Substrate []')
-            else:
-                axarr[2].set_xlabel('Substrat []')
-            axarr[2].set_ylabel('Coeff. pref. ')
-            axarr[2].set_ylim([0, 1.1])
-            axarr[2].set_xlim([0.4, 8.6])
+        if len(sub[0][0]) > 2:
+            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
+        if project_preferences['language'] == 0:
+            axarr[2].set_xlabel('Substrate []')
+        else:
+            axarr[2].set_xlabel('Substrat []')
+        axarr[2].set_ylabel('Coeff. pref. ')
+        axarr[2].set_ylim([0, 1.1])
+        axarr[2].set_xlim([0.4, 8.6])
 
-        # invertebrate
-        elif aquatic_animal_type == "invertebrate":
-            f, axarr = plt.subplots(1, 1, sharey='row')
-            f.canvas.set_window_title(title_plot)
-            plt.suptitle(title_plot)
-            axarr.plot(height[0][0], height[0][1], '-b', marker=mar)
-            if project_preferences['language'] == 0:
-                axarr.set_xlabel('HEM [HFST]')
-                axarr.set_ylabel('Coeff. pref. ')
-            else:
-                axarr.set_xlabel("Hauteur d'eau [m]")
-                axarr.set_ylabel('Coeff. pref. ')
-            axarr.set_ylim([0, 1.1])
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    # fm = plt.get_current_fig_manager()
+    # fm.window.showMinimized()
+    if get_fig:
+        return f, axarr
+    else:
+        plt.show()
+
+
+def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
+    """
+    This function is used to plot the preference curves.
+
+    :param height: the height preference data (list of list)
+    :param vel: the height preference data (list of list)
+    :param sub: the height preference data (list of list)
+    :param code_fish: the three letter code which indiate which fish species
+        is analyzed
+    :param name_fish: the name of the fish analyzed
+    :param stade: the name of the stade analyzed (ADU, JUV, ...)
+    :param get_fig: usually False, If True return the figure
+        (to modfied it more)
+    """
+
+    mpl.rcParams['pdf.fonttype'] = 42
+    if not get_fig:
+        if not project_preferences:
+            project_preferences = preferences_GUI.create_default_project_preferences()
+        plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+        plt.rcParams['font.size'] = project_preferences['font_size']
+        if project_preferences['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    if project_preferences['marker']:
+        mar = 'o'
+    else:
+        mar = None
+    if project_preferences['language'] == 0:
+        title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
+    else:
+        title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
+
+    f, axarr = plt.subplots(1, 1, sharey='row')
+    f.canvas.set_window_title(title_plot)
+    plt.suptitle(title_plot)
+    plt.grid()
+    # bar plot
+    axarr.bar([x + 0.5 for x in hem_all[0]],
+                         hv_all[0])
+    # HEM number label
+    for hem_num in range(len(hem_all[0])):
+        axarr.text(hem_all[0][hem_num] + 0.5, y=0, s=str(int(hem_all[0][hem_num])), fontsize=12,
+                   horizontalalignment='center',
+                   verticalalignment='bottom')
+    # shearstress stick
+    plt.xticks([x for x in hem_all[0]] + [hem_all[0][-1] + 1],
+               list(map(str, [0] + shear_stress_all[0])),
+               rotation=45)
+
+    #axarr.set_xticklabels(list(map(str, hem_all[0])))
+    if project_preferences['language'] == 0:
+        axarr.set_xlabel('HEM [HFST] / shear stress [N/m²]')
+        axarr.set_ylabel('Coeff. pref. ')
+    else:
+        axarr.set_xlabel("HEM [HFST] / force tractrice [N/m²]")
+        axarr.set_ylabel('Coeff. pref. ')
+    axarr.set_ylim([-0.1, 1.1])
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     # output for plot_GUI

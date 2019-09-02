@@ -488,7 +488,7 @@ def get_biomodels_informations_for_database(path_xml):
             height_presence = True
         if stage.findall(".//VelocityValues"):
             velocity_presence = True
-        if stage.findall(".//ShearStressValues"):
+        if stage.findall(".//PreferenceShearStress"):
             shear_presence = True
         # compile infor
         if height_presence and velocity_presence:
@@ -531,6 +531,9 @@ def get_biomodels_informations_for_database(path_xml):
         LatinName = "@guild"
     else:
         LatinName = root.find(".//LatinName").text
+        if "," in LatinName:
+            LatinName = LatinName.replace(",", ".")
+
 
     # modification_date
     modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
@@ -989,24 +992,27 @@ def read_pref(xmlfile, aquatic_animal_type="fish"):
 
     # fish case
     if aquatic_animal_type == "invertebrate":
-        # HEM
+        # shear_stress_all, hem_all, hv_all
         h_all = []  # fake height (HEM)
         pref_hei = root.findall(".//PreferenceShearStress")
         for pref_hei_i in pref_hei:
-            height = [[], []]
-            height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
-            height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
+            height = [[], [], []]
+            height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))  # shear_stress_all
+            height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))  # hem_all
+            height[2] = list(map(float, pref_hei_i.getchildren()[2].text.split(" ")))  # hv_all
 
             if not height[0]:
                 print('Error: Height data was not found \n')
-                return failload
+                #return failload
 
             # check increasing velocity
             if height[0] != sorted(height[0]):
                 print('Error: Height data is not sorted for the xml file '
                       + xml_name + '.\n')
-                return failload
-            h_all.append(height)
+                #return failload
+            h_all.append(height[0])
+            vel_all.append(height[1])
+            sub_all.append(height[2])
 
     return h_all, vel_all, sub_all, code_fish, name_fish, stages
 

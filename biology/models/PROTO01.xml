@@ -5,7 +5,7 @@
 <MadeBy>Irstea Former Cemagref</MadeBy>
 <Invertebrate>
 <CdAppelTaxon SchemeAgencyID="SANDRE">46</CdAppelTaxon>
-<LatinName>Protonemura Kempny</LatinName>
+<LatinName>Protonemura Kempny, 1898</LatinName>
 <ComNames>
   <ComName Language="French">Perles</ComName>
   <ComName Language="English">Stoneflies</ComName>
@@ -32,13 +32,14 @@ Schmidt-Kloiber, A. & Hering D. (2015): www.freshwaterecology.info - an online t
 http://www.opie-benthos.fr
  ]]>
 </Description>
-<Image>PROTO01.png</Image>
+<Image>PROTO01.jpg</Image>
 </General>
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="larva">
 <PreferenceShearStress>
-<ShearStressValues Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</ShearStressValues>
+<MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7 17.9</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
+<HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</HemisphereNumber>
 <PreferenceValues>0.03 0.04 0.05 0.06 0.07 0.08 0.10 0.12 0.14 0.17 0.21 0.26 0.32 0.40 0.50 0.63 0.79 1 1 1 1</PreferenceValues>
 </PreferenceShearStress>
 </Stage>
