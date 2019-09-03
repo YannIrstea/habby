@@ -93,7 +93,8 @@ def main():
     """
     # current working directory
     if os.path.basename(sys.argv[0]) == "habby.py":  # from script
-        os.chdir(os.path.dirname(sys.argv[0]))  # change current working directory
+        # change current working directory
+        os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
     else:  # from exe
         try:
             this_file = __file__
