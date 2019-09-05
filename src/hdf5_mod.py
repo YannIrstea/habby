@@ -608,6 +608,7 @@ class Hdf5Management:
 
         # close file
         self.file_object.close()
+        self.file_object = None
 
         # to attributes
         if whole_profil:
@@ -764,6 +765,7 @@ class Hdf5Management:
                 data_2d["sub"].append(sub_array_list)
 
         self.file_object.close()
+        self.file_object = None
 
         # to attributes
         self.data_2d = data_2d
@@ -1073,6 +1075,7 @@ class Hdf5Management:
 
         # close file
         self.file_object.close()
+        self.file_object = None
 
         # set to attributes
         if whole_profil:
@@ -1154,6 +1157,7 @@ class Hdf5Management:
                     fish_data_set.attrs['stage'] = stages_chosen[fish_num]
                     fish_data_set.attrs['short_name'] = name_fish_sh[fish_num]
                     fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
+                    fish_data_set.attrs['aquatic_animal_type'] = aquatic_animal_type[fish_num]
 
                     if any(np.isnan(vh_cell[fish_num][reach_num][unit_num])):
                         area = np.sum(area_c_all[reach_num][unit_num][
@@ -1187,11 +1191,12 @@ class Hdf5Management:
         xml_names = []
         stage_names = []
         names_short = []
+        aquatic_animal_type = []
         for fish_ind, fish_name in enumerate(fish_names_total_list):
             xml_names.append(mesh_group[fish_name].attrs['pref_file'])
             stage_names.append(mesh_group[fish_name].attrs['stage'])
             names_short.append(mesh_group[fish_name].attrs['short_name'])
-            # fish_names_total_list[fish_ind]
+            aquatic_animal_type.append(mesh_group[fish_name].attrs['aquatic_animal_type'])
 
         # set to attributes
         self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
@@ -1277,37 +1282,8 @@ class Hdf5Management:
                 for fish_name_to_remove in fish_names_to_remove:
                     del mesh_group[fish_name_to_remove]
 
-    # EXPORT ALL
-    def export_all_output(self, state, project_preferences):
-        self.export_source = "manual"
-        # read hdf5 data (get desired units)
-        if self.hdf5_type == "hydraulic":
-            # load hydraulic data
-            self.load_hdf5_hyd(whole_profil=True)
-        if self.hdf5_type == "substrate":
-            # load substrate data
-            self.load_hdf5_sub()
-        if self.hdf5_type == "habitat":
-            # load habitat data
-            self.load_hdf5_hab(whole_profil=True)
-
-        # fake temporary project_preferences
-        self.project_preferences = project_preferences
-
-        # exports
-        self.export_gpkg()
-        self.export_stl()
-        self.export_paraview()
-        self.export_spu_txt()
-        self.export_detailled_mesh_txt()
-        self.export_detailled_point_txt()
-        if self.fish_list:
-            self.export_pdf()
-
-        state.value = 1  # process finished
-
     # EXPORT GPKG
-    def export_gpkg(self):
+    def export_gpkg(self, state=None):
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
@@ -1731,8 +1707,11 @@ class Hdf5Management:
             # close file
             ds.Destroy()
 
+        if state:
+            state.value = 1  # process finished
+
     # EXPORT 3D
-    def export_stl(self):
+    def export_stl(self, state=None):
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
@@ -1774,8 +1753,10 @@ class Hdf5Management:
                     # Write the mesh to file "cube.stl"
                     stl_file.save(os.path.join(self.path_visualisation,
                                                name_file))
+            if state:
+                state.value = 1  # process finished
 
-    def export_paraview(self):
+    def export_paraview(self, state=None):
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
@@ -1913,8 +1894,11 @@ class Hdf5Management:
             paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
                                   part_timestep_indice)
 
+            if state:
+                state.value = 1  # process finished
+
     # EXPORT TXT
-    def export_spu_txt(self):
+    def export_spu_txt(self, state=None):
         path_txt = os.path.join(self.data_description["path_project"], "output", "text")
         if not os.path.exists(path_txt):
             print('Error: the path to the text file is not found. Text files not created \n')
@@ -2013,7 +1997,16 @@ class Hdf5Management:
                         data_here += '\n'
                         f.write(data_here)
 
-    def export_detailled_mesh_txt(self):
+            if state:
+                state.value = 1  # process finished
+
+    def export_detailled_txt(self, state=None):
+        self.export_detailled_mesh_txt()
+        self.export_detailled_point_txt()
+        if state:
+            state.value = 1  # process finished
+
+    def export_detailled_mesh_txt(self, state=None):
         """
         detailled mesh
         """
@@ -2143,7 +2136,10 @@ class Hdf5Management:
                     # write file
                     f.write(data_here)
 
-    def export_detailled_point_txt(self):
+            if state:
+                state.value = 1  # process finished
+
+    def export_detailled_point_txt(self, state=None):
         """
          detailled mesh
          """
@@ -2212,7 +2208,10 @@ class Hdf5Management:
                     # write file
                     f.write(data_here)
 
-    def export_pdf(self):
+            if state:
+                state.value = 1  # process finished
+
+    def export_pdf(self, state=None):
         """
         # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
         This functionc create a pdf with information about the fish.
@@ -2267,8 +2266,14 @@ class Hdf5Management:
 
                 # read pref
                 xmlfile = f
-                [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
-                    bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+                if hab_aquatic_animal_type_list[idx] == "fish":
+                    [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
+                        bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+                if hab_aquatic_animal_type_list[idx] == "invertebrate":
+                    # open the pref
+                    [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = \
+                        bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+
 
                 # read additionnal info
                 attributes = ['Description', 'Image', 'French_common_name',
@@ -2281,9 +2286,16 @@ class Hdf5Management:
 
                 # create figure
                 fake_value = Value("i", 0)
-                [f, axarr] = plot_mod.plot_suitability_curve(fake_value, h_all, vel_all, sub_all, code_fish, name_fish,
-                                                             stages, True, self.project_preferences,
-                                                             hab_aquatic_animal_type_list[idx])
+                if hab_aquatic_animal_type_list[idx] == "fish":
+                    [f, axarr] = plot_mod.plot_suitability_curve(fake_value,
+                                                                 h_all, vel_all, sub_all,
+                                                                 code_fish, name_fish,
+                                                                 stages, True, self.project_preferences)
+                if hab_aquatic_animal_type_list[idx] == "invertebrate":
+                    [f, axarr] = plot_mod.plot_suitability_curve_invertebrate(fake_value,
+                                                                              shear_stress_all, hem_all, hv_all,
+                                                                              code_fish, name_fish,
+                                                                              stages, True, self.project_preferences)
 
                 # modification of the orginal preference fig
                 # (0,0) is bottom left - 1 is the end of the page in x and y direction
@@ -2356,6 +2368,9 @@ class Hdf5Management:
                     plt.savefig(filename)
                 except PermissionError:
                     print('Warning: Close .pdf to update fish information')
+
+            if state:
+                state.value = 1  # process finished
 
 
 #################################################################

@@ -789,7 +789,7 @@ class BioModelInfoSelection(QScrollArea):
         project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         # do the plot
         if not hasattr(self, 'plot_process_list'):
-            self.plot_process_list = MyProcessList()
+            self.plot_process_list = MyProcessList("plot")
         state = Value("i", 0)
         if aquatic_animal_type == "fish":
             # open the pref
@@ -842,7 +842,7 @@ class BioModelInfoSelection(QScrollArea):
         if isinstance(data, np.ndarray):
             # do the plot
             if not hasattr(self, 'plot_process_list'):
-                self.plot_process_list = MyProcessList()
+                self.plot_process_list = MyProcessList("plot")
             state = Value("i", 0)
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                              args=(state,

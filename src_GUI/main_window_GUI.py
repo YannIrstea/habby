@@ -412,7 +412,7 @@ class MainWindows(QMainWindow):
         # if plot process are open, close them
         if hasattr(self.central_widget, "data_explorer_tab"):
             if hasattr(self.central_widget.data_explorer_tab.data_explorer_frame, 'plot_process_list'):
-                self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list.close_all_plot_process()
+                self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list.kill_all_process()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
@@ -2243,11 +2243,12 @@ class CentralW(QWidget):
         method to close the images opened in HABBY and managed by matplotlib
         """
         if hasattr(self, 'data_explorer_tab'):
-            if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_process_list'):
-                self.data_explorer_tab.data_explorer_frame.plot_process_list.close_all_plot_process()
+            if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
+                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'plot_process_list'):
+                    self.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list.kill_all_process()
         if hasattr(self, 'bioinfo_tab'):
             if hasattr(self.bioinfo_tab, 'plot_process_list'):
-                self.bioinfo_tab.plot_process_list.close_all_plot_process()
+                self.bioinfo_tab.plot_process_list.kill_all_process()
 
     def connect_signal_log(self):
         """
