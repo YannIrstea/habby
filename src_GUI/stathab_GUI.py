@@ -331,7 +331,7 @@ class StathabW(estimhab_GUI.StatModUseful):
 
     def fill_selected_models_listwidets(self, new_item_text_list):
         # add new item if not exist
-        for item_str in new_item_text_list:
+        for item_str in new_item_text_list["selected_aquatic_animal_list"]:
             if item_str not in self.fish_selected:
                 # add it to selected
                 self.selected_aquatic_animal_qtablewidget.addItem(item_str)
