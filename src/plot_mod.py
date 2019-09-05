@@ -111,7 +111,6 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             axarr[0].set_xlabel("Hauteur d'eau [m]")
             axarr[0].set_ylabel('Coeff. pref. ')
         axarr[0].set_ylim([0, 1.1])
-
         axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
         if project_preferences['language'] == 0:
             axarr[1].set_xlabel('Velocity [m/sec]')

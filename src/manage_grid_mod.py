@@ -31,8 +31,6 @@ from src_GUI import preferences_GUI
 from src import tools_mod
 
 
-
-
 def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1):
     """
     This function forms the link between GUI and the various grid and interpolation functions. Is called by

@@ -1232,6 +1232,7 @@ class Hdf5Management:
         hab_fish_pref_list_before = self.file_object.attrs["hab_fish_pref_list"].split(", ")
         hab_fish_shortname_list_before = self.file_object.attrs["hab_fish_shortname_list"].split(", ")
         hab_fish_stage_list_before = self.file_object.attrs["hab_fish_stage_list"].split(", ")
+        hab_aquatic_animal_type_list = self.file_object.attrs["hab_aquatic_animal_type_list"].split(", ")
 
         # get index
         fish_index_to_remove_list = []
@@ -1246,6 +1247,7 @@ class Hdf5Management:
             hab_fish_pref_list_before.pop(index)
             hab_fish_shortname_list_before.pop(index)
             hab_fish_stage_list_before.pop(index)
+            hab_aquatic_animal_type_list.pop(index)
 
         # change attributes
         self.file_object.attrs["hab_fish_number"] = str(len(hab_fish_list_before))
@@ -1253,6 +1255,7 @@ class Hdf5Management:
         self.file_object.attrs["hab_fish_pref_list"] = ", ".join(hab_fish_pref_list_before)
         self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(hab_fish_shortname_list_before)
         self.file_object.attrs["hab_fish_stage_list"] = ", ".join(hab_fish_stage_list_before)
+        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(hab_aquatic_animal_type_list)
 
         # remove data
         # load the number of reach
@@ -2244,23 +2247,6 @@ class Hdf5Management:
             plt.rcParams['figure.figsize'] = 21, 29.7  # a4
             plt.rcParams['font.size'] = 24
 
-            # get the stage chosen for each species and get rid of repetition
-            stage_chosen2 = []
-            stage_here = []
-            xmlold = 'sdfsdfs'
-            xmlfiles2 = []
-            for idx, f in enumerate(xmlfiles):
-                if xmlold != f:
-                    xmlfiles2.append(f)
-                    if stage_here:
-                        stage_chosen2.append(stage_here)
-                    stage_here = []
-                stage_here.append(stages_chosen[idx])
-                xmlold = f
-            if stage_here:
-                stage_chosen2.append(stage_here)
-            xmlfiles = xmlfiles2
-
             # create the pdf
             for idx, f in enumerate(xmlfiles):
 
@@ -2273,7 +2259,6 @@ class Hdf5Management:
                     # open the pref
                     [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = \
                         bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
-
 
                 # read additionnal info
                 attributes = ['Description', 'Image', 'French_common_name',
@@ -2288,9 +2273,9 @@ class Hdf5Management:
                 fake_value = Value("i", 0)
                 if hab_aquatic_animal_type_list[idx] == "fish":
                     [f, axarr] = plot_mod.plot_suitability_curve(fake_value,
-                                                                 h_all, vel_all, sub_all,
-                                                                 code_fish, name_fish,
-                                                                 stages, True, self.project_preferences)
+                                                             h_all, vel_all, sub_all,
+                                                             code_fish, name_fish,
+                                                             stages, True, self.project_preferences)
                 if hab_aquatic_animal_type_list[idx] == "invertebrate":
                     [f, axarr] = plot_mod.plot_suitability_curve_invertebrate(fake_value,
                                                                               shear_stress_all, hem_all, hv_all,
@@ -2341,7 +2326,7 @@ class Hdf5Management:
                                 weight='bold', fontsize=32)
                     text_all = name_fish + '\n\n' + data[0][2] \
                                + '\n\n' + code_fish + '\n\n'
-                for idx, s in enumerate(stage_chosen2[idx]):
+                for idx, s in enumerate(stages_chosen[idx]):
                     text_all += s + ', '
                 text_all = text_all[:-2] + '\n\n'
                 plt.figtext(0.4, 0.7, text_all, fontsize=32)
