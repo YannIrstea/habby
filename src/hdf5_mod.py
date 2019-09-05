@@ -2326,7 +2326,7 @@ class Hdf5Management:
                                 weight='bold', fontsize=32)
                     text_all = name_fish + '\n\n' + data[0][2] \
                                + '\n\n' + code_fish + '\n\n'
-                for idx, s in enumerate(stages_chosen[idx]):
+                for idx, s in enumerate(stages):
                     text_all += s + ', '
                 text_all = text_all[:-2] + '\n\n'
                 plt.figtext(0.4, 0.7, text_all, fontsize=32)

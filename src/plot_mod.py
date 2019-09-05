@@ -185,7 +185,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
                          hv_all[0])
     # HEM number label
     for hem_num in range(len(hem_all[0])):
-        axarr.text(hem_all[0][hem_num] + 0.5, y=0, s=str(int(hem_all[0][hem_num])), fontsize=12,
+        axarr.text(hem_all[0][hem_num] + 0.5, y=0, s=str(int(hem_all[0][hem_num])),
                    horizontalalignment='center',
                    verticalalignment='bottom')
     # shearstress stick
