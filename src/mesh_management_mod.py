@@ -17,12 +17,13 @@ https://github.com/YannIrstea/habby
 from io import StringIO
 import sys
 import os
-from src import hdf5_mod
 import time
 from copy import deepcopy
 import numpy as np
 import triangle
 import matplotlib.pyplot as plt
+from src import hdf5_mod
+from src import manage_grid_mod
 
 
 def quadrangles_to_triangles(ikle4,xy,z,h,v):
@@ -278,6 +279,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             prog = progress_value.value
             warn_inter = True
             ikle_both = []
+            max_slope_bottom_both = []
+            max_slope_energy_both = []
+            shear_stress_both = []
             point_all_both = []
             vel_all_both = []
             height_all_both = []
@@ -289,6 +293,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                 vel_by_unit = []
                 height_by_unit = []
                 ikle_all_by_unit = []
+                max_slope_bottom_all_by_unit = []
+                max_slope_energy_all_by_unit = []
+                shear_stress_all_by_unit = []
                 point_all_by_unit = []
                 point_z_all_by_unit = []
                 # for each unit
@@ -328,6 +335,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                         ikle_all_by_unit.append(ikle_before)
                         point_all_by_unit.append(point_before)
                         point_z_all_by_unit.append(point_z_before)
+                        max_slope_bottom_all_by_unit.append(hdf5_hydro.data_2d["max_slope_bottom"][reach_num][unit_num])
+                        max_slope_energy_all_by_unit.append(hdf5_hydro.data_2d["max_slope_energy"][reach_num][unit_num])
+                        shear_stress_all_by_unit.append(hdf5_hydro.data_2d["shear_stress"][reach_num][unit_num])
 
                     else:
 
@@ -347,21 +357,42 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                         # check that each triangle of the grid is clock-wise (useful for shapefile)
                         ikle_here = check_clockwise(ikle_here, point_all_here)
 
+                        # recompute hydraulic variables (bottom slope, energy slope and shearstress)
+                        max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                            xy1=point_all_here[ikle_here[:, 0]][:, [0, 1]],
+                            z1=z_values_new[ikle_here[:, 0]],
+                            h1=height_new[ikle_here[:, 0]],
+                            v1=vel_new[ikle_here[:, 0]],
+                            xy2=point_all_here[ikle_here[:, 1]][:, [0, 1]],
+                            z2=z_values_new[ikle_here[:, 1]],
+                            h2=height_new[ikle_here[:, 1]],
+                            v2=vel_new[ikle_here[:, 1]],
+                            xy3=point_all_here[ikle_here[:, 2]][:, [0, 1]],
+                            z3=z_values_new[ikle_here[:, 2]],
+                            h3=height_new[ikle_here[:, 2]],
+                            v3=vel_new[ikle_here[:, 2]])
+
                         # print('TIME NEW GRID')
                         # print(c - b)
                         sub_array_by_unit.append(new_data_sub)
                         vel_by_unit.append(vel_new)
                         height_by_unit.append(height_new)
+                        ikle_all_by_unit.append(ikle_here)
+                        point_all_by_unit.append(point_all_here)
                         point_z_all_by_unit.append(z_values_new)
-                        ikle_all_by_unit.append(np.array(ikle_here))
-                        point_all_by_unit.append(np.array(point_all_here))
+                        max_slope_bottom_all_by_unit.append(max_slope_bottom)
+                        max_slope_energy_all_by_unit.append(max_slope_energy)
+                        shear_stress_all_by_unit.append(shear_stress)
 
                 ikle_both.append(ikle_all_by_unit)
                 point_all_both.append(point_all_by_unit)
                 sub_data_all_t.append(sub_array_by_unit)
-                vel_all_both.append(vel_by_unit)
                 height_all_both.append(height_by_unit)
+                vel_all_both.append(vel_by_unit)
                 z_all_both.append(point_z_all_by_unit)
+                max_slope_bottom_both.append(max_slope_bottom_all_by_unit)
+                max_slope_energy_both.append(max_slope_energy_all_by_unit)
+                shear_stress_both.append(shear_stress_all_by_unit)
                 # progress
                 prog += delta
                 progress_value.value = int(prog)
@@ -373,6 +404,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             data_2d_merge["v"] = vel_all_both
             data_2d_merge["h"] = height_all_both
             data_2d_merge["z"] = z_all_both
+            data_2d_merge["max_slope_bottom"] = max_slope_bottom_both
+            data_2d_merge["max_slope_energy"] = max_slope_energy_both
+            data_2d_merge["shear_stress"] = shear_stress_both
 
     return data_2d_merge, data_2d_whole_merge, merge_description
 
@@ -1206,6 +1240,11 @@ def create_merge_grid(ikle, coord_p, data_sub, vel, height, point_z, ikle_sub,
         del ikle[d]
 
     data_sub_ok = np.delete(data_sub_ok, to_delete, axis=0)
+
+    coord_p = np.array(coord_p)
+    z_values = np.array(z_values)
+    vel = np.array(vel)
+    height = np.array(height)
 
     return ikle, coord_p, data_sub_ok, vel, height, z_values
 
