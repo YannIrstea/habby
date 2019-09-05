@@ -333,6 +333,9 @@ def isstranumber(a):
 
 def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
     indice_sorted = [dict_to_sort[key].index(x) for x in sorted(dict_to_sort[key])]
+    if list(set(indice_sorted)) == [0]:
+        indice_sorted = list(range(len(indice_sorted)))
+
     for key in dict_to_sort.keys():
         key_list = []
         for ind_num, ind_ind in enumerate(indice_sorted):

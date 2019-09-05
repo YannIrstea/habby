@@ -425,15 +425,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         hydraulic_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
         default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+
         # change color if default choosen
         if new_hyd_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
-            #self.sender().setAutoFillBackground(True)
-            #pal = self.sender().palette()
-            #pal.setColor(QPalette.Button, QColor(self.default_color))
-            #self.sender().setPalette(pal)
         else:
             self.sender().setStyleSheet(self.combobox_style_user)
+
+        # change selected_aquatic_animal_dict
+        self.selected_aquatic_animal_dict["hydraulic_mode_list"][model_index] = new_hyd_mode_index
+
         # check if exist
         self.check_if_model_exist_in_hab(model_index)
 
@@ -496,6 +497,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.sender().setStyleSheet(self.combobox_style_default)
         else:
             self.sender().setStyleSheet(self.combobox_style_user)
+
+        # change selected_aquatic_animal_dict
+        self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
+
         # check if exist
         self.check_if_model_exist_in_hab(model_index)
 
@@ -587,10 +592,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
                 if choosen_index == default_choice_index:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_default)
-                    # pal = item_combobox_hyd.palette()
-                    # pal.setColor(QPalette.Button, QColor(Qt.green))
-                    # pal.setColor(QPalette.Button, QColor(Qt.green))
-                    # item_combobox_hyd.setPalette(pal)
                 else:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_user)
                 item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
@@ -706,7 +707,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.current_hab_informations_dict = required_dict
 
     def remove_duplicates(self):
-        index_to_keep = [idx for idx, item in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]) if item not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"][:idx]]
+        # get full name
+        full_names = []
+        for idx, model in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
+            full_name = model + "_" + str(self.selected_aquatic_animal_dict["hydraulic_mode_list"][idx]) + "_" + str(self.selected_aquatic_animal_dict["substrate_mode_list"][idx])
+            full_names.append(full_name)
+
+        index_to_keep = [idx for idx, item in enumerate(full_names) if item not in full_names[:idx]]
         self.selected_aquatic_animal_dict["selected_aquatic_animal_list"] = [self.selected_aquatic_animal_dict["selected_aquatic_animal_list"][i] for i in index_to_keep]
         self.selected_aquatic_animal_dict["hydraulic_mode_list"] = [self.selected_aquatic_animal_dict["hydraulic_mode_list"][i] for i in index_to_keep]
         self.selected_aquatic_animal_dict["substrate_mode_list"] = [self.selected_aquatic_animal_dict["substrate_mode_list"][i] for i in index_to_keep]
@@ -818,10 +825,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # remove duplicate
-        full_name_fish = self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]
-        if len(full_name_fish) != len(set(full_name_fish)):
-            self.send_log.emit('Warning: The list of selected models has duplicates, these have been deleted before the calculation.')
-        self.selected_aquatic_animal_dict["selected_aquatic_animal_list"] = list(set(full_name_fish))
+        self.remove_duplicates()
 
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
