@@ -173,7 +173,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
         aquatic_animal_type_select = aquatic_animal_type[idx]
         # load bio data
         [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name, aquatic_animal_type_select)
-
+        information_model_dict = bio_info_mod.get_biomodels_informations_for_database(bio_name)
         # hyd opt
         hyd_opt = run_choice["hyd_opt"][idx]
         # sub opt
@@ -209,7 +209,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 # compute
                 vh_all_t, spu_all_t, area_c_all_t, progress_value = \
                     calc_hab_norm(data_2d, data_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt,
-                                  progress_value, delta, aquatic_animal_type_select)
+                                  information_model_dict["substrate_type"][idx2], progress_value, delta, aquatic_animal_type_select)
 
                 # append data
                 vh_all_t_sp.append(vh_all_t)
@@ -222,7 +222,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     return vh_all_t_sp, spu_all_t_sp, area_c_all_t
 
 
-def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, progress_value, delta, aquatic_animal_type_select="fish", take_sub=True):
+def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, model_sub_classification_method, progress_value, delta, aquatic_animal_type_select="fish"):
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
     all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
@@ -284,7 +284,7 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 spu_reach = -99
                 area = [-99]
             else:
-                # get area (based on Heron's formula)
+                # get area
                 pa = point_t[ikle_t[:, 0], :]
                 pb = point_t[ikle_t[:, 1], :]
                 pc = point_t[ikle_t[:, 2], :]
@@ -354,6 +354,7 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                         s_pref_c = np.array([1] * len(sub_t))
                     else:
                         # convert classification code sandre to cemagref
+                        # TODO: no input data conversion if pref curve is sandre or antoher
                         if hab_description["sub_classification_code"] == "Sandre":
                             if hab_description["sub_classification_method"] == "percentage":
                                 sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
@@ -381,16 +382,12 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                                 s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
                             elif hab_description["sub_classification_method"] == "coarser-dominant":
                                 s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
-                        # percentage
+                        # Percentage
                         else:
-                            for st in range(0, 8):
-                                s0 = s[:, st]
-                                sthere = np.zeros((len(s0),)) + st + 1
-                                s_pref_st = find_pref_value(sthere, pref_sub)
-                                if st == 0:
-                                    s_pref_c = s_pref_st * s0 / 100
-                                else:
-                                    s_pref_c += s0 / 100 * s_pref_st
+                            if model_sub_classification_method == "Dominant":  # dominant curve
+                                s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                            if model_sub_classification_method == "Dominant":  # dominant curve
+                                s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
 
                     """ compute habitat value """
                     try:

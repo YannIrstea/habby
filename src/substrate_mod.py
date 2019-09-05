@@ -771,12 +771,14 @@ def sandre_to_cemagref_by_percentage(record_sandre):
     record_cemagref = [0, 0, 0, 0, 0, 0, 0, 0]  # cemagref
     record_cemagref[0] = record_sandre[0]
     record_cemagref[1] = record_sandre[1]
-    record_cemagref[2] = (record_sandre[2] + record_sandre[3]) * 0.5
-    record_cemagref[3] = (record_sandre[4] + record_sandre[5]) * 0.5
-    record_cemagref[4] = (record_sandre[6] + record_sandre[7]) * 0.5
-    record_cemagref[5] = (record_sandre[8] + record_sandre[9]) * 0.5
+    record_cemagref[2] = record_sandre[2] + record_sandre[3]
+    record_cemagref[3] = record_sandre[4] + record_sandre[5]
+    record_cemagref[4] = record_sandre[6] + record_sandre[7]
+    record_cemagref[5] = record_sandre[8] + record_sandre[9]
     record_cemagref[6] = record_sandre[10]
     record_cemagref[7] = record_sandre[11]
+    if sum(record_cemagref) != 100:
+        print("error sandre_to_cemagref_by_percentage, sum =", sum(record_cemagref), "(!= 100)")
     return record_cemagref
 
 
