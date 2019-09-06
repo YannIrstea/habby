@@ -537,24 +537,19 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # total_item
         total_item = len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])
 
-        # clear selected_aquatic_animal_qtablewidget
+        # clear
         self.selected_aquatic_animal_qtablewidget.clear()
-        self.selected_aquatic_animal_qtablewidget.setRowCount(total_item)
-
-        # clear sub_mode_qtablewidget
         self.hyd_mode_qtablewidget.clear()
-        self.hyd_mode_qtablewidget.setRowCount(total_item)
-
-        # clear sub_mode_qtablewidget
         self.sub_mode_qtablewidget.clear()
-        self.sub_mode_qtablewidget.setRowCount(total_item)
-
-        # clear presence
         self.presence_qtablewidget.clear()
-        self.presence_qtablewidget.setRowCount(total_item)
 
         # if .hab :
         if self.current_hab_informations_dict:
+            self.selected_aquatic_animal_qtablewidget.setRowCount(total_item)
+            self.hyd_mode_qtablewidget.setRowCount(total_item)
+            self.sub_mode_qtablewidget.setRowCount(total_item)
+            self.presence_qtablewidget.setRowCount(total_item)
+
             # block HEM
             if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
@@ -720,35 +715,37 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.fill_selected_models_listwidets([])
 
     def save_selected_aquatic_animal_list_calc_hab(self):
-        # get hydraulic and substrate mode
-        hydraulic_mode_list = []
-        substrate_mode_list = []
-        for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
-            # get combobox
-            combobox_hyd = self.hyd_mode_qtablewidget.cellWidget(index, 0)
-            hydraulic_mode_list.append(combobox_hyd.currentIndex())
-            combobox_sub = self.sub_mode_qtablewidget.cellWidget(index, 0)
-            substrate_mode_list.append(combobox_sub.currentIndex())
+        # if .hab :
+        if self.current_hab_informations_dict:
+            # get hydraulic and substrate mode
+            hydraulic_mode_list = []
+            substrate_mode_list = []
+            for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
+                # get combobox
+                combobox_hyd = self.hyd_mode_qtablewidget.cellWidget(index, 0)
+                hydraulic_mode_list.append(combobox_hyd.currentIndex())
+                combobox_sub = self.sub_mode_qtablewidget.cellWidget(index, 0)
+                substrate_mode_list.append(combobox_sub.currentIndex())
 
-        # cnvert to dict
-        selected_aquatic_animal_list_calc_hab = dict(selected_aquatic_animal_list=self.selected_aquatic_animal_dict["selected_aquatic_animal_list"],
-                                                     hydraulic_mode_list=hydraulic_mode_list,
-                                                     substrate_mode_list=substrate_mode_list,
-                                                     general_hyd_sub_combobox_index=[self.general_option_hyd_combobox.currentIndex(),
-                                                                                     self.general_option_sub_combobox.currentIndex()])
+            # cnvert to dict
+            selected_aquatic_animal_list_calc_hab = dict(selected_aquatic_animal_list=self.selected_aquatic_animal_dict["selected_aquatic_animal_list"],
+                                                         hydraulic_mode_list=hydraulic_mode_list,
+                                                         substrate_mode_list=substrate_mode_list,
+                                                         general_hyd_sub_combobox_index=[self.general_option_hyd_combobox.currentIndex(),
+                                                                                         self.general_option_sub_combobox.currentIndex()])
 
-        # save in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        doc = ET.parse(fname)
-        root = doc.getroot()
-        # geo data
-        child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
-        if child1 is None:
-            child1 = ET.SubElement(root, 'selected_aquatic_animal_list_calc_hab')
-            child1.text = str(selected_aquatic_animal_list_calc_hab)
-        else:
-            child1.text = str(selected_aquatic_animal_list_calc_hab)
-        doc.write(fname)
+            # save in xml project
+            fname = os.path.join(self.path_prj, self.name_prj + '.habby')
+            doc = ET.parse(fname)
+            root = doc.getroot()
+            # geo data
+            child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
+            if child1 is None:
+                child1 = ET.SubElement(root, 'selected_aquatic_animal_list_calc_hab')
+                child1.text = str(selected_aquatic_animal_list_calc_hab)
+            else:
+                child1.text = str(selected_aquatic_animal_list_calc_hab)
+            doc.write(fname)
 
     def update_merge_list(self):
         """
