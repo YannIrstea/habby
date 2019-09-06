@@ -1950,8 +1950,8 @@ class MainWindows(QMainWindow):
                                                               " The files produced by this process can be damaged.")
                                 # hide button
                                 self.kill_process.setVisible(False)
-            # hide button
-            self.kill_process.setVisible(False)
+        # hide button
+        self.kill_process.setVisible(False)
         if isalive:
             return alive
 

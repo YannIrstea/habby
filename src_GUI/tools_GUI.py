@@ -256,7 +256,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         :param checker:
         :return:
         """
-        print("Disable and clean widgets.", disable)
+        #print("Disable and clean widgets.", disable)
         # available
         self.unit_min_qlabel.setText("")
         self.unit_max_qlabel.setText("")

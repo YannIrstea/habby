@@ -996,6 +996,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # enable the button to call this functin directly again
             self.timer.stop()
 
+            # give the possibility of sending a new simulation
+            self.runhab.setDisabled(False)
+            self.nativeParentWidget().kill_process.setVisible(False)
+
             # put the timer back to zero
             self.running_time = 0
             self.send_log.emit("clear status bar")
