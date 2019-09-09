@@ -128,7 +128,7 @@ def main():
             ex = main_window_GUI.MainWindows()
         if len(sys.argv) == 2:
             project_path = sys.argv[1]
-            if os.path.exists(project_path) and project_path.split(".")[-1] == ".habby":
+            if os.path.exists(project_path) and project_path.split(".")[-1] == "habby":
                 ex = main_window_GUI.MainWindows(project_path)
             else:
                 return
@@ -202,7 +202,6 @@ def main():
 
         # create an empty project if not existing before
         filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.habby'))
-
         if not os.path.isdir(path_prj):
             os.makedirs(path_prj)
         if not os.path.isfile(os.path.join(path_prj, name_prj + '.habby')):

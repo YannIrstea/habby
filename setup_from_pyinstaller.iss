@@ -27,6 +27,7 @@ OutputDir=C:\habby\build\pyinstaller
 OutputBaseFilename=habby_setup
 Compression=lzma
 SolidCompression=yes
+ChangesAssociations = yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -42,12 +43,14 @@ Source: "C:\habby\build\pyinstaller\habby\*"; DestDir: "{app}"; Flags: ignorever
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\translation\habby_icon.ico"
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\translation\habby_icon.ico"; Tasks: desktopicon
 
 [Registry]
-Root: HKCU; SubKey: SOFTWARE\irstea\HABBY; Flags: uninsdeletekey
-Root: HKLM; SubKey: SOFTWARE\irstea\HABBY; Flags: uninsdeletekey
+Root: HKCR; Subkey: ".habby";                             ValueData: "{#MyAppName}";          Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "{#MyAppName}";                     ValueData: "Program {#MyAppName}";  Flags: uninsdeletekey;   ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "{#MyAppName}\DefaultIcon";             ValueData: "{app}\translation\habby_icon.ico";               ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "{#MyAppName}\shell\open\command";  ValueData: """{app}\{#MyAppExeName}"" ""%1""";  ValueType: string;  ValueName: ""
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
