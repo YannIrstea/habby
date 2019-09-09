@@ -470,6 +470,9 @@ def get_biomodels_informations_for_database(path_xml):
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
         return
 
+    # ModelType
+    ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
+
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
     # if "[" in stage_and_size[0]:
@@ -479,38 +482,44 @@ def get_biomodels_informations_for_database(path_xml):
     hydraulic_type = []
     hydraulic_type_available = []
     for index_stage, stage in enumerate(root.findall(".//Stage")):
-        hydraulic_type.append([])
-        hydraulic_type_available.append([])
-        height_presence = False
-        velocity_presence = False
-        shear_presence = False
-        if stage.findall(".//HeightOfWaterValues"):
-            height_presence = True
-        if stage.findall(".//VelocityValues"):
-            velocity_presence = True
-        if stage.findall(".//PreferenceShearStress"):
-            shear_presence = True
-        # compile infor
-        if height_presence and velocity_presence:
+        if ModelType != 'bivariate suitability index models':
+            hydraulic_type.append([])
+            hydraulic_type_available.append([])
+            height_presence = False
+            velocity_presence = False
+            shear_presence = False
+            if stage.findall(".//HeightOfWaterValues"):
+                height_presence = True
+            if stage.findall(".//VelocityValues"):
+                velocity_presence = True
+            if stage.findall(".//PreferenceShearStress"):
+                shear_presence = True
+            # compile infor
+            if height_presence and velocity_presence:
+                hydraulic_type[index_stage] = "HV"
+            if height_presence and not velocity_presence:
+                hydraulic_type[index_stage] = "H"
+            if not height_presence and velocity_presence:
+                hydraulic_type[index_stage] = "V"
+            if shear_presence:
+                hydraulic_type[index_stage] = "HEM"
+            if not height_presence and not velocity_presence and not shear_presence:
+                hydraulic_type[index_stage] = "Neglect"
+            # available
+            if height_presence and velocity_presence:
+                hydraulic_type_available[index_stage].append("HV")
+            if height_presence:
+                hydraulic_type_available[index_stage].append("H")
+            if velocity_presence:
+                hydraulic_type_available[index_stage].append("V")
+            if shear_presence:
+                hydraulic_type_available[index_stage].append("HEM")
+            hydraulic_type_available[index_stage].append("Neglect")
+        else:
+            hydraulic_type.append([])
             hydraulic_type[index_stage] = "HV"
-        if height_presence and not velocity_presence:
-            hydraulic_type[index_stage] = "H"
-        if not height_presence and velocity_presence:
-            hydraulic_type[index_stage] = "V"
-        if shear_presence:
-            hydraulic_type[index_stage] = "HEM"
-        if not height_presence and not velocity_presence and not shear_presence:
-            hydraulic_type[index_stage] = "Neglect"
-        # available
-        if height_presence and velocity_presence:
+            hydraulic_type_available.append([])
             hydraulic_type_available[index_stage].append("HV")
-        if height_presence:
-            hydraulic_type_available[index_stage].append("H")
-        if velocity_presence:
-            hydraulic_type_available[index_stage].append("V")
-        if shear_presence:
-            hydraulic_type_available[index_stage].append("HEM")
-        hydraulic_type_available[index_stage].append("Neglect")
 
     # substrate
     substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
@@ -523,8 +532,6 @@ def get_biomodels_informations_for_database(path_xml):
                                'Dominant',
                                'Percentage',
                                'Neglect']] * len(stage_and_size)
-    # ModelType
-    ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
 
     # LatinName
     if guild == "@guild":
@@ -929,66 +936,84 @@ def read_pref(xmlfile, aquatic_animal_type="fish"):
     if name_fish is not None:
         name_fish = name_fish.text.strip()
 
+    # ModelType
+    ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
+
     # fish case
     if aquatic_animal_type == "fish":
         # velocity
         vel_all = []
-        pref_vel = root.findall(".//PreferenceVelocity")
-        for pref_vel_i in pref_vel:
-            vel = [[], []]
-            vel[0] = list(map(float, pref_vel_i.getchildren()[0].text.split(" ")))
-            vel[1] = list(map(float, pref_vel_i.getchildren()[1].text.split(" ")))
-            if not vel[0]:
-                print('Error: Velocity data was not found \n')
-                return failload
+        if ModelType != 'bivariate suitability index models':
+            pref_vel = root.findall(".//PreferenceVelocity")
+            for pref_vel_i in pref_vel:
+                vel = [[], []]
+                vel[0] = list(map(float, pref_vel_i.getchildren()[0].text.split(" ")))
+                vel[1] = list(map(float, pref_vel_i.getchildren()[1].text.split(" ")))
+                if not vel[0]:
+                    print('Error: Velocity data was not found \n')
+                    return failload
 
-            # check increasing velocity
-            if vel[0] != sorted(vel[0]):
-                print('Error: Velocity data is not sorted for the xml file '
-                      + xml_name + '.\n')
-                return failload
+                # check increasing velocity
+                if vel[0] != sorted(vel[0]):
+                    print('Error: Velocity data is not sorted for the xml file '
+                          + xml_name + '.\n')
+                    return failload
 
-            # manage units
-            vel = change_unit(vel, pref_vel_i.getchildren()[0].attrib["Unit"])
-            vel_all.append(vel)
+                # manage units
+                vel = change_unit(vel, pref_vel_i.getchildren()[0].attrib["Unit"])
+                vel_all.append(vel)
+        else:
+            pref_vel = root.findall(".//VelocityValues")
+            for pref_vel_i in pref_vel:
+                vel_all.append(list(map(float, pref_vel_i.text.split(" "))))
 
         # height
         h_all = []
-        pref_hei = root.findall(".//PreferenceHeightOfWater")
-        for pref_hei_i in pref_hei:
-            height = [[], []]
-            height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
-            height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
+        if ModelType != 'bivariate suitability index models':
+            pref_hei = root.findall(".//PreferenceHeightOfWater")
+            for pref_hei_i in pref_hei:
+                height = [[], []]
+                height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
+                height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
 
-            if not height[0]:
-                print('Error: Height data was not found \n')
-                return failload
+                if not height[0]:
+                    print('Error: Height data was not found \n')
+                    return failload
 
-            # check increasing velocity
-            if height[0] != sorted(height[0]):
-                print('Error: Height data is not sorted for the xml file '
-                      + xml_name + '.\n')
-                return failload
-            # manage units
-            height = change_unit(height,  pref_hei_i.getchildren()[0].attrib["Unit"])
-            h_all.append(height)
+                # check increasing velocity
+                if height[0] != sorted(height[0]):
+                    print('Error: Height data is not sorted for the xml file '
+                          + xml_name + '.\n')
+                    return failload
+                # manage units
+                height = change_unit(height,  pref_hei_i.getchildren()[0].attrib["Unit"])
+                h_all.append(height)
+        else:
+            pref_hei = root.findall(".//HeightOfWaterValues")
+            for pref_hei_i in pref_hei:
+                h_all.append(list(map(float, pref_hei_i.text.split(" "))))
 
         # substrate
         sub_all = []
-        pref_sub = root.findall(".//PreferenceSubstrate")
-        if pref_sub:
-            for pref_sub_i in pref_sub:
-                sub = [[], []]
-                sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
-                sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
-                sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
-                if not sub[0]:
-                    # case without substrate
-                    sub = [[0, 1], [1, 1]]
-                sub_all.append(sub)
+        if ModelType != 'bivariate suitability index models':
+            pref_sub = root.findall(".//PreferenceSubstrate")
+            if pref_sub:
+                for pref_sub_i in pref_sub:
+                    sub = [[], []]
+                    sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
+                    sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
+                    sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
+                    if not sub[0]:
+                        # case without substrate
+                        sub = [[0, 1], [1, 1]]
+                    sub_all.append(sub)
+            else:
+                for i in range(len(stages)):
+                    sub_all.append([[0, 1], [1, 1]])
         else:
-            for i in range(len(stages)):
-                sub_all.append([[0, 1], [1, 1]])
+            pref_sub = root.findall(".//PreferenceValues")
+            for pref_sub_i in pref_sub:
+                sub_all.append(list(map(float, pref_sub_i.text.split(" "))))
 
     # fish case
     if aquatic_animal_type == "invertebrate":

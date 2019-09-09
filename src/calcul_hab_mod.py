@@ -25,7 +25,7 @@ import matplotlib as mpl
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from time import time
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, interp2d, griddata, SmoothBivariateSpline, NearestNDInterpolator
 
 from src_GUI import preferences_GUI
 from src import hdf5_mod
@@ -172,8 +172,8 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     for idx, bio_name in enumerate(xmlfile):
         aquatic_animal_type_select = aquatic_animal_type[idx]
         # load bio data
-        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name, aquatic_animal_type_select)
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(bio_name)
+        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name, aquatic_animal_type_select)
         # hyd opt
         hyd_opt = run_choice["hyd_opt"][idx]
         # sub opt
@@ -193,12 +193,14 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                     pref_sub = np.array(pref_sub[idx2])
 
                     # if the last value ends in 0 then change the corresponding value to x at 100 m
-                    if pref_height[1][-1] == 0:
-                        print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
-                        pref_height[0][-1] = 100
-                    if pref_vel[1][-1] == 0:
-                        print(f"Warning: Last x velocity value set to 100m/s : {name_fish} {stade_bio}")
-                        pref_vel[0][-1] = 100
+                    if information_model_dict["ModelType"] != 'bivariate suitability index models':
+                        if pref_height[1][-1] == 0:
+                            print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
+                            pref_height[0][-1] = 100
+                        if pref_vel[1][-1] == 0:
+                            print(f"Warning: Last x velocity value set to 100m/s : {name_fish} {stade_bio}")
+                            pref_vel[0][-1] = 100
+
                 # invertebrate case
                 elif aquatic_animal_type_select == "invertebrate":
                     pref_height = pref_height[idx2]
@@ -209,7 +211,8 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 # compute
                 vh_all_t, spu_all_t, area_c_all_t, progress_value = \
                     calc_hab_norm(data_2d, data_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt,
-                                  information_model_dict["substrate_type"][idx2], progress_value, delta, aquatic_animal_type_select)
+                                  information_model_dict["substrate_type"][idx2], information_model_dict["ModelType"],
+                                  progress_value, delta, aquatic_animal_type_select)
 
                 # append data
                 vh_all_t_sp.append(vh_all_t)
@@ -222,7 +225,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     return vh_all_t_sp, spu_all_t_sp, area_c_all_t
 
 
-def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, model_sub_classification_method, progress_value, delta, aquatic_animal_type_select="fish"):
+def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pref_sub, hyd_opt, sub_opt, model_sub_classification_method, model_type, progress_value, delta, aquatic_animal_type_select="fish"):
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
     all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
@@ -303,109 +306,179 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 area = 0.5 * abs(
                     (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
 
-                # HEM
-                if aquatic_animal_type_select == "invertebrate":
-                    """ HEM pref """
-                    # get pref x and y
-                    pref_shearstress = pref_height
-                    pref_values = pref_sub[0]
-                    # nterp1d(...... kind='previous') for values <0.0771
-                    pref_shearstress = [0.0] + pref_shearstress
-                    pref_values = pref_values + [pref_values[-1]]
-                    # check range suitability VS range input data
-                    if max(pref_shearstress) < np.nanmax(shear_stress_t):
-                        warning_range_list.append(unit_num)
-                    # hem_interp_function
-                    hem_interp_f = interp1d(pref_shearstress, pref_values,
-                                            kind='previous', bounds_error=False, fill_value=np.nan)
-                    with np.errstate(divide='ignore', invalid='ignore'):
-                        vh = hem_interp_f(shear_stress_t.flatten())
-                    if any(np.isnan(shear_stress_t)):
-                        warning_shearstress_list.append(unit_num)
-
-                # fish case
-                if aquatic_animal_type_select == "fish":
-                    """ hydraulic pref """
-                    # get H pref value
-                    if hyd_opt in ["HV", "H"]:
-                        h1 = height_t[ikle_t[:, 0]]
-                        h2 = height_t[ikle_t[:, 1]]
-                        h3 = height_t[ikle_t[:, 2]]
-                        h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+                # uni
+                if model_type != 'bivariate suitability index models':
+                    # HEM
+                    if aquatic_animal_type_select == "invertebrate":
+                        """ HEM pref """
+                        # get pref x and y
+                        pref_shearstress = pref_height
+                        pref_values = pref_sub[0]
+                        # nterp1d(...... kind='previous') for values <0.0771
+                        pref_shearstress = [0.0] + pref_shearstress
+                        pref_values = pref_values + [pref_values[-1]]
                         # check range suitability VS range input data
-                        if max(pref_height[0]) < h_cell.max():
+                        if max(pref_shearstress) < np.nanmax(shear_stress_t):
                             warning_range_list.append(unit_num)
-                        h_pref_c = np.interp(h_cell, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
+                        # hem_interp_function
+                        hem_interp_f = interp1d(pref_shearstress, pref_values,
+                                                kind='previous', bounds_error=False, fill_value=np.nan)
+                        with np.errstate(divide='ignore', invalid='ignore'):
+                            vh = hem_interp_f(shear_stress_t.flatten())
+                        if any(np.isnan(shear_stress_t)):
+                            warning_shearstress_list.append(unit_num)
 
-                    # get V pref value
-                    if hyd_opt in ["HV", "V"]:
-                        v1 = vel_t[ikle_t[:, 0]]
-                        v2 = vel_t[ikle_t[:, 1]]
-                        v3 = vel_t[ikle_t[:, 2]]
-                        v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-                        # check range suitability VS range input data
-                        if max(pref_vel[0]) < v_cell.max():
-                            warning_range_list.append(unit_num)
-                        v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
+                    # fish case
+                    if aquatic_animal_type_select == "fish":
+                        """ hydraulic pref """
+                        # get H pref value
+                        if hyd_opt in ["HV", "H"]:
+                            h1 = height_t[ikle_t[:, 0]]
+                            h2 = height_t[ikle_t[:, 1]]
+                            h3 = height_t[ikle_t[:, 2]]
+                            h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+                            if max(pref_height[0]) < h_cell.max():  # check range suitability VS range input data
+                                warning_range_list.append(unit_num)
+                            h_pref_c = np.interp(h_cell, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
 
-                    """ substrate pref """
-                    # Neglect
-                    if sub_opt == "Neglect":
-                        s_pref_c = np.array([1] * len(sub_t))
-                    else:
-                        # convert classification code sandre to cemagref
-                        # TODO: no input data conversion if pref curve is sandre or antoher
-                        if hab_description["sub_classification_code"] == "Sandre":
-                            if hab_description["sub_classification_method"] == "percentage":
-                                sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
-                            else:
-                                sub_t = sandre_to_cemagref_array(sub_t)
-                        # Coarser-Dominant
-                        if sub_opt == "Coarser-Dominant":
-                            if hab_description["sub_classification_method"] == "percentage":
-                                s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
-                                s_pref_c_dom = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
-                                s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                            elif hab_description["sub_classification_method"] == "coarser-dominant":
-                                s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
-                                s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
-                                s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                        # Coarser
-                        elif sub_opt == "Coarser":
-                            if hab_description["sub_classification_method"] == "percentage":
-                                s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
-                            elif hab_description["sub_classification_method"] == "coarser-dominant":
-                                s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
-                        # Dominant
-                        elif sub_opt == "Dominant":
-                            if hab_description["sub_classification_method"] == "percentage":
-                                s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
-                            elif hab_description["sub_classification_method"] == "coarser-dominant":
-                                s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
-                        # Percentage
-                        else:
-                            if model_sub_classification_method == "Dominant":  # dominant curve
-                                s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
-                            if model_sub_classification_method == "Dominant":  # dominant curve
-                                s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                        # get V pref value
+                        if hyd_opt in ["HV", "V"]:
+                            v1 = vel_t[ikle_t[:, 0]]
+                            v2 = vel_t[ikle_t[:, 1]]
+                            v3 = vel_t[ikle_t[:, 2]]
+                            v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+                            if max(pref_vel[0]) < v_cell.max():  # check range suitability VS range input data
+                                warning_range_list.append(unit_num)
+                            v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
 
-                    """ compute habitat value """
-                    try:
-                        # HV
-                        if "H" in hyd_opt and "V" in hyd_opt:
-                            vh = h_pref_c * v_pref_c * s_pref_c
-                        # H
-                        elif "H" in hyd_opt:
-                            vh = h_pref_c * s_pref_c
-                        # V
-                        elif "V" in hyd_opt:
-                            vh = v_pref_c * s_pref_c
+                        """ substrate pref """
                         # Neglect
+                        if sub_opt == "Neglect":
+                            s_pref_c = np.array([1] * len(sub_t))
                         else:
-                            vh = s_pref_c
-                    except ValueError:
-                        print('Error: One time step misses substrate, velocity or water height value \n')
-                        vh = [-99]
+                            # convert classification code sandre to cemagref
+                            # TODO: no input data conversion if pref curve is sandre or antoher
+                            if hab_description["sub_classification_code"] == "Sandre":
+                                if hab_description["sub_classification_method"] == "percentage":
+                                    sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
+                                else:
+                                    sub_t = sandre_to_cemagref_array(sub_t)
+                            # Coarser-Dominant
+                            if sub_opt == "Coarser-Dominant":
+                                if hab_description["sub_classification_method"] == "percentage":
+                                    s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                                    s_pref_c_dom = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                                elif hab_description["sub_classification_method"] == "coarser-dominant":
+                                    s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
+                                    s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
+                                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                            # Coarser
+                            elif sub_opt == "Coarser":
+                                if hab_description["sub_classification_method"] == "percentage":
+                                    s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+                                elif hab_description["sub_classification_method"] == "coarser-dominant":
+                                    s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
+                            # Dominant
+                            elif sub_opt == "Dominant":
+                                if hab_description["sub_classification_method"] == "percentage":
+                                    s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                                elif hab_description["sub_classification_method"] == "coarser-dominant":
+                                    s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
+                            # Percentage
+                            else:
+                                if model_sub_classification_method == "Dominant":  # dominant curve
+                                    s_pref_c = pref_substrate_dominant_from_percentage_description(pref_sub[1], sub_t)
+                                if model_sub_classification_method == "Dominant":  # dominant curve
+                                    s_pref_c = pref_substrate_coarser_from_percentage_description(pref_sub[1], sub_t)
+
+                        """ compute habitat value """
+                        try:
+                            # HV
+                            if "H" in hyd_opt and "V" in hyd_opt:
+                                vh = h_pref_c * v_pref_c * s_pref_c
+                            # H
+                            elif "H" in hyd_opt:
+                                vh = h_pref_c * s_pref_c
+                            # V
+                            elif "V" in hyd_opt:
+                                vh = v_pref_c * s_pref_c
+                            # Neglect
+                            else:
+                                vh = s_pref_c
+                        except ValueError:
+                            print('Error: One time step misses substrate, velocity or water height value \n')
+                            vh = [-99]
+
+                # bivariate suitability index models
+                else:
+                    # height data
+                    h1 = height_t[ikle_t[:, 0]]
+                    h2 = height_t[ikle_t[:, 1]]
+                    h3 = height_t[ikle_t[:, 2]]
+                    h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+                    if max(pref_height) < h_cell.max():  # check range suitability VS range input data
+                        warning_range_list.append(unit_num)
+                    # velocity data
+                    v1 = vel_t[ikle_t[:, 0]]
+                    v2 = vel_t[ikle_t[:, 1]]
+                    v3 = vel_t[ikle_t[:, 2]]
+                    v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+                    if max(pref_vel) < v_cell.max():  # check range suitability VS range input data
+                        warning_range_list.append(unit_num)
+
+                    # prep data
+                    pref_vel = np.array(pref_vel)
+                    pref_height = np.array(pref_height)
+                    pref_values_reshaped = np.array(pref_sub).reshape((len(pref_height), len(pref_vel)))
+
+                    XYZ_list = []
+                    for column in range(len(pref_vel) - 1):
+                        print("column", column)
+                        for row in range(len(pref_height) - 1):
+                            print("row", row)
+                            XYZ_list.append((pref_vel[column], pref_height[row], pref_values_reshaped[row][column]))
+
+
+
+
+                    # # # prep model
+                    X, Y = np.meshgrid(pref_vel, pref_height)
+                    #
+                    # # interp2d
+                    # model_funtion = interp2d(pref_vel, pref_height, Z)
+                    # #vh = model_funtion(h_cell, v_cell)[0, :]  # zigzag intersection du merge bizard...
+                    # vh = model_funtion(v_cell, h_cell) #
+                    # print(vh)
+
+
+
+                    pref_here = bilinear_interpolation(v_cell[0], h_cell[0], XYZ_list)
+
+                    # fast_interp_irregular_grid_to_regular(v_cell,
+                    #                                       h_cell,
+                    #                                       pref_vel,
+                    #                                       pref_height,
+                    #                                       Z)
+                    #
+                    # # plot
+                    # f, axarr = plt.subplots(1,1, sharey='row')
+                    # f.canvas.set_window_title("test")
+                    # plt.suptitle("test")
+                    # meshcolor = axarr.pcolormesh(X, Y, Z)
+                    # axarr.set_ylabel('Water height [m]')
+                    # axarr.set_xlabel('Water velocity [m/s]')
+                    # axarr.set_ylim([0, 1.1])
+                    # axarr.plot(h_cell[0], v_cell[0], ".")
+                    # plt.colorbar(meshcolor)
+                    # plt.show()
+
+                    # export
+                    # Z_export = np.array(list(reversed(Z)))
+                    # np.savetxt(r"C:\Users\quentin.royer\Documents\TAF\TEST_HABBY\MODEL BIVARIE\bivSIC2.txt",
+                    #         Z_export)
+                    # np.savetxt(r"C:\Users\quentin.royer\Documents\TAF\TEST_HABBY\MODEL BIVARIE\pref_height.txt",
+                    #         pref_height)
 
                 spu_reach = np.nansum(vh * area)
 
@@ -1536,3 +1609,26 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, project_preferences,
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
+
+def bilinear_interpolation(x, y, points):
+    '''Interpolate (x,y) from values associated with four points.
+
+    The four points are a list of four triplets:  (x, y, value).
+    The four points can be in any order.  They should form a rectangle.
+
+    '''
+    # See formula at:  http://en.wikipedia.org/wiki/Bilinear_interpolation
+
+    points = sorted(points)               # order points by x, then by y
+    (x1, y1, q11), (_x1, y2, q12), (x2, _y1, q21), (_x2, _y2, q22) = points
+
+    if x1 != _x1 or x2 != _x2 or y1 != _y1 or y2 != _y2:
+        raise ValueError('points do not form a rectangle')
+    if not x1 <= x <= x2 or not y1 <= y <= y2:
+        raise ValueError('(x, y) not within the rectangle')
+
+    return (q11 * (x2 - x) * (y2 - y) +
+            q21 * (x - x1) * (y2 - y) +
+            q12 * (x2 - x) * (y - y1) +
+            q22 * (x - x1) * (y - y1)
+           ) / ((x2 - x1) * (y2 - y1) + 0.0)
