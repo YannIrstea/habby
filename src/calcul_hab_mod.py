@@ -430,55 +430,16 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                     # prep data
                     pref_vel = np.array(pref_vel)
                     pref_height = np.array(pref_height)
-                    pref_values_reshaped = np.array(pref_sub).reshape((len(pref_height), len(pref_vel)))
+                    pref_xy_repeated = []
+                    for row in range(len(pref_height)):
+                        x_coord = np.repeat(pref_height[row], len(pref_vel))
+                        y_coord = pref_vel
+                        pref_xy_repeated.extend(list(zip(x_coord, y_coord)))
+                    pref_xy_repeated = np.array(pref_xy_repeated)
+                    xy_input = np.dstack((v_cell, h_cell))
 
-                    XYZ_list = []
-                    for column in range(len(pref_vel) - 1):
-                        print("column", column)
-                        for row in range(len(pref_height) - 1):
-                            print("row", row)
-                            XYZ_list.append((pref_vel[column], pref_height[row], pref_values_reshaped[row][column]))
-
-
-
-
-                    # # # prep model
-                    X, Y = np.meshgrid(pref_vel, pref_height)
-                    #
-                    # # interp2d
-                    # model_funtion = interp2d(pref_vel, pref_height, Z)
-                    # #vh = model_funtion(h_cell, v_cell)[0, :]  # zigzag intersection du merge bizard...
-                    # vh = model_funtion(v_cell, h_cell) #
-                    # print(vh)
-
-
-
-                    pref_here = bilinear_interpolation(v_cell[0], h_cell[0], XYZ_list)
-
-                    # fast_interp_irregular_grid_to_regular(v_cell,
-                    #                                       h_cell,
-                    #                                       pref_vel,
-                    #                                       pref_height,
-                    #                                       Z)
-                    #
-                    # # plot
-                    # f, axarr = plt.subplots(1,1, sharey='row')
-                    # f.canvas.set_window_title("test")
-                    # plt.suptitle("test")
-                    # meshcolor = axarr.pcolormesh(X, Y, Z)
-                    # axarr.set_ylabel('Water height [m]')
-                    # axarr.set_xlabel('Water velocity [m/s]')
-                    # axarr.set_ylim([0, 1.1])
-                    # axarr.plot(h_cell[0], v_cell[0], ".")
-                    # plt.colorbar(meshcolor)
-                    # plt.show()
-
-                    # export
-                    # Z_export = np.array(list(reversed(Z)))
-                    # np.savetxt(r"C:\Users\quentin.royer\Documents\TAF\TEST_HABBY\MODEL BIVARIE\bivSIC2.txt",
-                    #         Z_export)
-                    # np.savetxt(r"C:\Users\quentin.royer\Documents\TAF\TEST_HABBY\MODEL BIVARIE\pref_height.txt",
-                    #         pref_height)
+                    # calc from model points
+                    vh = griddata(pref_xy_repeated, pref_sub, xy_input, method='linear')[0]
 
                 spu_reach = np.nansum(vh * area)
 
