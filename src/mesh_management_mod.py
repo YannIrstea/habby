@@ -763,7 +763,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
                                 if sub_num[w2] == -1:
                                     point_cross_here.append(p_cross)
                                     point_cross_el_here.append(sub_num[w2])
-                                # test if there is substate point in the element
+                                # test if there is substrate point in the element
                                 p1 = coord_p[ikle[e, 0]]
                                 p2 = coord_p[ikle[e, 1]]
                                 p3 = coord_p[ikle[e, 2]]
@@ -794,7 +794,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
                                 if sub_num[w1] == -1:
                                     point_cross_here.append(p_cross)
                                     point_cross_el_here.append(sub_num[w1])
-                                # test if there is substate point in the element
+                                # test if there is substrate point in the element
                                 p1 = coord_p[ikle[e, 0]]
                                 p2 = coord_p[ikle[e, 1]]
                                 p3 = coord_p[ikle[e, 2]]
@@ -836,7 +836,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
                                         # add the point cross
                                         point_cross_here.append(p_cross)
                                         point_cross_el_here.append(elhere)
-                                        # test if there is substate point in the element
+                                        # test if there is substrate point in the element
                                         p1 = coord_p[ikle[e, 0]]
                                         p2 = coord_p[ikle[e, 1]]
                                         p3 = coord_p[ikle[e, 2]]

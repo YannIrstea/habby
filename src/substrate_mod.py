@@ -415,7 +415,7 @@ def shp_validity(filename, path_prj, code_type, dominant_case=1):
     # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
     [attribute_type, attribute_name] = get_useful_attribute(fields)
     if attribute_type == -99:
-        print('Error: The substate data not recognized.\n')
+        print('Error: The substrate data not recognized.\n')
         return False, dominant_case
 
     # if percentage type
@@ -430,7 +430,7 @@ def shp_validity(filename, path_prj, code_type, dominant_case=1):
                 try:
                     record_here = list(map(int, record_here))
                 except ValueError:
-                    print('Error: The substate code should be formed by an int.\n')
+                    print('Error: The substrate code should be formed by an int.\n')
                     return False, dominant_case
                 record_all.append(record_here)
                 ind += 1
@@ -893,7 +893,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     data = data.split("\n")[sub_header_index:]
 
     if attribute_type == -99:
-        print('Error: The substate data not recognized.\n')
+        print('Error: The substrate data not recognized.\n')
         return
 
     if not attribute_type == sub_classification_method:

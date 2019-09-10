@@ -126,7 +126,7 @@ class DataExplorerFrame(QFrame):
         self.names_hdf5_layout.addWidget(self.names_hdf5_QListWidget)
 
         """ Figure producer """
-        self.plot_group = FigureProducerGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Figure viewer/expoter"))
+        self.plot_group = FigureProducerGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Figure viewer/exporter"))
         self.plot_group.setChecked(False)
 
         """ export """
@@ -614,7 +614,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             ret = qm.question(self, self.tr("Warning"),
                               self.tr("Displaying a large number of plots may crash HABBY. "
                                       "It is recommended not to exceed a total number of plots "
-                                      f"greater than 30 at a time. \n\nDo you still want to display {self.nb_plot} plots ?"
+                                      "greater than 30 at a time. \n\nDo you still want to display") + str(self.nb_plot) + self.tr("plots ?"
                                       "\n\nNB : There is no limit for exports."), qm.Yes | qm.No)
             if ret == qm.No:  # pas de plot
                 return
@@ -1006,7 +1006,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hyd_export_layout.addWidget(self.elevation_whole_profile_hyd, 6, 2, Qt.AlignCenter)
         # row 7
         self.hyd_export_layout.addWidget(QLabel("3D (.pvd, .vtu)"), 7, 0)
-        self.hyd_export_layout.addWidget(QLabel(self.tr("Variables units")), 7, 1)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Mesh units")), 7, 1)
         self.hyd_export_layout.addWidget(self.variables_units_hyd, 7, 2, Qt.AlignCenter)
         # row 8
         self.hyd_export_layout.addWidget(QHLine(), 8, 0, 1, 3)
@@ -1037,7 +1037,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hab_export_layout.addWidget(self.elevation_whole_profile_hab, 6, 2, Qt.AlignCenter)
         # row 7
         self.hab_export_layout.addWidget(QLabel("3D (.pvd, .vtu)"), 7, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Variables units")), 7, 1)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Mesh units")), 7, 1)
         self.hab_export_layout.addWidget(self.variables_units_hab, 7, 2, Qt.AlignCenter)
         # row 9
         self.hab_export_layout.addWidget(QHLine(), 9, 0, 1, 4)

@@ -24,6 +24,7 @@ from multiprocessing import Value
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from PyQt5.QtCore import QT_TR_NOOP as tr
 
 from src import hdf5_mod
 from src import plot_mod
@@ -514,7 +515,7 @@ def get_biomodels_informations_for_database(path_xml):
                 hydraulic_type_available[index_stage].append("V")
             if shear_presence:
                 hydraulic_type_available[index_stage].append("HEM")
-            hydraulic_type_available[index_stage].append("Neglect")
+            hydraulic_type_available[index_stage].append(tr("Neglect"))
         else:
             hydraulic_type.append([])
             hydraulic_type[index_stage] = "HV"
@@ -524,14 +525,14 @@ def get_biomodels_informations_for_database(path_xml):
     # substrate
     substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
     if substrate_type == []:
-        substrate_type = ["Neglect"] * len(stage_and_size)
-        substrate_type_available = [["Neglect"]] * len(stage_and_size)
+        substrate_type = [tr("Neglect")] * len(stage_and_size)
+        substrate_type_available = [[tr("Neglect")]] * len(stage_and_size)
     else:
-        substrate_type_available = [["Coarser-Dominant",
-                               'Coarser',
-                               'Dominant',
-                               'Percentage',
-                               'Neglect']] * len(stage_and_size)
+        substrate_type_available = [[tr("Coarser-Dominant"),
+                               tr('Coarser'),
+                               tr('Dominant'),
+                               tr('Percentage'),
+                               tr('Neglect')]] * len(stage_and_size)
 
     # LatinName
     if guild == "@guild":
