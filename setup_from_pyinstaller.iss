@@ -43,8 +43,8 @@ Source: "C:\habby\build\pyinstaller\habby\*"; DestDir: "{app}"; Flags: ignorever
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\translation\habby_icon.ico"
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\translation\habby_icon.ico"; Tasks: desktopicon
+Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Registry]
 Root: HKCR; Subkey: ".habby";                             ValueData: "{#MyAppName}";          Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
