@@ -908,6 +908,7 @@ class Hdf5Management:
                 # exports
                 self.export_gpkg()
                 self.export_paraview()
+                self.export_detailled_mesh_txt()
                 self.export_detailled_point_txt()
                 break
 
@@ -2249,16 +2250,8 @@ class Hdf5Management:
 
             # create the pdf
             for idx, f in enumerate(xmlfiles):
-
-                # read pref
                 xmlfile = f
-                if hab_aquatic_animal_type_list[idx] == "fish":
-                    [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
-                        bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
-                if hab_aquatic_animal_type_list[idx] == "invertebrate":
-                    # open the pref
-                    [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = \
-                        bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+                information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
 
                 # read additionnal info
                 attributes = ['Description', 'Image', 'French_common_name',
@@ -2271,17 +2264,41 @@ class Hdf5Management:
 
                 # create figure
                 fake_value = Value("i", 0)
-                if hab_aquatic_animal_type_list[idx] == "fish":
-                    [f, axarr] = plot_mod.plot_suitability_curve(fake_value,
-                                                             h_all, vel_all, sub_all,
-                                                             code_fish, name_fish,
-                                                             stages, True, self.project_preferences)
-                if hab_aquatic_animal_type_list[idx] == "invertebrate":
-                    [f, axarr] = plot_mod.plot_suitability_curve_invertebrate(fake_value,
-                                                                              shear_stress_all, hem_all, hv_all,
-                                                                              code_fish, name_fish,
-                                                                              stages, True, self.project_preferences)
 
+                if information_model_dict["ModelType"] != "bivariate suitability index models":
+                    # read pref
+                    if hab_aquatic_animal_type_list[idx] == "fish":
+                        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
+                            bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+                    if hab_aquatic_animal_type_list[idx] == "invertebrate":
+                        # open the pref
+                        [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = \
+                            bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+
+                    # plot pref
+                    if hab_aquatic_animal_type_list[idx] == "fish":
+                        [f, axarr] = plot_mod.plot_suitability_curve(fake_value,
+                                                                 h_all, vel_all, sub_all,
+                                                                 code_fish, name_fish,
+                                                                 stages, True, self.project_preferences)
+                    if hab_aquatic_animal_type_list[idx] == "invertebrate":
+                        [f, axarr] = plot_mod.plot_suitability_curve_invertebrate(fake_value,
+                                                                                  shear_stress_all, hem_all, hv_all,
+                                                                                  code_fish, name_fish,
+                                                                                  stages, True, self.project_preferences)
+                else:
+                    # open the pref
+                    [h_all, vel_all, pref_values_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                                                                                                             hab_aquatic_animal_type_list[idx])
+                    [f, axarr] = plot_mod.plot_suitability_curve_bivariate(state,
+                                                  h_all,
+                                                  vel_all,
+                                                  pref_values_all,
+                                                  code_fish,
+                                                  name_fish,
+                                                  stages,
+                                                  True,
+                                                  self.project_preferences)
                 # modification of the orginal preference fig
                 # (0,0) is bottom left - 1 is the end of the page in x and y direction
                 plt.tight_layout(rect=[0.05, 0.05, 0.95, 0.53])

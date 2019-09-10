@@ -247,7 +247,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
         for n in fish_name:
             txtin += n + '\t'
         txtin = txtin[:-1]
-        #txtin += '\n'
+        txtin += '\n'
         txtin += 'Output file:\t' + name_pict + '.txt\n'
         with open(os.path.join(path_txt, name_input + '.txt'), 'wt') as f:
             f.write(txtin)
