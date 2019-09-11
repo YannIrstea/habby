@@ -234,7 +234,7 @@ class Hydro2W(QScrollArea):
         hdf5_layout.addWidget(self.drop_hyd)
         hdf5_layout.addWidget(self.slfbut)
         hdf5_group.setLayout(hdf5_layout)
-        self.layout.addWidget(hdf5_group)
+        #self.layout.addWidget(hdf5_group)
 
         # spacer to align top
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -493,7 +493,7 @@ class Hydro2W(QScrollArea):
             self.msgi.setText(website + text2[0])
             self.msgi.setDetailedText(text2[1])
         else:
-            self.msgi.setText(self.tr('No information yet!         '))
+            self.msgi.setText(self.tr('Choose a type of hydraulic model !         '))
             self.msgi.setDetailedText('No detailed info yet.')
         # detailed text erase the red x
         self.msgi.setEscapeButton(QMessageBox.Ok)
@@ -509,7 +509,8 @@ class Hydro2W(QScrollArea):
         self.send_log.emit('export slf is not finished yet')
         name_hdf5 = self.drop_hyd.currentText()
         path_hdf5 = self.rubar1d.find_path_hdf5()
-        path_slf = self.rubar1d.find_path_output('Path_Visualisation')
+        #path_slf = self.rubar1d.find_path_output('Path_Visualisation')
+        path_slf = os.path.join(self.path_prj, "output")
 
         if not name_hdf5:
             self.send_log.emit(self.tr('Error: No hydraulic file found. \n'))

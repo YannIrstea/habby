@@ -1012,7 +1012,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hyd_export_layout.addWidget(QHLine(), 8, 0, 1, 3)
         # row 9
         self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 9, 0)
-        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled mesh")), 9, 1)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled mesh and points")), 9, 1)
         self.hyd_export_layout.addWidget(self.detailled_text_hyd, 9, 2, Qt.AlignCenter)
         # hyd_export_widget
         self.hyd_export_widget = QWidget()

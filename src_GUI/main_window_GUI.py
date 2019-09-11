@@ -2444,7 +2444,7 @@ class CentralW(QWidget):
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
             # clear QCombox from Hydro2W() and Substratew()
             self.substrate_tab.drop_hyd.clear()
-            self.hydro_tab.drop_hyd.clear()
+            #self.hydro_tab.drop_hyd.clear()
 
             # get the hdf5 path
             filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
@@ -2480,10 +2480,10 @@ class CentralW(QWidget):
                 if os.path.isfile(self.hyd_name[i]):
                     if len(self.hyd_name[i]) > self.max_lengthshow:
                         self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
-                        self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
+                        #self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
                     else:
                         self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
-                        self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+                        #self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
     def save_info_projet(self):
         """
