@@ -853,7 +853,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 fish_item_text = label.text()
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
                 name_fish_sel += fish_item_text + ","
-                name_fish_list.append(name_fish)
+                name_fish_list.append(code_bio_model)
                 index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
                 pref_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
                 stages_chosen.append(stage)
