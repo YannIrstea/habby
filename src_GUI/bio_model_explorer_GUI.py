@@ -607,7 +607,7 @@ class BioModelInfoSelection(QScrollArea):
         self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_listwidget, 1, 1)
 
         # information_curve
-        self.information_curve_group = QGroupBox("Suitability curve information")
+        self.information_curve_group = QGroupBox(self.tr("Suitability curve information"))
         self.information_curve_layout = QGridLayout(self.information_curve_group)
         self.information_curve_layout.addWidget(latin_name_title_label, 0, 0)
         self.information_curve_layout.addWidget(self.latin_name_label, 0, 1)

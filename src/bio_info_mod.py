@@ -505,7 +505,7 @@ def get_biomodels_informations_for_database(path_xml):
             if shear_presence:
                 hydraulic_type[index_stage] = QCoreApplication.translate("Input", "HEM")
             if not height_presence and not velocity_presence and not shear_presence:
-                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "Neglect")
+                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "Neglect")  # 'Input' sera le nom de classe dans QLinguist et 'Neglect' le string à traduire.
             # available
             if height_presence and velocity_presence:
                 hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "HV"))
