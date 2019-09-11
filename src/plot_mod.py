@@ -475,7 +475,7 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
         plt.close()
 
 
-def plot_map_elevation(state, data_xy, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, ):
+def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, ):
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
 
@@ -512,9 +512,20 @@ def plot_map_elevation(state, data_xy, data_z, project_preferences, data_descrip
     plt.axis('equal')
 
     # plot
-    plt.scatter(x=data_xy[:, 0], y=data_xy[:, 1], c=data_z, s=5, cmap="rainbow")
-    cbar = plt.colorbar()
-    cbar.set_label("elevation")
+    # color map (the same for al reach)
+    mvc = 0.001
+    cm = plt.cm.get_cmap(project_preferences['color_map2'])
+    mv = max(data_z)
+    minv = min(data_z)
+    if mv > mvc:
+        mvc = mv
+    bounds = np.linspace(minv, mvc, 50)
+    # plot
+    sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_z,
+                         cmap=cm, vmin=minv, vmax=mvc, levels=bounds, extend='both')
+    cbar = plt.colorbar(sc)
+
+    cbar.set_label("[m]")
     plt.ticklabel_format(useOffset=False)
 
     # save figures
@@ -592,9 +603,9 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
         mv = max(data_h)
         if mv > mvc:
             mvc = mv
-        bounds = np.linspace(0, mvc, 15)
+        bounds = np.linspace(0, mvc, 50)
         # negative value ?
-        data_h[data_h < 0] = 0
+        #data_h[data_h < 0] = 0
 
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h,
                              cmap=cm, vmin=0, vmax=mvc, levels=bounds, extend='both')
@@ -688,7 +699,7 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
         mv = max(data_v)
         if mv > mvc:
             mvc = mv
-        bounds = np.linspace(0, mvc, 15)
+        bounds = np.linspace(0, mvc, 50)
 
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_v,
                              cmap=cm, levels=bounds, extend='both')

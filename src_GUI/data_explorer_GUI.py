@@ -741,6 +741,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                     mesh_process = Process(target=plot_mod.plot_map_elevation,
                                                            args=(state,
                                                                  hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                 hdf5.data_2d["tin"][reach_num][unit_num],
                                                                  hdf5.data_2d["z"][reach_num][unit_num],
                                                                  project_preferences,
                                                                  data_description,
