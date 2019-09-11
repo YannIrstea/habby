@@ -135,8 +135,8 @@ class MainWindows(QMainWindow):
 
         # set up translation
         self.languageTranslator = QTranslator()
-        #self.path_trans = os.path.abspath('translation')
-        self.path_trans = os.getcwd()
+        self.path_trans = os.path.abspath('translation')
+        #self.path_trans = os.getcwd()
         self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm']
         try:  # english, french, spanish
             if language_set == "english":
