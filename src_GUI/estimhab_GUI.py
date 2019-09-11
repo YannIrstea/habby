@@ -412,11 +412,16 @@ class EstimhabW(StatModUseful):
 
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list_f.itemClicked.connect(self.add_fish)
+        self.list_f.setDragDropMode(QAbstractItemView.DragDrop)
+        self.list_f.setDefaultDropAction(Qt.MoveAction)
+        self.list_f.setAcceptDrops(True)
+        self.list_f.setSortingEnabled(True)
+
         self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
-        self.list_f.itemActivated.connect(self.add_fish)
-        self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.setDragDropMode(QAbstractItemView.DragDrop)
+        self.selected_aquatic_animal_qtablewidget.setDefaultDropAction(Qt.MoveAction)
+        self.selected_aquatic_animal_qtablewidget.setAcceptDrops(True)
+        self.selected_aquatic_animal_qtablewidget.setSortingEnabled(True)
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
