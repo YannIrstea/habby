@@ -1511,12 +1511,12 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
             legend(("Profil", "Surface de l'eau"), fancybox=True, framealpha=0.5)
         xlim([np.min(xz[:, 0] - 1) * 0.95, np.max(xz[:, 0]) * 1.05])
         m += 1
-        if format == 0 or format == 1:
-            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=project_preferences['resolution'])
-        if format == 0 or format == 3:
+        if format == 0:
             savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.pdf'), dpi=project_preferences['resolution'])
+        if format == 1:
+            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'), dpi=project_preferences['resolution'])
         if format == 2:
             savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.jpg'), dpi=project_preferences['resolution'])

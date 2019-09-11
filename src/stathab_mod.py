@@ -1122,23 +1122,23 @@ class Stathab:
 
                 # save the figures
                 if not erase1:
-                    if format == 0 or format == 1:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-                    if format == 0 or format == 3:
+                    if format == 0:
                         name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                                 "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-                    if format == 2 or format > 2:
+                    if format == 1:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
+                    if format == 2:
                         name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                                 "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
                     fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
                                 dpi=self.project_preferences['resolution'])
                 else:
-                    if format == 0 or format == 1:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.png")
-                    if format == 0 or format == 3:
+                    if format == 0:
                         name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.pdf")
-                    if format == 2 or format > 2:
+                    if format == 1:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.png")
+                    if format == 2:
                         name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.jpg")
                     if os.path.isfile(name_fig):
                         os.remove(name_fig)

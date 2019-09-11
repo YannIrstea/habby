@@ -215,10 +215,10 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
                 os.remove(name_input + '.txt')
 
         # save image
-        if format1 == 0 or format1 == 1:
-            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=project_preferences['resolution'], transparent=True)
-        if format1 == 0 or format1 == 3:
+        if format1 == 0:
             plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+        if format1 == 1:
+            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=project_preferences['resolution'], transparent=True)
         if format1 == 2:
             plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
             # plt.show()

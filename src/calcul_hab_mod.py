@@ -862,10 +862,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, project_p
                     #return
             plt.tight_layout()
             if do_save:
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
@@ -990,10 +990,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, project_p
                 if not test:
                     return
             if do_save:
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
@@ -1065,10 +1065,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, project_p
                     if not test:
                         return
                 if do_save:
-                    if format1 == 0 or format1 == 1:
-                        plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-                    if format1 == 0 or format1 == 3:
+                    if format1 == 0:
                         plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+                    if format1 == 1:
+                        plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                     if format1 == 2:
                         plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
@@ -1263,11 +1263,11 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             if not test:
                                 return
 
-                        if format1 == 0 or format1 == 1:
-                            plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=project_preferences['resolution'],
-                                        transparent=True)
-                        if format1 == 0 or format1 == 3:
+                        if format1 == 0:
                             plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=project_preferences['resolution'],
+                                        transparent=True)
+                        if format1 == 1:
+                            plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=project_preferences['resolution'],
                                         transparent=True)
                         if format1 == 2:
                             plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=project_preferences['resolution'],
@@ -1439,10 +1439,10 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 test = remove_image(name, path_im, format1)
                 if not test:
                     return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
@@ -1563,10 +1563,10 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, project_preferences,
                     test = remove_image(name, path_im, format1)
                     if not test:
                         return
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 

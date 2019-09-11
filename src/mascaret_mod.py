@@ -1181,15 +1181,15 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, pro
             elif project_preferences['language'] == 1:
                 plt.xlabel('Distance le long de la rivière [m]')
                 plt.ylabel('Vitesse [m/sec]')
-            if format == 1 or format == 0:
+            if format == 0:
                 plt.savefig(
                     os.path.join(path_im, "mascaret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                                 + ".png"), dpi=project_preferences['resolution'])
-            if format == 0 or format == 3:
+                                 + ".pdf"), dpi=project_preferences['resolution'])
+            if format == 1:
                 plt.savefig(os.path.join(path_im, "masacret_riv_" +
                                          name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                                         + ".pdf"), dpi=project_preferences['resolution'])
-            if format == 3:
+                                         + ".png"), dpi=project_preferences['resolution'])
+            if format == 2:
                 plt.savefig(
                     os.path.join(path_im, "masacret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                                  + ".jpg"), dpi=project_preferences['resolution'])

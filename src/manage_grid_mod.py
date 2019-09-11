@@ -2340,13 +2340,13 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
         else:
             suffix = 'Hydro_grid_t' + str(time_step) + '_'
         if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
@@ -2356,11 +2356,11 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
             test = tools_mod.remove_image(suffix, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"), dpi=project_preferences['resolution'],
@@ -2435,13 +2435,13 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
             else:
                 suffix = 'Velocity_t' + str(time_step) + '_'
             if not erase1:
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                                 dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
@@ -2451,11 +2451,11 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
                 test = tools_mod.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
                                 dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"),
@@ -2519,13 +2519,13 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
             else:
                 suffix = 'Water_height_t' + str(time_step) + '_'
             if not erase1:
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                                 dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
@@ -2535,11 +2535,11 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
                 test = tools_mod.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
                                 dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"),

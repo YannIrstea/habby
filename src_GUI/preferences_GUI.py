@@ -160,7 +160,7 @@ class PreferenceWindow(QDialog):
         # fig_forma
         fig_format_label = QLabel(self.tr('Figure Format'))
         self.fig_format_combobox = QComboBox()
-        self.fig_format_combobox.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not save figures')])
+        self.fig_format_combobox.addItems(['pdf', 'png', 'jpg'])
 
         # resolution
         resolution_label = QLabel(self.tr('Resolution [dpi]'))

@@ -494,12 +494,12 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, project_pref
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
         lgd = plt.legend(bbox_to_anchor=(1.60, 1), loc='upper right', ncol=1)
-        if format == 0 or format == 1:
-            name_fig = os.path.join(path_im, 'Fstress_' + r +
-                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-        if format == 0 or format == 3:
+        if format == 0:
             name_fig = os.path.join(path_im, 'Fstress_' + r +
                                     "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+        if format == 1:
+            name_fig = os.path.join(path_im, 'Fstress_' + r +
+                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
         if format == 2:
             name_fig = os.path.join(path_im, 'Fstress_' + r +
                                     "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')

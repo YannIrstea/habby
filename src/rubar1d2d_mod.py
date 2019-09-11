@@ -667,12 +667,12 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
         plt.ylabel("y coordonnées []")
         plt.title("Position des profils")
     # plt.axis('equal') # if right angle are needed
-    if format == 0 or format == 1:
-        plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=project_preferences['resolution'], transparent=True)
-    if format == 0 or format == 3:
+    if format == 0:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+    if format == 1:
+        plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'), dpi=project_preferences['resolution'], transparent=True)
     if format == 2:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.jpg'), dpi=project_preferences['resolution'], transparent=True)

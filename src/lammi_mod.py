@@ -831,13 +831,13 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_prefere
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
         plt.ylim([np.min(-h) * 1.05, np.max(h) / 3])
         # save
-        if formate == 0 or formate == 1:
-            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=project_preferences['resolution'],
-                        transparent=True)
-        if formate == 0 or formate == 3:
+        if formate == 0:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
                                      time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=project_preferences['resolution'],
+                        transparent=True)
+        if formate == 1:
+            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=project_preferences['resolution'],
                         transparent=True)
         if formate == 2:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +

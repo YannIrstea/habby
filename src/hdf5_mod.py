@@ -2364,8 +2364,18 @@ class Hdf5Management:
                 # day
                 plt.figtext(0.8, 0.95, 'HABBY - ' + time.strftime("%d %b %Y"))
 
+                # extension  (0 pdf, 1 png, 2 jpg)
+                if int(self.project_preferences["format"]) == 0:
+                    extension_choosen = ".pdf"
+                if int(self.project_preferences["format"]) == 1:
+                    extension_choosen = ".png"
+                if int(self.project_preferences["format"]) == 2:
+                    extension_choosen = ".jpg"
+
+                # filename
+                filename = os.path.join(path_out, 'report_' + information_model_dict["CdBiologicalModel"] + extension_choosen)
+
                 # save
-                filename = os.path.join(path_out, 'report_' + code_fish + '.pdf')
                 try:
                     plt.savefig(filename)
                 except PermissionError:

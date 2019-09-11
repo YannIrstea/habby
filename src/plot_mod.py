@@ -66,7 +66,12 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
 
     if len(stade) > 1:  # if you take this out, the command
         # axarr[x,x] does not work as axarr is only 1D
-        f, axarr = plt.subplots(len(stade), 3, sharey='row')
+        # check if sub data exist
+        if len(sub[0][0]) > 2:
+            f, axarr = plt.subplots(len(stade), 3, sharey='row')
+        else:  # no sub
+            f, axarr = plt.subplots(len(stade), 2, sharey='row')
+
         f.canvas.set_window_title(title_plot)
         plt.suptitle(title_plot)
         for s in range(0, len(stade)):
@@ -91,16 +96,20 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
                 # it is accounted for all stages
                 axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
                                 align='center')
-            if project_preferences['language'] == 0:
-                axarr[s, 2].set_xlabel('Substrate []')
-            else:
-                axarr[s, 2].set_xlabel('Substrat []')
-            axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 2].set_ylim([0, 1.1])
-            axarr[s, 2].set_xlim([0.4, 8.6])
+                if project_preferences['language'] == 0:
+                    axarr[s, 2].set_xlabel('Substrate []')
+                else:
+                    axarr[s, 2].set_xlabel('Substrat []')
+                axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
+                axarr[s, 2].set_ylim([0, 1.1])
+                axarr[s, 2].set_xlim([0.4, 8.6])
 
     else:
-        f, axarr = plt.subplots(3, 1, sharey='row')
+        # check if sub data exist
+        if len(sub[0][0]) > 2:
+            f, axarr = plt.subplots(3, 1, sharey='row')
+        else:  # no sub
+            f, axarr = plt.subplots(2, 1, sharey='row')
         f.canvas.set_window_title(title_plot)
         plt.suptitle(title_plot)
         axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
@@ -119,15 +128,16 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         axarr[1].set_ylabel('Coeff. pref. ')
         axarr[1].set_ylim([0, 1.1])
 
+        # if sub
         if len(sub[0][0]) > 2:
             axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
-        if project_preferences['language'] == 0:
-            axarr[2].set_xlabel('Substrate []')
-        else:
-            axarr[2].set_xlabel('Substrat []')
-        axarr[2].set_ylabel('Coeff. pref. ')
-        axarr[2].set_ylim([0, 1.1])
-        axarr[2].set_xlim([0.4, 8.6])
+            if project_preferences['language'] == 0:
+                axarr[2].set_xlabel('Substrate []')
+            else:
+                axarr[2].set_xlabel('Substrat []')
+            axarr[2].set_ylabel('Coeff. pref. ')
+            axarr[2].set_ylim([0, 1.1])
+            axarr[2].set_xlim([0.4, 8.6])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
@@ -435,11 +445,11 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
     plt.tight_layout()  # remove margin out of plot
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
@@ -448,10 +458,10 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
             test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
 
@@ -511,11 +521,11 @@ def plot_map_elevation(state, data_xy, data_z, project_preferences, data_descrip
     plt.tight_layout()  # remove margin out of plot
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
@@ -524,10 +534,10 @@ def plot_map_elevation(state, data_xy, data_z, project_preferences, data_descrip
             test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
 
@@ -600,13 +610,13 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                                 dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -616,11 +626,11 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
                 test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                                 transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
@@ -696,13 +706,13 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                                 dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -712,11 +722,11 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
                 test = tools_mod.remove_image(filename, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 0 or format1 == 3:
+                if format1 == 0:
                     plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                                 transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
@@ -804,13 +814,13 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -820,11 +830,11 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
             test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:
                 return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
@@ -913,13 +923,13 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -929,11 +939,11 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
             test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:
                 return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
@@ -1022,13 +1032,13 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -1038,11 +1048,11 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
             test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:
                 return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
@@ -1201,12 +1211,12 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     # save the figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format == 0 or format == 1:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                         '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format == 0 or format == 3:
+            if format == 0:
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                          '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+            if format == 1:
+                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                         '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format == 2:
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                          '.jpg'), dpi=project_preferences['resolution'], transparent=True)
@@ -1307,13 +1317,13 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -1323,11 +1333,11 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
             test = tools_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:
                 return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                            transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
@@ -1461,10 +1471,10 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 if not test:
                     return
 
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
@@ -1566,10 +1576,10 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 test = tools_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
@@ -1698,10 +1708,10 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
                 if not test:
                     return
 
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
+            if format1 == 0:
                 plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
