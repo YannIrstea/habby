@@ -48,11 +48,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3643"/>
-        <source>Load data and create .hyd file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3720"/>
         <source>Select file(s)</source>
         <translation type="unfinished"></translation>
@@ -60,6 +55,11 @@
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4018"/>
         <source># Loading: ASCII data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3643"/>
+        <source>Create .hyd file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -952,11 +952,6 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="1455"/>
-        <source>Load data and create hab file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1458"/>
         <source>create figure</source>
         <translation type="unfinished"></translation>
@@ -974,6 +969,11 @@ NB : There is no limit for exports.</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1570"/>
         <source># Loading: Hec-Ras 1D data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1455"/>
+        <source>Create .hyd file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1025,11 +1025,6 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="2706"/>
-        <source>Load data and create .hyd file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2834"/>
         <source>Select file(s)</source>
         <translation type="unfinished"></translation>
@@ -1040,18 +1035,18 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="2891"/>
-        <source>Load data and create one .hyd file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="2926"/>
-        <source>Load data and create </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2926"/>
         <source> .hyd files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2891"/>
+        <source>Create .hyd file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2926"/>
+        <source>Create </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1222,11 +1217,6 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4498"/>
-        <source>Load data and create hab file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4502"/>
         <source>create figure</source>
         <translation type="unfinished"></translation>
@@ -1244,6 +1234,11 @@ NB : There is no limit for exports.</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4603"/>
         <source># Loading: IBER2D data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4498"/>
+        <source>Create .hyd file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1431,11 +1426,6 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4095"/>
-        <source>Load data and create hab file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4099"/>
         <source>create figure</source>
         <translation type="unfinished"></translation>
@@ -1458,6 +1448,11 @@ NB : There is no limit for exports.</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4226"/>
         <source># Loading: LAMMI data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4095"/>
+        <source>Create .hab file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2032,11 +2027,6 @@ Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="1903"/>
-        <source>Load data and create hab file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1907"/>
         <source>create figure</source>
         <translation type="unfinished"></translation>
@@ -2054,6 +2044,11 @@ Do you want to overwrite it and all its files ?</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2026"/>
         <source># Loading: Mascaret data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1903"/>
+        <source>Create .hab file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2268,11 +2263,6 @@ Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="2159"/>
-        <source>Load all files and create hab file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2164"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
@@ -2315,6 +2305,11 @@ Do you want to overwrite it and all its files ?</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2366"/>
         <source># Loading : River2D data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2159"/>
+        <source>Create .hab file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2392,11 +2387,6 @@ Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="2467"/>
-        <source>Load data and create hab file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2471"/>
         <source>create figure</source>
         <translation type="unfinished"></translation>
@@ -2414,6 +2404,11 @@ Do you want to overwrite it and all its files ?</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2580"/>
         <source># Loading: Rubar 1D data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2467"/>
+        <source>Create .hab file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2456,11 +2451,6 @@ Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="1685"/>
-        <source>Load data and create .hyd file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1689"/>
         <source>create figure</source>
         <translation type="unfinished"></translation>
@@ -2478,6 +2468,11 @@ Do you want to overwrite it and all its files ?</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1780"/>
         <source># Loading: Rubar 2D data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1685"/>
+        <source>Create .hyd file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2520,11 +2515,6 @@ Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4297"/>
-        <source>Load data and create hab file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4301"/>
         <source>create figure</source>
         <translation type="unfinished"></translation>
@@ -2542,6 +2532,11 @@ Do you want to overwrite it and all its files ?</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4380"/>
         <source># Loading: SW2D data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4297"/>
+        <source>Create .hyd file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2881,11 +2876,6 @@ Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5069"/>
-        <source>Load data and create .sub file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="5053"/>
         <source>Choose file (.txt)</source>
         <translation type="unfinished"></translation>
@@ -2913,11 +2903,6 @@ Do you want to overwrite it and all its files ?</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="5080"/>
         <source>Substrate data (.sub)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5085"/>
-        <source>Merge grid and create .hab file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3000,6 +2985,16 @@ Do you want to overwrite it and all its files ?</source>
         <source># Merging: substrate and hydraulic grid...</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5069"/>
+        <source>Create .sub file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5085"/>
+        <source>Create .hab file</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>TELEMAC</name>
@@ -3049,11 +3044,6 @@ Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3199"/>
-        <source>Load data and create .hyd file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3279"/>
         <source>Select file(s)</source>
         <translation type="unfinished"></translation>
@@ -3071,6 +3061,11 @@ Do you want to overwrite it and all its files ?</source>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3212"/>
         <source>no file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3199"/>
+        <source>Create .hyd file</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

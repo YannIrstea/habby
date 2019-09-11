@@ -1446,7 +1446,7 @@ class HEC_RAS1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         self.butfig = QPushButton(self.tr("create figure"))
@@ -1676,7 +1676,7 @@ class Rubar2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar)
         self.spacer = QSpacerItem(1, 200)
@@ -1894,7 +1894,7 @@ class Mascaret(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
@@ -2150,7 +2150,7 @@ class River2D(SubHydroW):
         self.removeallfileb.clicked.connect(self.remove_all_file)
         self.addfileb = QPushButton(self.tr("Add file"))
         self.addfileb.clicked.connect(self.add_file_river2d)
-        self.load_b = QPushButton(self.tr("Load all files and create hab file"))
+        self.load_b = QPushButton(self.tr("Create .hab file"))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_river2d_gui)
 
@@ -2457,7 +2457,7 @@ class Rubar1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
@@ -2696,7 +2696,7 @@ class HEC_RAS2D(SubHydroW):
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_2d_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -2880,7 +2880,7 @@ class HEC_RAS2D(SubHydroW):
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_hec_ras2d_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText(self.tr("Load data and create one .hyd file"))
+                self.load_b.setText(self.tr("Create .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -2915,7 +2915,7 @@ class HEC_RAS2D(SubHydroW):
                 self.epsg_hec_ras2d_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText(self.tr("Load data and create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
+                self.load_b.setText(self.tr("Create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -2996,7 +2996,7 @@ class HEC_RAS2D(SubHydroW):
         self.units_QListWidget.setEnabled(True)
         self.epsg_hec_ras2d_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Load data and create one .hyd file")
+        self.load_b.setText("Create .hyd file")
 
     def get_time_step(self):
         """
@@ -3188,7 +3188,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -3324,7 +3324,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Load data and create one .hyd file")
+                self.load_b.setText("Create .hyd file")
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3359,7 +3359,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Load data and create " + str(len(telemac_description)) + " .hyd files")
+                self.load_b.setText("Create " + str(len(telemac_description)) + " .hyd files")
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3440,7 +3440,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Load data and create one .hyd file")
+        self.load_b.setText("Create .hyd file")
 
     def get_time_step(self):
         """
@@ -3631,7 +3631,7 @@ class ASCII(SubHydroW):  # QGroupBox
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_ascii_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -3770,9 +3770,9 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                     if not ascii_description["sub"]:
-                        self.load_b.setText("Load data and create one .hyd file")
+                        self.load_b.setText("Create .hyd file")
                     if ascii_description["sub"]:
-                        self.load_b.setText("Load data and create one .hab file")
+                        self.load_b.setText("Create .hab file")
                 # multi reach  ==> change reach_name label by combobox
                 if len(ascii_description["unit_list"]) > 1:
                     self.multi_reach = True
@@ -3792,9 +3792,9 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                     if not ascii_description["sub"]:
-                        self.load_b.setText("Load data and create one .hyd file")
+                        self.load_b.setText("Create .hyd file")
                     if ascii_description["sub"]:
-                        self.load_b.setText("Load data and create one .hab file")
+                        self.load_b.setText("Create .hab file")
 
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
@@ -3831,9 +3831,9 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
                 if not ascii_description["sub"]:
-                    self.load_b.setText("Load data and create " + str(len(ascii_description)) + " .hyd files")
+                    self.load_b.setText("Create " + str(len(ascii_description)) + " .hyd files")
                 if ascii_description["sub"]:
-                    self.load_b.setText("Load data and create " + str(len(ascii_description)) + " .hab files")
+                    self.load_b.setText("Create " + str(len(ascii_description)) + " .hab files")
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3883,7 +3883,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Load data and create one .hyd file")
+        self.load_b.setText("Create .hyd file")
 
     def unit_counter(self):
         # count total number items (units)
@@ -4082,7 +4082,7 @@ class LAMMI(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
@@ -4284,7 +4284,7 @@ class SW2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
@@ -4485,7 +4485,7 @@ class IBER2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_iber2d)
         self.spacer = QSpacerItem(1, 200)
@@ -5002,7 +5002,7 @@ class SubstrateW(SubHydroW):
         # POLYGON (5 line)
         hab_filenametitle_polygon_label = QLabel(self.tr('.sub file name'))
         self.polygon_hname = QLineEdit('')  # hdf5 name
-        self.load_polygon_substrate = QPushButton(self.tr('Load data and create .sub file'), self)
+        self.load_polygon_substrate = QPushButton(self.tr('Create .sub file'), self)
         self.load_polygon_substrate.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_polygon_substrate.clicked.connect(lambda: self.load_sub_gui('polygon'))
 
@@ -5029,7 +5029,7 @@ class SubstrateW(SubHydroW):
         # POINT (5 line)
         hab_filenametitle_point_label = QLabel(self.tr('.sub file name'))
         self.point_hname = QLineEdit('')  # hdf5 name
-        self.load_point_substrate = QPushButton(self.tr('Load data and create .sub file'), self)
+        self.load_point_substrate = QPushButton(self.tr('Create .sub file'), self)
         self.load_point_substrate.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_point_substrate.clicked.connect(lambda: self.load_sub_gui('point'))
 
@@ -5053,7 +5053,7 @@ class SubstrateW(SubHydroW):
         # CONSTANT (4 line)
         hab_filenametitle_constant_label = QLabel(self.tr('.sub file name'))
         self.constant_hname = QLineEdit('')  # hdf5 name
-        self.load_constant_substrate = QPushButton(self.tr('Load data and create .sub file'), self)
+        self.load_constant_substrate = QPushButton(self.tr('Create .sub file'), self)
         self.load_constant_substrate.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_constant_substrate.clicked.connect(lambda: self.load_sub_gui('constant'))
 
@@ -5069,7 +5069,7 @@ class SubstrateW(SubHydroW):
         self.drop_hyd.currentIndexChanged.connect(self.create_hdf5_merge_name)
         self.drop_sub = QComboBox()
         self.drop_sub.currentIndexChanged.connect(self.create_hdf5_merge_name)
-        self.load_b2 = QPushButton(self.tr("Merge grid and create .hab file"), self)
+        self.load_b2 = QPushButton(self.tr("Create .hab file"), self)
         self.load_b2.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
 <context>
     <name>ASCII</name>
     <message>
@@ -50,7 +51,7 @@
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3643"/>
         <source>Load data and create .hyd file</source>
-        <translation>Charger les données et créer un fichier .hyd</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hyd</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3720"/>
@@ -61,6 +62,11 @@
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4018"/>
         <source># Loading: ASCII data...</source>
         <translation># Chargement: données ASCII...</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3643"/>
+        <source>Create .hyd file</source>
+        <translation>Créer un fichier .hyd</translation>
     </message>
 </context>
 <context>
@@ -1349,12 +1355,22 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1455"/>
         <source>Load data and create hab file</source>
-        <translation>Charger les données et créer un fichier .hab</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1458"/>
         <source>create figure</source>
         <translation>Création figure</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1455"/>
+        <source>Create hab file</source>
+        <translation type="obsolete">Créer un fichier .hab</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1455"/>
+        <source>Create .hyd file</source>
+        <translation>Créer un fichier .hyd</translation>
     </message>
 </context>
 <context>
@@ -1472,7 +1488,7 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2706"/>
         <source>Load data and create .hyd file</source>
-        <translation>Charger les données et créer un fichier .hyd</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hyd</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2834"/>
@@ -1487,17 +1503,27 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2891"/>
         <source>Load data and create one .hyd file</source>
-        <translation>Charger les données et créer un fichier.hyd</translation>
+        <translation type="obsolete">Charger les données et créer un fichier.hyd</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2926"/>
         <source>Load data and create </source>
-        <translation>Charger les données et créer </translation>
+        <translation type="obsolete">Charger les données et créer </translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2926"/>
         <source> .hyd files</source>
         <translation> fichiers.hyd</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2891"/>
+        <source>Create .hyd file</source>
+        <translation>Créer un fichier .hyd</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2926"/>
+        <source>Create </source>
+        <translation>Créer </translation>
     </message>
 </context>
 <context>
@@ -1729,12 +1755,17 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4498"/>
         <source>Load data and create hab file</source>
-        <translation>Charger les données et créer un fichier .hab</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4502"/>
         <source>create figure</source>
         <translation>créer figure</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4498"/>
+        <source>Create .hyd file</source>
+        <translation>Créer un fichier .hyd</translation>
     </message>
 </context>
 <context>
@@ -1953,12 +1984,17 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4095"/>
         <source>Load data and create hab file</source>
-        <translation>Charger les données et créer un fichier .hab</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4099"/>
         <source>create figure</source>
         <translation>créer une figure</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4095"/>
+        <source>Create .hab file</source>
+        <translation>Créer un fichier .hab</translation>
     </message>
 </context>
 <context>
@@ -2749,12 +2785,22 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1903"/>
         <source>Load data and create hab file</source>
-        <translation>Charger les données et créer un fichier .hab</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1907"/>
         <source>create figure</source>
         <translation>Créer figure</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1903"/>
+        <source>Create hab file</source>
+        <translation type="obsolete">Créer un fichier .hab</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1903"/>
+        <source>Create .hab file</source>
+        <translation>Créer un fichier .hab</translation>
     </message>
 </context>
 <context>
@@ -3140,7 +3186,12 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2159"/>
         <source>Load all files and create hab file</source>
-        <translation>Charger tous les fichiers et créer un fichier .hab</translation>
+        <translation type="obsolete">Charger tous les fichiers et créer un fichier .hab</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2159"/>
+        <source>Create .hab file</source>
+        <translation>Créer un fichier .hab</translation>
     </message>
 </context>
 <context>
@@ -3255,12 +3306,22 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2467"/>
         <source>Load data and create hab file</source>
-        <translation>Charger les données et créer un fichier hab</translation>
+        <translation type="obsolete">Charger les données et créer un fichier hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="2471"/>
         <source>create figure</source>
         <translation>créer figure</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2467"/>
+        <source>Create hab file</source>
+        <translation type="obsolete">Créer un fichier .hab</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="2467"/>
+        <source>Create .hab file</source>
+        <translation>Créer un fichier .hab</translation>
     </message>
 </context>
 <context>
@@ -3340,12 +3401,17 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1685"/>
         <source>Load data and create .hyd file</source>
-        <translation>Charger les données et créer un fichier .hyd</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hyd</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="1689"/>
         <source>create figure</source>
         <translation>créer figure</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="1685"/>
+        <source>Create .hyd file</source>
+        <translation>Créer un fichier .hyd</translation>
     </message>
 </context>
 <context>
@@ -3415,12 +3481,17 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4297"/>
         <source>Load data and create hab file</source>
-        <translation>Charger les données et créer un fichier .hab</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="4301"/>
         <source>create figure</source>
         <translation>créer figure</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4297"/>
+        <source>Create .hyd file</source>
+        <translation>Créer un fichier .hyd</translation>
     </message>
 </context>
 <context>
@@ -4031,7 +4102,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="5069"/>
         <source>Load data and create .sub file</source>
-        <translation>Charger les données et créer un fichier .sub</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .sub</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="5053"/>
@@ -4061,7 +4132,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="5085"/>
         <source>Merge grid and create .hab file</source>
-        <translation>Fusionner and créer un fichier .hab</translation>
+        <translation type="obsolete">Fusionner and créer un fichier .hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="5092"/>
@@ -4137,6 +4208,16 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="5886"/>
         <source># Merging: substrate and hydraulic grid...</source>
         <translation># Fusion: hydraulique et substrat ...</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5069"/>
+        <source>Create .sub file</source>
+        <translation>Créer un fichier .sub</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5085"/>
+        <source>Create .hab file</source>
+        <translation>Créer un fichier .hab</translation>
     </message>
 </context>
 <context>
@@ -4259,7 +4340,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3199"/>
         <source>Load data and create .hyd file</source>
-        <translation>Charger les données et créer un fichier .hyd</translation>
+        <translation type="obsolete">Charger les données et créer un fichier .hyd</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3279"/>
@@ -4275,6 +4356,11 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3212"/>
         <source>no file</source>
         <translation>pas de fichier</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3199"/>
+        <source>Create .hyd file</source>
+        <translation>Créer un fichier .hyd</translation>
     </message>
 </context>
 <context>
