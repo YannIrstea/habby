@@ -1439,7 +1439,7 @@ class HEC_RAS1D(SubHydroW):
         self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit('')
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -1669,7 +1669,7 @@ class Rubar2D(SubHydroW):
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -1887,7 +1887,7 @@ class Mascaret(SubHydroW):
         self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -2159,7 +2159,7 @@ class River2D(SubHydroW):
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -2450,7 +2450,7 @@ class Rubar1D(SubHydroW):
         self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -2750,7 +2750,7 @@ class HEC_RAS2D(SubHydroW):
         # self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
         #
         # # hdf5 name
-        # lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        # lh = QLabel(self.tr('.hyd file name'))
         # self.hname = QLineEdit(self.name_hdf5)
         # self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -2880,7 +2880,7 @@ class HEC_RAS2D(SubHydroW):
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_hec_ras2d_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Load data and create one .hyd file")
+                self.load_b.setText(self.tr("Load data and create one .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -2915,7 +2915,7 @@ class HEC_RAS2D(SubHydroW):
                 self.epsg_hec_ras2d_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Load data and create " + str(len(hydrau_description)) + " .hyd files")
+                self.load_b.setText(self.tr("Load data and create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3199,6 +3199,9 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         # last hdf5 created
         self.name_last_hdf5(type="TELEMAC")  # find the name of the last merge file and add it to self.lm2
+
+        self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
+        self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -4072,7 +4075,7 @@ class LAMMI(SubHydroW):
         l2D2 = QLabel(self.tr("Only 'Interpolation by Block' possible for LAMMI data. Substrate data is included."))
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -4274,7 +4277,7 @@ class SW2D(SubHydroW):
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -4475,7 +4478,7 @@ class IBER2D(SubHydroW):
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
         # hdf5 name
-        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
@@ -4965,11 +4968,11 @@ class SubstrateW(SubHydroW):
         """
 
         # choose between loading substrate by polygon, point or constant
-        l1 = QLabel(self.tr('Substrate mapping method'))
+        l1 = QLabel(self.tr('Substrate mapping method from'))
         sub_spacer = QSpacerItem(1, 10)
-        self.rb0 = QRadioButton(self.tr('From polygons (.shp)'))
-        self.rb1 = QRadioButton(self.tr('From points (.txt)'))
-        self.rb2 = QRadioButton(self.tr('From constant values (.txt)'))
+        self.rb0 = QRadioButton(self.tr('polygons (.shp)'))
+        self.rb1 = QRadioButton(self.tr('points (.txt)'))
+        self.rb2 = QRadioButton(self.tr('constant values (.txt)'))
         self.rb0.setChecked(True)
         self.rb0.clicked.connect(lambda: self.btnstate(self.rb0, self.rb1, self.rb2))
         self.rb0.clicked.connect(self.add_polygon_widgets)
@@ -5858,7 +5861,7 @@ class SubstrateW(SubHydroW):
         self.data_type = "HABITAT"
         # if hdf5_filename_output empty: msg
         if not self.hdf5_merge_lineedit.text():
-            self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
+            self.send_log.emit(self.tr('Warning: .hab filename output is empty. Please specify it.'))
             return
 
         # show progressbar

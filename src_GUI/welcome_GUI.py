@@ -99,10 +99,10 @@ class WelcomeW(QScrollArea):
         self.e1 = QLabel(self.name_prj)
         l2 = QLabel(self.tr('Main folder: '))
         self.e2 = QLabel(self.path_prj)
-        button2 = QPushButton(self.tr('Set folder'), self)
-        button2.clicked.connect(self.setfolder2)
-        button2.setToolTip(self.tr('Move the project to a new location. '
-                                   'The data might be long to copy if the project folder is large.'))
+        # button2 = QPushButton(self.tr('Set folder'), self)
+        # button2.clicked.connect(self.setfolder2)
+        # button2.setToolTip(self.tr('Move the project to a new location. '
+        #                            'The data might be long to copy if the project folder is large.'))
         l3 = QLabel(self.tr('Description: '))
         self.e3 = QTextEdit()
         # this is used to save the data if the QLineEdit is going out of Focus
@@ -162,7 +162,7 @@ class WelcomeW(QScrollArea):
         layoutl.addWidget(self.e1, 1, 1)
         layoutl.addWidget(l2, 2, 0)
         layoutl.addWidget(self.e2, 2, 1)
-        layoutl.addWidget(button2, 2, 2)
+        #layoutl.addWidget(button2, 2, 2)
         layoutl.addWidget(l4, 3, 0)
         layoutl.addWidget(self.e4, 3, 1)
         layoutl.addWidget(l3, 4, 0)

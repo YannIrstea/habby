@@ -236,16 +236,18 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # layout
         self.layout4 = QGridLayout(content_widget)
-        self.layout4.addWidget(l0, 0, 0)
-        self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
+        layout_prov_input = QHBoxLayout()
+        layout_prov_input.addWidget(l0)
+        layout_prov_input.addWidget(self.m_all)
+        self.layout4.addLayout(layout_prov_input, 0, 0, 1, 4, Qt.AlignLeft)  #
 
-        layout_prov = QHBoxLayout()
-        layout_prov.addWidget(self.explore_bio_model_pushbutton)
-        layout_prov.addWidget(self.remove_all_bio_model_pushbutton)
-        layout_prov.addWidget(self.remove_sel_bio_model_pushbutton)
-        layout_prov.addWidget(self.create_duplicate_from_selection_pushbutton)
-        layout_prov.addWidget(self.remove_duplicate_model_pushbutton)
-        self.layout4.addLayout(layout_prov, 1, 0, 1, 3, Qt.AlignLeft)
+        layout_prov = QGridLayout()
+        layout_prov.addWidget(self.explore_bio_model_pushbutton, 0, 0)
+        layout_prov.addWidget(self.create_duplicate_from_selection_pushbutton, 1, 0)
+        layout_prov.addWidget(self.remove_all_bio_model_pushbutton, 0, 1)
+        layout_prov.addWidget(self.remove_sel_bio_model_pushbutton, 1, 1)
+        layout_prov.addWidget(self.remove_duplicate_model_pushbutton, 2, 1)
+        self.layout4.addLayout(layout_prov, 1, 0, 1, 4, Qt.AlignLeft)  #
 
         # 1 column
         self.layout4.addWidget(self.bio_model_choosen_title_label, 2, 0)
@@ -577,14 +579,19 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
 
                 """ HYD """
+                # change language
+                for num in range(len(user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage])):
+                    user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage][num] = self.tr(user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage][num])
+                user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage] = self.tr(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
                 # get default_hydraulic_type
                 hydraulic_type_available = user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
+
                 # create combobox
                 item_combobox_hyd = QComboBox()
                 item_combobox_hyd.setObjectName(str(index))
                 item_combobox_hyd.addItems(hydraulic_type_available)
                 choosen_index = self.selected_aquatic_animal_dict["hydraulic_mode_list"][index]
-                default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+                default_choice_index = hydraulic_type_available.index(self.tr(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage]))
                 if choosen_index == default_choice_index:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_default)
                 else:
@@ -601,16 +608,20 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
                 """ SUB """
+                # change language
+                for num in range(len(user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage])):
+                    user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage][num] = self.tr(user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage][num])
+                user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage] = self.tr(
+                        user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
                 # get default_substrate_type
-                substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][
-                    index_stage]
+                substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage]
 
                 # create combobox
                 item_combobox_sub = QComboBox()
                 item_combobox_sub.setObjectName(str(index))
                 item_combobox_sub.addItems(substrate_type_available)
                 choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
-                default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
+                default_choice_index = substrate_type_available.index(self.tr(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage]))
                 if choosen_index == default_choice_index:
                     item_combobox_sub.setStyleSheet(self.combobox_style_default)
                 else:

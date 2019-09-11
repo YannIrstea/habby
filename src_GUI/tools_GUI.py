@@ -138,7 +138,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         habitat_filenames_qlabel = QLabel(self.tr('Select an habitat file'))
         self.hab_filenames_qcombobox = QComboBox()
         self.hab_filenames_qcombobox.currentIndexChanged.connect(self.names_hab_change)
-        habitat_reach_qlabel = QLabel(self.tr("Select a reach if not done"))
+        habitat_reach_qlabel = QLabel(self.tr("Select a reach"))
         self.hab_reach_qcombobox = QComboBox()
         self.hab_reach_qcombobox.currentIndexChanged.connect(self.reach_hab_change)
         unit_min_title_qlabel = QLabel(self.tr("unit min :"))

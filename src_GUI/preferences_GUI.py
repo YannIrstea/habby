@@ -232,7 +232,7 @@ class PreferenceWindow(QDialog):
         self.layout_available_exports.addWidget(self.elevation_whole_profile_hyd, 6, 2, Qt.AlignCenter)
         # row 7
         self.layout_available_exports.addWidget(QLabel("3D (.pvd, .vtu)"), 7, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Variables units")), 7, 1)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh units")), 7, 1)
         self.layout_available_exports.addWidget(self.variables_units_hyd, 7, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(self.variables_units_hab, 7, 3, Qt.AlignCenter)
         # row 8

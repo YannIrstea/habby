@@ -204,7 +204,7 @@ class BioModelFilterTab(QScrollArea):
         self.fish_code_alternative_listwidget.itemSelectionChanged.connect(self.result_from_selected_dispatch)
 
         # invertebrate
-        inv_code_alternative_label = QLabel("Invertebrate")
+        inv_code_alternative_label = QLabel(self.tr("Invertebrate"))
         self.inv_code_alternative_listwidget = QListWidget()
         self.inv_code_alternative_listwidget.setObjectName("inv_code_alternative")
         self.inv_code_alternative_listwidget.itemSelectionChanged.connect(self.result_from_selected_dispatch)

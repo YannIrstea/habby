@@ -135,7 +135,8 @@ class MainWindows(QMainWindow):
 
         # set up translation
         self.languageTranslator = QTranslator()
-        self.path_trans = os.path.abspath('translation')
+        #self.path_trans = os.path.abspath('translation')
+        self.path_trans = os.getcwd()
         self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm']
         try:  # english, french, spanish
             if language_set == "english":
@@ -1383,10 +1384,10 @@ class MainWindows(QMainWindow):
         """
         name_prj_here = self.createnew.e1.text()
         project_type = self.createnew.project_type_combobox.currentText()
-        if project_type == "Physical":
+        if project_type == self.tr("Physical"):
             self.physic_tabs = True
             self.stat_tabs = False
-        if project_type == "Statistical":
+        if project_type == self.tr("Statistical"):
             self.physic_tabs = False
             self.stat_tabs = True
 

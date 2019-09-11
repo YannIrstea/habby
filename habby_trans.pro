@@ -1,0 +1,15 @@
+SOURCES += src_GUI/bio_model_explorer_GUI.py
+SOURCES += src_GUI/calc_hab_GUI.py
+SOURCES += src_GUI/data_explorer_GUI.py
+SOURCES += src_GUI/estimhab_GUI.py
+SOURCES += src_GUI/fstress_GUI.py
+SOURCES += src_GUI/hydro_sub_GUI.py
+SOURCES += src_GUI/main_window_GUI.py
+SOURCES += src_GUI/preferences_GUI.py
+SOURCES += src_GUI/stathab_GUI.py
+SOURCES += src_GUI/tools_GUI.py
+SOURCES += src_GUI/welcome_GUI.py
+SOURCES += src/bio_info_mod.py
+TRANSLATIONS += Zen_EN.ts
+TRANSLATIONS += Zen_FR.ts
+TRANSLATIONS += Zen_ES.ts

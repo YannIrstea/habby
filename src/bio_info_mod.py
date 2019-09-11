@@ -24,7 +24,7 @@ from multiprocessing import Value
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from PyQt5.QtCore import QT_TR_NOOP as tr
+from PyQt5.QtCore import QCoreApplication
 
 from src import hdf5_mod
 from src import plot_mod
@@ -497,42 +497,42 @@ def get_biomodels_informations_for_database(path_xml):
                 shear_presence = True
             # compile infor
             if height_presence and velocity_presence:
-                hydraulic_type[index_stage] = "HV"
+                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "HV")
             if height_presence and not velocity_presence:
-                hydraulic_type[index_stage] = "H"
+                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "H")
             if not height_presence and velocity_presence:
-                hydraulic_type[index_stage] = "V"
+                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "V")
             if shear_presence:
-                hydraulic_type[index_stage] = "HEM"
+                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "HEM")
             if not height_presence and not velocity_presence and not shear_presence:
-                hydraulic_type[index_stage] = "Neglect"
+                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "Neglect")
             # available
             if height_presence and velocity_presence:
-                hydraulic_type_available[index_stage].append("HV")
+                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "HV"))
             if height_presence:
-                hydraulic_type_available[index_stage].append("H")
+                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "H"))
             if velocity_presence:
-                hydraulic_type_available[index_stage].append("V")
+                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "V"))
             if shear_presence:
-                hydraulic_type_available[index_stage].append("HEM")
-            hydraulic_type_available[index_stage].append(tr("Neglect"))
+                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "HEM"))
+            hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "Neglect"))
         else:
             hydraulic_type.append([])
-            hydraulic_type[index_stage] = "HV"
+            hydraulic_type[index_stage] = QCoreApplication.translate("Input", "HV")
             hydraulic_type_available.append([])
-            hydraulic_type_available[index_stage].append("HV")
+            hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "HV"))
 
     # substrate
     substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
     if substrate_type == []:
-        substrate_type = [tr("Neglect")] * len(stage_and_size)
-        substrate_type_available = [[tr("Neglect")]] * len(stage_and_size)
+        substrate_type = [QCoreApplication.translate("Input", "Neglect")] * len(stage_and_size)
+        substrate_type_available = [[QCoreApplication.translate("Input", "Neglect")]] * len(stage_and_size)
     else:
-        substrate_type_available = [[tr("Coarser-Dominant"),
-                               tr('Coarser'),
-                               tr('Dominant'),
-                               tr('Percentage'),
-                               tr('Neglect')]] * len(stage_and_size)
+        substrate_type_available = [[QCoreApplication.translate("Input", "Coarser-Dominant"),
+                               QCoreApplication.translate("Input", 'Coarser'),
+                               QCoreApplication.translate("Input", 'Dominant'),
+                               QCoreApplication.translate("Input", 'Percentage'),
+                               QCoreApplication.translate("Input", 'Neglect')]] * len(stage_and_size)
 
     # LatinName
     if guild == "@guild":
