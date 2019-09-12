@@ -2243,13 +2243,19 @@ class CentralW(QWidget):
         """
         method to close the images opened in HABBY and managed by matplotlib
         """
+        # data explorer tab
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
                 if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'plot_process_list'):
                     self.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list.kill_all_process()
+        # calc hab
         if hasattr(self, 'bioinfo_tab'):
             if hasattr(self.bioinfo_tab, 'plot_process_list'):
                 self.bioinfo_tab.plot_process_list.kill_all_process()
+        # estimhab
+        if hasattr(self, 'statmod_tab'):
+            if hasattr(self.statmod_tab, 'plot_process_list'):
+                self.statmod_tab.plot_process_list.kill_all_process()
 
     def connect_signal_log(self):
         """

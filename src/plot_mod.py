@@ -1806,6 +1806,91 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         plt.show()
 
 
+def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    if project_preferences['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    erase1 = project_preferences['erase_id']
+    path_im = os.path.join(path_prj, "output", "figures")
+    mpl.rcParams['pdf.fonttype'] = 42
+
+    # prepare figure
+    c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'k', 'g', 'y', '#9F81F7', '#BDBDBD', '#F7819F', 'b', 'm', 'r',
+         'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
+
+    # plot
+    fig, ax = plt.subplots(2, 1, sharey='row')
+    fig.canvas.set_window_title('ESTIMHAB - HABBY')
+
+    # VH
+    ax[0].set_title("ESTIMHAB - HABBY")
+    ax[0].grid(True)
+    line_object = []
+    for fish_index in range(len(estimhab_dict["fish_list"])):
+        line_object.append(ax[0].plot(estimhab_dict["q_all"], estimhab_dict["VH"][fish_index], color=c[fish_index]))
+
+    if project_preferences['language'] == 0:
+        ax[0].set_ylabel('Habitat Value []')
+    elif project_preferences['language'] == 1:
+        ax[0].set_ylabel('Valeur habitat []')
+    else:
+        ax[0].set_ylabel('Habitat Value[]')
+    ax[0].set_ylim(0, 1)
+
+    # SPU
+    ax[1].grid(True)
+
+    for fish_index in range(len(estimhab_dict["fish_list"])):
+        ax[1].plot(estimhab_dict["q_all"], estimhab_dict["SPU"][fish_index], color=c[fish_index])
+
+    if project_preferences['language'] == 0:
+        ax[1].set_xlabel('Discharge [m$^{3}$/sec]')
+        ax[1].set_ylabel('WUA by 100 m [m²]')
+    elif project_preferences['language'] == 1:
+        ax[1].set_xlabel('Débit [m$^{3}$/sec]')
+        ax[1].set_ylabel('SPU par 100 m [m²]')
+    else:
+        ax[1].set_xlabel('Discharge [m$^{3}$/sec]')
+        ax[1].set_ylabel('WUA by 100 m [m²]')
+
+    # LEGEND
+    fig.legend(line_object,
+               labels=estimhab_dict["fish_list"],
+               loc="center right",
+               borderaxespad=0.5,
+               fancybox=True)
+    plt.subplots_adjust(right=0.73)
+
+    # name with date and time
+    if format1 == 0:
+        name_pict = "Estimhab" + ".pdf"
+    if format1 == 1:
+        name_pict = "Estimhab" + ".png"
+    if format1 == 2:
+        name_pict = "Estimhab" + ".jpg"
+
+    if os.path.exists(os.path.join(path_im, name_pict)):
+        if not erase1:
+            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+
+    # save image
+    plt.savefig(os.path.join(path_im, name_pict), dpi=project_preferences['resolution'], transparent=True)
+
+    # finish process
+    state.value = 1  # process finished
+
+    # show
+    plt.show()
+
+
 class SnaptoCursorPT(object):
     """
     Display nearest data from x mouse position of matplotlib canvas.

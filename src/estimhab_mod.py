@@ -17,14 +17,41 @@ https://github.com/YannIrstea/habby
 import numpy as np
 import xml.etree.ElementTree as ET
 import os
-import matplotlib.pyplot as plt
-import time
-from src_GUI import preferences_GUI
-import matplotlib as mpl
+import sys
+from io import StringIO
+from src import hdf5_mod
+from src import plot_mod
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, path_im, pict=False, project_preferences={},
-             path_txt=[], fish_name=''):
+def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
+    # compute
+    q_all, VH, SPU = estimhab(estimhab_dict["q"], estimhab_dict["w"], estimhab_dict["h"],
+                       estimhab_dict["q50"], estimhab_dict["qrange"], estimhab_dict["substrate"],
+                       estimhab_dict["path_bio"], estimhab_dict["xml_list"], estimhab_dict["fish_list"])
+
+    # save in dict
+    estimhab_dict["q_all"] = q_all
+    estimhab_dict["VH"] = VH
+    estimhab_dict["SPU"] = SPU
+
+    # name hdf5
+    name_prj = os.path.basename(path_prj)
+    filename = name_prj + '_ESTIMHAB' + '.hab'
+
+    # create hdf5
+    hdf5 = hdf5_mod.Hdf5Management(path_prj,
+                                   filename)
+    hdf5.create_hdf5_estimhab(estimhab_dict, project_preferences)
+
+    # export
+    hdf5.export_estimhab()
+
+    # plot
+    plot_mod.plot_estimhab(state, estimhab_dict, project_preferences, path_prj)
+
+
+
+def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fish_name):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -64,21 +91,6 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
     a text file.
     """
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-    if pict:
-        plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-        plt.rcParams['font.size'] = project_preferences['font_size']
-        plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-        format1 = int(project_preferences['format'])
-        plt.rcParams['axes.grid'] = project_preferences['grid']
-        if project_preferences['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-        plt.rcParams['legend.loc'] = 'best'
-    erase1 = project_preferences['erase_id']
-    if not fish_name:
-        fish_name = fish_xml
-
     # Q
     nb_q = 20  # number of calculated q
     if qrange[1] > qrange[0]:
@@ -115,14 +127,6 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     dh50 = substrat / h50
     q50_data = [q50, h50, l50, v50, re50, fr50, dh50, np.exp(dh50)]
 
-    # prepare figure
-    if pict:
-        c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'k', 'g', 'y', '#9F81F7', '#BDBDBD', '#F7819F', 'b', 'm', 'r',
-             'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
-        plt.figure()
-        plt.suptitle("ESTIMHAB - HABBY")
-        mpl.rcParams['pdf.fonttype'] = 42
-
     # get fish data
     VH = []
     SPU = []
@@ -158,103 +162,14 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             const += coeff_const[i + 1] * np.log(q50_data[int(var_const[i])])
         VH_f = const * part_q
         SPU_f = VH_f * w_all * 100
-        if pict:
-            if not project_preferences:
-                project_preferences = preferences_GUI.create_default_project_preferences()
-
-            plt.subplot(2, 1, 1)
-            plt.grid(True)
-            plt.plot(q_all, VH_f, color=c[f])
-            if project_preferences['language'] == 0:
-                plt.xlabel('Discharge [m$^{3}$/sec]')
-                plt.ylabel('Habitat Value[]')
-            elif project_preferences['language'] == 1:
-                plt.xlabel('Débit [m$^{3}$/sec]')
-                plt.ylabel('Valeur habitat []')
-            else:
-                plt.xlabel('Discharge [m$^{3}$/sec]')
-                plt.ylabel('Habitat Value[]')
-            plt.legend(fish_name, fancybox=True, framealpha=0.5)
-            plt.ylim(0, 1)
-
-            plt.subplot(2, 1, 2)
-            plt.grid(True)
-            plt.plot(q_all, SPU_f, color=c[f])
-            if project_preferences['language'] == 0:
-                plt.xlabel('Discharge [m$^{3}$/sec]')
-                plt.ylabel('WUA by 100 m')
-            elif project_preferences['language'] == 1:
-                plt.xlabel('Débit [m$^{3}$/sec]')
-                plt.ylabel('SPU par 100 m')
-            else:
-                plt.xlabel('Discharge [m$^{3}$/sec]')
-                plt.ylabel('WUA by 100 m')
 
         VH.append(VH_f)
         SPU.append(SPU_f)
 
-    if pict:
+    VH = np.array(VH)
+    SPU = np.array(SPU)
 
-        # name with date and time
-        if not erase1:
-            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            name_input = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-        # name without data and time, erase old files
-        else:
-            name_pict = "Estimhab"
-            name_input = "Estimhab_input"
-            if os.path.isfile(name_pict + '.png'):
-                os.remove(name_pict + '.png')
-            if os.path.isfile(name_pict + '.pdf'):
-                os.remove(name_pict + '.pdf')
-            if os.path.isfile(name_pict + '.jpg'):
-                os.remove(name_pict + '.jpg')
-            if os.path.isfile(name_pict + '.txt'):
-                os.remove(name_pict + '.txt')
-            if os.path.isfile(name_input + '.txt'):
-                os.remove(name_input + '.txt')
-
-        # save image
-        if format1 == 0:
-            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
-        if format1 == 1:
-            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=project_preferences['resolution'], transparent=True)
-        if format1 == 2:
-            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
-            # plt.show()
-
-        # text files output
-        txt_header = 'Q '
-        data = q_all
-        for f in range(0, len(fish_name)):
-            txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
-            data = np.vstack((data, VH[f]))
-            data = np.vstack((data, SPU[f]))
-        txt_header += '\n[m3/sec]'
-        for f in range(0, len(fish_name)):
-            txt_header += '\t[-]\t[m2/100m]'
-        np.savetxt(os.path.join(path_txt, name_pict + '.txt'), data.T, header=txt_header,
-                   delimiter='\t')  # , newline=os.linesep
-
-        # text file input
-        txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
-        txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
-        txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
-        txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
-        txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
-        txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
-        txtin += 'Fish chosen:\t'
-        for n in fish_name:
-            txtin += n + '\t'
-        txtin = txtin[:-1]
-        txtin += '\n'
-        txtin += 'Output file:\t' + name_pict + '.txt\n'
-        with open(os.path.join(path_txt, name_input + '.txt'), 'wt') as f:
-            f.write(txtin)
-
-    del fish_name
-
-    return VH, SPU
+    return q_all, VH, SPU
 
 
 def pass_to_float_estimhab(var_name, root):

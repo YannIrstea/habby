@@ -28,10 +28,12 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QFileDialog, QListWidget, QListWidgetItem, \
     QAbstractItemView, QMessageBox, QScrollArea, QFrame
 from PyQt5.QtGui import QFont
-import h5py
+from multiprocessing import Process, Queue, Value
 import sys
 from io import StringIO
 from src_GUI import preferences_GUI
+from src import hdf5_mod
+from src_GUI.data_explorer_GUI import MyProcessList
 
 
 class StatModUseful(QScrollArea):
@@ -358,6 +360,7 @@ class EstimhabW(StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
+        self.plot_process_list = MyProcessList("estimhab")
         self.VH = []
         self.SPU = []
         self.filenames = []  # a list which link the name of the fish name and the xml file
@@ -482,7 +485,13 @@ class EstimhabW(StatModUseful):
 
         all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
 
+        # get selected fish
+        selected_fish = []
+        for index in range(self.selected_aquatic_animal_qtablewidget.count()):
+            selected_fish.append(self.selected_aquatic_animal_qtablewidget.item(index).text())
+
         fish_names = []
+        xml_file_to_keep = []
         for f in all_xmlfile:
             # open xml
             try:
@@ -510,11 +519,19 @@ class EstimhabW(StatModUseful):
             if stage != 'all_stage':
                 fish_name += ' ' + stage
 
-            # add to the list
-            item = QListWidgetItem(fish_name)
-            self.list_f.addItem(item)
+            # check if selected
+            if fish_name not in selected_fish:
+                # add to the list
+                item = QListWidgetItem(fish_name)
+                item.setData(1, f)
+                self.list_f.addItem(item)
 
-            fish_names.append(fish_name)
+                fish_names.append(fish_name)
+                xml_file_to_keep.append(f)
+        # remove xml files
+        for xml_file in reversed(all_xmlfile):
+            if xml_file not in xml_file_to_keep:
+                all_xmlfile.remove(xml_file)
 
         # remember fish name and xml filename
         self.filenames = [fish_names, all_xmlfile]
@@ -534,28 +551,29 @@ class EstimhabW(StatModUseful):
                 path_hdf5 = self.find_path_hdf5_est()
                 fname_h5 = os.path.join(path_hdf5, fname_h5)
                 if os.path.isfile(fname_h5):
-                    file_estimhab = h5py.File(fname_h5, 'r+')
-                    # hydrological data
-                    dataset_name = ['qmes', 'hmes', 'wmes', 'q50', 'qrange', 'substrate']
-                    list_qline = [self.eq1, self.eq2, self.eh1, self.eh2, self.ew1, self.ew2, self.eq50, self.eqmin,
-                                  self.eqmax, self.esub]
-                    c = 0
-                    for i in range(0, len(dataset_name)):
-                        dataset = file_estimhab[dataset_name[i]]
-                        dataset = list(dataset.values())[0]
-                        for j in range(0, len(dataset)):
-                            data_str = str(dataset[j])
-                            list_qline[c].setText(data_str[1:-1])  # get rid of []
-                            c += 1
-                    # chosen fish
-                    dataset = file_estimhab['fish_type']
-                    dataset = list(dataset.values())[0]
-                    for i in range(0, len(dataset)):
-                        dataset_i = str(dataset[i])
-                        self.selected_aquatic_animal_qtablewidget.addItem(dataset_i[3:-2])
-                        self.fish_selected.append(dataset_i[3:-2])
+                    # create hdf5
+                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                                   fname_h5)
+                    hdf5.load_hdf5_estimhab()
 
-                    file_estimhab.close()
+                    # chosen fish
+                    for i in range(0, len(hdf5.estimhab_dict["fish_list"])):
+                        item = QListWidgetItem(hdf5.estimhab_dict["fish_list"][i])
+                        item.setData(1, hdf5.estimhab_dict["xml_list"][i])
+                        self.selected_aquatic_animal_qtablewidget.addItem(item)
+
+                    # input data
+                    self.eq1.setText(str(hdf5.estimhab_dict["q"][0]))
+                    self.eq2.setText(str(hdf5.estimhab_dict["q"][1]))
+                    self.eh1.setText(str(hdf5.estimhab_dict["h"][0]))
+                    self.eh2.setText(str(hdf5.estimhab_dict["h"][1]))
+                    self.ew1.setText(str(hdf5.estimhab_dict["w"][0]))
+                    self.ew2.setText(str(hdf5.estimhab_dict["w"][1]))
+                    self.eq50.setText(str(hdf5.estimhab_dict["q50"]))
+                    self.eqmin.setText(str(hdf5.estimhab_dict["qrange"][0]))
+                    self.eqmax.setText(str(hdf5.estimhab_dict["qrange"][1]))
+                    self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
+
                 else:
                     self.msge.setIcon(QMessageBox.Warning)
                     self.msge.setWindowTitle(self.tr("hdf5 ESTIMHAB"))
@@ -618,16 +636,19 @@ class EstimhabW(StatModUseful):
             return
 
         # get the list of xml file
+        all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
         fish_list = []
         fish_name2 = []
         for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
             fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
             fish_item_str = fish_item.text()
-            for id, f in enumerate(self.filenames[0]):
-                if f == fish_item_str:
-                    fish_list.append(os.path.basename(self.filenames[1][id]))
-                    fish_name2.append(fish_item_str)
+            # for id, f in enumerate(self.filenames[0]):
+            #     if f == fish_item_str:
+            #         fish_list.append(os.path.basename(self.filenames[1][id]))
+            #         fish_name2.append(fish_item_str)
 
+            fish_list.append(os.path.basename(fish_item.data(1)))
+            fish_name2.append(fish_item_str)
         # check internal logic
         if not fish_list:
             self.msge.setIcon(QMessageBox.Warning)
@@ -699,9 +720,23 @@ class EstimhabW(StatModUseful):
         path_txt = self.find_path_text_est()
         project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
-        [self.VH, self.SPU] = estimhab_mod.estimhab(q, w, h, q50, qrange, substrate, self.path_bio_estimhab, fish_list,
-                                                    path_im, True, project_preferences, path_txt, fish_name2)
-        self.save_signal_estimhab.emit()
+
+        estimhab_dict = dict(q=q,
+                             w=w,
+                             h=h,
+                             q50=q50,
+                             qrange=qrange,
+                             substrate=substrate,
+                             path_bio=self.path_bio_estimhab,
+                             xml_list=fish_list,
+                             fish_list=fish_name2)
+
+        state = Value("i", 0)
+
+        self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
+                         args=(estimhab_dict, project_preferences, self.path_prj,
+                               state))
+        self.plot_process_list.append((self.p, state))
 
         # log info
         str_found = mystdout.getvalue()
@@ -709,6 +744,9 @@ class EstimhabW(StatModUseful):
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
+
+        self.send_log.emit(
+            self.tr("Estimhab computation done. Estimhab .hab, figure and text files created."))
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')
@@ -731,11 +769,6 @@ class EstimhabW(StatModUseful):
         self.send_log.emit("restart    sub: " + str(substrate))
         self.send_log.emit("restart    min qrange: " + str(qrange[0]))
         self.send_log.emit("restart    max qrange: " + str(qrange[1]))
-
-        # we always do a figure for estmihab
-        if path_im != 'no_path':
-            plt.show()
-            #self.show_fig.emit()
 
 
 if __name__ == '__main__':

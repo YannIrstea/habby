@@ -81,7 +81,7 @@ class Hdf5Management:
             self.type_for_xml = "hdf5_habitat"  # for save xml
             self.hdf5_type = "habitat"
 
-    def open_hdf5_file(self, new=False):
+    def open_hdf5_file(self, new=False, physic_or_stat="physic"):
         # get mode
         if not new:
             mode_file = 'r+'  # Readonly, file must exist
@@ -106,25 +106,26 @@ class Hdf5Management:
                 self.file_object.attrs['name_project'] = self.name_prj
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
-                self.get_hdf5_attributes()
+                if physic_or_stat != "statistic":
+                    self.get_hdf5_attributes()
 
-                # create basename_output_reach_unit for output files
-                if self.extension != ".sub":
-                    self.basename_output_reach_unit = []
-                    for reach_num, reach_name in enumerate(self.reach_name):
-                        self.basename_output_reach_unit.append([])
-                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                            unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name)
-                            self.basename_output_reach_unit[reach_num].append(
-                                self.basename + "_" + reach_name + "_" + str(unit_name2))
-                    self.units_name_output = []
-                    for reach_num, reach_name in enumerate(self.reach_name):
-                        self.units_name_output.append([])
-                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                            unit_name2 = str(unit_name).replace(".", "_") + "_" + \
-                                         self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
-                                                                                                            "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
-                            self.units_name_output[reach_num].append(unit_name2)
+                    # create basename_output_reach_unit for output files
+                    if self.extension != ".sub":
+                        self.basename_output_reach_unit = []
+                        for reach_num, reach_name in enumerate(self.reach_name):
+                            self.basename_output_reach_unit.append([])
+                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                                unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name)
+                                self.basename_output_reach_unit[reach_num].append(
+                                    self.basename + "_" + reach_name + "_" + str(unit_name2))
+                        self.units_name_output = []
+                        for reach_num, reach_name in enumerate(self.reach_name):
+                            self.units_name_output.append([])
+                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                                unit_name2 = str(unit_name).replace(".", "_") + "_" + \
+                                             self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
+                                                                                                                "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                                self.units_name_output[reach_num].append(unit_name2)
 
         except OSError:
             print('Error: the hdf5 file could not be loaded.')
@@ -197,101 +198,103 @@ class Hdf5Management:
         self.hdf5_attributes_name_text = hdf5_attributes_name_text
         self.hdf5_attributes_info_text = hdf5_attributes_info_text
 
-        """ get_hdf5_variables """
-        # substrate constant ==> nothing to plot
-        if self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
-            # to attribute
-            self.variables = []
+        print(self.hdf5_type)
+        if self.hdf5_type != "estimhab":
+            """ get_2D_variables """
+            # substrate constant ==> nothing to plot
+            if self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
+                # to attribute
+                self.variables = []
 
-        # hydraulic substrate and habitat variables
-        else:
-            data_group = list(self.file_object.keys())[0]
-            """ MESH GROUP """
-            # mesh_group for first reach and first unit
-            mesh_group = data_group + "/reach_0/unit_0/mesh"
-            variables_mesh = list(self.file_object[mesh_group].keys())
-            # remove i_whole_profile
-            if "i_whole_profile" in variables_mesh:
-                variables_mesh.remove("i_whole_profile")
-            # change tin by mesh
-            if "tin" in variables_mesh:
-                variables_mesh[variables_mesh.index("tin")] = "mesh"
-            # change sub by coarser_dominant
-            if "sub" in variables_mesh:
-                variables_mesh[variables_mesh.index("sub")] = "coarser_dominant"
-            """ NODE GROUP """
-            # node_group for first reach and first unit
-            node_group = data_group + "/reach_0/unit_0/node"
-            variables_node = list(self.file_object[node_group].keys())
-            # change name for h and v for GUI
-            if "h" in variables_node:
-                variables_node[variables_node.index("h")] = "height"
-            if "v" in variables_node:
-                variables_node[variables_node.index("v")] = "velocity"
-            # remove xy (not variable)
-            if "xy" in variables_node:
-                variables_node.remove("xy")
-            # merge two variables list
-            if variables_mesh and variables_node:
-                variables = variables_mesh + variables_node
-            if not variables_mesh and variables_node:
-                variables = variables_node
-            if variables_mesh and not variables_node:
-                variables = variables_mesh
+            # hydraulic substrate and habitat variables
+            else:
+                data_group = list(self.file_object.keys())[0]
+                """ MESH GROUP """
+                # mesh_group for first reach and first unit
+                mesh_group = data_group + "/reach_0/unit_0/mesh"
+                variables_mesh = list(self.file_object[mesh_group].keys())
+                # remove i_whole_profile
+                if "i_whole_profile" in variables_mesh:
+                    variables_mesh.remove("i_whole_profile")
+                # change tin by mesh
+                if "tin" in variables_mesh:
+                    variables_mesh[variables_mesh.index("tin")] = "mesh"
+                # change sub by coarser_dominant
+                if "sub" in variables_mesh:
+                    variables_mesh[variables_mesh.index("sub")] = "coarser_dominant"
+                """ NODE GROUP """
+                # node_group for first reach and first unit
+                node_group = data_group + "/reach_0/unit_0/node"
+                variables_node = list(self.file_object[node_group].keys())
+                # change name for h and v for GUI
+                if "h" in variables_node:
+                    variables_node[variables_node.index("h")] = "height"
+                if "v" in variables_node:
+                    variables_node[variables_node.index("v")] = "velocity"
+                # remove xy (not variable)
+                if "xy" in variables_node:
+                    variables_node.remove("xy")
+                # merge two variables list
+                if variables_mesh and variables_node:
+                    variables = variables_mesh + variables_node
+                if not variables_mesh and variables_node:
+                    variables = variables_node
+                if variables_mesh and not variables_node:
+                    variables = variables_mesh
 
-            # change names (estithic)
-            if "z" in variables:
-                variables.remove("z")
-                variables.insert(1, "points elevation")
-            if "mesh" in variables:
-                variables.insert(1, "mesh and points")
+                # change names (estithic)
+                if "z" in variables:
+                    variables.remove("z")
+                    variables.insert(1, "points elevation")
+                if "mesh" in variables:
+                    variables.insert(1, "mesh and points")
 
-            # estithic sort for GUI (classic variables + fish variables (alphanumeric))
-            variables.sort(key=str.lower)  # sort alphanumeric
-            list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
-                           'max_slope_bottom', 'max_slope_energy', 'shear_stress']
-            list_to_gui = [x for x in list_to_gui if x in variables]  # remove variable not present in hdf5
-
-            for variable_index, variable in enumerate(list_to_gui):
-                if variable in variables:  # first
-                    variables.insert(variable_index, variables.pop(variables.index(variable)))
-
-            # to attribute
-            self.variables = variables
-
-        """ get_hdf5_fish_names """
-        variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
+                # estithic sort for GUI (classic variables + fish variables (alphanumeric))
+                variables.sort(key=str.lower)  # sort alphanumeric
+                list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
                                'max_slope_bottom', 'max_slope_energy', 'shear_stress']
-        fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
-        self.fish_list = fish_list
+                list_to_gui = [x for x in list_to_gui if x in variables]  # remove variable not present in hdf5
 
-        """ get_hdf5_fish_shortnames """
-        # variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
-        # fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
-        # self.fish_list = fish_list
+                for variable_index, variable in enumerate(list_to_gui):
+                    if variable in variables:  # first
+                        variables.insert(variable_index, variables.pop(variables.index(variable)))
 
-        """ get_hdf5_reach_name """
-        # units name
-        reach_name = []
-        # get unit_list
-        hdf5_attributes = list(self.file_object.attrs.items())
-        for attribute_name, attribute_data in hdf5_attributes:
-            if "reach_list" in attribute_name:
-                reach_name = attribute_data.split(", ")
+                # to attribute
+                self.variables = variables
 
-        # to attributes
-        self.reach_name = reach_name
+            """ get_hdf5_fish_names """
+            variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
+                                   'max_slope_bottom', 'max_slope_energy', 'shear_stress']
+            fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
+            self.fish_list = fish_list
 
-        """ get_hdf5_units_name """
-        # to attributes
-        if self.hdf5_type == "substrate":
-            self.units_name = [["unit_0"]]
-            self.nb_unit = 1
-        else:
-            self.units_name = self.file_object["unit_by_reach"].value.transpose().astype(np.str).tolist()
-            self.nb_unit = len(self.units_name)
+            """ get_hdf5_fish_shortnames """
+            # variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+            # fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
+            # self.fish_list = fish_list
 
-    # HYDRAULIC
+            """ get_hdf5_reach_name """
+            # units name
+            reach_name = []
+            # get unit_list
+            hdf5_attributes = list(self.file_object.attrs.items())
+            for attribute_name, attribute_data in hdf5_attributes:
+                if "reach_list" in attribute_name:
+                    reach_name = attribute_data.split(", ")
+
+            # to attributes
+            self.reach_name = reach_name
+
+            """ get_hdf5_units_name """
+            # to attributes
+            if self.hdf5_type == "substrate":
+                self.units_name = [["unit_0"]]
+                self.nb_unit = 1
+            else:
+                self.units_name = self.file_object["unit_by_reach"].value.transpose().astype(np.str).tolist()
+                self.nb_unit = len(self.units_name)
+
+    # HYDRAULIC 2D
     def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description, project_preferences):
         """
         :param data_2d: data 2d dict with keys :
@@ -771,7 +774,7 @@ class Hdf5Management:
         self.data_2d = data_2d
         self.data_description = sub_description_system
 
-    # HABITAT
+    # HABITAT 2D
     def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description, project_preferences):
         attributes_to_remove = (
         "hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type",
@@ -1285,6 +1288,66 @@ class Hdf5Management:
                 mesh_group = unit_group["mesh"]
                 for fish_name_to_remove in fish_names_to_remove:
                     del mesh_group[fish_name_to_remove]
+
+    # HABITAT ESTIMHAB
+    def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
+        # create a new hdf5
+        self.open_hdf5_file(new=True, physic_or_stat="statistic")
+
+        # hdf5_type
+        self.hdf5_type = "estimhab"
+
+        # save dict to attribute
+        self.project_preferences = project_preferences
+
+        # intput data
+        self.file_object.attrs["path_bio_estimhab"] = estimhab_dict["path_bio"]
+        self.file_object.create_dataset('qmes', [2, 1], data=estimhab_dict["q"])
+        self.file_object.create_dataset("wmes", [2, 1], data=estimhab_dict["w"])
+        self.file_object.create_dataset("hmes", [2, 1], data=estimhab_dict["h"])
+        self.file_object.create_dataset("q50", [1, 1], data=estimhab_dict["q50"])
+        self.file_object.create_dataset("qrange", [2, 1], data=estimhab_dict["qrange"])
+        self.file_object.create_dataset("substrate", [1, 1], data=estimhab_dict["substrate"])
+        xml_list = [n.encode("ascii", "ignore") for n in estimhab_dict["xml_list"]]  # unicode is not ok with hdf5
+        fish_list = [n.encode("ascii", "ignore") for n in estimhab_dict["fish_list"]]  # unicode is not ok with hdf5
+        self.file_object.create_dataset("xml_list", (len(xml_list), 1), data=xml_list)
+        self.file_object.create_dataset("fish_list", (len(fish_list), 1), data=fish_list)
+
+        # output data
+        self.file_object.create_dataset("q_all", estimhab_dict["q_all"].shape, data=estimhab_dict["q_all"])
+        self.file_object.create_dataset("VH", estimhab_dict["VH"].shape, data=estimhab_dict["VH"])
+        self.file_object.create_dataset("SPU", estimhab_dict["SPU"].shape, data=estimhab_dict["SPU"])
+
+        # close
+        self.file_object.close()
+
+        # load
+        self.load_hdf5_estimhab()
+
+    def load_hdf5_estimhab(self):
+        # open an hdf5
+        self.open_hdf5_file(new=False, physic_or_stat="statistic")
+
+        # load dataset
+        estimhab_dict = dict(q=self.file_object["qmes"][:].flatten().tolist(),
+                             w=self.file_object["wmes"][:].flatten().tolist(),
+                             h=self.file_object["hmes"][:].flatten().tolist(),
+                             q50=self.file_object["q50"][:].flatten().tolist()[0],
+                             qrange=self.file_object["qrange"][:].flatten().tolist(),
+                             substrate=self.file_object["substrate"][:].flatten().tolist()[0],
+                             path_bio=self.file_object.attrs["path_bio_estimhab"],
+                             xml_list=self.file_object["xml_list"][:].flatten().astype(np.str).tolist(),
+                             fish_list=self.file_object["fish_list"][:].flatten().astype(np.str).tolist(),
+                             q_all=self.file_object["q_all"][:],
+                             VH=self.file_object["VH"][:],
+                             SPU=self.file_object["SPU"][:])
+
+        # close file
+        self.file_object.close()
+        self.file_object = None
+
+        # save attrivbute
+        self.estimhab_dict = estimhab_dict
 
     # EXPORT GPKG
     def export_gpkg(self, state=None):
@@ -2383,6 +2446,55 @@ class Hdf5Management:
 
             if state:
                 state.value = 1  # process finished
+
+    def export_estimhab(self):
+        # text files output
+        txt_header = 'Q '
+        q_all = self.estimhab_dict["q_all"]
+        fish_name = self.estimhab_dict["fish_list"]
+        qmes = self.estimhab_dict["q"]
+        width = self.estimhab_dict["w"]
+        height = self.estimhab_dict["h"]
+        q50 = self.estimhab_dict["q50"]
+        substrat = self.estimhab_dict["substrate"]
+        qrange = self.estimhab_dict["qrange"]
+        VH = self.estimhab_dict["VH"]
+        SPU = self.estimhab_dict["SPU"]
+        path_txt = os.path.join(self.path_prj, "output", "text")
+        output_filename = "Estimhab"
+        intput_filename = "Estimhab_input"
+
+        # check if exist and erase
+        if os.path.exists(os.path.join(path_txt, output_filename + '.txt')):
+            if not self.project_preferences["erase_id"]:
+                output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+
+        for f in range(0, len(fish_name)):
+            txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
+            q_all = np.vstack((q_all, VH[f]))
+            q_all = np.vstack((q_all, SPU[f]))
+        txt_header += '\n[m3/sec]'
+        for f in range(0, len(fish_name)):
+            txt_header += '\t[-]\t[m2/100m]'
+        np.savetxt(os.path.join(path_txt, output_filename + '.txt'), q_all.T, header=txt_header,
+                   delimiter='\t')  # , newline=os.linesep
+
+        # text file input
+        txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
+        txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
+        txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
+        txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
+        txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
+        txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
+        txtin += 'Fish chosen:\t'
+        for n in fish_name:
+            txtin += n + '\t'
+        txtin = txtin[:-1]
+        txtin += '\n'
+        txtin += 'Output file:\t' + output_filename + '.txt\n'
+        with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
+            f.write(txtin)
 
 
 #################################################################
