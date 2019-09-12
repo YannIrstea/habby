@@ -738,6 +738,10 @@ class EstimhabW(StatModUseful):
                                state))
         self.plot_process_list.append((self.p, state))
 
+        # wait end process
+        while state.value != 1:
+            pass
+
         # log info
         str_found = mystdout.getvalue()
         str_found = str_found.split('\n')
