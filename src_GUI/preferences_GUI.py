@@ -176,11 +176,16 @@ class PreferenceWindow(QDialog):
         marquers_hab_fig_label = QLabel(self.tr('Markers for habitat figures'))
         self.marquers_hab_fig_checkbox = QCheckBox(self.tr(''))
 
+        # reset default
+        self.reset_by_default_pref = QPushButton(self.tr('Reset by default'))
+        self.reset_by_default_pref.clicked.connect(lambda: self.set_pref_gui_from_dict(default=True))
+
         # save
-        self.save_pref_button = QPushButton(self.tr('Save and close'))
+        self.save_pref_button = QPushButton(self.tr('OK'))
         self.save_pref_button.clicked.connect(self.save_preferences)
 
-        self.close_pref_button = QPushButton(self.tr('Close'))
+        # close
+        self.close_pref_button = QPushButton(self.tr('Cancel'))
         self.close_pref_button.clicked.connect(self.close_preferences)
 
         """ LAYOUT """
@@ -271,6 +276,7 @@ class PreferenceWindow(QDialog):
         layout.addWidget(general_options_group, 0, 0)
         layout.addWidget(available_exports_group, 1, 0)
         layout.addWidget(figures_group, 0, 1, 3, 2)
+        layout.addWidget(self.reset_by_default_pref, 3, 0, Qt.AlignLeft)
         layout.addWidget(self.save_pref_button, 3, 1)  # , 1, 1
         layout.addWidget(self.close_pref_button, 3, 2)  # , 1, 1
 
@@ -295,9 +301,12 @@ class PreferenceWindow(QDialog):
         self.type_fishname_combobox.currentIndexChanged.connect(self.set_modification_presence)
         self.marquers_hab_fig_checkbox.stateChanged.connect(self.set_modification_presence)
 
-    def set_pref_gui_from_dict(self):
-        # read actual figure option
-        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+    def set_pref_gui_from_dict(self, default=False):
+        if default:
+            project_preferences = create_default_project_preferences()
+        else:
+            # read actual figure option
+            project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # min_height_hyd
         self.min_height_lineedit.setText(str(project_preferences['min_height_hyd']))
@@ -388,17 +397,17 @@ class PreferenceWindow(QDialog):
         If you change things here, it is necessary to start a new project as the old projects will not be compatible.
         For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
         """
-        # really user want to save ?
-        if self.is_modification:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Preferences modified"))
-            self.msg2.setText(self.tr("Do you really want to save and close new preferences ?"))
-            self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            res = self.msg2.exec_()
-
-            # delete
-            if res == QMessageBox.No:
-                return
+        # # really user want to save ?
+        # if self.is_modification:
+        #     self.msg2.setIcon(QMessageBox.Warning)
+        #     self.msg2.setWindowTitle(self.tr("Preferences modified"))
+        #     self.msg2.setText(self.tr("Do you really want to save and close new preferences ?"))
+        #     self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        #     res = self.msg2.exec_()
+        #
+        #     # delete
+        #     if res == QMessageBox.No:
+        #         return
 
         # get default option for security
         project_preferences = create_default_project_preferences()
@@ -595,21 +604,21 @@ class PreferenceWindow(QDialog):
         self.close()
 
     def close_preferences(self):
-        # really user want to save ?
-        if self.is_modification:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Preferences modified"))
-            self.msg2.setText(self.tr("Do you really want to close preferences without saving your changes ?"))
-            self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            res = self.msg2.exec_()
-
-            # delete
-            if res == QMessageBox.Yes:
-                self.send_log.emit('Preferences not saved.')
-                self.close()
-                return
-            if res == QMessageBox.No:
-                return
+        # # really user want to save ?
+        # if self.is_modification:
+        #     self.msg2.setIcon(QMessageBox.Warning)
+        #     self.msg2.setWindowTitle(self.tr("Preferences modified"))
+        #     self.msg2.setText(self.tr("Do you really want to close preferences without saving your changes ?"))
+        #     self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        #     res = self.msg2.exec_()
+        #
+        #     # delete
+        #     if res == QMessageBox.Yes:
+        #         self.send_log.emit('Preferences not saved.')
+        #         self.close()
+        #         return
+        #     if res == QMessageBox.No:
+        #         return
 
         # close window if opened
         self.close()

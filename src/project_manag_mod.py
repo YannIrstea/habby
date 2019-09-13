@@ -198,8 +198,8 @@ def create_default_project_preferences():
     project_preferences['fish_information'] = [False, False]  # image of fish informations
 
     # figures
-    project_preferences['height'] = 7
-    project_preferences['width'] = 10
+    project_preferences['height'] = 7.0
+    project_preferences['width'] = 10.0
     project_preferences['color_map1'] = 'coolwarm'
     project_preferences['color_map2'] = 'jet'
     project_preferences['font_size'] = 12
