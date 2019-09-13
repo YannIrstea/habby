@@ -1988,17 +1988,17 @@ class Hdf5Management:
                         self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
                             "hyd_unit_type"].find(']')]
 
-            if not self.project_preferences['erase_id']:
-                if self.project_preferences['language'] == 0:
-                    name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                else:
-                    name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+            if self.project_preferences['language'] == 0:
+                name = self.basename + '_wua.txt'
             else:
-                if self.project_preferences['language'] == 0:
-                    name = self.basename + '_wua.txt'
+                name = self.basename + '_spu.txt'
+            if os.path.isfile(os.path.join(path_txt, name)):
+                if not self.project_preferences['erase_id']:
+                    if self.project_preferences['language'] == 0:
+                        name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                 else:
-                    name = self.basename + '_spu.txt'
-                if os.path.isfile(os.path.join(path_txt, name)):
                     try:
                         os.remove(os.path.join(path_txt, name))
                     except PermissionError:
@@ -2105,19 +2105,19 @@ class Hdf5Management:
 
             # for each unit
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                if not self.project_preferences['erase_id']:
-                    if self.project_preferences['language'] == 0:
-                        name = self.basename + "_detailledmesh_unit" + str(unit_num) + "_" + time.strftime(
-                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                    else:
-                        name = self.basename + "_mailledetaillee_unit" + str(unit_num) + "_" + time.strftime(
-                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                if self.project_preferences['language'] == 0:
+                    name = self.basename + "_detailledmesh_unit" + str(unit_num) + ".txt"
                 else:
-                    if self.project_preferences['language'] == 0:
-                        name = self.basename + "_detailledmesh_unit" + str(unit_num) + ".txt"
+                    name = self.basename + "_mailledetaillee_unit" + str(unit_num) + ".txt"
+                if os.path.isfile(os.path.join(path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        if self.project_preferences['language'] == 0:
+                            name = self.basename + "_detailledmesh_unit" + str(unit_num) + "_" + time.strftime(
+                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                        else:
+                            name = self.basename + "_mailledetaillee_unit" + str(unit_num) + "_" + time.strftime(
+                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
                     else:
-                        name = self.basename + "_mailledetaillee_unit" + str(unit_num) + ".txt"
-                    if os.path.isfile(os.path.join(path_txt, name)):
                         try:
                             os.remove(os.path.join(path_txt, name))
                         except PermissionError:
@@ -2158,7 +2158,7 @@ class Hdf5Management:
                     if self.type_for_xml == "hdf5_habitat" and fish_names:
                         header += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
                                           range(sub_class_number))
-                        header += "".join(['\t[' + fish + ']' for fish in fish_shortnames])
+                        header += "".join(['\t[' + fish + ']' for fish in fish_names])
                     f.write(header)
 
                     # for each reach
@@ -2224,19 +2224,19 @@ class Hdf5Management:
 
             # for each unit
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                if not self.project_preferences['erase_id']:
-                    if self.project_preferences['language'] == 0:
-                        name = self.basename + "_detailledpoint_unit" + str(unit_num) + "_" + time.strftime(
-                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                    else:
-                        name = self.basename + "_pointdetaille_unit" + str(unit_num) + "_" + time.strftime(
-                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                if self.project_preferences['language'] == 0:
+                    name = self.basename + "_detailledpoint_unit" + str(unit_num) + ".txt"
                 else:
-                    if self.project_preferences['language'] == 0:
-                        name = self.basename + "_detailledpoint_unit" + str(unit_num) + ".txt"
+                    name = self.basename + "_pointdetaille_unit" + str(unit_num) + ".txt"
+                if os.path.isfile(os.path.join(path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        if self.project_preferences['language'] == 0:
+                            name = self.basename + "_detailledpoint_unit" + str(unit_num) + "_" + time.strftime(
+                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                        else:
+                            name = self.basename + "_pointdetaille_unit" + str(unit_num) + "_" + time.strftime(
+                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
                     else:
-                        name = self.basename + "_pointdetaille_unit" + str(unit_num) + ".txt"
-                    if os.path.isfile(os.path.join(path_txt, name)):
                         try:
                             os.remove(os.path.join(path_txt, name))
                         except PermissionError:
