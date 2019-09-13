@@ -1170,7 +1170,7 @@ class MainWindows(QMainWindow):
         path_here = os.path.dirname(self.path_prj)
         if not path_here:
             path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
-        filename_path = QFileDialog.getOpenFileName(self, self.tr('Open File'), path_here, "XML (*.habby)")[0]
+        filename_path = QFileDialog.getOpenFileName(self, self.tr('Open project'), path_here, "HABBY project (*.habby)")[0]
         if not filename_path:  # cancel
             return
         blob, ext_xml = os.path.splitext(filename_path)
