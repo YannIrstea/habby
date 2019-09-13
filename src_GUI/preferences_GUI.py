@@ -410,7 +410,7 @@ class PreferenceWindow(QDialog):
         #         return
 
         # get default option for security
-        project_preferences = create_default_project_preferences()
+        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # get the data and check validity
         # fig_size
