@@ -80,8 +80,11 @@ class Hdf5Management:
         if self.extension == ".hab":
             self.type_for_xml = "hdf5_habitat"  # for save xml
             self.hdf5_type = "habitat"
+            if "ESTIMHAB" in self.filename:
+                self.type_for_xml = "ESTIMHAB"  # for save xml
+                self.hdf5_type = "ESTIMHAB"
 
-    def open_hdf5_file(self, new=False, physic_or_stat="physic"):
+    def open_hdf5_file(self, new=False):
         # get mode
         if not new:
             mode_file = 'r+'  # Readonly, file must exist
@@ -106,7 +109,7 @@ class Hdf5Management:
                 self.file_object.attrs['name_project'] = self.name_prj
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
-                if physic_or_stat != "statistic":
+                if self.hdf5_type != "ESTIMHAB":
                     self.get_hdf5_attributes()
 
                     # create basename_output_reach_unit for output files
@@ -1291,10 +1294,10 @@ class Hdf5Management:
     # HABITAT ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
         # create a new hdf5
-        self.open_hdf5_file(new=True, physic_or_stat="statistic")
+        self.open_hdf5_file(new=True)
 
         # hdf5_type
-        self.hdf5_type = "estimhab"
+        self.hdf5_type = "ESTIMHAB"
 
         # save dict to attribute
         self.project_preferences = project_preferences
@@ -1325,7 +1328,7 @@ class Hdf5Management:
 
     def load_hdf5_estimhab(self):
         # open an hdf5
-        self.open_hdf5_file(new=False, physic_or_stat="statistic")
+        self.open_hdf5_file(new=False)
 
         # load dataset
         estimhab_dict = dict(q=self.file_object["qmes"][:].flatten().tolist(),
@@ -3770,7 +3773,12 @@ def get_filename_by_type(type, path):
     filenames = []
     for file in os.listdir(path):
         if file.endswith(type_and_extension[type]):
-            filenames.append(file)
+            # check if not statistic
+            if file.endswith(".hab"):
+                if not "ESTIMHAB" in file:  # physic
+                    filenames.append(file)
+            else:
+                filenames.append(file)
     return filenames
 
 
