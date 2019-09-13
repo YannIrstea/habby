@@ -640,7 +640,7 @@ class BioModelInfoSelection(QScrollArea):
 
     def fill_available_aquatic_animal(self):
         self.available_aquatic_animal_listwidget.clear()
-        self.selected_aquatic_animal_listwidget.clear()
+        #self.selected_aquatic_animal_listwidget.clear()
         # line name
         item_list = []
         for selected_xml_ind, selected_xml_tf in enumerate(self.dicoselect["selected"]):
@@ -899,6 +899,9 @@ class BioModelInfoSelection(QScrollArea):
 
         # emit signal
         self.nativeParentWidget().send_fill.emit("")
+
+        # clear
+        self.selected_aquatic_animal_listwidget.clear()
 
         # close window
         self.quit_biological_model_explorer()

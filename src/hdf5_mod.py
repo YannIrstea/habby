@@ -198,7 +198,6 @@ class Hdf5Management:
         self.hdf5_attributes_name_text = hdf5_attributes_name_text
         self.hdf5_attributes_info_text = hdf5_attributes_info_text
 
-        print(self.hdf5_type)
         if self.hdf5_type != "estimhab":
             """ get_2D_variables """
             # substrate constant ==> nothing to plot
