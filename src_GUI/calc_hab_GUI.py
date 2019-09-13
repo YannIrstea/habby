@@ -989,7 +989,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             self.send_log.emit(self.tr('Habitat calculation is finished (computation time = ') + str(
                 round(self.running_time)) + " s).")
-            self.send_log.emit(self.tr("Figures can be displayed/exported from 'Data explorer' tab."))
+            self.send_log.emit(self.tr("Figures and files can be displayed and exported from 'Data explorer' tab."))
 
             # put the timer back to zero and clear status bar
             self.running_time = 0
