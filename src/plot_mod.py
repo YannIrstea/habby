@@ -1649,161 +1649,111 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
 
+    if len(str(sim_name[0])) > 5:
+        rot = 'vertical'
+    else:
+        rot = 'horizontal'
+
     # plot
     if len(sim_name) == 1:
         plot_window_title = f"Habitat Value and Weighted Usable Area interpolated - Computational Step : {sim_name[0]}" + " " + unit_type
     if len(sim_name) > 1:
         plot_window_title = f"Habitat Value and Weighted Usable Area interpolated  - Computational Steps : " + ", ".join(
             map(str, sim_name)) + " " + unit_type
-    fig = plt.figure(plot_window_title)
+
+    fig, ax = plt.subplots(3, 1, sharey='row')
+    fig.canvas.set_window_title(plot_window_title)
 
     name_fish_origin = list(name_fish)
+
     for id, n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
-    # one time step - bar
-    if len(vertical_headers) == 1:
-        # SPU
-        data_bar = []
-        for name_fish_value in name_fish_origin:
-            data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
+    # SPU
+    if len(types.keys()) > 1:  # date
+        x_data = sim_name
+    else:
+        x_data = range(len(sim_name))
+    for name_fish_value in name_fish_origin:
+        y_data_spu = data_to_table["spu_" + name_fish_value]
+        ax[0].plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
+    if project_preferences['language'] == 0:
+        ax[0].set_ylabel('WUA [m$^2$]')
+        ax[0].set_title('Weighted Usable Area interpolated for the Reach ' + str(0))
+    elif project_preferences['language'] == 1:
+        ax[0].set_ylabel('SPU [m$^2$]')
+        ax[0].set_title(u'Surface Ponderée interpolées pour le troncon ' + str(0))
+    else:
+        ax[0].set_ylabel('WUA [m$^2$]')
+        ax[0].set_title('Weighted Usable Area interpolated for the Reach ' + str(0))
 
-        y_pos = np.arange(len(name_fish))
-        fig.add_subplot(211)
-        data_bar2 = np.array(data_bar)
-        plt.bar(y_pos, data_bar2)
-        plt.xticks(y_pos, [])
-        if project_preferences['language'] == 0:
-            plt.ylabel('WUA [m^2]')
-        elif project_preferences['language'] == 1:
-            plt.ylabel('SPU [m^2]')
-        else:
-            plt.ylabel('WUA [m^2]')
-        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-        if project_preferences['language'] == 0:
-            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
-        elif project_preferences['language'] == 1:
-            plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}' + " " + unit_type)
-        else:
-            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
-        # VH
-        fig.add_subplot(212)
-        vh = data_bar2 / area_all[reach_num]
-        plt.bar(y_pos, vh)
-        plt.xticks(y_pos, name_fish, rotation=10)
+    if len(sim_name) < 25:
+        ax[0].set_xticks(x_data, [])  #, rotation=rot
+    elif len(sim_name) < 100:
+        ax[0].set_xticks(x_data[::3], [])
+    elif len(sim_name) < 200:
+        ax[0].set_xticks(x_data[::10], [])
+    else:
+        ax[0].set_xticks(x_data[::20], [])
+    # remove ticks labels
+    ax[0].xaxis.set_ticklabels([])
+    ax[0].xaxis.grid()
+    ax[0].legend(fancybox=True, framealpha=0.5)  # make the legend transparent
 
-        if project_preferences['language'] == 0:
-            plt.ylabel('HV (WUA/A) []')
-        elif project_preferences['language'] == 1:
-            plt.ylabel('VH (SPU/A) []')
-        else:
-            plt.ylabel('HV (WUA/A) []')
-        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-        plt.ylim(0, 1)
-        if project_preferences['language'] == 0:
-            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
-        elif project_preferences['language'] == 1:
-            plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}" + " " + unit_type)
-        else:
-            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
-        # get data with mouse
-        mplcursors.cursor()
-        plt.tight_layout()
-        # export or not
-        if types_plot == "image export" or types_plot == "both":
-            if not erase_id:
-                name = 'WUA_' + name_base + '_Reach_' + str(0) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            else:
-                name = 'WUA_' + name_base + '_Reach_' + str(0)
-                test = tools_mod.remove_image(name, path_im, format1)
-                if not test:
-                    return
+    # VH
+    for name_fish_value in name_fish_origin:
+        y_data_hv = data_to_table["hv_" + name_fish_value]
+        ax[1].plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
+    if project_preferences['language'] == 0:
+        #ax[1].set_xlabel('Desired units [' + unit_type + ']')
+        ax[1].set_ylabel('HV []')
+        ax[1].set_title('Habitat Value interpolated')
+    elif project_preferences['language'] == 1:
+        #ax[1].set_xlabel(u'Unité souhaitées [' + unit_type + ']')
+        ax[1].set_ylabel('HV []')
+        ax[1].set_title("Valeur d'habitat interpolée")
+    else:
+        #ax[1].set_xlabel('Desired units [' + unit_type + ']')
+        ax[1].set_ylabel('HV (WUA/A) []')
+        ax[1].set_title('Habitat Value interpolated for the Reach ' + str(0))
+    ax[1].set_ylim(0, 1)
+    if len(sim_name) < 25:
+        ax[1].set_xticks(x_data, [])  #, rotation=rot
+    elif len(sim_name) < 100:
+        ax[1].set_xticks(x_data[::3], [])
+    elif len(sim_name) < 200:
+        ax[1].set_xticks(x_data[::10], [])
+    else:
+        ax[1].set_xticks(x_data[::20], [])
+    # remove ticks labels
+    ax[1].xaxis.set_ticklabels([])
+    ax[1].xaxis.grid()
 
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+    # unit
+    ax[2].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
+    ax[2].set_title("Units")
+    ax[2].set_xlabel('Desired units [' + unit_type + ']')
+    ax[2].set_ylabel('units [' + unit_type + ']')
 
-    # many time step - lines
-    if len(vertical_headers) > 1:
-        # if not sorted(data_to_table["units"]) == data_to_table["units"]:
-        #     idx = np.argsort(data_to_table["units"])
-        #     for key in data_to_table.keys():
-        #         data_provi = np.array(data_to_table[key])[idx].tolist()
-        #         aa = np.delete(data_provi, data_provi != np.array(None))
-        #
+    if len(sim_name) < 25:
+        ax[2].set_xticks(x_data, sim_name)  # , rotation=45
+    elif len(sim_name) < 100:
+        ax[2].set_xticks(x_data[::3])
+        ax[2].set_xticklabels(sim_name[::3])
+    elif len(sim_name) < 200:
+        ax[2].set_xticks(x_data[::10])
+        ax[2].set_xticklabels(sim_name[::10])
+    else:
+        ax[2].set_xticks(x_data[::20])
+        ax[2].set_xticklabels(sim_name[::20])
+    ax[2].xaxis.grid()
+    ax[2].tick_params(axis='x', rotation=45)
 
+    # get data with mouse
+    mplcursors.cursor()
 
-        # SPU
-        spu_ax = fig.add_subplot(211)
-        if len(types.keys()) > 1:  # date
-            x_data = sim_name
-        else:
-            x_data = range(len(sim_name))
-        for name_fish_value in name_fish_origin:
-            y_data_spu = data_to_table["spu_" + name_fish_value]
-            plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
-        if project_preferences['language'] == 0:
-            plt.ylabel('WUA [m$^2$]')
-            plt.title('Weighted Usable Area interpolated for the Reach ' + str(0))
-        elif project_preferences['language'] == 1:
-            plt.ylabel('SPU [m$^2$]')
-            plt.title(u'Surface Ponderée interpolées pour le troncon ' + str(0))
-        else:
-            # plt.xlabel('Computational step [ ]')
-            plt.ylabel('WUA [m$^2$]')
-            plt.title('Weighted Usable Area interpolated for the Reach ' + str(0))
-        plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
-        if len(str(sim_name[0])) > 5:
-            rot = 'vertical'
-        else:
-            rot = 'horizontal'
-        if len(sim_name) < 25:
-            plt.xticks(x_data, [], rotation=rot)
-        elif len(sim_name) < 100:
-            plt.xticks(x_data[::3], [], rotation=rot)
-        elif len(sim_name) < 200:
-            plt.xticks(x_data[::10], [], rotation=rot)
-        else:
-            plt.xticks(x_data[::20], [], rotation=rot)
-        # VH
-        hv_ax = fig.add_subplot(212)
-        for name_fish_value in name_fish_origin:
-            y_data_hv = data_to_table["hv_" + name_fish_value]
-            plt.plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
-        if project_preferences['language'] == 0:
-            plt.xlabel('Desired units [' + unit_type + ']')
-            plt.ylabel('HV (WUA/A) []')
-            plt.title('Habitat Value interpolated for the Reach ' + str(0))
-        elif project_preferences['language'] == 1:
-            plt.xlabel(u'Unité souhaitées [' + unit_type + ']')
-            plt.ylabel('HV (SPU/A) []')
-            plt.title("Valeur d'habitat interpolée pour le troncon " + str(0))
-        else:
-            plt.xlabel('Desired units [' + unit_type + ']')
-            plt.ylabel('HV (WUA/A) []')
-            plt.title('Habitat Value interpolated for the Reach ' + str(0))
-        plt.ylim(0, 1)
-        # get data with mouse
-        mplcursors.cursor()
-        # label
-        if len(str(sim_name[0])) > 5:
-            rot = 'vertical'
-        else:
-            rot = 'horizontal'
-
-        if len(sim_name) < 25:
-            plt.xticks(x_data, sim_name, rotation=45)
-        elif len(sim_name) < 100:
-            plt.xticks(x_data[::3], sim_name[::3], rotation=45)
-        elif len(sim_name) < 200:
-            plt.xticks(x_data[::10], sim_name[::10], rotation=rot)
-        else:
-            plt.xticks(x_data[::20], sim_name[::20], rotation=90)
-        plt.tight_layout()
-        plt.show()
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
