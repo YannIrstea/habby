@@ -128,15 +128,18 @@ class DataExplorerFrame(QFrame):
         """ Figure producer """
         self.plot_group = FigureProducerGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Figure viewer/exporter"))
         self.plot_group.setChecked(False)
+        self.plot_group.hide()
 
         """ export """
         # interpolation group
         self.dataexporter_group = DataExporterGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Data exporter"))
         self.dataexporter_group.setChecked(False)
+        self.dataexporter_group.hide()
 
         """ remove_fish """
         self.habitatvalueremover_group = HabitatValueRemover(self.path_prj, self.name_prj, self.send_log, self.tr("Habitat value remover"))
         self.habitatvalueremover_group.setChecked(False)
+        self.habitatvalueremover_group.hide()
 
         """ File information """
         # attributes hdf5
@@ -217,13 +220,20 @@ class DataExplorerFrame(QFrame):
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
             self.plot_group.units_QListWidget.clear()
+            self.plot_group.hide()
             self.dataexporter_group.change_layout(0)
+            self.dataexporter_group.hide()
+            self.habitatvalueremover_group.hide()
         # hydraulic
         if index == 1:
             names = hdf5_mod.get_filename_by_type("hydraulic", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
+            self.plot_group.plot_result_QCheckBox.hide()
             self.dataexporter_group.change_layout(0)
+            self.plot_group.show()
+            self.dataexporter_group.show()
+            self.habitatvalueremover_group.hide()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -233,7 +243,11 @@ class DataExplorerFrame(QFrame):
             names = hdf5_mod.get_filename_by_type("substrate", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
+            self.plot_group.plot_result_QCheckBox.hide()
             self.dataexporter_group.change_layout(0)
+            self.plot_group.show()
+            self.dataexporter_group.show()
+            self.habitatvalueremover_group.hide()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -243,7 +257,11 @@ class DataExplorerFrame(QFrame):
             names = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
+            self.plot_group.plot_result_QCheckBox.show()
             self.dataexporter_group.change_layout(0)
+            self.plot_group.show()
+            self.dataexporter_group.show()
+            self.habitatvalueremover_group.show()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -386,7 +404,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
         self.plot_map_QCheckBox.setChecked(True)
         self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
-        self.plot_result_QCheckBox = QCheckBox(self.tr("result"))
+        self.plot_result_QCheckBox = QCheckBox(self.tr("habitat values"))
         self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
 
