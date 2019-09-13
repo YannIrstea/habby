@@ -452,7 +452,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         item_checkbox = self.presence_qtablewidget.cellWidget(model_index, 0).layout().itemAt(0).widget()
 
         # get full name
-        fish_name_full = name_fish + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str
+        fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str
 
         # check or not
         if fish_name_full in self.current_hab_informations_dict["fish_list"]:
@@ -642,7 +642,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 item_checkbox.setEnabled(False)
                 item_checkbox.setObjectName(str(index))
                 # get full name
-                fish_name_full = name_fish + "_" + stage + "_" + item_combobox_hyd.currentText() + "_" + item_combobox_sub.currentText()
+                fish_name_full = code_bio_model + "_" + stage + "_" + item_combobox_hyd.currentText() + "_" + item_combobox_sub.currentText()
                 # check or not
                 if fish_name_full in self.current_hab_informations_dict["fish_list"]:
                     item_checkbox.setChecked(True)
