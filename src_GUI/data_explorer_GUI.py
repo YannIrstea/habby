@@ -1069,9 +1069,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hab_export_layout.addWidget(QLabel(self.tr("Detailled habitat values")), 11, 1)
         self.hab_export_layout.addWidget(self.detailled_text_hab, 11, 2, Qt.AlignCenter)
         # row 12
-        self.hab_export_layout.addWidget(QLabel("Text (.pdf)"), 12, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 12, 1)
-        self.hab_export_layout.addWidget(self.fish_information_hab, 12, 2, Qt.AlignCenter)
+        self.hab_export_layout.addWidget(QHLine(), 12, 0, 1, 4)
+        # row 13
+        self.hab_export_layout.addWidget(QLabel(self.tr("Report (figure extension)")), 13, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 13, 1)
+        self.hab_export_layout.addWidget(self.fish_information_hab, 13, 2, Qt.AlignCenter)
+
         # hab_export_widget
         self.hab_export_widget = QWidget()
         self.hab_export_widget.hide()
@@ -1081,7 +1084,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
         run_stop_layout = QVBoxLayout()
         run_stop_layout.addWidget(self.data_exporter_run_pushbutton)
         run_stop_layout.addWidget(self.data_exporter_stop_pushbutton)
-
 
         """ data_exporter layout """
         self.data_exporter_layout = QGridLayout()
@@ -1188,11 +1190,11 @@ class DataExporterGroup(QGroupBoxCollapsible):
     def start_export(self):
         types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
         if not types_hdf5:
-            self.send_log.emit('Error: No hdf5 type selected.')
-        if not names_hdf5:
-            self.send_log.emit('Error: No hdf5 file selected.')
-        if self.nb_export == 0:
-            self.send_log.emit('Error: No export choosen.')
+            self.send_log.emit('Error:' + self.tr(' No hdf5 type selected.'))
+        elif not names_hdf5:
+            self.send_log.emit('Error:' + self.tr(' No hdf5 file selected.'))
+        elif self.nb_export == 0:
+            self.send_log.emit('Error:' + self.tr(' No export choosen.'))
 
         # Go export
         if types_hdf5 and names_hdf5:
@@ -1322,8 +1324,8 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                                               args=(state,),
                                                           name="export_pdf")
                                 self.export_process_list.append((export_pdf_process, state))
-
-
+                            else:
+                                self.send_log.emit('Error: ' + self.tr('No computed models in this .hab file.'))
 
             # activate
             self.data_exporter_run_pushbutton.setEnabled(True)
