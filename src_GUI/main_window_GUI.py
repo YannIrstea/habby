@@ -111,6 +111,14 @@ class MainWindows(QMainWindow):
         else:
             name_prj_set = os.path.basename(name_path).split(".")[0]
             name_path_set = os.path.dirname(name_path)
+            # append
+            self.user_preferences.data["name_prj"] = name_prj_set
+            self.user_preferences.data["path_prj"] = name_path_set
+            if name_prj_set not in self.user_preferences.data["recent_project_name"]:
+                self.user_preferences.data["recent_project_name"].append(name_prj_set)
+                self.user_preferences.data["recent_project_path"].append(name_path_set)
+            self.user_preferences.save_user_preferences_json()
+
         language_set = self.user_preferences.data["language"]
         self.actual_theme = self.user_preferences.data["theme"]
 

@@ -48,8 +48,8 @@ class UserPreferences(AppDataFolders):
         self.data = dict(language="english",  # english, french, spanish
                          name_prj="",
                          path_prj="",
-                         recent_project_path="",
-                         recent_project_name="",
+                         recent_project_path=[],
+                         recent_project_name=[],
                          selected_tabs=(True, True, False),  # physic, statistic, research
                          theme="classic",  # classic, dark
                          wind_position=(50, 75, 950, 720))  # X position, Y position, height, width
