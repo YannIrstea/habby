@@ -164,14 +164,14 @@ class DataExplorerFrame(QFrame):
 
         # first line layout (selection + (graphic+export))
         hbox_layout = QHBoxLayout()
-        hbox_layout.addWidget(selectionfile_group)
+        hbox_layout.addWidget(selectionfile_group, stretch=1)
 
         vbox_plot_export_layout = QVBoxLayout()
         vbox_plot_export_layout.addWidget(self.plot_group)
         vbox_plot_export_layout.addWidget(self.dataexporter_group)
         vbox_plot_export_layout.addWidget(self.habitatvalueremover_group)
         vbox_plot_export_layout.setAlignment(Qt.AlignTop)
-        hbox_layout.addLayout(vbox_plot_export_layout)
+        hbox_layout.addLayout(vbox_plot_export_layout, stretch=1)
 
         # second line layout (attribute)
         vbox_layout = QVBoxLayout()
