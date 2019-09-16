@@ -420,10 +420,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         plot_type_layout.addWidget(self.plot_map_QCheckBox)
         plot_type_layout.addWidget(self.plot_result_QCheckBox)
         plot_type_layout.setAlignment(Qt.AlignLeft)
+        progress_layout = QHBoxLayout()
+        progress_layout.addWidget(self.plot_process_list.progress_bar)
+        progress_layout.addWidget(self.plot_process_list.progress_label)
         plot_layout2.addLayout(plot_layout)
         plot_layout2.addLayout(plot_type_layout)
         # plot_layout2.addWidget(self.progress_bar)
-        plot_layout2.addWidget(self.plot_process_list.progress_bar)
+        plot_layout2.addLayout(progress_layout)
         #plot_group = QGroupBoxCollapsible(self.tr("Figure exporter/viewer"))
         self.setLayout(plot_layout2)
 
@@ -491,12 +494,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             if self.nb_plot != 0:
                 self.plot_process_list.progress_bar.setRange(0, self.nb_plot)
             self.plot_process_list.progress_bar.setValue(0)
-            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
+            self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
         else:
             self.nb_plot = 0
             # set prog
             self.plot_process_list.progress_bar.setValue(0)
-            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
+            self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def collect_data_from_gui(self):
         """
@@ -666,7 +669,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
             # progress bar
             self.plot_process_list.progress_bar.setValue(0)
-            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
+            self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
             QCoreApplication.processEvents()
 
             # loop on all desired hdf5 file
@@ -1080,6 +1083,11 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hab_export_widget.hide()
         self.hab_export_widget.setLayout(self.hab_export_layout)
 
+        """ progress layout """
+        progress_layout = QHBoxLayout()
+        progress_layout.addWidget(self.export_process_list.progress_bar)
+        progress_layout.addWidget(self.export_process_list.progress_label)
+
         """ run_stop_layout """
         run_stop_layout = QVBoxLayout()
         run_stop_layout.addWidget(self.data_exporter_run_pushbutton)
@@ -1091,7 +1099,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.data_exporter_layout.addWidget(self.hyd_export_widget, 0, 0)
         self.data_exporter_layout.addWidget(self.hab_export_widget, 0, 0)
         self.data_exporter_layout.addLayout(run_stop_layout, 0, 1)
-        self.data_exporter_layout.addWidget(self.export_process_list.progress_bar, 1, 0, 1, 2)
+        self.data_exporter_layout.addLayout(progress_layout, 1, 0, 1, 2)
         self.setLayout(self.data_exporter_layout)
 
     def change_layout(self, type):
@@ -1180,12 +1188,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
             if self.nb_export != 0:
                 self.export_process_list.progress_bar.setRange(0, self.nb_export)
             self.export_process_list.progress_bar.setValue(0)
-            self.export_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_export))
+            self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
         else:
             self.nb_export = 0
             # set prog
             self.export_process_list.progress_bar.setValue(0)
-            self.export_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
+            self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def start_export(self):
         types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
@@ -1219,7 +1227,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
             # progress bar
             self.export_process_list.progress_bar.setValue(0)
-            self.export_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_export))
+            self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
             QCoreApplication.processEvents()
 
             # loop on all desired hdf5 file
@@ -1416,7 +1424,9 @@ class MyProcessList(list):
         super().__init__()
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0)
-        self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
+        self.progress_bar.setTextVisible(False)
+        self.progress_label = QLabel()
+        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
         self.nb_plot_total = 0
         self.export_production_stoped = False
         self.process_type = type  # cal or plot or export
@@ -1467,11 +1477,11 @@ class MyProcessList(list):
                             if state == 1:
                                 nb_finished = nb_finished + 1
                                 self.progress_bar.setValue(nb_finished)
-                                self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
+                                self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
                                 QCoreApplication.processEvents()
 
         self.progress_bar.setValue(nb_finished)
-        self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
+        self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
         QCoreApplication.processEvents()
 
     def check_all_process_closed(self):
