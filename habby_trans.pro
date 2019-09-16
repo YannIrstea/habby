@@ -10,6 +10,7 @@ SOURCES += src_GUI/stathab_GUI.py
 SOURCES += src_GUI/tools_GUI.py
 SOURCES += src_GUI/welcome_GUI.py
 SOURCES += src/bio_info_mod.py
+SOURCES += src/plot_mod.py
 TRANSLATIONS += translation/Zen_EN.ts
 TRANSLATIONS += translation/Zen_FR.ts
 TRANSLATIONS += translation/Zen_ES.ts

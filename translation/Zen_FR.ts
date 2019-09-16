@@ -4,47 +4,47 @@
 <context>
     <name>ASCII</name>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3604"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3625"/>
         <source>ASCII hydraulic model file(s)</source>
         <translation>Fichier(s) de modèle hydraulique ASCII</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3605"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3626"/>
         <source>Choose file(s) (.txt)</source>
         <translation>Selection fichier(s) (.txt)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3609"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3630"/>
         <source>Reach name</source>
         <translation>Nom de tronçon</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3857"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3878"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3613"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3634"/>
         <source>Unit(s) type</source>
         <translation>Type d&apos;unité(s)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3617"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3638"/>
         <source>Unit(s) number</source>
         <translation>Nombre d&apos;unité(s)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3624"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3645"/>
         <source>Unit(s) selected</source>
         <translation>Unité(s) sélectionnée</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3631"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3652"/>
         <source>EPSG code</source>
         <translation>Code EPSG</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3635"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3656"/>
         <source>.hyd file name</source>
         <translation>Nom de fichier .hyd</translation>
     </message>
@@ -54,17 +54,17 @@
         <translation type="obsolete">Charger les données et créer un fichier .hyd</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3721"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3742"/>
         <source>Select file(s)</source>
         <translation>Selection fichier(s)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4019"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4040"/>
         <source># Loading: ASCII data...</source>
         <translation># Chargement: données ASCII...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3644"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3665"/>
         <source>Create .hyd file</source>
         <translation>Créer un fichier .hyd</translation>
     </message>
@@ -84,7 +84,7 @@
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="138"/>
         <source>&lt;b&gt; Substrate and hydraulic data &lt;/b&gt;</source>
-        <translation>&lt;b&gt; Données hydrauliques et de substrat&lt;/br&gt;</translation>
+        <translation type="obsolete">&lt;b&gt; Données hydrauliques et de substrat&lt;/br&gt;</translation>
     </message>
     <message>
         <location filename="calc_hab_GUI.py" line="111"/>
@@ -181,7 +181,7 @@
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="991"/>
         <source>Habitat calculation is finished (computation time = </source>
-        <translation>Calcul d&apos;habitat finit (temps de calcul = </translation>
+        <translation>Calcul d&apos;habitat fini (temps de calcul = </translation>
     </message>
     <message>
         <location filename="src_GUI/calc_hab_GUI.py" line="92"/>
@@ -302,6 +302,11 @@
         <location filename="../src_GUI/calc_hab_GUI.py" line="993"/>
         <source>Figures and files can be displayed and exported from &apos;Data explorer&apos; tab.</source>
         <translation>Les figures et les fichiers peuvent être affichés et exportés à partir de l&apos;onglet &apos;Explorateur de données&apos;.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="138"/>
+        <source>&lt;b&gt; Habitat file(s) &lt;/b&gt;</source>
+        <translation>&lt;b&gt; Fichier(s) d&apos;habitat &lt;/b&gt;</translation>
     </message>
 </context>
 <context>
@@ -747,7 +752,7 @@
         <translation>nom de fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="154"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="157"/>
         <source>File selection</source>
         <translation>Sélection de fichier</translation>
     </message>
@@ -757,17 +762,17 @@
         <translation>Visualiseur/exporteur de figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="134"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="135"/>
         <source>Data exporter</source>
         <translation>Exporter de données</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="138"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="140"/>
         <source>Habitat value remover</source>
         <translation>Suppression de valeur d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="161"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="164"/>
         <source>File informations</source>
         <translation>Information du fichier</translation>
     </message>
@@ -775,32 +780,32 @@
 <context>
     <name>DataExporterGroup</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="968"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="986"/>
         <source>run</source>
         <translation>lancer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="973"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="991"/>
         <source>stop</source>
         <translation>arrêter</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1037"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1055"/>
         <source>Mesh whole profile</source>
         <translation>Maillage du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="992"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1010"/>
         <source>Point whole profile</source>
         <translation>Point du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1041"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1059"/>
         <source>Mesh units</source>
         <translation>Maillage par unités</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1031"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1049"/>
         <source>Point units</source>
         <translation>Points par unités</translation>
     </message>
@@ -810,24 +815,49 @@
         <translation type="obsolete">Maillage détaillé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1047"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1065"/>
         <source>Global habitat values</source>
         <translation>Valeur global d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1051"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1069"/>
         <source>Detailled habitat values</source>
         <translation>Valeur détaillée d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1055"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1075"/>
         <source>Fish informations</source>
         <translation>Information des modèles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1016"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1034"/>
         <source>Detailled mesh and points</source>
         <translation>Maillage et points détaillés</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1074"/>
+        <source>Report (figure extension)</source>
+        <translation>Rapport (extension de figure)</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1193"/>
+        <source> No hdf5 type selected.</source>
+        <translation> Type d&apos;hdf5 non sélectionné.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1195"/>
+        <source> No hdf5 file selected.</source>
+        <translation> Fichier hdf5 non sélectionné.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1197"/>
+        <source> No export choosen.</source>
+        <translation> Pas d&apos;export sélectionné.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1328"/>
+        <source>No computed models in this .hab file.</source>
+        <translation>Pas de modèle calculé dans ce .hab.</translation>
     </message>
 </context>
 <context>
@@ -1000,62 +1030,62 @@
 <context>
     <name>FigureProducerGroup</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="329"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="347"/>
         <source>variables</source>
         <translation>variables</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="340"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="358"/>
         <source>reachs</source>
         <translation>tronçon</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="352"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="370"/>
         <source>units</source>
         <translation>unité</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="363"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="381"/>
         <source>View or export ?</source>
         <translation>Visualiser ou exporter ?</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="372"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="390"/>
         <source>run</source>
         <translation>lancer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="378"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="396"/>
         <source>stop</source>
         <translation>stop</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="385"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="403"/>
         <source>figure type :</source>
         <translation>type de figure :</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="386"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="404"/>
         <source>map</source>
         <translation>carte</translation>
     </message>
     <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="389"/>
         <source>result</source>
-        <translation>résultat</translation>
+        <translation type="obsolete">résultat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="614"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="632"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="581"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="599"/>
         <source>The selected files don&apos;t have same units !</source>
         <translation>Les fichiers sélectionnés n&apos;ont pas les mêmes unités !</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="614"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="632"/>
         <source>Displaying a large number of plots may crash HABBY. It is recommended not to exceed a total number of plots greater than 30 at a time. 
 
 Do you still want to display</source>
@@ -1064,13 +1094,18 @@ Do you still want to display</source>
 Souhaitez-vous toujours afficher</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="614"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="632"/>
         <source>plots ?
 
 NB : There is no limit for exports.</source>
         <translation>figure ?
 
 NB : Il n&apos;y a pas de limite pour les exports.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="407"/>
+        <source>habitat values</source>
+        <translation>valeurs d&apos;habitat</translation>
     </message>
 </context>
 <context>
@@ -1549,7 +1584,7 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
 <context>
     <name>HabbyHdf5</name>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4681"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4702"/>
         <source>Select the hdf5 created by HABBY to be loaded:</source>
         <translation>Sélectionner le fichier hdf5 (provenant d&apos;HABBY):</translation>
     </message>
@@ -1559,52 +1594,52 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
         <translation type="obsolete">Charger des données depuis un fichier hdf5</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4690"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4711"/>
         <source>Create figure</source>
         <translation>Créer figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4682"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4703"/>
         <source>Load hydraulic data from hdf5</source>
         <translation>Chargement des données hydrauliques depuis hdf5</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4684"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4705"/>
         <source>Load merge data from hdf5</source>
         <translation>Chargement des données fusionnées depuis hdf5</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4686"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4707"/>
         <source>Merge two hdf5 hydraulic files together</source>
         <translation>Fusion de deux fichier hdf5- hydrauliques</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4688"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4709"/>
         <source>Merge two hdf5 merge files together</source>
         <translation>Fusion de deux fichier hdf5 - hydrauliques et substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4893"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4914"/>
         <source>Select second file</source>
         <translation>Sélection du deuxième fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4894"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4915"/>
         <source>The first file was selected. Now select the second file.</source>
         <translation>Le premier fichier a été sélectionné. Sélectionner maintenant le deuxième fichier.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4717"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4738"/>
         <source># Loading: HABBY hdf5 file (hydraulic data only)...</source>
         <translation># Chargement: fichier HABBY .hyd (seulement hydraulique)...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4776"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4797"/>
         <source># Loading: HABBY hdf5 file (hydraulic and substrate data)...</source>
         <translation># Chargement : Fichier HABBY .hab (données hydrauliques et substrat).....</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4867"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4888"/>
         <source># Loading: Join two HABBY hdf5 file together ...</source>
         <translation># Chargement : Joindre deux fichiers HABBY hdf5 ensemble ....</translation>
     </message>
@@ -1612,12 +1647,12 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
 <context>
     <name>HabitatValueRemover</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1343"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1363"/>
         <source>Existing aquatic animal habitat values :</source>
         <translation>Valeurs d&apos;habitat présentes dans le .hab:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1348"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1368"/>
         <source>remove selected animals</source>
         <translation>supprimer la sélection</translation>
     </message>
@@ -1695,27 +1730,27 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
 <context>
     <name>IBER2D</name>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4460"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4481"/>
         <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation>&lt;b&gt; Données de géométrie &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4481"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4502"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation>&lt;b&gt; Données résultats &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4488"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4509"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation>&lt;b&gt;Création de la grille &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4489"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4510"/>
         <source>2D MODEL - No new grid needed.</source>
         <translation>Modèle 2D: Pas de nouvelle grille nécessaire.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4492"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4513"/>
         <source>.hyd file name</source>
         <translation>Nom du fichier hdf5</translation>
     </message>
@@ -1725,48 +1760,48 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
         <translation type="obsolete">Recréer les figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4604"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4625"/>
         <source># Loading: IBER2D data...</source>
         <translation># Chargement des données IBER2D...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4557"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4578"/>
         <source>IBER2D</source>
         <translation>IBER2D</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4558"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4579"/>
         <source>Unable to load IBER2D data files!</source>
         <translation>Impossible de charger les données IBER2D!</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4461"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4482"/>
         <source>Choose file (.dat)</source>
         <translation>Sélectionner un fichier (.dat)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4467"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4488"/>
         <source>Choose file for h
  (.rep)</source>
         <translation>Sélectionner un fichier pour h
  (.rep)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4472"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4493"/>
         <source>Choose file for u
  (.rep)</source>
         <translation>Sélectionner un fichier pour u
  (.rep)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4477"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4498"/>
         <source>Choose file for v
  (.rep)</source>
         <translation>Sélectionner un fichier pour v
  (.rep)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4482"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4503"/>
         <source>Choose file for xyz
  (.rep)</source>
         <translation>Sélectionner un fichier pour xyz
@@ -1783,12 +1818,12 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
         <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4503"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4524"/>
         <source>create figure</source>
         <translation>créer figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4499"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4520"/>
         <source>Create .hyd file</source>
         <translation>Créer un fichier .hyd</translation>
     </message>
@@ -1942,37 +1977,37 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
 <context>
     <name>LAMMI</name>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4069"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4090"/>
         <source>&lt;b&gt; General data &lt;/b&gt;</source>
         <translation>&lt;b&gt; Données générales&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4071"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4092"/>
         <source>Select the &apos;Entree&apos; directory</source>
         <translation>Sélectionner dossier &apos;Entrée&apos;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4074"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4095"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation>&lt;b&gt; Sorties du modèle &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4076"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4097"/>
         <source>Select the &apos;SimHydro&apos; directory</source>
         <translation>Selectionner le dossier &apos;SimHydro&apos;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4085"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4106"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation>&lt;b&gt; Création de la grille &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4086"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4107"/>
         <source>Only &apos;Interpolation by Block&apos; possible for LAMMI data. Substrate data is included.</source>
         <translation>Seul l&apos;interpolation par bloc est possible pour les données provenant de LAMMI. Les données de substrat sont incluses.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4089"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4110"/>
         <source>.hyd file name</source>
         <translation>Nom du fichier hdf5</translation>
     </message>
@@ -1982,22 +2017,22 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
         <translation type="obsolete">Recréer les figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4133"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4154"/>
         <source>Open Directory</source>
         <translation>Ouvrir le dossier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4227"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4248"/>
         <source># Loading: LAMMI data...</source>
         <translation># Chargement: données LAMMI...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4183"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4204"/>
         <source>LAMMI</source>
         <translation>LAMMI</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4184"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4205"/>
         <source>Unable to load LAMMI data files!</source>
         <translation>Impossible de charger les données LAMII!</translation>
     </message>
@@ -2012,12 +2047,12 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
         <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4100"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4121"/>
         <source>create figure</source>
         <translation>créer une figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4096"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4117"/>
         <source>Create .hab file</source>
         <translation>Créer un fichier .hab</translation>
     </message>
@@ -3021,7 +3056,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation>Découpage des mailles hydrauliques partiellement mouillées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="508"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="517"/>
         <source>Unsaved preferences</source>
         <translation>Préférences non sauvegardées</translation>
     </message>
@@ -3033,82 +3068,97 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/preferences_GUI.py" line="180"/>
         <source>Save and close</source>
-        <translation>Sauvegarder puis fermer</translation>
+        <translation type="obsolete">Sauvegarder puis fermer</translation>
     </message>
     <message>
         <location filename="../src_GUI/preferences_GUI.py" line="183"/>
         <source>Close</source>
-        <translation>Fermer</translation>
+        <translation type="obsolete">Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="189"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="194"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="198"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="203"/>
         <source>Default exports</source>
         <translation>Exports par défaut</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="231"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="236"/>
         <source>Mesh whole profile</source>
         <translation>Maillage du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="215"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="220"/>
         <source>Point whole profile</source>
         <translation>Points du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="235"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="240"/>
         <source>Mesh units</source>
         <translation>Maillage par unités</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="224"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="229"/>
         <source>Point units</source>
         <translation>Points aux unités</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="245"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="250"/>
         <source>Detailled txt file</source>
         <translation>Fichier text détaillé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="250"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="255"/>
         <source>Fish informations</source>
         <translation>Information des modèles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="255"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="260"/>
         <source>Figures</source>
         <translation>Figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="277"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="283"/>
         <source>Preferences</source>
         <translation>Préférences</translation>
     </message>
     <message>
         <location filename="../src_GUI/preferences_GUI.py" line="601"/>
         <source>Preferences modified</source>
-        <translation>Préférences modifiées</translation>
+        <translation type="obsolete">Préférences modifiées</translation>
     </message>
     <message>
         <location filename="../src_GUI/preferences_GUI.py" line="395"/>
         <source>Do you really want to save and close new preferences ?</source>
-        <translation>Voulez-vous vraiment sauvegarder et fermer les nouvelles préférences ?</translation>
+        <translation type="obsolete">Voulez-vous vraiment sauvegarder et fermer les nouvelles préférences ?</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="509"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="518"/>
         <source>Create or open an HABBY project.</source>
         <translation>Créer ou ouvrir un projet HABBY.</translation>
     </message>
     <message>
         <location filename="../src_GUI/preferences_GUI.py" line="602"/>
         <source>Do you really want to close preferences without saving your changes ?</source>
-        <translation>Voulez-vous vraiment fermer les préférences sans sauvegarder vos modifications ?</translation>
+        <translation type="obsolete">Voulez-vous vraiment fermer les préférences sans sauvegarder vos modifications ?</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/preferences_GUI.py" line="180"/>
+        <source>Reset by default</source>
+        <translation>Remettre par défaut</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/preferences_GUI.py" line="184"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/preferences_GUI.py" line="188"/>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
     </message>
 </context>
 <context>
@@ -3442,27 +3492,27 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
 <context>
     <name>SW2D</name>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4274"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4295"/>
         <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation>&lt;b&gt; Donnée de Géometrie &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4280"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4301"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation>&lt;b&gt; Données résultats &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4287"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4308"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation>&lt;b&gt; Création du maillage &lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4288"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4309"/>
         <source>2D MODEL - No new grid needed.</source>
         <translation>Modèle 2D: Pas de nouvelle grille nécessaire.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4291"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4312"/>
         <source>.hyd file name</source>
         <translation>Nom du fichier hdf5</translation>
     </message>
@@ -3472,27 +3522,27 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Recréer les figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4381"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4402"/>
         <source># Loading: SW2D data...</source>
         <translation># Chargement des données SW2D...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4341"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4362"/>
         <source>SW2D</source>
         <translation>SW2D</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4342"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4363"/>
         <source>Unable to load SW2D data files!</source>
         <translation>Impossible de charger les données SW2D!</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4275"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4296"/>
         <source>Choose file (.geo)</source>
         <translation>Sélectionner un fichier (.geo)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4281"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4302"/>
         <source>Choose file 
  (.res)</source>
         <translation>Sélectionner un fichier 
@@ -3509,12 +3559,12 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Charger les données et créer un fichier .hab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4302"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4323"/>
         <source>create figure</source>
         <translation>créer figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4298"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="4319"/>
         <source>Create .hyd file</source>
         <translation>Créer un fichier .hyd</translation>
     </message>
@@ -3895,7 +3945,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">&lt;b&gt; Charger les données de substrat &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5051"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5072"/>
         <source>File</source>
         <translation>Fichier</translation>
     </message>
@@ -3990,7 +4040,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete"># Charger le substrat (shapefile)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5842"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5863"/>
         <source># Load: Substrate data - text file</source>
         <translation># Charger le substrat (Texte)</translation>
     </message>
@@ -4030,7 +4080,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Données hydraulique (hdf5)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5096"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5117"/>
         <source>Last file created</source>
         <translation>Dernier fichier créé</translation>
     </message>
@@ -4070,57 +4120,57 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Sélectionner un fichier (.txt, .shp)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4985"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5006"/>
         <source>Substrate mapping method from</source>
         <translation>Méthode de cartographie à partir de </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4987"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5008"/>
         <source>polygons (.shp)</source>
         <translation>polygones (.shp)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4988"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5009"/>
         <source>points (.txt)</source>
         <translation>points (.txt)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="4989"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5010"/>
         <source>constant values (.txt)</source>
         <translation>valeurs constantes (.txt)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5002"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5023"/>
         <source>Choose file (.shp)</source>
         <translation>Choisir un fichier (.shp)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5059"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5080"/>
         <source>Classification code</source>
         <translation>Code de classification</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5066"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5087"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5062"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5083"/>
         <source>Classification method</source>
         <translation>Méthode de classification</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5038"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5059"/>
         <source>Default values</source>
         <translation>Valeurs par défaut</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5041"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5062"/>
         <source>EPSG code</source>
         <translation>Code EPSG</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5068"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5089"/>
         <source>.sub file name</source>
         <translation>nom de fichier .sub</translation>
     </message>
@@ -4130,27 +4180,27 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Charger les données et créer un fichier .sub</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5054"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5075"/>
         <source>Choose file (.txt)</source>
         <translation>Choisir un fichier (.txt)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5163"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5184"/>
         <source>Constant values</source>
         <translation>Valeurs constantes</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5097"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5118"/>
         <source>no file</source>
         <translation>pas de fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5080"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5101"/>
         <source>Hydraulic data (.hyd)</source>
         <translation>Données hydrauliques (.hyd)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5081"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5102"/>
         <source>Substrate data (.sub)</source>
         <translation>Données substrat (.sub)</translation>
     </message>
@@ -4160,87 +4210,87 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Fusionner and créer un fichier .hab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5093"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5114"/>
         <source>.hab file name</source>
         <translation>nom de fichier .hab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5123"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5144"/>
         <source>Polygons</source>
         <translation>Polygones</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5143"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5164"/>
         <source>Points</source>
         <translation>Points</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5187"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5208"/>
         <source>Substrate data</source>
         <translation>Données de substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5204"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5225"/>
         <source>Merging of hydraulic and substrate data</source>
         <translation>Fusion de l&apos;hydraulique et du substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5289"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5310"/>
         <source>Select file</source>
         <translation>Sélectionner un fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5314"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5335"/>
         <source>File type</source>
         <translation>Type de fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5308"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5329"/>
         <source>The selected file has no extension. If you know this file, change its extension manually to  or </source>
         <translation>Le fichier sélectionné n&apos;a pas d&apos;extension. Si vous connaissez ce fichier, changez manuellement son extension en ou </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5315"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5336"/>
         <source>Needed type for the file to be loaded:  ,</source>
         <translation>Type requis pour le fichier à charger :  ,</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5565"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5586"/>
         <source>Warning: filename output is empty. Please specify it.</source>
         <translation>Warning: le nom de fichier est vide. Veuillez le préciser.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5639"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5660"/>
         <source># Loading: Substrate data ...</source>
         <translation># Chargement: donnée de substrat ...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5703"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5724"/>
         <source># Loading: Substrate data shapefile ...</source>
         <translation># Chargement: Substrat shapefile ...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5765"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5786"/>
         <source># Loading: Substrate data constant values ...</source>
         <translation># Chargement: Substrat valeur constante ...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5879"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5900"/>
         <source>Warning: .hab filename output is empty. Please specify it.</source>
         <translation>Warning: nom de fichier .hab vide. Veuillez le préciser.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5887"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5908"/>
         <source># Merging: substrate and hydraulic grid...</source>
         <translation># Fusion: hydraulique et substrat ...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5070"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5091"/>
         <source>Create .sub file</source>
         <translation>Créer un fichier .sub</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="5086"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="5107"/>
         <source>Create .hab file</source>
         <translation>Créer un fichier .hab</translation>
     </message>
@@ -4288,7 +4338,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Recréer les figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydro_sub_GUI.py" line="3556"/>
+        <location filename="../src_GUI/hydro_sub_GUI.py" line="3577"/>
         <source># Loading: TELEMAC data...</source>
         <translation># Chargement: données TELEMAC...</translation>
     </message>
@@ -4502,6 +4552,104 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <location filename="../src_GUI/welcome_GUI.py" line="111"/>
         <source>User name: </source>
         <translation>Nom d&apos;utilisateur: </translation>
+    </message>
+</context>
+<context>
+    <name>plot_mod</name>
+    <message>
+        <location filename="../src/plot_mod.py" line="1428"/>
+        <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
+        <translation>Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1442"/>
+        <source>WUA [m^2]</source>
+        <translation type="obsolete">SPU [m^2]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1499"/>
+        <source>Weighted Usable Area - </source>
+        <translation>Surface Pondérée Utile - </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1527"/>
+        <source>HV (WUA/A) []</source>
+        <translation>VH (SPU/A) []</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1461"/>
+        <source>Habitat value - </source>
+        <translation>Valeur d&apos;habitat - </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1556"/>
+        <source>WUA_</source>
+        <translation>SPU_</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1650"/>
+        <source>WUA [m$^2$]</source>
+        <translation>SPU [m$^2$]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1517"/>
+        <source>Computational step [</source>
+        <translation type="obsolete">Unité [</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1528"/>
+        <source>Habitat Value - </source>
+        <translation>Valeur d&apos;habitat - </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1526"/>
+        <source>Units [</source>
+        <translation>Unités [</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1531"/>
+        <source>Complete</source>
+        <translation>Complet</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1532"/>
+        <source>Incomplete</source>
+        <translation>Incomplet</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1627"/>
+        <source>Habitat Value and Weighted Usable Area interpolated - Computational Step : </source>
+        <translation>Valeur de l&apos;habitat et Surface Pondérée Utile interpolées -Unité(s) : </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1651"/>
+        <source>Weighted Usable Area interpolated for the Reach </source>
+        <translation>Surface Pondérée Utile interpolée pour le tronçon </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1669"/>
+        <source>HV []</source>
+        <translation>VH []</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1670"/>
+        <source>Habitat Value interpolated</source>
+        <translation>Valeur d&apos;habitat interpolée</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1686"/>
+        <source>Units</source>
+        <translation>Unités</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1687"/>
+        <source>Desired units [</source>
+        <translation>Unités souhaitées [</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1688"/>
+        <source>units [</source>
+        <translation>unités [</translation>
     </message>
 </context>
 </TS>

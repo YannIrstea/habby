@@ -24,6 +24,16 @@ import mplcursors
 import time
 import os
 from datetime import datetime as dt
+from PyQt5.QtCore import QCoreApplication as qt_tr
+from PyQt5.QtCore import QTranslator
+from PyQt5.QtWidgets import QApplication
+import sys
+
+app = QApplication(sys.argv)
+# languageTranslator = QTranslator()
+# languageTranslator.load('Zen_FR', 'C:\\habby\\translation')
+# qt_tr.installTranslator(languageTranslator)
+# print("installTranslator")
 
 from src_GUI import preferences_GUI
 from src import tools_mod
@@ -1413,11 +1423,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     reach_name = data_description["hyd_reach_list"].split(", ")[reach_num]
 
     # plot
+    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
     if len(unit_name) == 1:
-        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Step : {unit_name[0]}" + " " + unit_type
+        plot_window_title = title + unit_name[0] + " " + unit_type
     if len(unit_name) > 1:
-        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Steps : " + ", ".join(
-            map(str, unit_name)) + " " + unit_type
+        plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type
     fig = plt.figure(plot_window_title)
 
     name_fish_origin = list(name_fish)
@@ -1436,48 +1446,25 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         data_bar2 = np.array(data_bar)
         plt.bar(y_pos, data_bar2)
         plt.xticks(y_pos, [])
-        if project_preferences['language'] == 0:
-            plt.ylabel('WUA [m^2]')
-        elif project_preferences['language'] == 1:
-            plt.ylabel('SPU [m^2]')
-        else:
-            plt.ylabel('WUA [m^2]')
-        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-        if project_preferences['language'] == 0:
-            plt.title(f'Weighted Usable Area - {reach_name} - {unit_name[0]} {unit_type}')
-        elif project_preferences['language'] == 1:
-            plt.title(f'Surface Ponderée Utile - {reach_name} - {unit_name[0]} {unit_type}')
-        else:
-            plt.title(f'Weighted Usable Area -  {reach_name} - {unit_name[0]} {unit_type}')
+        plt.ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+        plt.title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + unit_name[0] + " " + unit_type)
+
         # VH
         fig.add_subplot(212)
         vh = data_bar2 / area_all[reach_num]
         plt.bar(y_pos, vh)
         plt.xticks(y_pos, name_fish, rotation=10)
-
-        if project_preferences['language'] == 0:
-            plt.ylabel('HV (WUA/A) []')
-        elif project_preferences['language'] == 1:
-            plt.ylabel('VH (SPU/A) []')
-        else:
-            plt.ylabel('HV (WUA/A) []')
-        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+        plt.ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
         plt.ylim(0, 1)
-        if project_preferences['language'] == 0:
-            plt.title(f'Habitat value - {reach_name} - {unit_name[0]} {unit_type}')
-        elif project_preferences['language'] == 1:
-            plt.title(f"Valeur d'Habitat - {reach_name} - {unit_name[0]} {unit_type}")
-        else:
-            plt.title(f'Habitat value -  - {reach_name} - {unit_name[0]} {unit_type}')
-        # get data with mouse
-        mplcursors.cursor()
+        plt.title(qt_tr.translate("plot_mod", "Habitat value - ") + reach_name + " - " + unit_name[0] + " " + unit_type)
+        mplcursors.cursor()  # get data with mouse
         plt.tight_layout()
         # export or not
         if types_plot == "image export" or types_plot == "both":
             if not project_preferences['erase_id']:
-                name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + unit_name[0] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0]
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + unit_name[0]
                 test = tools_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
@@ -1506,17 +1493,8 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                     markers = mar2
                 plt.scatter(x_data[unit_index], y_data_spu[unit_index], c=color_list[fish_index], label=name_fish_value, marker=markers)
 
-        if project_preferences['language'] == 0:
-            # plt.xlabel('Computational step [ ]')
-            plt.ylabel('WUA [m$^2$]')
-            plt.title(f'Weighted Usable Area - {reach_name}')
-        elif project_preferences['language'] == 1:
-            plt.ylabel('SPU [m$^2$]')
-            plt.title(f'Surface Ponderée Utile - {reach_name}')
-        else:
-            # plt.xlabel('Computational step [ ]')
-            plt.ylabel('WUA [m$^2$]')
-            plt.title(f'Weighted Usable Area - {reach_name}')
+        plt.ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+        plt.title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
         plt.legend(name_fish_origin, fancybox=True, framealpha=0.5)  # make the legend transparent
         # spu_ax.xaxis.set_ticklabels([])
         if len(unit_name[0]) > 5:
@@ -1543,23 +1521,13 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 else:
                     markers = mar2
                 plt.scatter(x_data[unit_index], y_data_hv[unit_index], c=color_list[fish_index], label=name_fish_value, marker=markers)
-
-        if project_preferences['language'] == 0:
-            plt.xlabel('Computational step [' + unit_type + ']')
-            plt.ylabel('HV (WUA/A) []')
-            plt.title(f'Habitat Value - {reach_name}')
-        elif project_preferences['language'] == 1:
-            plt.xlabel('Unité [' + unit_type + ']')
-            plt.ylabel('HV (SPU/A) []')
-            plt.title(f"Valeur d'habitat - {reach_name}")
-        else:
-            plt.xlabel('Computational step [' + unit_type + ']')
-            plt.ylabel('HV (WUA/A) []')
-            plt.title(f'Habitat Value - {reach_name}')
+        plt.xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
+        plt.ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
+        plt.title(qt_tr.translate("plot_mod", 'Habitat Value - ') + reach_name)
         plt.ylim(0, 1)
         # legend markers
-        legend_elements = [Line2D([0], [0], marker=mar, color='black', label='Complete', markerfacecolor='black'),
-                           Line2D([0], [0], marker=mar2, color='black', label='Incomplete', markerfacecolor='black')]
+        legend_elements = [Line2D([0], [0], marker=mar, color='black', label=qt_tr.translate("plot_mod", 'Complete'), markerfacecolor='black'),
+                           Line2D([0], [0], marker=mar2, color='black', label=qt_tr.translate("plot_mod", 'Incomplete'), markerfacecolor='black')]
         plt.legend(handles=legend_elements, fancybox=True, framealpha=0.5)  # make the legend transparent
         # view data with mouse
         # get data with mouse
@@ -1581,9 +1549,9 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.tight_layout()
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = 'WUA_' + name_hdf5 + '_' + reach_name
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name
                 test = tools_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
@@ -1634,7 +1602,6 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     else:
         mar = None
     erase1 = project_preferences['erase_id']
-    #types_plot = project_preferences['type_plot']
     # prep data
     if len(types.keys()) > 1:  # date
         data_presence = True
@@ -1655,10 +1622,11 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         rot = 'horizontal'
 
     # plot
+    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Computational Step : ")
     if len(sim_name) == 1:
-        plot_window_title = f"Habitat Value and Weighted Usable Area interpolated - Computational Step : {sim_name[0]}" + " " + unit_type
+        plot_window_title = title + sim_name[0] + " " + unit_type
     if len(sim_name) > 1:
-        plot_window_title = f"Habitat Value and Weighted Usable Area interpolated  - Computational Steps : " + ", ".join(
+        plot_window_title = title + ", ".join(
             map(str, sim_name)) + " " + unit_type
 
     fig, ax = plt.subplots(3, 1, sharey='row')
@@ -1677,16 +1645,8 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     for name_fish_value in name_fish_origin:
         y_data_spu = data_to_table["spu_" + name_fish_value]
         ax[0].plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
-    if project_preferences['language'] == 0:
-        ax[0].set_ylabel('WUA [m$^2$]')
-        ax[0].set_title('Weighted Usable Area interpolated for the Reach ' + str(0))
-    elif project_preferences['language'] == 1:
-        ax[0].set_ylabel('SPU [m$^2$]')
-        ax[0].set_title(u'Surface Ponderée interpolées pour le troncon ' + str(0))
-    else:
-        ax[0].set_ylabel('WUA [m$^2$]')
-        ax[0].set_title('Weighted Usable Area interpolated for the Reach ' + str(0))
-
+    ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+    ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated for the Reach ') + str(0))
     if len(sim_name) < 25:
         ax[0].set_xticks(x_data, [])  #, rotation=rot
     elif len(sim_name) < 100:
@@ -1704,18 +1664,8 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     for name_fish_value in name_fish_origin:
         y_data_hv = data_to_table["hv_" + name_fish_value]
         ax[1].plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
-    if project_preferences['language'] == 0:
-        #ax[1].set_xlabel('Desired units [' + unit_type + ']')
-        ax[1].set_ylabel('HV []')
-        ax[1].set_title('Habitat Value interpolated')
-    elif project_preferences['language'] == 1:
-        #ax[1].set_xlabel(u'Unité souhaitées [' + unit_type + ']')
-        ax[1].set_ylabel('HV []')
-        ax[1].set_title("Valeur d'habitat interpolée")
-    else:
-        #ax[1].set_xlabel('Desired units [' + unit_type + ']')
-        ax[1].set_ylabel('HV (WUA/A) []')
-        ax[1].set_title('Habitat Value interpolated for the Reach ' + str(0))
+    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV []'))
+    ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
     ax[1].set_ylim(0, 1)
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data, [])  #, rotation=rot
@@ -1731,9 +1681,9 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
 
     # unit
     ax[2].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
-    ax[2].set_title("Units")
-    ax[2].set_xlabel('Desired units [' + unit_type + ']')
-    ax[2].set_ylabel('units [' + unit_type + ']')
+    ax[2].set_title(qt_tr.translate("plot_mod", "Units"))
+    ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
+    ax[2].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
 
     if len(sim_name) < 25:
         ax[2].set_xticks(x_data, sim_name)  # , rotation=45
