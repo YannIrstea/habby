@@ -137,6 +137,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l0 = QLabel(self.tr('<b> Habitat file(s) </b>'))
         self.m_all = QComboBox()
         self.m_all.currentTextChanged.connect(lambda: self.fill_selected_models_listwidets([]))
+        self.m_all.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         # create lists with the possible fishes
         # right buttons for both QListWidget managed in the MainWindows class
