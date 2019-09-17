@@ -1447,7 +1447,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.bar(y_pos, data_bar2)
         plt.xticks(y_pos, [])
         plt.ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        plt.title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + unit_name[0] + " " + unit_type)
+        plt.title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
 
         # VH
         fig.add_subplot(212)
@@ -1456,15 +1456,15 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.xticks(y_pos, name_fish, rotation=10)
         plt.ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
         plt.ylim(0, 1)
-        plt.title(qt_tr.translate("plot_mod", "Habitat value - ") + reach_name + " - " + unit_name[0] + " " + unit_type)
+        plt.title(qt_tr.translate("plot_mod", "Habitat value - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
         mplcursors.cursor()  # get data with mouse
         plt.tight_layout()
         # export or not
         if types_plot == "image export" or types_plot == "both":
             if not project_preferences['erase_id']:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + unit_name[0] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0]) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + unit_name[0]
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0])
                 test = tools_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
