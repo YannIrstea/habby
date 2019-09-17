@@ -295,6 +295,7 @@ class Hdf5Management:
             else:
                 self.units_name = self.file_object["unit_by_reach"].value.transpose().astype(np.str).tolist()
                 self.nb_unit = len(self.units_name)
+                self.unit_type = self.file_object.attrs["hyd_unit_type"]
 
     # HYDRAULIC 2D
     def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description, project_preferences):

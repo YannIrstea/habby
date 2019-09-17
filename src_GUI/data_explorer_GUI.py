@@ -294,6 +294,8 @@ class DataExplorerFrame(QFrame):
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
                 if hdf5.reach_name:
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+                    if len(hdf5.reach_name) == 1:
+                        self.plot_group.reach_QListWidget.selectAll()
 
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
@@ -308,6 +310,8 @@ class DataExplorerFrame(QFrame):
                 if hdf5.reach_name:
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                     self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
+                    if len(hdf5.reach_name) == 1:
+                        self.plot_group.reach_QListWidget.selectAll()
 
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
@@ -355,7 +359,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.variable_hdf5_layout.addWidget(self.variable_QListWidget)
 
         # reach_QListWidget
-        self.reach_hdf5_QLabel = QLabel(self.tr('reachs'))
+        self.reach_hdf5_QLabel = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget = QListWidget()
         self.reach_QListWidget.setMinimumWidth(110)
         self.reach_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -367,7 +371,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.reach_hdf5_layout.addWidget(self.reach_QListWidget)
 
         # units_QListWidget
-        self.units_QLabel = QLabel(self.tr('units'))
+        self.units_QLabel = QLabel(self.tr('unit(s)'))
         self.units_QListWidget = QListWidget()
         self.units_QListWidget.setMinimumWidth(50)
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -404,7 +408,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
         self.plot_map_QCheckBox.setChecked(True)
         self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
-        self.plot_result_QCheckBox = QCheckBox(self.tr("habitat values"))
+        self.plot_result_QCheckBox = QCheckBox(self.tr("Global habitat values"))
         self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
 
@@ -567,6 +571,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         selection_file = self.parent().names_hdf5_QListWidget.selectedItems()
         selection_reach = self.reach_QListWidget.selectedItems()
         self.units_QListWidget.clear()
+        self.units_QLabel.setText(self.tr("unit(s)"))
 
         # one file selected
         if len(selection_reach) == 1:
@@ -579,6 +584,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
             # add
             self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
+
+            # change unit_type
+            self.units_QLabel.setText(hdf5.unit_type)
 
         # more than one file selected
         elif len(selection_reach) > 1:
