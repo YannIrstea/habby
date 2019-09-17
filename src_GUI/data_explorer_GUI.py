@@ -586,7 +586,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
 
             # change unit_type
-            self.units_QLabel.setText(hdf5.unit_type)
+            if hasattr(hdf5, "hdf5.unit_type"):
+                self.units_QLabel.setText(hdf5.unit_type)
 
         # more than one file selected
         elif len(selection_reach) > 1:
@@ -600,6 +601,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     units_equal = False
             if units_equal:  # homogene units between reach
                 self.units_QListWidget.addItems(hdf5.units_name[0])
+                # change unit_type
+                if hasattr(hdf5, "hdf5.unit_type"):
+                    self.units_QLabel.setText(hdf5.unit_type)
             if not units_equal:  # heterogne units between reach
                 # clean
                 self.units_QListWidget.clear()
