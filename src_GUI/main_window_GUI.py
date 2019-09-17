@@ -21,6 +21,7 @@ from platform import system as operatingsystem
 from subprocess import call
 import urllib.request
 import numpy as np
+import ssl
 
 try:
     import xml.etree.cElementTree as ET
@@ -2686,6 +2687,7 @@ class SoftInformationDialog(QDialog):
 
     def get_last_version_number_from_github(self):
         last_version_str = "unknown"
+        ssl._create_default_https_context = ssl._create_unverified_context
         try:
             url_github = 'https://api.github.com/repos/YannIrstea/habby/tags'
             with urllib.request.urlopen(url_github) as response:
