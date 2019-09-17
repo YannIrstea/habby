@@ -34,6 +34,7 @@ except ImportError:
 
 from src import bio_info_mod
 from src import plot_mod
+from src.project_manag_mod import load_project_preferences
 from src_GUI import preferences_GUI
 from src.user_preferences_mod import user_preferences
 from src_GUI.data_explorer_GUI import MyProcessList
@@ -857,11 +858,14 @@ class BioModelInfoSelection(QScrollArea):
             # do the plot
             if not hasattr(self, 'plot_process_list'):
                 self.plot_process_list = MyProcessList("plot")
+            project_preferences = load_project_preferences(self.path_prj,
+                                                               self.name_prj)
             state = Value("i", 0)
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                              args=(state,
                                                    data,
-                                                   fishname))
+                                                   fishname,
+                                                   project_preferences))
             self.plot_process_list.append((hydrosignature_process, state))
 
     def add_selected_to_main(self):

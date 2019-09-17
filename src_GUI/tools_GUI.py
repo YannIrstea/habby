@@ -20,11 +20,10 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 import os
-import numpy as np
-from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import tools_mod
 from src import plot_mod
+from src.project_manag_mod import load_project_preferences
 
 
 class QGroupBoxCollapsible(QGroupBox):
@@ -48,6 +47,7 @@ class QGroupBoxCollapsible(QGroupBox):
 
     def toggle_group(self, ctrl):
         state = ctrl.isChecked()
+        print("state", state)
         if state:
             ctrl.setFixedHeight(ctrl.sizeHint().height())
         else:
@@ -492,7 +492,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
         # load figure option
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
+        project_preferences = load_project_preferences(self.path_prj,
                                                            self.name_prj)
 
         # load hdf5 data
@@ -551,7 +551,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
         # load figure option
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
+        project_preferences = load_project_preferences(self.path_prj,
                                                             self.name_prj)
 
         # load hdf5 data

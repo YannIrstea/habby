@@ -31,9 +31,9 @@ from PyQt5.QtGui import QFont
 from multiprocessing import Process, Queue, Value
 import sys
 from io import StringIO
-from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src_GUI.data_explorer_GUI import MyProcessList
+from src.project_manag_mod import load_project_preferences
 
 
 class StatModUseful(QScrollArea):
@@ -718,7 +718,7 @@ class EstimhabW(StatModUseful):
         # run and save
         path_im = self.find_path_im_est()
         path_txt = self.find_path_text_est()
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
 
         estimhab_dict = dict(q=q,

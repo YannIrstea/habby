@@ -24,7 +24,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstract
 
 from src import hdf5_mod
 from src import plot_mod
-from src_GUI.preferences_GUI import load_project_preferences, QHLine, DoubleClicOutputGroup
+from src.project_manag_mod import load_project_preferences
+from src_GUI.preferences_GUI import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
 
 
@@ -296,6 +297,8 @@ class DataExplorerFrame(QFrame):
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                     if len(hdf5.reach_name) == 1:
                         self.plot_group.reach_QListWidget.selectAll()
+                        if hdf5.nb_unit == 1:
+                            self.plot_group.units_QListWidget.selectAll()
 
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
@@ -303,7 +306,10 @@ class DataExplorerFrame(QFrame):
                     self.plot_group.variable_QListWidget.addItems(hdf5.variables)
                     if hdf5.reach_name:
                         self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-
+                        if len(hdf5.reach_name) == 1:
+                            self.plot_group.reach_QListWidget.selectAll()
+                            if hdf5.nb_unit == 1:
+                                self.plot_group.units_QListWidget.selectAll()
             # hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
@@ -312,6 +318,8 @@ class DataExplorerFrame(QFrame):
                     self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
                     if len(hdf5.reach_name) == 1:
                         self.plot_group.reach_QListWidget.selectAll()
+                        if hdf5.nb_unit == 1:
+                            self.plot_group.units_QListWidget.selectAll()
 
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
@@ -586,7 +594,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
 
             # change unit_type
-            if hasattr(hdf5, "hdf5.unit_type"):
+            if hasattr(hdf5, "unit_type"):
                 self.units_QLabel.setText(hdf5.unit_type)
 
         # more than one file selected
@@ -602,7 +610,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             if units_equal:  # homogene units between reach
                 self.units_QListWidget.addItems(hdf5.units_name[0])
                 # change unit_type
-                if hasattr(hdf5, "hdf5.unit_type"):
+                if hasattr(hdf5, "unit_type"):
                     self.units_QLabel.setText(hdf5.unit_type)
             if not units_equal:  # heterogne units between reach
                 # clean
