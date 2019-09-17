@@ -279,10 +279,10 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             hyd_description["hyd_unit_z_equal"] = True
 
         del data_2d_whole_profile['unit_correspondence']
-        if not project_preferences["CutMeshPartialyDry"]:
-            namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
-            exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
-            description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+        # if not project_preferences["CutMeshPartialyDry"]:
+        #     namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
+        #     exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
+        #     description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
         # remove unused keys
         del data_2d_whole_profile["xy_center"]

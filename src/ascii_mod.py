@@ -202,9 +202,10 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     else:
         # TODO : check if all z values are equal between units
         hyd_description["hyd_unit_z_equal"] = True
-    if not project_preferences["CutMeshPartialyDry"]:
-        namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
-        data_description["hdf5_name"] = namehdf5_old + "_no_cut.hyd"
+    # if not project_preferences["CutMeshPartialyDry"]:
+    #     namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
+    #     exthdf5_old = os.path.splitext(data_description["hdf5_name"])[1]
+    #     data_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
     # change extension of hdf5 to create .hab
     if sub_presence:
