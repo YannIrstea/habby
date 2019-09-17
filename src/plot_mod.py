@@ -1425,7 +1425,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     # plot
     title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
     if len(unit_name) == 1:
-        plot_window_title = title + unit_name[0] + " " + unit_type
+        plot_window_title = title + str(unit_name[0]) + " " + unit_type
     if len(unit_name) > 1:
         plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type
     fig = plt.figure(plot_window_title)
