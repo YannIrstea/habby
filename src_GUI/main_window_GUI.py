@@ -305,6 +305,7 @@ class MainWindows(QMainWindow):
 
         # close all process plot
         if hasattr(self, "central_widget"):
+            self.central_widget.save_info_projet()
             self.central_widget.closefig()
 
         # close all process data (security)
