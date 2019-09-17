@@ -206,7 +206,7 @@ def create_default_project_preferences():
     project_preferences['line_width'] = 1
     project_preferences['grid'] = False  # grid on plot
     project_preferences['format'] = 0  # pdf, png, jpg
-    project_preferences['resolution'] = 800  # dpi
+    project_preferences['resolution'] = 300  # dpi
     project_preferences['fish_name_type'] = 0  # latin_name, french, english, code_alternative
     project_preferences['marker'] = True  # Add point to line plot
 
