@@ -839,6 +839,14 @@ class MainWindows(QMainWindow):
     def recreate_tabs_attributes(self):
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
+            if hasattr(self, "preferences_dialog"):
+                if not self.preferences_dialog:
+                    self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+                else:
+                    self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
+            else:
+                self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+
             if hasattr(self.central_widget, "welcome_tab"):
                 if not self.central_widget.welcome_tab:
                     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
@@ -1137,8 +1145,9 @@ class MainWindows(QMainWindow):
 
         # save_preferences
         project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
-        self.preferences_dialog.save_preferences()
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+        self.preferences_dialog.set_pref_gui_from_dict(default=True)
+        self.preferences_dialog.save_preferences()
         self.preferences_dialog.send_log.connect(self.central_widget.write_log)
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
@@ -1371,6 +1380,7 @@ class MainWindows(QMainWindow):
         """
         This function close the current project without opening a new project
         """
+
         # open an empty project (so it close the old one)
         self.empty_project()
 
@@ -1383,7 +1393,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.lowpart.setEnabled(False)
 
         self.end_concurrency()
-        # self.my_menu_bar()
 
     def save_project_if_new_project(self):
         """

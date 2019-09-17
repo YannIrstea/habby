@@ -600,7 +600,7 @@ class PreferenceWindow(QDialog):
             erase1.text = str(project_preferences['erase_id'])
             doc.write(fname)
 
-        self.send_log.emit('# Preferences saved.')
+        self.send_log.emit(self.tr('# Preferences saved.'))
         self.close()
 
     def close_preferences(self):
