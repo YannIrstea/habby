@@ -306,6 +306,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 return "Error: " + unit_name_from_index_file + " doesn't exist in telemac file", None
             else:
                 unit_index = unit_name_from_file.index(unit_name_from_index_file[0])
+                unit_list_tf = [False] * nbtimes
+                unit_list_tf[unit_index] = True
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -313,9 +315,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 reach_name = "unknown"
 
             # hydrau_description
-            hydrau_description["unit_list"] = [data_index_file[headers[discharge_index]][unit_index]]
-            hydrau_description["unit_list_full"] = [data_index_file[headers[discharge_index]][unit_index]]
-            hydrau_description["unit_list_tf"] = []
+            hydrau_description["unit_list"] = unit_name_from_index_file
+            hydrau_description["unit_list_full"] = unit_name_from_file
+            hydrau_description["unit_list_tf"] = unit_list_tf
             hydrau_description["unit_number"] = str(1)
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
             hydrau_description["timestep_list"] = data_index_file[headers[time_index]]

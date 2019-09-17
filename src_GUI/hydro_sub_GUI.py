@@ -3288,6 +3288,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                                                                                         self.path_prj,
                                                                                                         self.model_type,
                                                                                                         self.nb_dim)
+
             # warnings
             if warning_list:
                 for warn in warning_list:
@@ -3300,6 +3301,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
             # one hdf5
             if type(telemac_description) == dict:
+                self.hydrau_case = telemac_description["hydrau_case"]
                 # multi
                 self.multi_hdf5 = False
                 # save last path
@@ -3331,6 +3333,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
             # multi hdf5
             if type(telemac_description) == list:
+                self.hydrau_case = telemac_description[0]["hydrau_case"]
                 # multi
                 self.multi_hdf5 = True
                 # save last path
@@ -3392,7 +3395,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
         total = self.units_QListWidget.count()
         # count total number items selected
         selected = len(self.units_QListWidget.selectedItems())
-        print("self.hydrau_case", self.hydrau_case)
         # refresh telemac dictonnary
         unit_list = []
         unit_list_full = []
