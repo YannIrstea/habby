@@ -213,11 +213,11 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         hyd_description["sub_classification_code"] = data_description["sub_classification_code"]
         hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]
         hyd_description["hab_epsg_code"] = data_description["epsg_code"]
-        data_description["hdf5_name"] = os.path.splitext(data_description["hdf5_name"])[0] + ".hab"
+        data_description["hdf5_name"] = hydrau_description["hdf5_name"]
 
     # create hdf5
     hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
-                                   data_description["hdf5_name"])
+                                   hydrau_description["hdf5_name"])
     if not sub_presence:
         hdf5.create_hdf5_hyd(data_2d,
                              data_2d_whole_profile,

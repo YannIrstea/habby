@@ -1520,7 +1520,7 @@ class HEC_RAS1D(SubHydroW):
         self.save_xml(1)
 
         # for error management and figures (when time finsiehed call the self.show_prog function)
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # get the image and load option
         path_im = self.find_path_im()
@@ -1716,7 +1716,7 @@ class Rubar2D(SubHydroW):
 
         """
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # test the availability of files
         fileNOK = True
@@ -2000,7 +2000,7 @@ class Mascaret(SubHydroW):
         # load mascaret data, distribute the velocity and create the grid in a second thread
         self.q = Queue()
         # for error management and figures (when time finsiehed call the self.show_prog function)
-        self.timer.start(1000)
+        self.timer.start(100)
         self.p = Process(target=mascaret_mod.load_mascaret_and_create_grid,
                          args=(self.name_hdf5, path_hdf5, self.name_prj,
                                self.path_prj, self.model_type,
@@ -2313,7 +2313,7 @@ class River2D(SubHydroW):
         This function is used to load the river 2d data. It use a second thread to avoid freezing the GUI
         """
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # test the availability of files
         if len(self.namefile) == 0:
@@ -2555,7 +2555,7 @@ class Rubar1D(SubHydroW):
         # load rubar 1D, distribute velcoity and create the grid
         self.q = Queue()
         # for error management and figures (when time finished call the self.show_prog function)
-        self.timer.start(1000)
+        self.timer.start(100)
         self.p = Process(target=rubar1d2d_mod.load_rubar1d_and_create_grid,
                          args=(self.name_hdf5, path_hdf5, self.name_prj,
                                self.path_prj, self.model_type, self.namefile,
@@ -3373,6 +3373,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
         except:
             pass
 
+        self.hydrau_description["hdf5_name"] = self.hname.text()
+
         # change telemac description
         self.hydrau_description = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]
 
@@ -3386,6 +3388,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
             self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
             self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
         self.epsg_label.setText(self.hydrau_description["epsg_code"])
+        if not os.path.splitext(self.hydrau_description["hdf5_name"])[1]:
+            self.hydrau_description["hdf5_name"] = self.hydrau_description["hdf5_name"] + ".hyd"
         self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
         self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
         self.unit_counter()
@@ -3516,7 +3520,18 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
+
+        # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        if not self.multi_hdf5:
+            if not os.path.splitext(self.name_hdf5)[1]:
+                self.name_hdf5 = self.name_hdf5 + ".hyd"
+
+        # check if extension is set by user (multi hdf5 case)
+        if self.multi_hdf5:
+            for hdf5_num in range(len(self.hydrau_description_multiple)):
+                if not os.path.splitext(self.hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
+                    self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
         self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
@@ -3797,6 +3812,9 @@ class ASCII(SubHydroW):  # QGroupBox
                         self.load_b.setText("Create .hyd file")
                     if ascii_description["sub"]:
                         self.load_b.setText("Create .hab file")
+                        new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
+                        self.hname.setText(new_hdf5_name)  # hdf5 name
+
                 # multi reach  ==> change reach_name label by combobox
                 if len(ascii_description["unit_list"]) > 1:
                     self.multi_reach = True
@@ -3819,6 +3837,8 @@ class ASCII(SubHydroW):  # QGroupBox
                         self.load_b.setText("Create .hyd file")
                     if ascii_description["sub"]:
                         self.load_b.setText("Create .hab file")
+                        new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
+                        self.hname.setText(new_hdf5_name)  # hdf5 name
 
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
@@ -3977,7 +3997,24 @@ class ASCII(SubHydroW):  # QGroupBox
 
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
+
+        # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        if not self.multi_hdf5:
+            if not os.path.splitext(self.name_hdf5)[1]:
+                if self.hydrau_description["sub"]:
+                    self.name_hdf5 = self.name_hdf5 + ".hab"
+                else:
+                    self.name_hdf5 = self.name_hdf5 + ".hyd"
+
+        # check if extension is set by user (multi hdf5 case)
+        if self.multi_hdf5:
+            for hdf5_num in range(len(self.hydrau_description_multiple)):
+                if not os.path.splitext(self.hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
+                    if self.hydrau_description_multiple[hdf5_num]["sub"]:
+                        self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".sub"
+                    else:
+                        self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
         self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
@@ -4203,7 +4240,7 @@ class LAMMI(SubHydroW):
             return
 
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # write the new file name in the project file
         self.save_xml(0)
@@ -4334,6 +4371,145 @@ class SW2D(SubHydroW):
         # self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
+    def show_dialog_sw2d(self, i=0):
+        """
+        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
+        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
+        is then used to loaded the file in other function, which are different for each children class. Based on the
+        name of the chosen file, a name is proposed for the hdf5 file.
+
+        :param i: an int for the case where there is more than one file to load
+        """
+        # disconnect function for multiple file cases
+        try:
+            self.h2d_t2.disconnect()
+        except:
+            pass
+
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        # prepare the filter to show only useful files
+        if len(self.extension[i]) <= 4:
+            filter2 = "File ("
+            for e in self.extension[i]:
+                filter2 += '*' + e + ' '
+            filter2 = filter2[:-1]
+            filter2 += ')' + ";; All File (*.*)"
+        else:
+            filter2 = ''
+
+        # get last path
+        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
+                self.attributexml[0]) != "no_data":
+            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
+        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        else:
+            model_path = self.path_prj  # path proj
+
+        # find the filename based on user choice
+        filename_list = QFileDialog.getOpenFileNames(self,
+                                                     self.tr("Select file(s)"),
+                                                     model_path,
+                                                     filter2)
+
+        # init
+        self.hydrau_case = "unknown"
+        self.multi_hdf5 = False
+        self.index_hydrau_presence = False
+
+        # if file has been selected
+        if filename_list[0]:
+            # clean GUI
+            self.clean_gui()
+
+            # get_hydrau_description_from_source
+            telemac_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                        self.path_prj,
+                                                                                                        self.model_type,
+                                                                                                        self.nb_dim)
+
+            # warnings
+            if warning_list:
+                for warn in warning_list:
+                    self.send_log.emit(warn)
+
+            # error
+            if type(telemac_description) == str:
+                self.clean_gui()
+                self.send_log.emit(telemac_description)
+
+            # one hdf5
+            if type(telemac_description) == dict:
+                self.hydrau_case = telemac_description["hydrau_case"]
+                # multi
+                self.multi_hdf5 = False
+                # save last path
+                self.pathfile[0] = telemac_description["path_filename_source"]  # source file path
+                self.namefile[0] = telemac_description["filename_source"]  # source file name
+                self.name_hdf5 = telemac_description["hdf5_name"]
+                self.save_xml(0)  # path in xml
+                # set to attribute
+                self.hydrau_description = telemac_description
+                # to GUI (decription)
+                self.h2d_t2.clear()
+                self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
+                self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                self.units_QListWidget.clear()
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                if not self.hydrau_description["unit_list_tf"]:
+                    self.units_QListWidget.selectAll()
+                else:
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
+                        self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                self.units_QListWidget.setEnabled(True)
+                self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                self.load_b.setText("Create .hyd file")
+                self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                self.unit_counter()
+
+            # multi hdf5
+            if type(telemac_description) == list:
+                self.hydrau_case = telemac_description[0]["hydrau_case"]
+                # multi
+                self.multi_hdf5 = True
+                # save last path
+                self.pathfile[0] = telemac_description[0]["path_filename_source"]  # source file path
+                self.namefile[0] = telemac_description[0]["filename_source"]  # source file name
+                self.name_hdf5 = telemac_description[0]["hdf5_name"]
+                self.save_xml(0)  # path in xml
+                # set to attribute
+                self.hydrau_description_multiple = telemac_description
+                self.hydrau_description = telemac_description[0]
+                # get names
+                names = [description["filename_source"] for description in self.hydrau_description_multiple]
+                # to GUI (first decription)
+                self.h2d_t2.clear()
+                self.h2d_t2.addItems(names)
+                self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                self.units_QListWidget.clear()
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                if not self.hydrau_description["unit_list_tf"]:
+                    self.units_QListWidget.selectAll()
+                else:
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
+                        self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                self.units_QListWidget.setEnabled(True)
+                self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
+                self.load_b.setText("Create " + str(len(telemac_description)) + " .hyd files")
+                self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                self.unit_counter()
+
     def load_sw2d(self):
         """
         A function to execture the loading and saving the sw2d files using read_sw2d.py.
@@ -4341,7 +4517,7 @@ class SW2D(SubHydroW):
         A second thread is used to avoid "freezing" the GUI.
         """
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # test the availability of files
         fileNOK = True
@@ -4376,13 +4552,15 @@ class SW2D(SubHydroW):
         # load sw2d, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
         # to be changed
+        self.progress_value = Value("i", 0)
         self.p = Process(target=sw2d_mod.load_sw2d_and_modify_grid, args=(self.name_hdf5, self.namefile[0],
                                                                           self.namefile[1], self.pathfile[0],
                                                                           self.pathfile[1], path_im, self.name_prj,
                                                                           self.path_prj,
                                                                           self.model_type, self.nb_dim, path_hdf5,
                                                                           self.q,
-                                                                          False, self.project_preferences))
+                                                                          False, self.project_preferences,
+                                                                          self.progress_value))
         self.p.start()
 
         # copy input file
@@ -4552,7 +4730,7 @@ class IBER2D(SubHydroW):
         A second thread is used to avoid "freezing" the GUI.
         """
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # test the availability of files
         fileNOK = True
