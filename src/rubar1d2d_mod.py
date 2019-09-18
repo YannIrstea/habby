@@ -886,9 +886,9 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
 
     blob, ext = os.path.splitext(geofile)
     if ext == '.mai':
-        [ikle, xy, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)
+        [ikle, xyz, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)
     elif ext == '.dat':
-        [ikle, xy, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)
+        [ikle, xyz, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)
     else:
         return [-99], [-99], [-99], [-99], [-99], [-99]
     [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)
@@ -1103,7 +1103,7 @@ def load_dat_2d(geofile, path):
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:2*nb_coord]
     z = data_f[2*nb_coord:]
-    xyz = np.column_stack((x, y, z))
+    xy = np.column_stack((x, y))
 
     # find the center point of each cell
     # slow because number of point of a cell changes
@@ -1116,7 +1116,7 @@ def load_dat_2d(geofile, path):
             xy_c += xy[ikle_c[i]]
         coord_c.append(xy_c / len(ikle_c))
 
-    return ikle, xyz, coord_c, nb_cell
+    return ikle, xy, z, coord_c, nb_cell
 
 
 def load_tps_2d(tpsfile, path, nb_cell):
