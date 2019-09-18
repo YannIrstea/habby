@@ -293,7 +293,7 @@ class Hdf5Management:
                 self.units_name = [["unit_0"]]
                 self.nb_unit = 1
             else:
-                self.units_name = self.file_object["unit_by_reach"].value.transpose().astype(np.str).tolist()
+                self.units_name = self.file_object["unit_by_reach"][:].transpose().astype(np.str).tolist()
                 self.nb_unit = len(self.units_name)
                 self.unit_type = self.file_object.attrs["hyd_unit_type"]
 
@@ -506,7 +506,7 @@ class Hdf5Management:
                 hyd_description[attribute_name] = attribute_value
 
         # dataset for unit_list
-        hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"].value.transpose().tolist()
+        hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
 
         # WHOLE PROFIL
         if whole_profil:
@@ -948,7 +948,7 @@ class Hdf5Management:
                 return
 
         # dataset for unit_list
-        data_description["hyd_unit_list"] = self.file_object["unit_by_reach"].value.transpose().tolist()
+        data_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
 
         # DATA 2D WHOLE PROFIL
         if whole_profil:
