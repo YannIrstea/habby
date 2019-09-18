@@ -1057,7 +1057,7 @@ def load_dat_2d(geofile, path):
     data_f = []
     m += 1
     c = 0
-    while c < 2 * nb_coord and c < 10 ** 8:
+    while c < 3 * nb_coord and c < 10 ** 8:
         data_str = data_geo2d[m]
         l = 0
         while l < len(data_str):
@@ -1072,13 +1072,11 @@ def load_dat_2d(geofile, path):
         m += 1
     # separe x and y
     x = data_f[0:nb_coord]  # choose every 2 float
-    y = data_f[nb_coord:]
-    xy = np.column_stack((x, y))
+    y = data_f[nb_coord:2*nb_coord]
+    z = data_f[2*nb_coord:]
+    xyz = np.column_stack((x, y, z))
 
-    # get z
-    z_position_line = [data_geo2d[index] for index, value in enumerate(data_geo2d) if len(value) == 80]
-
-    # find the center point of each cellss
+    # find the center point of each cell
     # slow because number of point of a cell changes
     coord_c = []
 
@@ -1089,7 +1087,7 @@ def load_dat_2d(geofile, path):
             xy_c += xy[ikle_c[i]]
         coord_c.append(xy_c / len(ikle_c))
 
-    return ikle, xy, coord_c, nb_cell
+    return ikle, xyz, coord_c, nb_cell
 
 
 def load_tps_2d(tpsfile, path, nb_cell):
