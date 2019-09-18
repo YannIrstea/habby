@@ -25,7 +25,8 @@ from src import rubar1d2d_mod
 
 
 def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_geo, path_res, path_im, name_prj,
-                              path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, project_preferences={}):
+                              path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, project_preferences={},
+                              progress_value=None):
     """
     This function loads the sw2d file, using the function below. Then, it changes the mesh which has triangle and
     quadrilater toward a triangle mesh and it passes the data from cell-centric data to node data using a linear
@@ -131,6 +132,10 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
 
     # the grid data for each time step
     warn1 = False
+
+    # progress from 10 to 90 : from 0 to len(units_index)
+    delta = int(80 / len(vel_cell))
+
     for t in range(0, len(vel_cell)):
         # get data no the node (and not on the cells) by linear interpolation
         if t == 0:
@@ -143,8 +148,18 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
                                                                                                    height_cell[t], warn1,
                                                                                                    vtx_all, wts_all)
         # cut the grid to the water limit
-        [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
-                                                                                vel_node[0], minwh)
+        [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base,
+                                                                                coord_p,
+                                                                                height_node[0],
+                                                                                vel_node[0],
+                                                                                progress_value,
+                                                                                delta,
+                                                                                project_preferences[
+                                                                                    "CutMeshPartialyDry"],
+                                                                                minwh)
+
+
+
 
         inter_h_all_t.append([water_height])
         inter_vel_all_t.append([velocity])
@@ -155,15 +170,28 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
 
     # save data
     timestep_str = list(map(str, timesteps))
-    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-                                     point_all_t,
-                                     point_c_all_t,
-                                     inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+
+    # create hdf5
+    hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
+                                   hydrau_description["hdf5_name"])
+    hdf5.create_hdf5_hyd(data_2d,
+                         data_2d_whole_profile,
+                         hyd_description,
+                         project_preferences)
+
+    # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+    #                                  point_all_t,
+    #                                  point_c_all_t,
+    #                                  inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+
+    # progress
+    progress_value.value = 100
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q:
+    if q and not print_cmd:
         q.put(mystdout)
+        return
     else:
         return
 

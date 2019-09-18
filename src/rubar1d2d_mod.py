@@ -764,18 +764,16 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     # progress
     progress_value.value = 10
 
-    # create the empy output
-    inter_vel_all_t = []
-    inter_h_all_t = []
-    ikle_all_t = []
-    point_all_t = []
-    point_c_all_t = []
-
     # load data
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-    [vel_cell, height_cell, coord_p, coord_c, ikle_base, timestep] \
-        = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
+    data_2d = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
+
+    # fake_z
+    coord_z = np.array([10] * len(coord_p))
+
+    # progress from 10 to 90 : from 0 to len(units_index)
+    delta = int(80 / len(vel_cell))
 
     if vel_cell == [-99]:
         print('Error: Rubar data not loaded.')
@@ -786,14 +784,25 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         else:
             return
 
-    # create grid
-    # first, the grid for the whole profile (no velcoity or height data)
-    # because we have a "whole" grid for 1D model before the actual time step
-    inter_h_all_t.append([[]])
-    inter_vel_all_t.append([[]])
-    point_all_t.append([coord_p])
-    point_c_all_t.append([coord_c])
-    ikle_all_t.append([ikle_base])
+    # get data_2d_whole_profile
+    data_2d_whole_profile = dict()
+    data_2d_whole_profile["tin"] = [[ikle_base]]  # always one reach
+    data_2d_whole_profile["xy_center"] = [[coord_c]]  # always one reach
+    data_2d_whole_profile["xy"] = [[coord_p]]  # always one reach
+    data_2d_whole_profile["z"] = [[coord_z]]  # always one reach
+
+    # cut the grid to have the precise wet area and put data in new form
+    data_2d = dict()
+    data_2d["tin"] = [[]]  # always one reach
+    data_2d["i_whole_profile"] = [[]]  # always one reach
+    data_2d["xy"] = [[]]  # always one reach
+    data_2d["h"] = [[]]  # always one reach
+    data_2d["v"] = [[]]  # always one reach
+    data_2d["z"] = [[]]  # always one reach
+    data_2d["max_slope_bottom"] = [[]]  # always one reach
+    data_2d["max_slope_energy"] = [[]]  # always one reach
+    data_2d["shear_stress"] = [[]]  # always one reach
+    data_2d["total_wet_area"] = [[]]
 
     # the grid data for each time step
     warn1 = False
@@ -886,6 +895,26 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     [ikle, coord_c, xy, h, v] = get_triangular_grid(ikle, coord_c, xy, h, v)
     if save_fig:
         figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [-1])
+
+    # description telemac data dict
+    description_from_telemac_file = dict()
+    description_from_telemac_file["hyd_filename_source"] = geofile + "; " + tpsfile
+    description_from_telemac_file["hyd_model_type"] = "RUBAR2D"
+    description_from_telemac_file["hyd_model_dimension"] = str(2)
+    description_from_telemac_file["hyd_unit_list"] = ", ".join(list(map(str, timestep)))
+    description_from_telemac_file["hyd_unit_number"] = str(len(list(map(str, timestep))))
+    description_from_telemac_file["hyd_unit_type"] = "timestep"
+    description_from_telemac_file["hyd_unit_z_equal"] = True
+
+    # data 2d dict
+    data_2d = dict()
+    data_2d["h"] = np.array(h, dtype=np.float64)
+    data_2d["v"] = np.array(v, dtype=np.float64)
+    data_2d["z"] = np.array(z, dtype=np.float64)
+    data_2d["xy"] = coord_p
+    data_2d["tin"] = ikle
+    data_2d["xy_center"] = coord_c
+
 
     return v, h, xy, coord_c, ikle, timestep
 
