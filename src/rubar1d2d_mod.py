@@ -819,27 +819,27 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         for unit_num in range(len(data_description["unit_list"][reach_num])):
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
-
+                # conca xy with z value to facilitate the cutting of the grid (interpolation)
+                xy = np.insert(data_2d_from_rubar2d["xy"],
+                               2,
+                               values=data_2d_from_rubar2d["z"],
+                               axis=1)  # Insert values before column 2
                 # get data no the node (and not on the cells) by linear interpolation
                 if unit_num == 0:
-                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([data_2d_from_rubar2d["xy"]],
+                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
                                                                                                            [data_2d_from_rubar2d["xy_center"]],
                                                                                                            data_2d_from_rubar2d["v"][reach_num][unit_num],
                                                                                                            data_2d_from_rubar2d["h"][reach_num][unit_num],
                                                                                                            True)
                 else:
-                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([data_2d_from_rubar2d["xy"]],
+                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
                                                                                                            [data_2d_from_rubar2d["xy_center"]],
                                                                                                            data_2d_from_rubar2d["v"][reach_num][unit_num],
                                                                                                            data_2d_from_rubar2d["h"][reach_num][unit_num],
                                                                                                            True,
                                                                                                            vtx_all, wts_all)
 
-                # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                xy = np.insert(data_2d_from_rubar2d["xy"],
-                               2,
-                               values=data_2d_from_rubar2d["z"],
-                               axis=1)  # Insert values before column 2
+
 
                 # cut mesh dry and cut partialy dry in option
                 [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(
@@ -943,13 +943,6 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     #     exthdf5_old = os.path.splitext(data_description["hdf5_name"])[1]
     #     data_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
-    # change extension of hdf5 to create .hab
-    if sub_presence:
-        hyd_description["sub_classification_method"] = data_description["sub_classification_method"]
-        hyd_description["sub_classification_code"] = data_description["sub_classification_code"]
-        hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]
-        hyd_description["hab_epsg_code"] = data_description["epsg_code"]
-        data_description["hdf5_name"] = hydrau_description["hdf5_name"]
 
 
 
