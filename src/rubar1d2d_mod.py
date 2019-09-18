@@ -19,14 +19,16 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from src import hec_ras2D_mod
+from copy import deepcopy
 from io import StringIO
+import xml.etree.ElementTree as Etree
+import matplotlib as mpl
+
+from src import hec_ras2D_mod
 from src import hdf5_mod
 from src import manage_grid_mod
-import xml.etree.ElementTree as Etree
 from src import dist_vistess_mod
 from src_GUI import preferences_GUI
-import matplotlib as mpl
 
 
 def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
@@ -767,93 +769,243 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     # load data
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-    data_2d = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
+    data_2d_from_rubar2d, data_description = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
+    if data_2d_from_rubar2d == [-99] and data_description == [-99]:
+        q.put(mystdout)
+        return
 
-    # fake_z
-    coord_z = np.array([10] * len(coord_p))
+    #fake user hydrau_description
+    hydrau_description = dict(unit_list_tf=[[True] * int(data_description["unit_number"])])
+
+    # change data_description
+    data_description["reach_number"] = "1"
+
+    # create copy
+    data_2d_whole_profile = deepcopy(data_2d_from_rubar2d)
+
+    # create empty dict
+    data_2d = dict()
+    data_2d["tin"] = []
+    data_2d["i_whole_profile"] = []
+    data_2d["xy"] = []
+    data_2d["h"] = []
+    data_2d["v"] = []
+    data_2d["z"] = []
+    data_2d["max_slope_bottom"] = []
+    data_2d["max_slope_energy"] = []
+    data_2d["shear_stress"] = []
+    data_2d["total_wet_area"] = []
 
     # progress from 10 to 90 : from 0 to len(units_index)
-    delta = int(80 / len(vel_cell))
+    delta = int(80 / int(data_description["reach_number"]))
 
-    if vel_cell == [-99]:
-        print('Error: Rubar data not loaded.')
-        sys.stdout = sys.__stdout__
-        if q:
-            q.put(mystdout)
-            return
-        else:
-            return
+    # for each reach
+    for reach_num in range(int(data_description["reach_number"])):
+        data_2d["tin"].append([])
+        data_2d["i_whole_profile"].append([])
+        data_2d["xy"].append([])
+        data_2d["h"].append([])
+        data_2d["v"].append([])
+        data_2d["z"].append([])
+        data_2d["max_slope_bottom"].append([])
+        data_2d["max_slope_energy"].append([])
+        data_2d["shear_stress"].append([])
+        data_2d["total_wet_area"].append([])
 
-    # get data_2d_whole_profile
-    data_2d_whole_profile = dict()
-    data_2d_whole_profile["tin"] = [[ikle_base]]  # always one reach
-    data_2d_whole_profile["xy_center"] = [[coord_c]]  # always one reach
-    data_2d_whole_profile["xy"] = [[coord_p]]  # always one reach
-    data_2d_whole_profile["z"] = [[coord_z]]  # always one reach
+        # index to remove (from user selection GUI)
+        index_to_remove = []
 
-    # cut the grid to have the precise wet area and put data in new form
-    data_2d = dict()
-    data_2d["tin"] = [[]]  # always one reach
-    data_2d["i_whole_profile"] = [[]]  # always one reach
-    data_2d["xy"] = [[]]  # always one reach
-    data_2d["h"] = [[]]  # always one reach
-    data_2d["v"] = [[]]  # always one reach
-    data_2d["z"] = [[]]  # always one reach
-    data_2d["max_slope_bottom"] = [[]]  # always one reach
-    data_2d["max_slope_energy"] = [[]]  # always one reach
-    data_2d["shear_stress"] = [[]]  # always one reach
-    data_2d["total_wet_area"] = [[]]
+        # for each units
+        for unit_num in range(len(data_description["unit_list"][reach_num])):
+            # get unit from according to user selection
+            if hydrau_description["unit_list_tf"][reach_num][unit_num]:
 
-    # the grid data for each time step
-    warn1 = False
-    for t in range(0, len(vel_cell)):
-        # get data no the node (and not on the cells) by linear interpolation
-        if t == 0:
-            [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p],
-                                                                                                   [coord_c], vel_cell[t],
-                                                                                                   height_cell[t], warn1)
-        else:
-            [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p], [coord_c],
-                                                                                                   vel_cell[t],
-                                                                                                   height_cell[t], warn1,
-                                                                                                   vtx_all, wts_all)
-        # cut the grid to the water limit
-        # [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
-        #                                                                         vel_node[0], minwh)
-        #
-        # inter_h_all_t.append([water_height])
-        # inter_vel_all_t.append([velocity])
-        # point_all_t.append([point_all])
-        # point_c_all_t.append([[]])
-        # ikle_all_t.append([ikle])
-        inter_h_all_t.append([height_node[0]])
-        inter_vel_all_t.append([vel_node[0]])
-        point_all_t.append([coord_p])
-        point_c_all_t.append([[]])
-        ikle_all_t.append([ikle_base])
-        warn1 = False
+                # get data no the node (and not on the cells) by linear interpolation
+                if unit_num == 0:
+                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([data_2d_from_rubar2d["xy"]],
+                                                                                                           [data_2d_from_rubar2d["xy_center"]],
+                                                                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
+                                                                                                           data_2d_from_rubar2d["h"][reach_num][unit_num],
+                                                                                                           True)
+                else:
+                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([data_2d_from_rubar2d["xy"]],
+                                                                                                           [data_2d_from_rubar2d["xy_center"]],
+                                                                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
+                                                                                                           data_2d_from_rubar2d["h"][reach_num][unit_num],
+                                                                                                           True,
+                                                                                                           vtx_all, wts_all)
 
-    # save data
-    # timestep_str = list(map(str, timestep))
-    # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-    #                                  point_all_t, point_c_all_t,
-    #                                  inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+                # conca xy with z value to facilitate the cutting of the grid (interpolation)
+                xy = np.insert(data_2d_from_rubar2d["xy"],
+                               2,
+                               values=data_2d_from_rubar2d["z"],
+                               axis=1)  # Insert values before column 2
 
-        # hyd description
-        hyd_description = dict()
-        hyd_description["hyd_filename_source"] = geofile
-        hyd_description["hyd_model_type"] = "RUBAR2D"
-        hyd_description["hyd_model_dimension"] = 2
-        hyd_description["hyd_variables_list"] = "h, v, z"
-        hyd_description["hyd_epsg_code"] = description_from_indextelemac_file[hyd_file]["epsg_code"]
-        hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
-        hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
-        hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
-        hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
-        hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
-        hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
-        hyd_description["hyd_varying_mesh"] = str(data_2d_whole_profile["unit_correspondence"])
-        hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
+                # cut mesh dry and cut partialy dry in option
+                [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(
+                    data_2d_from_rubar2d["tin"][reach_num][unit_num],
+                    xy,
+                    vel_node,
+                    height_node,
+                    progress_value,
+                    delta,
+                    project_preferences["CutMeshPartialyDry"],
+                    minwh)
+
+                if not isinstance(tin_data, np.ndarray):
+                    print("Error: cut_2d_grid")
+                    q.put(mystdout)
+                    return
+
+                max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                    xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                    z1=xy_cuted[tin_data[:, 0]][:, 2],
+                    h1=h_data[tin_data[:, 0]],
+                    v1=v_data[tin_data[:, 0]],
+                    xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                    z2=xy_cuted[tin_data[:, 1]][:, 2],
+                    h2=h_data[tin_data[:, 1]],
+                    v2=v_data[tin_data[:, 1]],
+                    xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                    z3=xy_cuted[tin_data[:, 2]][:, 2],
+                    h3=h_data[tin_data[:, 2]],
+                    v3=v_data[tin_data[:, 2]])
+
+                # get area (based on Heron's formula)
+                p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+                p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+                p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+                d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
+                d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
+                d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
+                s2 = (d1 + d2 + d3) / 2
+                area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
+                area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+                area = area ** 0.5
+                area_reach = np.sum(area)
+
+                # get cuted grid
+                data_2d["tin"][reach_num].append(tin_data)
+                data_2d["i_whole_profile"][reach_num].append(i_whole_profile)
+                data_2d["xy"][reach_num].append(xy_cuted[:, :2])
+                data_2d["h"][reach_num].append(h_data)
+                data_2d["v"][reach_num].append(v_data)
+                data_2d["z"][reach_num].append(xy_cuted[:, 2])
+                data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
+                data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
+                data_2d["shear_stress"][reach_num].append(shear_stress)
+                data_2d["total_wet_area"][reach_num].append(area_reach)
+
+            # erase unit in whole_profile
+            else:
+                index_to_remove.append(unit_num)
+
+        # index to remove (from user selection GUI)
+        for index in reversed(index_to_remove):
+            data_2d_whole_profile["tin"][reach_num].pop(index)
+            data_2d_whole_profile["xy"][reach_num].pop(index)
+            data_2d_whole_profile["z"][reach_num].pop(index)
+
+    # remove unused keys
+    del data_2d_whole_profile["i_whole_profile"]
+    del data_2d_whole_profile["h"]
+    del data_2d_whole_profile["v"]
+
+    # ALL CASE SAVE TO HDF5
+    progress_value.value = 90  # progress
+
+    # change unit from according to user selection
+    hydrau_description["unit_number"] = str(len(hydrau_description["unit_list"][0]))  # same unit len for each reach
+
+    # hyd description
+    hyd_description = dict()
+    hyd_description["hyd_filename_source"] = data_description["filename_source"]
+    hyd_description["hyd_model_type"] = data_description["model_type"]
+    hyd_description["hyd_model_dimension"] = data_description["model_dimension"]
+    hyd_description["hyd_variables_list"] = "h, v, z"
+    hyd_description["hyd_epsg_code"] = data_description["epsg_code"]
+    hyd_description["hyd_reach_list"] = data_description["reach_list"]
+    hyd_description["hyd_reach_number"] = data_description["reach_number"]
+    hyd_description["hyd_reach_type"] = data_description["reach_type"]
+    hyd_description["hyd_unit_list"] = hydrau_description["unit_list"]
+    hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
+    hyd_description["hyd_unit_type"] = data_description["unit_type"]
+    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
+
+    hyd_description["hyd_varying_mesh"] = data_description["varying_mesh"]
+    if data_description["varying_mesh"]:
+        hyd_description["hyd_unit_z_equal"] = False
+    else:
+        # TODO : check if all z values are equal between units
+        hyd_description["hyd_unit_z_equal"] = True
+    # if not project_preferences["CutMeshPartialyDry"]:
+    #     namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
+    #     exthdf5_old = os.path.splitext(data_description["hdf5_name"])[1]
+    #     data_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
+    # change extension of hdf5 to create .hab
+    if sub_presence:
+        hyd_description["sub_classification_method"] = data_description["sub_classification_method"]
+        hyd_description["sub_classification_code"] = data_description["sub_classification_code"]
+        hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]
+        hyd_description["hab_epsg_code"] = data_description["epsg_code"]
+        data_description["hdf5_name"] = hydrau_description["hdf5_name"]
+
+
+
+
+
+
+    # # the grid data for each time step
+    # warn1 = False
+    # for t in range(0, len(vel_cell)):
+    #     # get data no the node (and not on the cells) by linear interpolation
+    #     if t == 0:
+    #         [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p],
+    #                                                                                                [coord_c], vel_cell[t],
+    #                                                                                                height_cell[t], warn1)
+    #     else:
+    #         [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p], [coord_c],
+    #                                                                                                vel_cell[t],
+    #                                                                                                height_cell[t], warn1,
+    #                                                                                                vtx_all, wts_all)
+    #     # cut the grid to the water limit
+    #     # [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
+    #     #                                                                         vel_node[0], minwh)
+    #     #
+    #     # inter_h_all_t.append([water_height])
+    #     # inter_vel_all_t.append([velocity])
+    #     # point_all_t.append([point_all])
+    #     # point_c_all_t.append([[]])
+    #     # ikle_all_t.append([ikle])
+    #     inter_h_all_t.append([height_node[0]])
+    #     inter_vel_all_t.append([vel_node[0]])
+    #     point_all_t.append([coord_p])
+    #     point_c_all_t.append([[]])
+    #     ikle_all_t.append([ikle_base])
+    #     warn1 = False
+    #
+    # # save data
+    # # timestep_str = list(map(str, timestep))
+    # # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+    # #                                  point_all_t, point_c_all_t,
+    # #                                  inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+    #
+    #     # hyd description
+    #     hyd_description = dict()
+    #     hyd_description["hyd_filename_source"] = geofile
+    #     hyd_description["hyd_model_type"] = "RUBAR2D"
+    #     hyd_description["hyd_model_dimension"] = 2
+    #     hyd_description["hyd_variables_list"] = "h, v, z"
+    #     hyd_description["hyd_epsg_code"] = description_from_indextelemac_file[hyd_file]["epsg_code"]
+    #     hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
+    #     hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
+    #     hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
+    #     hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
+    #     hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
+    #     hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
+    #     hyd_description["hyd_varying_mesh"] = str(data_2d_whole_profile["unit_correspondence"])
+    #     hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
 
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
@@ -890,33 +1042,33 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     elif ext == '.dat':
         [ikle, xyz, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)
     else:
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99]
     [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)
-    [ikle, coord_c, xy, h, v] = get_triangular_grid(ikle, coord_c, xy, h, v)
-    if save_fig:
-        figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [-1])
+    [ikle, coord_c, xyz, h, v] = get_triangular_grid(ikle, coord_c, xyz, h, v)
 
     # description telemac data dict
-    description_from_telemac_file = dict()
-    description_from_telemac_file["hyd_filename_source"] = geofile + "; " + tpsfile
-    description_from_telemac_file["hyd_model_type"] = "RUBAR2D"
-    description_from_telemac_file["hyd_model_dimension"] = str(2)
-    description_from_telemac_file["hyd_unit_list"] = ", ".join(list(map(str, timestep)))
-    description_from_telemac_file["hyd_unit_number"] = str(len(list(map(str, timestep))))
-    description_from_telemac_file["hyd_unit_type"] = "timestep"
-    description_from_telemac_file["hyd_unit_z_equal"] = True
+    description_from_file = dict()
+    description_from_file["filename_source"] = geofile + "; " + tpsfile
+    description_from_file["model_type"] = "RUBAR2D"
+    description_from_file["model_dimension"] = str(2)
+    description_from_file["unit_list"] = ", ".join(list(map(str, timestep)))
+    description_from_file["unit_number"] = str(len(list(map(str, timestep))))
+    description_from_file["unit_type"] = "timestep"
+    description_from_file["unit_z_equal"] = True
 
     # data 2d dict
+    xy = xyz[:, (0, 1)]
+    z = xyz[:, 2]
+
     data_2d = dict()
-    data_2d["h"] = np.array(h, dtype=np.float64)
-    data_2d["v"] = np.array(v, dtype=np.float64)
-    data_2d["z"] = np.array(z, dtype=np.float64)
-    data_2d["xy"] = coord_p
+    data_2d["h"] = [np.array(h, dtype=np.float64)]
+    data_2d["v"] = [np.array(v, dtype=np.float64)]
+    data_2d["z"] = z
+    data_2d["xy"] = xy
     data_2d["tin"] = ikle
-    data_2d["xy_center"] = coord_c
+    data_2d["xy_center"] = np.array(coord_c, dtype=np.float64)
 
-
-    return v, h, xy, coord_c, ikle, timestep
+    return data_2d, description_from_file
 
 
 def load_mai_2d(geofile, path):
@@ -1103,7 +1255,7 @@ def load_dat_2d(geofile, path):
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:2*nb_coord]
     z = data_f[2*nb_coord:]
-    xy = np.column_stack((x, y))
+    xyz = np.column_stack((x, y, z))
 
     # find the center point of each cell
     # slow because number of point of a cell changes
@@ -1111,12 +1263,12 @@ def load_dat_2d(geofile, path):
 
     for c in range(0, nb_cell):
         ikle_c = ikle[c]
-        xy_c = [0, 0]
+        xyz_c = [0, 0, 0]
         for i in range(0, len(ikle_c)):
-            xy_c += xy[ikle_c[i]]
-        coord_c.append(xy_c / len(ikle_c))
+            xyz_c += xyz[ikle_c[i]]
+        coord_c.append(xyz_c / len(ikle_c))
 
-    return ikle, xy, z, coord_c, nb_cell
+    return ikle, xyz, coord_c, nb_cell
 
 
 def load_tps_2d(tpsfile, path, nb_cell):
