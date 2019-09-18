@@ -1652,7 +1652,7 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     # plot
     title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Computational Step : ")
     if len(sim_name) == 1:
-        plot_window_title = title + sim_name[0] + " " + unit_type
+        plot_window_title = title + str(sim_name[0]) + " " + unit_type
     if len(sim_name) > 1:
         plot_window_title = title + ", ".join(
             map(str, sim_name)) + " " + unit_type
