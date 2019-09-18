@@ -279,6 +279,7 @@ class DataExplorerFrame(QFrame):
         self.plot_group.variable_QListWidget.clear()
         self.plot_group.units_QListWidget.clear()
         self.plot_group.reach_QListWidget.clear()
+        self.plot_group.units_QLabel.setText(self.tr("unit(s)"))
         self.habitatvalueremover_group.existing_animal_QListWidget.clear()
 
         # one file selected
@@ -289,6 +290,10 @@ class DataExplorerFrame(QFrame):
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file(False)
+
+            # change unit_type
+            if hasattr(hdf5, "unit_type"):
+                self.plot_group.units_QLabel.setText(hdf5.unit_type)
 
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
@@ -403,6 +408,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
         self.plot_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.export_type_layout.addWidget(self.plot_button)
+        self.plot_button.setEnabled(False)
 
         # stop plot_button
         self.plot_stop_button = QPushButton(self.tr("stop"))
@@ -505,10 +511,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # set prog
             if self.nb_plot != 0:
                 self.plot_process_list.progress_bar.setRange(0, self.nb_plot)
+                self.plot_button.setEnabled(True)
             self.plot_process_list.progress_bar.setValue(0)
             self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
         else:
             self.nb_plot = 0
+            self.plot_button.setEnabled(False)
             # set prog
             self.plot_process_list.progress_bar.setValue(0)
             self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
@@ -579,7 +587,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         selection_file = self.parent().names_hdf5_QListWidget.selectedItems()
         selection_reach = self.reach_QListWidget.selectedItems()
         self.units_QListWidget.clear()
-        self.units_QLabel.setText(self.tr("unit(s)"))
 
         # one file selected
         if len(selection_reach) == 1:
@@ -593,10 +600,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # add
             self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
 
-            # change unit_type
-            if hasattr(hdf5, "unit_type"):
-                self.units_QLabel.setText(hdf5.unit_type)
-
         # more than one file selected
         elif len(selection_reach) > 1:
             # clear attributes hdf5_attributes_qtableview
@@ -609,9 +612,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     units_equal = False
             if units_equal:  # homogene units between reach
                 self.units_QListWidget.addItems(hdf5.units_name[0])
-                # change unit_type
-                if hasattr(hdf5, "unit_type"):
-                    self.units_QLabel.setText(hdf5.unit_type)
+
             if not units_equal:  # heterogne units between reach
                 # clean
                 self.units_QListWidget.clear()
