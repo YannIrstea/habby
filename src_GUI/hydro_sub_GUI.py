@@ -1639,7 +1639,7 @@ class Rubar2D(SubHydroW):
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
         self.data_type = "HYDRAULIC"
-        self.extension = [['.mai', '.dat'], ['.tps']]  # list of list in case there is more than one possible ext.
+        self.extension = [['.dat'], ['.tps']]  # list of list in case there is more than one possible ext.
         self.nb_dim = 2
 
         # if there is the project file with rubar geo info, update the label and attibutes
@@ -1654,7 +1654,7 @@ class Rubar2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.mai, .dat)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.dat)'), self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
