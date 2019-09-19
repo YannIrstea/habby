@@ -820,30 +820,38 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
+                # xy = np.insert(data_2d_from_rubar2d["xy"],
+                #                2,
+                #                values=data_2d_from_rubar2d["z"],
+                #                axis=1)  # Insert values before column 2
+                # get data no the node (and not on the cells) by linear interpolation
+                [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
+                                                                          data_2d_from_rubar2d["xy_center"],
+                                                                          data_2d_from_rubar2d["v"][reach_num][unit_num],
+                                                                          data_2d_from_rubar2d["h"][reach_num][unit_num])
+                #if unit_num == 0:
+                    # [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
+                    #                                                                                        [data_2d_from_rubar2d["xy_center"]],
+                    #                                                                                        data_2d_from_rubar2d["v"][reach_num][unit_num],
+                    #                                                                                        data_2d_from_rubar2d["h"][reach_num][unit_num],
+                    #                                                                                        True)
+                # else:
+                #     [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
+                #                                                                                            [data_2d_from_rubar2d["xy_center"]],
+                #                                                                                            data_2d_from_rubar2d["v"][reach_num][unit_num],
+                #                                                                                            data_2d_from_rubar2d["h"][reach_num][unit_num],
+                #                                                                                            True,
+                #                                                                                            vtx_all, wts_all)
+
+                # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_rubar2d["xy"],
                                2,
                                values=data_2d_from_rubar2d["z"],
                                axis=1)  # Insert values before column 2
-                # get data no the node (and not on the cells) by linear interpolation
-                if unit_num == 0:
-                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
-                                                                                                           [data_2d_from_rubar2d["xy_center"]],
-                                                                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
-                                                                                                           data_2d_from_rubar2d["h"][reach_num][unit_num],
-                                                                                                           True)
-                else:
-                    [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
-                                                                                                           [data_2d_from_rubar2d["xy_center"]],
-                                                                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
-                                                                                                           data_2d_from_rubar2d["h"][reach_num][unit_num],
-                                                                                                           True,
-                                                                                                           vtx_all, wts_all)
-
-
 
                 # cut mesh dry and cut partialy dry in option
                 [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(
-                    data_2d_from_rubar2d["tin"][reach_num][unit_num],
+                    data_2d_from_rubar2d["tin"],
                     xy,
                     vel_node,
                     height_node,
@@ -1030,14 +1038,14 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     """
 
     blob, ext = os.path.splitext(geofile)
-    if ext == '.mai':
-        [ikle, xyz, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)
-    elif ext == '.dat':
-        [ikle, xyz, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)
+    # if ext == '.mai':
+    #     [ikle, xyz, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)  #  node
+    if ext == '.dat':
+        [ikle, xy, z, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)   # node
     else:
         return [-99], [-99]
-    [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)
-    [ikle, coord_c, xyz, h, v] = get_triangular_grid(ikle, coord_c, xyz, h, v)
+    [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)   # cell
+    [ikle, coord_c, xy, h, v, z] = get_triangular_grid(ikle, coord_c, xy, h, v, z)
 
     # description telemac data dict
     description_from_file = dict()
@@ -1050,109 +1058,109 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     description_from_file["unit_z_equal"] = True
 
     # data 2d dict
-    xy = xyz[:, (0, 1)]
-    z = xyz[:, 2]
+    # xy = xyz[:, (0, 1)]
+    # z = xyz[:, 2]
 
     data_2d = dict()
     data_2d["h"] = [np.array(h, dtype=np.float64)]
     data_2d["v"] = [np.array(v, dtype=np.float64)]
     data_2d["z"] = z
     data_2d["xy"] = xy
-    data_2d["tin"] = ikle
+    data_2d["tin"] = np.array(ikle, dtype=np.int)
     data_2d["xy_center"] = np.array(coord_c, dtype=np.float64)
 
     return data_2d, description_from_file
 
 
-def load_mai_2d(geofile, path):
-    """
-    The function to load the geomtery info for the 2D case when we use the .mai file. It would also be possible
-    to use the .dat file. In fact, it is advised to use the dat file when possible as there are more info in the .dat file.
-
-    :param geofile: the .mai file which contain the connectivity table and the (x,y)
-    :param path: the path to this file
-    :return: connectivity table, point coordinates, coordinates of the cell centers
-    """
-    filename_path = os.path.join(path, geofile)
-    # check extension
-    blob, ext = os.path.splitext(geofile)
-    if ext != '.mai':
-        print('Warning: The fils does not seem to be of .mai type.\n')
-    # check if the file exist
-    if not os.path.isfile(filename_path):
-        print('Error: The .mai file does not exist.')
-        return [-99], [-99], [-99], [-99]
-    # open file
-    try:
-        with open(filename_path, 'rt') as f:
-            data_geo2d = f.read()
-    except IOError:
-        print('Error: The .mai file can not be open.\n')
-        return [-99], [-99], [-99], [-99]
-    data_geo2d = data_geo2d.splitlines()
-    # extract nb cells
-    try:
-        nb_cell = np.int(data_geo2d[0])
-    except ValueError:
-        print('Error: Could not extract the number of cells from the .mai file.\n')
-        return [-99], [-99], [-99], [-99]
-        nb_cell = 0
-    # extract connectivity table, not always triangle
-    data_l = data_geo2d[1].split()
-    m = 0
-    ikle = []
-    while len(data_l) > 1:
-        m += 1
-        if m == len(data_geo2d):
-            print('Error: Could not extract the connectivity table from the .mai file.\n')
-            return [-99], [-99], [-99], [-99]
-        data_l = data_geo2d[m].split()
-        ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
-        for i in range(0, len(data_l) - 1):
-            try:
-                ind_l[i] = int(data_l[i + 1]) - 1
-            except ValueError:
-                print('Error: Could not extract the connectivity table from the .mai file.\n')
-                return [-99], [-99], [-99], [-99]
-        ikle.append(ind_l)
-
-    if len(ikle) != nb_cell + 1:
-        print('Warning: some cells might be missing.\n')
-    # nb coordinates
-    try:
-        nb_coord = np.int(data_geo2d[m])
-    except ValueError:
-        print('Error: Could not extract the number of coordinates from the .mai file.\n')
-        nb_coord = 0
-    # extract coordinates
-    data_f = []
-    m += 1
-    for mi in range(m, len(data_geo2d)):
-        data_str = data_geo2d[mi]
-        l = 0
-        while l < len(data_str):
-            try:
-                data_f.append(float(data_str[l:l + 8]))  # the length of number is eight.
-                l += 8
-            except ValueError:
-                print('Error: Could not extract the coordinates from the .mai file.\n')
-                return [-99], [-99], [-99], [-99]
-    # separe x and z
-    x = data_f[0:nb_coord]  # choose every 2 float
-    y = data_f[nb_coord:]
-    xy = np.column_stack((x, y))
-
-    # find the center point of each cellss
-    # slow because number of point of a cell changes
-    coord_c = []
-    for c in range(0, nb_cell):
-        ikle_c = ikle[c]
-        xy_c = [0, 0]
-        for i in range(0, len(ikle_c)):
-            xy_c += xy[ikle_c[i]]
-        coord_c.append(xy_c / len(ikle_c))
-
-    return ikle, xy, coord_c, nb_cell
+# def load_mai_2d(geofile, path):
+#     """
+#     The function to load the geomtery info for the 2D case when we use the .mai file. It would also be possible
+#     to use the .dat file. In fact, it is advised to use the dat file when possible as there are more info in the .dat file.
+#
+#     :param geofile: the .mai file which contain the connectivity table and the (x,y)
+#     :param path: the path to this file
+#     :return: connectivity table, point coordinates, coordinates of the cell centers
+#     """
+#     filename_path = os.path.join(path, geofile)
+#     # check extension
+#     blob, ext = os.path.splitext(geofile)
+#     if ext != '.mai':
+#         print('Warning: The fils does not seem to be of .mai type.\n')
+#     # check if the file exist
+#     if not os.path.isfile(filename_path):
+#         print('Error: The .mai file does not exist.')
+#         return [-99], [-99], [-99], [-99]
+#     # open file
+#     try:
+#         with open(filename_path, 'rt') as f:
+#             data_geo2d = f.read()
+#     except IOError:
+#         print('Error: The .mai file can not be open.\n')
+#         return [-99], [-99], [-99], [-99]
+#     data_geo2d = data_geo2d.splitlines()
+#     # extract nb cells
+#     try:
+#         nb_cell = np.int(data_geo2d[0])
+#     except ValueError:
+#         print('Error: Could not extract the number of cells from the .mai file.\n')
+#         return [-99], [-99], [-99], [-99]
+#         nb_cell = 0
+#     # extract connectivity table, not always triangle
+#     data_l = data_geo2d[1].split()
+#     m = 0
+#     ikle = []
+#     while len(data_l) > 1:
+#         m += 1
+#         if m == len(data_geo2d):
+#             print('Error: Could not extract the connectivity table from the .mai file.\n')
+#             return [-99], [-99], [-99], [-99]
+#         data_l = data_geo2d[m].split()
+#         ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
+#         for i in range(0, len(data_l) - 1):
+#             try:
+#                 ind_l[i] = int(data_l[i + 1]) - 1
+#             except ValueError:
+#                 print('Error: Could not extract the connectivity table from the .mai file.\n')
+#                 return [-99], [-99], [-99], [-99]
+#         ikle.append(ind_l)
+#
+#     if len(ikle) != nb_cell + 1:
+#         print('Warning: some cells might be missing.\n')
+#     # nb coordinates
+#     try:
+#         nb_coord = np.int(data_geo2d[m])
+#     except ValueError:
+#         print('Error: Could not extract the number of coordinates from the .mai file.\n')
+#         nb_coord = 0
+#     # extract coordinates
+#     data_f = []
+#     m += 1
+#     for mi in range(m, len(data_geo2d)):
+#         data_str = data_geo2d[mi]
+#         l = 0
+#         while l < len(data_str):
+#             try:
+#                 data_f.append(float(data_str[l:l + 8]))  # the length of number is eight.
+#                 l += 8
+#             except ValueError:
+#                 print('Error: Could not extract the coordinates from the .mai file.\n')
+#                 return [-99], [-99], [-99], [-99]
+#     # separe x and z
+#     x = data_f[0:nb_coord]  # choose every 2 float
+#     y = data_f[nb_coord:]
+#     xy = np.column_stack((x, y))
+#
+#     # find the center point of each cell
+#     # slow because number of point of a cell changes
+#     coord_c = []
+#     for c in range(0, nb_cell):
+#         ikle_c = ikle[c]
+#         xy_c = [0, 0]
+#         for i in range(0, len(ikle_c)):
+#             xy_c += xy[ikle_c[i]]
+#         coord_c.append(xy_c / len(ikle_c))
+#
+#     return ikle, xy, coord_c, nb_cell
 
 
 def load_dat_2d(geofile, path):
@@ -1248,7 +1256,7 @@ def load_dat_2d(geofile, path):
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:2*nb_coord]
     z = data_f[2*nb_coord:]
-    xyz = np.column_stack((x, y, z))
+    xy = np.column_stack((x, y))
 
     # find the center point of each cell
     # slow because number of point of a cell changes
@@ -1256,12 +1264,12 @@ def load_dat_2d(geofile, path):
 
     for c in range(0, nb_cell):
         ikle_c = ikle[c]
-        xyz_c = [0, 0, 0]
+        xy_c = [0, 0]
         for i in range(0, len(ikle_c)):
-            xyz_c += xyz[ikle_c[i]]
-        coord_c.append(xyz_c / len(ikle_c))
+            xy_c += xy[ikle_c[i]]
+        coord_c.append(xy_c / len(ikle_c))
 
-    return ikle, xyz, coord_c, nb_cell
+    return ikle, xy, z, coord_c, nb_cell
 
 
 def load_tps_2d(tpsfile, path, nb_cell):
@@ -1319,7 +1327,7 @@ def load_tps_2d(tpsfile, path, nb_cell):
     return t, h, v
 
 
-def get_triangular_grid(ikle, coord_c, xy, h, v):
+def get_triangular_grid(ikle, coord_c, xy, h, v, z):
     """
     In Rubar, it is possible to have non-triangular cells. It is possible to have a grid composed of a mix
     of pentagonal, 4-sided and triangualr cells. This function transform the "mixed" grid to a triangular grid. For this,
@@ -1332,18 +1340,20 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
     :param xy: the points of the grid (np.array)
     :param h: data on water height
     :param v: data on velocity
+    :param z: data on bottom levels
     :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)
     """
 
     # this is important for speed. np.array are slow to append value
-    xy = list(xy)
+    xy = xy.tolist()
     h2 = []
     v2 = []
+    z2 = []
     nbtime = len(v)
     for t in range(0, nbtime):
         h2.append(list(h[t]))
         v2.append(list(v[t]))
-
+    z2.append(list(z))
     # now create the triangular grid
     likle = len(ikle)
     for c in range(0, likle):
@@ -1364,31 +1374,33 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
             # first triangular cell
             ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
             p1 = xy[len(xy) - 1]
-            coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1) / 3
+            coord_c[c] = (np.array(xy[ikle_c[0]]) + np.array(xy[ikle_c[1]]) + p1) / 3
             # next triangular cell
             for s in range(1, len(ikle_c) - 1):
                 ikle.append([ikle_c[s], ikle_c[s + 1], len(xy) - 1])
-                coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s + 1]] + p1) / 3)
+                coord_c.append((np.array(xy[ikle_c[s]]) + np.array(xy[ikle_c[s + 1]]) + p1) / 3)
                 for t in range(0, nbtime):
                     v2[t].append(v[t][c])
                     h2[t].append(h[t][c])
+                z2.append(z[c])
             # last triangular cells
             ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
-            coord_c.append((xy[ikle_c[-1]] + xy[ikle_c[0]] + p1) / 3)
+            coord_c.append((np.array(xy[ikle_c[-1]]) + np.array(xy[ikle_c[0]]) + p1) / 3)
             for t in range(0, nbtime):
                 v2[t].append(v[t][c])
                 h2[t].append(h[t][c])
-
+            z2.append(z[c])
     xy = np.array(xy)
     v = []
     h = []
+
     for t in range(0, nbtime):
         # there is an extra [] for the case where we more than one reach
         # to be corrected if we get multi-reach RUBAR simulation
-        h.append([np.array(h2[t])])
-        v.append([np.array(v2[t])])
+        h.append(np.array(h2[t]))
+        v.append(np.array(v2[t]))
 
-    return ikle, coord_c, xy, v, h
+    return ikle, coord_c, xy, v, h, z2
 
 
 def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
