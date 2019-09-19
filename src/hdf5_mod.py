@@ -38,7 +38,6 @@ from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
 from src.project_manag_mod import load_project_preferences
-from src_GUI import preferences_GUI
 from habby import HABBY_VERSION
 
 

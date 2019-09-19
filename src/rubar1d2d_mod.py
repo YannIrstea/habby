@@ -776,7 +776,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         q.put(mystdout)
         return
 
-    #fake user hydrau_description
+    # fake user hydrau_description
     hydrau_description = dict(unit_list_tf=[[True] * int(data_description["unit_number"])])
 
     # change data_description
@@ -784,6 +784,9 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
 
     # create copy
     data_2d_whole_profile = deepcopy(data_2d_from_rubar2d)
+    data_2d_whole_profile["tin"] = [[data_2d_whole_profile["tin"]]]
+    data_2d_whole_profile["xy"] = [[data_2d_whole_profile["xy"]]]
+    data_2d_whole_profile["z"] = [[data_2d_whole_profile["z"]]]
 
     # create empty dict
     data_2d = dict()
@@ -818,32 +821,16 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         index_to_remove = []
 
         # for each units
+        data_description["unit_list"] = [data_description["unit_list"].split(", ")]
         for unit_num in range(len(data_description["unit_list"][reach_num])):
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
-                # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                # xy = np.insert(data_2d_from_rubar2d["xy"],
-                #                2,
-                #                values=data_2d_from_rubar2d["z"],
-                #                axis=1)  # Insert values before column 2
+
                 # get data no the node (and not on the cells) by linear interpolation
                 [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
                                                                           data_2d_from_rubar2d["xy_center"],
                                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
                                                                           data_2d_from_rubar2d["h"][reach_num][unit_num])
-                #if unit_num == 0:
-                    # [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
-                    #                                                                                        [data_2d_from_rubar2d["xy_center"]],
-                    #                                                                                        data_2d_from_rubar2d["v"][reach_num][unit_num],
-                    #                                                                                        data_2d_from_rubar2d["h"][reach_num][unit_num],
-                    #                                                                                        True)
-                # else:
-                #     [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([xy],
-                #                                                                                            [data_2d_from_rubar2d["xy_center"]],
-                #                                                                                            data_2d_from_rubar2d["v"][reach_num][unit_num],
-                #                                                                                            data_2d_from_rubar2d["h"][reach_num][unit_num],
-                #                                                                                            True,
-                #                                                                                            vtx_all, wts_all)
 
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_rubar2d["xy"],
@@ -881,17 +868,14 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
                     h3=h_data[tin_data[:, 2]],
                     v3=v_data[tin_data[:, 2]])
 
-                # get area (based on Heron's formula)
-                p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-                p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-                p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-                d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
-                d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
-                d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
-                s2 = (d1 + d2 + d3) / 2
-                area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-                area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-                area = area ** 0.5
+                # get points coord
+                pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+                pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+                pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+
+                # get area2
+                area = 0.5 * abs(
+                    (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
                 area_reach = np.sum(area)
 
                 # get cuted grid
@@ -917,7 +901,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
             data_2d_whole_profile["z"][reach_num].pop(index)
 
     # remove unused keys
-    del data_2d_whole_profile["i_whole_profile"]
+    #del data_2d_whole_profile["i_whole_profile"]
     del data_2d_whole_profile["h"]
     del data_2d_whole_profile["v"]
 
@@ -925,7 +909,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     progress_value.value = 90  # progress
 
     # change unit from according to user selection
-    hydrau_description["unit_number"] = str(len(hydrau_description["unit_list"][0]))  # same unit len for each reach
+    hydrau_description["unit_number"] = str(len(data_description["unit_list"][0]))  # same unit len for each reach
 
     # hyd description
     hyd_description = dict()
@@ -933,87 +917,26 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     hyd_description["hyd_model_type"] = data_description["model_type"]
     hyd_description["hyd_model_dimension"] = data_description["model_dimension"]
     hyd_description["hyd_variables_list"] = "h, v, z"
-    hyd_description["hyd_epsg_code"] = data_description["epsg_code"]
-    hyd_description["hyd_reach_list"] = data_description["reach_list"]
+    hyd_description["hyd_epsg_code"] = "unknown"
+    hyd_description["hyd_reach_list"] = "unknown"
     hyd_description["hyd_reach_number"] = data_description["reach_number"]
-    hyd_description["hyd_reach_type"] = data_description["reach_type"]
-    hyd_description["hyd_unit_list"] = hydrau_description["unit_list"]
-    hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
+    hyd_description["hyd_reach_type"] = "river"
+    hyd_description["hyd_unit_list"] = data_description["unit_list"]
+    hyd_description["hyd_unit_number"] = data_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
 
-    hyd_description["hyd_varying_mesh"] = data_description["varying_mesh"]
-    if data_description["varying_mesh"]:
+    hyd_description["hyd_varying_mesh"] = False
+    if hyd_description["hyd_varying_mesh"]:
         hyd_description["hyd_unit_z_equal"] = False
     else:
         # TODO : check if all z values are equal between units
         hyd_description["hyd_unit_z_equal"] = True
-    # if not project_preferences["CutMeshPartialyDry"]:
-    #     namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
-    #     exthdf5_old = os.path.splitext(data_description["hdf5_name"])[1]
-    #     data_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
-
-
-
-
-
-
-    # # the grid data for each time step
-    # warn1 = False
-    # for t in range(0, len(vel_cell)):
-    #     # get data no the node (and not on the cells) by linear interpolation
-    #     if t == 0:
-    #         [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p],
-    #                                                                                                [coord_c], vel_cell[t],
-    #                                                                                                height_cell[t], warn1)
-    #     else:
-    #         [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p], [coord_c],
-    #                                                                                                vel_cell[t],
-    #                                                                                                height_cell[t], warn1,
-    #                                                                                                vtx_all, wts_all)
-    #     # cut the grid to the water limit
-    #     # [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
-    #     #                                                                         vel_node[0], minwh)
-    #     #
-    #     # inter_h_all_t.append([water_height])
-    #     # inter_vel_all_t.append([velocity])
-    #     # point_all_t.append([point_all])
-    #     # point_c_all_t.append([[]])
-    #     # ikle_all_t.append([ikle])
-    #     inter_h_all_t.append([height_node[0]])
-    #     inter_vel_all_t.append([vel_node[0]])
-    #     point_all_t.append([coord_p])
-    #     point_c_all_t.append([[]])
-    #     ikle_all_t.append([ikle_base])
-    #     warn1 = False
-    #
-    # # save data
-    # # timestep_str = list(map(str, timestep))
-    # # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-    # #                                  point_all_t, point_c_all_t,
-    # #                                  inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
-    #
-    #     # hyd description
-    #     hyd_description = dict()
-    #     hyd_description["hyd_filename_source"] = geofile
-    #     hyd_description["hyd_model_type"] = "RUBAR2D"
-    #     hyd_description["hyd_model_dimension"] = 2
-    #     hyd_description["hyd_variables_list"] = "h, v, z"
-    #     hyd_description["hyd_epsg_code"] = description_from_indextelemac_file[hyd_file]["epsg_code"]
-    #     hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
-    #     hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
-    #     hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
-    #     hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
-    #     hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
-    #     hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
-    #     hyd_description["hyd_varying_mesh"] = str(data_2d_whole_profile["unit_correspondence"])
-    #     hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
-
-        # create hdf5
-        hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
-                                       description_from_indextelemac_file[hyd_file]["hdf5_name"])
-        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
+    # create hdf5
+    hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
+                                   name_hdf5)
+    hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
 
     # progress
     progress_value.value = 90
@@ -1058,7 +981,7 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     description_from_file["model_dimension"] = str(2)
     description_from_file["unit_list"] = ", ".join(list(map(str, timestep)))
     description_from_file["unit_number"] = str(len(list(map(str, timestep))))
-    description_from_file["unit_type"] = "timestep"
+    description_from_file["unit_type"] = "timestep [s]"
     description_from_file["unit_z_equal"] = True
 
     # data 2d dict
