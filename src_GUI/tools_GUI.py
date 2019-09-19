@@ -31,7 +31,7 @@ class QGroupBoxCollapsible(QGroupBox):
         super().__init__()
         # group title
         self.setCheckable(True)
-        self.setStyleSheet(
+        self.setStyleSheet('QGroupBox::indicator {width: 20px; height: 20px;}'
             'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
             'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
             'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
@@ -42,16 +42,14 @@ class QGroupBoxCollapsible(QGroupBox):
             'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
         )
         #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
-        self.toggled.connect(lambda: self.toggle_group(self))
+        self.toggled.connect(self.toggle_group)
         self.setChecked(True)
 
-    def toggle_group(self, ctrl):
-        state = ctrl.isChecked()
-        print("state", state)
-        if state:
-            ctrl.setFixedHeight(ctrl.sizeHint().height())
+    def toggle_group(self, checked):
+        if checked:
+            self.setFixedHeight(self.sizeHint().height())
         else:
-            ctrl.setFixedHeight(30)
+            self.setFixedHeight(30)
 
 
 class ToolsTab(QScrollArea):

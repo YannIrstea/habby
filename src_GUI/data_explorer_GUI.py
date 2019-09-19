@@ -369,7 +369,6 @@ class DataExplorerFrame(QFrame):
         self.send_remove.emit("")
 
 
-
 class FigureProducerGroup(QGroupBoxCollapsible):
     """
     This class is a subclass of class QGroupBox.
