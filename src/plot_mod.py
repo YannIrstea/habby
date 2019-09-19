@@ -29,7 +29,7 @@ from PyQt5.QtCore import QTranslator
 from PyQt5.QtWidgets import QApplication
 import sys
 
-app = QApplication(sys.argv)
+# app = QApplication(sys.argv)
 # languageTranslator = QTranslator()
 # languageTranslator.load('Zen_FR', 'C:\\habby\\translation')
 # qt_tr.installTranslator(languageTranslator)
