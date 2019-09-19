@@ -28,6 +28,7 @@ from src import hec_ras2D_mod
 from src import hdf5_mod
 from src import manage_grid_mod
 from src import dist_vistess_mod
+from src.project_manag_mod import load_project_preferences
 from src_GUI import preferences_GUI
 
 
@@ -68,7 +69,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    project_preferences = preferences_GUI.load_project_preferences(path_prj, name_prj)
+    project_preferences = load_project_preferences(path_prj, name_prj)
     [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0], namefile[1], pathfile[0], pathfile[1],
                                                              path_im,
                                                              show_fig_1D, project_preferences)

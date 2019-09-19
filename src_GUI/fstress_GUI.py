@@ -30,7 +30,7 @@ from io import StringIO
 from src_GUI import estimhab_GUI
 from src import fstress_mod
 from src import hdf5_mod
-from src_GUI import preferences_GUI
+from src.project_manag_mod import load_project_preferences
 
 
 class FstressW(estimhab_GUI.StatModUseful):
@@ -793,7 +793,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # figures
         self.path_im = self.find_path_im_est()
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, project_preferences)
         plt.show()
         #self.show_fig.emit()

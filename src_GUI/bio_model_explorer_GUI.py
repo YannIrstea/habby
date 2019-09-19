@@ -786,7 +786,7 @@ class BioModelInfoSelection(QScrollArea):
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
 
         # plot the pref
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         # do the plot
         if not hasattr(self, 'plot_process_list'):
             self.plot_process_list = MyProcessList("plot")
