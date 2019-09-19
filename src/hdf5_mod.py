@@ -287,6 +287,14 @@ class Hdf5Management:
             # to attributes
             self.reach_name = reach_name
 
+            """ get xml parent element name """
+            if self.hdf5_type == "hydraulic":
+                self.input_type = hdf5_attributes_dict["hyd_model_type"].upper()
+            elif self.hdf5_type == "substrate":
+                self.input_type = "SUBSTRATE"
+            else:
+                self.input_type = "Habitat"
+
             """ get_hdf5_units_name """
             # to attributes
             if self.hdf5_type == "substrate":

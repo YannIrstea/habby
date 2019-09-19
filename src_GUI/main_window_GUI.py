@@ -50,6 +50,7 @@ from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src import project_manag_mod
 from habby import HABBY_VERSION
 from src.user_preferences_mod import user_preferences
+from src import hdf5_mod
 
 
 class MainWindows(QMainWindow):
@@ -259,6 +260,9 @@ class MainWindows(QMainWindow):
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.send_log.connect(self.central_widget.write_log)
 
+        # data explorer signal
+        self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
+
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
@@ -387,6 +391,52 @@ class MainWindows(QMainWindow):
                     f.write('close')
             except IOError:
                 return
+
+    def remove_hdf5_files(self):
+        # get list of files
+        hdf5_files_list = self.central_widget.data_explorer_tab.data_explorer_frame.file_to_remove_list
+
+        # loop on files
+        for file_to_remove in hdf5_files_list:
+            # open hdf5 to read type_mode attribute
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_to_remove)
+            hdf5.open_hdf5_file()
+            hdf5.file_object.close()
+            input_type = hdf5.input_type
+
+            # remove files
+            os.remove(os.path.join(self.path_prj, "hdf5", file_to_remove))
+
+            # refresh .xml project
+            filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
+            if os.path.isfile(filename_path_pro):
+                doc = ET.parse(filename_path_pro)
+                root = doc.getroot()
+                child = root.findall(".//" + input_type)
+                if not child:
+                    pass
+                else:
+                    childs = child[0].getchildren()
+                    for element in childs:
+                        if file_to_remove == element.text:
+                            child[0].remove(element)
+                            del element
+                doc.write(filename_path_pro)
+
+            # refresh GUI
+            combobox_list = [self.central_widget.substrate_tab.drop_hyd,
+                             self.central_widget.substrate_tab.drop_sub,
+                             self.central_widget.bioinfo_tab.m_all]
+            for combobox in combobox_list:
+                item_str_list = [combobox.itemText(i) for i in range(combobox.count())]
+                if file_to_remove in item_str_list:
+                    combobox.removeItem(item_str_list.index(file_to_remove))
+
+            # refresh data explorer
+            self.central_widget.data_explorer_tab.refresh_type()
+
+            # log
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File(s) deleted.') + " </br>")
 
     def fill_selected_models_listwidets(self):
         # get dict
@@ -884,10 +934,15 @@ class MainWindows(QMainWindow):
             if hasattr(self.central_widget, "data_explorer_tab"):
                 if not self.central_widget.data_explorer_tab:
                     self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+                    self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
+                        self.remove_hdf5_files)
                 else:
                     self.central_widget.data_explorer_tab.__init__(self.path_prj, self.name_prj)
+                    self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
+                        self.remove_hdf5_files)
             else:
                 self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+                self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
 
             if hasattr(self.central_widget, "tools_tab"):
                 if not self.central_widget.tools_tab:

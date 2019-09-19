@@ -20,7 +20,7 @@ from multiprocessing import Process, Value
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, \
-    QSizePolicy, QScrollArea, QProgressBar, QTableView
+    QSizePolicy, QScrollArea, QProgressBar, QTableView, QMenu, QAction
 
 from src import hdf5_mod
 from src import plot_mod
@@ -88,6 +88,7 @@ class DataExplorerFrame(QFrame):
     """
     This class is a subclass of class QGroupBox.
     """
+    send_remove = pyqtSignal(str, name='send_remove')
 
     def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
@@ -95,6 +96,7 @@ class DataExplorerFrame(QFrame):
         self.name_prj = name_prj
         self.send_log = send_log
         self.nb_plot = 0
+        self.file_to_remove_list = []
         self.init_ui()
         self.plot_production_stoped = False
 
@@ -121,6 +123,8 @@ class DataExplorerFrame(QFrame):
         self.names_hdf5_QListWidget.setMinimumWidth(250)
         self.names_hdf5_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.names_hdf5_QListWidget.itemSelectionChanged.connect(self.names_hdf5_change)
+        self.names_hdf5_QListWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.names_hdf5_QListWidget.customContextMenuRequested.connect(self.show_menu_hdf5_remover)
         self.names_hdf5_layout = QVBoxLayout()
         self.names_hdf5_layout.setAlignment(Qt.AlignTop)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QLabel)
@@ -341,6 +345,29 @@ class DataExplorerFrame(QFrame):
         self.plot_group.count_plot()
         # count exports
         self.dataexporter_group.count_export()
+
+    def show_menu_hdf5_remover(self, point):
+        selection = self.names_hdf5_QListWidget.selectedItems()
+        if selection:
+            # create get_hdf5_list_to_remove_and_emit
+            self.hdf5_remover_menu = QMenu()
+            remove_action = QAction(self.tr("Remove selected file"))
+            remove_action.setStatusTip(self.tr('Remove selected file and refresh solftware informations'))
+            remove_action.triggered.connect(self.get_hdf5_list_to_remove_and_emit)
+            self.hdf5_remover_menu.addAction(remove_action)
+            self.hdf5_remover_menu.exec_(self.names_hdf5_QListWidget.mapToGlobal(point))
+
+    def get_hdf5_list_to_remove_and_emit(self):
+        selection = self.names_hdf5_QListWidget.selectedItems()
+        self.file_to_remove_list = []
+        for item_selected in selection:
+            self.file_to_remove_list.append(item_selected.text())
+
+        # question validation
+
+        # run
+        self.send_remove.emit("")
+
 
 
 class FigureProducerGroup(QGroupBoxCollapsible):
