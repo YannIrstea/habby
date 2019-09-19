@@ -1718,6 +1718,11 @@ class Rubar2D(SubHydroW):
         # for error management and figures
         self.timer.start(100)
 
+        # show progressbar
+        self.nativeParentWidget().progress_bar.setRange(0, 100)
+        self.nativeParentWidget().progress_bar.setValue(0)
+        self.nativeParentWidget().progress_bar.setVisible(True)
+
         # test the availability of files
         fileNOK = True
         f0 = os.path.join(self.pathfile[0], self.namefile[0])
