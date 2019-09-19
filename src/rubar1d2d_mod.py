@@ -766,10 +766,11 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     # progress
     progress_value.value = 10
 
-    # load data
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+    # load data
     data_2d_from_rubar2d, data_description = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
+
     if data_2d_from_rubar2d == [-99] and data_description == [-99]:
         q.put(mystdout)
         return
@@ -1044,7 +1045,9 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
         [ikle, xy, z, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)   # node
     else:
         return [-99], [-99]
+
     [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)   # cell
+
     [ikle, coord_c, xy, h, v, z] = get_triangular_grid(ikle, coord_c, xy, h, v, z)
 
     # description telemac data dict
@@ -1348,12 +1351,12 @@ def get_triangular_grid(ikle, coord_c, xy, h, v, z):
     xy = xy.tolist()
     h2 = []
     v2 = []
-    z2 = []
+    z2 = z
     nbtime = len(v)
     for t in range(0, nbtime):
         h2.append(list(h[t]))
         v2.append(list(v[t]))
-    z2.append(list(z))
+
     # now create the triangular grid
     likle = len(ikle)
     for c in range(0, likle):
@@ -1364,13 +1367,14 @@ def get_triangular_grid(ikle, coord_c, xy, h, v, z):
             print('Error: A cell with an area of 0 is found.\n')
             print(ikle_c)
             return [-99], [-99], [-99], [-99], [-99]
-
         elif len(ikle_c) > 3:
             # the new cell is compose of triangle where one point is the centroid and two points are side of
             # the polygon which composed the cells before. The first new triangular cell take the place of the old one
             # (to avoid changing the order of ikle), the other are added at the end
             # no change to v and h for the first triangular data, change afterwards
             xy.append(coord_c[c])
+            # add new value for the bottom level
+            z2.append(np.mean(np.array(z2)[ikle[c]]))
             # first triangular cell
             ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
             p1 = xy[len(xy) - 1]
@@ -1382,14 +1386,12 @@ def get_triangular_grid(ikle, coord_c, xy, h, v, z):
                 for t in range(0, nbtime):
                     v2[t].append(v[t][c])
                     h2[t].append(h[t][c])
-                z2.append(z[c])
             # last triangular cells
             ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
             coord_c.append((np.array(xy[ikle_c[-1]]) + np.array(xy[ikle_c[0]]) + p1) / 3)
             for t in range(0, nbtime):
                 v2[t].append(v[t][c])
                 h2[t].append(h[t][c])
-            z2.append(z[c])
     xy = np.array(xy)
     v = []
     h = []
