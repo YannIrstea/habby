@@ -37,6 +37,7 @@ from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
+from src.project_manag_mod import load_project_preferences
 from src_GUI import preferences_GUI
 from habby import HABBY_VERSION
 
@@ -2645,7 +2646,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # to know if we have to save a new hdf5
     if save_option is None:
-        save_opt = preferences_GUI.load_project_preferences(path_prj, name_prj)
+        save_opt = load_project_preferences(path_prj, name_prj)
         if save_opt['erase_id']:  # xml is all in string
             erase_idem = True
         else:
@@ -2884,7 +2885,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
     """
 
     # to know if we have to save a new hdf5
-    save_opt = preferences_GUI.load_project_preferences(path_prj, name_prj)
+    save_opt = load_project_preferences(path_prj, name_prj)
     if save_opt['erase_id']:  # xml is all in string
         erase_idem = True
     else:

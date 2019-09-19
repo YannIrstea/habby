@@ -30,6 +30,7 @@ from scipy.interpolate import interp1d, interp2d, griddata, SmoothBivariateSplin
 from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import bio_info_mod
+from src.project_manag_mod import load_project_preferences
 from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 
 
@@ -79,7 +80,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
 
     # fig options
     if not project_preferences:
-        project_preferences = preferences_GUI.load_project_preferences(hdf5.path_prj, hdf5.name_prj)
+        project_preferences = load_project_preferences(hdf5.path_prj, hdf5.name_prj)
 
     # progress
     progress_value.value = 20
