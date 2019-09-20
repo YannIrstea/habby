@@ -1111,44 +1111,24 @@ class SubHydroW(QWidget):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
-            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
             self.nativeParentWidget().kill_process.setVisible(True)
-            # send the message FRENCH
-            if self.project_preferences['language'] == str(1):
-                # MERGE
-                if self.model_type == 'HABITAT':
-                    self.send_log.emit(
-                        "Processus 'Fusion de Grille' fonctionne depuis " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-                # SUBSTRATE
-                elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit(
-                        "Processus 'substrat' fonctionne depuis " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(50)
-                # HYDRAULIC
-                else:
-                    # it is necssary to start this string with Process to see it in the Statusbar
-                    self.send_log.emit(
-                        "Processus 'Hydraulique' fonctionne depuis " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            # send the message ENGLISH
+
+            # MERGE
+            if self.model_type == 'HABITAT':
+                self.send_log.emit(self.tr(
+                    "Process 'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
+            # SUBSTRATE
+            elif self.model_type == 'SUBSTRATE':
+                self.send_log.emit(self.tr(
+                    "Process 'substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.nativeParentWidget().progress_bar.setValue(50)
+            # HYDRAULIC
             else:
-                # MERGE
-                if self.model_type == 'HABITAT':
-                    self.send_log.emit(
-                        "Process 'Merge Grid' is alive and run since " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-                # SUBSTRATE
-                elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit(
-                        "Process 'substrate' is alive and run since " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(50)
-                # HYDRAULIC
-                else:
-                    # it is necssary to start this string with Process to see it in the Statusbar
-                    self.send_log.emit(
-                        "Process 'Hydraulic' is alive and run since " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
+                # it is necssary to start this string with Process to see it in the Statusbar
+                self.send_log.emit(self.tr(
+                    "Process 'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
 
         # when the loading is finished
         if not self.q.empty():

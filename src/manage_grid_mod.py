@@ -1836,6 +1836,7 @@ def habby_grid_data(grid_new, grid_ori, vel_ori, height_ori):
 
     return vel_new, height_new
 
+
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):
     """
     HABBY uses nodal information. Some hydraulic models have only ouput on the cells. This function pass
