@@ -1100,7 +1100,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     # all meshes are entirely dry
     elif not True in mikle_keep:
         print('Error: all meshes are entirely dry')
-        return failload
+        return True, True, True, True, True
     # only the dry meshes are cut (but not the partially ones)
     elif not CutMeshPartialyDry:
         mikle_keep = ikle_type != 0
