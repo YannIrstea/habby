@@ -1090,6 +1090,16 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
 #     return ikle, xy, coord_c, nb_cell
 
 
+def wrap(s, w):
+    """
+    Divide a string in fixed length
+    :param s: the string to divide
+    :param w: the length
+    :return: a list of substrings
+    """
+    return [s[i:i + w] for i in range(0, len(s), w)]
+
+
 def load_dat_2d(geofile, path):
     """
     This  function is used to load the geomtery info for the 2D case, using the .dat file
@@ -1134,7 +1144,8 @@ def load_dat_2d(geofile, path):
         if m >= len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .dat file.\n')
             return [-99], [-99], [-99], [-99]
-        data_l = data_geo2d[m].split()
+        # data_l = data_geo2d[m].split()
+        data_l = wrap(data_geo2d[m], 6)
         if m2 == m:
             ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
             for i in range(0, len(data_l) - 1):
