@@ -1144,14 +1144,10 @@ def load_dat_2d(geofile, path):
     while m < nb_cell * 3:
         if m >= len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .dat file.\n')
-<<<<<<< HEAD
             return [-99], [-99], [-99], [-99], [-99]
         data_l = data_geo2d[m].split()
-=======
-            return [-99], [-99], [-99], [-99]
         # data_l = data_geo2d[m].split()
         data_l = wrap(data_geo2d[m], 6)
->>>>>>> 29add0c4a3f2c346a5f050b12c911c890ba107c4
         if m2 == m:
             ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
             for i in range(0, len(data_l) - 1):
