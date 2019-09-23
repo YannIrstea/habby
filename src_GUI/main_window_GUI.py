@@ -436,7 +436,7 @@ class MainWindows(QMainWindow):
             self.central_widget.data_explorer_tab.refresh_type()
 
             # log
-            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File(s) deleted.') + " </br>")
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File(s) deleted.') + " <br>")
 
     def fill_selected_models_listwidets(self):
         # get dict

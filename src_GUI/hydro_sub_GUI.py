@@ -2147,23 +2147,6 @@ class Rubar2D(SubHydroW):
         self.hname.setText("")  # hdf5 name
         self.load_b.setText("Create .hyd file")
 
-    def get_time_step(self):
-        """
-        The function get timestep if selafin files to display them in GUI, in order for the user to be able to choose some of them.
-        """
-        nbtimes, timestep = rubar20_mod.get_time_step(self.namefile[0], self.pathfile[0])
-
-        # number timestep
-        self.number_timstep_label.setText(str(nbtimes))
-
-        self.units_QListWidget.clear()
-        self.units_QListWidget.addItems(timestep)
-        for i in range(nbtimes):
-            self.units_QListWidget.item(i).setSelected(True)
-            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignRight)
-        # self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0)
-        # + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
-
     def set_epsg_code(self):
         if hasattr(self, 'hydrau_description'):
             self.hydrau_description["epsg_code"] = self.epsg_label.text()
@@ -2230,7 +2213,7 @@ class Rubar2D(SubHydroW):
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
-            self.p = Process(target=rubar1d2d_mod.load_rubar20_and_cut_grid,
+            self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid,
                              args=(self.hydrau_description_multiple,
                                    self.progress_value,
                                    self.q,
