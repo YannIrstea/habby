@@ -255,16 +255,17 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
     """
     path = os.path.dirname(filename)
-    fnoden, ftinn, fsubn = os.path.join(user_preferences_temp_path, 'wwnode.txt'), os.path.join(user_preferences_temp_path, 'wwtin.txt'), os.path.join(user_preferences_temp_path,
-                                                                                                           'wwsub.txt')
+    fnoden, ftinn, fsubn,ffvmn = os.path.join(user_preferences_temp_path, 'wwnode.txt'), os.path.join(user_preferences_temp_path, 'wwtin.txt'), os.path.join(user_preferences_temp_path,
+                                                                                                           'wwsub.txt'), os.path.join(user_preferences_temp_path, 'wwfvm.txt')
     fi = open(filename, 'r', encoding='utf8')
     fnode = open(fnoden, 'w', encoding='utf8')
     ftin = open(ftinn, 'w', encoding='utf8')
+    ffvm = open(ffvmn, 'w', encoding='utf8')
     kk, reachnumber, nbunitforall,nbunitforallvaryingmesh, nbreachsub = 0, 0, 0, 0,0
     msg, unit_type,sub = '', '',''
     lunitvaryingmesh=[]
     lunitall = []  # a list of  [list of Q or t] per reach
-    bq_per_reach, bsub,bmeshconstant = False, False, True
+    bq_per_reach, bsub,bmeshconstant,bfvm = False, False, True,False
     sub_classification_code, sub_classification_method = '', ''
     nbsubinfo = 0
     for i, ligne in enumerate(fi):
@@ -311,7 +312,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
             reachnumber += 1
             if reachnumber == 1:
                 lreachname = [('_'.join(ls[1:]))]
-                nodei, nodef, tini, tinf, tinfsub = 0, 0, 0, 0, 0
+                nodei, nodef, tini, tinf, tinfsub,tinfvm = 0, 0, 0, 0, 0,0
                 lnode = []
                 ltin = []
             else:
@@ -336,6 +337,10 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                 if bsub:
                     if tinfsub != tinf:
                         msg = ' number of meshes elements different between TIN and SUBSTRATE description'
+                        break
+                if bfvm:
+                    if tinfvm != tinf:
+                        msg = ' number of meshes elements different between TIN and FVM description'
                         break
             kk = 4
         elif ls[0].upper() == 'NODES':
@@ -371,36 +376,44 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                 break
             if ls[2].lower() == 'z':
                 j = len(ls) - 3
-                if j % 2 != 0:
-                    msg = 'number of information after z not even'
-                    break
-                if j / 2 != nbunit:
-                    msg = 'number of informations h v != number'
-                    break
-                ik = 0
-                for k in range(3, len(ls), 2):
-                    ik += 1
-                    if ls[k][0].lower() != 'h' or ls[k + 1][0].lower() != 'v':
-                        msg = ' information h or v not found'
+                if j==0:
+                    bfvm = True
+                else:
+                    if j % 2 != 0:
+                        msg = 'number of information after z not even'
                         break
-                    if  ls[k][1].lower() == 'u' and ls[k + 1][1].lower() == 'u':
-                        if len(ls)!=5:
-                            msg = ' detecting Varying Mesh but not the right number of information'
-                            break
-                        if bmeshconstant and nbunit!=1:  # or reachnumber!=1)
-                            msg = ' detecting Varying Mesh but the number of unit in this case must be given one by one'
-                            break
-                        bmeshconstant=False
-                    elif int(ls[k][1:]) != ik or int(ls[k + 1][1:]) != ik:
-                        msg = ' information number after h or v not found'
+                    if j / 2 != nbunit:
+                        msg = 'number of informations h v != number'
                         break
-                    else:
-                        if not bmeshconstant:
-                            msg = ' detecting Varying Mesh but not always'
+                    ik = 0
+                    for k in range(3, len(ls), 2):
+                        ik += 1
+                        if ls[k][0].lower() != 'h' or ls[k + 1][0].lower() != 'v':
+                            msg = ' information h or v not found'
                             break
+                        if  ls[k][1].lower() == 'u' and ls[k + 1][1].lower() == 'u':
+                            if len(ls)!=5:
+                                msg = ' detecting Varying Mesh but not the right number of information'
+                                break
+                            if bmeshconstant and nbunit!=1:  # or reachnumber!=1)
+                                msg = ' detecting Varying Mesh but the number of unit in this case must be given one by one'
+                                break
+                            bmeshconstant=False
+                        elif int(ls[k][1:]) != ik or int(ls[k + 1][1:]) != ik:
+                            msg = ' information number after h or v not found'
+                            break
+                        else:
+                            if not bmeshconstant:
+                                msg = ' detecting Varying Mesh but not always'
+                                break
             kk = 6
         elif ls[0].upper() == 'TIN':
             kk = 7
+        elif ls[0].upper() == 'FVM':
+            kk=70
+            if not bfvm:
+                msg = ' finite volume method not described properly you need to give only x y z for the nodes and velocity and depth for the mesh centers'
+                break
         elif ls[0].upper() == 'SUBSTRATE':
             if len(ls) != 2:
                 msg = 'number of information for substrate_classification_code  not 2'
@@ -455,7 +468,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
             lunit.append(float(ls[0]))
             lunitvaryingmesh.append(float(ls[0]))
         elif kk == 6:
-            if len(ls) != 3 + 2 * nbunit:
+            if len(ls) != 3 + 2 * nbunit and (bfvm and len(ls)!= 3):
                 msg = 'NODES not the right number of informations waited for'
                 break
             fnode.write(ligne)
@@ -469,6 +482,23 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                 msg = 'TIN not the right number of informations waited for'
                 break
             tinf += 1
+        elif kk == 70:
+            if len(ls)  != 2*nbunit:
+                msg = 'number of informations h v != nbunits'
+                break
+            ik = 0
+            for k in range(0, len(ls), 2):
+                ik += 1
+                if ls[k].lower() != 'h' + str(ik) or ls[k + 1].lower() != 'v' + str(ik):
+                    msg = ' information h' + str(ik) + ' or v' + str(ik) + ' not found'
+                    break
+            kk = 71
+        elif kk == 71:
+            if len(ls) != 2 * nbunit:
+                msg = 'number of informations h v != nbunits'
+                break
+            tinfvm += 1
+            ffvm.write(ligne)
         elif kk == 9:
             if len(ls) != nbsubinfo:
                 msg = 'number of integer given for substrate not correct'
@@ -484,8 +514,10 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
         fi.close();
         fnode.close();
         ftin.close()
+        ffvm.close()
         os.remove(fnoden);
         os.remove(ftinn)
+        os.remove(ffvmn)
         if bsub:
             fsub.close();
             os.remove(fsubn)
@@ -497,17 +529,46 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     fi.close()
     fnode.close()
     ftin.close()
+    ffvm.close()
     nodesall = np.loadtxt(fnoden, dtype=float)
     ikleall = np.loadtxt(ftinn, dtype=int)
+    if bfvm:
+        hvmesh=  np.loadtxt(ffvmn, dtype=float)
+        if hvmesh.shape[0]!=ikleall.shape[0]:
+            print('Error : the total number of meshes from TIN is not equal to FVM')
+            return False, False
     os.remove(fnoden)
     os.remove(ftinn)
-    # transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
-    for unit_num in range(nbunit):
-        nodesall[:, 2 + unit_num * 2 + 2] = np.abs(nodesall[:, 2 + unit_num * 2 + 2])
-        hwneg = np.where(nodesall[:, 2 + unit_num * 2 + 1] < 0)
-        nodesall[:, 2 + unit_num * 2 + 1][hwneg] = 0
-        hwnul = np.where(nodesall[:, 2 + unit_num * 2 + 1] == 0)
-        nodesall[:, 2 + unit_num * 2 + 2][hwnul] = 0
+    os.remove(ffvmn)
+    if bfvm:
+        # calculating the coordinates of the mesh centers (triangle or quadrangle] from the nodes :xyzmesh34
+        # xyzmesh=np.empty([ikleall.shape[0],3],np.float64 )
+        # ikle3 = ikleall[np.where(ikleall[:, [3]] == -1)[0]]
+        # ikle4 = ikleall[np.where(ikleall[:, [3]] != -1)[0]]
+        nbmesh=ikleall.shape[0]
+        p1=nodesall[ikleall[:, 0], :]
+        p2 = nodesall[ikleall[:, 1], :]
+        p3 = nodesall[ikleall[:, 2], :]
+        t = ikleall[:, [3]]
+        t[t == -1] = 0
+        t[t !=0] = 1
+        p4 = nodesall[ikleall[:, 3], :]*t
+        xyzmesh34=np.sum(np.hstack((p1,p2,p3,p4)).reshape(nbmesh,4,3), axis=1)/ (t + 3)
+        # TODO hvmesh
+
+
+
+
+
+
+    else:
+        # transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
+        for unit_num in range(nbunit):
+            nodesall[:, 2 + unit_num * 2 + 2] = np.abs(nodesall[:, 2 + unit_num * 2 + 2])
+            hwneg = np.where(nodesall[:, 2 + unit_num * 2 + 1] < 0)
+            nodesall[:, 2 + unit_num * 2 + 1][hwneg] = 0
+            hwnul = np.where(nodesall[:, 2 + unit_num * 2 + 1] == 0)
+            nodesall[:, 2 + unit_num * 2 + 2][hwnul] = 0
 
     if bsub:
         fsub.close()
