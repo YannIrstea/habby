@@ -224,6 +224,7 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
             header = 'reach\tunit'
     else:
         if len(types.keys()) > 1:  # date
+            date_type = types["date"]
             header = 'troncon\tdate\tunit'
         else:
             header = 'troncon\tunit'

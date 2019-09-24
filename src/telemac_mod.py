@@ -81,7 +81,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             data_2d_telemac, description_from_telemac_file = load_telemac(file, description_from_indexHYDRAU_file[hyd_file]["path_filename_source"])
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
-                #return
+                return
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
             data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
@@ -226,16 +226,6 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
             pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
             pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-
-            # # get area (based on Heron's formula)
-            # d1 = np.sqrt((pb[:, 0] - pa[:, 0]) ** 2 + (pb[:, 1] - pa[:, 1]) ** 2)
-            # d2 = np.sqrt((pc[:, 0] - pb[:, 0]) ** 2 + (pc[:, 1] - pb[:, 1]) ** 2)
-            # d3 = np.sqrt((pc[:, 0] - pa[:, 0]) ** 2 + (pc[:, 1] - pa[:, 1]) ** 2)
-            # s2 = (d1 + d2 + d3) / 2
-            # area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-            # area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-            # area = area ** 0.5
-            # area_reach = np.sum(area)
 
             # get area2
             area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))

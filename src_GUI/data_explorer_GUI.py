@@ -20,11 +20,12 @@ from multiprocessing import Process, Value
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, \
-    QSizePolicy, QScrollArea, QProgressBar, QTableView
+    QSizePolicy, QScrollArea, QProgressBar, QTableView, QMenu, QAction
 
 from src import hdf5_mod
 from src import plot_mod
-from src_GUI.preferences_GUI import load_project_preferences, QHLine, DoubleClicOutputGroup
+from src.project_manag_mod import load_project_preferences
+from src_GUI.preferences_GUI import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
 
 
@@ -87,6 +88,7 @@ class DataExplorerFrame(QFrame):
     """
     This class is a subclass of class QGroupBox.
     """
+    send_remove = pyqtSignal(str, name='send_remove')
 
     def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
@@ -94,6 +96,7 @@ class DataExplorerFrame(QFrame):
         self.name_prj = name_prj
         self.send_log = send_log
         self.nb_plot = 0
+        self.file_to_remove_list = []
         self.init_ui()
         self.plot_production_stoped = False
 
@@ -120,6 +123,8 @@ class DataExplorerFrame(QFrame):
         self.names_hdf5_QListWidget.setMinimumWidth(250)
         self.names_hdf5_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.names_hdf5_QListWidget.itemSelectionChanged.connect(self.names_hdf5_change)
+        self.names_hdf5_QListWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.names_hdf5_QListWidget.customContextMenuRequested.connect(self.show_menu_hdf5_remover)
         self.names_hdf5_layout = QVBoxLayout()
         self.names_hdf5_layout.setAlignment(Qt.AlignTop)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QLabel)
@@ -278,6 +283,7 @@ class DataExplorerFrame(QFrame):
         self.plot_group.variable_QListWidget.clear()
         self.plot_group.units_QListWidget.clear()
         self.plot_group.reach_QListWidget.clear()
+        self.plot_group.units_QLabel.setText(self.tr("unit(s)"))
         self.habitatvalueremover_group.existing_animal_QListWidget.clear()
 
         # one file selected
@@ -289,6 +295,10 @@ class DataExplorerFrame(QFrame):
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file(False)
 
+            # change unit_type
+            if hasattr(hdf5, "unit_type"):
+                self.plot_group.units_QLabel.setText(hdf5.unit_type)
+
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
@@ -296,6 +306,8 @@ class DataExplorerFrame(QFrame):
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                     if len(hdf5.reach_name) == 1:
                         self.plot_group.reach_QListWidget.selectAll()
+                        if hdf5.nb_unit == 1:
+                            self.plot_group.units_QListWidget.selectAll()
 
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
@@ -303,7 +315,10 @@ class DataExplorerFrame(QFrame):
                     self.plot_group.variable_QListWidget.addItems(hdf5.variables)
                     if hdf5.reach_name:
                         self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-
+                        if len(hdf5.reach_name) == 1:
+                            self.plot_group.reach_QListWidget.selectAll()
+                            if hdf5.nb_unit == 1:
+                                self.plot_group.units_QListWidget.selectAll()
             # hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
@@ -312,6 +327,8 @@ class DataExplorerFrame(QFrame):
                     self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
                     if len(hdf5.reach_name) == 1:
                         self.plot_group.reach_QListWidget.selectAll()
+                        if hdf5.nb_unit == 1:
+                            self.plot_group.units_QListWidget.selectAll()
 
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
@@ -328,6 +345,28 @@ class DataExplorerFrame(QFrame):
         self.plot_group.count_plot()
         # count exports
         self.dataexporter_group.count_export()
+
+    def show_menu_hdf5_remover(self, point):
+        selection = self.names_hdf5_QListWidget.selectedItems()
+        if selection:
+            # create get_hdf5_list_to_remove_and_emit
+            self.hdf5_remover_menu = QMenu()
+            remove_action = QAction(self.tr("Remove selected file"))
+            remove_action.setStatusTip(self.tr('Remove selected file and refresh solftware informations'))
+            remove_action.triggered.connect(self.get_hdf5_list_to_remove_and_emit)
+            self.hdf5_remover_menu.addAction(remove_action)
+            self.hdf5_remover_menu.exec_(self.names_hdf5_QListWidget.mapToGlobal(point))
+
+    def get_hdf5_list_to_remove_and_emit(self):
+        selection = self.names_hdf5_QListWidget.selectedItems()
+        self.file_to_remove_list = []
+        for item_selected in selection:
+            self.file_to_remove_list.append(item_selected.text())
+
+        # question validation
+
+        # run
+        self.send_remove.emit("")
 
 
 class FigureProducerGroup(QGroupBoxCollapsible):
@@ -395,6 +434,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
         self.plot_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.export_type_layout.addWidget(self.plot_button)
+        self.plot_button.setEnabled(False)
 
         # stop plot_button
         self.plot_stop_button = QPushButton(self.tr("stop"))
@@ -497,10 +537,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # set prog
             if self.nb_plot != 0:
                 self.plot_process_list.progress_bar.setRange(0, self.nb_plot)
+                self.plot_button.setEnabled(True)
             self.plot_process_list.progress_bar.setValue(0)
             self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
         else:
             self.nb_plot = 0
+            self.plot_button.setEnabled(False)
             # set prog
             self.plot_process_list.progress_bar.setValue(0)
             self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
@@ -571,7 +613,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         selection_file = self.parent().names_hdf5_QListWidget.selectedItems()
         selection_reach = self.reach_QListWidget.selectedItems()
         self.units_QListWidget.clear()
-        self.units_QLabel.setText(self.tr("unit(s)"))
 
         # one file selected
         if len(selection_reach) == 1:
@@ -585,9 +626,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # add
             self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
 
-            # change unit_type
-            self.units_QLabel.setText(hdf5.unit_type)
-
         # more than one file selected
         elif len(selection_reach) > 1:
             # clear attributes hdf5_attributes_qtableview
@@ -600,6 +638,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     units_equal = False
             if units_equal:  # homogene units between reach
                 self.units_QListWidget.addItems(hdf5.units_name[0])
+
             if not units_equal:  # heterogne units between reach
                 # clean
                 self.units_QListWidget.clear()

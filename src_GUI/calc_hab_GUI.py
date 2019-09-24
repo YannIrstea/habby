@@ -30,7 +30,7 @@ except ImportError:
 from src_GUI import estimhab_GUI
 from src import calcul_hab_mod
 from src import hdf5_mod
-from src_GUI import preferences_GUI
+from src.project_manag_mod import load_project_preferences
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
@@ -831,7 +831,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
         # get the figure options and the type of output to be created
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # remove duplicate
         self.remove_duplicates()
@@ -967,7 +967,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the langugage
-            project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+            project_preferences = load_project_preferences(self.path_prj, self.name_prj)
             # send the message
             if project_preferences['language'] == str(1):
                 # it is necssary to start this string with Process to see it in the Statusbar

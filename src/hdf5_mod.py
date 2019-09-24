@@ -37,7 +37,7 @@ from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
-from src_GUI import preferences_GUI
+from src.project_manag_mod import load_project_preferences
 from habby import HABBY_VERSION
 
 
@@ -287,13 +287,21 @@ class Hdf5Management:
             # to attributes
             self.reach_name = reach_name
 
+            """ get xml parent element name """
+            if self.hdf5_type == "hydraulic":
+                self.input_type = hdf5_attributes_dict["hyd_model_type"].upper()
+            elif self.hdf5_type == "substrate":
+                self.input_type = "SUBSTRATE"
+            else:
+                self.input_type = "Habitat"
+
             """ get_hdf5_units_name """
             # to attributes
             if self.hdf5_type == "substrate":
                 self.units_name = [["unit_0"]]
                 self.nb_unit = 1
             else:
-                self.units_name = self.file_object["unit_by_reach"].value.transpose().astype(np.str).tolist()
+                self.units_name = self.file_object["unit_by_reach"][:].transpose().astype(np.str).tolist()
                 self.nb_unit = len(self.units_name)
                 self.unit_type = self.file_object.attrs["hyd_unit_type"]
 
@@ -506,7 +514,7 @@ class Hdf5Management:
                 hyd_description[attribute_name] = attribute_value
 
         # dataset for unit_list
-        hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"].value.transpose().tolist()
+        hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
 
         # WHOLE PROFIL
         if whole_profil:
@@ -948,7 +956,7 @@ class Hdf5Management:
                 return
 
         # dataset for unit_list
-        data_description["hyd_unit_list"] = self.file_object["unit_by_reach"].value.transpose().tolist()
+        data_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
 
         # DATA 2D WHOLE PROFIL
         if whole_profil:
@@ -2637,7 +2645,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # to know if we have to save a new hdf5
     if save_option is None:
-        save_opt = preferences_GUI.load_project_preferences(path_prj, name_prj)
+        save_opt = load_project_preferences(path_prj, name_prj)
         if save_opt['erase_id']:  # xml is all in string
             erase_idem = True
         else:
@@ -2876,7 +2884,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
     """
 
     # to know if we have to save a new hdf5
-    save_opt = preferences_GUI.load_project_preferences(path_prj, name_prj)
+    save_opt = load_project_preferences(path_prj, name_prj)
     if save_opt['erase_id']:  # xml is all in string
         erase_idem = True
     else:

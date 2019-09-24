@@ -19,6 +19,7 @@ import os
 from src import ascii_mod
 from src import hec_ras2D_mod
 from src import telemac_mod
+from src import rubar1d2d_mod
 
 
 def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_dim):
@@ -171,13 +172,16 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 for index, column_name in enumerate(headers):
                     data_index_file[column_name].append(line.split("\t")[index])
 
-        if ext != ".txt":  # from file
+        if model_type == 'RUBAR20':
+            more_than_one_file_selected_by_user = False
+            selectedfiles_textfiles_match = [True] * 2
+        elif ext != ".txt":  # from file
             # selectedfiles textfiles matching
             selectedfiles_textfiles_match = [False] * len(filename_list)
             for i, file_path in enumerate(filename_list):
                 if os.path.basename(file_path) in data_index_file["filename"]:
                     selectedfiles_textfiles_match[i] = True
-        if ext == ".txt":  # from indexHYDRAU.txt
+        elif ext == ".txt":  # from indexHYDRAU.txt
             # more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
             if len(data_index_file["filename"]) > 1:
                 more_than_one_file_selected_by_user = True
@@ -188,6 +192,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                     selectedfiles_textfiles_match[i] = True
                 else:
                     return "Error: " + file_from_indexfile + " doesn't exist in " + folder_path, None
+
+
 
         # check conditions
         if all(selectedfiles_textfiles_match):
@@ -227,6 +233,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 hydrau_case = "4.a"
             if data_index_file[headers[time_index]][0] != "all":
                 hydrau_case = "4.b"
+
+        print("hydrau_case", hydrau_case)
+
         """ ALL CASE """
         # hdf5 name and source filenames
         if more_than_one_file_selected_by_user:
@@ -245,6 +254,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = data_index_file["filename"][0]  # source file name
                 name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0] + ".hyd"
+        if model_type == 'RUBAR20':
+            data_index_file[headers[0]] = [namefile]
 
         # hydrau_description
         hydrau_description = dict(path_prj=path_prj,
@@ -618,4 +629,6 @@ def get_time_step(file_path, model_type):
         nbtimes, unit_name_from_file = telemac_mod.get_time_step(filename, folder_path)
     if model_type == "HECRAS2D":
         nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
+    if model_type == "RUBAR20":
+        nbtimes, unit_name_from_file = rubar1d2d_mod.get_time_step(filename, folder_path)
     return nbtimes, unit_name_from_file

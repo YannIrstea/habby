@@ -27,8 +27,8 @@ from src import hec_ras1D_mod
 from src import manage_grid_mod
 from src import hdf5_mod
 from src import dist_vistess_mod
-from src_GUI import preferences_GUI
 import matplotlib as mpl
+from src.project_manag_mod import load_project_preferences
 
 
 def load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
@@ -81,7 +81,7 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, mode
 
     # image if necessary
     if show_fig_1D:
-        project_preferences = preferences_GUI.load_project_preferences(path_prj, name_prj)
+        project_preferences = load_project_preferences(path_prj, name_prj)
         pro = [0, 1, 2]
         reach = [0]
         if project_preferences['time_step'][0] == -99:

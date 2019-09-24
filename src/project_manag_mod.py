@@ -61,8 +61,10 @@ def load_project_preferences(path_prj, name_prj):
     :return: the dictionary containing the figure options
 
     """
-
     project_preferences = create_default_project_preferences()
+    # save path and project name
+    project_preferences["name_prj"] = name_prj
+    project_preferences["path_prj"] = path_prj
     fname = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(fname) and name_prj != '':  # no project exists
         pass
@@ -206,7 +208,7 @@ def create_default_project_preferences():
     project_preferences['line_width'] = 1
     project_preferences['grid'] = False  # grid on plot
     project_preferences['format'] = 0  # pdf, png, jpg
-    project_preferences['resolution'] = 800  # dpi
+    project_preferences['resolution'] = 300  # dpi
     project_preferences['fish_name_type'] = 0  # latin_name, french, english, code_alternative
     project_preferences['marker'] = True  # Add point to line plot
 

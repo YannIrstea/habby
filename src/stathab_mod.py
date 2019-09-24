@@ -28,9 +28,9 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from src_GUI import preferences_GUI
 from src_GUI import estimhab_GUI
 from src import hdf5_mod
+from src.project_manag_mod import load_project_preferences
 import matplotlib as mpl
 
 
@@ -1033,7 +1033,7 @@ class Stathab:
 
         """
         # figure option
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         plt.rcParams['figure.figsize'] = self.project_preferences['width'], self.project_preferences['height']
         plt.rcParams['font.size'] = self.project_preferences['font_size']
         plt.rcParams['lines.linewidth'] = self.project_preferences['line_width']
@@ -1194,7 +1194,7 @@ class Stathab:
         A function to save the stathab result in .txt form
         """
         # to know if we kept the old file or we erase them
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         erase1 = self.project_preferences['erase_id']
         if not isinstance(self.j_all, np.ndarray):
             print('Error: The suitability index was not in the right format')

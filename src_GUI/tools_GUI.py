@@ -20,11 +20,10 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 import os
-import numpy as np
-from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import tools_mod
 from src import plot_mod
+from src.project_manag_mod import load_project_preferences
 
 
 class QGroupBoxCollapsible(QGroupBox):
@@ -32,7 +31,7 @@ class QGroupBoxCollapsible(QGroupBox):
         super().__init__()
         # group title
         self.setCheckable(True)
-        self.setStyleSheet(
+        self.setStyleSheet('QGroupBox::indicator {width: 20px; height: 20px;}'
             'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
             'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
             'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
@@ -43,15 +42,14 @@ class QGroupBoxCollapsible(QGroupBox):
             'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
         )
         #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
-        self.toggled.connect(lambda: self.toggle_group(self))
+        self.toggled.connect(self.toggle_group)
         self.setChecked(True)
 
-    def toggle_group(self, ctrl):
-        state = ctrl.isChecked()
-        if state:
-            ctrl.setFixedHeight(ctrl.sizeHint().height())
+    def toggle_group(self, checked):
+        if checked:
+            self.setFixedHeight(self.sizeHint().height())
         else:
-            ctrl.setFixedHeight(30)
+            self.setFixedHeight(30)
 
 
 class ToolsTab(QScrollArea):
@@ -126,6 +124,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.send_log = send_log
+        self.mytablemodel = None
         self.setTitle(title)
         self.init_ui()
         # Signal Connection
@@ -174,15 +173,16 @@ class InterpolationGroup(QGroupBoxCollapsible):
         """ Required data """
         # sequence layout
         fromsequence_group = QGroupBox(self.tr("from a sequence (press ENTER once the data has been entered)"))
-        from_qlabel = QLabel(self.tr('from'))
+        from_qlabel = QLabel(self.tr('min'))
         self.from_qlineedit = QLineEdit()
         self.from_qlineedit.returnPressed.connect(self.display_required_units_from_sequence)
-        to_qlabel = QLabel(self.tr('to'))
+        to_qlabel = QLabel(self.tr('max'))
         self.to_qlineedit = QLineEdit()
         self.to_qlineedit.returnPressed.connect(self.display_required_units_from_sequence)
         by_qlabel = QLabel(self.tr('by'))
         self.by_qlineedit = QLineEdit()
         self.by_qlineedit.returnPressed.connect(self.display_required_units_from_sequence)
+        self.unit_qlabel = QLabel(self.tr('[]'))
         require_secondlayout = QGridLayout()
         require_secondlayout.addWidget(from_qlabel, 1, 0)
         require_secondlayout.addWidget(self.from_qlineedit, 1, 1)
@@ -190,6 +190,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         require_secondlayout.addWidget(self.to_qlineedit, 1, 3)
         require_secondlayout.addWidget(by_qlabel, 1, 4)
         require_secondlayout.addWidget(self.by_qlineedit, 1, 5)
+        require_secondlayout.addWidget(self.unit_qlabel, 1, 6)
         fromsequence_group.setLayout(require_secondlayout)
 
         # txt layout
@@ -256,7 +257,6 @@ class InterpolationGroup(QGroupBoxCollapsible):
         :param checker:
         :return:
         """
-        #print("Disable and clean widgets.", disable)
         # available
         self.unit_min_qlabel.setText("")
         self.unit_max_qlabel.setText("")
@@ -271,9 +271,11 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.by_qlineedit.setText("")
         self.by_qlineedit.setDisabled(disable)
         self.fromtext_qpushbutton.setDisabled(disable)
-        self.plot_chronicle_qpushbutton.setDisabled(disable)
-        self.export_txt_chronicle_qpushbutton.setDisabled(disable)
         self.require_unit_qtableview.model().clear()
+        if disable:
+            # disable pushbutton
+            self.plot_chronicle_qpushbutton.setDisabled(disable)
+            self.export_txt_chronicle_qpushbutton.setDisabled(disable)
 
     def names_hab_change(self):
         """
@@ -300,6 +302,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
     def reach_hab_change(self):
         hdf5name = self.hab_filenames_qcombobox.currentText()
         reach_name = self.hab_reach_qcombobox.currentText()
+        self.unit_qlabel.setText("[]")
         # no file
         if not reach_name:
             # clean
@@ -312,6 +315,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file()
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
+            unit_type_value = unit_type[unit_type.index("["):unit_type.index("]")+1]
             fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
             fish_list.sort()
             reach_index = hdf5.reach_name.index(reach_name)
@@ -331,6 +335,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 self.unit_type_qlabel.setText(unit_type)
                 self.from_qlineedit.setText(str(min_unit))
                 self.to_qlineedit.setText(str(max_unit))
+                self.unit_qlabel.setText(unit_type_value)
 
     def display_required_units_from_sequence(self):
         # is value entry ?
@@ -405,7 +410,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         if not valid:
             self.send_log.emit("Warning : Interpolation not done." + text)
-
+            # disable pushbutton
+            self.plot_chronicle_qpushbutton.setEnabled(False)
+            self.export_txt_chronicle_qpushbutton.setEnabled(False)
         if valid:
             data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
                                                                                          fish_names,
@@ -426,6 +433,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.plot_chronicle_qpushbutton.setEnabled(True)
             self.export_txt_chronicle_qpushbutton.setEnabled(True)
             self.send_log.emit("Interpolation done. Interpolated values can now be view in graphic and export in text file.")
+            # disable pushbutton
+            self.plot_chronicle_qpushbutton.setEnabled(True)
+            self.export_txt_chronicle_qpushbutton.setEnabled(True)
 
     def frange(self, start, stop, step):
         i = start
@@ -467,54 +477,55 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         if not hdf5name:
-            self.send_log.emit('Error: There no selected fish.')
+            self.send_log.emit('Error: There no .hab selected.')
             return
 
-        # fish names and units names from tableview
-        fish_names_hv_spu = self.mytablemodel.colnames
-        fish_names = []
-        for fish in fish_names_hv_spu:
-            if "hv_" in fish:
-                fish_names.append(fish.replace("hv_", ""))
-            if "spu_" in fish:
-                fish_names.append(fish.replace("spu_", ""))
-        fish_names = list(set(fish_names))
+        if self.mytablemodel:
+            # fish names and units names from tableview
+            fish_names_hv_spu = self.mytablemodel.colnames
+            fish_names = []
+            for fish in fish_names_hv_spu:
+                if "hv_" in fish:
+                    fish_names.append(fish.replace("hv_", ""))
+                if "spu_" in fish:
+                    fish_names.append(fish.replace("spu_", ""))
+            fish_names = list(set(fish_names))
 
-        # seq or txt
-        source = self.mytablemodel.source
+            # seq or txt
+            source = self.mytablemodel.source
 
-        # reread from seq (tablemodel)
-        if source == "seq":
-            chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
-            types = dict(units=self.unit_type_qlabel.text())
-        # reread from text file (re-read file)
-        else:
-            chronicle, types = tools_mod.read_chronicle_from_text_file(source)
+            # reread from seq (tablemodel)
+            if source == "seq":
+                chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
+                types = dict(units=self.unit_type_qlabel.text())
+            # reread from text file (re-read file)
+            else:
+                chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
-        # load figure option
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
-                                                           self.name_prj)
+            # load figure option
+            project_preferences = load_project_preferences(self.path_prj,
+                                                               self.name_prj)
 
-        # load hdf5 data
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
+            # load hdf5 data
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
 
-        reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+            reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
 
-        # recompute
-        data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
-                                                                                         fish_names,
-                                                                                         reach_index,
-                                                                                         chronicle,
-                                                                                         types,
-                                                                                         False)
-        plot_mod.plot_interpolate_chronicle(data_to_table,
-                                            horiz_headers,
-                                            vertical_headers,
-                                            hdf5.data_description,
-                                            fish_names,
-                                            types,
-                                            project_preferences)
+            # recompute
+            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
+                                                                                             fish_names,
+                                                                                             reach_index,
+                                                                                             chronicle,
+                                                                                             types,
+                                                                                             False)
+            plot_mod.plot_interpolate_chronicle(data_to_table,
+                                                horiz_headers,
+                                                vertical_headers,
+                                                hdf5.data_description,
+                                                fish_names,
+                                                types,
+                                                project_preferences)
 
     def export_chronicle(self):
         # is fish ?
@@ -526,58 +537,62 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
+        if not hdf5name:
+            self.send_log.emit('Error: There no .hab selected.')
+            return
 
-        # fish names and units names from tableview
-        fish_names_hv_spu = self.mytablemodel.colnames
-        fish_names = []
-        for fish in fish_names_hv_spu:
-            if "hv_" in fish:
-                fish_names.append(fish.replace("hv_", ""))
-            if "spu_" in fish:
-                fish_names.append(fish.replace("spu_", ""))
-        fish_names = list(set(fish_names))
+        if self.mytablemodel:
+            # fish names and units names from tableview
+            fish_names_hv_spu = self.mytablemodel.colnames
+            fish_names = []
+            for fish in fish_names_hv_spu:
+                if "hv_" in fish:
+                    fish_names.append(fish.replace("hv_", ""))
+                if "spu_" in fish:
+                    fish_names.append(fish.replace("spu_", ""))
+            fish_names = list(set(fish_names))
 
-        # seq or txt
-        source = self.mytablemodel.source
+            # seq or txt
+            source = self.mytablemodel.source
 
-        # reread from seq (tablemodel)
-        if source == "seq":
-            chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
-            # types
-            text_unit = self.unit_type_qlabel.text()
-            types = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
-        # reread from text file (re-read file)
-        else:
-            chronicle, types = tools_mod.read_chronicle_from_text_file(source)
+            # reread from seq (tablemodel)
+            if source == "seq":
+                chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
+                # types
+                text_unit = self.unit_type_qlabel.text()
+                types = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
+            # reread from text file (re-read file)
+            else:
+                chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
-        # load figure option
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
-                                                            self.name_prj)
+            # load figure option
+            project_preferences = load_project_preferences(self.path_prj,
+                                                                self.name_prj)
 
-        # load hdf5 data
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
+            # load hdf5 data
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
 
-        reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+            reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
 
-        # recompute interpolation
-        data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
-                                                                                         fish_names,
-                                                                                         reach_index,
-                                                                                         chronicle,
-                                                                                         types,
-                                                                                         False)
-        # export text
-        exported = tools_mod.export_text_interpolatevalues(data_to_table,
-                                                           horiz_headers,
-                                                           vertical_headers,
-                                                           hdf5.data_description,
-                                                           types,
-                                                           project_preferences)
-        if exported:
-            self.send_log.emit("Interpolated text file has been exported in 'output/text' project folder.")
-        if not exported:
-            self.send_log.emit('Error: File not exported as it may be opened by another program.')
+            # recompute interpolation
+            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
+                                                                                             fish_names,
+                                                                                             reach_index,
+                                                                                             chronicle,
+                                                                                             types,
+                                                                                             False)
+            # export text
+            exported = tools_mod.export_text_interpolatevalues(data_to_table,
+                                                               horiz_headers,
+                                                               vertical_headers,
+                                                               hdf5.data_description,
+                                                               types,
+                                                               project_preferences)
+            if exported:
+                self.send_log.emit("Interpolated text file has been exported in 'output/text' project folder.")
+            if not exported:
+                self.send_log.emit('Error: File not exported as it may be opened by another program.')
 
 
 class OtherToolToCreate(QGroupBoxCollapsible):

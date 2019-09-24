@@ -42,13 +42,13 @@ from src import sw2d_mod
 from src import iber2d_mod
 from src import mascaret_mod
 from src import hdf5_mod
-from src_GUI import preferences_GUI
 from src import mesh_management_mod
 from src import lammi_mod
 from src import paraview_mod
 from src import hydro_input_file_mod
 from src import ascii_mod
 from src.user_preferences_mod import user_preferences
+from src.project_manag_mod import load_project_preferences
 
 np.set_printoptions(threshold=np.inf)
 try:
@@ -1111,44 +1111,24 @@ class SubHydroW(QWidget):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
-            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
             self.nativeParentWidget().kill_process.setVisible(True)
-            # send the message FRENCH
-            if self.project_preferences['language'] == str(1):
-                # MERGE
-                if self.model_type == 'HABITAT':
-                    self.send_log.emit(
-                        "Processus 'Fusion de Grille' fonctionne depuis " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-                # SUBSTRATE
-                elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit(
-                        "Processus 'substrat' fonctionne depuis " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(50)
-                # HYDRAULIC
-                else:
-                    # it is necssary to start this string with Process to see it in the Statusbar
-                    self.send_log.emit(
-                        "Processus 'Hydraulique' fonctionne depuis " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            # send the message ENGLISH
+
+            # MERGE
+            if self.model_type == 'HABITAT':
+                self.send_log.emit(self.tr(
+                    "Process 'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
+            # SUBSTRATE
+            elif self.model_type == 'SUBSTRATE':
+                self.send_log.emit(self.tr(
+                    "Process 'substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.nativeParentWidget().progress_bar.setValue(50)
+            # HYDRAULIC
             else:
-                # MERGE
-                if self.model_type == 'HABITAT':
-                    self.send_log.emit(
-                        "Process 'Merge Grid' is alive and run since " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-                # SUBSTRATE
-                elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit(
-                        "Process 'substrate' is alive and run since " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(50)
-                # HYDRAULIC
-                else:
-                    # it is necssary to start this string with Process to see it in the Statusbar
-                    self.send_log.emit(
-                        "Process 'Hydraulic' is alive and run since " + str(round(self.running_time)) + " sec")
-                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
+                # it is necssary to start this string with Process to see it in the Statusbar
+                self.send_log.emit(self.tr(
+                    "Process 'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
 
         # when the loading is finished
         if not self.q.empty():
@@ -1520,7 +1500,7 @@ class HEC_RAS1D(SubHydroW):
         self.save_xml(1)
 
         # for error management and figures (when time finsiehed call the self.show_prog function)
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # get the image and load option
         path_im = self.find_path_im()
@@ -1528,7 +1508,7 @@ class HEC_RAS1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -1617,190 +1597,662 @@ class HEC_RAS1D(SubHydroW):
                         break
 
 
+# class Rubar2D(SubHydroW):
+#     """
+#     The class Rubar2D is there to manage the link between the graphical interface and the functions in src/rubar1d2d_mod.py
+#     which loads the RUBAR data in 2D. It inherits from SubHydroW() so it have all the methods and the variables from
+#     the class SubHydroW(). The form of the function is similar to hec-ras, but it does not have the part about the grid
+#     creation as we look here as the data created in 2D by RUBAR.
+#     """
+#
+#     def __init__(self, path_prj, name_prj):
+#
+#         super(Rubar2D, self).__init__(path_prj, name_prj)
+#         self.init_iu()
+#
+#     def init_iu(self):
+#         """
+#         used by ___init__() in the initialization.
+#         """
+#
+#         # update attibute for rubar 2d
+#         self.attributexml = ['rubar_geodata', 'tpsdata']
+#         self.model_type = 'RUBAR2D'
+#         self.data_type = "HYDRAULIC"
+#         self.extension = [['.dat'], ['.tps']]  # list of list in case there is more than one possible ext.
+#         self.nb_dim = 2
+#
+#         # if there is the project file with rubar geo info, update the label and attibutes
+#         self.was_model_loaded_before(0)
+#         self.was_model_loaded_before(1)
+#
+#         # label with the file name
+#         self.geo_t2 = QLabel(self.namefile[0], self)
+#         self.out_t2 = QLabel(self.namefile[1], self)
+#         self.geo_t2.setToolTip(self.pathfile[0])
+#         self.out_t2.setToolTip(self.pathfile[1])
+#
+#         # geometry and output data
+#         l1 = QLabel(self.tr('<b> Geometry data </b>'))
+#         self.geo_b = QPushButton(self.tr('Choose file (.dat)'), self)
+#         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
+#         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
+#         self.geo_b.clicked.connect(self.propose_next_file)
+#         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
+#         l2 = QLabel(self.tr('<b> Output data </b>'))
+#         self.out_b = QPushButton(self.tr('Choose file \n (.tps)'), self)
+#         self.out_b.clicked.connect(lambda: self.show_dialog(1))
+#         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+#         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
+#
+#         # grid creation
+#         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+#         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+#
+#         # hdf5 name
+#         lh = QLabel(self.tr('.hyd file name'))
+#         self.hname = QLineEdit(self.name_hdf5)
+#         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+#         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
+#             self.gethdf5_name_gui()
+#
+#         # load button
+#         self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+#         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
+#         self.load_b.clicked.connect(self.load_rubar)
+#         self.spacer = QSpacerItem(1, 200)
+#         self.butfig = QPushButton(self.tr("create figure"))
+#         self.butfig.clicked.connect(self.recreate_image)
+#         if self.namefile[0] == 'unknown file':
+#             self.butfig.setDisabled(True)
+#
+#         # layout
+#         self.layout_hec = QGridLayout()
+#         self.layout_hec.addWidget(l1, 0, 0)
+#         self.layout_hec.addWidget(self.geo_t2, 0, 1)
+#         self.layout_hec.addWidget(self.geo_b, 0, 2)
+#         self.layout_hec.addWidget(l2, 1, 0)
+#         self.layout_hec.addWidget(self.out_t2, 1, 1)
+#         self.layout_hec.addWidget(self.out_b, 1, 2)
+#         self.layout_hec.addWidget(l2D1, 2, 0)
+#         self.layout_hec.addWidget(l2D2, 2, 1, 1, 2)
+#         self.layout_hec.addWidget(lh, 3, 0)
+#         self.layout_hec.addWidget(self.hname, 3, 1)
+#         self.layout_hec.addWidget(self.load_b, 3, 2)
+#         self.layout_hec.addWidget(self.butfig, 4, 2)
+#         # self.layout_hec.addItem(self.spacer, 5, 1)
+#         self.setLayout(self.layout_hec)
+#
+#     def load_rubar(self):
+#         """
+#         A function to execture the loading and saving the the rubar file using rubar1d2d_mod.py. It is similar to the
+#         load_hec_ras_gui() function. Obviously, it calls rubar and not hec_ras this time. A small difference is that
+#         the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it is
+#         necessary to cut the grid for each time step as a function of the wetted area and maybe to separate the
+#         grid by reaches.  Another problem is that the data of Rubar2D is given on the cells of the grid and not the
+#         nodes. So we use linear interpolation to correct for this.
+#
+#         A second thread is used to avoid "freezing" the GUI.
+#
+#         """
+#         # for error management and figures
+#         self.timer.start(100)
+#
+#         # show progressbar
+#         self.nativeParentWidget().progress_bar.setRange(0, 100)
+#         self.nativeParentWidget().progress_bar.setValue(0)
+#         self.nativeParentWidget().progress_bar.setVisible(True)
+#
+#         # test the availability of files
+#         fileNOK = True
+#         f0 = os.path.join(self.pathfile[0], self.namefile[0])
+#         f1 = os.path.join(self.pathfile[1], self.namefile[1])
+#         if os.path.isfile(f0) & os.path.isfile(f1):
+#             fileNOK = False
+#         if fileNOK:
+#             self.msg2.setIcon(QMessageBox.Warning)
+#             self.msg2.setWindowTitle(self.tr("RUBAR2D"))
+#             self.msg2.setText(self.tr("Unable to load RUBAR2D data files!"))
+#             self.msg2.setStandardButtons(QMessageBox.Ok)
+#             self.msg2.show()
+#             self.p = Process(target=None)
+#             self.p.start()
+#             self.q = Queue()
+#             return
+#
+#         # update the xml file of the project
+#         self.save_xml(0)
+#         self.save_xml(1)
+#
+#         # disable while loading
+#         self.load_b.setDisabled(True)
+#
+#         # the path where to save the image
+#         path_im = self.find_path_im()
+#         # the path where to save the hdf5
+#         path_hdf5 = self.find_path_hdf5()
+#         self.name_hdf5 = self.hname.text()
+#
+#         # get minimum water height as we might neglect very low water height
+#         self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+#
+#         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
+#         self.q = Queue()
+#         self.progress_value = Value("i", 0)
+#         self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid, args=(self.name_hdf5, self.namefile[0],
+#                                                                                   self.namefile[1], self.pathfile[0],
+#                                                                                   self.pathfile[1], path_im,
+#                                                                                   self.name_prj,
+#                                                                                   self.path_prj,
+#                                                                                   self.model_type, self.nb_dim,
+#                                                                                   self.progress_value,
+#                                                                                   path_hdf5,
+#                                                                                   self.q, False, self.project_preferences))
+#         self.p.name = "Rubar 2D data loading"
+#         self.p.start()
+#
+#         # copy input file
+#         path_input = self.find_path_input()
+#         self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+#         self.p2.start()
+#
+#         # log info
+#         self.send_log.emit(self.tr('# Loading: Rubar 2D data...'))
+#         # self.send_err_log()
+#         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+#         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+#         self.send_log.emit("py    path1=r'" + path_input + "'")
+#         self.send_log.emit("py    path2=r'" + path_input + "'")
+#         self.send_log.emit("py    rubar.load_rubar2d_and_create_grid('Hydro_rubar2d_log',file1, file2, path1, path2,"
+#                            " path_prj, name_prj, path_prj, 'RUBAR2D', 2, path_prj, [])\n")
+#         self.send_log.emit("restart LOAD_RUBAR_2D")
+#         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+#         self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
+#
+#     def propose_next_file(self):
+#         """
+#         This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
+#         one file with the geometry data and one file with the simulation results. If the user selects a file, this
+#         function looks if a file with the same name but with the extension of the other file type exists in the
+#         selected folder.
+#         """
+#         if len(self.extension[1]) == 1:
+#             if self.out_t2.text() == 'unknown file':
+#                 blob = self.namefile[0]
+#                 new_name = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+#                 pathfilename = os.path.join(self.pathfile[0], new_name)
+#                 if os.path.isfile(pathfilename):
+#                     self.out_t2.setText(new_name)
+#                     # keep the name in an attribute until we save it
+#                     self.pathfile[1] = self.pathfile[0]
+#                     self.namefile[1] = new_name
+#
+
 class Rubar2D(SubHydroW):
     """
-    The class Rubar2D is there to manage the link between the graphical interface and the functions in src/rubar1d2d_mod.py
-    which loads the RUBAR data in 2D. It inherits from SubHydroW() so it have all the methods and the variables from
-    the class SubHydroW(). The form of the function is similar to hec-ras, but it does not have the part about the grid
-    creation as we look here as the data created in 2D by RUBAR.
+    The class Telemac is there to manage the link between the graphical
+    interface and the functions in src/rubar20_mod.py
+    which loads the Telemac data in 2D. It inherits from SubHydroW()
+    so it have all the methods and the variables
+    from the class SubHydroW(). It is very similar to RUBAR20 class,
+    but data from Telemac is on the node as in HABBY.
     """
 
     def __init__(self, path_prj, name_prj):
 
         super(Rubar2D, self).__init__(path_prj, name_prj)
+        self.hydrau_case = "unknown"
+        self.multi_hdf5 = False
+        # update the attibutes
+        self.attributexml = ['rubar_geodata', 'tpsdata']
+        self.model_type = 'RUBAR20'
+        self.data_type = "HYDRAULIC"
+        self.extension = [['.dat', '.tps', '.txt']]
+        self.nb_dim = 2
         self.init_iu()
 
     def init_iu(self):
         """
-        used by ___init__() in the initialization.
+        Used by __init__() during the initialization.
         """
 
-        # update attibute for rubar 2d
-        self.attributexml = ['rubar_geodata', 'tpsdata']
-        self.model_type = 'RUBAR2D'
-        self.data_type = "HYDRAULIC"
-        self.extension = [['.mai', '.dat'], ['.tps']]  # list of list in case there is more than one possible ext.
-        self.nb_dim = 2
-
-        # if there is the project file with rubar geo info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
-
-        # label with the file name
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
-        self.geo_t2.setToolTip(self.pathfile[0])
-        self.out_t2.setToolTip(self.pathfile[1])
+        # if there is the project file with rubar20 info, update
+        # the label and attibutes
+        self.was_model_loaded_before()
+        # self.h2d_t2 = QLabel(self.namefile[0], self)
+        self.h2d_t2 = QComboBox()
+        self.h2d_t2.addItems([self.namefile[0]])
+        self.h2d_t2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # geometry and output data
-        l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.mai, .dat)'), self)
-        self.geo_b.clicked.connect(lambda: self.show_dialog(0))
-        self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
-        self.geo_b.clicked.connect(self.propose_next_file)
-        self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
-        l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.tps)'), self)
-        self.out_b.clicked.connect(lambda: self.show_dialog(1))
-        self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
-        self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
+        l1 = QLabel(self.tr('Rubar20 result file(s)'))
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.dat, .tps, .txt)'), self)
+        self.h2d_b.clicked.connect(lambda: self.show_dialog_rubar20(0))
 
-        # grid creation
-        l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
-        l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+        # reach
+        reach_name_title_label = QLabel(self.tr('Reach name'))
+        self.reach_name_label = QLabel(self.tr('unknown'))
+
+        # unit type
+        units_name_title_label = QLabel(self.tr('Unit(s) type'))
+        self.units_name_label = QLabel(self.tr('unknown'))
+
+        # unit number
+        l2 = QLabel(self.tr('Unit(s) number'))
+        self.number_timstep_label = QLabel(self.tr('unknown'))
+
+        # unit list
+        self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.units_QListWidget.setMinimumHeight(100)
+        l_selecttimestep = QLabel(self.tr('Unit(s) selected'))
+        # ToolTip to indicated in which folder are the files
+        self.h2d_t2.setToolTip(self.pathfile[0])
+        self.h2d_b.clicked.connect(
+            lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+
+        # epsg
+        epsgtitle_rubar20_label = QLabel(self.tr('EPSG code'))
+        self.epsg_label = QLineEdit(self.tr('unknown'))
+        self.epsg_label.editingFinished.connect(self.set_epsg_code)
 
         # hdf5 name
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.gethdf5_name_gui()
+        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
+        #     self.gethdf5_name_gui()
+        #     if self.h2d_t2.text()[-4:] in self.extension[0]:
+        #         self.get_ascii_model_description()
 
         # load button
         self.load_b = QPushButton(self.tr('Create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_b.clicked.connect(self.load_rubar)
-        self.spacer = QSpacerItem(1, 200)
-        self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
-        if self.namefile[0] == 'unknown file':
-            self.butfig.setDisabled(True)
+        self.load_b.clicked.connect(self.load_rubar20_gui)
+        self.spacer = QSpacerItem(1, 180)
+        # self.butfig = QPushButton(self.tr("create figure"))
+        # self.butfig.clicked.connect(self.recreate_image)
+        # if self.namefile[0] == 'unknown file':
+        #     self.butfig.setDisabled(True)
+
+        # last hdf5 created
+        self.name_last_hdf5(type="RUBAR20")  # find the name of the last merge file and add it to self.lm2
+
+        self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
+        self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
 
         # layout
-        self.layout_hec = QGridLayout()
-        self.layout_hec.addWidget(l1, 0, 0)
-        self.layout_hec.addWidget(self.geo_t2, 0, 1)
-        self.layout_hec.addWidget(self.geo_b, 0, 2)
-        self.layout_hec.addWidget(l2, 1, 0)
-        self.layout_hec.addWidget(self.out_t2, 1, 1)
-        self.layout_hec.addWidget(self.out_b, 1, 2)
-        self.layout_hec.addWidget(l2D1, 2, 0)
-        self.layout_hec.addWidget(l2D2, 2, 1, 1, 2)
-        self.layout_hec.addWidget(lh, 3, 0)
-        self.layout_hec.addWidget(self.hname, 3, 1)
-        self.layout_hec.addWidget(self.load_b, 3, 2)
-        self.layout_hec.addWidget(self.butfig, 4, 2)
-        # self.layout_hec.addItem(self.spacer, 5, 1)
-        self.setLayout(self.layout_hec)
+        self.layout_rubar20 = QGridLayout()
+        self.layout_rubar20.addWidget(l1, 0, 0)
+        self.layout_rubar20.addWidget(self.h2d_t2, 0, 1)
+        self.layout_rubar20.addWidget(self.h2d_b, 0, 2)
+        self.layout_rubar20.addWidget(reach_name_title_label, 1, 0)
+        self.layout_rubar20.addWidget(self.reach_name_label, 1, 1)
+        self.layout_rubar20.addWidget(units_name_title_label, 2, 0)
+        self.layout_rubar20.addWidget(self.units_name_label, 2, 1)
+        self.layout_rubar20.addWidget(l2, 3, 0)
+        self.layout_rubar20.addWidget(self.number_timstep_label, 3, 1)
+        self.layout_rubar20.addWidget(l_selecttimestep, 4, 0)
+        self.layout_rubar20.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_rubar20.addWidget(epsgtitle_rubar20_label, 5, 0)
+        self.layout_rubar20.addWidget(self.epsg_label, 5, 1)
+        self.layout_rubar20.addWidget(lh, 6, 0)
+        self.layout_rubar20.addWidget(self.hname, 6, 1)
+        self.layout_rubar20.addWidget(self.load_b, 6, 2)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_label, 7, 0)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_name_label, 7, 1)
+        [self.layout_rubar20.setRowMinimumHeight(i, 30) for i in range(self.layout_rubar20.rowCount())]
 
-    def load_rubar(self):
+        self.setLayout(self.layout_rubar20)
+
+    def show_dialog_rubar20(self, i=0):
         """
-        A function to execture the loading and saving the the rubar file using rubar1d2d_mod.py. It is similar to the
-        load_hec_ras_gui() function. Obviously, it calls rubar and not hec_ras this time. A small difference is that
-        the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it is
-        necessary to cut the grid for each time step as a function of the wetted area and maybe to separate the
-        grid by reaches.  Another problem is that the data of Rubar2D is given on the cells of the grid and not the
-        nodes. So we use linear interpolation to correct for this.
+        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
+        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
+        is then used to loaded the file in other function, which are different for each children class. Based on the
+        name of the chosen file, a name is proposed for the hdf5 file.
 
-        A second thread is used to avoid "freezing" the GUI.
-
+        :param i: an int for the case where there is more than one file to load
         """
+        # disconnect function for multiple file cases
+        try:
+            self.h2d_t2.disconnect()
+        except:
+            pass
+
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        # prepare the filter to show only useful files
+        if len(self.extension[i]) <= 4:
+            filter2 = "File ("
+            for e in self.extension[i]:
+                filter2 += '*' + e + ' '
+            filter2 = filter2[:-1]
+            filter2 += ')' + ";; All File (*.*)"
+        else:
+            filter2 = ''
+
+        # get last path
+        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
+                self.attributexml[0]) != "no_data":
+            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
+        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        else:
+            model_path = self.path_prj  # path proj
+
+        # find the filename based on user choice
+        filename_list = QFileDialog.getOpenFileNames(self,
+                                                     self.tr("Select file(s)"),
+                                                     model_path,
+                                                     filter2)
+
+        # init
+        self.hydrau_case = "unknown"
+        self.multi_hdf5 = False
+        self.index_hydrau_presence = False
+
+        # if file has been selected
+        if filename_list[0]:
+            # clean GUI
+            self.clean_gui()
+
+            # get_hydrau_description_from_source
+            rubar20_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                        self.path_prj,
+                                                                                                        self.model_type,
+                                                                                                        self.nb_dim)
+
+            # warnings
+            if warning_list:
+                for warn in warning_list:
+                    self.send_log.emit(warn)
+
+            # error
+            if type(rubar20_description) == str:
+                self.clean_gui()
+                self.send_log.emit(rubar20_description)
+
+            # one hdf5
+            if type(rubar20_description) == dict:
+                self.hydrau_case = rubar20_description["hydrau_case"]
+                # multi
+                self.multi_hdf5 = False
+                # save last path
+                self.pathfile[0] = rubar20_description["path_filename_source"]  # source file path
+                self.namefile[0] = rubar20_description["filename_source"]  # source file name
+                self.name_hdf5 = rubar20_description["hdf5_name"]
+                self.save_xml(0)  # path in xml
+                # set to attribute
+                self.hydrau_description = rubar20_description
+                # to GUI (decription)
+                self.h2d_t2.clear()
+                self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
+                self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                self.units_QListWidget.clear()
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                if not self.hydrau_description["unit_list_tf"]:
+                    self.units_QListWidget.selectAll()
+                else:
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
+                        self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                self.units_QListWidget.setEnabled(True)
+                self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                self.load_b.setText("Create .hyd file")
+                self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                self.unit_counter()
+
+            # multi hdf5
+            if type(rubar20_description) == list:
+                self.hydrau_case = rubar20_description[0]["hydrau_case"]
+                # multi
+                self.multi_hdf5 = True
+                # save last path
+                self.pathfile[0] = rubar20_description[0]["path_filename_source"]  # source file path
+                self.namefile[0] = rubar20_description[0]["filename_source"]  # source file name
+                self.name_hdf5 = rubar20_description[0]["hdf5_name"]
+                self.save_xml(0)  # path in xml
+                # set to attribute
+                self.hydrau_description_multiple = rubar20_description
+                self.hydrau_description = rubar20_description[0]
+                # get names
+                names = [description["filename_source"] for description in self.hydrau_description_multiple]
+                # to GUI (first decription)
+                self.h2d_t2.clear()
+                self.h2d_t2.addItems(names)
+                self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                self.units_QListWidget.clear()
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                if not self.hydrau_description["unit_list_tf"]:
+                    self.units_QListWidget.selectAll()
+                else:
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
+                        self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                self.units_QListWidget.setEnabled(True)
+                self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
+                self.load_b.setText("Create " + str(len(rubar20_description)) + " .hyd files")
+                self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                self.unit_counter()
+
+    def change_gui_when_combobox_name_change(self):
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        self.hydrau_description["hdf5_name"] = self.hname.text()
+
+        # change rubar20 description
+        self.hydrau_description = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]
+
+        # change GUI
+        self.reach_name_label.setText(self.hydrau_description["reach_list"])
+        self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+        self.units_QListWidget.clear()
+        self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+        # change selection items
+        for i in range(len(self.hydrau_description["unit_list_full"])):
+            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+        self.epsg_label.setText(self.hydrau_description["epsg_code"])
+        if not os.path.splitext(self.hydrau_description["hdf5_name"])[1]:
+            self.hydrau_description["hdf5_name"] = self.hydrau_description["hdf5_name"] + ".hyd"
+        self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+        self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+        self.unit_counter()
+
+    def unit_counter(self):
+        # count total number items (units)
+        total = self.units_QListWidget.count()
+        # count total number items selected
+        selected = len(self.units_QListWidget.selectedItems())
+        # refresh rubar20 dictonnary
+        unit_list = []
+        unit_list_full = []
+        unit_lisst_tf = []
+        for i in range(total):
+            unit_list_full.append(self.units_QListWidget.item(i).text())
+            unit_lisst_tf.append(self.units_QListWidget.item(i).isSelected())
+            if self.units_QListWidget.item(i).isSelected():
+                unit_list.append(self.units_QListWidget.item(i).text())
+
+        # save multi
+        if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
+                self.hydrau_case == 'unknown' and self.multi_hdf5):
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = unit_lisst_tf
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
+
+            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+                # preset name hdf5
+                filename_source_list = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["filename_source"].split(", ")
+                new_names_list = []
+                for file_num, file in enumerate(filename_source_list):
+                    if self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"][file_num]:
+                        new_names_list.append(os.path.splitext(file)[0])
+                self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
+
+        # save one
+        else:
+            self.hydrau_description["unit_list"] = [unit_list]
+            self.hydrau_description["unit_list_full"] = [unit_list_full]
+            self.hydrau_description["unit_list_tf"] = [unit_lisst_tf]
+            self.hydrau_description["unit_number"] = str(selected)
+
+            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+                # preset name hdf5
+                filename_source_list = self.hydrau_description["filename_source"].split(", ")
+                new_names_list = []
+                for file_num, file in enumerate(filename_source_list):
+                    if self.hydrau_description["unit_list_tf"][file_num]:
+                        new_names_list.append(os.path.splitext(file)[0])
+                self.hydrau_description["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+
+        # set text
+        text = str(selected) + "/" + str(total)
+        self.number_timstep_label.setText(text)  # number units
+
+    def clean_gui(self):
+        try:
+            self.h2d_t2.disconnect()
+        except:
+            pass
+
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        self.h2d_t2.clear()
+        self.h2d_t2.addItems(["unknown file"])
+        self.reach_name_label.setText("unknown")
+        self.units_name_label.setText("unknown")  # kind of unit
+        self.number_timstep_label.setText("unknown")  # number units
+        self.units_QListWidget.clear()
+        self.units_QListWidget.setEnabled(True)
+        self.epsg_label.setEnabled(True)
+        self.hname.setText("")  # hdf5 name
+        self.load_b.setText("Create .hyd file")
+
+    def set_epsg_code(self):
+        if hasattr(self, 'hydrau_description'):
+            self.hydrau_description["epsg_code"] = self.epsg_label.text()
+
+    def load_rubar20_gui(self):
+        """
+        The function which call the function which load rubar20 and
+         save the name of files in the project file
+        """
+        # get timestep and epsg selected
+        if self.multi_hdf5:
+            for i in range(len(self.hydrau_description_multiple)):
+                if not any(self.hydrau_description_multiple[i]["unit_list_tf"]):
+                    self.send_log.emit("Error: No units selected for : " + self.hydrau_description_multiple[i][
+                        "filename_source"] + "\n")
+                    return
+        if not self.multi_hdf5:
+            selection = self.units_QListWidget.selectedItems()
+            if not selection:
+                self.send_log.emit("Error: No units selected. \n")
+                return
+            self.hydrau_description["epsg_code"] = self.epsg_label.text()
+
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
-        # test the availability of files
-        fileNOK = True
-        f0 = os.path.join(self.pathfile[0], self.namefile[0])
-        f1 = os.path.join(self.pathfile[1], self.namefile[1])
-        if os.path.isfile(f0) & os.path.isfile(f1):
-            fileNOK = False
-        if fileNOK:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("RUBAR2D"))
-            self.msg2.setText(self.tr("Unable to load RUBAR2D data files!"))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            self.p = Process(target=None)
-            self.p.start()
-            self.q = Queue()
-            return
+        # show progressbar
+        self.nativeParentWidget().progress_bar.setRange(0, 100)
+        self.nativeParentWidget().progress_bar.setValue(0)
+        self.nativeParentWidget().progress_bar.setVisible(True)
 
-        # update the xml file of the project
-        self.save_xml(0)
-        self.save_xml(1)
-
-        # disable while loading
-        self.load_b.setDisabled(True)
-
-        # the path where to save the image
-        path_im = self.find_path_im()
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
+
+        # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        if not self.multi_hdf5:
+            if not os.path.splitext(self.name_hdf5)[1]:
+                self.name_hdf5 = self.name_hdf5 + ".hyd"
+
+        # check if extension is set by user (multi hdf5 case)
+        if self.multi_hdf5:
+            for hdf5_num in range(len(self.hydrau_description_multiple)):
+                if not os.path.splitext(self.hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
+                    self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
-        # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
+        # block button
+        self.load_b.setDisabled(True)  # hydraulic
+
+        # write the new file name in the project file
+        self.save_xml(0)
+
+        # path input
+        path_input = self.find_path_input()
+
+        # load the rubar20 data
         self.q = Queue()
         self.progress_value = Value("i", 0)
-        self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid, args=(self.name_hdf5, self.namefile[0],
-                                                                                  self.namefile[1], self.pathfile[0],
-                                                                                  self.pathfile[1], path_im,
-                                                                                  self.name_prj,
-                                                                                  self.path_prj,
-                                                                                  self.model_type, self.nb_dim,
-                                                                                  self.progress_value,
-                                                                                  path_hdf5,
-                                                                                  self.q, False, self.project_preferences))
-        self.p.name = "Rubar 2D data loading"
+
+        # check rubar20 cases
+        if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
+                self.hydrau_case == 'unknown' and self.multi_hdf5):
+            # refresh units selection
+            self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid,
+                             args=(self.hydrau_description_multiple,
+                                   self.progress_value,
+                                   self.q,
+                                   False,
+                                   self.project_preferences))
+        else:
+            self.hydrau_description["hdf5_name"] = self.name_hdf5
+            self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid,
+                             args=(self.hydrau_description,
+                                   self.progress_value,
+                                   self.q,
+                                   False,
+                                   self.project_preferences))
+        self.p.name = "RUBAR20 data loading"
         self.p.start()
 
-        # copy input file
-        path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-        self.p2.start()
+        # copy input files
+        nb_files = len(self.namefile[0].split(", "))
+        files_list = self.namefile[0].split(", ")
+        path_file_list = [self.pathfile[0]] * nb_files
+        if nb_files > 1:
+            self.p2 = Process(target=hdf5_mod.copy_files, args=(files_list, path_file_list, path_input))
+            self.p2.start()
+        if nb_files == 1:
+            self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: Rubar 2D data...'))
-        # self.send_err_log()
+        self.send_log.emit(self.tr('# Loading: RUBAR20 data...'))
+        self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
-        self.send_log.emit("py    path2=r'" + path_input + "'")
-        self.send_log.emit("py    rubar.load_rubar2d_and_create_grid('Hydro_rubar2d_log',file1, file2, path1, path2,"
-                           " path_prj, name_prj, path_prj, 'RUBAR2D', 2, path_prj, [])\n")
-        self.send_log.emit("restart LOAD_RUBAR_2D")
+        self.send_log.emit(
+            "py    selafin_habby1.load_rubar20_and_cut_grid('hydro_rubar20_log', file1, path1, name_prj, "
+            "path_prj, 'RUBAR20', 2, path_prj, [], True )\n")
+        self.send_log.emit("restart LOAD_RUBAR20")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
 
-    def propose_next_file(self):
-        """
-        This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
-        one file with the geometry data and one file with the simulation results. If the user selects a file, this
-        function looks if a file with the same name but with the extension of the other file type exists in the
-        selected folder.
-        """
-        if len(self.extension[1]) == 1:
-            if self.out_t2.text() == 'unknown file':
-                blob = self.namefile[0]
-                new_name = blob[:-len(self.extension[0][0])] + self.extension[1][0]
-                pathfilename = os.path.join(self.pathfile[0], new_name)
-                if os.path.isfile(pathfilename):
-                    self.out_t2.setText(new_name)
-                    # keep the name in an attribute until we save it
-                    self.pathfile[1] = self.pathfile[0]
-                    self.namefile[1] = new_name
+
 
 
 class Mascaret(SubHydroW):
@@ -1972,7 +2424,7 @@ class Mascaret(SubHydroW):
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -2000,7 +2452,7 @@ class Mascaret(SubHydroW):
         # load mascaret data, distribute the velocity and create the grid in a second thread
         self.q = Queue()
         # for error management and figures (when time finsiehed call the self.show_prog function)
-        self.timer.start(1000)
+        self.timer.start(100)
         self.p = Process(target=mascaret_mod.load_mascaret_and_create_grid,
                          args=(self.name_hdf5, path_hdf5, self.name_prj,
                                self.path_prj, self.model_type,
@@ -2313,7 +2765,7 @@ class River2D(SubHydroW):
         This function is used to load the river 2d data. It use a second thread to avoid freezing the GUI
         """
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # test the availability of files
         if len(self.namefile) == 0:
@@ -2333,7 +2785,7 @@ class River2D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         for i in range(0, len(self.namefile)):
             # save each name in the project file, empty list on i == 0
@@ -2528,7 +2980,7 @@ class Rubar1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if path_im != 'no_path':
             self.save_fig = True
@@ -2555,7 +3007,7 @@ class Rubar1D(SubHydroW):
         # load rubar 1D, distribute velcoity and create the grid
         self.q = Queue()
         # for error management and figures (when time finished call the self.show_prog function)
-        self.timer.start(1000)
+        self.timer.start(100)
         self.p = Process(target=rubar1d2d_mod.load_rubar1d_and_create_grid,
                          args=(self.name_hdf5, path_hdf5, self.name_prj,
                                self.path_prj, self.model_type, self.namefile,
@@ -3052,7 +3504,7 @@ class HEC_RAS2D(SubHydroW):
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3373,6 +3825,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
         except:
             pass
 
+        self.hydrau_description["hdf5_name"] = self.hname.text()
+
         # change telemac description
         self.hydrau_description = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]
 
@@ -3386,6 +3840,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
             self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
             self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
         self.epsg_label.setText(self.hydrau_description["epsg_code"])
+        if not os.path.splitext(self.hydrau_description["hdf5_name"])[1]:
+            self.hydrau_description["hdf5_name"] = self.hydrau_description["hdf5_name"] + ".hyd"
         self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
         self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
         self.unit_counter()
@@ -3516,10 +3972,21 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
+
+        # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        if not self.multi_hdf5:
+            if not os.path.splitext(self.name_hdf5)[1]:
+                self.name_hdf5 = self.name_hdf5 + ".hyd"
+
+        # check if extension is set by user (multi hdf5 case)
+        if self.multi_hdf5:
+            for hdf5_num in range(len(self.hydrau_description_multiple)):
+                if not os.path.splitext(self.hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
+                    self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3797,6 +4264,9 @@ class ASCII(SubHydroW):  # QGroupBox
                         self.load_b.setText("Create .hyd file")
                     if ascii_description["sub"]:
                         self.load_b.setText("Create .hab file")
+                        new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
+                        self.hname.setText(new_hdf5_name)  # hdf5 name
+
                 # multi reach  ==> change reach_name label by combobox
                 if len(ascii_description["unit_list"]) > 1:
                     self.multi_reach = True
@@ -3819,6 +4289,8 @@ class ASCII(SubHydroW):  # QGroupBox
                         self.load_b.setText("Create .hyd file")
                     if ascii_description["sub"]:
                         self.load_b.setText("Create .hab file")
+                        new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
+                        self.hname.setText(new_hdf5_name)  # hdf5 name
 
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
@@ -3977,10 +4449,27 @@ class ASCII(SubHydroW):  # QGroupBox
 
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
+
+        # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        if not self.multi_hdf5:
+            if not os.path.splitext(self.name_hdf5)[1]:
+                if self.hydrau_description["sub"]:
+                    self.name_hdf5 = self.name_hdf5 + ".hab"
+                else:
+                    self.name_hdf5 = self.name_hdf5 + ".hyd"
+
+        # check if extension is set by user (multi hdf5 case)
+        if self.multi_hdf5:
+            for hdf5_num in range(len(self.hydrau_description_multiple)):
+                if not os.path.splitext(self.hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
+                    if self.hydrau_description_multiple[hdf5_num]["sub"]:
+                        self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".sub"
+                    else:
+                        self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -4203,7 +4692,7 @@ class LAMMI(SubHydroW):
             return
 
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # write the new file name in the project file
         self.save_xml(0)
@@ -4218,7 +4707,7 @@ class LAMMI(SubHydroW):
         self.name_hdf5 = self.hname.text()
         # get the image and load option
         path_im = self.find_path_im()
-        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if not os.path.isdir(self.pathfile[2]):
             self.pathfile[2] = []
@@ -4334,6 +4823,145 @@ class SW2D(SubHydroW):
         # self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
+    def show_dialog_sw2d(self, i=0):
+        """
+        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
+        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
+        is then used to loaded the file in other function, which are different for each children class. Based on the
+        name of the chosen file, a name is proposed for the hdf5 file.
+
+        :param i: an int for the case where there is more than one file to load
+        """
+        # disconnect function for multiple file cases
+        try:
+            self.h2d_t2.disconnect()
+        except:
+            pass
+
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        # prepare the filter to show only useful files
+        if len(self.extension[i]) <= 4:
+            filter2 = "File ("
+            for e in self.extension[i]:
+                filter2 += '*' + e + ' '
+            filter2 = filter2[:-1]
+            filter2 += ')' + ";; All File (*.*)"
+        else:
+            filter2 = ''
+
+        # get last path
+        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
+                self.attributexml[0]) != "no_data":
+            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
+        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        else:
+            model_path = self.path_prj  # path proj
+
+        # find the filename based on user choice
+        filename_list = QFileDialog.getOpenFileNames(self,
+                                                     self.tr("Select file(s)"),
+                                                     model_path,
+                                                     filter2)
+
+        # init
+        self.hydrau_case = "unknown"
+        self.multi_hdf5 = False
+        self.index_hydrau_presence = False
+
+        # if file has been selected
+        if filename_list[0]:
+            # clean GUI
+            self.clean_gui()
+
+            # get_hydrau_description_from_source
+            telemac_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                        self.path_prj,
+                                                                                                        self.model_type,
+                                                                                                        self.nb_dim)
+
+            # warnings
+            if warning_list:
+                for warn in warning_list:
+                    self.send_log.emit(warn)
+
+            # error
+            if type(telemac_description) == str:
+                self.clean_gui()
+                self.send_log.emit(telemac_description)
+
+            # one hdf5
+            if type(telemac_description) == dict:
+                self.hydrau_case = telemac_description["hydrau_case"]
+                # multi
+                self.multi_hdf5 = False
+                # save last path
+                self.pathfile[0] = telemac_description["path_filename_source"]  # source file path
+                self.namefile[0] = telemac_description["filename_source"]  # source file name
+                self.name_hdf5 = telemac_description["hdf5_name"]
+                self.save_xml(0)  # path in xml
+                # set to attribute
+                self.hydrau_description = telemac_description
+                # to GUI (decription)
+                self.h2d_t2.clear()
+                self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
+                self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                self.units_QListWidget.clear()
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                if not self.hydrau_description["unit_list_tf"]:
+                    self.units_QListWidget.selectAll()
+                else:
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
+                        self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                self.units_QListWidget.setEnabled(True)
+                self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                self.load_b.setText("Create .hyd file")
+                self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                self.unit_counter()
+
+            # multi hdf5
+            if type(telemac_description) == list:
+                self.hydrau_case = telemac_description[0]["hydrau_case"]
+                # multi
+                self.multi_hdf5 = True
+                # save last path
+                self.pathfile[0] = telemac_description[0]["path_filename_source"]  # source file path
+                self.namefile[0] = telemac_description[0]["filename_source"]  # source file name
+                self.name_hdf5 = telemac_description[0]["hdf5_name"]
+                self.save_xml(0)  # path in xml
+                # set to attribute
+                self.hydrau_description_multiple = telemac_description
+                self.hydrau_description = telemac_description[0]
+                # get names
+                names = [description["filename_source"] for description in self.hydrau_description_multiple]
+                # to GUI (first decription)
+                self.h2d_t2.clear()
+                self.h2d_t2.addItems(names)
+                self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                self.units_QListWidget.clear()
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                if not self.hydrau_description["unit_list_tf"]:
+                    self.units_QListWidget.selectAll()
+                else:
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
+                        self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                self.units_QListWidget.setEnabled(True)
+                self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
+                self.load_b.setText("Create " + str(len(telemac_description)) + " .hyd files")
+                self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                self.unit_counter()
+
     def load_sw2d(self):
         """
         A function to execture the loading and saving the sw2d files using read_sw2d.py.
@@ -4341,7 +4969,7 @@ class SW2D(SubHydroW):
         A second thread is used to avoid "freezing" the GUI.
         """
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # test the availability of files
         fileNOK = True
@@ -4376,13 +5004,15 @@ class SW2D(SubHydroW):
         # load sw2d, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
         # to be changed
+        self.progress_value = Value("i", 0)
         self.p = Process(target=sw2d_mod.load_sw2d_and_modify_grid, args=(self.name_hdf5, self.namefile[0],
                                                                           self.namefile[1], self.pathfile[0],
                                                                           self.pathfile[1], path_im, self.name_prj,
                                                                           self.path_prj,
                                                                           self.model_type, self.nb_dim, path_hdf5,
                                                                           self.q,
-                                                                          False, self.project_preferences))
+                                                                          False, self.project_preferences,
+                                                                          self.progress_value))
         self.p.start()
 
         # copy input file
@@ -4552,7 +5182,7 @@ class IBER2D(SubHydroW):
         A second thread is used to avoid "freezing" the GUI.
         """
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # test the availability of files
         fileNOK = True
@@ -4931,7 +5561,7 @@ class HabbyHdf5(SubHydroW):
                 return
 
             # join the two files
-            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
             if self.project_preferences['erase_id']:
                 erase_id = True
             else:
@@ -5596,7 +6226,7 @@ class SubstrateW(SubHydroW):
             sub_epsg_code = self.epsg_polygon_label.text()
             default_values = self.sub_default_values_polygon_label.text()
             self.name_hdf5 = self.polygon_hname.text()
-            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
             # check if we have all files
             name1 = namebase + '.dbf'
@@ -5671,7 +6301,7 @@ class SubstrateW(SubHydroW):
             sub_epsg_code = self.epsg_point_label.text()
             default_values = self.sub_default_values_point_label.text()
             self.name_hdf5 = self.point_hname.text()
-            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
             sys.stdout = self.mystdout = StringIO()  # out to GUI
 
@@ -5735,7 +6365,7 @@ class SubstrateW(SubHydroW):
             sub_classification_method = self.sub_classification_method_constant_label.text()
             sub_constant_values = self.valuesdata_constant_label.text()
             self.name_hdf5 = self.constant_hname.text()
-            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
             constant_values_list = sub_constant_values.split(",")
             sub_array = [[] for i in range(len(constant_values_list))]
@@ -5920,7 +6550,7 @@ class SubstrateW(SubHydroW):
 
         # get if we erase old data or not
         # get the figure options and the type of output to be created
-        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # block button merge
         self.load_b2.setDisabled(True)  # merge

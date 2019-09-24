@@ -25,6 +25,7 @@ import numpy as np
 import scipy.interpolate
 import scipy.spatial.qhull as qhull
 import triangle
+from scipy.interpolate import griddata
 #from src.dev_tools import profileit
 
 from src_GUI import preferences_GUI
@@ -1096,10 +1097,11 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         point_all_ok=point_all
         water_height_ok=water_height
         velocity_ok=velocity
+        ind_whole = None  # TODO: full whole profile
     # all meshes are entirely dry
     elif not True in mikle_keep:
-        print('Error: all meshes are entirely dry')
-        return failload
+        #print('Error: all meshes are entirely dry')
+        return True, True, True, True, True
     # only the dry meshes are cut (but not the partially ones)
     elif not CutMeshPartialyDry:
         mikle_keep = ikle_type != 0
@@ -1804,6 +1806,36 @@ def interpo_nearest(point_all, coord_pro, vh_pro_t):
         inter_height_all.append(inter_height)
 
     return inter_vel_all, inter_height_all
+
+
+def habby_grid_data(grid_new, grid_ori, vel_ori, height_ori):
+    """
+    HABBY interpolates values from cell-centered volumes (Finite Volume) to nodal values (mesh) using SciPy griddata
+    :param grid_new: xy-coordinates of nodes (mesh)
+    :param grid_ori: xy-coordinates of centroids (volume: triangle)
+    :param vel_ori: original values of the water velocity computed on the volumes
+    :param height_ori: original values of the water depth computed on the volumes
+    :return: new values for the velocity and water depth computes on nodes
+    """
+    # vel_ori = np.array(vel_ori[0])
+    # height_ori = np.array(height_ori[0])
+    # grid_ori = np.array(grid_ori[0])
+
+    # Velocity interpolation (default method: linear)
+    vel_new = griddata(grid_ori, vel_ori, grid_new, method='linear')
+    # Get the NaN from outer nodes and replace with the nearest values
+    vel_nan = np.argwhere(np.isnan(vel_new))
+    vel_new_nan = griddata(grid_ori, vel_ori, grid_new[vel_nan], method='nearest')
+    vel_new[vel_nan] = vel_new_nan
+
+    # Water depth interpolation
+    height_new = griddata(grid_ori, height_ori, grid_new, method='linear')
+    # Get the NaN from outer nodes and replace with the nearest values
+    height_nan = np.argwhere(np.isnan(height_new))
+    height_new_nan = griddata(grid_ori, height_ori, grid_new[vel_nan], method='nearest')
+    height_new[height_nan] = height_new_nan
+
+    return vel_new, height_new
 
 
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):

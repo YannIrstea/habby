@@ -19,14 +19,17 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from src import hec_ras2D_mod
+from copy import deepcopy
 from io import StringIO
+import xml.etree.ElementTree as Etree
+import matplotlib as mpl
+
+from src import hec_ras2D_mod
 from src import hdf5_mod
 from src import manage_grid_mod
-import xml.etree.ElementTree as Etree
 from src import dist_vistess_mod
+from src.project_manag_mod import load_project_preferences
 from src_GUI import preferences_GUI
-import matplotlib as mpl
 
 
 def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
@@ -66,7 +69,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    project_preferences = preferences_GUI.load_project_preferences(path_prj, name_prj)
+    project_preferences = load_project_preferences(path_prj, name_prj)
     [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0], namefile[1], pathfile[0], pathfile[1],
                                                              path_im,
                                                              show_fig_1D, project_preferences)
@@ -734,8 +737,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
     # plt.show()
 
 
-def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im, name_prj, path_prj, model_type,
-                                 nb_dim, progress_value, path_hdf5, q=[], print_cmd=False, project_preferences={}):
+def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     """
     This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
     interpolation and to save the whole in an hdf5 format
@@ -755,6 +757,11 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     """
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
+    file_path = hydrau_description["path_filename_source"]
+    filename = hydrau_description["filename_source"]
 
     # minimum water height
     if not project_preferences:
@@ -762,97 +769,184 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     minwh = project_preferences['min_height_hyd']
 
     # progress
-    progress_value.value = 10
+    progress_value.value = 5
 
-    # create the empy output
-    inter_vel_all_t = []
-    inter_h_all_t = []
-    ikle_all_t = []
-    point_all_t = []
-    point_c_all_t = []
-
-    # load data
-    if not print_cmd:
-        sys.stdout = mystdout = StringIO()
-    [vel_cell, height_cell, coord_p, coord_c, ikle_base, timestep] \
-        = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
-
-    if vel_cell == [-99]:
-        print('Error: Rubar data not loaded.')
-        sys.stdout = sys.__stdout__
-        if q:
-            q.put(mystdout)
-            return
-        else:
-            return
-
-    # create grid
-    # first, the grid for the whole profile (no velcoity or height data)
-    # because we have a "whole" grid for 1D model before the actual time step
-    inter_h_all_t.append([[]])
-    inter_vel_all_t.append([[]])
-    point_all_t.append([coord_p])
-    point_c_all_t.append([coord_c])
-    ikle_all_t.append([ikle_base])
-
-    # the grid data for each time step
-    warn1 = False
-    for t in range(0, len(vel_cell)):
-        # get data no the node (and not on the cells) by linear interpolation
-        if t == 0:
-            [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p],
-                                                                                                   [coord_c], vel_cell[t],
-                                                                                                   height_cell[t], warn1)
-        else:
-            [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p], [coord_c],
-                                                                                                   vel_cell[t],
-                                                                                                   height_cell[t], warn1,
-                                                                                                   vtx_all, wts_all)
-        # cut the grid to the water limit
-        # [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
-        #                                                                         vel_node[0], minwh)
-        #
-        # inter_h_all_t.append([water_height])
-        # inter_vel_all_t.append([velocity])
-        # point_all_t.append([point_all])
-        # point_c_all_t.append([[]])
-        # ikle_all_t.append([ikle])
-        inter_h_all_t.append([height_node[0]])
-        inter_vel_all_t.append([vel_node[0]])
-        point_all_t.append([coord_p])
-        point_c_all_t.append([[]])
-        ikle_all_t.append([ikle_base])
-        warn1 = False
-
-    # save data
-    # timestep_str = list(map(str, timestep))
-    # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-    #                                  point_all_t, point_c_all_t,
-    #                                  inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
-
-        # hyd description
-        hyd_description = dict()
-        hyd_description["hyd_filename_source"] = geofile
-        hyd_description["hyd_model_type"] = "RUBAR2D"
-        hyd_description["hyd_model_dimension"] = 2
-        hyd_description["hyd_variables_list"] = "h, v, z"
-        hyd_description["hyd_epsg_code"] = description_from_indextelemac_file[hyd_file]["epsg_code"]
-        hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
-        hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
-        hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
-        hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
-        hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
-        hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
-        hyd_description["hyd_varying_mesh"] = str(data_2d_whole_profile["unit_correspondence"])
-        hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
-
-        # create hdf5
-        hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
-                                       description_from_indextelemac_file[hyd_file]["hdf5_name"])
-        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
+    # load data from txt file
+    data_2d_from_rubar2d, description_from_rubar2d = load_rubar2d(filename, file_path)
+    if not data_2d_from_rubar2d and not description_from_rubar2d:
+        q.put(mystdout)
+        return
 
     # progress
-    progress_value.value = 90
+    progress_value.value = 10
+
+    # create copy
+    data_2d_whole_profile = deepcopy(data_2d_from_rubar2d)
+    data_2d_whole_profile["tin"] = [[data_2d_whole_profile["tin"]]]
+    data_2d_whole_profile["xy"] = [[data_2d_whole_profile["xy"]]]
+    data_2d_whole_profile["z"] = [[data_2d_whole_profile["z"]]]
+
+    # create empty dict
+    data_2d = dict()
+    data_2d["tin"] = []
+    data_2d["i_whole_profile"] = []
+    data_2d["xy"] = []
+    data_2d["h"] = []
+    data_2d["v"] = []
+    data_2d["z"] = []
+    data_2d["max_slope_bottom"] = []
+    data_2d["max_slope_energy"] = []
+    data_2d["shear_stress"] = []
+    data_2d["total_wet_area"] = []
+
+    # progress from 10 to 90 : from 0 to len(units_index)
+    delta = int(80 / int(description_from_rubar2d["reach_number"]))
+
+    # for each reach
+    for reach_num in range(int(description_from_rubar2d["reach_number"])):
+        data_2d["tin"].append([])
+        data_2d["i_whole_profile"].append([])
+        data_2d["xy"].append([])
+        data_2d["h"].append([])
+        data_2d["v"].append([])
+        data_2d["z"].append([])
+        data_2d["max_slope_bottom"].append([])
+        data_2d["max_slope_energy"].append([])
+        data_2d["shear_stress"].append([])
+        data_2d["total_wet_area"].append([])
+
+        # index to remove (from user selection GUI)
+        index_to_remove = []
+
+        # for each units
+        description_from_rubar2d["unit_list"] = [description_from_rubar2d["unit_list"].split(", ")]
+        for unit_num in range(len(description_from_rubar2d["unit_list"][reach_num])):
+            # get unit from according to user selection
+            if hydrau_description["unit_list_tf"][reach_num][unit_num]:
+
+                # get data no the node (and not on the cells) by linear interpolation
+                [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
+                                                                          data_2d_from_rubar2d["xy_center"],
+                                                                          data_2d_from_rubar2d["v"][reach_num][unit_num],
+                                                                          data_2d_from_rubar2d["h"][reach_num][unit_num])
+
+                # conca xy with z value to facilitate the cutting of the grid (interpolation)
+                xy = np.insert(data_2d_from_rubar2d["xy"],
+                               2,
+                               values=data_2d_from_rubar2d["z"],
+                               axis=1)  # Insert values before column 2
+
+                # remove mesh dry and cut partialy dry in option
+                tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
+                    data_2d_from_rubar2d["tin"],
+                    xy,
+                    vel_node,
+                    height_node,
+                    progress_value,
+                    delta,
+                    project_preferences["CutMeshPartialyDry"],
+                    minwh)
+
+                if not isinstance(tin_data, np.ndarray):  # error or warning
+                    if not tin_data:  # error
+                        print("Error: cut_2d_grid")
+                        q.put(mystdout)
+                        return
+                    elif tin_data:   # entierly dry
+                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
+                        print("Warning: The mesh of timestep " + description_from_rubar2d["unit_list"][reach_num][unit_num] + " is entirely dry.")
+                        continue  # Continue to next iteration.
+                else:
+                    max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                        xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                        z1=xy_cuted[tin_data[:, 0]][:, 2],
+                        h1=h_data[tin_data[:, 0]],
+                        v1=v_data[tin_data[:, 0]],
+                        xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                        z2=xy_cuted[tin_data[:, 1]][:, 2],
+                        h2=h_data[tin_data[:, 1]],
+                        v2=v_data[tin_data[:, 1]],
+                        xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                        z3=xy_cuted[tin_data[:, 2]][:, 2],
+                        h3=h_data[tin_data[:, 2]],
+                        v3=v_data[tin_data[:, 2]])
+
+                    # get points coord
+                    pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+                    pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+                    pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+
+                    # get area
+                    area = 0.5 * abs(
+                        (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
+                    area_reach = np.sum(area)
+
+                    # get cuted grid
+                    data_2d["tin"][reach_num].append(tin_data)
+                    data_2d["i_whole_profile"][reach_num].append(i_whole_profile)
+                    data_2d["xy"][reach_num].append(xy_cuted[:, :2])
+                    data_2d["h"][reach_num].append(h_data)
+                    data_2d["v"][reach_num].append(v_data)
+                    data_2d["z"][reach_num].append(xy_cuted[:, 2])
+                    data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
+                    data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
+                    data_2d["shear_stress"][reach_num].append(shear_stress)
+                    data_2d["total_wet_area"][reach_num].append(area_reach)
+
+            # erase unit in whole_profile
+            else:
+                index_to_remove.append(unit_num)
+
+        # index to remove (from user selection GUI)
+        for index in reversed(index_to_remove):
+            data_2d_whole_profile["tin"][reach_num].pop(index)
+            data_2d_whole_profile["xy"][reach_num].pop(index)
+            data_2d_whole_profile["z"][reach_num].pop(index)
+
+    # remove unused keys
+    #del data_2d_whole_profile["i_whole_profile"]
+    del data_2d_whole_profile["h"]
+    del data_2d_whole_profile["v"]
+
+    # refresh unit (if unit mesh entirely dry)
+    for reach_num in reversed(range(int(description_from_rubar2d["reach_number"]))):  # for each reach
+        for unit_num in reversed(range(len(description_from_rubar2d["unit_list"][reach_num]))):
+            if not hydrau_description["unit_list_tf"][reach_num][unit_num]:
+                description_from_rubar2d["unit_list"][reach_num].pop(unit_num)
+    description_from_rubar2d["unit_number"] = str(len(description_from_rubar2d["unit_list"][0]))
+
+    # ALL CASE SAVE TO HDF5
+    progress_value.value = 90  # progress
+
+    # hyd description
+    hyd_description = dict()
+    hyd_description["hyd_filename_source"] = description_from_rubar2d["filename_source"]
+    hyd_description["hyd_model_type"] = description_from_rubar2d["model_type"]
+    hyd_description["hyd_model_dimension"] = description_from_rubar2d["model_dimension"]
+    hyd_description["hyd_variables_list"] = "h, v, z"
+    hyd_description["hyd_epsg_code"] = "unknown"
+    hyd_description["hyd_reach_list"] = "unknown"
+    hyd_description["hyd_reach_number"] = description_from_rubar2d["reach_number"]
+    hyd_description["hyd_reach_type"] = "river"
+    hyd_description["hyd_unit_list"] = description_from_rubar2d["unit_list"]
+    hyd_description["hyd_unit_number"] = description_from_rubar2d["unit_number"]
+    hyd_description["hyd_unit_type"] = description_from_rubar2d["unit_type"]
+    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
+
+    hyd_description["hyd_varying_mesh"] = False
+    if hyd_description["hyd_varying_mesh"]:
+        hyd_description["hyd_unit_z_equal"] = False
+    else:
+        # TODO : check if all z values are equal between units
+        hyd_description["hyd_unit_z_equal"] = True
+
+    # create hdf5
+    hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
+                                   hydrau_description["hdf5_name"])
+    hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
+
+    # progress
+    progress_value.value = 100
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
@@ -861,7 +955,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         return
 
 
-def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
+def load_rubar2d(filename, file_path):
     """
     This is the function used to load the RUBAR data in 2D.
 
@@ -875,110 +969,142 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
              the coordinates of the center of the cells and the connectivity table.
     """
 
-    blob, ext = os.path.splitext(geofile)
-    if ext == '.mai':
-        [ikle, xy, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)
-    elif ext == '.dat':
-        [ikle, xy, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)
-    else:
-        return [-99], [-99], [-99], [-99], [-99], [-99]
-    [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)
-    [ikle, coord_c, xy, h, v] = get_triangular_grid(ikle, coord_c, xy, h, v)
-    if save_fig:
-        figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [-1])
+    pathgeo = file_path
+    pathtps = file_path
+    geofile = filename + ".dat"
+    tpsfile = filename + ".tps"
 
-    return v, h, xy, coord_c, ikle, timestep
+    # DAT
+    [ikle, xy, z, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)   # node
+
+    # TPS
+    [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)   # cell
+
+    # QUADRANGLE TO TRIANGLE
+    [ikle, coord_c, xy, h, v, z] = get_triangular_grid(ikle, coord_c, xy, h, v, z)
+
+    # description telemac data dict
+    description_from_file = dict()
+    description_from_file["filename_source"] = geofile + "; " + tpsfile
+    description_from_file["model_type"] = "RUBAR2D"
+    description_from_file["model_dimension"] = str(2)
+    description_from_file["unit_list"] = ", ".join(list(map(str, timestep)))
+    description_from_file["unit_number"] = str(len(list(map(str, timestep))))
+    description_from_file["unit_type"] = "timestep [s]"
+    description_from_file["unit_z_equal"] = True
+    description_from_file["reach_number"] = "1"
+
+    # data 2d dict
+    data_2d = dict()
+    data_2d["h"] = [np.array(h, dtype=np.float64)]
+    data_2d["v"] = [np.array(v, dtype=np.float64)]
+    data_2d["z"] = z
+    data_2d["xy"] = xy
+    data_2d["tin"] = np.array(ikle, dtype=np.int)
+    data_2d["xy_center"] = np.array(coord_c, dtype=np.float64)
+
+    return data_2d, description_from_file
 
 
-def load_mai_2d(geofile, path):
+# def load_mai_2d(geofile, path):
+#     """
+#     The function to load the geomtery info for the 2D case when we use the .mai file. It would also be possible
+#     to use the .dat file. In fact, it is advised to use the dat file when possible as there are more info in the .dat file.
+#
+#     :param geofile: the .mai file which contain the connectivity table and the (x,y)
+#     :param path: the path to this file
+#     :return: connectivity table, point coordinates, coordinates of the cell centers
+#     """
+#     filename_path = os.path.join(path, geofile)
+#     # check extension
+#     blob, ext = os.path.splitext(geofile)
+#     if ext != '.mai':
+#         print('Warning: The fils does not seem to be of .mai type.\n')
+#     # check if the file exist
+#     if not os.path.isfile(filename_path):
+#         print('Error: The .mai file does not exist.')
+#         return [-99], [-99], [-99], [-99]
+#     # open file
+#     try:
+#         with open(filename_path, 'rt') as f:
+#             data_geo2d = f.read()
+#     except IOError:
+#         print('Error: The .mai file can not be open.\n')
+#         return [-99], [-99], [-99], [-99]
+#     data_geo2d = data_geo2d.splitlines()
+#     # extract nb cells
+#     try:
+#         nb_cell = np.int(data_geo2d[0])
+#     except ValueError:
+#         print('Error: Could not extract the number of cells from the .mai file.\n')
+#         return [-99], [-99], [-99], [-99]
+#         nb_cell = 0
+#     # extract connectivity table, not always triangle
+#     data_l = data_geo2d[1].split()
+#     m = 0
+#     ikle = []
+#     while len(data_l) > 1:
+#         m += 1
+#         if m == len(data_geo2d):
+#             print('Error: Could not extract the connectivity table from the .mai file.\n')
+#             return [-99], [-99], [-99], [-99]
+#         data_l = data_geo2d[m].split()
+#         ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
+#         for i in range(0, len(data_l) - 1):
+#             try:
+#                 ind_l[i] = int(data_l[i + 1]) - 1
+#             except ValueError:
+#                 print('Error: Could not extract the connectivity table from the .mai file.\n')
+#                 return [-99], [-99], [-99], [-99]
+#         ikle.append(ind_l)
+#
+#     if len(ikle) != nb_cell + 1:
+#         print('Warning: some cells might be missing.\n')
+#     # nb coordinates
+#     try:
+#         nb_coord = np.int(data_geo2d[m])
+#     except ValueError:
+#         print('Error: Could not extract the number of coordinates from the .mai file.\n')
+#         nb_coord = 0
+#     # extract coordinates
+#     data_f = []
+#     m += 1
+#     for mi in range(m, len(data_geo2d)):
+#         data_str = data_geo2d[mi]
+#         l = 0
+#         while l < len(data_str):
+#             try:
+#                 data_f.append(float(data_str[l:l + 8]))  # the length of number is eight.
+#                 l += 8
+#             except ValueError:
+#                 print('Error: Could not extract the coordinates from the .mai file.\n')
+#                 return [-99], [-99], [-99], [-99]
+#     # separe x and z
+#     x = data_f[0:nb_coord]  # choose every 2 float
+#     y = data_f[nb_coord:]
+#     xy = np.column_stack((x, y))
+#
+#     # find the center point of each cell
+#     # slow because number of point of a cell changes
+#     coord_c = []
+#     for c in range(0, nb_cell):
+#         ikle_c = ikle[c]
+#         xy_c = [0, 0]
+#         for i in range(0, len(ikle_c)):
+#             xy_c += xy[ikle_c[i]]
+#         coord_c.append(xy_c / len(ikle_c))
+#
+#     return ikle, xy, coord_c, nb_cell
+
+
+def wrap(s, w):
     """
-    The function to load the geomtery info for the 2D case when we use the .mai file. It would also be possible
-    to use the .dat file. In fact, it is advised to use the dat file when possible as there are more info in the .dat file.
-
-    :param geofile: the .mai file which contain the connectivity table and the (x,y)
-    :param path: the path to this file
-    :return: connectivity table, point coordinates, coordinates of the cell centers
+    Divide a string in fixed length
+    :param s: the string to divide
+    :param w: the length
+    :return: a list of substrings
     """
-    filename_path = os.path.join(path, geofile)
-    # check extension
-    blob, ext = os.path.splitext(geofile)
-    if ext != '.mai':
-        print('Warning: The fils does not seem to be of .mai type.\n')
-    # check if the file exist
-    if not os.path.isfile(filename_path):
-        print('Error: The .mai file does not exist.')
-        return [-99], [-99], [-99], [-99]
-    # open file
-    try:
-        with open(filename_path, 'rt') as f:
-            data_geo2d = f.read()
-    except IOError:
-        print('Error: The .mai file can not be open.\n')
-        return [-99], [-99], [-99], [-99]
-    data_geo2d = data_geo2d.splitlines()
-    # extract nb cells
-    try:
-        nb_cell = np.int(data_geo2d[0])
-    except ValueError:
-        print('Error: Could not extract the number of cells from the .mai file.\n')
-        return [-99], [-99], [-99], [-99]
-        nb_cell = 0
-    # extract connectivity table, not always triangle
-    data_l = data_geo2d[1].split()
-    m = 0
-    ikle = []
-    while len(data_l) > 1:
-        m += 1
-        if m == len(data_geo2d):
-            print('Error: Could not extract the connectivity table from the .mai file.\n')
-            return [-99], [-99], [-99], [-99]
-        data_l = data_geo2d[m].split()
-        ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
-        for i in range(0, len(data_l) - 1):
-            try:
-                ind_l[i] = int(data_l[i + 1]) - 1
-            except ValueError:
-                print('Error: Could not extract the connectivity table from the .mai file.\n')
-                return [-99], [-99], [-99], [-99]
-        ikle.append(ind_l)
-
-    if len(ikle) != nb_cell + 1:
-        print('Warning: some cells might be missing.\n')
-    # nb coordinates
-    try:
-        nb_coord = np.int(data_geo2d[m])
-    except ValueError:
-        print('Error: Could not extract the number of coordinates from the .mai file.\n')
-        nb_coord = 0
-    # extract coordinates
-    data_f = []
-    m += 1
-    for mi in range(m, len(data_geo2d)):
-        data_str = data_geo2d[mi]
-        l = 0
-        while l < len(data_str):
-            try:
-                data_f.append(float(data_str[l:l + 8]))  # the length of number is eight.
-                l += 8
-            except ValueError:
-                print('Error: Could not extract the coordinates from the .mai file.\n')
-                return [-99], [-99], [-99], [-99]
-    # separe x and z
-    x = data_f[0:nb_coord]  # choose every 2 float
-    y = data_f[nb_coord:]
-    xy = np.column_stack((x, y))
-
-    # find the center point of each cellss
-    # slow because number of point of a cell changes
-    coord_c = []
-    for c in range(0, nb_cell):
-        ikle_c = ikle[c]
-        xy_c = [0, 0]
-        for i in range(0, len(ikle_c)):
-            xy_c += xy[ikle_c[i]]
-        coord_c.append(xy_c / len(ikle_c))
-
-    return ikle, xy, coord_c, nb_cell
+    return [s[i:i + w] for i in range(0, len(s), w)]
 
 
 def load_dat_2d(geofile, path):
@@ -999,21 +1125,21 @@ def load_dat_2d(geofile, path):
     # check if the file exist
     if not os.path.isfile(filename_path):
         print('Error: The .dat file does not exist.')
-        return [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99]
     # open file
     try:
         with open(filename_path, 'rt') as f:
             data_geo2d = f.read()
     except IOError:
         print('Error: The .dat file can not be open.\n')
-        return [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99]
     data_geo2d = data_geo2d.splitlines()
     # extract nb cells
     try:
         nb_cell = np.int(data_geo2d[0])
     except ValueError:
         print('Error: Could not extract the number of cells from the .dat file.\n')
-        return [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99]
         nb_cell = 0
     # extract connectivity table, not always triangle
     # in the .dat file we want only one line out for three
@@ -1024,8 +1150,10 @@ def load_dat_2d(geofile, path):
     while m < nb_cell * 3:
         if m >= len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .dat file.\n')
-            return [-99], [-99], [-99], [-99]
+            return [-99], [-99], [-99], [-99], [-99]
         data_l = data_geo2d[m].split()
+        # data_l = data_geo2d[m].split()
+        data_l = wrap(data_geo2d[m], 6)
         if m2 == m:
             ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
             for i in range(0, len(data_l) - 1):
@@ -1033,7 +1161,7 @@ def load_dat_2d(geofile, path):
                     ind_l[i] = int(data_l[i + 1]) - 1
                 except ValueError:
                     print('Error: Could not extract the connectivity table from the .dat file.\n')
-                    return [-99], [-99], [-99], [-99]
+                    return [-99], [-99], [-99], [-99], [-99]
             ikle.append(ind_l)
             m2 += 3
         m += 1
@@ -1057,7 +1185,7 @@ def load_dat_2d(geofile, path):
     data_f = []
     m += 1
     c = 0
-    while c < 2 * nb_coord and c < 10 ** 8:
+    while c < 3 * nb_coord and c < 10 ** 8:
         data_str = data_geo2d[m]
         l = 0
         while l < len(data_str):
@@ -1068,17 +1196,15 @@ def load_dat_2d(geofile, path):
             except ValueError:
                 print('Error: Could not extract the coordinates from the .dat file.\n')
                 print(data_geo2d[mi])
-                return [-99], [-99], [-99], [-99]
+                return [-99], [-99], [-99], [-99], [-99]
         m += 1
     # separe x and y
     x = data_f[0:nb_coord]  # choose every 2 float
-    y = data_f[nb_coord:]
+    y = data_f[nb_coord:2*nb_coord]
+    z = data_f[2*nb_coord:]
     xy = np.column_stack((x, y))
 
-    # get z
-    z_position_line = [data_geo2d[index] for index, value in enumerate(data_geo2d) if len(value) == 80]
-
-    # find the center point of each cellss
+    # find the center point of each cell
     # slow because number of point of a cell changes
     coord_c = []
 
@@ -1089,7 +1215,62 @@ def load_dat_2d(geofile, path):
             xy_c += xy[ikle_c[i]]
         coord_c.append(xy_c / len(ikle_c))
 
-    return ikle, xy, coord_c, nb_cell
+    return ikle, xy, z, coord_c, nb_cell
+
+
+# def load_tps_2d(tpsfile, path, nb_cell):
+#     """
+#     The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
+#
+#     :param tpsfile: the name of the file with the data for the 2d case
+#     :param path: the path to the tps file.
+#     :param nb_cell: the number of cell extracted from the .mai file
+#     :return: v, h, timestep (all in list of np.array)
+#     """
+#     filename_path = os.path.join(path, tpsfile)
+#     # check extension
+#     blob, ext = os.path.splitext(tpsfile)
+#     if ext != '.tps':
+#         print('Warning: The fils does not seem to be of .tps type.\n')
+#     # open file
+#     try:
+#         with open(filename_path, 'rt') as f:
+#             data_tps = f.read()
+#     except IOError:
+#         print('Error: The .tps file does not exist.\n')
+#         return [-99], [-99], [-99]
+#     data_tps = data_tps.split()
+#     # get data and transform into float
+#     i = 0
+#     t = []
+#     h = []
+#     v = []
+#     while i < len(data_tps):
+#         try:
+#             # time
+#             ti = np.float(data_tps[i])
+#             t.append(ti)
+#             i += 1
+#             hi = np.array(list(map(float, data_tps[i:i + nb_cell])))
+#             h.append(hi)
+#             i += nb_cell
+#             qve = np.array(list(map(float, data_tps[i:i + nb_cell])))
+#             i += nb_cell
+#             que = np.array(list(map(float, data_tps[i:i + nb_cell])))
+#             i += nb_cell
+#             # velocity
+#             hiv = np.copy(hi)
+#             hiv[hiv == 0] = -99  # avoid division by zeros
+#             if len(que) != len(qve):
+#                 np.set_printoptions(threshold=np.inf)
+#             vi = np.sqrt((que / hiv) ** 2 + (qve / hiv) ** 2)
+#             vi[hi == 0] = 0  # get realistic again
+#             v.append(vi)
+#         except ValueError:
+#             print('Error: the data could not be extracted from the .tps file. Error at number ' + str(i) + '.\n')
+#             return [-99], [-99], [-99]
+#
+#     return t, h, v
 
 
 def load_tps_2d(tpsfile, path, nb_cell):
@@ -1113,41 +1294,100 @@ def load_tps_2d(tpsfile, path, nb_cell):
     except IOError:
         print('Error: The .tps file does not exist.\n')
         return [-99], [-99], [-99]
-    data_tps = data_tps.split()
-    # get data and transform into float
-    i = 0
-    t = []
+    data_tps_splited = data_tps.strip().split("\n")
+
+    # get timestep
+    timestep_list = []
+    timestep_index_list = []
+    for line_index, line_str in enumerate(data_tps_splited):
+        if len(line_str) < 30 and line_str != "":  # get timestep
+            timestep_list.append(line_str.strip())
+            timestep_index_list.append(line_index)  # remove timestep to list
+
+    # remove timestep lines
+    for timestep_index in reversed(timestep_index_list):
+        data_tps_splited.pop(timestep_index)
+
+    line_block_len = int(len(data_tps_splited) / len(timestep_list))
+    line_block_variable_len = int(line_block_len / 3)
+
+    # get raw data
+    hi = []
+    qve = []
+    que = []
+    start = -line_block_len
+    for _ in timestep_list:  # for each timestep
+        start += line_block_len
+        end = start + line_block_len
+        block_timestep = data_tps_splited[start:end]
+        hi_timestep = []
+        qve_timestep = []
+        que_timestep = []
+        for line_index in range(line_block_variable_len):  # for each block_variable
+            hi_timestep.extend(list(map(float, [block_timestep[0:line_block_variable_len * 2][line_index][i:i+10] for i in range(0, len(block_timestep[0:line_block_variable_len * 2][line_index]), 10)])))  # split all 10 character (because they can be stuck together)
+            qve_timestep.extend(list(map(float, [block_timestep[line_block_variable_len:line_block_variable_len * 2][line_index][i:i+10] for i in range(0, len(block_timestep[line_block_variable_len:line_block_variable_len * 2][line_index]), 10)])))
+            que_timestep.extend(list(map(float, [block_timestep[line_block_variable_len:line_block_variable_len * 3][line_index][i:i+10] for i in range(0, len(block_timestep[line_block_variable_len:line_block_variable_len * 3][line_index]), 10)])))
+        hi.append(hi_timestep)
+        qve.append(qve_timestep)
+        que.append(que_timestep)
+
+    hi = np.asarray(hi)
+    qve = np.asarray(qve)
+    que = np.asarray(que)
+
+    hiv = np.copy(hi)
+    hiv[hiv == 0] = -99  # avoid division by zeros
+    if len(que) != len(qve):
+        np.set_printoptions(threshold=np.inf)
+    vi = np.sqrt((que / hiv) ** 2 + (qve / hiv) ** 2)
+    vi[hi == 0] = 0  # get realistic again
+
+    # convert to list
     h = []
     v = []
-    while i < len(data_tps):
-        try:
-            # time
-            ti = np.float(data_tps[i])
-            t.append(ti)
-            i += 1
-            hi = np.array(list(map(float, data_tps[i:i + nb_cell])))
-            h.append(hi)
-            i += nb_cell
-            qve = np.array(list(map(float, data_tps[i:i + nb_cell])))
-            i += nb_cell
-            que = np.array(list(map(float, data_tps[i:i + nb_cell])))
-            i += nb_cell
-            # velocity
-            hiv = np.copy(hi)
-            hiv[hiv == 0] = -99  # avoid division by zeros
-            if len(que) != len(qve):
-                np.set_printoptions(threshold=np.inf)
-            vi = np.sqrt((que / hiv) ** 2 + (qve / hiv) ** 2)
-            vi[hi == 0] = 0  # get realistic again
-            v.append(vi)
-        except ValueError:
-            print('Error: the data could not be extracted from the .tps file. Error at number ' + str(i) + '.\n')
-            return [-99], [-99], [-99]
+    for timestep_index, _ in enumerate(timestep_list):  # for each timestep
+        h.append(hi[timestep_index])
+        v.append(vi[timestep_index])
 
-    return t, h, v
+    return timestep_list, h, v
 
 
-def get_triangular_grid(ikle, coord_c, xy, h, v):
+def get_time_step(filename_without_extension, path):
+    """
+    The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
+
+    :param tpsfile: the name of the file with the data for the 2d case
+    :param path: the path to the tps file.
+    :param nb_cell: the number of cell extracted from the .mai file
+    :return: v, h, timestep (all in list of np.array)
+    """
+    # get time step
+    tpsfile = os.path.splitext(filename_without_extension)[0] + ".tps"
+    filename_path = os.path.join(path, tpsfile)
+    # check extension
+    blob, ext = os.path.splitext(tpsfile)
+    if ext != '.tps':
+        print('Warning: The fils does not seem to be of .tps type.\n')
+    # open file
+    try:
+        with open(filename_path, 'rt') as f:
+            data_tps = f.read()
+    except IOError:
+        print('Error: The .tps file does not exist.\n')
+        return [-99], [-99]
+    data_tps_splited = data_tps.split("\n")
+
+    timestep = []
+    for line_str in data_tps_splited:
+        if len(line_str) < 30 and line_str:
+            timestep.append(line_str.strip())
+
+    nb_t = len(timestep)
+
+    return nb_t, timestep
+
+
+def get_triangular_grid(ikle, coord_c, xy, h, v, z):
     """
     In Rubar, it is possible to have non-triangular cells. It is possible to have a grid composed of a mix
     of pentagonal, 4-sided and triangualr cells. This function transform the "mixed" grid to a triangular grid. For this,
@@ -1160,13 +1400,15 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
     :param xy: the points of the grid (np.array)
     :param h: data on water height
     :param v: data on velocity
+    :param z: data on bottom levels
     :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)
     """
 
     # this is important for speed. np.array are slow to append value
-    xy = list(xy)
+    xy = xy.tolist()
     h2 = []
     v2 = []
+    z2 = z
     nbtime = len(v)
     for t in range(0, nbtime):
         h2.append(list(h[t]))
@@ -1182,41 +1424,42 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
             print('Error: A cell with an area of 0 is found.\n')
             print(ikle_c)
             return [-99], [-99], [-99], [-99], [-99]
-
         elif len(ikle_c) > 3:
             # the new cell is compose of triangle where one point is the centroid and two points are side of
             # the polygon which composed the cells before. The first new triangular cell take the place of the old one
             # (to avoid changing the order of ikle), the other are added at the end
             # no change to v and h for the first triangular data, change afterwards
             xy.append(coord_c[c])
+            # add new value for the bottom level
+            z2.append(np.mean(np.array(z2)[ikle[c]]))
             # first triangular cell
             ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
             p1 = xy[len(xy) - 1]
-            coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1) / 3
+            coord_c[c] = (np.array(xy[ikle_c[0]]) + np.array(xy[ikle_c[1]]) + p1) / 3
             # next triangular cell
             for s in range(1, len(ikle_c) - 1):
                 ikle.append([ikle_c[s], ikle_c[s + 1], len(xy) - 1])
-                coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s + 1]] + p1) / 3)
+                coord_c.append((np.array(xy[ikle_c[s]]) + np.array(xy[ikle_c[s + 1]]) + p1) / 3)
                 for t in range(0, nbtime):
                     v2[t].append(v[t][c])
                     h2[t].append(h[t][c])
             # last triangular cells
             ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
-            coord_c.append((xy[ikle_c[-1]] + xy[ikle_c[0]] + p1) / 3)
+            coord_c.append((np.array(xy[ikle_c[-1]]) + np.array(xy[ikle_c[0]]) + p1) / 3)
             for t in range(0, nbtime):
                 v2[t].append(v[t][c])
                 h2[t].append(h[t][c])
-
     xy = np.array(xy)
     v = []
     h = []
+
     for t in range(0, nbtime):
         # there is an extra [] for the case where we more than one reach
         # to be corrected if we get multi-reach RUBAR simulation
-        h.append([np.array(h2[t])])
-        v.append([np.array(v2[t])])
+        h.append(np.array(h2[t]))
+        v.append(np.array(v2[t]))
 
-    return ikle, coord_c, xy, v, h
+    return ikle, coord_c, xy, v, h, z2
 
 
 def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):

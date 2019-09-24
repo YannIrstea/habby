@@ -115,8 +115,6 @@ def main():
         from src_GUI import main_window_GUI
         # create app
         app = QApplication(sys.argv)
-        print("main", app.applicationDirPath())
-        print("sys.argv", sys.argv)
 
         # Create and display the splash screen
         splash_pix = QPixmap('translation/habby_icon.png')
