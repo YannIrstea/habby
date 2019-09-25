@@ -193,8 +193,6 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 else:
                     return "Error: " + file_from_indexfile + " doesn't exist in " + folder_path, None
 
-
-
         # check conditions
         if all(selectedfiles_textfiles_match):
             selectedfiles_textfiles_matching = True

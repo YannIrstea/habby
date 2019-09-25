@@ -827,11 +827,11 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
 
-                # get data no the node (and not on the cells) by linear interpolation
-                [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
-                                                                          data_2d_from_rubar2d["xy_center"],
-                                                                          data_2d_from_rubar2d["v"][reach_num][unit_num],
-                                                                          data_2d_from_rubar2d["h"][reach_num][unit_num])
+                # # get data no the node (and not on the cells) by linear interpolation
+                # [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
+                #                                                           data_2d_from_rubar2d["xy_center"],
+                #                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
+                #                                                           data_2d_from_rubar2d["h"][reach_num][unit_num])
 
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_rubar2d["xy"],
@@ -843,8 +843,8 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                 tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
                     data_2d_from_rubar2d["tin"],
                     xy,
-                    vel_node,
-                    height_node,
+                    data_2d_from_rubar2d["v"][reach_num][unit_num],
+                    data_2d_from_rubar2d["h"][reach_num][unit_num],
                     progress_value,
                     delta,
                     project_preferences["CutMeshPartialyDry"],
@@ -978,15 +978,16 @@ def load_rubar2d(filename, file_path, progress_value):
     tpsfile = filename + ".tps"
 
     # DAT
-    [ikle, xy, z, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)   # node
+    ikle, xy, z, nb_cell = load_dat_2d(geofile, pathgeo)   # node
     progress_value.value = 6
 
     # TPS
-    [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)   # cell
+    timestep, h, v = load_tps_2d(tpsfile, pathtps, nb_cell)   # cell
     progress_value.value = 7
 
     # QUADRANGLE TO TRIANGLE
-    [ikle, coord_c, xy, h, v, z] = get_triangular_grid(ikle, coord_c, xy, h, v, z)
+    # ikle, coord_c, xy, h, v, z = get_triangular_grid(ikle, coord_c, xy, h, v, z)
+    ikle, xyz, h, v = get_triangular_grid(ikle, np.hstack(xy, z), h, v)
 
     # description telemac data dict
     description_from_file = dict()
@@ -1006,7 +1007,6 @@ def load_rubar2d(filename, file_path, progress_value):
     data_2d["z"] = z
     data_2d["xy"] = xy
     data_2d["tin"] = np.array(ikle, dtype=np.int)
-    data_2d["xy_center"] = np.array(coord_c, dtype=np.float64)
 
     return data_2d, description_from_file
 
@@ -1160,7 +1160,7 @@ def load_dat_2d(geofile, path):
         # data_l = data_geo2d[m].split()
         data_l = wrap(data_geo2d[m], 6)
         if m2 == m:
-            ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
+            ind_l = np.array([-1] * (len(data_l) - 1), dtype=np.int)
             for i in range(0, len(data_l) - 1):
                 try:
                     ind_l[i] = int(data_l[i + 1]) - 1
@@ -1209,18 +1209,7 @@ def load_dat_2d(geofile, path):
     z = data_f[2*nb_coord:]
     xy = np.column_stack((x, y))
 
-    # find the center point of each cell
-    # slow because number of point of a cell changes
-    coord_c = []
-
-    for c in range(0, nb_cell):
-        ikle_c = ikle[c]
-        xy_c = [0, 0]
-        for i in range(0, len(ikle_c)):
-            xy_c += xy[ikle_c[i]]
-        coord_c.append(xy_c / len(ikle_c))
-
-    return ikle, xy, z, coord_c, nb_cell
+    return ikle, xy, z, nb_cell
 
 
 # @profileit
