@@ -16,20 +16,23 @@ https://github.com/YannIrstea/habby
 """
 import os
 import sys
-import numpy as np
-import matplotlib.pyplot as plt
 import time
+import xml.etree.ElementTree as Etree
 from copy import deepcopy
 from io import StringIO
-import xml.etree.ElementTree as Etree
-import matplotlib as mpl
 
-from src import hec_ras2D_mod
-from src import hdf5_mod
-from src import manage_grid_mod
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+
 from src import dist_vistess_mod
+from src import hdf5_mod
+from src import hec_ras2D_mod
+from src import manage_grid_mod
+from src.dev_tools import profileit
 from src.project_manag_mod import load_project_preferences
 from src_GUI import preferences_GUI
+from src.user_preferences_mod import user_preferences
 
 
 def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
@@ -772,7 +775,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     progress_value.value = 5
 
     # load data from txt file
-    data_2d_from_rubar2d, description_from_rubar2d = load_rubar2d(filename, file_path)
+    data_2d_from_rubar2d, description_from_rubar2d = load_rubar2d(filename, file_path, progress_value)
     if not data_2d_from_rubar2d and not description_from_rubar2d:
         q.put(mystdout)
         return
@@ -800,7 +803,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     data_2d["total_wet_area"] = []
 
     # progress from 10 to 90 : from 0 to len(units_index)
-    delta = int(80 / int(description_from_rubar2d["reach_number"]))
+    delta = int(80 / int(description_from_rubar2d["unit_number"]))
 
     # for each reach
     for reach_num in range(int(description_from_rubar2d["reach_number"])):
@@ -824,11 +827,11 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
 
-                # get data no the node (and not on the cells) by linear interpolation
-                [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
-                                                                          data_2d_from_rubar2d["xy_center"],
-                                                                          data_2d_from_rubar2d["v"][reach_num][unit_num],
-                                                                          data_2d_from_rubar2d["h"][reach_num][unit_num])
+                # # get data no the node (and not on the cells) by linear interpolation
+                # [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
+                #                                                           data_2d_from_rubar2d["xy_center"],
+                #                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
+                #                                                           data_2d_from_rubar2d["h"][reach_num][unit_num])
 
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_rubar2d["xy"],
@@ -840,8 +843,8 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                 tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
                     data_2d_from_rubar2d["tin"],
                     xy,
-                    vel_node,
-                    height_node,
+                    data_2d_from_rubar2d["v"][reach_num][unit_num],
+                    data_2d_from_rubar2d["h"][reach_num][unit_num],
                     progress_value,
                     delta,
                     project_preferences["CutMeshPartialyDry"],
@@ -955,7 +958,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
         return
 
 
-def load_rubar2d(filename, file_path):
+def load_rubar2d(filename, file_path, progress_value):
     """
     This is the function used to load the RUBAR data in 2D.
 
@@ -975,13 +978,16 @@ def load_rubar2d(filename, file_path):
     tpsfile = filename + ".tps"
 
     # DAT
-    [ikle, xy, z, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)   # node
+    ikle, xy, z, nb_cell = load_dat_2d(geofile, pathgeo)   # node
+    progress_value.value = 6
 
     # TPS
-    [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)   # cell
+    timestep, h, v = load_tps_2d(tpsfile, pathtps, nb_cell)   # cell
+    progress_value.value = 7
 
     # QUADRANGLE TO TRIANGLE
-    [ikle, coord_c, xy, h, v, z] = get_triangular_grid(ikle, coord_c, xy, h, v, z)
+    # ikle, coord_c, xy, h, v, z = get_triangular_grid(ikle, coord_c, xy, h, v, z)
+    ikle, xyz, h, v = get_triangular_grid(ikle, np.hstack(xy, z), h, v)
 
     # description telemac data dict
     description_from_file = dict()
@@ -1001,7 +1007,6 @@ def load_rubar2d(filename, file_path):
     data_2d["z"] = z
     data_2d["xy"] = xy
     data_2d["tin"] = np.array(ikle, dtype=np.int)
-    data_2d["xy_center"] = np.array(coord_c, dtype=np.float64)
 
     return data_2d, description_from_file
 
@@ -1155,7 +1160,7 @@ def load_dat_2d(geofile, path):
         # data_l = data_geo2d[m].split()
         data_l = wrap(data_geo2d[m], 6)
         if m2 == m:
-            ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
+            ind_l = np.array([-1] * (len(data_l) - 1), dtype=np.int)
             for i in range(0, len(data_l) - 1):
                 try:
                     ind_l[i] = int(data_l[i + 1]) - 1
@@ -1204,20 +1209,10 @@ def load_dat_2d(geofile, path):
     z = data_f[2*nb_coord:]
     xy = np.column_stack((x, y))
 
-    # find the center point of each cell
-    # slow because number of point of a cell changes
-    coord_c = []
-
-    for c in range(0, nb_cell):
-        ikle_c = ikle[c]
-        xy_c = [0, 0]
-        for i in range(0, len(ikle_c)):
-            xy_c += xy[ikle_c[i]]
-        coord_c.append(xy_c / len(ikle_c))
-
-    return ikle, xy, z, coord_c, nb_cell
+    return ikle, xy, z, nb_cell
 
 
+# @profileit
 # def load_tps_2d(tpsfile, path, nb_cell):
 #     """
 #     The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
@@ -1272,7 +1267,155 @@ def load_dat_2d(geofile, path):
 #
 #     return t, h, v
 
+# @profileit
+# def load_tps_2d(tpsfile, path, nb_cell):
+#     """
+#     The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
+#
+#     :param tpsfile: the name of the file with the data for the 2d case
+#     :param path: the path to the tps file.
+#     :param nb_cell: the number of cell extracted from the .mai file
+#     :return: v, h, timestep (all in list of np.array)
+#     """
+#     filename_path = os.path.join(path, tpsfile)
+#     # check extension
+#     blob, ext = os.path.splitext(tpsfile)
+#     if ext != '.tps':
+#         print('Warning: The fils does not seem to be of .tps type.\n')
+#     # open file
+#     try:
+#         with open(filename_path, 'rt') as f:
+#             data_tps = f.read()
+#     except IOError:
+#         print('Error: The .tps file does not exist.\n')
+#         return [-99], [-99], [-99]
+#     data_tps_splited = data_tps.split()
+#
+#     # get data and transform into float
+#     total_element = len(data_tps_splited)
+#     i = 0
+#     t = []
+#     h = []
+#     qve = []
+#     que = []
+#     v = []
+#     while i < total_element:
+#         try:
+#             # time
+#             ti = data_tps_splited[i]
+#             t.append(ti)
+#             i += 1
+#             hi = data_tps_splited[i:i + nb_cell]
+#             h.append(hi)
+#             i += nb_cell
+#             qvei = data_tps_splited[i:i + nb_cell]
+#             qve.append(qvei)
+#             i += nb_cell
+#             quei = data_tps_splited[i:i + nb_cell]
+#             que.append(quei)
+#             i += nb_cell
+#         except ValueError:
+#             print('Error: the data could not be extracted from the .tps file. Error at number ' + str(i) + '.\n')
+#             return [-99], [-99], [-99]
+#
+#     h = np.asarray(h, dtype=np.float)
+#     qve = np.asarray(qve, dtype=np.float)
+#     que = np.asarray(que, dtype=np.float)
+#     # compute velocity
+#     hiv = np.copy(h)
+#     hiv[hiv == 0] = -99  # avoid division by zeros
+#     if len(que) != len(qve):
+#         np.set_printoptions(threshold=np.inf)
+#     vi = np.sqrt((que / hiv) ** 2 + (qve / hiv) ** 2)
+#     vi[hi == 0] = 0  # get realistic again
+#
+#     return t, h, v
 
+
+# @profileit
+# def load_tps_2d(tpsfile, path, nb_cell):
+#     """
+#     The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
+#
+#     :param tpsfile: the name of the file with the data for the 2d case
+#     :param path: the path to the tps file.
+#     :param nb_cell: the number of cell extracted from the .mai file
+#     :return: v, h, timestep (all in list of np.array)
+#     """
+#     filename_path = os.path.join(path, tpsfile)
+#     # check extension
+#     blob, ext = os.path.splitext(tpsfile)
+#     if ext != '.tps':
+#         print('Warning: The fils does not seem to be of .tps type.\n')
+#     # open file
+#     try:
+#         with open(filename_path, 'rt') as f:
+#             data_tps = f.read()
+#     except IOError:
+#         print('Error: The .tps file does not exist.\n')
+#         return [-99], [-99], [-99]
+#     data_tps_splited = data_tps.strip().split("\n")
+#
+#     # get timestep
+#     timestep_list = []
+#     timestep_index_list = []
+#     for line_index, line_str in enumerate(data_tps_splited):
+#         if len(line_str) < 30 and line_str != "":  # get timestep
+#             timestep_list.append(line_str.strip())
+#             timestep_index_list.append(line_index)  # remove timestep to list
+#
+#     # remove timestep lines
+#     for timestep_index in reversed(timestep_index_list):
+#         data_tps_splited.pop(timestep_index)
+#
+#     line_block_len = int(len(data_tps_splited) / len(timestep_list))
+#     line_block_variable_len = int(line_block_len / 3)
+#
+#     # get raw data
+#     hi = []
+#     qve = []
+#     que = []
+#     start = -line_block_len
+#     for _ in timestep_list:  # for each timestep
+#         start += line_block_len
+#         end = start + line_block_len
+#         block_timestep = data_tps_splited[start:end]
+#         hi_timestep = []
+#         qve_timestep = []
+#         que_timestep = []
+#         for line_index in range(line_block_variable_len):  # for each block_variable
+#             hi_timestep.extend([block_timestep[0:line_block_variable_len * 2][line_index][i:i+10] for i in range(0, len(block_timestep[0:line_block_variable_len * 2][line_index]), 10)])  # split all 10 character (because they can be stuck together)
+#             qve_timestep.extend([block_timestep[line_block_variable_len:line_block_variable_len * 2][line_index][i:i+10] for i in range(0, len(block_timestep[line_block_variable_len:line_block_variable_len * 2][line_index]), 10)])
+#             que_timestep.extend([block_timestep[line_block_variable_len:line_block_variable_len * 3][line_index][i:i+10] for i in range(0, len(block_timestep[line_block_variable_len:line_block_variable_len * 3][line_index]), 10)])
+#         hi.append(hi_timestep)
+#         qve.append(qve_timestep)
+#         que.append(que_timestep)
+#
+#     # convert to numpy
+#     hi = np.asarray(hi, dtype=np.float)
+#     qve = np.asarray(qve, dtype=np.float)
+#     que = np.asarray(que, dtype=np.float)
+#
+#     # compute velocity
+#     hiv = np.copy(hi)
+#     hiv[hiv == 0] = -99  # avoid division by zeros
+#     if len(que) != len(qve):
+#         np.set_printoptions(threshold=np.inf)
+#     #vi = np.sqrt((que / hiv) ** 2 + (qve / hiv) ** 2)
+#     vi = np.sqrt(que ** 2 + qve ** 2) / hiv
+#     vi[hi == 0] = 0  # get realistic again
+#
+#     # convert to list
+#     h = []
+#     v = []
+#     for timestep_index, _ in enumerate(timestep_list):  # for each timestep
+#         h.append(hi[timestep_index])
+#         v.append(vi[timestep_index])
+#
+#     return timestep_list, h, v
+
+
+@profileit
 def load_tps_2d(tpsfile, path, nb_cell):
     """
     The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
@@ -1294,60 +1437,64 @@ def load_tps_2d(tpsfile, path, nb_cell):
     except IOError:
         print('Error: The .tps file does not exist.\n')
         return [-99], [-99], [-99]
-    data_tps_splited = data_tps.strip().split("\n")
+    data_tps_splited = data_tps.split("\n")
 
-    # get timestep
+    # write temp file and get timestep
+    path_stat = user_preferences.user_preferences_temp_path
+    file_temp = open(os.path.join(path_stat, tpsfile), "w")
     timestep_list = []
-    timestep_index_list = []
     for line_index, line_str in enumerate(data_tps_splited):
-        if len(line_str) < 30 and line_str != "":  # get timestep
+        if len(line_str) == 80:  # write normal lines
+            file_temp.write(line_str + "\n")
+        elif len(line_str) == 15:
             timestep_list.append(line_str.strip())
-            timestep_index_list.append(line_index)  # remove timestep to list
+        else:  # write ajusted lines
+            char_missing = 80 - len(line_str)
+            line_str = line_str + char_missing * "*" + "\n"
+            file_temp.write(line_str)
+    file_temp.close()
 
-    # remove timestep lines
-    for timestep_index in reversed(timestep_index_list):
-        data_tps_splited.pop(timestep_index)
+    # read temp file
+    data_tps_array = np.genfromtxt(os.path.join(path_stat, tpsfile),
+                       delimiter=10,
+                       missing_values="*" * 10,
+                       filling_values=np.nan)
 
-    line_block_len = int(len(data_tps_splited) / len(timestep_list))
-    line_block_variable_len = int(line_block_len / 3)
+    # remove nan and flatten
+    data_tps_array = data_tps_array[~np.isnan(data_tps_array)]
 
-    # get raw data
-    hi = []
-    qve = []
-    que = []
-    start = -line_block_len
-    for _ in timestep_list:  # for each timestep
-        start += line_block_len
-        end = start + line_block_len
-        block_timestep = data_tps_splited[start:end]
-        hi_timestep = []
-        qve_timestep = []
-        que_timestep = []
-        for line_index in range(line_block_variable_len):  # for each block_variable
-            hi_timestep.extend(list(map(float, [block_timestep[0:line_block_variable_len * 2][line_index][i:i+10] for i in range(0, len(block_timestep[0:line_block_variable_len * 2][line_index]), 10)])))  # split all 10 character (because they can be stuck together)
-            qve_timestep.extend(list(map(float, [block_timestep[line_block_variable_len:line_block_variable_len * 2][line_index][i:i+10] for i in range(0, len(block_timestep[line_block_variable_len:line_block_variable_len * 2][line_index]), 10)])))
-            que_timestep.extend(list(map(float, [block_timestep[line_block_variable_len:line_block_variable_len * 3][line_index][i:i+10] for i in range(0, len(block_timestep[line_block_variable_len:line_block_variable_len * 3][line_index]), 10)])))
-        hi.append(hi_timestep)
-        qve.append(qve_timestep)
-        que.append(que_timestep)
+    # create array and compute velocity
+    h_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float)
+    qve_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float)
+    que_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float)
 
-    hi = np.asarray(hi)
-    qve = np.asarray(qve)
-    que = np.asarray(que)
+    start = 0
+    end = nb_cell
+    for timestep_index, timestep in enumerate(timestep_list):
+        h_array[timestep_index] = data_tps_array[start:end]
+        start += nb_cell
+        end += nb_cell
+        qve_array[timestep_index] = data_tps_array[start:end]
+        start += nb_cell
+        end += nb_cell
+        que_array[timestep_index] = data_tps_array[start:end]
+        start += nb_cell
+        end += nb_cell
 
-    hiv = np.copy(hi)
+    # compute velocity
+    hiv = np.copy(h_array)
     hiv[hiv == 0] = -99  # avoid division by zeros
-    if len(que) != len(qve):
+    if len(que_array) != len(qve_array):
         np.set_printoptions(threshold=np.inf)
-    vi = np.sqrt((que / hiv) ** 2 + (qve / hiv) ** 2)
-    vi[hi == 0] = 0  # get realistic again
+    v_array = np.sqrt(que_array ** 2 + qve_array ** 2) / hiv
+    v_array[h_array == 0] = 0  # get realistic again
 
     # convert to list
     h = []
     v = []
     for timestep_index, _ in enumerate(timestep_list):  # for each timestep
-        h.append(hi[timestep_index])
-        v.append(vi[timestep_index])
+        h.append(h_array[timestep_index])
+        v.append(v_array[timestep_index])
 
     return timestep_list, h, v
 
@@ -1361,30 +1508,68 @@ def get_time_step(filename_without_extension, path):
     :param nb_cell: the number of cell extracted from the .mai file
     :return: v, h, timestep (all in list of np.array)
     """
+    # warning_list
+    warning_list = []
     # get time step
     tpsfile = os.path.splitext(filename_without_extension)[0] + ".tps"
     filename_path = os.path.join(path, tpsfile)
-    # check extension
-    blob, ext = os.path.splitext(tpsfile)
-    if ext != '.tps':
-        print('Warning: The fils does not seem to be of .tps type.\n')
     # open file
     try:
         with open(filename_path, 'rt') as f:
             data_tps = f.read()
     except IOError:
-        print('Error: The .tps file does not exist.\n')
-        return [-99], [-99]
+        warning_list.append('Error: The .tps file does not exist.\n')
+        return [-99], [-99], [-99]
     data_tps_splited = data_tps.split("\n")
 
-    timestep = []
-    for line_str in data_tps_splited:
-        if len(line_str) < 30 and line_str:
-            timestep.append(line_str.strip())
+    # get timestep and timestep_index
+    timestep_list = []
+    timestep_index_list = []
+    last_line_timestep_len = []
+    for line_index, line_str in enumerate(data_tps_splited):
+        if len(line_str) == 15:  # timestep
+            timestep_list.append(line_str.strip())
+            timestep_index_list.append(line_index)
+            if len(timestep_list) > 1:
+                last_line_timestep_len.append(len(data_tps_splited[line_index - 1]))
 
-    nb_t = len(timestep)
+    if len(timestep_list) > 1:
+        # get timestep_index_step
+        timestep_index_step = timestep_index_list[1] - timestep_index_list[0]
 
-    return nb_t, timestep
+        # get last line len (if crash : line(s) are missing)
+        try:
+            last_line_timestep_len.append(len(data_tps_splited[timestep_index_list[-1] + timestep_index_step - 1]))
+        except IndexError:
+            del timestep_list[-1]
+            warning_list.append("Warning: The last time step is corrupted : one line data or more are missing. The last timestep is removed.")
+
+        # check if lines are missing in other timestep
+        timestep_index_to_remove_list = []
+        for index in range(len(timestep_index_list)):
+            if index > 0:
+                # check if timestep index are constant
+                # print(timestep_index_list[index] - timestep_index_list[index -1])
+                if timestep_index_list[index] - timestep_index_list[index -1] != timestep_index_step:
+                    timestep_index_to_remove_list.append(timestep_index_list[index])
+
+        # check if last_line_timestep_len are equal
+        if len(set(last_line_timestep_len)) > 1:  # not equal
+            # index of corrupted timestep
+            timestep_index_to_remove_list.extend([timestep_index_list[last_line_timestep_len.index(elem)] for elem in last_line_timestep_len if elem != last_line_timestep_len[0]])
+
+        # raise warning and remove corrupted timestep
+        if timestep_index_to_remove_list:
+            timestep_to_remove = []
+            for timestep_index_to_remove in timestep_index_to_remove_list:
+                timestep_to_remove.append(timestep_list[timestep_index_list.index(timestep_index_to_remove)])
+                # remove timestep
+                timestep_list.pop(timestep_list.index(timestep_list[timestep_index_list.index(timestep_index_to_remove)]))
+            warning_list.append("Warning: Block data of timestep(s) corrumpted : " + ", ".join(timestep_to_remove) + ". They will be removed.")
+
+    nb_t = len(timestep_list)
+
+    return nb_t, timestep_list, warning_list
 
 
 def get_triangular_grid(ikle, coord_c, xy, h, v, z):

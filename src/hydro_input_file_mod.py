@@ -193,11 +193,10 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 else:
                     return "Error: " + file_from_indexfile + " doesn't exist in " + folder_path, None
 
-
-
         # check conditions
         if all(selectedfiles_textfiles_match):
             selectedfiles_textfiles_matching = True
+            filename_list = data_index_file["filename"]
         if any("Q[" in s for s in headers):
             discharge_presence = True  # "Q[" in headers
             discharge_index = [i for i, s in enumerate(headers) if 'Q[' in s][0]
@@ -360,19 +359,19 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 reach_name = "unknown"
 
             # check if selected files are equal to data_index_file
-            if len(filename_list) != data_index_file["filename"]:
+            if len(filename_list) != len(data_index_file["filename"]):
                 index_to_keep = []
                 for index, selected_file in enumerate(data_index_file["filename"]):
                     if selected_file in [os.path.basename(element) for element in filename_list]:
                         index_to_keep.append(index)
-            for header in headers:
-                data_index_file[header] = [data_index_file[header][index] for index in index_to_keep]
+                for header in headers:
+                    data_index_file[header] = [data_index_file[header][index] for index in index_to_keep]
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
             hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
             hydrau_description["unit_list_full"] = data_index_file[headers[discharge_index]]
-            hydrau_description["unit_list_tf"] = []
+            hydrau_description["unit_list_tf"] = [True] * len(data_index_file[headers[discharge_index]])
             hydrau_description["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
             hydrau_description["reach_list"] = reach_name
@@ -418,8 +417,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if hydrau_case == "3.a":
             # get units name from file
             filename_path = os.path.join(folder_path, data_index_file[headers[0]][0])
-            nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
-
+            nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+            warning_list.extend(warning_list_timestep)
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
                 return "Error: selected files are different from indexHYDRAU files", None
@@ -623,6 +622,7 @@ def get_time_step(file_path, model_type):
     """
     nbtimes = False
     unit_name_from_file = False
+    warning_list = []
     filename = os.path.basename(file_path)
     folder_path = os.path.dirname(file_path)
     if model_type == "TELEMAC":
@@ -630,5 +630,5 @@ def get_time_step(file_path, model_type):
     if model_type == "HECRAS2D":
         nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
     if model_type == "RUBAR20":
-        nbtimes, unit_name_from_file = rubar1d2d_mod.get_time_step(filename, folder_path)
-    return nbtimes, unit_name_from_file
+        nbtimes, unit_name_from_file, warning_list = rubar1d2d_mod.get_time_step(filename, folder_path)
+    return nbtimes, unit_name_from_file, warning_list

@@ -3159,7 +3159,7 @@ class HEC_RAS2D(SubHydroW):
         #     self.butfig.setDisabled(True)
 
         # last hdf5 created
-        self.name_last_hdf5(type="TELEMAC")  # find the name of the last merge file and add it to self.lm2
+        self.name_last_hdf5(type="HECRAS2D")  # find the name of the last merge file and add it to self.lm2
 
         # layout
         self.layout_hec2 = QGridLayout()
