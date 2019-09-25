@@ -1499,7 +1499,6 @@ def load_tps_2d(tpsfile, path, nb_cell):
     return timestep_list, h, v
 
 
-
 def get_time_step(filename_without_extension, path):
     """
     The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
@@ -1509,30 +1508,68 @@ def get_time_step(filename_without_extension, path):
     :param nb_cell: the number of cell extracted from the .mai file
     :return: v, h, timestep (all in list of np.array)
     """
+    # warning_list
+    warning_list = []
     # get time step
     tpsfile = os.path.splitext(filename_without_extension)[0] + ".tps"
     filename_path = os.path.join(path, tpsfile)
-    # check extension
-    blob, ext = os.path.splitext(tpsfile)
-    if ext != '.tps':
-        print('Warning: The fils does not seem to be of .tps type.\n')
     # open file
     try:
         with open(filename_path, 'rt') as f:
             data_tps = f.read()
     except IOError:
-        print('Error: The .tps file does not exist.\n')
-        return [-99], [-99]
+        warning_list.append('Error: The .tps file does not exist.\n')
+        return [-99], [-99], [-99]
     data_tps_splited = data_tps.split("\n")
 
-    timestep = []
-    for line_str in data_tps_splited:
-        if len(line_str) < 30 and line_str:
-            timestep.append(line_str.strip())
+    # get timestep and timestep_index
+    timestep_list = []
+    timestep_index_list = []
+    last_line_timestep_len = []
+    for line_index, line_str in enumerate(data_tps_splited):
+        if len(line_str) == 15:  # timestep
+            timestep_list.append(line_str.strip())
+            timestep_index_list.append(line_index)
+            if len(timestep_list) > 1:
+                last_line_timestep_len.append(len(data_tps_splited[line_index - 1]))
 
-    nb_t = len(timestep)
+    if len(timestep_list) > 1:
+        # get timestep_index_step
+        timestep_index_step = timestep_index_list[1] - timestep_index_list[0]
 
-    return nb_t, timestep
+        # get last line len (if crash : line(s) are missing)
+        try:
+            last_line_timestep_len.append(len(data_tps_splited[timestep_index_list[-1] + timestep_index_step - 1]))
+        except IndexError:
+            del timestep_list[-1]
+            warning_list.append("Warning: The last time step is corrupted : one line data or more are missing. The last timestep is removed.")
+
+        # check if lines are missing in other timestep
+        timestep_index_to_remove_list = []
+        for index in range(len(timestep_index_list)):
+            if index > 0:
+                # check if timestep index are constant
+                # print(timestep_index_list[index] - timestep_index_list[index -1])
+                if timestep_index_list[index] - timestep_index_list[index -1] != timestep_index_step:
+                    timestep_index_to_remove_list.append(timestep_index_list[index])
+
+        # check if last_line_timestep_len are equal
+        if len(set(last_line_timestep_len)) > 1:  # not equal
+            # index of corrupted timestep
+            timestep_index_to_remove_list.extend([timestep_index_list[last_line_timestep_len.index(elem)] for elem in last_line_timestep_len if elem != last_line_timestep_len[0]])
+
+        # raise warning and remove corrupted timestep
+        if timestep_index_to_remove_list:
+            timestep_to_remove = []
+            for timestep_index_to_remove in timestep_index_to_remove_list:
+                timestep_to_remove.append(timestep_list[timestep_index_list.index(timestep_index_to_remove)])
+                # remove timestep
+                timestep_list.pop(timestep_list.index(timestep_list[timestep_index_list.index(timestep_index_to_remove)]))
+            warning_list.append("Warning: Block data of timestep(s) corrumpted : " + ", ".join(timestep_to_remove) + ". They will be removed.")
+
+    nb_t = len(timestep_list)
+
+    return nb_t, timestep_list, warning_list
 
 
 def get_triangular_grid(ikle, coord_c, xy, h, v, z):

@@ -417,8 +417,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if hydrau_case == "3.a":
             # get units name from file
             filename_path = os.path.join(folder_path, data_index_file[headers[0]][0])
-            nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
-
+            nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+            warning_list.extend(warning_list_timestep)
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
                 return "Error: selected files are different from indexHYDRAU files", None
@@ -622,6 +622,7 @@ def get_time_step(file_path, model_type):
     """
     nbtimes = False
     unit_name_from_file = False
+    warning_list = []
     filename = os.path.basename(file_path)
     folder_path = os.path.dirname(file_path)
     if model_type == "TELEMAC":
@@ -629,5 +630,5 @@ def get_time_step(file_path, model_type):
     if model_type == "HECRAS2D":
         nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
     if model_type == "RUBAR20":
-        nbtimes, unit_name_from_file = rubar1d2d_mod.get_time_step(filename, folder_path)
-    return nbtimes, unit_name_from_file
+        nbtimes, unit_name_from_file, warning_list = rubar1d2d_mod.get_time_step(filename, folder_path)
+    return nbtimes, unit_name_from_file, warning_list
