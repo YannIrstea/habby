@@ -537,6 +537,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
         if hvmesh.shape[0]!=ikleall.shape[0]:
             print('Error : the total number of meshes from TIN is not equal to FVM')
             return False, False
+
     os.remove(fnoden)
     os.remove(ftinn)
     os.remove(ffvmn)
@@ -546,15 +547,13 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
         # ikle3 = ikleall[np.where(ikleall[:, [3]] == -1)[0]]
         # ikle4 = ikleall[np.where(ikleall[:, [3]] != -1)[0]]
         nbmesh=ikleall.shape[0]
-        p1=nodesall[ikleall[:, 0], :]
-        p2 = nodesall[ikleall[:, 1], :]
-        p3 = nodesall[ikleall[:, 2], :]
-        t = ikleall[:, [3]]
-        t[t == -1] = 0
-        t[t !=0] = 1
-        p4 = nodesall[ikleall[:, 3], :]*t
-        xyzmesh34=np.sum(np.hstack((p1,p2,p3,p4)).reshape(nbmesh,4,3), axis=1)/ (t + 3)
-        # TODO hvmesh
+        hmesh = np.empty([nbmesh,nbunit], dtype=np.float64)
+        vmesh=np.empty([nbmesh,nbunit], dtype=np.float64)
+        for u in range(nbunit):
+            hmesh[:,[u]]=hvmesh[:,[2*u]]
+            vmesh[:, [u]] = hvmesh[:, [2 * u+1]]
+        ikle2, nodes2,hnodes2,vnodes2=manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikleall,nodesall,hmesh,vmesh)
+
 
 
 
@@ -681,7 +680,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
 
 def reduce_quadrangles_to_triangles(ikle,nodes,nbunit,bsub,sub):
     """
-    transfoming   a set of triangles and 4angles into only triangles
+    transforming   a set of triangles and 4angles into only triangles
     :param ikle:  a numpy array of four column describing the geometry of the quadrangles
     each line indicate the nodes index of the point describing the 4angles (for triangle last index=-1)
     :param nodes:  a numpy array x,y,z,h,v,..h,v..h,v

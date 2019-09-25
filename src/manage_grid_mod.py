@@ -1832,10 +1832,72 @@ def habby_grid_data(grid_new, grid_ori, vel_ori, height_ori):
     height_new = griddata(grid_ori, height_ori, grid_new, method='linear')
     # Get the NaN from outer nodes and replace with the nearest values
     height_nan = np.argwhere(np.isnan(height_new))
-    height_new_nan = griddata(grid_ori, height_ori, grid_new[vel_nan], method='nearest')
+    height_new_nan = griddata(grid_ori, height_ori, grid_new[height_nan], method='nearest')
     height_new[height_nan] = height_new_nan
 
     return vel_new, height_new
+
+def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh):
+    """
+
+    :param ikle: the connectivity table 4 columns for quadrangular or triangular (las column value=-1)  meshes
+    :param nodes: the x , y , z of the nodes
+    :param hmesh: the height of water at the mesh center each column is a unit (time
+    :param vmesh: the mean velocity at the mesh center
+    :return: ikle2, new connectivity table for a triangular mesh(x,y) with associate x , y , z :nodes2
+                and new values for the velocity and water depth computes on nodes at each unit
+
+    """
+    nbmesh = ikle.shape[0]
+    nbunit= hmesh.shape[1]
+    #Building the new ikle by spliting each quadrangle to 4 triangles adding the center of the quadrangle to the node list
+    #transforming   a set of triangles and 4angles into only triangles
+    ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
+    ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
+    ikle2 = np.copy(ikle3[:, 0:3])
+    nodes2=np.copy(nodes)
+    if len(ikle4):  # partitionning each 4angles in 4 triangles
+        nbnodes = nodes.shape[0]
+        for i in range(len(ikle4)):
+            nbnodes += 1
+            q0, q1, q2, q3 = ikle4[i][0], ikle4[i][1], ikle4[i][2], ikle4[i][3]
+            ikle2 = np.append(ikle2, np.array([[q0, nbnodes - 1, q3], [q0, q1, nbnodes - 1],
+                                               [q1, q2, nbnodes - 1], [nbnodes - 1, q2, q3]]),
+                              axis=0)
+            nodes2=np.append(nodes2, [np.mean(nodes[[q0, q1, q2, q3], :], axis=0)], axis=0)
+
+
+    #calculating the coordinates x,y,z of the mesh centers
+    p1 = nodes[ikle[:, 0], :]
+    p2 = nodes[ikle[:, 1], :]
+    p3 = nodes[ikle[:, 2], :]
+    t = ikle[:, [3]]
+    t[t == -1] = 0
+    t[t != 0] = 1
+    p4 = nodes[ikle[:, 3], :] * t
+    xyzmesh34 = np.sum(np.hstack((p1, p2, p3, p4)).reshape(nbmesh, 4, 3), axis=1) / (t + 3)
+
+    #interpolates values from cell-centered volumes (Finite Volume) to nodal values (mesh) using SciPy griddata
+    # for a given unit : considering the water surface (z+h) to  find  z+h for nodes
+    hnodes2 = griddata(xyzmesh34[:,(0,1)], hmesh+xyzmesh34[:,2].reshape(nbmesh,1), nodes2[:,(0,1)], method='linear')
+    # Get the NaN from outer nodes and replace with the nearest values
+    hnodes2_nan = np.isnan(hnodes2[:, 0])
+    nodes2nan = nodes2[:, (0, 1)][hnodes2_nan]
+    hnodes2_new_nan = griddata(xyzmesh34[:,(0,1)], hmesh+xyzmesh34[:,2].reshape(nbmesh,1), nodes2nan, method='nearest')
+    hnodes2[hnodes2_nan] = hnodes2_new_nan
+    hnodes2=hnodes2-nodes2[:,2].reshape(nodes2.shape[0],1)
+    #for a given unit : considering the  surface of the elementary flow (h*v) to  find  v for nodes
+    hvnodes2 = griddata(xyzmesh34[:,(0,1)], hmesh*vmesh, nodes2[:,(0,1)], method='linear')
+    # Get the NaN from outer nodes and replace with the nearest values
+    hvnodes2_nan = np.isnan(hvnodes2[:, 0])
+    nodes2nan = nodes2[:, (0, 1)][hvnodes2_nan]
+    hvnodes2_new_nan = griddata(xyzmesh34[:,(0,1)], hmesh*vmesh, nodes2nan, method='nearest')
+    hvnodes2[hvnodes2_nan] = hvnodes2_new_nan
+    hnodes2notnul=np.copy(hnodes2)# avoid division by zeros
+    hnodes2notnul[hnodes2==0]=1
+    vnodes2=hvnodes2/hnodes2notnul
+    vnodes2[hnodes2==0]=0 # get realistic again
+    return ikle2, nodes2,hnodes2,vnodes2
 
 
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):
