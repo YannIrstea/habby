@@ -978,7 +978,7 @@ def load_rubar2d(filename, file_path, progress_value):
     tpsfile = filename + ".tps"
 
     # DAT
-    ikle, xy, z, nb_cell = load_dat_2d(geofile, pathgeo)   # node
+    ikle, xyz, nb_cell = load_dat_2d(geofile, pathgeo)   # node
     progress_value.value = 6
 
     # TPS
@@ -987,7 +987,7 @@ def load_rubar2d(filename, file_path, progress_value):
 
     # QUADRANGLE TO TRIANGLE
     # ikle, coord_c, xy, h, v, z = get_triangular_grid(ikle, coord_c, xy, h, v, z)
-    ikle, xyz, h, v = get_triangular_grid(ikle, np.hstack(xy, z), h, v)
+    ikle, xyz, h, v = manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle, xyz, h, v)
 
     # description telemac data dict
     description_from_file = dict()
@@ -1000,13 +1000,22 @@ def load_rubar2d(filename, file_path, progress_value):
     description_from_file["unit_z_equal"] = True
     description_from_file["reach_number"] = "1"
 
+    # reset to list and separate xy to z
+    h_list = []
+    v_list = []
+    for timestep_index in range(len(timestep)):
+        h_list.append(h[:, timestep_index])
+        v_list.append(v[:, timestep_index])
+    xy = xyz[:, (0, 1)]
+    z = xyz[:, 2]
+
     # data 2d dict
     data_2d = dict()
-    data_2d["h"] = [np.array(h, dtype=np.float64)]
-    data_2d["v"] = [np.array(v, dtype=np.float64)]
+    data_2d["h"] = [h_list]
+    data_2d["v"] = [v_list]
     data_2d["z"] = z
     data_2d["xy"] = xy
-    data_2d["tin"] = np.array(ikle, dtype=np.int)
+    data_2d["tin"] = ikle
 
     return data_2d, description_from_file
 
@@ -1151,23 +1160,25 @@ def load_dat_2d(geofile, path):
     data_l = data_geo2d[1].split()
     m2 = 2
     m = 1
-    ikle = []
+    ikle = np.empty((nb_cell, 4), dtype=np.int)
+    ikle_list = []
     while m < nb_cell * 3:
         if m >= len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .dat file.\n')
             return [-99], [-99], [-99], [-99], [-99]
-        data_l = data_geo2d[m].split()
+        # data_l = data_geo2d[m].split()
         # data_l = data_geo2d[m].split()
         data_l = wrap(data_geo2d[m], 6)
         if m2 == m:
-            ind_l = np.array([-1] * (len(data_l) - 1), dtype=np.int)
+            ind_l = np.array([-1] * 4, dtype=np.int)
             for i in range(0, len(data_l) - 1):
                 try:
                     ind_l[i] = int(data_l[i + 1]) - 1
                 except ValueError:
                     print('Error: Could not extract the connectivity table from the .dat file.\n')
                     return [-99], [-99], [-99], [-99], [-99]
-            ikle.append(ind_l)
+            ikle_list.append(ind_l)
+            ikle[int((m2 - 2) / 3)] = ind_l
             m2 += 3
         m += 1
 
@@ -1203,13 +1214,13 @@ def load_dat_2d(geofile, path):
                 print(data_geo2d[mi])
                 return [-99], [-99], [-99], [-99], [-99]
         m += 1
-    # separe x and y
+    # merge x and y
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:2*nb_coord]
     z = data_f[2*nb_coord:]
-    xy = np.column_stack((x, y))
-
-    return ikle, xy, z, nb_cell
+    xyz = np.column_stack((x, y, z))
+    ikle = np.asarray(ikle)
+    return ikle, xyz, nb_cell
 
 
 # @profileit
@@ -1415,7 +1426,7 @@ def load_dat_2d(geofile, path):
 #     return timestep_list, h, v
 
 
-@profileit
+#@profileit
 def load_tps_2d(tpsfile, path, nb_cell):
     """
     The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
@@ -1489,14 +1500,10 @@ def load_tps_2d(tpsfile, path, nb_cell):
     v_array = np.sqrt(que_array ** 2 + qve_array ** 2) / hiv
     v_array[h_array == 0] = 0  # get realistic again
 
-    # convert to list
-    h = []
-    v = []
-    for timestep_index, _ in enumerate(timestep_list):  # for each timestep
-        h.append(h_array[timestep_index])
-        v.append(v_array[timestep_index])
+    h_array = h_array.transpose()
+    v_array = v_array.transpose()
 
-    return timestep_list, h, v
+    return timestep_list, h_array, v_array
 
 
 def get_time_step(filename_without_extension, path):
