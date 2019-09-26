@@ -280,6 +280,10 @@ class MainWindows(QMainWindow):
             self.setthemedark()
 
         self.check_concurrency()
+
+        # run_as_beta_version
+        self.run_as_beta_version(True)
+
         self.show()
 
     def closeEvent(self, event):
@@ -331,6 +335,33 @@ class MainWindows(QMainWindow):
         self.user_preferences.save_user_preferences_json()
 
         os._exit(1)
+
+    def run_as_beta_version(self, beta):
+        """
+        Disable hydraulic model if not finished. For Beta version
+        If True : run as beta
+        If False : run as definitive
+        """
+        if beta:
+            # disable_hydraulic_models_not_finished
+            list_to_disable = ['HABBY HDF5', 'HEC-RAS 1D', 'HEC-RAS 2D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D',
+                               'RUBAR 20', 'RUBAR BE', 'SW2D']
+            list_of_model = self.central_widget.hydro_tab.name_model
+            for model in list_of_model:
+                if model in list_to_disable:
+                    self.central_widget.hydro_tab.mod.model().item(list_of_model.index(model)).setEnabled(False)
+
+            # disable_model_statistic
+            self.central_widget.statmod_tab.setEnabled(True)
+            self.central_widget.stathab_tab.setEnabled(False)
+            self.central_widget.fstress_tab.setEnabled(False)
+
+            # change GUI title
+            self.version = str(self.version) + " Beta"
+            if self.name_prj:
+                self.setWindowTitle(self.tr('HABBY ') + str(self.version) + " - " + self.name_prj)
+            else:
+                self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
     def check_concurrency(self):
         """
