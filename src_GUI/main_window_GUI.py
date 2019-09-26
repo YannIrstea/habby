@@ -92,7 +92,7 @@ class MainWindows(QMainWindow):
 
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = HABBY_VERSION
+        self.version = str(HABBY_VERSION)
         self.beta = True
         # user_preferences
         self.user_preferences = user_preferences
@@ -360,8 +360,9 @@ class MainWindows(QMainWindow):
             if hasattr(self.central_widget, "fstress_tab"):
                 self.central_widget.fstress_tab.setEnabled(False)
 
-            # change GUI title
-            self.version = str(self.version) + " Beta"
+            # # change GUI title
+            if "Beta" not in self.version:
+                self.version = self.version + " Beta"
             if self.name_prj:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version) + " - " + self.name_prj)
             else:
@@ -1029,6 +1030,9 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
 
+            # run_as_beta_version
+            self.run_as_beta_version()
+
     def save_project(self):
         """
         A function to save the xml file with the information on the project
@@ -1393,8 +1397,6 @@ class MainWindows(QMainWindow):
 
         # check if project open somewhere else
         self.check_concurrency()
-
-        self.run_as_beta_version()
 
     def open_recent_project(self, j):
         """
