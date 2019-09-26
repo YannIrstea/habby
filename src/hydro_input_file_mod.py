@@ -16,6 +16,7 @@ https://github.com/YannIrstea/habby
 """
 import os
 
+from PyQt5.QtCore import QCoreApplication as qt_tr
 from src import ascii_mod
 from src import hec_ras2D_mod
 from src import telemac_mod
@@ -56,8 +57,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
     # indexHYDRAU.txt absence
     if not os.path.isfile(filename_path_index):
         if model_type != "ASCII":
-            warning_list.append("Warning: indexHYDRAU.txt doesn't exist. It will be created in the 'input' directory after the creation "
-                  "of the .hyd file. The latter will be filled in according to your choices.")
+            warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod", "indexHYDRAU.txt doesn't exist. It will be created in the 'input' directory after the creation "
+                  "of the .hyd file. The latter will be filled in according to your choices."))
 
         # more_than_one_file_selected_by_user
         if more_than_one_file_selected_by_user:
@@ -113,9 +114,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                     reach_list = ascii_description["reach_list"]
                     sub = ascii_description["sub"]
                     if sub:
-                        warning_list.append("Warning: Substrate data present in the ascii input file. "
+                        warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod", "Substrate data present in the ascii input file. "
                                             "Data loading will create .hab directly instead of .hyd "
-                                            "(loading button label changed)")
+                                            "(loading button label changed)"))
                     nbtimes = len(unit_list[0])
             else:
                 epsg_code = "unknown"

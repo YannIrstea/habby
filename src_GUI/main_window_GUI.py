@@ -382,8 +382,8 @@ class MainWindows(QMainWindow):
             # open the text file
             filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
-                self.central_widget.write_log('Warning: Could not check if the project was open by '
-                                              'another instance of HABBY (1) \n')
+                self.central_widget.write_log('Warning: ' + self.tr('Could not check if the project was open by '
+                                              'another instance of HABBY (1) \n'))
                 if os.path.isdir(os.path.join(self.path_prj, 'hdf5')):
                     with open(filename, 'wt') as f:
                         f.write('open')
@@ -394,15 +394,15 @@ class MainWindows(QMainWindow):
                 with open(filename, 'rt') as f:
                     data = f.read()
             except IOError:
-                self.central_widget.write_log('Warning: Could not check if the project was open by another '
-                                              'instance of HABBY (2) \n')
+                self.central_widget.write_log('Warning: ' + self.tr('Could not check if the project was open by another '
+                                              'instance of HABBY (2) \n'))
                 return
             if data == 'open':
-                self.central_widget.write_log('Warning: The same project is open in another instance of HABBY.'
+                self.central_widget.write_log('Warning: ' + self.tr('The same project is open in another instance of HABBY.'
                                               ' This could results in fatal and unexpected error. '
-                                              'It is strongly adivsed to close the other instance of HABBY.')
-                self.central_widget.write_log('Warning: This message could also appear if HABBY was not closed properly'
-                                              '. In this case, please close and re-open HABBY.\n')
+                                              'It is strongly adivsed to close the other instance of HABBY.'))
+                self.central_widget.write_log('Warning: ' + self.tr('This message could also appear if HABBY was not closed properly'
+                                              '. In this case, please close and re-open HABBY.\n'))
 
             else:
                 with open(filename, 'wt') as f:
@@ -418,8 +418,8 @@ class MainWindows(QMainWindow):
             # open the text file
             filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
-                self.central_widget.write_log('Warning: Could not check if the project was open by '
-                                              'another instance of HABBY (3) \n')
+                self.central_widget.write_log('Warning: ' + self.tr('Could not check if the project was open by '
+                                              'another instance of HABBY (3) \n'))
                 return
 
             try:
@@ -1078,7 +1078,7 @@ class MainWindows(QMainWindow):
                 self.tr("The directory indicated in the project path does not exists. Project not saved."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
-            self.central_widget.write_log('# Project not saved.')
+            self.central_widget.write_log('# ' + self.tr('Project not saved.'))
             return
         else:
             path_prj_before = self.path_prj
@@ -1209,7 +1209,7 @@ class MainWindows(QMainWindow):
                 if not os.path.exists(path_para_text):
                     os.makedirs(path_para_text)
             except PermissionError:
-                self.central_widget.write_log('Error: Could not create directory, Permission Error \n')
+                self.central_widget.write_log('Error: ' + self.tr('Could not create directory, Permission Error \n'))
                 return
 
         # update central widget
@@ -1249,8 +1249,8 @@ class MainWindows(QMainWindow):
 
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()
-        self.central_widget.write_log('# Log of HABBY started.')
-        self.central_widget.write_log('# Project saved or opened successfully.')
+        self.central_widget.write_log('# ' + self.tr('Log of HABBY started.'))
+        self.central_widget.write_log('# ' + self.tr('Project saved or opened successfully.'))
         self.central_widget.write_log("py    name_prj= r'" + self.name_prj + "'")
         self.central_widget.write_log("py    path_prj= r'" + self.path_prj + "'")
         self.central_widget.write_log("py    path_bio= r'" + os.path.join(os.getcwd(), self.path_bio_default) + "'")
@@ -1282,7 +1282,7 @@ class MainWindows(QMainWindow):
         if ext_xml == '.habby':
             pass
         else:
-            self.central_widget.write_log("Error: File should be of type .habby\n")
+            self.central_widget.write_log("Error: " + self.tr("File should be of type .habby\n"))
             return
 
         self.open_project(filename_path)
@@ -1298,11 +1298,11 @@ class MainWindows(QMainWindow):
                 docxml2 = ET.parse(filename_path)
                 root2 = docxml2.getroot()
             except IOError:
-                self.central_widget.write_log("Error: the selected project file does not exist.\n")
+                self.central_widget.write_log("Error: " + self.tr("the selected project file does not exist.\n"))
                 self.close_project()
                 return
         except ET.ParseError:
-            self.central_widget.write_log('Error: the XML is not well-formed.\n')
+            self.central_widget.write_log('Error: ' + self.tr('the XML is not well-formed.\n'))
             return
 
         # get the project name and path. Write it in the QWiddet.
@@ -1312,24 +1312,24 @@ class MainWindows(QMainWindow):
         self.central_widget.path_last_file_loaded_c = root2.find(".//Path_last_file_loaded").text
 
         if self.name_prj is None or self.path_prj is None:
-            self.central_widget.write_log('Error: Project xml file is not understood \n')
+            self.central_widget.write_log('Error: ' + self.tr('.habby project file is not understood \n'))
             return
 
         # check coherence
         if self.name_prj + '.habby' != os.path.basename(filename_path):
-            self.central_widget.write_log('Warning: xml file name is not coherent with project name. '
-                                          'New project name: ' + os.path.basename(filename_path))
+            self.central_widget.write_log('Warning: ' + self.tr('.habby project filename is not coherent with project name. '
+                                          'New project name: ') + os.path.basename(filename_path))
             self.name_prj = os.path.basename(filename_path)
             root2.find(".//Project_Name").text = self.name_prj
         if not self.path_prj == os.path.abspath(os.path.dirname(filename_path)):
-            self.central_widget.write_log('Warning: xml file path is not coherent with project path. '
-                                          'New project path: ' + os.path.abspath(os.path.dirname(filename_path)))
+            self.central_widget.write_log('Warning: ' + self.tr('.habby project file path is not coherent with project path. '
+                                          'New project path: ') + os.path.abspath(os.path.dirname(filename_path)))
             self.path_prj = os.path.abspath(os.path.dirname(filename_path))
             root2.find(".//Path_Project").text = self.path_prj
             # if we have change the project path, it is probable that the project folder was copied from somewhere else
             # so the check concurrency file was probably copied and look like open even if the project is closed.
-            self.central_widget.write_log('Warning: Could not control for concurrency between projects due to path '
-                                          'change. If you have any other instance of HABBY open, please close it.')
+            self.central_widget.write_log('Warning: ' + self.tr('Could not control for concurrency between projects due to path '
+                                          'change. If you have any other instance of HABBY open, please close it.'))
             self.end_concurrency()
         stathab_info = root2.find(".//hdf5Stathab")
         self.username_prj = root2.find(".//User_Name").text
@@ -1419,11 +1419,11 @@ class MainWindows(QMainWindow):
                 docxml = ET.parse(filename_path)
                 root = docxml.getroot()
             except IOError:
-                self.central_widget.write_log("Error: the selected project file does not exist.\n")
+                self.central_widget.write_log("Error: " + self.tr("the selected project file does not exist.\n"))
                 self.close_project()
                 return
         except ET.ParseError:
-            self.central_widget.write_log('Error: the XML is not well-formed.\n')
+            self.central_widget.write_log('Error: ' + self.tr('the XML is not well-formed.\n'))
             return
 
         # get the project name and path. Write it in the QWiddet.
@@ -1529,7 +1529,7 @@ class MainWindows(QMainWindow):
 
             # delete
             if res == QMessageBox.No:
-                self.central_widget.write_log('Warning: Project not created. Choose another project name.')
+                self.central_widget.write_log('Warning: ' + self.tr('Project not created. Choose another project name.'))
                 self.createnew.close()
             if res == QMessageBox.Yes:
                 self.delete_project(path_new_fold)
@@ -1551,7 +1551,7 @@ class MainWindows(QMainWindow):
                 self.central_widget.welcome_tab.e4.setText('')
                 self.createnew.close()
                 self.save_project()
-                self.central_widget.write_log('Warning: Old project and its files are deleted. New empty project created.')
+                self.central_widget.write_log('Warning: ' + self.tr('Old project and its files are deleted. New empty project created.'))
 
         # save project if unique name in the selected folder
         else:
@@ -1618,7 +1618,7 @@ class MainWindows(QMainWindow):
             try:
                 shutil.copyfile(fname_old, fname)
             except FileNotFoundError:
-                self.central_widget.write_log("Error: the old project file does not exist (1)\n.")
+                self.central_widget.write_log("Error: " + self.tr("the old project file does not exist (1)\n."))
                 return
             # write the new name in the copied xml
             doc = ET.parse(fname)
@@ -1643,7 +1643,7 @@ class MainWindows(QMainWindow):
                 os.rename(os.path.join(old_path_prj, log2_old), os.path.join(old_path_prj,
                                                                              'restart_' + name_prj_here + '.log'))
             except FileNotFoundError:
-                self.central_widget.write_log("Error: the old log files do not exist (2)\n.")
+                self.central_widget.write_log("Error: " + self.tr("the old log files do not exist (2)\n."))
                 return
             doc.write(fname)
             # # erase old xml
@@ -1652,7 +1652,7 @@ class MainWindows(QMainWindow):
             try:
                 os.rename(path_prj_old, new_path_prj)
             except FileExistsError:
-                self.central_widget.write_log("A project with the same name exist. Conflict arised. \n")
+                self.central_widget.write_log("Warning: " + self.tr("A project with the same name exist. Conflict arised. \n"))
             # change path_prj
             self.path_prj = new_path_prj
             self.central_widget.welcome_tab.e2.setText(new_path_prj)
@@ -1672,10 +1672,10 @@ class MainWindows(QMainWindow):
                 docxml2 = ET.parse(filename_empty)
                 root2 = docxml2.getroot()
             except IOError:
-                self.central_widget.write_log("Error: no empty project. \n")
+                self.central_widget.write_log("Error: " + self.tr("no empty project. \n"))
                 return
         except ET.ParseError:
-            self.central_widget.write_log('Error: the XML is not well-formed.\n')
+            self.central_widget.write_log('Error: ' + self.tr('the XML is not well-formed.\n'))
             return
 
         # get the project name and path. Write it in the QWiddet.
@@ -2000,8 +2000,8 @@ class MainWindows(QMainWindow):
         try:
             shutil.rmtree(new_project_path)
         except:
-            self.central_widget.write_log('Error: Old project and its files are opened by another programme.\n'
-                               'Close them and try again.')
+            self.central_widget.write_log('Error: ' + self.tr('Old project and its files are opened by another programme.\n'
+                               'Close them and try again.'))
 
     def open_help(self):
         """
@@ -2048,8 +2048,8 @@ class MainWindows(QMainWindow):
                             if close:
                                 process_object.terminate()
                                 self.central_widget.write_log("Warning: " + process_object.name +
-                                                              " process has been stopped by the user." +
-                                                              " The files produced by this process can be damaged.")
+                                                              self.tr(" process has been stopped by the user." +
+                                                              " The files produced by this process can be damaged."))
                                 # hide button
                                 self.kill_process.setVisible(False)
                 else:
@@ -2060,8 +2060,8 @@ class MainWindows(QMainWindow):
                             if close:
                                 process_object.terminate()
                                 self.central_widget.write_log("Warning: " + process_object.name +
-                                                              " process has been stopped by the user." +
-                                                              " The files produced by this process can be damaged.")
+                                                              self.tr(" process has been stopped by the user." +
+                                                              " The files produced by this process can be damaged."))
                                 # hide button
                                 self.kill_process.setVisible(False)
         # hide button
@@ -2618,7 +2618,7 @@ class CentralW(QWidget):
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
 
         if not os.path.isfile(fname):
-            self.write_log('Error: The project file is not found. \n')
+            self.write_log('Error: ' + self.tr('The project file is not found. \n'))
         else:
             doc = ET.parse(fname)
             root = doc.getroot()
@@ -2627,11 +2627,11 @@ class CentralW(QWidget):
             if user_child is not None:
                 user_child.text = self.username_prj
             else:
-                self.write_log("xml file miss one attribute (1) \n")
+                self.write_log("Warning: " + self.tr("xml file miss one attribute (1) \n"))
             if des_child is not None:
                 des_child.text = self.descri_prj
             else:
-                self.write_log("xml file miss one attribute (2) \n")
+                self.write_log("Warning: " + self.tr("xml file miss one attribute (2) \n"))
             doc.write(fname)
 
     def save_on_change_tab(self):

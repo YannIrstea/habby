@@ -19,7 +19,7 @@ import sys
 import time
 from io import StringIO
 from struct import unpack, pack
-
+from PyQt5.QtCore import QCoreApplication as qt_tr
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -205,12 +205,14 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
             if not isinstance(tin_data, np.ndarray):  # error or warning
                 if not tin_data:  # error
-                    print("Error: cut_2d_grid")
+                    print("Error: " + qt_tr.translate("telemac_mod", "cut_2d_grid"))
+
                     q.put(mystdout)
                     return
                 elif tin_data:  # entierly dry
                     hydrau_description["unit_list_tf"][0][unit_num] = False
-                    print("Warning: The mesh of timestep " + description_from_telemac_file["unit_list"][0][unit_num] + " is entirely dry.")
+                    print("Warning: " + qt_tr.translate("telemac_mod", "The mesh of timestep ") + description_from_telemac_file["unit_list"][0][unit_num] + qt_tr.translate("telemac_mod", " is entirely dry."))
+
                     continue  # Continue to next iteration.
             else:
                 max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
@@ -314,15 +316,15 @@ def load_telemac(namefilet, pathfilet):
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
     if not os.path.isfile(filename_path_res):
-        print('Error: The telemac file does not exist. Cannot be loaded.')
+        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file does not exist. Cannot be loaded.'))
         return faiload
     blob, ext = os.path.splitext(namefilet)
     if ext != '.res' and ext != '.slf':
-        print('Warning: The extension of the telemac file is not .res or .slf')
+        print('Warning: ' + qt_tr.translate("telemac_mod", 'The extension of the telemac file is not .res or .slf'))
     try:
         telemac_data = Selafin(filename_path_res)
     except ValueError or KeyError:
-        print('Error: The telemac file cannot be loaded.')
+        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file cannot be loaded.'))
         return faiload
 
     # time step name
@@ -360,10 +362,10 @@ def load_telemac(namefilet, pathfilet):
             vt = np.sqrt(vu ** 2 + vv ** 2)
 
         if len(vt) == 0:
-            print('Error: The variable name of the telemec file were not recognized. (1) \n')
+            print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (1) \n'))
             return faiload
         if len(ht) == 0:
-            print('Error: The variable name of the telemec file were not recognized. (2) \n')
+            print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (2) \n'))
             return faiload
         v.append(vt)
         h.append(ht)
@@ -725,15 +727,15 @@ def get_time_step(namefilet, pathfilet):
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
     if not os.path.isfile(filename_path_res):
-        print('Error: The telemac file does not exist. Cannot be loaded.')
+        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file does not exist. Cannot be loaded.'))
         return faiload
     blob, ext = os.path.splitext(namefilet)
     if ext != '.res' and ext != '.slf' and ext != '.srf':
-        print('Warning: The extension of the telemac file is not .res or .slf or .srf')
+        print('Warning: ' + qt_tr.translate("telemac_mod", 'The extension of the telemac file is not .res or .slf or .srf'))
     try:
         telemac_data = Selafin(filename_path_res)
     except ValueError or KeyError:
-        print('Error: The telemac file cannot be loaded.')
+        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file cannot be loaded.'))
         return faiload
 
     # time step name
@@ -813,9 +815,8 @@ def getendianfromchar(fileslf, nchar):
         l, c, chk = unpack(endian + 'i' + str(nchar) + 'si', \
                            fileslf.read(4 + nchar + 4))
     if l != chk:
-        print('Error: ... Cannot read ' + str(nchar) + \
-              ' characters from your binary file')
-        print('     +> Maybe it is the wrong file format ?')
+        print('Error: ' + qt_tr.translate("telemac_mod", 'Cannot read ') + str(nchar) + \
+              qt_tr.translate("telemac_mod", ' characters from your binary file. Maybe it is the wrong file format ?'))
     fileslf.seek(pointer)
     return endian
 
@@ -834,8 +835,7 @@ def getfloattypefromfloat(fileslf, endian, nfloat):
     r = unpack(endian + str(nfloat) + cfloat, fileslf.read(ifloat * nfloat))
     chk = unpack(endian + 'i', fileslf.read(4))
     if l != chk:
-        print('Error: ... Cannot read ' + str(nfloat) + ' floats from your binary file')
-        print('     +> Maybe it is the wrong file format ?')
+        print('Error: ' + qt_tr.translate("telemac_mod", 'Cannot read ') + str(nfloat) + ' floats from your binary file. Maybe it is the wrong file format ?')
     fileslf.seek(pointer)
     return cfloat, ifloat
 

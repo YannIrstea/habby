@@ -665,17 +665,17 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         :param export_type: string representing plot types production ("display", "export", "both")
         """
         if not types_hdf5:
-            self.send_log.emit('Error: No hdf5 type selected.')
+            self.send_log.emit('Error: ' + self.tr('No hdf5 type selected.'))
         if not names_hdf5:
-            self.send_log.emit('Error: No hdf5 file selected.')
+            self.send_log.emit('Error: ' + self.tr('No hdf5 file selected.'))
         if not variables:
-            self.send_log.emit('Error: No variable selected.')
+            self.send_log.emit('Error: ' + self.tr('No variable selected.'))
         if not reach:
-            self.send_log.emit('Error: No reach selected.')
+            self.send_log.emit('Error: ' + self.tr('No reach selected.'))
         if not units:
-            self.send_log.emit('Error: No unit selected.')
+            self.send_log.emit('Error: ' + self.tr('No unit selected.'))
         if self.nb_plot == 0:
-            self.send_log.emit('Error: Selected variables and units not corresponding with figure type choices.')
+            self.send_log.emit('Error: ' + self.tr('Selected variables and units not corresponding with figure type choices.'))
         # check if number of display plot are > 30
         if export_type in ("display", "both") and self.nb_plot > 30:
             qm = QMessageBox

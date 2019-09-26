@@ -133,7 +133,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     #     print("file is not polygon type")
     #     return False
     if layer.GetGeomType() != shapefile_type:
-        print("file is not polygon type")
+        #print("file is not polygon type")
         return False
 
     # fields = sf.fields[1:]

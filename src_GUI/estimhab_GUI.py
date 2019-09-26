@@ -330,14 +330,14 @@ class StatModUseful(QScrollArea):
             q1 = self.qall[1]
 
         if q2 < 2 * q1:
-            self.send_log.emit('Warning: Measured discharge are not very different. The results might '
-                               'not be realistic. \n')
+            self.send_log.emit('Warning: ' + self.tr('Measured discharge are not very different. The results might '
+                               'not be realistic. \n'))
         if (self.qall[4] < q1 / 10 or self.qall[4] > 5 * q2) and self.qall[4] != -99:  # q50 not always necessary
-            self.send_log.emit('Warning: Q50 should be between q1/10 and 5*q2 for optimum results. \n')
+            self.send_log.emit('Warning: ' + self.tr('Q50 should be between q1/10 and 5*q2 for optimum results. \n'))
         if self.qall[2] < q1 / 10 or self.qall[2] > 5 * q2:
-            self.send_log.emit('Warning: Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n')
+            self.send_log.emit('Warning: ' + self.tr('Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n'))
         if self.qall[3] < q1 / 10 or self.qall[3] > 5 * q2:
-            self.send_log.emit('Warning: Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n')
+            self.send_log.emit('Warning: ' + self.tr('Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n'))
 
 
 class EstimhabW(StatModUseful):
@@ -499,10 +499,10 @@ class EstimhabW(StatModUseful):
                     docxml = ET.parse(f)
                     root = docxml.getroot()
                 except IOError:
-                    print("Warning: the xml file " + f + " could not be open \n")
+                    self.send_log.emit("Warning: " + self.tr("The .habby project file ") + f + self.tr(" could not be open.\n"))
                     return
             except ET.ParseError:
-                print("Warning: the xml file " + f + " is not well-formed.\n")
+                self.send_log.emit("Warning: " + self.tr("The .habby project file ") + f + self.tr(" is not well-formed.\n"))
                 return
 
             # find fish name

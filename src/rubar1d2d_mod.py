@@ -24,6 +24,7 @@ from io import StringIO
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from PyQt5.QtCore import QCoreApplication as qt_tr
 
 from src import dist_vistess_mod
 from src import hdf5_mod
@@ -80,7 +81,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
         plt.close()  # just save the figure do not show them
 
     if xhzv_data == [-99]:
-        print("Rubar data could not be loaded.")
+        print(qt_tr.translate("rubar1d2d_mod", "Rubar data could not be loaded."))
         if q:
             sys.stdout = sys.__stdout__
             q.put(mystdout)
@@ -270,7 +271,8 @@ def load_data_1d(name_data_vh, path, x):
                 data.append([x[c], h_i, cote_i, vel_i])
             except IndexError:
                 if warn_num:
-                    print('Warning: The number of profile is not the same in the geo file and the data file. \n')
+                    print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'The number of profile is not the same in the geo file and the data file. \n'))
+
                     warn_num = False
                 # return failload
             c += 1
@@ -433,7 +435,7 @@ def load_coord_1d(name_rbe, path):
     # check extension
     blob, ext = os.path.splitext(name_rbe)
     if ext != '.rbe':
-        print('Warning: The fils does not seem to be of .rbe type.\n')
+        print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'The fils does not seem to be of .rbe type.\n'))
     # load the XML file
     if not os.path.isfile(filename_path):
         print('Error: the .reb file does not exist.\n')
@@ -442,14 +444,14 @@ def load_coord_1d(name_rbe, path):
         docxml = Etree.parse(filename_path)
         root = docxml.getroot()
     except IOError:
-        print("Error: the .rbe file cannot be open.\n")
+        print("Error: " + qt_tr.translate("rubar1d2d_mod", "the .rbe file cannot be open.\n"))
         return [-99], [-99], [-99], [-99]
     # read the section data
     try:  # check that the data is not empty
         jeusect = root.findall(".//Sections.JeuSection")
         sect = jeusect[0].findall(".//Sections.Section")
     except AttributeError:
-        print("Error: Sections data cannot be read from the .rbe file\n")
+        print("Error: " + qt_tr.translate("rubar1d2d_mod", "Sections data cannot be read from the .rbe file\n"))
         return [-99], [-99], [-99], [-99]
     # read each point of the section
     coord = []
@@ -461,17 +463,17 @@ def load_coord_1d(name_rbe, path):
         try:
             point = sect[i].findall(".//Sections.PointXYZ")
         except AttributeError:
-            print("Error: Point data cannot be read from the .rbe file\n")
+            print("Error: " + qt_tr.translate("rubar1d2d_mod", "Point data cannot be read from the .rbe file\n"))
             return [], [], []
         try:
             name_profile.append(sect[i].attrib['nom'])
         except KeyError:
-            print('Warning: The name of the profile could not be extracted from the .reb file.\n')
+            print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'The name of the profile could not be extracted from the .reb file.\n'))
         try:
             x = sect[i].attrib['Pk']  # nthis is hte distance along the river, not along the profile
             dist_riv.append(np.float(x))
         except KeyError:
-            print('Warning: The name of the profile could not be extracted from the .reb file.\n')
+            print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'The name of the profile could not be extracted from the .reb file.\n'))
         coord_sect = np.zeros((len(point), 4))
         lim_riv_sect = np.zeros((3, 3))
         name_sect = []
@@ -501,7 +503,7 @@ def load_coord_1d(name_rbe, path):
         coord_sect = coord_sect.T
         # sometime there is no river found
         if np.sum(lim_riv_sect[:, 1]) == 0 and warn_riv:
-            print('Warning: the position of the river is not found in the .rbe file.\n')
+            print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'The position of the river is not found in the .rbe file.\n'))
             warn_riv = False
         # For the 2D grid, it is not possible to have vertical profile, i.e. identical points
         [coord_sect, send_warn] = correct_duplicate_xy(coord_sect, send_warn)
@@ -550,7 +552,7 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
         if c == 0:  # should not happen
             xf = seqf[0, c2] * 1.01
             yf = seqf[1, c2] * 1.01
-            print('Warning: First indices is identical to another. Unlogical. \n')
+            print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'First indices is identical to another. Unlogical. \n'))
         else:
             if result2[c2] > 0:
                 # as a direction for the new point use the general direction of the profil
@@ -603,7 +605,7 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
                 resulty.append(y)
 
             if send_warn:
-                print('Warning: Vertical profile. One or more profiles were modified. \n')
+                print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'Vertical profile. One or more profiles were modified. \n'))
                 send_warn = False
         else:
             seen[marker] = 1
@@ -734,7 +736,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
         elif warn_reach:
-            print('Warning: Too many reaches to plot them all. Only the ten first reaches plotted. \n')
+            print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'Too many reaches to plot them all. Only the ten first reaches plotted. \n'))
             warn_reach = False
 
     # plt.show()
@@ -852,12 +854,12 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
 
                 if not isinstance(tin_data, np.ndarray):  # error or warning
                     if not tin_data:  # error
-                        print("Error: cut_2d_grid")
+                        print("Error: " + qt_tr.translate("rubar1d2d_mod", "cut_2d_grid"))
                         q.put(mystdout)
                         return
                     elif tin_data:   # entierly dry
                         hydrau_description["unit_list_tf"][reach_num][unit_num] = False
-                        print("Warning: The mesh of timestep " + description_from_rubar2d["unit_list"][reach_num][unit_num] + " is entirely dry.")
+                        print("Warning: " + qt_tr.translate("rubar1d2d_mod", "The mesh of timestep ") + description_from_rubar2d["unit_list"][reach_num][unit_num] + qt_tr.translate("rubar1d2d_mod", " is entirely dry."))
                         continue  # Continue to next iteration.
                 else:
                     max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
@@ -1135,7 +1137,7 @@ def load_dat_2d(geofile, path):
     # check extension
     blob, ext = os.path.splitext(geofile)
     if ext != '.dat':
-        print('Warning: The fils does not seem to be of .dat type.\n')
+        print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'The fils does not seem to be of .dat type.\n'))
     # check if the file exist
     if not os.path.isfile(filename_path):
         print('Error: The .dat file does not exist.')
@@ -1183,7 +1185,7 @@ def load_dat_2d(geofile, path):
         m += 1
 
     if len(ikle) != nb_cell:
-        print('Warning: some cells might be missing.\n')
+        print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'Some cells might be missing.\n'))
 
     # extract the number of side (not needed)
     m += 1
@@ -1440,7 +1442,7 @@ def load_tps_2d(tpsfile, path, nb_cell):
     # check extension
     blob, ext = os.path.splitext(tpsfile)
     if ext != '.tps':
-        print('Warning: The fils does not seem to be of .tps type.\n')
+        print('Warning: ' + qt_tr.translate("rubar1d2d_mod", 'The fils does not seem to be of .tps type.\n'))
     # open file
     try:
         with open(filename_path, 'rt') as f:
@@ -1549,7 +1551,7 @@ def get_time_step(filename_without_extension, path):
             last_line_timestep_len.append(len(data_tps_splited[timestep_index_list[-1] + timestep_index_step - 1]))
         except IndexError:
             del timestep_list[-1]
-            warning_list.append("Warning: The last time step is corrupted : one line data or more are missing. The last timestep is removed.")
+            warning_list.append("Warning: " + qt_tr.translate("rubar1d2d_mod", "The last time step is corrupted : one line data or more are missing. The last timestep is removed."))
 
         # check if lines are missing in other timestep
         timestep_index_to_remove_list = []
@@ -1572,7 +1574,8 @@ def get_time_step(filename_without_extension, path):
                 timestep_to_remove.append(timestep_list[timestep_index_list.index(timestep_index_to_remove)])
                 # remove timestep
                 timestep_list.pop(timestep_list.index(timestep_list[timestep_index_list.index(timestep_index_to_remove)]))
-            warning_list.append("Warning: Block data of timestep(s) corrumpted : " + ", ".join(timestep_to_remove) + ". They will be removed.")
+            warning_list.append("Warning: " + qt_tr.translate("rubar1d2d_mod", "Block data of timestep(s) corrumpted : ") + ", ".join(timestep_to_remove) +
+                                qt_tr.translate("rubar1d2d_mod", ". They will be removed."))
 
     nb_t = len(timestep_list)
 

@@ -62,10 +62,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.habby'))
                 root = docxml.getroot()
             except IOError:
-                # self.send_log.emit("Warning: the xml p file does not exist.")
+                self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
                 return
         except ET.ParseError:
-            self.send_log.emit("Warning: the xml file is not well-formed.")
+            self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed."))
             return
         pathbio_child = root.find(".//Path_Bio")
         if pathbio_child is not None:
@@ -556,14 +556,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # block HEM
             if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
-                self.send_log.emit("NB: Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values).")
+                self.send_log.emit("NB: " + self.tr("Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values)."))
             else:
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(True)
 
             # block_percentage
             if not self.current_hab_informations_dict["percentage_ok"]:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(False)
-                #self.send_log.emit("NB: Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage).")
+                self.send_log.emit("NB: " + self.tr("Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage)."))
             else:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(True)
 
@@ -774,10 +774,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 docxml = ET.parse(xmlfile)
                 root = docxml.getroot()
             except IOError:
-                self.send_log.emit("Warning: the xml project file does not exist.")
+                self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
                 return
         except ET.ParseError:
-            self.send_log.emit("Warning: the xml project file is not well-formed.")
+            self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed."))
             return
 
         self.m_all.blockSignals(True)
@@ -808,7 +808,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     name = f.text
                     self.hdf5_merge.append(name)
                 else:
-                    self.send_log.emit("Warning: " + f.text + ", this .hab file has been deleted by the user.")
+                    self.send_log.emit("Warning: " + f.text + self.tr(", this .hab file has been deleted by the user."))
                     # TODO : It will be deleted from the .xml file.
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
@@ -876,10 +876,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     docxml = ET.parse(filename_path_pro)
                     root = docxml.getroot()
                 except IOError:
-                    print("Warning: the xml project file does not exist \n")
+                    self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist \n"))
                     return
             except ET.ParseError:
-                print("Warning: the xml project file is not well-formed.\n")
+                self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed.\n"))
                 return
             hab_child = root.find(".//Habitat")
             if hab_child is None:
@@ -899,7 +899,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 hdf5_file = self.hdf5_merge[ind]
             else:
                 self.runhab.setDisabled(False)
-                self.send_log.emit('Error: No merged hydraulic files available.')
+                self.send_log.emit('Error: ' + self.tr('No merged hydraulic files available.'))
                 return
 
             # show progressbar
@@ -969,13 +969,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # get the langugage
             project_preferences = load_project_preferences(self.path_prj, self.name_prj)
             # send the message
-            if project_preferences['language'] == str(1):
-                # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit("Processus 'Habitat' fonctionne depuis " + str(round(self.running_time)) + " sec.")
-            else:
-                # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit(
-                    "Process 'Habitat' is alive and run since " + str(round(self.running_time)) + " sec.")
+            self.send_log.emit(self.tr("Process 'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             self.nativeParentWidget().kill_process.setVisible(True)
 
@@ -988,13 +982,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # give the possibility of sending a new simulation
             self.runhab.setDisabled(False)
 
-            self.send_log.emit(self.tr('Habitat calculation is finished (computation time = ') + str(
+            self.send_log.emit(self.tr('Habitat computation is finished (computation time = ') + str(
                 round(self.running_time)) + " s).")
             self.send_log.emit(self.tr("Figures and files can be displayed and exported from 'Data explorer' tab."))
 
             # put the timer back to zero and clear status bar
             self.running_time = 0
-            self.send_log.emit("clear status bar")
+            self.send_log.emit(self.tr("clear status bar"))
             self.plot_new = False
             # refresh plot gui list file
             self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
@@ -1014,7 +1008,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # put the timer back to zero
             self.running_time = 0
-            self.send_log.emit("clear status bar")
+            self.send_log.emit(self.tr("clear status bar"))
             # check_uncheck_allmodels_presence
             self.check_uncheck_allmodels_presence()
 

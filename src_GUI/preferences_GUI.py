@@ -421,9 +421,9 @@ class PreferenceWindow(QDialog):
                 project_preferences['width'] = np.float(fig_size[0])
                 project_preferences['height'] = np.float(fig_size[1])
             except IndexError:
-                self.send_log.emit('Error: The size of the figure should be in the format: num1,num2.\n')
+                self.send_log.emit('Error: ' + self.tr('The size of the figure should be in the format: num1,num2.\n'))
             except ValueError:
-                self.send_log.emit('Error: The size of the figure should be in the format: num1,num2.\n')
+                self.send_log.emit('Error: ' + self.tr('The size of the figure should be in the format: num1,num2.\n'))
         # color map
         c1 = str(self.color_map_combobox.currentText())
         if c1:
@@ -437,14 +437,14 @@ class PreferenceWindow(QDialog):
             try:
                 project_preferences['font_size'] = int(font_size)
             except ValueError:
-                self.send_log.emit('Error: Font size should be an integer. \n')
+                self.send_log.emit('Error: ' + self.tr('Font size should be an integer. \n'))
         # line width
         line_width = self.line_width_lineedit.text()
         if line_width:
             try:
                 project_preferences['line_width'] = int(line_width)
             except ValueError:
-                self.send_log.emit('Error: Line width should be an integer. \n')
+                self.send_log.emit('Error: ' + self.tr('Line width should be an integer. \n'))
         # grid
         if self.grid_checkbox.isChecked():
             project_preferences['grid'] = True
@@ -456,12 +456,12 @@ class PreferenceWindow(QDialog):
         try:
             project_preferences['resolution'] = int(self.resolution_lineedit.text())
         except ValueError:
-            self.send_log.emit('Error: the resolution should be an integer. \n')
+            self.send_log.emit('Error: ' + self.tr('The resolution should be an integer. \n'))
         if project_preferences['resolution'] < 0:
-            self.send_log.emit('Error: The resolution should be higher than zero \n')
+            self.send_log.emit('Error: ' + self.tr('The resolution should be higher than zero \n'))
             return
         if project_preferences['resolution'] > 2000:
-            self.send_log.emit('Warning: The resolution is higher than 2000 dpi. Figures might be very large.\n')
+            self.send_log.emit('Warning: ' + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
 
         # fish name type
         project_preferences['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())
@@ -487,17 +487,17 @@ class PreferenceWindow(QDialog):
         try:
             project_preferences['vertical_exaggeration'] = int(self.vertical_exaggeration_lineedit.text())
             if int(self.vertical_exaggeration_lineedit.text()) < 1:
-                self.send_log.emit("Error: Vertical exaggeration value must be superior than 1. Value set to 1.")
+                self.send_log.emit("Error: " + self.tr("Vertical exaggeration value must be superior than 1. Value set to 1."))
                 project_preferences['vertical_exaggeration'] = 1
         except:
-            self.send_log.emit("Error: Vertical exaggeration value is not integer. Value set to 1.")
+            self.send_log.emit("Error: " + self.tr("Vertical exaggeration value is not integer. Value set to 1."))
             project_preferences['vertical_exaggeration'] = 1
 
         # other option
         try:
             project_preferences['min_height_hyd'] = float(self.min_height_lineedit.text())
         except ValueError:
-            self.send_log.emit('Error: Minimum Height should be a number')
+            self.send_log.emit('Error: ' + self.tr('Minimum Height should be a number'))
         if self.erase_data_checkbox.isChecked():
             project_preferences['erase_id'] = True
         else:

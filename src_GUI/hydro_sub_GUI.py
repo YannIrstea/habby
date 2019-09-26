@@ -506,7 +506,7 @@ class Hydro2W(QScrollArea):
         This is the function which is used by the GUI to export slf data.
         NOT FINISHED!!!!!
         """
-        self.send_log.emit('export slf is not finished yet')
+        self.send_log.emit(self.tr('export slf is not finished yet'))
         name_hdf5 = self.drop_hyd.currentText()
         path_hdf5 = self.rubar1d.find_path_hdf5()
         #path_slf = self.rubar1d.find_path_output('Path_Visualisation')
@@ -884,7 +884,7 @@ class SubHydroW(QWidget):
             self.msg2.show()
 
         if not os.path.isdir(path_im):
-            self.send_log.emit('Warning: The path to the figure was not found.')
+            self.send_log.emit('Warning: ' + self.tr('The path to the figure was not found.'))
             path_im = self.path_prj
 
         return path_im
@@ -907,8 +907,8 @@ class SubHydroW(QWidget):
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
-            self.send_log.emit("Error: The project is not saved. Save the project in the General tab "
-                               "before calling hdf5 files. \n")
+            self.send_log.emit("Error: " + self.tr("The project is not saved. Save the project in the General tab "
+                               "before calling hdf5 files. \n"))
 
         return path_hdf5
 
@@ -1053,14 +1053,14 @@ class SubHydroW(QWidget):
             filename = os.path.basename(filename_path)
         # load data
         if not os.path.isfile(filename_path):
-            self.send_log.emit('Error: The selected file for manning is not found.')
+            self.send_log.emit('Error: ' + self.tr('The selected file for manning is not found.'))
             return
         self.manning_textname = filename_path
         try:
             with open(filename_path, 'rt') as f:
                 data = f.read()
         except IOError:
-            self.send_log.emit('Error: The selected file for manning can not be open.')
+            self.send_log.emit('Error: ' + self.tr('The selected file for manning can not be open.'))
             return
         # create manning array (to pass to dist_vitess)
         data = data.split('\n')
@@ -1077,12 +1077,12 @@ class SubHydroW(QWidget):
                             manning[l - com, 1] = np.float(data_here[1])
                             manning[l - com, 2] = np.float(data_here[2])
                         except ValueError:
-                            self.send_log.emit('Error: The manning data could not be converted to float or int.'
-                                               ' Format: p,dist,n line by line.')
+                            self.send_log.emit('Error: ' + self.tr('The manning data could not be converted to float or int.'
+                                               ' Format: p,dist,n line by line.'))
                             return
                     else:
-                        self.send_log.emit('Error: The manning data was not in the right format.'
-                                           ' Format: p,dist,n line by line.')
+                        self.send_log.emit('Error: ' + self.tr('The manning data was not in the right format.'
+                                           ' Format: p,dist,n line by line.'))
                         return
 
                 else:
@@ -1144,7 +1144,7 @@ class SubHydroW(QWidget):
 
             # info
             if error:
-                self.send_log.emit("clear status bar")
+                self.send_log.emit(self.tr("clear status bar"))
                 self.running_time = 0
                 self.nativeParentWidget().kill_process.setVisible(False)
                 # MERGE
@@ -1205,7 +1205,7 @@ class SubHydroW(QWidget):
                     self.send_log.emit(self.tr("Figures can be displayed/exported from 'Data explorer' tab.\n"))
                 if const_sub:
                     self.update_sub_hdf5_name()
-                self.send_log.emit("clear status bar")
+                self.send_log.emit(self.tr("clear status bar"))
                 # refresh plot gui list file
                 self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
                 self.running_time = 0
@@ -1213,7 +1213,7 @@ class SubHydroW(QWidget):
         # finish
         if not self.p.is_alive() and self.q.empty():
             self.timer.stop()
-            self.send_log.emit("clear status bar")
+            self.send_log.emit(self.tr("clear status bar"))
             self.nativeParentWidget().kill_process.setVisible(False)
             self.running_time = 0
             # MERGE
@@ -1306,8 +1306,8 @@ class SubHydroW(QWidget):
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
-            self.send_log.emit('Error: The project is not saved. '
-                               'Save the project in the General tab before saving hydraulic data. \n')
+            self.send_log.emit('Error: ' + self.tr('The project is not saved. '
+                               'Save the project in the General tab before saving hydraulic data. \n'))
         else:
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -1519,7 +1519,7 @@ class HEC_RAS1D(SubHydroW):
             try:
                 self.pro_add = int(self.nb_extrapro_text.text())
             except ValueError:
-                self.send_log.emit('Error: Number of profile not recognized.\n')
+                self.send_log.emit('Error: ' + self.tr('Number of profile not recognized.\n'))
                 return
 
         # load hec_ras data and create the grid in a second thread
@@ -2160,13 +2160,13 @@ class Rubar2D(SubHydroW):
         if self.multi_hdf5:
             for i in range(len(self.hydrau_description_multiple)):
                 if not any(self.hydrau_description_multiple[i]["unit_list_tf"]):
-                    self.send_log.emit("Error: No units selected for : " + self.hydrau_description_multiple[i][
+                    self.send_log.emit("Error: " + self.tr("No units selected for : ") + self.hydrau_description_multiple[i][
                         "filename_source"] + "\n")
                     return
         if not self.multi_hdf5:
             selection = self.units_QListWidget.selectedItems()
             if not selection:
-                self.send_log.emit("Error: No units selected. \n")
+                self.send_log.emit("Error: " + self.tr("No units selected. \n"))
                 return
             self.hydrau_description["epsg_code"] = self.epsg_label.text()
 
@@ -2441,12 +2441,12 @@ class Mascaret(SubHydroW):
                 manning_float = True
                 self.manning_arr = float(self.manning_text.text())
             except ValueError:
-                self.send_log.emit("Error: The manning value is not understood.")
+                self.send_log.emit("Error: " + self.tr("The manning value is not understood."))
                 return
         try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
-            self.send_log.emit("Error: The number of velocity point is not understood.")
+            self.send_log.emit("Error: " + self.tr("The number of velocity point is not understood."))
             return
 
         # load mascaret data, distribute the velocity and create the grid in a second thread
@@ -2737,7 +2737,7 @@ class River2D(SubHydroW):
         # get the directory
         dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if dir_name == '':  # cancel case
-            self.send_log.emit("Warning: No selected directory for river 2d\n")
+            self.send_log.emit("Warning: " + self.tr("No selected directory for river 2d\n"))
             return
         # get all file with .cdg
         dirlist = np.array(os.listdir(dir_name))
@@ -2758,7 +2758,7 @@ class River2D(SubHydroW):
             # self.polygon_hname.setAlignment(Qt.AlignRight)
             self.hname.setText(self.name_hdf5)
         else:
-            self.send_log.emit('Warning: No .cdg file found in the selected directory \n')
+            self.send_log.emit('Warning: ' + self.tr('No .cdg file found in the selected directory \n'))
 
     def load_river2d_gui(self):
         """
@@ -2996,12 +2996,12 @@ class Rubar1D(SubHydroW):
                 manning_float = True
                 self.manning_arr = float(self.manning_text.text())
             except ValueError:
-                self.send_log.emit("Error: The manning value is not understood.")
+                self.send_log.emit("Error: " + self.tr("The manning value is not understood."))
                 return
         try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
-            self.send_log.emit("Error: The number of velocity point is not understood.")
+            self.send_log.emit("Error: " + self.tr("The number of velocity point is not understood."))
             return
 
         # load rubar 1D, distribute velcoity and create the grid
@@ -3481,13 +3481,13 @@ class HEC_RAS2D(SubHydroW):
         if self.multi_hdf5:
             for i in range(len(self.hydrau_description_multiple)):
                 if not any(self.hydrau_description_multiple[i]["unit_list_tf"]):
-                    self.send_log.emit("Error: No units selected for : " + self.hydrau_description_multiple[i][
+                    self.send_log.emit("Error: " + self.tr("No units selected for : ") + self.hydrau_description_multiple[i][
                         "filename_source"] + "\n")
                     return
         if not self.multi_hdf5:
             selection = self.units_QListWidget.selectedItems()
             if not selection:
-                self.send_log.emit("Error: No units selected. \n")
+                self.send_log.emit("Error: " + self.tr("No units selected. \n"))
                 return
             self.hydrau_description["epsg_code"] = self.epsg_hec_ras2d_label.text()
 
@@ -3952,13 +3952,13 @@ class TELEMAC(SubHydroW):  # QGroupBox
         if self.multi_hdf5:
             for i in range(len(self.hydrau_description_multiple)):
                 if not any(self.hydrau_description_multiple[i]["unit_list_tf"]):
-                    self.send_log.emit("Error: No units selected for : " + self.hydrau_description_multiple[i][
+                    self.send_log.emit("Error: " + self.tr("No units selected for : ") + self.hydrau_description_multiple[i][
                         "filename_source"] + "\n")
                     return
         if not self.multi_hdf5:
             selection = self.units_QListWidget.selectedItems()
             if not selection:
-                self.send_log.emit("Error: No units selected. \n")
+                self.send_log.emit("Error: " + self.tr("No units selected. \n"))
                 return
             self.hydrau_description["epsg_code"] = self.epsg_label.text()
 
@@ -4429,13 +4429,13 @@ class ASCII(SubHydroW):  # QGroupBox
         if self.multi_hdf5:
             for i in range(len(self.hydrau_description_multiple)):
                 if not any(self.hydrau_description_multiple[i]["unit_list_tf"]):
-                    self.send_log.emit("Error: No units selected for : " + self.hydrau_description_multiple[i][
+                    self.send_log.emit("Error: " + self.tr("No units selected for : ") + self.hydrau_description_multiple[i][
                         "filename_source"] + "\n")
                     return
         if not self.multi_hdf5:
             selection = self.units_QListWidget.selectedItems()
             if not selection:
-                self.send_log.emit("Error: No units selected. \n")
+                self.send_log.emit("Error: " + self.tr("No units selected. \n"))
                 return
             self.hydrau_description["epsg_code"] = self.epsg_label.text()
 
@@ -4634,7 +4634,7 @@ class LAMMI(SubHydroW):
         # get the directory
         dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if dir_name == '':  # cancel case
-            self.send_log.emit("Warning: No selected directory for lammi\n")
+            self.send_log.emit("Warning: " + self.tr("No selected directory for lammi\n"))
             return
 
         # get the files if entree
@@ -4645,7 +4645,7 @@ class LAMMI(SubHydroW):
                 if os.path.isfile(os.path.join(dir_name, filename)):
                     pass
                 else:
-                    self.send_log.emit("Error: Transect.txt or Facies.txt was not found in the selected directory.\n")
+                    self.send_log.emit("Error: " + self.tr("Transect.txt or Facies.txt was not found in the selected directory.\n"))
                     return
                 # keep the name in an attribute until we save it
                 self.pathfile[f] = dir_name
@@ -4662,7 +4662,7 @@ class LAMMI(SubHydroW):
                 self.pathfile[2] = dir_name
                 self.namefile[2] = os.path.basename(filenames[0])
             else:
-                self.send_log.emit("Error: No output (.prn) file found in the selected directory.\n")
+                self.send_log.emit("Error: " + self.tr("No output (.prn) file found in the selected directory.\n"))
                 return
 
 
@@ -5372,7 +5372,7 @@ class HabbyHdf5(SubHydroW):
         if fname_h5 != '':  # cancel
             blob, ext = os.path.splitext(fname_h5)
         else:
-            self.send_log.emit('Warning: No file selected.\n')
+            self.send_log.emit('Warning: ' + self.tr('No file selected.\n'))
             return
         # load the data to check integrity
         [ikle_all_t, point_all, inter_vel_all, inter_height_all] = hdf5_mod.load_hdf5_hyd_and_merge(fname_h5, path_hdf5)
@@ -5387,19 +5387,19 @@ class HabbyHdf5(SubHydroW):
             pathnewname2 = os.path.join(path_input, self.new_name)
             shutil.copyfile(fname_h5, pathnewname2)
         else:
-            self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
+            self.send_log.emit('Error: ' + self.tr('the path to the project is not found. Is the project saved in the general tab?'))
             return
         try:
             file_hydro2 = h5py.File(pathnewname, 'r+')
         except OSError:
-            self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
+            self.send_log.emit('Error: ' + self.tr('The hdf5 file could not be loaded. \n'))
             return
         file_hydro2.attrs['path_project'] = self.path_prj
         file_hydro2.attrs['name_project'] = self.name_prj
 
         self.add_new_hdf5_to_xml()
 
-        self.send_log.emit('# hdf5 file loaded to the current project.')
+        self.send_log.emit(self.tr('# hdf5 file loaded to the current project.'))
         self.send_log.emit("py    import shutil")
         self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
         self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
@@ -5427,7 +5427,7 @@ class HabbyHdf5(SubHydroW):
         if fname_h5 != '':  # cancel
             blob, ext = os.path.splitext(fname_h5)
         else:
-            self.send_log.emit('Warning: No file selected.\n')
+            self.send_log.emit('Warning: ' + self.tr('No file selected.\n'))
             return
         # load the data to check integrity
         [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
@@ -5444,19 +5444,19 @@ class HabbyHdf5(SubHydroW):
             pathnewname2 = os.path.join(path_input, self.new_name)
             shutil.copyfile(fname_h5, pathnewname2)
         else:
-            self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
+            self.send_log.emit('Error: ' + self.tr('The path to the project is not found. Is the project saved in the general tab?'))
             return
         try:
             file_hydro2 = h5py.File(pathnewname, 'r+')
         except OSError:
-            self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
+            self.send_log.emit('Error: ' + self.tr('The hdf5 file could not be loaded. \n'))
             return
         file_hydro2.attrs['path_project'] = self.path_prj
         file_hydro2.attrs['name_project'] = self.name_prj
 
         self.add_new_hdf5_to_xml()
 
-        self.send_log.emit('# hdf5 file loaded to the current project.')
+        self.send_log.emit(self.tr('# hdf5 file loaded to the current project.'))
         self.send_log.emit("py    import shutil")
         self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
         self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
@@ -5475,7 +5475,7 @@ class HabbyHdf5(SubHydroW):
         # save the new file name in the xml file of the project
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(filename_prj):
-            self.send_log.emit('Error: No project saved. Please create a project first in the General tab.\n')
+            self.send_log.emit('Error: ' + self.tr('No project saved. Please create a project first in the General tab.\n'))
             return
         else:
             doc = ET.parse(filename_prj)
@@ -5529,7 +5529,7 @@ class HabbyHdf5(SubHydroW):
             hdf51 = os.path.basename(fname_h5)
             path1 = os.path.dirname(fname_h5)
         else:
-            self.send_log.emit('Warning: No file selected.\n')
+            self.send_log.emit('Warning: ' + self.tr('No file selected.\n'))
             return
 
         self.msg2.setIcon(QMessageBox.Information)
@@ -5557,7 +5557,7 @@ class HabbyHdf5(SubHydroW):
                 hdf52 = os.path.basename(fname_h5)
                 path2 = os.path.dirname(fname_h5)
             else:
-                self.send_log.emit('Warning: No second file selected.\n')
+                self.send_log.emit('Warning: ' + self.tr('No second file selected.\n'))
                 return
 
             # join the two files
@@ -5571,7 +5571,7 @@ class HabbyHdf5(SubHydroW):
                                    path_hdf5, merge=self.ismerge, erase_id=erase_id)
             self.add_new_hdf5_to_xml()
 
-            self.send_log.emit('Two hdf5 file added together')
+            self.send_log.emit(self.tr('Two hdf5 file added together'))
 
             if self.ismerge:
                 self.drop_merge.emit()
@@ -5960,7 +5960,7 @@ class SubstrateW(SubHydroW):
             if substrate_mapping_method == "polygon":
                 # check classification code in .txt (polygon or point shp)
                 if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                    self.send_log.emit("Error: The selected shapefile is not accompanied by its habby .txt file.")
+                    self.send_log.emit("Error: " + self.tr("The selected shapefile is not accompanied by its habby .txt file."))
                     return
                 if os.path.isfile(os.path.join(dirname, blob + ".txt")):
                     with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
@@ -5971,23 +5971,23 @@ class SubstrateW(SubHydroW):
                         substrate_classification_code = \
                         substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
                         if substrate_classification_code not in self.substrate_classification_codes:
-                            self.send_log.emit("Error: The classification code in .txt file is not recognized : "
+                            self.send_log.emit("Error: " + self.tr("The classification code in .txt file is not recognized : ")
                                                + substrate_classification_code)
                             return
                     else:
-                        self.send_log.emit("Error: The name 'substrate_classification_code=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'substrate_classification_code=' is not found in"
+                                           " .txt file."))
                         return
                     if "substrate_classification_method=" in substrate_classification_method_raw:
                         substrate_classification_method = \
                         substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
                         if substrate_classification_method not in self.substrate_classification_methods:
-                            self.send_log.emit("Error: The classification method in .txt file is not recognized : "
+                            self.send_log.emit("Error: " + self.tr("The classification method in .txt file is not recognized : ")
                                                + substrate_classification_method)
                             return
                     else:
-                        self.send_log.emit("Error: The name 'substrate_classification_method=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'substrate_classification_method=' is not found in"
+                                           " .txt file."))
                         return
                     if "default_values=" in substrate_default_values_raw:
                         substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
@@ -5996,12 +5996,12 @@ class SubstrateW(SubHydroW):
                             try:
                                 int(value.strip())
                             except:
-                                self.send_log.emit("Error: Default values can't be converted to integer : "
+                                self.send_log.emit("Error: " + self.tr("Default values can't be converted to integer : ")
                                                    + substrate_default_values)
                                 return
                     else:
-                        self.send_log.emit("Error: The name 'default_values=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'default_values=' is not found in"
+                                           " .txt file."))
                         return
 
                 # check EPSG code in .prj
@@ -6044,13 +6044,13 @@ class SubstrateW(SubHydroW):
             if substrate_mapping_method == "point":
                 # txt case
                 if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                    self.send_log.emit("Error: The selected file don't exist.")
+                    self.send_log.emit("Error: " + self.tr("The selected file don't exist."))
                     return
                 if os.path.isfile(os.path.join(dirname, blob + ".txt")):
                     with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                         dataraw = f.read()
                     if len(dataraw.split("\n")[:4]) < 4:
-                        self.send_log.emit("Error: This text file is not a valid point substrate.")
+                        self.send_log.emit("Error: " + self.tr("This text file is not a valid point substrate."))
                         return
                     epsg_raw, substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
                         "\n")[:4]
@@ -6058,30 +6058,30 @@ class SubstrateW(SubHydroW):
                     if "EPSG=" in epsg_raw:
                         epsg_code = epsg_raw.split("EPSG=")[1].strip()
                     else:
-                        self.send_log.emit("Error: The name 'EPSG=' is not found in .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'EPSG=' is not found in .txt file."))
                         return
                     # check classification code in .txt ()
                     if "substrate_classification_code=" in substrate_classification_code_raw:
                         substrate_classification_code = \
                         substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
                         if substrate_classification_code not in self.substrate_classification_codes:
-                            self.send_log.emit("Error: The classification code in .txt file is not recognized : "
+                            self.send_log.emit("Error: " + self.tr("The classification code in .txt file is not recognized : ")
                                                + substrate_classification_code)
                             return
                     else:
-                        self.send_log.emit("Error: The name 'substrate_classification_code=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'substrate_classification_code=' is not found in"
+                                           " .txt file."))
                         return
                     if "substrate_classification_method=" in substrate_classification_method_raw:
                         substrate_classification_method = \
                         substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
                         if substrate_classification_method not in self.substrate_classification_methods:
-                            self.send_log.emit("Error: The classification method in .txt file is not recognized : "
+                            self.send_log.emit("Error: " + self.tr("The classification method in .txt file is not recognized : ")
                                                + substrate_classification_method)
                             return
                     else:
-                        self.send_log.emit("Error: The name 'substrate_classification_method=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'substrate_classification_method=' is not found in"
+                                           " .txt file."))
                         return
                     if "default_values=" in substrate_default_values_raw:
                         substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
@@ -6090,12 +6090,12 @@ class SubstrateW(SubHydroW):
                             try:
                                 int(value.strip())
                             except:
-                                self.send_log.emit("Error: Default values can't be converted to integer : "
+                                self.send_log.emit("Error: " + self.tr("Default values can't be converted to integer : ")
                                                    + substrate_default_values)
                                 return
                     else:
-                        self.send_log.emit("Error: The name 'default_values=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'default_values=' is not found in"
+                                           " .txt file."))
                         return
 
                     # save to attributes
@@ -6117,7 +6117,7 @@ class SubstrateW(SubHydroW):
             if substrate_mapping_method == "constant":
                 # txt
                 if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                    self.send_log.emit("Error: The selected text file don't exist.")
+                    self.send_log.emit("Error: " + self.tr("The selected text file don't exist."))
                     return
                 if os.path.isfile(os.path.join(dirname, blob + ".txt")):
                     with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
@@ -6129,23 +6129,23 @@ class SubstrateW(SubHydroW):
                         substrate_classification_code = \
                         substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
                         if substrate_classification_code not in self.substrate_classification_codes:
-                            self.send_log.emit("Error: The classification code in .txt file is not recognized : "
+                            self.send_log.emit("Error: " + self.tr("The classification code in .txt file is not recognized : ")
                                                + substrate_classification_code)
                             return
                     else:
-                        self.send_log.emit("Error: The name 'substrate_classification_code=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'substrate_classification_code=' is not found in"
+                                           " .txt file."))
                         return
                     if "substrate_classification_method=" in substrate_classification_method_raw:
                         substrate_classification_method = \
                         substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
                         if substrate_classification_method not in self.substrate_classification_methods:
-                            self.send_log.emit("Error: The classification method in .txt file is not recognized : "
+                            self.send_log.emit("Error: " + self.tr("The classification method in .txt file is not recognized : ")
                                                + substrate_classification_method)
                             return
                     else:
-                        self.send_log.emit("Error: The name 'substrate_classification_method=' is not found in"
-                                           " .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'substrate_classification_method=' is not found in"
+                                           " .txt file."))
                         return
                     # constant values
                     if "constant_values=" in constant_values_raw:
@@ -6155,11 +6155,11 @@ class SubstrateW(SubHydroW):
                             try:
                                 int(value.strip())
                             except:
-                                self.send_log.emit("Error: Constant values can't be converted to integer : "
+                                self.send_log.emit("Error: " + self.tr("Constant values can't be converted to integer : ")
                                                    + constant_values)
                                 return
                     else:
-                        self.send_log.emit("Error: The name 'constant_values=' is not found in .txt file.")
+                        self.send_log.emit("Error: " + self.tr("The name 'constant_values=' is not found in .txt file."))
                         return
                     # save to attributes
                     self.namefile[0] = filename
@@ -6423,7 +6423,7 @@ class SubstrateW(SubHydroW):
         """
         path_im = self.find_path_im()
         if not self.last_hdf5:
-            self.send_log.emit('Warning: No figure created \n')
+            self.send_log.emit('Warning: ' + self.tr('No figure created \n'))
             return
 
         # getting the subtrate data
@@ -6531,12 +6531,12 @@ class SubstrateW(SubHydroW):
         if len(self.drop_hyd) > 1:
             hdf5_name_hyd = self.drop_hyd.currentText()  # path_hdf5 + "/" +
         elif len(self.drop_hyd) == 0:
-            self.send_log.emit('Error: No hydrological file available \n')
+            self.send_log.emit('Error: ' + self.tr('No hydrological file available \n'))
             return
         else:
             hdf5_name_hyd = self.hyd_name[0]
         if len(self.sub_name) == 0:
-            self.send_log.emit('Error: No substrate file available \n')
+            self.send_log.emit('Error: ' + self.tr('No substrate file available \n'))
             return
         hdf5_name_sub = self.drop_sub.currentText()
 
