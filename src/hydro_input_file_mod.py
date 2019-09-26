@@ -67,7 +67,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             for i, file in enumerate(filename):
                 # get units name from file
                 filename_path = os.path.join(folder_path, file)
-                nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+                nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+                warning_list.extend(warning_list_timestep)
                 unit_index_from_file = [True] * nbtimes
                 # hdf5 filename
                 blob2, ext = os.path.splitext(file)
@@ -122,7 +123,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 reach_number = 1
                 reach_list = "unknown"
                 sub = False
-                nbtimes, unit_list = get_time_step(filename_path, model_type)
+                nbtimes, unit_list, warning_list_timestep = get_time_step(filename_path, model_type)
+                warning_list.extend(warning_list_timestep)
                 unit_list_tf = list(map(bool, unit_list))
 
             hydrau_description = dict(path_prj=path_prj,
@@ -271,7 +273,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if hydrau_case == "1.a":
             # get units name from TELEMAC file
             filename_path = os.path.join(folder_path, data_index_file["filename"][0])
-            nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+            nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+            warning_list.extend(warning_list_timestep)
             # get units name from indexHYDRAU.txt file
             unit_name_from_index_file = data_index_file[headers[discharge_index]]
             # check if lenght of two loading units
@@ -307,7 +310,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if hydrau_case == "1.b":
             # get units name from file
             filename_path = os.path.join(folder_path, namefile)
-            nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+            nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+            warning_list.extend(warning_list_timestep)
             # get units name from indexHYDRAU.txt file
             unit_name_from_index_file = data_index_file[headers[time_index]]
 
@@ -341,7 +345,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # get units name from files (must have only one time step by file)
             for file in data_index_file["filename"]:
                 filename_path = os.path.join(folder_path, file)
-                nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+                nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+                warning_list.extend(warning_list_timestep)
                 if unit_name_from_file == ["0.0"] and nbtimes == 1:
                     pass
                 else:
@@ -384,7 +389,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             for rowindex, file in enumerate(data_index_file["filename"]):
                 # get units name from file
                 filename_path = os.path.join(folder_path, file)
-                nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+                nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+                warning_list.extend(warning_list_timestep)
                 # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[time_index]][rowindex]
                 # check if lenght of two loading units
@@ -446,7 +452,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if hydrau_case == "3.b":
             # get units name from file
             filename_path = os.path.join(folder_path, data_index_file[headers[0]][0])
-            nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+            nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+            warning_list.extend(warning_list_timestep)
 
             # get units name from indexHYDRAU.txt file
             unit_name_from_index_file = data_index_file[headers[time_index]][0]
@@ -505,7 +512,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             for i, file in enumerate(data_index_file[headers[0]]):
                 # get units name from file
                 filename_path = os.path.join(folder_path, file)
-                nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+                nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+                warning_list.extend(warning_list_timestep)
                 unit_index_from_file = [True] * nbtimes
                 # hdf5 filename
                 blob2, ext = os.path.splitext(file)
@@ -551,7 +559,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             for i, file in enumerate(data_index_file[headers[0]]):
                 # get units name from file
                 filename_path = os.path.join(folder_path, file)
-                nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
+                nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+                warning_list.extend(warning_list_timestep)
                 # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[time_index]][i]
                 unit_name_from_index_file2 = []

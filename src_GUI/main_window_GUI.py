@@ -92,8 +92,8 @@ class MainWindows(QMainWindow):
 
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = HABBY_VERSION
-
+        self.version = str(HABBY_VERSION)
+        self.beta = True
         # user_preferences
         self.user_preferences = user_preferences
 
@@ -280,6 +280,10 @@ class MainWindows(QMainWindow):
             self.setthemedark()
 
         self.check_concurrency()
+
+        # run_as_beta_version
+        self.run_as_beta_version()
+
         self.show()
 
     def closeEvent(self, event):
@@ -331,6 +335,38 @@ class MainWindows(QMainWindow):
         self.user_preferences.save_user_preferences_json()
 
         os._exit(1)
+
+    def run_as_beta_version(self):
+        """
+        Disable desired hydraulic and statistic models if not finished and change windowtitle for Habby beta version.
+        If True : run as beta
+        If False : run as stable release or dev.
+        """
+        if self.beta:
+            # disable_hydraulic_models_not_finished
+            list_to_disable = ['HABBY HDF5', 'HEC-RAS 1D', 'HEC-RAS 2D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D',
+                               'RUBAR 20', 'RUBAR BE', 'SW2D']
+            if hasattr(self.central_widget, "hydro_tab"):
+                list_of_model = self.central_widget.hydro_tab.name_model
+                for model in list_of_model:
+                    if model in list_to_disable:
+                        self.central_widget.hydro_tab.mod.model().item(list_of_model.index(model)).setEnabled(False)
+
+            # disable_model_statistic
+            if hasattr(self.central_widget, "statmod_tab"):
+                self.central_widget.statmod_tab.setEnabled(True)
+            if hasattr(self.central_widget, "stathab_tab"):
+                self.central_widget.stathab_tab.setEnabled(False)
+            if hasattr(self.central_widget, "fstress_tab"):
+                self.central_widget.fstress_tab.setEnabled(False)
+
+            # # change GUI title
+            if "Beta" not in self.version:
+                self.version = self.version + " Beta"
+            if self.name_prj:
+                self.setWindowTitle(self.tr('HABBY ') + str(self.version) + " - " + self.name_prj)
+            else:
+                self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
     def check_concurrency(self):
         """
@@ -994,6 +1030,9 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
 
+            # run_as_beta_version
+            self.run_as_beta_version()
+
     def save_project(self):
         """
         A function to save the xml file with the information on the project
@@ -1282,10 +1321,10 @@ class MainWindows(QMainWindow):
                                           'New project name: ' + os.path.basename(filename_path))
             self.name_prj = os.path.basename(filename_path)
             root2.find(".//Project_Name").text = self.name_prj
-        if not os.path.samefile(self.path_prj, os.path.dirname(filename_path)):
+        if not self.path_prj == os.path.abspath(os.path.dirname(filename_path)):
             self.central_widget.write_log('Warning: xml file path is not coherent with project path. '
-                                          'New project path: ' + os.path.dirname(filename_path))
-            self.path_prj = os.path.dirname(filename_path)
+                                          'New project path: ' + os.path.abspath(os.path.dirname(filename_path)))
+            self.path_prj = os.path.abspath(os.path.dirname(filename_path))
             root2.find(".//Path_Project").text = self.path_prj
             # if we have change the project path, it is probable that the project folder was copied from somewhere else
             # so the check concurrency file was probably copied and look like open even if the project is closed.
