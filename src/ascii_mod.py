@@ -533,7 +533,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     nodesall = np.loadtxt(fnoden, dtype=float)
     ikleall = np.loadtxt(ftinn, dtype=int)
     if bfvm:
-        hvmesh=  np.loadtxt(ffvmn, dtype=float)
+        hvmesh =  np.loadtxt(ffvmn, dtype=float)
         if hvmesh.shape[0]!=ikleall.shape[0]:
             print('Error : the total number of meshes from TIN is not equal to FVM')
             return False, False
@@ -542,23 +542,12 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     os.remove(ftinn)
     os.remove(ffvmn)
     if bfvm:
-        # calculating the coordinates of the mesh centers (triangle or quadrangle] from the nodes :xyzmesh34
-        # xyzmesh=np.empty([ikleall.shape[0],3],np.float64 )
-        # ikle3 = ikleall[np.where(ikleall[:, [3]] == -1)[0]]
-        # ikle4 = ikleall[np.where(ikleall[:, [3]] != -1)[0]]
         nbmesh=ikleall.shape[0]
         hmesh = np.empty([nbmesh,nbunit], dtype=np.float64)
         vmesh=np.empty([nbmesh,nbunit], dtype=np.float64)
         for u in range(nbunit):
-            hmesh[:,[u]]=hvmesh[:,[2*u]]
+            hmesh[:,[u]]= hvmesh[:,[2*u]]
             vmesh[:, [u]] = hvmesh[:, [2 * u+1]]
-        ikle2, nodes2,hnodes2,vnodes2=manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikleall,nodesall,hmesh,vmesh)
-
-
-
-
-
-
 
     else:
         # transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
@@ -615,16 +604,30 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
             if ikle.max() != nbnodes - 1:
                 print('Error:' +' REACH :'+ lreachname[reach_num]+ "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
                 return False,False
-            ikle, nodes, sub=reduce_quadrangles_to_triangles(ikle, nodes,nbunit, bsub, sub)
-            for unit_num in range(nbunit):
-                data_2d["tin"][reach_num].append(ikle)
-                data_2d["i_whole_profile"][reach_num].append(ikle)
-                if bsub:
-                    data_2d["sub"][reach_num].append(sub)
-                data_2d["xy"][reach_num].append(nodes[:, :2])
-                data_2d["h"][reach_num].append(nodes[:, 2 + unit_num * 2 + 1])
-                data_2d["v"][reach_num].append(nodes[:, 2 + unit_num * 2 + 2])
-                data_2d["z"][reach_num].append(nodes[:, 2])
+            if bfvm:
+                hmeshr = np.array(hmesh[ltin[reach_num][0]:ltin[reach_num][1], :])
+                vmeshr = np.array(vmesh[ltin[reach_num][0]:ltin[reach_num][1], :])
+                ikle2, nodes2, hnodes2,vnodes2,sub=manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle,nodes,hmeshr,vmeshr, sub)
+                for unit_num in range(nbunit):
+                    data_2d["tin"][reach_num].append(ikle2)
+                    data_2d["i_whole_profile"][reach_num].append(ikle2)
+                    if bsub:
+                        data_2d["sub"][reach_num].append(sub)
+                    data_2d["xy"][reach_num].append(nodes2[:, :2])
+                    data_2d["h"][reach_num].append(hnodes2[:,  unit_num ])
+                    data_2d["v"][reach_num].append(vnodes2[:,  unit_num ])
+                    data_2d["z"][reach_num].append(nodes2[:, 2])
+            else:
+                ikle, nodes, sub=reduce_quadrangles_to_triangles(ikle, nodes,nbunit, bsub, sub)
+                for unit_num in range(nbunit):
+                    data_2d["tin"][reach_num].append(ikle)
+                    data_2d["i_whole_profile"][reach_num].append(ikle)
+                    if bsub:
+                        data_2d["sub"][reach_num].append(sub)
+                    data_2d["xy"][reach_num].append(nodes[:, :2])
+                    data_2d["h"][reach_num].append(nodes[:, 2 + unit_num * 2 + 1])
+                    data_2d["v"][reach_num].append(nodes[:, 2 + unit_num * 2 + 2])
+                    data_2d["z"][reach_num].append(nodes[:, 2])
         else:
             for unit_num in range(nbunitforall):
                 ilnode=reach_num*nbunitforall+unit_num
