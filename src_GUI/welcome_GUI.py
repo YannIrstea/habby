@@ -183,7 +183,7 @@ class WelcomeW(QScrollArea):
         This function will be used to open a project example for HABBY, but the example is not prepared yet. NOT DONE
         AS IT IS COMPLICATED TO INSTALL A EXAMPLE PROJECT. WINDOWS SAVED PROGRAM IN FOLDER WITHOUT WRITE PERMISSIONS.
         """
-        self.send_log.emit('Warning: No example prepared yet.')
+        self.send_log.emit('Warning: ' + self.tr('No example prepared yet.'))
 
     def setfolder2(self):
         """
@@ -195,7 +195,7 @@ class WelcomeW(QScrollArea):
         dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
-            self.send_log.emit('New folder selected for the project.')
+            self.send_log.emit(self.tr('New folder selected for the project.'))
         else:
             return
 
@@ -217,20 +217,20 @@ class WelcomeW(QScrollArea):
                 try:
                     shutil.copytree(path_old, self.path_prj)
                 except shutil.Error:
-                    self.send_log.emit('Could not copy the project. Permission Error?')
+                    self.send_log.emit(self.tr('Could not copy the project. Permission Error?'))
                     return
-                self.send_log.emit('The files in the project folder have been copied to the new location.')
+                self.send_log.emit(self.tr('The files in the project folder have been copied to the new location.'))
                 try:
                     shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.habby'))
                 except shutil.Error:
-                    self.send_log.emit('Could not copy the project. Permission Error?')
+                    self.send_log.emit(self.tr('Could not copy the project. Permission Error?'))
                     return
                 doc.write(fname)
                 self.e2.setText(self.path_prj)
                 self.save_signal.emit()  # if not project folder, will create one
             else:
-                self.send_log.emit('Error: A project with the same name exists at the new location. '
-                                   'Project not saved.')
+                self.send_log.emit('Error: ' + self.tr('A project with the same name exists at the new location. '
+                                   'Project not saved.'))
                 self.e2.setText(path_old)
                 return
         # if the project do not exist or has a different name than before, save a new project

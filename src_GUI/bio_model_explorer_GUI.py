@@ -97,7 +97,7 @@ class BioModelExplorerWindow(QDialog):
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
         if user_preferences.modified:
-            self.send_log.emit("Warning: Biological models database has been modified. \n" + user_preferences.diff_list)
+            self.send_log.emit("Warning: " + self.tr("Biological models database has been modified. \n") + user_preferences.diff_list)
         if child1 is None or user_preferences.modified:
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
@@ -775,7 +775,7 @@ class BioModelInfoSelection(QScrollArea):
         """
 
         if not self.selected_fish_cd_biological_model:
-            self.send_log.emit("Warning: No fish selected to create suitability curves.")
+            self.send_log.emit("Warning: " + self.tr("No fish selected to create suitability curves."))
             return
 
         # get the file
@@ -844,7 +844,7 @@ class BioModelInfoSelection(QScrollArea):
         """
 
         if not self.selected_fish_cd_biological_model:
-            self.send_log.emit("Warning: No fish selected to hydrosignature.")
+            self.send_log.emit("Warning: " + self.tr("No fish selected to hydrosignature."))
             return
 
         # get the file

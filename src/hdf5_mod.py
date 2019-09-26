@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import shutil
 import time
-
+from PyQt5.QtCore import QCoreApplication as qt_tr
 import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -25,7 +25,6 @@ import numpy as np
 from osgeo import ogr
 from osgeo import osr
 from stl import mesh
-
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -131,12 +130,12 @@ class Hdf5Management:
                                 self.units_name_output[reach_num].append(unit_name2)
 
         except OSError:
-            print('Error: the hdf5 file could not be loaded.')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'the hdf5 file could not be loaded.'))
             self.file_object = None
 
     def save_xml(self, model_type):
         if not os.path.isfile(self.absolute_path_prj_xml):
-            print('Error: No project saved. Please create a project first in the General tab.')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'No project saved. Please create a project first in the General tab.'))
             return
         else:
             doc = ET.parse(self.absolute_path_prj_xml)
@@ -606,7 +605,7 @@ class Hdf5Management:
                     xy_list.append(self.file_object[node_group + "/xy"][:])
                     z_list.append(self.file_object[node_group + "/z"][:].flatten())
                 except KeyError:
-                    print('Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
+                    print('Warning: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n'))
                     self.file_object.close()
                     return
             data_2d["tin"].append(tin_list)
@@ -770,8 +769,8 @@ class Hdf5Management:
                         # node
                         xy_list.append(self.file_object[node_group + "/xy"][:])
                     except KeyError:
-                        print('Warning: the dataset for tin or xy or sub is missing '
-                              'from the hdf5 file for one time step. \n')
+                        print('Warning: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy or sub is missing '
+                              'from the hdf5 file for one time step. \n'))
                         self.file_object.close()
                         return
                 data_2d["tin"].append(tin_list)
@@ -950,7 +949,7 @@ class Hdf5Management:
             for fish_name in fish_names:
                 if fish_name not in fish_names_existing:
                     all_fish_exist = False
-                    print("Error :", fish_name, "habitat don't exist in", self.filename)
+                    print("Error: ", fish_name, qt_tr.translate("hdf5_mod", "habitat don't exist in "), self.filename)
                     return
             if not all_fish_exist:
                 return
@@ -1084,7 +1083,7 @@ class Hdf5Management:
                     data_2d["h"][reach_num].append(self.file_object[node_group + "/h"][:].flatten())
                     data_2d["v"][reach_num].append(self.file_object[node_group + "/v"][:].flatten())
                 except KeyError:
-                    print('Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
+                    print('Warning: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n'))
                     self.file_object.close()
                     return
 
@@ -1132,12 +1131,12 @@ class Hdf5Management:
         try:
             nb_t = int(self.file_object.attrs["hyd_unit_number"])
         except KeyError:
-            print('Error: the number of time step is missing from :' + self.filename)
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from : ') + self.filename)
             return
 
         # add name and stage of fish
         if len(vh_cell) != len(fish_names):
-            print('Error: length of the list of fish name is not coherent')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'Length of the list of fish name is not coherent'))
             self.file_object.close()
             return
 
@@ -1285,7 +1284,7 @@ class Hdf5Management:
         try:
             nb_t = int(self.file_object.attrs["hyd_unit_number"])
         except KeyError:
-            print('Error: the number of time step is missing from :' + self.filename)
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from : ') + self.filename)
             return
 
         # data_2D
@@ -1393,13 +1392,13 @@ class Hdf5Management:
                 try:
                     crs.ImportFromEPSG(int(self.data_description["hyd_epsg_code"]))
                 except:
-                    print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+                    print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "), self.data_description["hyd_epsg_code"])
         if self.hdf5_type == "habitat":
             if self.data_description["hab_epsg_code"] != "unknown":
                 try:
                     crs.ImportFromEPSG(int(self.data_description["hab_epsg_code"]))
                 except:
-                    print("Warning : Can't write .prj from EPSG code :", self.data_description["hab_epsg_code"])
+                    print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "), self.data_description["hab_epsg_code"])
 
         # for each reach : one gpkg
         for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
@@ -1865,7 +1864,7 @@ class Hdf5Management:
                                                          self.data_2d["h"][reach_num][unit_num]) *
                                                  self.project_preferences["vertical_exaggeration"])
                     except Warning:
-                        print('oh no!')
+                        print('Error: ' + qt_tr.translate("hdf5_mod", 'oh no!'))
 
                     connectivity = np.reshape(self.data_2d["tin"][reach_num][unit_num],
                                               (len(self.data_2d["tin"][reach_num][unit_num]) * 3,))
@@ -1979,7 +1978,7 @@ class Hdf5Management:
     def export_spu_txt(self, state=None):
         path_txt = os.path.join(self.data_description["path_project"], "output", "text")
         if not os.path.exists(path_txt):
-            print('Error: the path to the text file is not found. Text files not created \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
@@ -2011,7 +2010,7 @@ class Hdf5Management:
                     try:
                         os.remove(os.path.join(path_txt, name))
                     except PermissionError:
-                        print('Error: Could not modify text file as it is open in another program. \n')
+                        print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not modify text file as it is open in another program. \n'))
                         return
 
             name = os.path.join(path_txt, name)
@@ -2096,7 +2095,7 @@ class Hdf5Management:
         if self.project_preferences['detailled_text'][index]:
             path_txt = os.path.join(self.data_description["path_project"], "output", "text")
             if not os.path.exists(path_txt):
-                print('Error: the path to the text file is not found. Text files not created \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
             sim_name = self.units_name
             if self.type_for_xml == "hdf5_habitat":
@@ -2130,7 +2129,7 @@ class Hdf5Management:
                         try:
                             os.remove(os.path.join(path_txt, name))
                         except PermissionError:
-                            print('Error: Could not modify text file as it is open in another program. \n')
+                            print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not modify text file as it is open in another program. \n'))
                             return
 
                 name = os.path.join(path_txt, name)
@@ -2229,7 +2228,7 @@ class Hdf5Management:
         if self.project_preferences['detailled_text'][index]:
             path_txt = os.path.join(self.data_description["path_project"], "output", "text")
             if not os.path.exists(path_txt):
-                print('Error: the path to the text file is not found. Text files not created \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
             # for each unit
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
@@ -2249,7 +2248,7 @@ class Hdf5Management:
                         try:
                             os.remove(os.path.join(path_txt, name))
                         except PermissionError:
-                            print('Error: Could not modify text file as it is open in another program. \n')
+                            print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not modify text file as it is open in another program. \n'))
                             return
 
                 name = os.path.join(path_txt, name)
@@ -2453,7 +2452,7 @@ class Hdf5Management:
                 try:
                     plt.savefig(filename)
                 except PermissionError:
-                    print('Warning: Close .pdf to update fish information')
+                    print('Warning: ' + qt_tr.translate("hdf5_mod", 'Close .pdf to update fish information'))
 
             if state:
                 state.value = 1  # process finished
@@ -2526,16 +2525,15 @@ def open_hdf5(hdf5_name, mode="read"):
 
     blob, ext = os.path.splitext(hdf5_name)
     if ext not in ('.hyd', '.sub', '.hab'):
-        print("Warning: the file should be of hdf5 type ('.hyd', '.sub', '.hab').")
+        print("Warning: " + qt_tr.translate("hdf5_mod", "The file should be of hdf5 type ('.hyd', '.sub', '.hab')."))
     if os.path.isfile(hdf5_name):
         try:
             file = h5py.File(hdf5_name, mode_hdf5)
         except OSError:
-            print('Error: the hdf5 file could not be loaded.\n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The hdf5 file could not be loaded.\n'))
             return None
     else:
-        print("Error: The hdf5 file is not found. \n")
-        print('Error: ' + hdf5_name + '\n')
+        print("Error: " + qt_tr.translate("hdf5_mod", "The hdf5 file is not found. " + hdf5_name + "\n"))
         return None
 
     return file
@@ -2558,10 +2556,10 @@ def open_hdf5_(hdf5_name, path_hdf5, mode):
         if path_hdf5:
             file_ = open_hdf5(os.path.join(path_hdf5, hdf5_name), mode)
         else:
-            print('Error" No path to the project given although a relative path was provided')
+            print('Error ' + qt_tr.translate("hdf5_mod", 'No path to the project given although a relative path was provided'))
             return "", True
     if file_ is None:
-        print('Error: hdf5 file could not be open. \n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'hdf5 file could not be open. \n'))
         return "", True
     return file_, False
 
@@ -2665,7 +2663,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
             try:
                 os.remove(os.path.join(path_hdf5, h5name))
             except PermissionError:
-                print("Could not save hdf5 file. It might be used by another program.")
+                print("Error: " + qt_tr.translate("hdf5_mod", "Could not save hdf5 file. It might be used by another program."))
                 return
 
     # create a new hdf5
@@ -2773,7 +2771,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
                                               data=ikle_all_t[t][r])
                 else:
                     if warn_dry:
-                        print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
+                        print('Warning: ' + qt_tr.translate("hdf5_mod", 'Reach number ') + str(r) + qt_tr.translate("hdf5_mod", ' has an empty grid. It might be entierely dry.'))
                         warn_dry = False
                     mesh_group.create_dataset("tin", [len(ikle_all_t[t][r])], data=ikle_all_t[t][r])
                 # coordinates center (point_c_all / xy_center)
@@ -2817,7 +2815,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     filename_prj = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(filename_prj):
-        print('Error: No project saved. Please create a project first in the General tab.\n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'No project saved. Please create a project first in the General tab.\n'))
         return
     else:
         doc = ET.parse(filename_prj)
@@ -2913,7 +2911,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
                 try:
                     os.remove(os.path.join(path_hdf5, h5name))
                 except PermissionError:
-                    print('Could not save hdf5 substrate file. It might be used by another program \n')
+                    print(qt_tr.translate("hdf5_mod", 'Could not save hdf5 substrate file. It might be used by another program \n'))
                     return
                 save_xml = True
 
@@ -2955,7 +2953,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
                 if len(ikle_sub) == len(sub_array[0]):
                     mesh_group.create_dataset("sub", [len(sub_array[0]), len(sub_array)], data=list(zip(*sub_array)))
                 else:
-                    print('Error: Substrate data not recognized (1) \n')
+                    print('Error: ' + qt_tr.translate("hdf5_mod", 'Substrate data not recognized (1) \n'))
         file.close()
 
     # CONSTANT
@@ -2976,7 +2974,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
                 try:
                     os.remove(os.path.join(path_hdf5, h5name))
                 except PermissionError:
-                    print("Could not save hdf5 substrate data. It might be used by another program \n")
+                    print("Error: " + qt_tr.translate("hdf5_mod", "Could not save hdf5 substrate data. It might be used by another program \n"))
                     return
                 save_xml = True
 
@@ -3005,7 +3003,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
     # save the file to the xml of the project
     filename_prj = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(filename_prj):
-        print('Error: No project saved. Please create a project first in the General tab.\n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'No project saved. Please create a project first in the General tab.\n'))
         return
     else:
         if save_xml:
@@ -3112,14 +3110,14 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
             tin_dataset = file_hydro[tin_path]
             xy_dataset = file_hydro[xy_path]
         except KeyError:
-            print('Error: the dataset for tin or xy (1) is missing from the hdf5 file. \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy (1) is missing from the hdf5 file. \n'))
             file_hydro.close()
             return failload
         try:
             tin_whole = tin_dataset[:]
             xy_whole = xy_dataset[:]
         except IndexError:
-            print('Error: the dataset for tin or xy (2) is missing from the hdf5 file. \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy (2) is missing from the hdf5 file. \n'))
             file_hydro.close()
             return failload
         tin_whole_all.append(tin_whole)
@@ -3166,7 +3164,7 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
                 v_dataset = file_hydro[v_path]
 
             except KeyError:
-                print('Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
+                print('Warning: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n'))
                 file_hydro.close()
                 return failload
             try:
@@ -3179,7 +3177,7 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
                     # dom_data = dom_dataset[:].flatten()
                     sub_data = sub_dataset[:]
             except IndexError:
-                print('Error: the dataset for tin or xy (4) is missing from the hdf5 file for one time step. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy (4) is missing from the hdf5 file for one time step. \n'))
                 file_hydro.close()
                 return failload
             tin_all.append(tin_data)
@@ -3283,8 +3281,8 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
     try:
         nb_t = int(file_hydro["description_unit"].attrs["nb"])
     except KeyError:
-        print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name
-              + ' an hydrological input? \n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from the hdf5 file. Is ') + hdf5_name
+              + qt_tr.translate("hdf5_mod", ' an hydrological input? \n'))
         return
 
     # load the number of reach
@@ -3297,7 +3295,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
 
     # add name and stage of fish
     if len(vh_cell) != len(fish_name):
-        print('Error: length of the list of fish name is not coherent')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'Length of the list of fish name is not coherent'))
         file_hydro.close()
         return
 
@@ -3373,8 +3371,8 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
     try:
         nb_t = int(file_hydro["description_unit"].attrs["nb"])
     except KeyError:
-        print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name
-              + ' an hydrological input? \n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from the hdf5 file. Is ') + hdf5_name
+              + qt_tr.translate("hdf5_mod", ' an hydrological input? \n'))
         return
 
     # load the number of reach
@@ -3395,14 +3393,13 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
         try:
             gen_dataset = file_hydro[name_ik]
         except KeyError:
-            print(
-                'Error: the dataset for ikle (1) is missing from the hdf5 file. \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for ikle (1) is missing from the hdf5 file. \n'))
             file_hydro.close()
             return failload
         try:
             ikle_whole = gen_dataset[:]
         except IndexError:
-            print('Error: the dataset for ikle (3) is missing from the hdf5 file. \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for ikle (3) is missing from the hdf5 file. \n'))
             file_hydro.close()
             return failload
         ikle_whole_all.append(ikle_whole)
@@ -3417,13 +3414,13 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
             try:
                 gen_dataset = file_hydro[name_ik]
             except KeyError:
-                print('Warning: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
+                print('Warning: ' + qt_tr.translate("hdf5_mod", 'The dataset for ikle (2) is missing from the hdf5 file for one time step. \n'))
                 file_hydro.close()
                 return failload
             try:
                 ikle_whole = gen_dataset[:]
             except IndexError:
-                print('Error: the dataset for ikle (4) is missing from the hdf5 file for one time step. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for ikle (4) is missing from the hdf5 file for one time step. \n'))
                 file_hydro.close()
                 return failload
             ikle_whole_all.append(ikle_whole)
@@ -3443,7 +3440,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
         try:
             point_whole = gen_dataset[:]
         except IndexError:
-            print('Error: the dataset for coordinates of the points (3) is missing from the hdf5 file. \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for coordinates of the points (3) is missing from the hdf5 file. \n'))
             file_hydro.close()
             return failload
         point_whole_all.append(point_whole)
@@ -3457,13 +3454,13 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
             try:
                 gen_dataset = file_hydro[name_pa]
             except KeyError:
-                print('Error: the dataset for coordinates of the points (2) is missing from the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for coordinates of the points (2) is missing from the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             try:
                 point_whole = gen_dataset[:]
             except IndexError:
-                print('Error: the dataset for coordinates of the points (4) is missing from the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for coordinates of the points (4) is missing from the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             point_whole_all.append(point_whole)
@@ -3489,11 +3486,11 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
             try:
                 gen_dataset = file_hydro[name_vel]
             except KeyError:
-                print('Error: the dataset for velocity is missing from the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for velocity is missing from the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             if len(gen_dataset[:].flatten()) == 0:
-                print('Error: No velocity found in the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'No velocity found in the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             vel = gen_dataset[:].flatten()
@@ -3502,11 +3499,11 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
             try:
                 gen_dataset = file_hydro[name_he]
             except KeyError:
-                print('Error: the dataset for water height is missing from the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for water height is missing from the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             if len(gen_dataset[:].flatten()) == 0:
-                print('Error: No height found in the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'No height found in the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             heigh = gen_dataset[:].flatten()
@@ -3516,20 +3513,20 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
                 gen_datasetpg = file_hydro[name_pg]
                 gen_datasetdom = file_hydro[name_dom]
             except KeyError:
-                print('Error: the dataset for substrate is missing from the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for substrate is missing from the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             try:
                 subpg = gen_datasetpg[:].flatten()
 
             except IndexError:
-                print('Error: the dataset for substrate is missing from the hdf5 file (2). \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for substrate is missing from the hdf5 file (2). \n'))
                 file_hydro.close()
                 return failload
             try:
                 subdom = gen_datasetdom[:].flatten()
             except IndexError:
-                print('Error: the dataset for substrate is missing from the hdf5 file (3). \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for substrate is missing from the hdf5 file (3). \n'))
                 file_hydro.close()
                 return failload
             sub_pg_all.append(subpg)
@@ -3699,14 +3696,14 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     try:
         gen_dataset = file_hydro[basename1 + "/unit_name"]
     except KeyError:
-        print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name_hyd
-              + ' an hydrological input? \n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from the hdf5 file. Is ') + hdf5_name_hyd
+                + qt_tr.translate("hdf5_mod", ' an hydrological input? \n'))
         file_hydro.close()
         return failload
     try:
         nb_t = list(gen_dataset.values())[0]
     except IndexError:
-        print('Error: Time step are not found')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'Time step are not found'))
         file_hydro.close()
         return failload
     nb_t = np.array(nb_t)
@@ -3734,13 +3731,13 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
             try:
                 gen_datasetpg = file_hydro[name_per]
             except KeyError:
-                print('Error: the dataset for substrate in percentage form is missing from the hdf5 file. \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for substrate in percentage form is missing from the hdf5 file. \n'))
                 file_hydro.close()
                 return failload
             try:
                 sub_per = list(gen_datasetpg.values())[0]
             except IndexError:
-                print('Error: the dataset for substrate in precentage is missing from the hdf5 file (2). \n')
+                print('Error: ' + qt_tr.translate("hdf5_mod", 'The dataset for substrate in precentage is missing from the hdf5 file (2). \n'))
                 file_hydro.close()
                 return failload
             sub_per = np.array(sub_per).flatten()
@@ -3816,14 +3813,14 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         # get the path to hdf5
         pathhdf5 = root.find(".//Path_Hdf5")
         if pathhdf5 is None:
-            print('Error: the path to the hdf5 file is not found (1) \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the hdf5 file is not found (1) \n'))
             return
         if pathhdf5.text is None:
-            print('Error: the path to the hdf5 file is not found (2) \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the hdf5 file is not found (2) \n'))
             return
         pathhdf5 = os.path.join(path_prj, pathhdf5.text)
         if not os.path.isdir(pathhdf5):
-            print('Error: the path to the hdf5 file is not correct \n')
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the hdf5 file is not correct \n'))
             return
 
         # get the hdf5 name
@@ -3853,13 +3850,13 @@ def get_hdf5_name(model_name, name_prj, path_prj):
                         name_hdf5 = name_hdf5[:-4]
                 return name_hdf5
             else:
-                print('Warning: the hdf5 name for the model ' + model_name + ' was not found (1)')
+                print('Warning: ' + qt_tr.translate("hdf5_mod", 'The hdf5 name for the model ') + model_name + qt_tr.translate("hdf5_mod", ' was not found (1)'))
                 return 'default_name'
         else:
-            # print('Warning: the data for the model ' + model_name + ' was not found (2)')
+            print('Warning: ' + qt_tr.translate("hdf5_mod", 'The data for the model ') + model_name + qt_tr.translate("hdf5_mod", ' was not found (2)'))
             return ''
     else:
-        print('Error: no project found by load_hdf5')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'No project found by load_hdf5'))
         return ''
 
 
@@ -3913,7 +3910,7 @@ def get_fish_names_habitat(hdf5_name, path_hdf5):
         # get list of fish names
         fish_names_list = list(first_reach_group.keys())
     except:
-        print("No fish habitat in this .hab file.")
+        print("Warning: " + qt_tr.translate("hdf5_mod", "No fish habitat in this .hab file."))
 
     # close file
     file_hydro.close()
@@ -3934,11 +3931,11 @@ def copy_files(names, paths, path_input):
     """
 
     if not os.path.isdir(path_input):
-        print('Error: Folder not found to copy inputs \n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'Folder not found to copy inputs \n'))
         return
 
     if len(names) != len(paths):
-        print('Error: the number of file to be copied is not equal to the number of paths')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of file to be copied is not equal to the number of paths'))
         return
 
     for i in range(0, len(names)):
@@ -3998,12 +3995,12 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
     if len(ikle1) == 0 or len(ikle2) == 0:
         return
     if ikle1 == [[-99]] or ikle2 == [[-99]]:
-        print('Error: Could not load the chosen hdf5. \n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not load the chosen hdf5. \n'))
         return
 
     # check time step and load time step name
     if len(ikle1) != len(ikle2):
-        print('Error: the number of time step between the two hdf5 is not coherent. \n')
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step between the two hdf5 is not coherent. \n'))
         return
     sim_name = load_unit_name(hdf51, path1)
 

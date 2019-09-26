@@ -297,17 +297,17 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
             axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 1].set_ylim([0, 1.1])
 
-            if len(sub[0][0]) > 2:  # if substrate is accounted,
-                # it is accounted for all stages
-                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
-                                align='center')
-            if project_preferences['language'] == 0:
-                axarr[s, 2].set_xlabel('Substrate []')
-            else:
-                axarr[s, 2].set_xlabel('Substrat []')
-            axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 2].set_ylim([0, 1.1])
-            axarr[s, 2].set_xlim([0.4, 8.6])
+            # if len(sub[0][0]) > 2:  # if substrate is accounted,
+            #     # it is accounted for all stages
+            #     axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
+            #                     align='center')
+            # if project_preferences['language'] == 0:
+            #     axarr[s, 2].set_xlabel('Substrate []')
+            # else:
+            #     axarr[s, 2].set_xlabel('Substrat []')
+            # axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
+            # axarr[s, 2].set_ylim([0, 1.1])
+            # axarr[s, 2].set_xlim([0.4, 8.6])
 
     else:
         # prep data

@@ -90,7 +90,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         return
     file_prof = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(file_prof):
-        print('Error: the xml project is not found \n')
+        print('Error: the .habby project is not found \n')
         return
     if not os.path.isdir(path_bio):
         print('Error: the path to the biological folder is not found \n')

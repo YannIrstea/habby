@@ -24,7 +24,7 @@ from multiprocessing import Value
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication as qt_tr
 
 from src import hdf5_mod
 from src import plot_mod
@@ -497,42 +497,42 @@ def get_biomodels_informations_for_database(path_xml):
                 shear_presence = True
             # compile infor
             if height_presence and velocity_presence:
-                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "HV")
+                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "HV")
             if height_presence and not velocity_presence:
-                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "H")
+                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "H")
             if not height_presence and velocity_presence:
-                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "V")
+                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "V")
             if shear_presence:
-                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "HEM")
+                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "HEM")
             if not height_presence and not velocity_presence and not shear_presence:
-                hydraulic_type[index_stage] = QCoreApplication.translate("Input", "Neglect")  # 'Input' sera le nom de classe dans QLinguist et 'Neglect' le string à traduire.
+                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "Neglect")  # 'Input' sera le nom de classe dans QLinguist et 'Neglect' le string à traduire.
             # available
             if height_presence and velocity_presence:
-                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "HV"))
+                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "HV"))
             if height_presence:
-                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "H"))
+                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "H"))
             if velocity_presence:
-                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "V"))
+                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "V"))
             if shear_presence:
-                hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "HEM"))
-            hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "Neglect"))
+                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "HEM"))
+            hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "Neglect"))
         else:
             hydraulic_type.append([])
-            hydraulic_type[index_stage] = QCoreApplication.translate("Input", "HV")
+            hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "HV")
             hydraulic_type_available.append([])
-            hydraulic_type_available[index_stage].append(QCoreApplication.translate("Input", "HV"))
+            hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "HV"))
 
     # substrate
     substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
     if substrate_type == []:
-        substrate_type = [QCoreApplication.translate("Input", "Neglect")] * len(stage_and_size)
-        substrate_type_available = [[QCoreApplication.translate("Input", "Neglect")]] * len(stage_and_size)
+        substrate_type = [qt_tr.translate("bio_info_mod", "Neglect")] * len(stage_and_size)
+        substrate_type_available = [[qt_tr.translate("bio_info_mod", "Neglect")]] * len(stage_and_size)
     else:
-        substrate_type_available = [[QCoreApplication.translate("Input", "Coarser-Dominant"),
-                               QCoreApplication.translate("Input", 'Coarser'),
-                               QCoreApplication.translate("Input", 'Dominant'),
-                               QCoreApplication.translate("Input", 'Percentage'),
-                               QCoreApplication.translate("Input", 'Neglect')]] * len(stage_and_size)
+        substrate_type_available = [[qt_tr.translate("bio_info_mod", "Coarser-Dominant"),
+                               qt_tr.translate("bio_info_mod", 'Coarser'),
+                               qt_tr.translate("bio_info_mod", 'Dominant'),
+                               qt_tr.translate("bio_info_mod", 'Percentage'),
+                               qt_tr.translate("bio_info_mod", 'Neglect')]] * len(stage_and_size)
 
     # LatinName
     if guild == "@guild":

@@ -215,16 +215,16 @@ class Stathab:
         # find the path to the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(fname):
-            print('Error: The xml project file was not found. Save the project in the General Tab. \n')
+            print('Error: The .habby project file was not found. Save the project in the General Tab. \n')
             return
         doc = ET.parse(fname)
         root = doc.getroot()
         child = root.find(".//hdf5Stathab")
         if child is None:  # if there is data for STATHAB
-            print("Error: No hdf5 file for Stathab is written in the xml project file. \n")
+            print("Error: No hdf5 file for Stathab is written in the .habby project file. \n")
             return
         if not child.text:
-            print("Error: No hdf5 file is written in the xml project file. (2) \n")
+            print("Error: No hdf5 file is written in the .habby project file. (2) \n")
             return
 
         # load the h5 file
