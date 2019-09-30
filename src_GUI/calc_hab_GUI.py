@@ -661,6 +661,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # general
             self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
+        else:
+            if new_item_text_dict:
+                self.send_log.emit("Warning: " + self.tr("Create a .hab file before adding models."))
 
     def create_duplicate_from_selection(self):
         # selected items

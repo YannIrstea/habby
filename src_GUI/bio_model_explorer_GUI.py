@@ -35,7 +35,6 @@ except ImportError:
 from src import bio_info_mod
 from src import plot_mod
 from src.project_manag_mod import load_project_preferences
-from src_GUI import preferences_GUI
 from src.user_preferences_mod import user_preferences
 from src_GUI.data_explorer_GUI import MyProcessList
 from src.bio_info_mod import get_name_stage_codebio_fromstr

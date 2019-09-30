@@ -50,6 +50,40 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
             doc.write(fname)
 
 
+def set_project_type(physical, statistical, path_prj, name_prj):
+    """
+    This function write in the xml file in which langugage the figures should be done. This is kept in the
+    group of attribute in the Figure_Option
+    :param lang: An int indicating the langugage (0 for english, 1 for french,...)
+    :param path_prj: the path to the project
+    :param name_prj: the name of the project
+    """
+    # open the xml project file
+    fname = os.path.join(path_prj, name_prj + '.habby')
+    # save the name and the path in the xml .prj file
+    if not os.path.isfile(fname):
+        # print('Error: project is not found \n')
+        return
+    else:
+        # project_type
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        general_element = root.find('.//General')
+        physic_tabs_element = general_element.find('Physic_Tabs')
+        if physic_tabs_element is None:
+            physic_tabs_element = ET.SubElement(general_element, 'Physic_Tabs')
+            physic_tabs_element.text = str(physical)
+        else:
+            physic_tabs_element.text = str(physical)
+        stat_tabs_element = general_element.find('Stat_Tabs')
+        if stat_tabs_element is None:
+            stat_tabs_element = ET.SubElement(general_element, 'Stat_Tabs')
+            stat_tabs_element.text = str(statistical)
+        else:
+            stat_tabs_element.text = str(statistical)
+        doc.write(fname)
+
+
 def load_project_preferences(path_prj, name_prj):
     """
     This function loads the figure option saved in the xml file and create a dictionnary will be given to the functions
@@ -75,10 +109,14 @@ def load_project_preferences(path_prj, name_prj):
     else:
         doc = ET.parse(fname)
         root = doc.getroot()
-        child1 = root.find(".//Figure_Option")
+        child1 = root.find(".//General")
         if child1 is not None:  # modify existing option
             # other
             langfig1 = root.find(".//LangFig")
+
+            # tabs
+            physic_tabs = root.find(".//Physic_Tabs")
+            stat_tabs = root.find(".//Stat_Tabs")
 
             # general
             CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
@@ -113,6 +151,12 @@ def load_project_preferences(path_prj, name_prj):
                 # other
                 if langfig1 is not None:
                     project_preferences['language'] = int(langfig1.text)
+
+                # tabs
+                if physic_tabs is not None:
+                    project_preferences['physic_tabs'] = eval(physic_tabs.text)
+                if stat_tabs is not None:
+                    project_preferences['stat_tabs'] = eval(stat_tabs.text)
 
                 # general
                 if CutMeshPartialyDry is not None:
@@ -167,7 +211,7 @@ def load_project_preferences(path_prj, name_prj):
                     project_preferences['marker'] = eval(marker1.text)
 
             except ValueError:
-                print('Error: Figure Options are not of the right type.\n')
+                print('Error: Project preferences .habby file is not of the right type.\n')
 
     return project_preferences
 
@@ -181,6 +225,10 @@ def create_default_project_preferences():
 
     # other
     project_preferences['language'] = 0  # 0 english, 1 french
+
+    # tabs
+    project_preferences['physic_tabs'] = False
+    project_preferences['stat_tabs'] = False
 
     # general
     project_preferences['CutMeshPartialyDry'] = True  # cut of not mesh partialy wet
