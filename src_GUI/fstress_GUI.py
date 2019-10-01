@@ -113,11 +113,11 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
         self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
-        self.fishall = QPushButton(self.tr('Select all species'), self)
+        self.fishall = QPushButton(self.tr('Select all species'))
         self.fishall.clicked.connect(self.add_all_fish)
 
         # run model
-        self.button1 = QPushButton(self.tr('Save and Run FStress'), self)
+        self.button1 = QPushButton(self.tr('Save and Run FStress'))
         self.button1.setStyleSheet("background-color: #47B5E6; color: black")
         self.button1.clicked.connect(self.runsave_fstress)
         # self.button2 = QPushButton(self.tr('Save river data'), self)

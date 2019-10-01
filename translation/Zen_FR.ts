@@ -5631,17 +5631,17 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="462"/>
         <source>, his suitability curve range is not sufficient according to the hydraulics of unit n°</source>
-        <translation>, sa courbe de préférence n&apos;est pas suffisante en fonction de l&apos;hydraulique de l&apos;unité n°</translation>
+        <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante en fonction de l&apos;hydraulique de l&apos;unité n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
         <source> of reach n°</source>
-        <translation> du tronçon n°</translation>
+        <translation type="obsolete"> du tronçon n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
         <source>, the shear stress data present unknown values in unit n°</source>
-        <translation>, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n°</translation>
+        <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n°</translation>
     </message>
 </context>
 <context>

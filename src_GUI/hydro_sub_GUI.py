@@ -141,7 +141,7 @@ class Hydro2W(QScrollArea):
         self.mod.setMaxVisibleItems(20)
         self.mod.addItems(self.name_model)  # available model
         self.mod.currentIndexChanged.connect(self.selectionchange)
-        self.button1 = QPushButton(self.tr('?'), self)
+        self.button1 = QPushButton(self.tr('?'))
         self.button1.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.button1.clicked.connect(self.give_info_model)
         self.free = QWidget()  # add the widgets representing the available models to a stack of widgets
@@ -1389,21 +1389,21 @@ class HEC_RAS1D(SubHydroW):
         self.was_model_loaded_before(1)
 
         # label with the file name
-        self.geo_t2 = QLabel(self.namefile[0], self)
+        self.geo_t2 = QLabel(self.namefile[0])
         self.geo_t2.setToolTip(self.pathfile[0])
-        self.out_t2 = QLabel(self.namefile[1], self)
+        self.out_t2 = QLabel(self.namefile[1])
         self.out_t2.setToolTip(self.pathfile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.g0x)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.g0x)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
 
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.xml, .sdf, or .rep file)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.xml, .sdf, or .rep file)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
@@ -1427,7 +1427,7 @@ class HEC_RAS1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         self.butfig = QPushButton(self.tr("create figure"))
@@ -1826,7 +1826,7 @@ class Rubar2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('Rubar20 result file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.dat, .tps, .txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.dat, .tps, .txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_rubar20(0))
 
         # reach
@@ -1866,7 +1866,7 @@ class Rubar2D(SubHydroW):
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar20_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -2004,7 +2004,7 @@ class Rubar2D(SubHydroW):
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Create .hyd file")
+                self.load_b.setText(self.tr("Create .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -2040,7 +2040,7 @@ class Rubar2D(SubHydroW):
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Create " + str(len(rubar20_description)) + " .hyd files")
+                self.load_b.setText(self.tr("Create ") + str(len(rubar20_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -2145,7 +2145,7 @@ class Rubar2D(SubHydroW):
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def set_epsg_code(self):
         if hasattr(self, 'hydrau_description'):
@@ -2294,22 +2294,22 @@ class Mascaret(SubHydroW):
         self.was_model_loaded_before(2)
 
         # label with the file name
-        self.gen_t2 = QLabel(self.namefile[0], self)
-        self.geo_t2 = QLabel(self.namefile[1], self)
-        self.out_t2 = QLabel(self.namefile[2], self)
+        self.gen_t2 = QLabel(self.namefile[0])
+        self.geo_t2 = QLabel(self.namefile[1])
+        self.out_t2 = QLabel(self.namefile[2])
 
         # general, geometry and output data
         l0 = QLabel(self.tr('<b> General data </b>'))
-        self.gen_b = QPushButton(self.tr('Choose file (.xcas)'), self)
+        self.gen_b = QPushButton(self.tr('Choose file (.xcas)'))
         self.gen_b.clicked.connect(lambda: self.show_dialog(0))
         self.gen_b.clicked.connect(lambda: self.gen_t2.setText(self.namefile[0]))
         self.gen_b.clicked.connect(self.propose_next_file)
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.geo)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.geo)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(1))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[1]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.opt, .rub)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.opt, .rub)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(2))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[2]))
 
@@ -2347,7 +2347,7 @@ class Mascaret(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
@@ -2864,17 +2864,17 @@ class Rubar1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # label with the file name
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0])
+        self.out_t2 = QLabel(self.namefile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.rbe)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.rbe)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (profil.X)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (profil.X)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
 
@@ -2910,7 +2910,7 @@ class Rubar1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
@@ -3109,7 +3109,7 @@ class HEC_RAS2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('HEC-RAS2D result file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.hdf, .txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.hdf, .txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_hec_ras2d(0))
 
         # reach
@@ -3149,7 +3149,7 @@ class HEC_RAS2D(SubHydroW):
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_2d_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -3449,7 +3449,7 @@ class HEC_RAS2D(SubHydroW):
         self.units_QListWidget.setEnabled(True)
         self.epsg_hec_ras2d_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def get_time_step(self):
         """
@@ -3601,7 +3601,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         # geometry and output data
         l1 = QLabel(self.tr('TELEMAC result file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.slf, .srf, .res, .txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.slf, .srf, .res, .txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_telemac(0))
 
         # reach
@@ -3641,7 +3641,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'),)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -3779,7 +3779,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Create .hyd file")
+                self.load_b.setText(self.tr("Create .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3815,7 +3815,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Create " + str(len(telemac_description)) + " .hyd files")
+                self.load_b.setText(self.tr("Create ") + str(len(telemac_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3920,7 +3920,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def get_time_step(self):
         """
@@ -4083,7 +4083,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
         # geometry and output data
         l1 = QLabel(self.tr('ASCII hydraulic model file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_ascii(0))
 
         # reach
@@ -4122,7 +4122,7 @@ class ASCII(SubHydroW):  # QGroupBox
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_ascii_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -4261,9 +4261,9 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                     if not ascii_description["sub"]:
-                        self.load_b.setText("Create .hyd file")
+                        self.load_b.setText(self.tr("Create .hyd file"))
                     if ascii_description["sub"]:
-                        self.load_b.setText("Create .hab file")
+                        self.load_b.setText(self.tr("Create .hab file"))
                         new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
                         self.hname.setText(new_hdf5_name)  # hdf5 name
 
@@ -4286,9 +4286,9 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                     if not ascii_description["sub"]:
-                        self.load_b.setText("Create .hyd file")
+                        self.load_b.setText(self.tr("Create .hyd file"))
                     if ascii_description["sub"]:
-                        self.load_b.setText("Create .hab file")
+                        self.load_b.setText(self.tr("Create .hab file"))
                         new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
                         self.hname.setText(new_hdf5_name)  # hdf5 name
 
@@ -4327,9 +4327,9 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
                 if not ascii_description["sub"]:
-                    self.load_b.setText("Create " + str(len(ascii_description)) + " .hyd files")
+                    self.load_b.setText(self.tr("Create ") + str(len(ascii_description)) + self.tr(" .hyd files"))
                 if ascii_description["sub"]:
-                    self.load_b.setText("Create " + str(len(ascii_description)) + " .hab files")
+                    self.load_b.setText(self.tr("Create ") + str(len(ascii_description)) + self.tr(" .hab files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -4379,7 +4379,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def unit_counter(self):
         # count total number items (units)
@@ -4569,8 +4569,8 @@ class LAMMI(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> General data </b>'))
-        self.h2d_t2 = QLabel(self.namefile[0] + ', ' + self.namefile[1], self)
-        self.h2d_b = QPushButton(self.tr("Select the 'Entree' directory"), self)
+        self.h2d_t2 = QLabel(self.namefile[0] + ', ' + self.namefile[1])
+        self.h2d_b = QPushButton(self.tr("Select the 'Entree' directory"))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_lammi(0))
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0] + ', ' + self.namefile[1]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
@@ -4595,7 +4595,7 @@ class LAMMI(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
@@ -4767,20 +4767,20 @@ class SW2D(SubHydroW):
         self.was_model_loaded_before(1)
 
         # create and update label with the result and geo filename
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0])
+        self.out_t2 = QLabel(self.namefile[1])
         self.geo_t2.setToolTip(self.pathfile[0])
         self.out_t2.setToolTip(self.pathfile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.geo)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.geo)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.res)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.res)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
@@ -4797,7 +4797,7 @@ class SW2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
@@ -4922,7 +4922,7 @@ class SW2D(SubHydroW):
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Create .hyd file")
+                self.load_b.setText(self.tr("Create .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -4958,7 +4958,7 @@ class SW2D(SubHydroW):
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Create " + str(len(telemac_description)) + " .hyd files")
+                self.load_b.setText(self.tr("Create ") + str(len(telemac_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -5088,11 +5088,11 @@ class IBER2D(SubHydroW):
         self.was_model_loaded_before(1)
 
         # create and update label with the result and geo filename
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
-        self.out_t2bis = QLabel(self.namefile[1], self)
-        self.out_t2ter = QLabel(self.namefile[1], self)
-        self.out_t2qua = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0])
+        self.out_t2 = QLabel(self.namefile[1])
+        self.out_t2bis = QLabel(self.namefile[1])
+        self.out_t2ter = QLabel(self.namefile[1])
+        self.out_t2qua = QLabel(self.namefile[1])
         self.geo_t2.setToolTip(self.pathfile[0])
         self.out_t2.setToolTip(self.pathfile[1])
         self.out_t2bis.setToolTip(self.pathfile[1])
