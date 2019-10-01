@@ -18,6 +18,9 @@ import os
 import numpy as np
 import urllib
 from copy import deepcopy
+import sys
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QTranslator
 
 
 # INTERPOLATION TOOLS
@@ -345,3 +348,14 @@ def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
     return dict_to_sort
 
 
+def get_translator(language):
+    app = QApplication(sys.argv)
+    languageTranslator = QTranslator(app)
+    input_file_translation = 'Zen_EN'
+    if language == 1:
+        input_file_translation = 'Zen_FR'
+    elif language == 2:
+        input_file_translation = 'Zen_ES'
+    languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
+    app.installTranslator(languageTranslator)
+    return app

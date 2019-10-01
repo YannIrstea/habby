@@ -24,19 +24,10 @@ import mplcursors
 import time
 import os
 from datetime import datetime as dt
-from PyQt5.QtCore import QCoreApplication as qt_tr
-from PyQt5.QtCore import QTranslator
-from PyQt5.QtWidgets import QApplication
-import sys
-
-# app = QApplication(sys.argv)
-# languageTranslator = QTranslator()
-# languageTranslator.load('Zen_FR', 'C:\\habby\\translation')
-# qt_tr.installTranslator(languageTranslator)
-# print("installTranslator")
 
 from src_GUI import preferences_GUI
 from src import tools_mod
+from src.tools_mod import get_translator
 
 
 def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
@@ -1411,6 +1402,8 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     :param name_hdf5: a string on which to base the name of the files
     :param unit_name: the name of the time steps if not 0,1,2,3
     """
+    # get translation
+    qt_tr = get_translator(project_preferences['language'])
 
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
