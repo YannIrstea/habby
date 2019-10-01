@@ -872,28 +872,28 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 aquatic_animal_type.append(user_preferences.biological_models_dict["aquatic_animal_type"][index_fish])
 
         if xmlfiles:
-            # save the selected fish in the xml project file
-            try:
-                try:
-                    filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
-                    docxml = ET.parse(filename_path_pro)
-                    root = docxml.getroot()
-                except IOError:
-                    self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist \n"))
-                    return
-            except ET.ParseError:
-                self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed.\n"))
-                return
-            hab_child = root.find(".//Habitat")
-            if hab_child is None:
-                blob = ET.SubElement(root, "Habitat")
-                hab_child = root.find(".//Habitat")
-            fish_child = root.find(".//Habitat/Fish_Selected")
-            if fish_child is None:
-                blob = ET.SubElement(hab_child, "Fish_Selected")
-                fish_child = root.find(".//Habitat/Fish_Selected")
-            fish_child.text = name_fish_sel[:-1]  # last comma
-            docxml.write(filename_path_pro)
+            # # save the selected fish in the xml project file
+            # try:
+            #     try:
+            #         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
+            #         docxml = ET.parse(filename_path_pro)
+            #         root = docxml.getroot()
+            #     except IOError:
+            #         self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist \n"))
+            #         return
+            # except ET.ParseError:
+            #     self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed.\n"))
+            #     return
+            # hab_child = root.find(".//Habitat")
+            # if hab_child is None:
+            #     blob = ET.SubElement(root, "Habitat")
+            #     hab_child = root.find(".//Habitat")
+            # fish_child = root.find(".//Habitat/Fish_Selected")
+            # if fish_child is None:
+            #     blob = ET.SubElement(hab_child, "Fish_Selected")
+            #     fish_child = root.find(".//Habitat/Fish_Selected")
+            # fish_child.text = name_fish_sel[:-1]  # last comma
+            # docxml.write(filename_path_pro)
 
             # get the name of the merged file
             path_hdf5 = self.find_path_hdf5_est()
@@ -972,7 +972,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # get the langugage
             project_preferences = load_project_preferences(self.path_prj, self.name_prj)
             # send the message
-            self.send_log.emit(self.tr("Process 'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
+            self.send_log.emit("Process " +
+                               self.tr("'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             self.nativeParentWidget().kill_process.setVisible(True)
 
@@ -987,11 +988,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             self.send_log.emit(self.tr('Habitat computation is finished (computation time = ') + str(
                 round(self.running_time)) + " s).")
-            self.send_log.emit(self.tr("Figures and files can be displayed and exported from 'Data explorer' tab."))
+            self.send_log.emit(self.tr("Outputs data can be displayed and exported from 'Data explorer' tab."))
 
             # put the timer back to zero and clear status bar
             self.running_time = 0
-            self.send_log.emit(self.tr("clear status bar"))
+            self.send_log.emit("clear status bar")
             self.plot_new = False
             # refresh plot gui list file
             self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
@@ -1011,7 +1012,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # put the timer back to zero
             self.running_time = 0
-            self.send_log.emit(self.tr("clear status bar"))
+            self.send_log.emit("clear status bar")
             # check_uncheck_allmodels_presence
             self.check_uncheck_allmodels_presence()
 

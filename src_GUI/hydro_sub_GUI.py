@@ -1115,19 +1115,19 @@ class SubHydroW(QWidget):
 
             # MERGE
             if self.model_type == 'HABITAT':
-                self.send_log.emit(self.tr(
-                    "Process 'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.send_log.emit("Process " +
+                                   self.tr("'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
                 self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             # SUBSTRATE
             elif self.model_type == 'SUBSTRATE':
-                self.send_log.emit(self.tr(
-                    "Process 'substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.send_log.emit("Process " +
+                                   self.tr("'Substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
                 self.nativeParentWidget().progress_bar.setValue(50)
             # HYDRAULIC
             else:
                 # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit(self.tr(
-                    "Process 'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.send_log.emit("Process " +
+                    self.tr("'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
                 self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
 
         # when the loading is finished
@@ -1144,7 +1144,7 @@ class SubHydroW(QWidget):
 
             # info
             if error:
-                self.send_log.emit(self.tr("clear status bar"))
+                self.send_log.emit("clear status bar")
                 self.running_time = 0
                 self.nativeParentWidget().kill_process.setVisible(False)
                 # MERGE
@@ -1202,10 +1202,10 @@ class SubHydroW(QWidget):
                 self.nativeParentWidget().progress_bar.setValue(100)
                 self.nativeParentWidget().kill_process.setVisible(False)
                 if not const_sub:
-                    self.send_log.emit(self.tr("Figures can be displayed/exported from 'Data explorer' tab.\n"))
+                    self.send_log.emit(self.tr("Outputs data can be displayed and exported from 'Data explorer' tab."))
                 if const_sub:
                     self.update_sub_hdf5_name()
-                self.send_log.emit(self.tr("clear status bar"))
+                self.send_log.emit("clear status bar")
                 # refresh plot gui list file
                 self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
                 self.running_time = 0
@@ -1213,7 +1213,7 @@ class SubHydroW(QWidget):
         # finish
         if not self.p.is_alive() and self.q.empty():
             self.timer.stop()
-            self.send_log.emit(self.tr("clear status bar"))
+            self.send_log.emit("clear status bar")
             self.nativeParentWidget().kill_process.setVisible(False)
             self.running_time = 0
             # MERGE
