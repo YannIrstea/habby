@@ -89,11 +89,13 @@ class MainWindows(QMainWindow):
 
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
-
+        self.research_tabs = False
+        self.physic_tabs = False
+        self.stat_tabs = False
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION)
-        self.beta = True
+        self.beta = False  # if set to True : GUI beta version mode is runned
         # user_preferences
         self.user_preferences = user_preferences
 
@@ -172,11 +174,15 @@ class MainWindows(QMainWindow):
         if name_path_set:
             self.path_prj = name_path_set
         else:
-            self.path_prj = '.'
+            self.path_prj = ''
         # if xml project dont exist remove path and name
         if not os.path.isfile(os.path.join(self.path_prj, self.name_prj + ".habby")):
             self.name_prj = ''
-            self.path_prj = '.'
+            self.path_prj = ''
+        else:
+            project_preferences = project_manag_mod.load_project_preferences(self.path_prj, self.name_prj)
+            self.physic_tabs = project_preferences["physic_tabs"]
+            self.stat_tabs = project_preferences["stat_tabs"]
         if recent_projects_set:
             self.recent_project = recent_projects_set[::-1]
         else:
@@ -201,18 +207,11 @@ class MainWindows(QMainWindow):
         else:
             lang_bio = 'English'
 
-        # set selected tabs
-        self.physic_tabs, self.stat_tabs, self.research_tabs = self.user_preferences.data["selected_tabs"]
-
-        self.central_widget = CentralW(self.physic_tabs,
-                                       self.stat_tabs,
-                                       self.research_tabs,
-                                       self.path_prj,
+        self.central_widget = CentralW(self.path_prj,
                                        self.name_prj,
                                        lang_bio)
 
         self.msg2 = QMessageBox()
-
         # call the normal constructor of QWidget
         super().__init__()
         pyqtRemoveInputHook()
@@ -260,18 +259,16 @@ class MainWindows(QMainWindow):
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.send_log.connect(self.central_widget.write_log)
 
-        # data explorer signal
-        self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
-
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
         # bio_model_explorer_dialog
-        self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
-        self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
-        self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
-        self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+        if hasattr(self.central_widget, "data_explorer_tab"):
+            self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+            self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
+            self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
+            self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
         # set theme
         if self.actual_theme == "classic":
@@ -331,7 +328,6 @@ class MainWindows(QMainWindow):
                                                            self.geometry().width(),
                                                            self.geometry().height())
         self.user_preferences.data["theme"] = self.actual_theme
-        self.user_preferences.data["selected_tabs"] = (self.physic_tabs, self.stat_tabs, self.research_tabs)
         self.user_preferences.save_user_preferences_json()
 
         os._exit(1)
@@ -519,8 +515,8 @@ class MainWindows(QMainWindow):
 
         # recreate new widget
         self.recreate_tabs_attributes()
-        # if self.central_widget.tab_widget.count() == 1:
-        #     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
+        if self.central_widget.tab_widget.count() == 1:
+            self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
         # else:
         #     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
         #     #if self.physic_tabs:
@@ -927,14 +923,6 @@ class MainWindows(QMainWindow):
     def recreate_tabs_attributes(self):
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            if hasattr(self, "preferences_dialog"):
-                if not self.preferences_dialog:
-                    self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
-                else:
-                    self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
-            else:
-                self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
-
             if hasattr(self.central_widget, "welcome_tab"):
                 if not self.central_widget.welcome_tab:
                     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
@@ -972,6 +960,7 @@ class MainWindows(QMainWindow):
                     self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
                     self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
                         self.remove_hdf5_files)
+
                 else:
                     self.central_widget.data_explorer_tab.__init__(self.path_prj, self.name_prj)
                     self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
@@ -987,24 +976,6 @@ class MainWindows(QMainWindow):
                     self.central_widget.tools_tab.__init__(self.path_prj, self.name_prj)
             else:
                 self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
-
-            if hasattr(self, "bio_model_explorer_dialog"):
-                if not self.bio_model_explorer_dialog:
-                    self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
-                    self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
-                        self.central_widget.write_log)
-                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
-                else:
-                    self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon,
-                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
-                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
-            else:
-                self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
-                self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
-                    self.central_widget.write_log)
-                self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
             if hasattr(self.central_widget, "statmod_tab"):
                 if not self.central_widget.statmod_tab:
@@ -1030,8 +1001,37 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
 
+            if hasattr(self, "bio_model_explorer_dialog"):
+                if not self.bio_model_explorer_dialog:
+                    self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                    self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
+                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+
+
+                else:
+                    self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon,
+                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+            else:
+                self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
+                    self.central_widget.write_log)
+                self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+
+            if hasattr(self, "preferences_dialog"):
+                if not self.preferences_dialog:
+                    self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+                else:
+                    self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
+            else:
+                self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+
             # run_as_beta_version
             self.run_as_beta_version()
+        else:
+            self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
 
     def save_project(self):
         """
@@ -1124,6 +1124,7 @@ class MainWindows(QMainWindow):
                                                        self.username_prj,
                                                        self.descri_prj,
                                                        self.path_bio_default)
+            project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
         # project exist
         else:
@@ -1185,6 +1186,7 @@ class MainWindows(QMainWindow):
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj + '.habby')
             doc.write(fname)
+            project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
             # create needed folder if not there yet
             pathin_text = os.path.join(self.path_prj, pathin_text)
@@ -1230,6 +1232,7 @@ class MainWindows(QMainWindow):
         # recreate new widget
         self.recreate_tabs_attributes()
 
+        # add_all_tab
         self.central_widget.add_all_tab()
 
         # re-connect signals for the tab
@@ -1249,8 +1252,8 @@ class MainWindows(QMainWindow):
 
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()
-        self.central_widget.write_log('# ' + self.tr('Log of HABBY started.'))
-        self.central_widget.write_log('# ' + self.tr('Project saved or opened successfully.'))
+        #self.central_widget.write_log('# ' + self.tr('Log of HABBY started.'))
+        #self.central_widget.write_log('# ' + self.tr('Project saved or opened successfully.'))
         self.central_widget.write_log("py    name_prj= r'" + self.name_prj + "'")
         self.central_widget.write_log("py    path_prj= r'" + self.path_prj + "'")
         self.central_widget.write_log("py    path_bio= r'" + os.path.join(os.getcwd(), self.path_bio_default) + "'")
@@ -1272,8 +1275,9 @@ class MainWindows(QMainWindow):
         self.end_concurrency()
 
         # open an xml file
-        path_here = os.path.dirname(self.path_prj)
-        if not path_here:
+        if self.path_prj:
+            path_here = os.path.dirname(self.path_prj)
+        else:
             path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
         filename_path = QFileDialog.getOpenFileName(self, self.tr('Open project'), path_here, "HABBY project (*.habby)")[0]
         if not filename_path:  # cancel
@@ -1292,6 +1296,9 @@ class MainWindows(QMainWindow):
         This function is used to open an existing habby project by selecting an xml project file. Called by
         my_menu_bar()
         """
+        # save
+        if self.path_prj:
+            self.central_widget.save_info_projet()
         # load the xml file
         try:
             try:
@@ -1398,6 +1405,8 @@ class MainWindows(QMainWindow):
         # check if project open somewhere else
         self.check_concurrency()
 
+        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Project opened. <br>'))
+
     def open_recent_project(self, j):
         """
         This function open a recent project of the user. The recent project are listed in the menu and can be
@@ -1488,6 +1497,10 @@ class MainWindows(QMainWindow):
         self.central_widget.tab_widget.addTab(self.central_widget.welcome_tab, self.tr("Project"))
         self.central_widget.welcome_tab.lowpart.setEnabled(False)
 
+        # clear log
+        self.clear_log()
+        self.central_widget.write_log(self.tr('Create or open a project.'))
+
         self.end_concurrency()
 
     def save_project_if_new_project(self):
@@ -1531,6 +1544,7 @@ class MainWindows(QMainWindow):
             if res == QMessageBox.No:
                 self.central_widget.write_log('Warning: ' + self.tr('Project not created. Choose another project name.'))
                 self.createnew.close()
+                return
             if res == QMessageBox.Yes:
                 self.delete_project(path_new_fold)
                 try:
@@ -1551,7 +1565,7 @@ class MainWindows(QMainWindow):
                 self.central_widget.welcome_tab.e4.setText('')
                 self.createnew.close()
                 self.save_project()
-                self.central_widget.write_log('Warning: ' + self.tr('Old project and its files are deleted. New empty project created.'))
+                self.central_widget.write_log('Warning: ' + self.tr('Old project and its files are deleted.'))
 
         # save project if unique name in the selected folder
         else:
@@ -1861,6 +1875,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.insertTab(4, self.central_widget.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.central_widget.tab_widget.insertTab(5, self.central_widget.tools_tab, self.tr("Tools"))  # 5
             self.physic_tabs = True
+        # save xml
+        project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
     def open_close_stat(self):
         stat_tabs_list = ["estimhab", "stathab", "fstress"]
@@ -1880,6 +1896,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.insertTab(start_index + 1, self.central_widget.stathab_tab, self.tr("STATHAB"))  # 7
                 self.central_widget.tab_widget.insertTab(start_index + 2, self.central_widget.fstress_tab, self.tr("FStress"))  # 8
             self.stat_tabs = True
+        # save xml
+        project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
     def open_close_rech(self):
         """
@@ -1907,8 +1925,8 @@ class MainWindows(QMainWindow):
         Clear the log in the GUI.
         """
         self.central_widget.tracking_journal_QTextEdit.clear()
-        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
-            self.tr('Log erased in this window.<br>'))
+        # self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
+        #     self.tr('Log erased in this window.<br>'))
 
     def do_log(self, save_log):
         """
@@ -1958,7 +1976,7 @@ class MainWindows(QMainWindow):
         are too many of them.
         """
         # get path im
-        path_im = '.'
+        path_im = ''
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
@@ -2145,7 +2163,7 @@ class CreateNewProjectDialog(QWidget):
                                                     )  # check for invalid null parameter on Linux git
         dir_name = os.path.normpath(dir_name)
         # os.getenv('HOME')
-        if dir_name != '.':  # cancel case
+        if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project.')
 
@@ -2187,7 +2205,7 @@ class CentralW(QWidget):
     The write_log() and write_log_file() method are explained in the section about the log.
     """
 
-    def __init__(self, physic, stat, rech, path_prj, name_prj, lang_bio):
+    def __init__(self, path_prj, name_prj, lang_bio):
 
         super().__init__()
         self.msg2 = QMessageBox()
@@ -2196,25 +2214,20 @@ class CentralW(QWidget):
         self.path_prj_c = path_prj
 
         self.welcome_tab = welcome_GUI.WelcomeW(path_prj, name_prj)
-        self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
-            self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
             self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
-            self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
-            self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
+            self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
+            self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
+            self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
+            self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
 
-        self.physic = physic
-        self.stat = stat
-        self.rech = rech
         self.logon = True  # do we save the log in .log file or not
         self.tracking_journal_QTextEdit = QTextEdit(self)  # where the log is show
         self.tracking_journal_QTextEdit.setReadOnly(True)
         self.tracking_journal_QTextEdit.textChanged.connect(self.scrolldown_log)
-        self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
-        self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project. <br>'))
         self.max_lengthshow = 180
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
@@ -2244,14 +2257,15 @@ class CentralW(QWidget):
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
         if not os.path.isdir(self.path_prj_c) \
                 or not os.path.isfile(fname):
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("First time with HABBY ?"))
-            self.msg2.setText(self.tr("Create or open an HABBY project."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.setMinimumWidth(1000)
-            name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
-            self.msg2.setWindowIcon(QIcon(name_icon))
-            self.msg2.show()
+            # self.msg2.setIcon(QMessageBox.Warning)
+            # self.msg2.setWindowTitle(self.tr("First time with HABBY ?"))
+            # self.msg2.setText(self.tr("Create or open an HABBY project."))
+            # self.msg2.setStandardButtons(QMessageBox.Ok)
+            # self.msg2.setMinimumWidth(1000)
+            # name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+            # self.msg2.setWindowIcon(QIcon(name_icon))
+            # self.msg2.show()
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.'))
 
         else:
             doc = ET.parse(fname)
@@ -2260,6 +2274,7 @@ class CentralW(QWidget):
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
             self.path_last_file_loaded_c = root.find(".//Path_last_file_loaded").text
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Project opened. <br>'))
 
         # add the widgets to the list of tab if a project exists
         self.add_all_tab()
@@ -2317,20 +2332,15 @@ class CentralW(QWidget):
         position of the Option tab, you should also modify the variable self.opttab in init
         """
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
+        # load project pref
         if os.path.isfile(fname) and self.name_prj_c != '':
-            # allways uptodate
-            if self.parent():
-                go_physic = self.parent().physic_tabs
-                go_stat = self.parent().stat_tabs
-                go_research = self.parent().research_tabs
-            # first time from init
-            else:
-                go_physic = self.physic
-                go_stat = self.stat
-                go_research = self.rech
+            project_preferences = project_manag_mod.load_project_preferences(self.path_prj_c, self.name_prj_c)
+            go_physic = project_preferences["physic_tabs"]
+            go_stat = project_preferences["stat_tabs"]
+            go_research = False
 
             # add all tabs
-            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))  # 0
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Project"))  # 0
             if go_physic:
                 self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))  # 1
                 self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))  # 2
@@ -2419,11 +2429,7 @@ class CentralW(QWidget):
             self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
 
-            # connect signal to update the merge file
-            # refresh interpolation tools
-
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
-#            self.chronicle_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.ascii.drop_merge.connect(self.bioinfo_tab.update_merge_list)
