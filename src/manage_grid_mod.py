@@ -1889,10 +1889,14 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
     hzmeshall = hmesh + xyzmesh34[:, 2].reshape(nbmesh, 1)
     vmesh=np.abs(vmesh) # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
     #hvmeshall =hmesh* vmesh
+    nbnodes2 = nodes2.shape[0]
     for i in range(nbunit):
         #interpolates values from cell-centered volumes (Finite Volume) to nodal values (mesh) using SciPy griddata
         # for a given unit : considering the water surface (z+h) to  find  z+h for nodes in the fully wetted part
-        hznodes2 = griddata(xyzmesh34[:,(0,1)][hmesh[:,i]>0], hzmeshall[:,i][hmesh[:,i]>0], nodes2[:,(0,1)], method='linear')
+        if np.sum(hmesh[:,i]>0)>2: # at least we need one triangle for griddata
+            hznodes2 = griddata(xyzmesh34[:,(0,1)][hmesh[:,i]>0], hzmeshall[:,i][hmesh[:,i]>0], nodes2[:,(0,1)], method='linear')
+        else:
+            hznodes2 =np.full(nbnodes2, np.nan)
         # Get the hw+z of the NaN edges from first closed wetted meshes
         wetikle=ikle[hmesh[:,i]>0] # the wet ikle
         iwetikle=np.where(hmesh[:,i]>0)[0]
@@ -1912,7 +1916,10 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
 
         #for a given unit : considering the  surface of the elementary flow (h*v) to  find  v for nodes is too risky in a mesh with a node having a very small value the velocity at this node can be calculated as infinite
         #so interpolating velocity values
-        vnodes2 = griddata(xyzmesh34[:,(0,1)], vmesh[:,i], nodes2[:,(0,1)], method='linear')
+        if vmesh[:,i].shape[0]>2: # at least we need one triangle for griddata
+            vnodes2 = griddata(xyzmesh34[:,(0,1)], vmesh[:,i], nodes2[:,(0,1)], method='linear')
+        else:
+            vnodes2 =np.full(nbnodes2, np.nan)
         # Get the NaN from outer nodes and replace with the nearest values
         vnodes2_nan = np.isnan(vnodes2)
         nodes2nan = nodes2[:, (0, 1)][vnodes2_nan]
