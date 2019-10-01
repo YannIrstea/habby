@@ -534,7 +534,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     ikleall = np.loadtxt(ftinn, dtype=int)
     if bfvm:
         hvmesh =  np.loadtxt(ffvmn, dtype=float)
-        if hvmesh.shape[0]!=ikleall.shape[0]:
+        if hvmesh.shape[0]!=ikleall.shape[0] and not hvmesh.ndim==1:
             print('Error : the total number of meshes from TIN is not equal to FVM')
             return False, False
 
@@ -597,6 +597,8 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     for reach_num in range(reachnumber):
         if bmeshconstant:
             nodes = np.array(nodesall[lnode[reach_num][0]:lnode[reach_num][1], :])
+            if ikleall.ndim==1: #if we only got one mesh and one unit
+                ikleall=ikleall.reshape(1,ikleall.shape[0])
             ikle = np.array(ikleall[ltin[reach_num][0]:ltin[reach_num][1], :])
             if bsub:
                 sub = np.array(suball[ltin[reach_num][0]:ltin[reach_num][1], :])
@@ -607,7 +609,10 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
             if bfvm:
                 hmeshr = np.array(hmesh[ltin[reach_num][0]:ltin[reach_num][1], :])
                 vmeshr = np.array(vmesh[ltin[reach_num][0]:ltin[reach_num][1], :])
-                ikle2, nodes2, hnodes2,vnodes2,sub=manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle,nodes,hmeshr,vmeshr, sub)
+                if bsub:
+                    ikle2, nodes2, hnodes2,vnodes2,sub=manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle,nodes,hmeshr,vmeshr, sub)
+                else:
+                    ikle2, nodes2, hnodes2, vnodes2= manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle, nodes, hmeshr, vmeshr)
                 for unit_num in range(nbunit):
                     data_2d["tin"][reach_num].append(ikle2)
                     data_2d["i_whole_profile"][reach_num].append(ikle2)
