@@ -141,6 +141,8 @@ class Hydro2W(QScrollArea):
         self.mod.setMaxVisibleItems(20)
         self.mod.addItems(self.name_model)  # available model
         self.mod.currentIndexChanged.connect(self.selectionchange)
+        for item_index in range(self.mod.count()):
+            self.mod.model().item(item_index).setTextAlignment(Qt.AlignRight)
         self.button1 = QPushButton(self.tr('?'))
         self.button1.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.button1.clicked.connect(self.give_info_model)
