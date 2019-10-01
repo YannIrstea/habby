@@ -355,6 +355,15 @@ class Hdf5Management:
         # create hyd attributes
         for attribute_name, attribute_value in list(hyd_description.items()):
             if attribute_name in ("hyd_unit_list", "hyd_unit_list_full"):
+                # check if duplicate name present in unit_list
+                for reach_num in range(int(hyd_description["hyd_reach_number"])):
+                    if len(set(hyd_description[attribute_name][reach_num])) != len(hyd_description[attribute_name][reach_num]):
+                        a = hyd_description[attribute_name][reach_num]
+                        duplicates = list(set([x for x in a if a.count(x) > 1]))
+                        for unit_num, unit_element in enumerate(hyd_description[attribute_name][reach_num]):
+                            for duplicate in duplicates:
+                                if unit_element == duplicate:
+                                    hyd_description[attribute_name][reach_num][unit_num] = duplicate + "_" + str(unit_num)
                 self.file_object.attrs[attribute_name] = str(attribute_value)
             else:
                 if type(attribute_value) == bool:
