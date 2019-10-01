@@ -845,8 +845,8 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                 tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
                     data_2d_from_rubar2d["tin"],
                     xy,
-                    data_2d_from_rubar2d["v"][reach_num][unit_num],
                     data_2d_from_rubar2d["h"][reach_num][unit_num],
+                    data_2d_from_rubar2d["v"][reach_num][unit_num],
                     progress_value,
                     delta,
                     project_preferences["CutMeshPartialyDry"],
