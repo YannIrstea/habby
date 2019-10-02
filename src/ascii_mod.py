@@ -545,10 +545,14 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
         nbmesh=ikleall.shape[0]
         hmesh = np.empty([nbmesh,nbunit], dtype=np.float64)
         vmesh=np.empty([nbmesh,nbunit], dtype=np.float64)
-        for u in range(nbunit):
-            hmesh[:,[u]]= hvmesh[:,[2*u]]
-            vmesh[:, [u]] = hvmesh[:, [2 * u+1]]
-
+        if hvmesh.ndim==1: #only one mesh
+            for u in range(nbunit):
+                hmesh[u]= hvmesh[2*u]
+                vmesh[u] = hvmesh[2 * u+1]
+        else:
+            for u in range(nbunit):
+                hmesh[:, [u]] = hvmesh[:, [2 * u]]
+                vmesh[:, [u]] = hvmesh[:, [2 * u + 1]]
     else:
         # transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
         for unit_num in range(nbunit):
