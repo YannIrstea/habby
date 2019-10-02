@@ -1129,19 +1129,18 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     types_plot = project_preferences['type_plot']
     erase1 = project_preferences['erase_id']
 
-
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
     if project_preferences['language'] == 1:
-        title_pg = f"Substrate - Plus Gros - {reach_name} - {unit_name} {unit_type}"
-        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} {unit_type}"
-        filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
+        title_pg = f"Substrat - Plus Gros - {reach_name} - {unit_name} [{unit_type}]"
+        title_dom = f"Substrat - Dominant - {reach_name} - {unit_name} [{unit_type}]"
+        filename_pg_dm = f"{name_hdf5[:-4]}_substrat_{reach_name}_{unit_name}"
     else:
-        title_pg = f"Substrate - Coarser - {reach_name} - {unit_name} {unit_type}"
-        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} {unit_type}"
+        title_pg = f"Substrate - Coarser - {reach_name} - {unit_name} [{unit_type}]"
+        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} [{unit_type}]"
         filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
 
     # prepare data
@@ -1225,6 +1224,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     sub2.set_xlabel('x coord []')
     sub2.set_ylabel('y coord []')
     sub2.set_title(title_dom)
+    sub2.xaxis.set_tick_params(rotation=15)
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
@@ -1234,11 +1234,15 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     # following gives a basic continuous colorbar with ticks
     # and labels.
     listcathegories = list(range(0, max_class + 1))
+    listcathegories_stick = [x + 0.5 for x in range(0, max_class + 1)]
+    listcathegories_stick_label = [x for x in range(1, max_class + 1)]
     cb1 = mpl.colorbar.ColorbarBase(ax1,
                                     cmap=cmap,
                                     norm=norm,
                                     boundaries=listcathegories,
                                     orientation='vertical')
+    cb1.set_ticks(listcathegories_stick)
+    cb1.set_ticklabels(listcathegories_stick_label)
     cb1.set_label(data_description["sub_classification_code"])
     plt.tight_layout()
 
