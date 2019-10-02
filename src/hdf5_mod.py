@@ -222,7 +222,7 @@ class Hdf5Management:
                     variables_mesh[variables_mesh.index("tin")] = "mesh"
                 # change sub by coarser_dominant
                 if "sub" in variables_mesh:
-                    variables_mesh[variables_mesh.index("sub")] = "coarser_dominant"
+                    variables_mesh[variables_mesh.index("sub")] = "sub_coarser_dominant"
                 """ NODE GROUP """
                 # node_group for first reach and first unit
                 node_group = data_group + "/reach_0/unit_0/node"
@@ -252,7 +252,7 @@ class Hdf5Management:
 
                 # estithic sort for GUI (classic variables + fish variables (alphanumeric))
                 variables.sort(key=str.lower)  # sort alphanumeric
-                list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
+                list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "sub_coarser_dominant",
                                'max_slope_bottom', 'max_slope_energy', 'shear_stress']
                 list_to_gui = [x for x in list_to_gui if x in variables]  # remove variable not present in hdf5
 
@@ -264,7 +264,7 @@ class Hdf5Management:
                 self.variables = variables
 
             """ get_hdf5_fish_names """
-            variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant",
+            variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "sub_coarser_dominant",
                                    'max_slope_bottom', 'max_slope_energy', 'shear_stress']
             fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
             self.fish_list = fish_list
