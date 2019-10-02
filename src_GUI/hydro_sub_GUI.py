@@ -20,6 +20,7 @@ import sys
 import shutil
 from io import StringIO
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt
+from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QWidget, QPushButton, \
     QLabel, QGridLayout, \
     QLineEdit, QFileDialog, QSpacerItem, QListWidget, \
@@ -49,7 +50,6 @@ from src import hydro_input_file_mod
 from src import ascii_mod
 from src.user_preferences_mod import user_preferences
 from src.project_manag_mod import load_project_preferences
-from PyQt5.QtCore import QCoreApplication
 np.set_printoptions(threshold=np.inf)
 try:
     import xml.etree.cElementTree as ET
@@ -743,9 +743,8 @@ class SubHydroW(QWidget):
                 if ext == '':  # no extension
                     self.msg2.setIcon(QMessageBox.Warning)
                     self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "File type"))
-                    self.msg2.setText(qt_tr.translate("SubHydroW",
-                        "The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(
-                            extension_i)))
+                    self.msg2.setText(QCoreApplication.translate("SubHydroW", "The selected file has no extension. If you know this file, change its extension manually to ") + " or ".join(
+                            extension_i))
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
                 else:  # no extension known (if not any(e in ext for e in extension_i))

@@ -967,8 +967,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # say in the Stauts bar that the processus is alive
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
-            # get the langugage
-            project_preferences = load_project_preferences(self.path_prj, self.name_prj)
             # send the message
             self.send_log.emit("Process " +
                                self.tr("'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
