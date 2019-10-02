@@ -803,11 +803,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     [sub_ini, hydro_ini] = hdf5_mod.get_initial_files(path_hdf5, f.text)
                     hydro_ini = os.path.basename(hydro_ini)
                     textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate :' + sub_ini
-                    if len(f.text) < 55:
-                        self.m_all.addItem(f.text)
-                    else:
-                        blob = f.text[:55] + '...'
-                        self.m_all.addItem(blob)
+                    self.m_all.addItem(f.text)
                     self.m_all.setItemData(idx, textini, Qt.ToolTipRole)
                     self.tooltip.append(textini)
                     name = f.text
