@@ -1407,7 +1407,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     :param unit_name: the name of the time steps if not 0,1,2,3
     """
     # get translation
-    qt_tr = get_translator(project_preferences['language'])
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
@@ -1608,9 +1608,10 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time steps if not 0,1,2,3
     """
-
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
