@@ -1088,7 +1088,8 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     bhw = (water_height > 0).astype(np.int)
     ikle_bit = bhw[ikle]
     ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
-    mikle_keep = ikle_type == 3
+    mikle_keep = ikle_type ==3
+    mikle_keep2 = ikle_type != 0
     ipt_all_ok_wetdry = []
     # all meshes are entirely wet
     if all(mikle_keep):
@@ -1099,7 +1100,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         velocity_ok=velocity
         ind_whole = ind_whole  # TODO: full whole profile
     # all meshes are entirely dry
-    elif not True in mikle_keep:
+    elif not True in mikle_keep2:
         #print('Error: all meshes are entirely dry')
         return True, True, True, True, True
     # only the dry meshes are cut (but not the partially ones)
@@ -1851,7 +1852,11 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
                 the substrate description for all meshes that is repeated in four triangles if given in a quadrangle
 
     """
-    bsub = sub!=''
+    if type(sub)==np.ndarray:
+        bsub=True
+    else:
+        bsub=False
+    nbnodes0 = nodes.shape[0]
     nbmesh = ikle.shape[0]
     nbunit= hmesh.shape[1]
     #Building the new ikle by spliting each quadrangle to 4 triangles adding the center of the quadrangle to the node list
@@ -1927,7 +1932,16 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
         vnodes2[vnodes2_nan] = vnodes2_new_nan
         vnodes2[hnodes2==0]=0 # get realistic
         hnodes2all[:,i], vnodes2all[:,i]=hnodes2,vnodes2
-
+    # giving the exact values of depth and velocity in the quadrangular mesh centers nodes
+    #TODO not to do previously this job  above TAKE CARE that if you got just one quadrangle or similar situation
+    # only the following part will give the correct result
+    if len(ikle4):
+        hnodes4all=hmesh[np.where(ikle[:, [3]] != -1)[0]]
+        vnodes4all = vmesh[np.where(ikle[:, [3]] != -1)[0]]
+        hnodes4all[hnodes4all <= 0] = 0
+        vnodes4all[hnodes4all == 0] = 0
+        hnodes2all[nbnodes0:nbnodes2, :]=hnodes4all
+        vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
     if bsub:
         return ikle2, nodes2,hnodes2all,vnodes2all,sub
     else:
