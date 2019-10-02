@@ -18,7 +18,10 @@ import os
 import numpy as np
 import urllib
 from copy import deepcopy
-
+import sys
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QTranslator
+from src.project_manag_mod import load_project_preferences
 
 # INTERPOLATION TOOLS
 def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_prj):
@@ -345,3 +348,26 @@ def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
     return dict_to_sort
 
 
+def get_translator(path_prj, name_prj):
+    """
+    :param language: 0:EN, 1:FR, 2:ES
+    :return: application with translate method.
+    """
+    # get language from project_preferences['language']
+    project_preferences = load_project_preferences(path_prj, name_prj)
+    language = project_preferences['language']
+
+    # translator
+    app = QApplication(sys.argv)
+    languageTranslator = QTranslator(app)
+    if language == 0:
+        input_file_translation = 'Zen_EN'
+        languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
+    if language == 1:
+        input_file_translation = 'Zen_FR'
+        languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
+    elif language == 2:
+        input_file_translation = 'Zen_ES'
+        languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
+    app.installTranslator(languageTranslator)
+    return app

@@ -269,6 +269,7 @@ class MainWindows(QMainWindow):
             self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+            self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
 
         # set theme
         if self.actual_theme == "classic":
@@ -1602,6 +1603,8 @@ class MainWindows(QMainWindow):
         # write the new language in the figure option to be able to get the title, axis in the right language
         project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
+        self.central_widget.write_log(self.tr('Project created.'))
+
     def change_name_project(self):
         """
         This function is used to change the name of the current project. To do this, it copies the xml
@@ -2694,10 +2697,10 @@ class EmptyTab(QWidget):
         """
         Used in the initialization.
         """
-        button1 = QPushButton(self.tr('I am a tab'), self)
+        button1 = QPushButton(self.tr('I am a button'), self)
         button1.clicked.connect(self.addtext)
 
-        button2 = QPushButton(self.tr('I am really'), self)
+        button2 = QPushButton(self.tr('I am a button'), self)
         button2.clicked.connect(self.addtext)
 
         layout1 = QGridLayout()

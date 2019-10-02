@@ -49,7 +49,7 @@ from src import hydro_input_file_mod
 from src import ascii_mod
 from src.user_preferences_mod import user_preferences
 from src.project_manag_mod import load_project_preferences
-
+from PyQt5.QtCore import QCoreApplication
 np.set_printoptions(threshold=np.inf)
 try:
     import xml.etree.cElementTree as ET
@@ -141,7 +141,9 @@ class Hydro2W(QScrollArea):
         self.mod.setMaxVisibleItems(20)
         self.mod.addItems(self.name_model)  # available model
         self.mod.currentIndexChanged.connect(self.selectionchange)
-        self.button1 = QPushButton(self.tr('?'), self)
+        for item_index in range(self.mod.count()):
+            self.mod.model().item(item_index).setTextAlignment(Qt.AlignRight)
+        self.button1 = QPushButton(self.tr('?'))
         self.button1.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.button1.clicked.connect(self.give_info_model)
         self.free = QWidget()  # add the widgets representing the available models to a stack of widgets
@@ -602,8 +604,8 @@ class SubHydroW(QWidget):
         self.timer.timeout.connect(self.show_prog)
 
         # get the last file created
-        self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
-        self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
+        self.last_hydraulic_file_label = QLabel(QCoreApplication.translate("SubHydroW", 'Last file created'))
+        self.last_hydraulic_file_name_label = QLabel(QCoreApplication.translate("SubHydroW", 'no file'))
         self.last_path_input_data = None
 
     def was_model_loaded_before(self, i=0, many_file=False):
@@ -654,19 +656,12 @@ class SubHydroW(QWidget):
                             self.pathfile.append(os.path.dirname(list_all_name[j]))
                         else:
                             self.msg2.setIcon(QMessageBox.Warning)
-                            self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
-                            self.msg2.setText(self.tr("One of the file given in the project file does not exist."))
+                            self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Previously Loaded File"))
+                            self.msg2.setText(QCoreApplication.translate("SubHydroW", "One of the file given in the project file does not exist."))
                             self.msg2.setStandardButtons(QMessageBox.Ok)
                             self.msg2.show()
                 elif os.path.basename(geo_name_path) != 'unknown file':
                     pass
-                    # self.msg2.setIcon(QMessageBox.Warning)
-                    # self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
-                    # self.msg2.setText(
-                    #     self.tr(
-                    #         "The file given in the project file does not exist. Hydrological model:" + self.model_type))
-                    # self.msg2.setStandardButtons(QMessageBox.Ok)
-                    # self.msg2.show()
 
     def gethdf5_name_gui(self):
         """
@@ -708,7 +703,6 @@ class SubHydroW(QWidget):
 
         :param i: an int for the case where there is more than one file to load
         """
-
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
             filter2 = "File ("
@@ -726,17 +720,17 @@ class SubHydroW(QWidget):
 
         # find the filename based on user choice
         filename_path = QFileDialog.getOpenFileNames(self,
-                                                    self.tr("Select file"),
+                                                    QCoreApplication.translate("SubHydroW", "Select file"),
                                                     model_path,
                                                     filter2)[0][0]
 
         # if len(self.pathfile) == 0:  # case where no file was open before
-        #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.path_prj, filter2)[0]
+        #     filename_path = QFileDialog.getOpenFileName(self, QCoreApplication.translate("SubHydroW", "Select file"), self.path_prj, filter2)[0]
         # elif i >= len(self.pathfile):
-        #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[0], filter2)[0]
+        #     filename_path = QFileDialog.getOpenFileName(self, QCoreApplication.translate("SubHydroW", "Select file"), self.pathfile[0], filter2)[0]
         # else:
         #     # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
-        #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[i], filter2)[0]
+        #     filename_path = QFileDialog.getOpenFileName(self, QCoreApplication.translate("SubHydroW", "Select file"), self.pathfile[i], filter2)[0]
         # exeption: you should be able to clik on "cancel"
         if filename_path:
             filename = os.path.basename(filename_path)
@@ -748,16 +742,16 @@ class SubHydroW(QWidget):
             else:
                 if ext == '':  # no extension
                     self.msg2.setIcon(QMessageBox.Warning)
-                    self.msg2.setWindowTitle(self.tr("File type"))
-                    self.msg2.setText(self.tr(
+                    self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "File type"))
+                    self.msg2.setText(qt_tr.translate("SubHydroW",
                         "The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(
                             extension_i)))
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
                 else:  # no extension known (if not any(e in ext for e in extension_i))
                     self.msg2.setIcon(QMessageBox.Warning)
-                    self.msg2.setWindowTitle(self.tr("File type"))
-                    self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
+                    self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "File type"))
+                    self.msg2.setText(QCoreApplication.translate("SubHydroW", "Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
 
@@ -863,7 +857,6 @@ class SubHydroW(QWidget):
         This is practical to have in a function form as it should be called repeatably (in case the project have been
         changed since the last start of HABBY).
         """
-
         path_im = 'no_path'
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -877,14 +870,14 @@ class SubHydroW(QWidget):
                 path_im = os.path.join(self.path_prj, child.text)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the figures"))
+            self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the figures"))
             self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
+                QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
         if not os.path.isdir(path_im):
-            self.send_log.emit('Warning: ' + self.tr('The path to the figure was not found.'))
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("SubHydroW", 'The path to the figure was not found.'))
             path_im = self.path_prj
 
         return path_im
@@ -894,7 +887,6 @@ class SubHydroW(QWidget):
         A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
         path_hdf5 is in the project folder in the folder 'hdf5'.
         """
-
         path_hdf5 = 'no_path'
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -907,7 +899,7 @@ class SubHydroW(QWidget):
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
-            self.send_log.emit("Error: " + self.tr("The project is not saved. Save the project in the General tab "
+            self.send_log.emit("Error: " + QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab "
                                "before calling hdf5 files. \n"))
 
         return path_hdf5
@@ -917,7 +909,6 @@ class SubHydroW(QWidget):
         A function to find the path where to save the input file. Careful a simialar one is in estimhab_GUI.py. By default,
         path_input indicates the folder 'input' in the project folder.
         """
-
         path_input = 'no_path'
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -931,9 +922,9 @@ class SubHydroW(QWidget):
                 path_input = os.path.join(self.path_prj, child.text)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the copied inputs"))
+            self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the copied inputs"))
             self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
+                QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
@@ -949,7 +940,6 @@ class SubHydroW(QWidget):
         :param att: the xml attribute (from the xml project file) linked to the path needed, without the .//
 
         """
-
         path_out = 'no_path'
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -963,9 +953,9 @@ class SubHydroW(QWidget):
                 path_out = os.path.join(self.path_prj, child.text)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
+            self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the fichier text"))
             self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
+                QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
@@ -1015,7 +1005,7 @@ class SubHydroW(QWidget):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
-                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+                self.send_log.emit(QCoreApplication.translate("SubHydroW", 'Warning: too many information for the GUI'))
             if 'Error' in str_found[i] and check_ok:
                 error = True
         if check_ok:
@@ -1053,14 +1043,14 @@ class SubHydroW(QWidget):
             filename = os.path.basename(filename_path)
         # load data
         if not os.path.isfile(filename_path):
-            self.send_log.emit('Error: ' + self.tr('The selected file for manning is not found.'))
+            self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The selected file for manning is not found.'))
             return
         self.manning_textname = filename_path
         try:
             with open(filename_path, 'rt') as f:
                 data = f.read()
         except IOError:
-            self.send_log.emit('Error: ' + self.tr('The selected file for manning can not be open.'))
+            self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The selected file for manning can not be open.'))
             return
         # create manning array (to pass to dist_vitess)
         data = data.split('\n')
@@ -1077,11 +1067,11 @@ class SubHydroW(QWidget):
                             manning[l - com, 1] = np.float(data_here[1])
                             manning[l - com, 2] = np.float(data_here[2])
                         except ValueError:
-                            self.send_log.emit('Error: ' + self.tr('The manning data could not be converted to float or int.'
+                            self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The manning data could not be converted to float or int.'
                                                ' Format: p,dist,n line by line.'))
                             return
                     else:
-                        self.send_log.emit('Error: ' + self.tr('The manning data was not in the right format.'
+                        self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The manning data was not in the right format.'
                                            ' Format: p,dist,n line by line.'))
                         return
 
@@ -1106,7 +1096,6 @@ class SubHydroW(QWidget):
         This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
         messages.
         """
-
         # say in the status bar that the processus is alive
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
@@ -1115,19 +1104,19 @@ class SubHydroW(QWidget):
 
             # MERGE
             if self.model_type == 'HABITAT':
-                self.send_log.emit(self.tr(
-                    "Process 'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.send_log.emit("Process " +
+                                   QCoreApplication.translate("SubHydroW", "'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
                 self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             # SUBSTRATE
             elif self.model_type == 'SUBSTRATE':
-                self.send_log.emit(self.tr(
-                    "Process 'substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.send_log.emit("Process " +
+                                   QCoreApplication.translate("SubHydroW", "'Substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
                 self.nativeParentWidget().progress_bar.setValue(50)
             # HYDRAULIC
             else:
                 # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit(self.tr(
-                    "Process 'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
+                self.send_log.emit("Process " +
+                    QCoreApplication.translate("SubHydroW", "'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
                 self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
 
         # when the loading is finished
@@ -1144,7 +1133,7 @@ class SubHydroW(QWidget):
 
             # info
             if error:
-                self.send_log.emit(self.tr("clear status bar"))
+                self.send_log.emit("clear status bar")
                 self.running_time = 0
                 self.nativeParentWidget().kill_process.setVisible(False)
                 # MERGE
@@ -1165,7 +1154,7 @@ class SubHydroW(QWidget):
                 # MERGE
                 if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
                     self.send_log.emit(
-                        self.tr("Merging of substrate and hydraulic grid finished (computation time = ") + str(
+                        QCoreApplication.translate("SubHydroW", "Merging of substrate and hydraulic grid finished (computation time = ") + str(
                             round(self.running_time)) + " s).")
                     self.drop_merge.emit()
                     # update last name
@@ -1174,7 +1163,7 @@ class SubHydroW(QWidget):
                     self.load_b2.setDisabled(False)  # merge
                 # SUBSTRATE
                 elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit(self.tr("Loading of substrate data finished (computation time = ") + str(
+                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of substrate data finished (computation time = ") + str(
                         round(self.running_time)) + " s).")
                     self.drop_merge.emit()
                     # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
@@ -1187,7 +1176,7 @@ class SubHydroW(QWidget):
                     self.load_constant_substrate.setDisabled(False)  # substrate
                 # HYDRAULIC
                 else:
-                    self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(
+                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of hydraulic data finished (computation time = ") + str(
                         round(self.running_time)) + " s).")
                     # send a signal to the substrate tab so it can account for the new info
                     self.drop_hydro.emit()
@@ -1202,10 +1191,10 @@ class SubHydroW(QWidget):
                 self.nativeParentWidget().progress_bar.setValue(100)
                 self.nativeParentWidget().kill_process.setVisible(False)
                 if not const_sub:
-                    self.send_log.emit(self.tr("Figures can be displayed/exported from 'Data explorer' tab.\n"))
+                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Outputs data can be displayed and exported from 'Data explorer' tab."))
                 if const_sub:
                     self.update_sub_hdf5_name()
-                self.send_log.emit(self.tr("clear status bar"))
+                self.send_log.emit("clear status bar")
                 # refresh plot gui list file
                 self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
                 self.running_time = 0
@@ -1213,7 +1202,7 @@ class SubHydroW(QWidget):
         # finish
         if not self.p.is_alive() and self.q.empty():
             self.timer.stop()
-            self.send_log.emit(self.tr("clear status bar"))
+            self.send_log.emit("clear status bar")
             self.nativeParentWidget().kill_process.setVisible(False)
             self.running_time = 0
             # MERGE
@@ -1306,7 +1295,7 @@ class SubHydroW(QWidget):
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
-            self.send_log.emit('Error: ' + self.tr('The project is not saved. '
+            self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The project is not saved. '
                                'Save the project in the General tab before saving hydraulic data. \n'))
         else:
             doc = ET.parse(filename_path_pro)
@@ -1389,21 +1378,21 @@ class HEC_RAS1D(SubHydroW):
         self.was_model_loaded_before(1)
 
         # label with the file name
-        self.geo_t2 = QLabel(self.namefile[0], self)
+        self.geo_t2 = QLabel(self.namefile[0])
         self.geo_t2.setToolTip(self.pathfile[0])
-        self.out_t2 = QLabel(self.namefile[1], self)
+        self.out_t2 = QLabel(self.namefile[1])
         self.out_t2.setToolTip(self.pathfile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.g0x)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.g0x)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
 
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.xml, .sdf, or .rep file)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.xml, .sdf, or .rep file)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
@@ -1427,7 +1416,7 @@ class HEC_RAS1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         self.butfig = QPushButton(self.tr("create figure"))
@@ -1826,7 +1815,7 @@ class Rubar2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('Rubar20 result file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.dat, .tps, .txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.dat, .tps, .txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_rubar20(0))
 
         # reach
@@ -1866,7 +1855,7 @@ class Rubar2D(SubHydroW):
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar20_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -2004,7 +1993,7 @@ class Rubar2D(SubHydroW):
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Create .hyd file")
+                self.load_b.setText(self.tr("Create .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -2040,7 +2029,7 @@ class Rubar2D(SubHydroW):
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Create " + str(len(rubar20_description)) + " .hyd files")
+                self.load_b.setText(self.tr("Create ") + str(len(rubar20_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -2145,7 +2134,7 @@ class Rubar2D(SubHydroW):
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def set_epsg_code(self):
         if hasattr(self, 'hydrau_description'):
@@ -2294,22 +2283,22 @@ class Mascaret(SubHydroW):
         self.was_model_loaded_before(2)
 
         # label with the file name
-        self.gen_t2 = QLabel(self.namefile[0], self)
-        self.geo_t2 = QLabel(self.namefile[1], self)
-        self.out_t2 = QLabel(self.namefile[2], self)
+        self.gen_t2 = QLabel(self.namefile[0])
+        self.geo_t2 = QLabel(self.namefile[1])
+        self.out_t2 = QLabel(self.namefile[2])
 
         # general, geometry and output data
         l0 = QLabel(self.tr('<b> General data </b>'))
-        self.gen_b = QPushButton(self.tr('Choose file (.xcas)'), self)
+        self.gen_b = QPushButton(self.tr('Choose file (.xcas)'))
         self.gen_b.clicked.connect(lambda: self.show_dialog(0))
         self.gen_b.clicked.connect(lambda: self.gen_t2.setText(self.namefile[0]))
         self.gen_b.clicked.connect(self.propose_next_file)
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.geo)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.geo)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(1))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[1]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.opt, .rub)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.opt, .rub)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(2))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[2]))
 
@@ -2347,7 +2336,7 @@ class Mascaret(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
@@ -2864,17 +2853,17 @@ class Rubar1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # label with the file name
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0])
+        self.out_t2 = QLabel(self.namefile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.rbe)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.rbe)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (profil.X)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (profil.X)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
 
@@ -2910,7 +2899,7 @@ class Rubar1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
@@ -3109,7 +3098,7 @@ class HEC_RAS2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('HEC-RAS2D result file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.hdf, .txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.hdf, .txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_hec_ras2d(0))
 
         # reach
@@ -3149,7 +3138,7 @@ class HEC_RAS2D(SubHydroW):
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_2d_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -3449,7 +3438,7 @@ class HEC_RAS2D(SubHydroW):
         self.units_QListWidget.setEnabled(True)
         self.epsg_hec_ras2d_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def get_time_step(self):
         """
@@ -3601,7 +3590,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         # geometry and output data
         l1 = QLabel(self.tr('TELEMAC result file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.slf, .srf, .res, .txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.slf, .srf, .res, .txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_telemac(0))
 
         # reach
@@ -3641,7 +3630,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'),)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -3779,7 +3768,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Create .hyd file")
+                self.load_b.setText(self.tr("Create .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3815,7 +3804,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Create " + str(len(telemac_description)) + " .hyd files")
+                self.load_b.setText(self.tr("Create ") + str(len(telemac_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3920,7 +3909,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def get_time_step(self):
         """
@@ -4083,7 +4072,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
         # geometry and output data
         l1 = QLabel(self.tr('ASCII hydraulic model file(s)'))
-        self.h2d_b = QPushButton(self.tr('Choose file(s) (.txt)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.txt)'))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_ascii(0))
 
         # reach
@@ -4122,7 +4111,7 @@ class ASCII(SubHydroW):  # QGroupBox
         #         self.get_ascii_model_description()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_ascii_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -4261,9 +4250,9 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                     if not ascii_description["sub"]:
-                        self.load_b.setText("Create .hyd file")
+                        self.load_b.setText(self.tr("Create .hyd file"))
                     if ascii_description["sub"]:
-                        self.load_b.setText("Create .hab file")
+                        self.load_b.setText(self.tr("Create .hab file"))
                         new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
                         self.hname.setText(new_hdf5_name)  # hdf5 name
 
@@ -4286,9 +4275,9 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                     if not ascii_description["sub"]:
-                        self.load_b.setText("Create .hyd file")
+                        self.load_b.setText(self.tr("Create .hyd file"))
                     if ascii_description["sub"]:
-                        self.load_b.setText("Create .hab file")
+                        self.load_b.setText(self.tr("Create .hab file"))
                         new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
                         self.hname.setText(new_hdf5_name)  # hdf5 name
 
@@ -4327,9 +4316,9 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
                 if not ascii_description["sub"]:
-                    self.load_b.setText("Create " + str(len(ascii_description)) + " .hyd files")
+                    self.load_b.setText(self.tr("Create ") + str(len(ascii_description)) + self.tr(" .hyd files"))
                 if ascii_description["sub"]:
-                    self.load_b.setText("Create " + str(len(ascii_description)) + " .hab files")
+                    self.load_b.setText(self.tr("Create ") + str(len(ascii_description)) + self.tr(" .hab files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -4379,7 +4368,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
-        self.load_b.setText("Create .hyd file")
+        self.load_b.setText(self.tr("Create .hyd file"))
 
     def unit_counter(self):
         # count total number items (units)
@@ -4569,8 +4558,8 @@ class LAMMI(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> General data </b>'))
-        self.h2d_t2 = QLabel(self.namefile[0] + ', ' + self.namefile[1], self)
-        self.h2d_b = QPushButton(self.tr("Select the 'Entree' directory"), self)
+        self.h2d_t2 = QLabel(self.namefile[0] + ', ' + self.namefile[1])
+        self.h2d_b = QPushButton(self.tr("Select the 'Entree' directory"))
         self.h2d_b.clicked.connect(lambda: self.show_dialog_lammi(0))
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0] + ', ' + self.namefile[1]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
@@ -4595,7 +4584,7 @@ class LAMMI(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hab file'), self)
+        self.load_b = QPushButton(self.tr('Create .hab file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
@@ -4767,20 +4756,20 @@ class SW2D(SubHydroW):
         self.was_model_loaded_before(1)
 
         # create and update label with the result and geo filename
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0])
+        self.out_t2 = QLabel(self.namefile[1])
         self.geo_t2.setToolTip(self.pathfile[0])
         self.out_t2.setToolTip(self.pathfile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.geo)'), self)
+        self.geo_b = QPushButton(self.tr('Choose file (.geo)'))
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.res)'), self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.res)'))
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
@@ -4797,7 +4786,7 @@ class SW2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'), self)
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
@@ -4922,7 +4911,7 @@ class SW2D(SubHydroW):
                 self.units_QListWidget.setEnabled(True)
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                self.load_b.setText("Create .hyd file")
+                self.load_b.setText(self.tr("Create .hyd file"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -4958,7 +4947,7 @@ class SW2D(SubHydroW):
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText("Create " + str(len(telemac_description)) + " .hyd files")
+                self.load_b.setText(self.tr("Create ") + str(len(telemac_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -5088,11 +5077,11 @@ class IBER2D(SubHydroW):
         self.was_model_loaded_before(1)
 
         # create and update label with the result and geo filename
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
-        self.out_t2bis = QLabel(self.namefile[1], self)
-        self.out_t2ter = QLabel(self.namefile[1], self)
-        self.out_t2qua = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0])
+        self.out_t2 = QLabel(self.namefile[1])
+        self.out_t2bis = QLabel(self.namefile[1])
+        self.out_t2ter = QLabel(self.namefile[1])
+        self.out_t2qua = QLabel(self.namefile[1])
         self.geo_t2.setToolTip(self.pathfile[0])
         self.out_t2.setToolTip(self.pathfile[1])
         self.out_t2bis.setToolTip(self.pathfile[1])

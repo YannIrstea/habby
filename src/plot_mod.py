@@ -24,22 +24,13 @@ import mplcursors
 import time
 import os
 from datetime import datetime as dt
-from PyQt5.QtCore import QCoreApplication as qt_tr
-from PyQt5.QtCore import QTranslator
-from PyQt5.QtWidgets import QApplication
-import sys
-
-# app = QApplication(sys.argv)
-# languageTranslator = QTranslator()
-# languageTranslator.load('Zen_FR', 'C:\\habby\\translation')
-# qt_tr.installTranslator(languageTranslator)
-# print("installTranslator")
 
 from src_GUI import preferences_GUI
 from src import tools_mod
+from src.tools_mod import get_translator
 
 
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, project_preferences, get_fig=False):
     """
     This function is used to plot the preference curves.
 
@@ -58,8 +49,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
-        if not project_preferences:
-            project_preferences = preferences_GUI.create_default_project_preferences()
+        #project_preferences = preferences_GUI.create_default_project_preferences()
         plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
@@ -1138,19 +1128,18 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     types_plot = project_preferences['type_plot']
     erase1 = project_preferences['erase_id']
 
-
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
     if project_preferences['language'] == 1:
-        title_pg = f"Substrate - Plus Gros - {reach_name} - {unit_name} {unit_type}"
-        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} {unit_type}"
-        filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
+        title_pg = f"Substrat - Plus Gros - {reach_name} - {unit_name} [{unit_type}]"
+        title_dom = f"Substrat - Dominant - {reach_name} - {unit_name} [{unit_type}]"
+        filename_pg_dm = f"{name_hdf5[:-4]}_substrat_{reach_name}_{unit_name}"
     else:
-        title_pg = f"Substrate - Coarser - {reach_name} - {unit_name} {unit_type}"
-        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} {unit_type}"
+        title_pg = f"Substrate - Coarser - {reach_name} - {unit_name} [{unit_type}]"
+        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} [{unit_type}]"
         filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
 
     # prepare data
@@ -1234,6 +1223,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     sub2.set_xlabel('x coord []')
     sub2.set_ylabel('y coord []')
     sub2.set_title(title_dom)
+    sub2.xaxis.set_tick_params(rotation=15)
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
@@ -1243,11 +1233,15 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     # following gives a basic continuous colorbar with ticks
     # and labels.
     listcathegories = list(range(0, max_class + 1))
+    listcathegories_stick = [x + 0.5 for x in range(0, max_class + 1)]
+    listcathegories_stick_label = [x for x in range(1, max_class + 1)]
     cb1 = mpl.colorbar.ColorbarBase(ax1,
                                     cmap=cmap,
                                     norm=norm,
                                     boundaries=listcathegories,
                                     orientation='vertical')
+    cb1.set_ticks(listcathegories_stick)
+    cb1.set_ticklabels(listcathegories_stick_label)
     cb1.set_label(data_description["sub_classification_code"])
     plt.tight_layout()
 
@@ -1411,6 +1405,8 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     :param name_hdf5: a string on which to base the name of the files
     :param unit_name: the name of the time steps if not 0,1,2,3
     """
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
@@ -1611,9 +1607,10 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time steps if not 0,1,2,3
     """
-
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']

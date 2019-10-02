@@ -26,6 +26,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from time import time
 from scipy.interpolate import interp1d, interp2d, griddata, SmoothBivariateSpline, NearestNDInterpolator
+from PyQt5.QtCore import QCoreApplication as qt_tr
 
 from src_GUI import preferences_GUI
 from src import hdf5_mod
@@ -159,11 +160,11 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     found_stage = 0
 
     if len(xmlfile) != len(stages):
-        print('Error: Number of stage and species is not coherent. \n')
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Number of stage and species is not coherent.'))
         return failload
 
     if len(xmlfile) == 0:
-        print('Error: No fish species chosen. \n')
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", 'No fish species chosen.'))
         return failload
 
     # progress
@@ -180,7 +181,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
         # sub opt
         sub_opt = run_choice["sub_opt"][idx]
         if pref_height == [-99]:
-            print('Error: preference file could not be loaded. \n')
+            print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Preference file could not be loaded.'))
             return failload
 
         # for each stage
@@ -196,10 +197,10 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                     # if the last value ends in 0 then change the corresponding value to x at 100 m
                     if information_model_dict["ModelType"] != 'bivariate suitability index models':
                         if pref_height[1][-1] == 0:
-                            print(f"Warning: Last x height value set to 100m : {name_fish} {stade_bio}")
+                            print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m : ") + name_fish + " " + stade_bio)
                             pref_height[0][-1] = 100
                         if pref_vel[1][-1] == 0:
-                            print(f"Warning: Last x velocity value set to 100m/s : {name_fish} {stade_bio}")
+                            print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Last x velocity value set to 100m/s : ") + name_fish + " " + stade_bio)
                             pref_vel[0][-1] = 100
 
                 # invertebrate case
@@ -220,7 +221,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                 spu_all_t_sp.append(spu_all_t)
 
         if found_stage == 0:
-            print('Error: the name of the fish stage are not coherent \n')
+            print('Error: ' + qt_tr.translate("calcul_hab_mod", 'The name of the fish stage are not coherent.'))
             return failload
 
     return vh_all_t_sp, spu_all_t_sp, area_c_all_t
@@ -278,12 +279,12 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
             point_t = data_2d["xy"][reach_num][unit_num]
 
             if len(ikle_t) == 0:
-                print('Warning: The connectivity table was not well-formed for one reach (1) \n')
+                print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'The connectivity table was not well-formed for one reach (1) \n'))
                 vh = [-99]
                 spu_reach = -99
                 area = [-99]
             elif len(ikle_t[0]) < 3:
-                print('Warning: The connectivity table was not well-formed for one reach (2) \n')
+                print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'The connectivity table was not well-formed for one reach (2) \n'))
                 vh = [-99]
                 spu_reach = -99
                 area = [-99]
@@ -408,7 +409,7 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                             else:
                                 vh = s_pref_c
                         except ValueError:
-                            print('Error: One time step misses substrate, velocity or water height value \n')
+                            print('Error: ' + qt_tr.translate("calcul_hab_mod", 'One time step misses substrate, velocity or water height value.'))
                             vh = [-99]
 
                 # bivariate suitability index models
@@ -458,13 +459,13 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
         if warning_range_list:
             warning_range_list = list(set(warning_range_list))
             warning_range_list.sort()
-            print(f"Warning: Unknown habitat values produced for {name_fish}, his suitability curve range is not sufficient according to the hydraulics of unit n°" +
-                  ", ".join(str(x) for x in warning_range_list) + " of reach n°" + str(reach_num))
+            print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Unknown habitat values produced for ") + name_fish + qt_tr.translate("calcul_hab_mod", ", his suitability curve range is not sufficient according to the hydraulics of unit n°") +
+                  ", ".join(str(x) for x in warning_range_list) + qt_tr.translate("calcul_hab_mod", " of reach n°") + str(reach_num))
         # HEM
         if aquatic_animal_type_select == "invertebrate":
             if warning_shearstress_list:
-                print(f"Warning: Unknown habitat values produced for {name_fish}, the shear stress data present unknown values in unit n°" +
-                      ", ".join(str(x) for x in warning_shearstress_list) + " of reach n°" + str(reach_num))
+                print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Unknown habitat values produced for ") + name_fish + qt_tr.translate("calcul_hab_mod", ", the shear stress data present unknown values in unit n°") +
+                      ", ".join(str(x) for x in warning_shearstress_list) + qt_tr.translate("calcul_hab_mod", " of reach n°") + str(reach_num))
 
     return vh_all_t, spu_all_t, area_c_all_t, progress_value
 
@@ -512,9 +513,9 @@ def find_pref_value(data, pref):
                         pref_data_here = 1
                     else:
                         if d < 0:
-                            print('Warning: Water or heigth data is smaller than zero. \n')
+                            print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'Water or heigth data is smaller than zero.'))
                         else:
-                            print('Warning: preference data is not between 0 and 1. \n')
+                            print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'Preference data is not between 0 and 1.'))
             pref_data.append(pref_data_here)
         else:
             pref_data.append(pref_f[indh])
@@ -561,7 +562,7 @@ def save_hab_txt(data_2d, hab_description, vh_data, area_c_all, vel_data, height
         return
 
     if not os.path.exists(path_txt):
-        print('Error: the path to save the text file do not exists. \n')
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", 'The path to save the text file do not exists.'))
         return
 
     if len(sim_name) > 0 and len(sim_name) != len(ikle) - 1:
@@ -572,7 +573,7 @@ def save_hab_txt(data_2d, hab_description, vh_data, area_c_all, vel_data, height
     for t in range(1, len(ikle)):
         ikle_here = ikle[t][0]
         if len(ikle_here) < 2:
-            print('Warning: One time step failed. \n')
+            print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'One time step failed.'))
         else:
             # choose the name of the text file
             if not erase_id:
@@ -607,7 +608,7 @@ def save_hab_txt(data_2d, hab_description, vh_data, area_c_all, vel_data, height
                     if os.path.isfile(os.path.join(path_txt, name3)):
                         os.remove(os.path.join(path_txt, name3))
                 except PermissionError:
-                    print('Error: Could not modfiy the text file. Might be open in another prgram\n')
+                    print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Could not modfiy the text file. Might be open in another prgram.'))
                     return
             name1 = os.path.join(path_txt, name1)
             name2 = os.path.join(path_txt, name2)
@@ -658,7 +659,7 @@ def save_hab_txt(data_2d, hab_description, vh_data, area_c_all, vel_data, height
                             try:
                                 vh_str += str(vh_data[j][t][r][i]) + '\t'
                             except IndexError:
-                                print('Error: Results could not be written to text file. \n')
+                                print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Results could not be written to text file.'))
                                 return
                         f.write(str(r) + '\t' + str(i) + '\t' + str(s_here[i]) + '\t' + str(v_here[i]) + '\t' + str(
                             h_here[i]) + '\t' +
@@ -681,7 +682,7 @@ def save_spu_txt(area_all, spu_all, hab_description, sim_name=[], lang=0, erase_
     """
     path_txt = os.path.join(hab_description["path_project"], "output", "text")
     if not os.path.exists(path_txt):
-        print('Error: the path to the text file is not found. Text files not created \n')
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", 'The path to the text file is not found. Text files not created'))
 
     name_base = os.path.splitext(hab_description["hab_filename"])[0]
     sim_name = hab_description["hyd_unit_list"].split(", ")
@@ -703,7 +704,7 @@ def save_spu_txt(area_all, spu_all, hab_description, sim_name=[], lang=0, erase_
             try:
                 os.remove(os.path.join(path_txt, name))
             except PermissionError:
-                print('Error: Could not modify text file as it is open in another program. \n')
+                print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Could not modify text file as it is open in another program.'))
                 return
 
     name = os.path.join(path_txt, name)
@@ -790,13 +791,13 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, project_p
     fig = plt.figure()
 
     if len(spu_all) != len(name_fish):
-        print('Error: Number of fish name and number of WUA data is not coherent \n')
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Number of fish name and number of WUA data is not coherent.'))
         return
 
     try:
         nb_reach = len(area_all)  # we might have failed time step
     except TypeError:  # or all failed time steps -99
-        # print('Error: No reach found. Is the hdf5 corrupted? \n')
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", 'No reach found. Is the hdf5 corrupted?'))
         return
 
     for id, n in enumerate(name_fish):
@@ -1129,7 +1130,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 ikle_t = ikle_all_t[t]
                 all_ok = True
             except IndexError:
-                print('Warning: Figure not created for one time step as the time step was not found \n')
+                print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'Figure not created for one time step as the time step was not found.'))
                 all_ok = False  # continue is not ok in try
             if all_ok:
                 point_t = point_all_t[t]
@@ -1142,7 +1143,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                         try:
                             ikle = ikle_t[r]
                         except IndexError:
-                            print('Number of reach is not coherent. Could not plot figure. \n')
+                            print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Number of reach is not coherent. Could not plot figure.'))
                             return
                         if len(ikle) < 3:
                             pass
@@ -1316,7 +1317,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
         try:
             ikle_here = ikle[t][0]
         except IndexError:
-            print('Error: Figure not created. Number of time step was not coherent with hydrological info.\n')
+            print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Figure not created. Number of time step was not coherent with hydrological info.'))
             return
         if len(ikle_here) < 2:  # time step failed
             pass
@@ -1491,8 +1492,8 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, project_preferences,
                         spu_all.extend(list(vh_all_t_sp[s][t][r]))
                         area_all.extend(list(area_c_all_t[t][r]))
             except IndexError:
-                print('Error: The histrogram of the spu could not be created because the length of the '
-                      'data was not coherent \n')
+                print('Error: ' + qt_tr.translate("calcul_hab_mod", 'The histrogram of the spu could not be created because the length of the '
+                      'data was not coherent.'))
                 return
 
             # plot four sub-figure by figure

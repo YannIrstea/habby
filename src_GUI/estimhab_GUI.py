@@ -709,7 +709,7 @@ class EstimhabW(StatModUseful):
             self.msge.show()
             return
 
-        self.send_log.emit(self.tr('# Run: Estimhab'))
+        self.send_log.emit(self.tr('# Computing: ESTIMHAB...'))
 
         # check if the discharge range is realistic with the result
         self.qall = [q[0], q[1], qrange[0], qrange[1], q50]

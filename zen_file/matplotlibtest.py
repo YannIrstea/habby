@@ -61,7 +61,7 @@ class PlotDialog(QWidget):
         self.plot_layout = QVBoxLayout(self)
         self.plot_canvas = MyStaticMplCanvas(self, width=5, height=4, dpi=100)
 
-        self.navi_toolbar = NavigationToolbar(self.plot_canvas, self)
+        self.navi_toolbar = NavigationToolbar(self.plot_canvas)
         self.plot_layout.addWidget(self.plot_canvas)  # the matplotlib canvas
         self.plot_layout.addWidget(self.navi_toolbar)
 
