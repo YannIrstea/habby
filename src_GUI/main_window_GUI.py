@@ -269,6 +269,7 @@ class MainWindows(QMainWindow):
             self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+            self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
 
         # set theme
         if self.actual_theme == "classic":
