@@ -382,7 +382,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.setTitle(title)
         self.plot_process_list = MyProcessList("plot")
         self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity",
-                                    "coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress"]
+                                    "sub_coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress"]
         self.init_ui()
 
     def init_ui(self):
@@ -846,7 +846,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      units[unit_num]),
                                                                name="plot_map_velocity")
                                     self.plot_process_list.append((velocity_process, state))
-                                if "coarser_dominant" in variables and not self.plot_production_stoped:  # coarser_dominant
+                                if "sub_coarser_dominant" in variables and not self.plot_production_stoped:  # coarser_dominant
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate,
                                                                args=(state,

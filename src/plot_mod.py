@@ -1169,22 +1169,26 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
         ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
         ylist.append(None)
 
-    # substrate coarser
+    # general
     fig = plt.figure(name_hdf5[:-4])
     subs = fig.subplots(nrows=2, sharex=True, sharey=True)  #
     plt.setp(subs.flat, aspect='equal')
     sub1, sub2 = subs
-    patches = []
-    cmap = plt.get_cmap(project_preferences['color_map1'])
-    colors_val = np.array(sub_pg)  # convert nfloors to colors that we can use later (cemagref)
-    # Set norm to correspond to the data for which
-    # the colorbar will be used.
+    cmap = plt.get_cmap(project_preferences['color_map2'])
     if data_description["sub_classification_code"] == "Cemagref":
         max_class = 8
-        norm = mpl.colors.Normalize(vmin=1, vmax=8)
+        listcathegories = list(range(0, max_class + 2))
+        norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
+        # norm = mpl.colors.Normalize(vmin=1, vmax=8)
     if data_description["sub_classification_code"] == "Sandre":
         max_class = 12
-        norm = mpl.colors.Normalize(vmin=1, vmax=12)
+        listcathegories = list(range(0, max_class + 2))
+        norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
+        # norm = mpl.colors.Normalize(vmin=1, vmax=12)
+
+    # sub1 substrate coarser
+    patches = []
+    colors_val = np.array(sub_pg, np.int)  # convert nfloors to colors that we can use later (cemagref)
     n = len(sub_pg)
     for i in range(0, n):
         verts = []
@@ -1195,50 +1199,39 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
         patches.append(polygon)
     collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
     sub1.add_collection(collection)
-    # collection.set_color(colors)
     collection.set_array(colors_val)
     sub1.autoscale_view()
     sub1.set_ylabel('y coord []')
     sub1.set_title(title_pg)
 
-    # substrate dominant
+    # sub2 substrate dominant
     patches = []
-    colors_val = np.array(sub_dom)  # convert nfloors to colors that we can use later
-    # Set norm to correspond to the data for which
-    # the colorbar will be used.
+    colors_val = np.array(sub_dom, np.int)  # convert nfloors to colors that we can use later
     n = len(sub_dom)
     for i in range(0, n):
         verts = []
         for j in range(0, len(ikle[i])):
             verts_j = coord_p[int(ikle[i][j]), :]
             verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)
+        polygon = Polygon(verts, closed=True, edgecolor='w')
         patches.append(polygon)
     collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
     sub2.add_collection(collection)
     collection.set_array(colors_val)
-    # cbar = plt.colorbar()
-    # cbar.ax.set_ylabel('Substrate')
-    # sub2.plot(xlist, ylist, c='b', linewidth=0.2)
-    sub2.set_xlabel('x coord []')
+    sub1.autoscale_view()
     sub2.set_ylabel('y coord []')
     sub2.set_title(title_dom)
+    sub2.set_xlabel('x coord []')
     sub2.xaxis.set_tick_params(rotation=15)
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-    # ColorbarBase derives from ScalarMappable and puts a colorbar
-    # in a specified axes, so it has everything needed for a
-    # standalone colorbar.  There are many more kwargs, but the
-    # following gives a basic continuous colorbar with ticks
-    # and labels.
-    listcathegories = list(range(0, max_class + 1))
     listcathegories_stick = [x + 0.5 for x in range(0, max_class + 1)]
     listcathegories_stick_label = [x for x in range(1, max_class + 1)]
     cb1 = mpl.colorbar.ColorbarBase(ax1,
                                     cmap=cmap,
                                     norm=norm,
-                                    boundaries=listcathegories,
+                                    boundaries=listcathegories_stick_label + [max_class + 1],
                                     orientation='vertical')
     cb1.set_ticks(listcathegories_stick)
     cb1.set_ticklabels(listcathegories_stick_label)
