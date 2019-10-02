@@ -803,8 +803,8 @@ class BioModelInfoSelection(QScrollArea):
                                               code_fish,
                                               name_fish,
                                               stages,
-                                              False,
-                                              project_preferences))
+                                              project_preferences,
+                                              False))
             if aquatic_animal_type == "invertebrate":
                 # open the pref
                 [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,

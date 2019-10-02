@@ -30,7 +30,7 @@ from src import tools_mod
 from src.tools_mod import get_translator
 
 
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, project_preferences, get_fig=False):
     """
     This function is used to plot the preference curves.
 
@@ -49,8 +49,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
-        if not project_preferences:
-            project_preferences = preferences_GUI.create_default_project_preferences()
+        #project_preferences = preferences_GUI.create_default_project_preferences()
         plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
