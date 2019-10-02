@@ -111,10 +111,19 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     project_preferences["CutMeshPartialyDry"],
                     minwh)
 
-                if not isinstance(tin_data, np.ndarray):
-                    print("Error: cut_2d_grid")
-                    q.put(mystdout)
-                    return
+                # if not isinstance(tin_data, np.ndarray):
+                #     print("Error: cut_2d_grid")
+                #     q.put(mystdout)
+                #     return
+                if not isinstance(tin_data, np.ndarray):  # error or warning
+                    if not tin_data:  # error
+                        print("Error: " + "cut_2d_grid")
+                        q.put(mystdout)
+                        return
+                    elif tin_data:   # entierly dry
+                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
+                        print("Warning: " + "The mesh of timestep " + str(data_description["unit_list"][reach_num][unit_num]) + " is entirely dry.")
+                        continue  # Continue to next iteration.
 
                 max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
                     xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
