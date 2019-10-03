@@ -95,7 +95,7 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION)
-        self.beta = False  # if set to True : GUI beta version mode is runned
+        self.beta = True  # if set to True : GUI beta version mode is runned
         # user_preferences
         self.user_preferences = user_preferences
 
