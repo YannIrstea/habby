@@ -138,11 +138,13 @@ class Hydro2W(QScrollArea):
 
         # group hydraulic model
         self.mod = QComboBox()
-        self.mod.setMaxVisibleItems(20)
+        self.mod.setMaxVisibleItems(len(self.name_model))
         self.mod.addItems(self.name_model)  # available model
         self.mod.currentIndexChanged.connect(self.selectionchange)
-        for item_index in range(self.mod.count()):
-            self.mod.model().item(item_index).setTextAlignment(Qt.AlignRight)
+        self.mod.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        # # alignitems to the right
+        # for item_index in range(self.mod.count()):
+        #     self.mod.model().item(item_index).setTextAlignment(Qt.AlignRight)
         self.button1 = QPushButton(self.tr('?'))
         self.button1.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.button1.clicked.connect(self.give_info_model)
@@ -220,8 +222,9 @@ class Hydro2W(QScrollArea):
         hydrau_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hydrau_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         button_layout = QHBoxLayout()
-        button_layout.addWidget(self.mod)
-        button_layout.addWidget(self.button1)
+        button_layout.addWidget(self.mod, Qt.AlignLeft)
+        button_layout.addWidget(self.button1, Qt.AlignLeft)
+        button_layout.setAlignment(Qt.AlignLeft)
         hydrau_layout = QVBoxLayout()
         hydrau_layout.addLayout(button_layout)
         hydrau_layout.addWidget(self.qframe_modele)
