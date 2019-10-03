@@ -1037,7 +1037,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.data_exporter_run_pushbutton.clicked.connect(self.start_export)
         self.data_exporter_run_pushbutton.setFixedWidth(110)
         self.data_exporter_run_pushbutton.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        self.data_exporter_run_pushbutton.setEnabled(True)
+        self.data_exporter_run_pushbutton.setEnabled(False)
         self.data_exporter_stop_pushbutton = QPushButton(self.tr("stop"))
         self.data_exporter_stop_pushbutton.clicked.connect(self.stop_export)
         self.data_exporter_stop_pushbutton.setEnabled(False)
@@ -1234,13 +1234,19 @@ class DataExporterGroup(QGroupBoxCollapsible):
             # set prog
             if self.nb_export != 0:
                 self.export_process_list.progress_bar.setRange(0, self.nb_export)
+                self.data_exporter_run_pushbutton.setEnabled(True)
             self.export_process_list.progress_bar.setValue(0)
             self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
         else:
             self.nb_export = 0
+            self.data_exporter_run_pushbutton.setEnabled(False)
             # set prog
             self.export_process_list.progress_bar.setValue(0)
             self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+
+
+
+
 
     def start_export(self):
         types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
