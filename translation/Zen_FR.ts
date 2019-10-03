@@ -2006,7 +2006,7 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="467"/>
         <source>Information on the hydraulic model</source>
-        <translation>Inofmration sur le modèle hydraulique</translation>
+        <translation>Information sur le modèle hydraulique</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="520"/>
@@ -2018,7 +2018,7 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="219"/>
         <source>Hydraulic data</source>
-        <translation>Données hydraulique</translation>
+        <translation>Données hydrauliques</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="232"/>
@@ -2028,7 +2028,7 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="500"/>
         <source>Choose a type of hydraulic model !         </source>
-        <translation>Choisis un type de modèle hydraulique !         </translation>
+        <translation>Choisissez un type de modèle hydraulique !         </translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="513"/>
