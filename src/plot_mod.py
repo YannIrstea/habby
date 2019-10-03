@@ -1236,7 +1236,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     cb1.set_ticks(listcathegories_stick)
     cb1.set_ticklabels(listcathegories_stick_label)
     cb1.set_label(data_description["sub_classification_code"])
-    plt.tight_layout()
+    #plt.tight_layout()
 
     # save the figure
     if types_plot == "image export" or types_plot == "both":
