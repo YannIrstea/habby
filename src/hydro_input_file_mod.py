@@ -236,7 +236,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if data_index_file[headers[time_index]][0] != "all":
                 hydrau_case = "4.b"
 
-        print("hydrau_case", hydrau_case)
+        #print("hydrau_case", hydrau_case)
 
         """ ALL CASE """
         # hdf5 name and source filenames

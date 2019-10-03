@@ -20,10 +20,11 @@ from multiprocessing import Process, Value
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, \
-    QSizePolicy, QScrollArea, QProgressBar, QTableView, QMenu, QAction
+    QSizePolicy, QScrollArea, QTableView, QMenu, QAction
 
 from src import hdf5_mod
 from src import plot_mod
+from src.tools_mod import MyProcessList
 from src.project_manag_mod import load_project_preferences
 from src_GUI.preferences_GUI import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
@@ -1463,96 +1464,6 @@ class HabitatValueRemover(QGroupBoxCollapsible):
 
         # refresh
         self.parent().names_hdf5_change()
-
-
-class MyProcessList(list):
-    """
-    This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
-
-    :param nb_plot_total: integer value representing the total number of graphs to be produced.
-    :param progress_bar: Qprogressbar of DataExplorerFrame to be refreshed
-    """
-
-    def __init__(self, type):
-        super().__init__()
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(False)
-        self.progress_label = QLabel()
-        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
-        self.nb_plot_total = 0
-        self.export_production_stoped = False
-        self.process_type = type  # cal or plot or export
-
-    def new_plots(self, nb_plot_total):
-        self.add_plots_state = False
-        self.nb_plot_total = nb_plot_total
-        self.save_process = []
-        self[:] = []
-
-    def add_plots(self, nb_plot_total):
-        self.add_plots_state = True
-        self.nb_plot_total = nb_plot_total
-        self.save_process = self[:]
-        self[:] = []
-
-    def append(self, *args):
-        """
-        Overriding of append method in order to analyse state of plot processes and refresh progress bar.
-        Each time the list is appended, state is analysed and progress bar refreshed.
-
-        :param args: tuple(process, state of process)
-        """
-        args[0][0].start()
-        self.extend(args)
-
-        self.check_all_process_produced()
-
-    def check_all_process_produced(self):
-        """
-        State is analysed and progress bar refreshed.
-        """
-        nb_finished = 0
-        state_list = []
-        for i in range(len(self)):
-            state = self[i][1].value
-            state_list.append(state)
-            if state == 1:
-                nb_finished = nb_finished + 1
-            if state == 0:
-                if i == self.nb_plot_total - 1:  # last of all plot
-                    while 0 in state_list:
-                        if self.export_production_stoped:
-                            break
-                        for j in [k for k, l in enumerate(state_list) if l == 0]:
-                            state = self[j][1].value
-                            state_list[j] = state
-                            if state == 1:
-                                nb_finished = nb_finished + 1
-                                self.progress_bar.setValue(nb_finished)
-                                self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
-                                QCoreApplication.processEvents()
-
-        self.progress_bar.setValue(nb_finished)
-        self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
-        QCoreApplication.processEvents()
-
-    def check_all_process_closed(self):
-        """
-        Check if a process is alive (plot window open)
-        """
-        if any([self[i][0].is_alive() for i in range(len(self))]):  # plot window open or plot not finished
-            return False
-        else:
-            return True
-
-    def kill_all_process(self):
-        """
-        Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
-        """
-        for i in range(len(self)):
-            self[i][0].terminate()
-            #print(self[i][0].name, "terminate(), state : ", self[i][1].value)
 
 
 class MyTableModel(QAbstractTableModel):

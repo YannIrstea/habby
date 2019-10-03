@@ -16,12 +16,13 @@ https://github.com/YannIrstea/habby
 """
 import os
 import shutil
+import ssl
+import urllib.request
 from functools import partial
 from platform import system as operatingsystem
 from subprocess import call
-import urllib.request
+
 import numpy as np
-import ssl
 
 try:
     import xml.etree.cElementTree as ET
@@ -2382,6 +2383,11 @@ class CentralW(QWidget):
         if hasattr(self, 'statmod_tab'):
             if hasattr(self.statmod_tab, 'plot_process_list'):
                 self.statmod_tab.plot_process_list.kill_all_process()
+        # tools_tab
+        if hasattr(self, 'tools_tab'):
+            if hasattr(self.tools_tab, 'interpolation_group'):
+                if hasattr(self.tools_tab.interpolation_group, 'plot_process_list'):
+                    self.tools_tab.interpolation_group.plot_process_list.kill_all_process()
 
     def connect_signal_log(self):
         """

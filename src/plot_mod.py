@@ -1587,7 +1587,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.close()
 
 
-def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, project_preferences):
+def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -1620,14 +1620,22 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     else:
         mar = None
     erase1 = project_preferences['erase_id']
+    is_constant = False
     # prep data
     if len(types.keys()) > 1:  # date
-        data_presence = True
+        date_presence = True
         date_type = types["date"]
         sim_name = np.array([dt.strptime(date, date_type).date() for date in vertical_headers], dtype='datetime64')
     else:
-        data_presence = False
+        date_presence = False
         sim_name = list(map(float, vertical_headers))
+        # get number of decimals
+        number_decimal_list = [vertical_headers[i][::-1].find('.') for i in range(len(vertical_headers))]
+        number_decimal_mean = int(sum(number_decimal_list) / len(number_decimal_list))
+        first_delta = sim_name[1] - sim_name[0]
+        # is sim_name constant float
+        is_constant = all(round(j - i, number_decimal_mean) == first_delta for i, j in zip(sim_name, sim_name[1:]))
+
 
     reach_num = int(data_description["hyd_reach_number"]) - 1
     name_base = data_description["hab_filename"][:-4]
@@ -1645,9 +1653,12 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         plot_window_title = title + str(sim_name[0]) + " " + unit_type
     if len(sim_name) > 1:
         plot_window_title = title + ", ".join(
-            map(str, sim_name)) + " " + unit_type
+            map(str, sim_name[::10])) + ".. " + unit_type
 
-    fig, ax = plt.subplots(3, 1, sharey='row')
+    if not is_constant:
+        fig, ax = plt.subplots(3, 1, sharey='row')
+    if is_constant:
+        fig, ax = plt.subplots(2, 1, sharey='row')
     fig.canvas.set_window_title(plot_window_title)
 
     name_fish_origin = list(name_fish)
@@ -1687,40 +1698,66 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     ax[1].set_ylim(0, 1)
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data, [])  #, rotation=rot
+        if not date_presence and is_constant:
+            ax[1].set_xticks(x_data, sim_name)
     elif len(sim_name) < 100:
         ax[1].set_xticks(x_data[::3], [])
+        if not date_presence and is_constant:
+            ax[1].set_xticklabels(sim_name[::3])
     elif len(sim_name) < 200:
         ax[1].set_xticks(x_data[::10], [])
+        if not date_presence and is_constant:
+            ax[1].set_xticklabels(sim_name[::10])
     else:
         ax[1].set_xticks(x_data[::20], [])
-    # remove ticks labels
-    ax[1].xaxis.set_ticklabels([])
+        if not date_presence and is_constant:
+            ax[1].set_xticklabels(sim_name[::20])
+    if date_presence or not is_constant:
+        # remove ticks labels
+        ax[1].xaxis.set_ticklabels([])
+    # all case
     ax[1].xaxis.grid()
+    if is_constant:
+        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
 
     # unit
-    ax[2].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
-    ax[2].set_title(qt_tr.translate("plot_mod", "Units"))
-    ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
-    ax[2].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
+    if not is_constant:
+        ax[2].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
+        ax[2].set_title(qt_tr.translate("plot_mod", "Units"))
+        if date_presence:
+            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Chronicle [') + date_type + ']')
+        if not date_presence:
+            if not is_constant:
+                ax[2].set_xlabel("")
+            if is_constant:
+                ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
 
-    if len(sim_name) < 25:
-        ax[2].set_xticks(x_data, sim_name)  # , rotation=45
-    elif len(sim_name) < 100:
-        ax[2].set_xticks(x_data[::3])
-        ax[2].set_xticklabels(sim_name[::3])
-    elif len(sim_name) < 200:
-        ax[2].set_xticks(x_data[::10])
-        ax[2].set_xticklabels(sim_name[::10])
-    else:
-        ax[2].set_xticks(x_data[::20])
-        ax[2].set_xticklabels(sim_name[::20])
-    ax[2].xaxis.grid()
-    ax[2].tick_params(axis='x', rotation=45)
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
+
+        if len(sim_name) < 25:
+            ax[2].set_xticks(x_data, sim_name)  # , rotation=45
+        elif len(sim_name) < 100:
+            ax[2].set_xticks(x_data[::3])
+            ax[2].set_xticklabels(sim_name[::3])
+        elif len(sim_name) < 200:
+            ax[2].set_xticks(x_data[::10])
+            ax[2].set_xticklabels(sim_name[::10])
+        else:
+            ax[2].set_xticks(x_data[::20])
+            ax[2].set_xticklabels(sim_name[::20])
+        ax[2].xaxis.grid()
+        ax[2].tick_params(axis='x', rotation=45)
+        if not date_presence and not is_constant:
+            # remove ticks labels
+            ax[2].xaxis.set_ticklabels([])
 
     # get data with mouse
     mplcursors.cursor()
 
     plt.tight_layout()
+
+    # output for plot_GUI
+    state.value = 1  # process finished
     plt.show()
 
 

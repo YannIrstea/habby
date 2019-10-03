@@ -19,9 +19,11 @@ import numpy as np
 import urllib
 from copy import deepcopy
 import sys
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QTranslator
+from PyQt5.QtWidgets import QApplication, QGroupBox, QProgressBar, QLabel
+from PyQt5.QtCore import QTranslator, QCoreApplication
+
 from src.project_manag_mod import load_project_preferences
+
 
 # INTERPOLATION TOOLS
 def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_prj):
@@ -31,7 +33,7 @@ def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_pr
     unit_type = unit_type[start + 1:end]
 
     # headers
-    headers = "units[" + unit_type + "]"
+    headers = "unit[" + unit_type + "]"
 
     # lines
     linetext1 = str(unit_min)
@@ -82,7 +84,7 @@ def read_chronicle_from_text_file(chronicle_filepath):
     data_row_list = dataraw.split("\n")[1:]
     for line in data_row_list:
         if line == "":
-            print("empty line")
+            #print("empty line")
             pass
         else:
             for index in range(2):
@@ -371,3 +373,122 @@ def get_translator(path_prj, name_prj):
         languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
     app.installTranslator(languageTranslator)
     return app
+
+
+# GUI
+class QGroupBoxCollapsible(QGroupBox):
+    def __init__(self):
+        super().__init__()
+        # group title
+        self.setCheckable(True)
+        self.setStyleSheet('QGroupBox::indicator {width: 20px; height: 20px;}'
+            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
+        )
+        #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
+        self.toggled.connect(self.toggle_group)
+        self.setChecked(True)
+
+    def toggle_group(self, checked):
+        if checked:
+            self.setFixedHeight(self.sizeHint().height())
+        else:
+            self.setFixedHeight(30)
+
+
+class MyProcessList(list):
+    """
+    This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
+
+    :param nb_plot_total: integer value representing the total number of graphs to be produced.
+    :param progress_bar: Qprogressbar of DataExplorerFrame to be refreshed
+    """
+
+    def __init__(self, type):
+        super().__init__()
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(False)
+        self.progress_label = QLabel()
+        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+        self.nb_plot_total = 0
+        self.export_production_stoped = False
+        self.process_type = type  # cal or plot or export
+
+    def new_plots(self, nb_plot_total):
+        self.add_plots_state = False
+        self.nb_plot_total = nb_plot_total
+        self.save_process = []
+        self[:] = []
+
+    def add_plots(self, nb_plot_total):
+        self.add_plots_state = True
+        self.nb_plot_total = nb_plot_total
+        self.save_process = self[:]
+        self[:] = []
+
+    def append(self, *args):
+        """
+        Overriding of append method in order to analyse state of plot processes and refresh progress bar.
+        Each time the list is appended, state is analysed and progress bar refreshed.
+
+        :param args: tuple(process, state of process)
+        """
+        args[0][0].start()
+        self.extend(args)
+
+        self.check_all_process_produced()
+
+    def check_all_process_produced(self):
+        """
+        State is analysed and progress bar refreshed.
+        """
+        nb_finished = 0
+        state_list = []
+        for i in range(len(self)):
+            state = self[i][1].value
+            state_list.append(state)
+            if state == 1:
+                nb_finished = nb_finished + 1
+            if state == 0:
+                if i == self.nb_plot_total - 1:  # last of all plot
+                    while 0 in state_list:
+                        if self.export_production_stoped:
+                            break
+                        for j in [k for k, l in enumerate(state_list) if l == 0]:
+                            state = self[j][1].value
+                            state_list[j] = state
+                            if state == 1:
+                                nb_finished = nb_finished + 1
+                                self.progress_bar.setValue(nb_finished)
+                                self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
+                                QCoreApplication.processEvents()
+
+        self.progress_bar.setValue(nb_finished)
+        self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
+        QCoreApplication.processEvents()
+
+    def check_all_process_closed(self):
+        """
+        Check if a process is alive (plot window open)
+        """
+        if any([self[i][0].is_alive() for i in range(len(self))]):  # plot window open or plot not finished
+            return False
+        else:
+            return True
+
+    def kill_all_process(self):
+        """
+        Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
+        """
+        for i in range(len(self)):
+            self[i][0].terminate()
+            #print(self[i][0].name, "terminate(), state : ", self[i][1].value)
+
+

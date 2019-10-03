@@ -14,42 +14,20 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
-from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
-    QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QLineEdit, QGridLayout , QFileDialog,\
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
 import os
+from multiprocessing import Process, Value
+
+from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
+    QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, \
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView
+
+from src.tools_mod import MyProcessList, QGroupBoxCollapsible
 from src import hdf5_mod
-from src import tools_mod
 from src import plot_mod
+from src import tools_mod
 from src.project_manag_mod import load_project_preferences
-
-
-class QGroupBoxCollapsible(QGroupBox):
-    def __init__(self):
-        super().__init__()
-        # group title
-        self.setCheckable(True)
-        self.setStyleSheet('QGroupBox::indicator {width: 20px; height: 20px;}'
-            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-        )
-        #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
-        self.toggled.connect(self.toggle_group)
-        self.setChecked(True)
-
-    def toggle_group(self, checked):
-        if checked:
-            self.setFixedHeight(self.sizeHint().height())
-        else:
-            self.setFixedHeight(30)
 
 
 class ToolsTab(QScrollArea):
@@ -125,6 +103,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.mytablemodel = None
+        self.plot_process_list = MyProcessList("interpolation_tab")
         self.setTitle(title)
         self.init_ui()
         # Signal Connection
@@ -340,14 +319,14 @@ class InterpolationGroup(QGroupBoxCollapsible):
     def display_required_units_from_sequence(self):
         # is value entry ?
         if self.from_qlineedit.text() == "" or self.to_qlineedit.text() == "" or self.by_qlineedit.text() == "":
-            self.send_log.emit('Error: Sequence values must be specified (from, to and by).')
+            self.send_log.emit('Error: ' + self.tr('Sequence values must be specified (from, to and by).'))
             return
 
         # is fish ?
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: There no selected fish.')
+            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
             return
 
         # ok
@@ -371,7 +350,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: There no selected fish.')
+            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
             return
 
         # find the filename based on user choice
@@ -409,7 +388,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         valid, text = tools_mod.check_matching_units(hdf5.data_description, types)
 
         if not valid:
-            self.send_log.emit("Warning : Interpolation not done." + text)
+            self.send_log.emit("Warning : " + self.tr("Interpolation not done.") + text)
             # disable pushbutton
             self.plot_chronicle_qpushbutton.setEnabled(False)
             self.export_txt_chronicle_qpushbutton.setEnabled(False)
@@ -432,7 +411,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 self.require_unit_qtableview.verticalHeader().minimumSectionSize())
             self.plot_chronicle_qpushbutton.setEnabled(True)
             self.export_txt_chronicle_qpushbutton.setEnabled(True)
-            self.send_log.emit("Interpolation done. Interpolated values can now be view in graphic and export in text file.")
+            self.send_log.emit(self.tr("Interpolation done. Interpolated values can now be view in graphic and export in text file."))
             # disable pushbutton
             self.plot_chronicle_qpushbutton.setEnabled(True)
             self.export_txt_chronicle_qpushbutton.setEnabled(True)
@@ -449,10 +428,10 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             # get hdf5 inforamtions
-            hdf5.get_hdf5_attributes()
+            hdf5.open_hdf5_file()
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
             fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
-            units_name = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit list")].split(", ")
+            units_name = hdf5.units_name[self.hab_reach_qcombobox.currentIndex()]
             unit_num = list(map(float, units_name))
             min_unit = min(unit_num)
             max_unit = max(unit_num)
@@ -460,24 +439,24 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # export
             exported = tools_mod.export_empty_text_from_hdf5(unit_type, min_unit, max_unit, hdf5name, self.path_prj)
             if exported:
-                self.send_log.emit("Empty text has been exported in 'output/text' project folder. Open and fill it "
-                                   "with the desired values and then import it in HABBY.")
+                self.send_log.emit(self.tr("Empty text has been exported in 'output/text' project folder. Open and fill it "
+                                   "with the desired values and then import it in HABBY."))
             if not exported:
-                self.send_log.emit('Error: The file has not been exported as it may be opened by another program.')
+                self.send_log.emit('Error: ' + self.tr('The file has not been exported as it may be opened by another program.'))
 
     def plot_chronicle(self):
         # is fish ?
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: There no selected fish.')
+            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
             return
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         if not hdf5name:
-            self.send_log.emit('Error: There no .hab selected.')
+            self.send_log.emit('Error: ' + self.tr('There no .hab selected.'))
             return
 
         if self.mytablemodel:
@@ -519,26 +498,32 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                                                              chronicle,
                                                                                              types,
                                                                                              False)
-            plot_mod.plot_interpolate_chronicle(data_to_table,
-                                                horiz_headers,
-                                                vertical_headers,
-                                                hdf5.data_description,
-                                                fish_names,
-                                                types,
-                                                project_preferences)
+            # plot
+            state = Value("i", 0)
+            plot_interpolate_chronicle_process = Process(target=plot_mod.plot_interpolate_chronicle,
+                                                         args=(state,
+                                                               data_to_table,
+                                                               horiz_headers,
+                                                               vertical_headers,
+                                                               hdf5.data_description,
+                                                               fish_names,
+                                                               types,
+                                                               project_preferences),
+                                                         name="plot_interpolate_chronicle")
+            self.plot_process_list.append((plot_interpolate_chronicle_process, state))
 
     def export_chronicle(self):
         # is fish ?
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: There no selected fish.')
+            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
             return
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
         if not hdf5name:
-            self.send_log.emit('Error: There no .hab selected.')
+            self.send_log.emit('Error: ' + self.tr('There no .hab selected.'))
             return
 
         if self.mytablemodel:
@@ -590,9 +575,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                                types,
                                                                project_preferences)
             if exported:
-                self.send_log.emit("Interpolated text file has been exported in 'output/text' project folder.")
+                self.send_log.emit(self.tr("Interpolated text file has been exported in 'output/text' project folder."))
             if not exported:
-                self.send_log.emit('Error: File not exported as it may be opened by another program.')
+                self.send_log.emit('Error: ' + self.tr('File not exported as it may be opened by another program.'))
 
 
 class OtherToolToCreate(QGroupBoxCollapsible):
