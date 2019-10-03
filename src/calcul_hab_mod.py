@@ -192,17 +192,17 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                     # if the last value ends in 0 then change the corresponding value to x at 100 m
                     if information_model_dict["ModelType"] != 'bivariate suitability index models':
                         if pref_height[1][-1] == 0:
-                            print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m : ") + name_fish + " " + stade_bio)
+                            #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m : ") + name_fish + " " + stade_bio)
                             pref_height[0][-1] = 100
                         if pref_vel[1][-1] == 0:
-                            print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x velocity value set to 100m/s : ") + name_fish + " " + stade_bio)
+                            #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x velocity value set to 100m/s : ") + name_fish + " " + stade_bio)
                             pref_vel[0][-1] = 100
 
                 # invertebrate case
                 elif aquatic_animal_type_select == "invertebrate":
                     pref_height = pref_height[idx2]
                     if pref_height[-1] == 0:
-                        print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m :") + name_fish + stade_bio)
+                        #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m :") + name_fish + stade_bio)
                         pref_height[-1] = 100
 
                 # compute
@@ -453,12 +453,21 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
         if warning_range_list:
             warning_range_list = list(set(warning_range_list))
             warning_range_list.sort()
-            print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Unknown habitat values produced for ") + name_fish + qt_tr.translate("calcul_hab_mod", ", his suitability curve range is not sufficient according to the hydraulics of unit n° ") +
-                  ", ".join(str(x) for x in warning_range_list) + qt_tr.translate("calcul_hab_mod", " of reach n° ") + str(reach_num))
+            # get unit name
+            unit_names = []
+            for warning_unit_num in warning_range_list:
+                unit_names.append(hab_description["hyd_unit_list"][reach_num][warning_unit_num])
+            print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Unknown habitat values produced for ") + name_fish + qt_tr.translate("calcul_hab_mod", ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
+                  ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod", " of reach : ") + hab_description["hyd_reach_list"])
         # HEM
         if aquatic_animal_type_select == "invertebrate":
             if warning_shearstress_list:
-                print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Unknown habitat values produced for ") + name_fish + qt_tr.translate("calcul_hab_mod", ", the shear stress data present unknown values in unit n° ") +
-                      ", ".join(str(x) for x in warning_shearstress_list) + qt_tr.translate("calcul_hab_mod", " of reach n° ") + str(reach_num))
+                warning_shearstress_list.sort()
+                # get unit name
+                unit_names = []
+                for warning_unit_num in warning_shearstress_list:
+                    unit_names.append(hab_description["hyd_unit_list"][reach_num][warning_unit_num])
+                print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Unknown habitat values produced for ") + name_fish + qt_tr.translate("calcul_hab_mod", ", the shear stress data present unknown values in unit(s) : ") +
+                      ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod", " of reach : ") + hab_description["hyd_reach_list"])
 
     return vh_all_t, spu_all_t, area_c_all_t, progress_value

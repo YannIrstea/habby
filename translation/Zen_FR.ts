@@ -5313,7 +5313,7 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3620"/>
         <source>Unit(s) selected</source>
-        <translation>Unité(s) sélectionnée</translation>
+        <translation>Unité(s) sélectionnée(s)</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3627"/>
@@ -5604,7 +5604,7 @@ Fermez-les et réessayez.</translation>
         <translation>Donnée de substrat ou de vitesse ou de hauteur d&apos;eau manquante pour un pas de temps.</translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="461"/>
+        <location filename="../src/calcul_hab_mod.py" line="470"/>
         <source>Unknown habitat values produced for </source>
         <translation>Valeurs d&apos;habitat inconnues produites pour </translation>
     </message>
@@ -5681,12 +5681,12 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="195"/>
         <source>Last x height value set to 100m : </source>
-        <translation>Dernière valeur de hauteur x réglée à 100m : </translation>
+        <translation type="obsolete">Dernière valeur de hauteur x réglée à 100m : </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="198"/>
         <source>Last x velocity value set to 100m/s : </source>
-        <translation>Dernière valeur de vitesse x réglée à 100m/s : </translation>
+        <translation type="obsolete">Dernière valeur de vitesse x réglée à 100m/s : </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="462"/>
@@ -5706,22 +5706,37 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="205"/>
         <source>Last x height value set to 100m :</source>
-        <translation>Dernière valeur de hauteur d&apos;eau réglée à 100m :</translation>
+        <translation type="obsolete">Dernière valeur de hauteur d&apos;eau réglée à 100m :</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="456"/>
         <source>, his suitability curve range is not sufficient according to the hydraulics of unit n° </source>
-        <translation>, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique de l&apos;unité n° </translation>
+        <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique de l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
         <source>, the shear stress data present unknown values in unit n° </source>
-        <translation>, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n° </translation>
+        <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
         <source> of reach n° </source>
-        <translation> du tronçon n° </translation>
+        <translation type="obsolete"> du tronçon n° </translation>
+    </message>
+    <message>
+        <location filename="../src/calcul_hab_mod.py" line="460"/>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit(s) : </source>
+        <translation>, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique des unités suivantes : </translation>
+    </message>
+    <message>
+        <location filename="../src/calcul_hab_mod.py" line="470"/>
+        <source> of reach : </source>
+        <translation> du tronçon : </translation>
+    </message>
+    <message>
+        <location filename="../src/calcul_hab_mod.py" line="470"/>
+        <source>, the shear stress data present unknown values in unit(s) : </source>
+        <translation>, la donnée de force tractrice présente des valeurs inconnues pour les unités suivantes : </translation>
     </message>
 </context>
 <context>

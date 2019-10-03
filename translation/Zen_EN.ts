@@ -3846,7 +3846,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
-<context encoding="UTF-8">
+<context>
     <name>calcul_hab_mod</name>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="158"/>
@@ -3886,38 +3886,23 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="461"/>
+        <location filename="../src/calcul_hab_mod.py" line="470"/>
         <source>Unknown habitat values produced for </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="195"/>
-        <source>Last x height value set to 100m : </source>
+        <location filename="../src/calcul_hab_mod.py" line="460"/>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit(s) : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="198"/>
-        <source>Last x velocity value set to 100m/s : </source>
+        <location filename="../src/calcul_hab_mod.py" line="470"/>
+        <source> of reach : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="205"/>
-        <source>Last x height value set to 100m :</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message encoding="UTF-8">
-        <location filename="../src/calcul_hab_mod.py" line="456"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n° </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message encoding="UTF-8">
-        <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source>, the shear stress data present unknown values in unit n° </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message encoding="UTF-8">
-        <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source> of reach n° </source>
+        <location filename="../src/calcul_hab_mod.py" line="470"/>
+        <source>, the shear stress data present unknown values in unit(s) : </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
