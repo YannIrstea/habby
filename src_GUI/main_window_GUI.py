@@ -1880,7 +1880,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.insertTab(5, self.central_widget.tools_tab, self.tr("Tools"))  # 5
             self.physic_tabs = True
         # save xml
-        project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
+        if self.name_prj:
+            project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
     def open_close_stat(self):
         stat_tabs_list = ["estimhab", "stathab", "fstress"]
@@ -1901,7 +1902,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.insertTab(start_index + 2, self.central_widget.fstress_tab, self.tr("FStress"))  # 8
             self.stat_tabs = True
         # save xml
-        project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
+        if self.name_prj:
+            project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
     def open_close_rech(self):
         """
@@ -1942,13 +1944,13 @@ class MainWindows(QMainWindow):
         *   1: save the log in the .log file and restart file
         """
         if save_log == 0:
-            t = self.central_widget.tracking_journal_QTextEdit.text()
+            t = self.central_widget.tracking_journal_QTextEdit.toPlainText()
             self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
                 self.tr('This log will not be saved anymore in the .log file. <br>')
                 + self.tr('This log will not be saved anymore in the restart file. <br>'))
             self.central_widget.logon = False
         if save_log == 1:
-            t = self.central_widget.tracking_journal_QTextEdit.text()
+            t = self.central_widget.tracking_journal_QTextEdit.toPlainText()
             self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
                 self.tr('This log will be saved in the .log file.<br> '
                         'This log will be saved in the restart file. <br>'))
