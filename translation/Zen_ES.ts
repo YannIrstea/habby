@@ -4316,7 +4316,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1679"/>
+        <location filename="../src/plot_mod.py" line="1680"/>
         <source>WUA [m$^2$]</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4341,42 +4341,42 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1653"/>
+        <location filename="../src/plot_mod.py" line="1654"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Computational Step : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1680"/>
+        <location filename="../src/plot_mod.py" line="1681"/>
         <source>Weighted Usable Area interpolated for the Reach </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1698"/>
+        <location filename="../src/plot_mod.py" line="1699"/>
         <source>HV []</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1699"/>
+        <location filename="../src/plot_mod.py" line="1700"/>
         <source>Habitat Value interpolated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1728"/>
+        <location filename="../src/plot_mod.py" line="1729"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1735"/>
+        <location filename="../src/plot_mod.py" line="1736"/>
         <source>Desired units [</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1737"/>
+        <location filename="../src/plot_mod.py" line="1738"/>
         <source>units [</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1730"/>
+        <location filename="../src/plot_mod.py" line="1731"/>
         <source>Chronicle [</source>
         <translation type="unfinished"></translation>
     </message>

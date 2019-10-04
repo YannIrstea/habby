@@ -598,16 +598,16 @@ class OtherToolToCreate(QGroupBoxCollapsible):
         # self.setTitle(self.tr("New tools to come"))
         hbox_layout = QHBoxLayout()
         spacer = QSpacerItem(1, 50)
-        self.qpushbutton_test = QPushButton("test")
+        self.qpushbutton_test = QPushButton("Don't click! It's going to crash HABBY !")
         self.qpushbutton_test.clicked.connect(self.test_function_dev)
         hbox_layout.addItem(spacer)
         hbox_layout.addWidget(self.qpushbutton_test)
         self.setLayout(hbox_layout)
 
     def test_function_dev(self):
-        print("test_function_dev")
+        #print("test_function_dev")
         1 / 0
-        print("test_function_dev")
+        #print("test_function_dev")
 
 
 class MyTableModel(QStandardItemModel):

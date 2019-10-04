@@ -1311,7 +1311,7 @@ NB : Il n&apos;y a pas de limite pour les exports.</translation>
     <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="452"/>
         <source>Global habitat values</source>
-        <translation>Valeur global d&apos;habitat</translation>
+        <translation>Valeur globale d&apos;habitat</translation>
     </message>
     <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="669"/>
@@ -6194,7 +6194,7 @@ Fermez-les et réessayez.</translation>
         <translation>SPU_</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1679"/>
+        <location filename="../src/plot_mod.py" line="1680"/>
         <source>WUA [m$^2$]</source>
         <translation>SPU [m$^2$]</translation>
     </message>
@@ -6224,42 +6224,42 @@ Fermez-les et réessayez.</translation>
         <translation>Incomplet</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1653"/>
+        <location filename="../src/plot_mod.py" line="1654"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Computational Step : </source>
         <translation>Valeur de l&apos;habitat et Surface Pondérée Utile interpolées -Unité(s) : </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1680"/>
+        <location filename="../src/plot_mod.py" line="1681"/>
         <source>Weighted Usable Area interpolated for the Reach </source>
         <translation>Surface Pondérée Utile interpolée pour le tronçon </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1698"/>
+        <location filename="../src/plot_mod.py" line="1699"/>
         <source>HV []</source>
         <translation>VH []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1699"/>
+        <location filename="../src/plot_mod.py" line="1700"/>
         <source>Habitat Value interpolated</source>
         <translation>Valeur d&apos;habitat interpolée</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1728"/>
+        <location filename="../src/plot_mod.py" line="1729"/>
         <source>Units</source>
         <translation>Unités</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1735"/>
+        <location filename="../src/plot_mod.py" line="1736"/>
         <source>Desired units [</source>
         <translation>Unités souhaitées [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1737"/>
+        <location filename="../src/plot_mod.py" line="1738"/>
         <source>units [</source>
         <translation>unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1730"/>
+        <location filename="../src/plot_mod.py" line="1731"/>
         <source>Chronicle [</source>
         <translation>Chronique [</translation>
     </message>
