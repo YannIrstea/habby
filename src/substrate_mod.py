@@ -264,7 +264,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     out_shp_path = os.path.join(path_prj, "input")
     out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
     ds = driver.CreateDataSource(out_shp_abs_path)
-    if not crs.ExportToWkt():  # '' == crs unknown
+    if not crs:  # '' == crs unknown
         layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
     else:  # crs known
         layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
