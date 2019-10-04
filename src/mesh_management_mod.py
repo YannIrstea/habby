@@ -1211,7 +1211,7 @@ def create_merge_grid(ikle, coord_p, data_sub, vel, height, point_z, ikle_sub,
                         except KeyError:
                             # in case triangulation was not ok
                             if empty_one:
-                                print('Warning: one or more empty triangle was found by merge grid (1) \n')
+                                #print('Warning: one or more empty triangle was found by merge grid (1) \n')
                                 empty_one = False
                             # print(point_new)
                             # print(hydroe)
@@ -1221,7 +1221,7 @@ def create_merge_grid(ikle, coord_p, data_sub, vel, height, point_z, ikle_sub,
 
                     else:
                         if empty_two:
-                            print('Warning: one or more empty triangle was found by merge grid (2) \n')
+                            #print('Warning: one or more empty triangle was found by merge grid (2) \n')
                             empty_two = False
 
     # create the new substrate data
