@@ -69,7 +69,7 @@ def get_useful_attribute(attributes):
             attribute_name[0] = "coarser"
         if f[0] in dom:
             found_one_pg += 1
-            attribute_name[1] = "dom"
+            attribute_name[1] = "dominant"
         if f[0] in acc1:
             attribute_name[2] = "acc"
 
@@ -354,7 +354,7 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
     if sub_classification_method == "coarser-dominant":
         # coarser dom
         sub_pg = sub_array[header_list.index("coarser")]
-        sub_dom = sub_array[header_list.index("dom")]
+        sub_dom = sub_array[header_list.index("dominant")]
         # check min max if match code_type
         if sub_classification_code == 'Cemagref':  # All value 1 < x < 8
             if min(sub_dom) < 1 or min(sub_pg) < 1:
@@ -1016,7 +1016,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
 
     if sub_classification_method == 'coarser-dominant':
         layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))  # Add one attribute
-        layer.CreateField(ogr.FieldDefn('dom', ogr.OFTInteger))  # Add one attribute
+        layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))  # Add one attribute
     if sub_classification_method == 'percentage':
         for i in range(sub_class_number):
             layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))  # Add one attribute
