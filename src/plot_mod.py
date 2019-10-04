@@ -1626,6 +1626,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         date_presence = True
         date_type = types["date"]
         sim_name = np.array([dt.strptime(date, date_type).date() for date in vertical_headers], dtype='datetime64')
+        date_format_mpl = mpl.dates.DateFormatter(date_type)
     else:
         date_presence = False
         sim_name = list(map(float, vertical_headers))
@@ -1733,7 +1734,6 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
                 ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
 
         ax[2].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
-
         if len(sim_name) < 25:
             ax[2].set_xticks(x_data, sim_name)  # , rotation=45
         elif len(sim_name) < 100:
@@ -1750,7 +1750,8 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         if not date_presence and not is_constant:
             # remove ticks labels
             ax[2].xaxis.set_ticklabels([])
-
+        if date_presence:
+            ax[2].xaxis.set_major_formatter(date_format_mpl)
     # get data with mouse
     mplcursors.cursor()
 
