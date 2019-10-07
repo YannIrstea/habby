@@ -22,9 +22,9 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=C:\habby\Licence_CeCILL_V2.1-fr.txt
-InfoBeforeFile=C:\habby\disclamer.txt
-OutputDir=C:\habby\build\pyinstaller
+LicenseFile=Licence_CeCILL_V2.1-fr.txt
+InfoBeforeFile=disclamer.txt
+OutputDir=build\pyinstaller
 OutputBaseFilename=habby_setup
 Compression=lzma
 SolidCompression=yes
@@ -39,8 +39,8 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "C:\habby\build\pyinstaller\habby\habby.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\habby\build\pyinstaller\habby\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "build\pyinstaller\habby\habby.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build\pyinstaller\habby\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
