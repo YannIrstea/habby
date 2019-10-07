@@ -2165,7 +2165,7 @@ class CreateNewProjectDialog(QWidget):
         """
         This function is used by the user to select the folder where the xml project file will be located.
         """
-        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.default_fold,
+        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Select directory"), self.default_fold,
                                                     )  # check for invalid null parameter on Linux git
         dir_name = os.path.normpath(dir_name)
         # os.getenv('HOME')

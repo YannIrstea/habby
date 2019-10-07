@@ -497,11 +497,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2174"/>
-        <source>Open Directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/main_window_GUI.py" line="2143"/>
         <source>Project type</source>
         <translation type="unfinished"></translation>
@@ -514,6 +509,11 @@
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="2145"/>
         <source>Statistical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="2174"/>
+        <source>Select directory</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

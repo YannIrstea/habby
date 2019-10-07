@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
 <context>
     <name>ASCII</name>
     <message>
@@ -853,7 +854,7 @@
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="2174"/>
         <source>Open Directory</source>
-        <translation>Ouvrir le dossier</translation>
+        <translation type="obsolete">Ouvrir le dossier</translation>
     </message>
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="2165"/>
@@ -894,6 +895,11 @@
         <location filename="../src_GUI/main_window_GUI.py" line="2145"/>
         <source>Statistical</source>
         <translation>Statistique</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="2174"/>
+        <source>Select directory</source>
+        <translation>Choisir un répertoire</translation>
     </message>
 </context>
 <context>
@@ -5734,17 +5740,17 @@ Fermez-les et réessayez.</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="462"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0;</source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n°</source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante en fonction de l&apos;hydraulique de l&apos;unité n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source> of reach n&#xb0;</source>
+        <source> of reach n°</source>
         <translation type="obsolete"> du tronçon n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source>, the shear stress data present unknown values in unit n&#xb0;</source>
+        <source>, the shear stress data present unknown values in unit n°</source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n°</translation>
     </message>
     <message>
@@ -5754,17 +5760,17 @@ Fermez-les et réessayez.</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="456"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0; </source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n° </source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique de l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source>, the shear stress data present unknown values in unit n&#xb0; </source>
+        <source>, the shear stress data present unknown values in unit n° </source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source> of reach n&#xb0; </source>
+        <source> of reach n° </source>
         <translation type="obsolete"> du tronçon n° </translation>
     </message>
     <message>
