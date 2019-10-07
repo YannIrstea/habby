@@ -755,31 +755,10 @@ def sandre_to_cemagref_array(records_sandre_array):
     :param records_sandre_array: all records sandre
     :return: records_cemagref_array: all records cemagref
     """
-    records_cemagref_array = np.empty((0, records_sandre_array.shape[1]), np.int)
-    for record_sandre_values in records_sandre_array:
-        record_cemagref_values = sandre_to_cemagref(record_sandre_values)
-        records_cemagref_array = np.append(records_cemagref_array, [record_cemagref_values], axis=0)
+    sandre_cemagref = np.array([1,2,3,3,4,4,5,5,6,6,7,8])
+    records_cemagref_array=sandre_cemagref[records_sandre_array-1]
     return records_cemagref_array
 
-
-def sandre_to_cemagref_by_percentage(record_sandre):
-    """
-    This function change the subtrate data in a percentage form from sandre code to cemagref code
-    :param record_sandre: one record sandre
-    :return: record_cemagref: one record cemagref
-    """
-    record_cemagref = [0, 0, 0, 0, 0, 0, 0, 0]  # cemagref
-    record_cemagref[0] = record_sandre[0]
-    record_cemagref[1] = record_sandre[1]
-    record_cemagref[2] = record_sandre[2] + record_sandre[3]
-    record_cemagref[3] = record_sandre[4] + record_sandre[5]
-    record_cemagref[4] = record_sandre[6] + record_sandre[7]
-    record_cemagref[5] = record_sandre[8] + record_sandre[9]
-    record_cemagref[6] = record_sandre[10]
-    record_cemagref[7] = record_sandre[11]
-    if sum(record_cemagref) != 100:
-        print("error sandre_to_cemagref_by_percentage, sum =", sum(record_cemagref), "(!= 100)")
-    return record_cemagref
 
 
 def sandre_to_cemagref_by_percentage_array(records_sandre_array):
@@ -788,10 +767,13 @@ def sandre_to_cemagref_by_percentage_array(records_sandre_array):
     :param records_sandre_array: all records sandre
     :return: records_cemagref_array: all records cemagref
     """
-    records_cemagref_array = np.empty((0, 8), np.int)
-    for record_sandre in records_sandre_array:
-        record_cemagref = sandre_to_cemagref_by_percentage(record_sandre)
-        records_cemagref_array = np.append(records_cemagref_array, [record_cemagref], axis=0)
+    records_cemagref_array=np.empty((records_sandre_array.shape[0], 8), np.int)
+    records_cemagref_array[:, (0, 1)] = records_sandre_array[:, (0, 1)]
+    records_cemagref_array[:, 2] = records_sandre_array[:, 2]+records_sandre_array[:, 3]
+    records_cemagref_array[:, 3] = records_sandre_array[:, 4] + records_sandre_array[:, 5]
+    records_cemagref_array[:, 4] = records_sandre_array[:, 6] + records_sandre_array[:, 7]
+    records_cemagref_array[:, 5] = records_sandre_array[:, 8] + records_sandre_array[:, 9]
+    records_cemagref_array[:, (6, 7)] = records_sandre_array[:, (10, 11)]
     return records_cemagref_array
 
 
