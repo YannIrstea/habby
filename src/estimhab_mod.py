@@ -25,12 +25,15 @@ from src import plot_mod
 
 def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     # compute
-    q_all, VH, SPU = estimhab(estimhab_dict["q"], estimhab_dict["w"], estimhab_dict["h"],
+    q_all, h_all, w_all, vel_all, VH, SPU = estimhab(estimhab_dict["q"], estimhab_dict["w"], estimhab_dict["h"],
                        estimhab_dict["q50"], estimhab_dict["qrange"], estimhab_dict["substrate"],
                        estimhab_dict["path_bio"], estimhab_dict["xml_list"], estimhab_dict["fish_list"])
 
     # save in dict
     estimhab_dict["q_all"] = q_all
+    estimhab_dict["h_all"] = h_all
+    estimhab_dict["w_all"] = w_all
+    estimhab_dict["vel_all"] = vel_all
     estimhab_dict["VH"] = VH
     estimhab_dict["SPU"] = SPU
 
@@ -48,7 +51,6 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
 
     # plot
     plot_mod.plot_estimhab(state, estimhab_dict, project_preferences, path_prj)
-
 
 
 def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fish_name):
@@ -169,7 +171,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
     VH = np.array(VH)
     SPU = np.array(SPU)
 
-    return q_all, VH, SPU
+    return q_all, h_all, w_all, vel, VH, SPU
 
 
 def pass_to_float_estimhab(var_name, root):

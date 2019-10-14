@@ -1334,6 +1334,9 @@ class Hdf5Management:
 
         # output data
         self.file_object.create_dataset("q_all", estimhab_dict["q_all"].shape, data=estimhab_dict["q_all"])
+        self.file_object.create_dataset("h_all", estimhab_dict["h_all"].shape, data=estimhab_dict["h_all"])
+        self.file_object.create_dataset("w_all", estimhab_dict["w_all"].shape, data=estimhab_dict["w_all"])
+        self.file_object.create_dataset("vel_all", estimhab_dict["vel_all"].shape, data=estimhab_dict["vel_all"])
         self.file_object.create_dataset("VH", estimhab_dict["VH"].shape, data=estimhab_dict["VH"])
         self.file_object.create_dataset("SPU", estimhab_dict["SPU"].shape, data=estimhab_dict["SPU"])
 
@@ -1358,6 +1361,9 @@ class Hdf5Management:
                              xml_list=self.file_object["xml_list"][:].flatten().astype(np.str).tolist(),
                              fish_list=self.file_object["fish_list"][:].flatten().astype(np.str).tolist(),
                              q_all=self.file_object["q_all"][:],
+                             h_all=self.file_object["h_all"][:],
+                             w_all=self.file_object["w_all"][:],
+                             vel_all=self.file_object["vel_all"][:],
                              VH=self.file_object["VH"][:],
                              SPU=self.file_object["SPU"][:])
 
@@ -2468,8 +2474,11 @@ class Hdf5Management:
 
     def export_estimhab(self):
         # text files output
-        txt_header = 'Q '
+        txt_header = 'Discharge\tHeight\tWidth\tVelocity'
         q_all = self.estimhab_dict["q_all"]
+        h_all = self.estimhab_dict["h_all"]
+        w_all = self.estimhab_dict["w_all"]
+        vel_all = self.estimhab_dict["vel_all"]
         fish_name = self.estimhab_dict["fish_list"]
         qmes = self.estimhab_dict["q"]
         width = self.estimhab_dict["w"]
@@ -2489,15 +2498,23 @@ class Hdf5Management:
                 output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
+        all_data = np.vstack((q_all, h_all, w_all, vel_all))
         for f in range(0, len(fish_name)):
             txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
-            q_all = np.vstack((q_all, VH[f]))
-            q_all = np.vstack((q_all, SPU[f]))
-        txt_header += '\n[m3/sec]'
+            all_data = np.vstack((all_data, VH[f]))
+            all_data = np.vstack((all_data, SPU[f]))
+
+        txt_header += '\n[m3/sec]\t[m]\t[m]\t[m/s]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
-        np.savetxt(os.path.join(path_txt, output_filename + '.txt'), q_all.T, header=txt_header,
-                   delimiter='\t')  # , newline=os.linesep
+        try:
+            np.savetxt(os.path.join(path_txt, output_filename + '.txt'), all_data.T, header=txt_header,
+                       delimiter='\t')  # , newline=os.linesep
+        except PermissionError:
+            output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            np.savetxt(os.path.join(path_txt, output_filename + '.txt'), all_data.T, header=txt_header,
+                       delimiter='\t')  # , newline=os.linesep
 
         # text file input
         txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
@@ -2512,9 +2529,13 @@ class Hdf5Management:
         txtin = txtin[:-1]
         txtin += '\n'
         txtin += 'Output file:\t' + output_filename + '.txt\n'
-        with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
-            f.write(txtin)
-
+        try:
+            with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
+                f.write(txtin)
+        except PermissionError:
+            intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
+                f.write(txtin)
 
 #################################################################
 
