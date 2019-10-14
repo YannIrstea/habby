@@ -14,20 +14,21 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
-from matplotlib.lines import Line2D
-import mplcursors
-import time
 import os
+import time
 from datetime import datetime as dt
 
-from src_GUI import preferences_GUI
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import mplcursors
+import numpy as np
+from matplotlib.collections import PatchCollection
+from matplotlib.lines import Line2D
+from matplotlib.patches import Polygon
+
 from src import tools_mod
 from src.tools_mod import get_translator
+from src_GUI import preferences_GUI
 
 
 def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, project_preferences, get_fig=False):
@@ -1405,6 +1406,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         project_preferences = preferences_GUI.create_default_project_preferences()
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    default_size = plt.rcParams['figure.figsize']
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     if project_preferences['font_size'] > 7:
@@ -1422,7 +1424,8 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     # colors
-    color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    #color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
 
     # prep data
     name_hdf5 = name_hdf5[:-4]
@@ -1443,7 +1446,9 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plot_window_title = title + str(unit_name[0]) + " " + unit_type
     if len(unit_name) > 1:
         plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type
-    fig = plt.figure(plot_window_title)
+    # fig = plt.figure(plot_window_title)
+    fig, ax = plt.subplots(2, 1, sharey='row')
+    fig.canvas.set_window_title('ESTIMHAB - HABBY')
 
     name_fish_origin = list(name_fish)
     for id, n in enumerate(name_fish):
@@ -1457,21 +1462,22 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
             data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
 
         y_pos = np.arange(len(name_fish))
-        fig.add_subplot(211)
         data_bar2 = np.array(data_bar)
-        plt.bar(y_pos, data_bar2)
-        plt.xticks(y_pos, [])
-        plt.ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        plt.title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
+        ax[0].bar(y_pos, data_bar2)
+        ax[0].set_xticks(y_pos)
+        ax[0].set_xticklabels([])
+        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
 
         # VH
-        fig.add_subplot(212)
         vh = data_bar2 / area_all[reach_num]
-        plt.bar(y_pos, vh)
-        plt.xticks(y_pos, name_fish, rotation=10)
-        plt.ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
-        plt.ylim(0, 1)
-        plt.title(qt_tr.translate("plot_mod", "Habitat value - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
+        ax[1].bar(y_pos, vh)
+        ax[1].set_xticks(y_pos)
+        ax[1].set_xticklabels(name_fish, horizontalalignment="right")
+        ax[1].xaxis.set_tick_params(rotation=15)
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
+        ax[1].set_ylim(0, 1)
+        ax[1].set_title(qt_tr.translate("plot_mod", "Habitat value - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
         mplcursors.cursor()  # get data with mouse
         plt.tight_layout()
         # export or not
@@ -1494,74 +1500,104 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     # many time step - lines
     if len(area_all) > 1:
         # SPU
-        spu_ax = fig.add_subplot(211)
         x_data = list(map(float, unit_name))
         for fish_index, name_fish_value in enumerate(name_fish_origin):
             y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
             # plot line
-            plt.plot(x_data, y_data_spu, c=color_list[fish_index], label=name_fish_value, marker=None)
+            ax[0].plot(x_data,
+                     y_data_spu,
+                     label=name_fish_value,
+                     color=color_list[fish_index],
+                     linestyle=style_list[fish_index])
+        handles, labels = ax[0].get_legend_handles_labels()
+
+        for fish_index, name_fish_value in enumerate(name_fish_origin):
             # plot points
             for unit_index, percent in enumerate(data_description["percent_area_unknown"][name_fish_value][reach_num]):
                 if percent == 0.0:
                     markers = mar
                 else:
                     markers = mar2
-                plt.scatter(x_data[unit_index], y_data_spu[unit_index], c=color_list[fish_index], label=name_fish_value, marker=markers)
+                ax[0].scatter(x_data[unit_index],
+                              y_data_spu[unit_index],
+                              color=color_list[fish_index],
+                              label=name_fish_value,
+                              marker=markers)
 
-        plt.ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        plt.title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
-        plt.legend(name_fish_origin, fancybox=True, framealpha=0.5)  # make the legend transparent
+        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
+        # LEGEND
+        fig.legend(handles=handles,
+                   labels=labels,
+                   loc="center right",
+                   borderaxespad=0.5,
+                   fancybox=True)
+
         # spu_ax.xaxis.set_ticklabels([])
         if len(unit_name[0]) > 5:
             rot = 'vertical'
         else:
             rot = 'horizontal'
         if len(unit_name) < 25:
-            plt.xticks(x_data, [], rotation=rot)
+            ax[0].set_xticks(x_data)
         elif len(unit_name) < 100:
-            plt.xticks(x_data[::3], [], rotation=rot)
+            ax[0].set_xticks(x_data[::3])
         else:
-            plt.xticks(x_data[::10], [], rotation=rot)
+            ax[0].set_xticks(x_data[::10])
+        ax[0].set_xticklabels([])
+
         # VH
-        hv_ax = fig.add_subplot(212)
         for fish_index, name_fish_value in enumerate(name_fish_origin):
             y_data_hv = [b / m for b, m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
                                                         area_all)]
             # plot line
-            plt.plot(x_data, y_data_hv, c=color_list[fish_index], label=name_fish_value, marker=None)
+            ax[1].plot(x_data,
+                     y_data_hv,
+                    label=name_fish_value,
+                     color=color_list[fish_index],
+                     linestyle=style_list[fish_index])
             # plot points
             for unit_index, percent in enumerate(data_description["percent_area_unknown"][name_fish_value][reach_num]):
                 if percent == 0.0:
                     markers = mar
                 else:
                     markers = mar2
-                plt.scatter(x_data[unit_index], y_data_hv[unit_index], c=color_list[fish_index], label=name_fish_value, marker=markers)
-        plt.xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
-        plt.ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
-        plt.title(qt_tr.translate("plot_mod", 'Habitat Value - ') + reach_name)
-        plt.ylim(0, 1)
+                ax[1].scatter(x_data[unit_index],
+                              y_data_hv[unit_index],
+                              color=color_list[fish_index],
+                              label=name_fish_value,
+                              marker=markers)
+        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
+        ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value - ') + reach_name)
+        ax[1].set_ylim(0, 1)
         # legend markers
         legend_elements = [Line2D([0], [0], marker=mar, color='black', label=qt_tr.translate("plot_mod", 'Complete'), markerfacecolor='black'),
                            Line2D([0], [0], marker=mar2, color='black', label=qt_tr.translate("plot_mod", 'Incomplete'), markerfacecolor='black')]
-        plt.legend(handles=legend_elements, fancybox=True, framealpha=0.5)  # make the legend transparent
+        ax[1].legend(handles=legend_elements, fancybox=True, framealpha=0.5)  # make the legend transparent
         # view data with mouse
-        # get data with mouse
         mplcursors.cursor()
         # cursorPT = SnaptoCursorPT(fig.canvas, spu_ax, hv_ax, x_data, y_data_spu_list, y_data_hv_list)
         # fig.canvas.mpl_connect('motion_notify_event', cursorPT.mouse_move)
         # label
-        if unit_name:
-            if len(unit_name[0]) > 5:
-                rot = 'vertical'
-            else:
-                rot = 'horizontal'
-            if len(unit_name) < 25:
-                plt.xticks(x_data, unit_name, rotation=45)
-            elif len(unit_name) < 100:
-                plt.xticks(x_data[::3], unit_name[::3], rotation=45)
-            else:
-                plt.xticks(x_data[::10], unit_name[::10], rotation=45)
+        if len(unit_name[0]) > 5:
+            rot = 'vertical'
+        else:
+            rot = 'horizontal'
+        if len(unit_name) < 25:
+            ax[1].set_xticks(x_data)
+            ax[1].set_xticklabels(unit_name)
+        elif len(unit_name) < 100:
+            ax[1].set_xticks(x_data[::3])
+            ax[1].set_xticklabels(unit_name[::3])
+        else:
+            ax[1].set_xticks(x_data[::10])
+            ax[1].set_xticklabels(unit_name[::10])
+        ax[1].xaxis.set_tick_params(rotation=45)
+
         plt.tight_layout()
+        plt.subplots_adjust(right=0.73)
+
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
                 name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -1582,6 +1618,8 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     if types_plot == "interactive" or types_plot == "both":
         # fm = plt.get_current_fig_manager()
         # fm.window.showMinimized()
+        # reset original size fig window
+        fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
     if types_plot == "image export":
         plt.close()
@@ -1768,6 +1806,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    default_size = plt.rcParams['figure.figsize']
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -1781,8 +1820,9 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     mpl.rcParams['pdf.fonttype'] = 42
 
     # prepare figure
-    c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'k', 'g', 'y', '#9F81F7', '#BDBDBD', '#F7819F', 'b', 'm', 'r',
-         'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
+    # c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'k', 'g', 'y', '#9F81F7', '#BDBDBD', '#F7819F', 'b', 'm', 'r',
+    #      'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(estimhab_dict["fish_list"]))
 
     # plot
     fig, ax = plt.subplots(2, 1, sharey='row')
@@ -1790,11 +1830,13 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # VH
     ax[0].set_title("ESTIMHAB - HABBY")
-    ax[0].grid(True)
-    line_object = []
     for fish_index in range(len(estimhab_dict["fish_list"])):
-        line_object.append(ax[0].plot(estimhab_dict["q_all"], estimhab_dict["VH"][fish_index], color=c[fish_index]))
-
+        ax[0].plot(estimhab_dict["q_all"],
+                   estimhab_dict["VH"][fish_index],
+                   label=estimhab_dict["fish_list"][fish_index],
+                   color=color_list[fish_index],
+                   linestyle=style_list[fish_index])
+#                    color=c[fish_index],
     if project_preferences['language'] == 0:
         ax[0].set_ylabel('Habitat Value []')
     elif project_preferences['language'] == 1:
@@ -1804,10 +1846,12 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     ax[0].set_ylim(0, 1)
 
     # SPU
-    ax[1].grid(True)
-
     for fish_index in range(len(estimhab_dict["fish_list"])):
-        ax[1].plot(estimhab_dict["q_all"], estimhab_dict["SPU"][fish_index], color=c[fish_index])
+        ax[1].plot(estimhab_dict["q_all"],
+                   estimhab_dict["SPU"][fish_index],
+                   label=estimhab_dict["fish_list"][fish_index],
+                   color=color_list[fish_index],
+                   linestyle=style_list[fish_index])
 
     if project_preferences['language'] == 0:
         ax[1].set_xlabel('Discharge [m$^{3}$/sec]')
@@ -1820,11 +1864,13 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
         ax[1].set_ylabel('WUA by 100 m [m²]')
 
     # LEGEND
-    fig.legend(line_object,
-               labels=estimhab_dict["fish_list"],
+    handles, labels = ax[0].get_legend_handles_labels()
+    fig.legend(handles=handles,
+               labels=labels,
                loc="center right",
                borderaxespad=0.5,
                fancybox=True)
+
     plt.subplots_adjust(right=0.73)
 
     # name with date and time
@@ -1841,6 +1887,12 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # save image
     plt.savefig(os.path.join(path_im, name_pict), dpi=project_preferences['resolution'], transparent=True)
+
+    # reset original size fig window
+    fig.set_size_inches(default_size[0], default_size[1])
+
+    # get data with mouse
+    mplcursors.cursor()
 
     # finish process
     state.value = 1  # process finished
@@ -1901,3 +1953,20 @@ class SnaptoCursorPT(object):
 
     def take_closest(self, num, collection):
         self.x_loc = min(collection, key=lambda x: abs(x - num))
+
+
+def get_colors_styles_line_from_nb_input(input_nb):
+    colors_number = 7
+    cm = plt.get_cmap('gist_rainbow')
+    color_base_list = [cm(i/colors_number) for i in range(colors_number)] * input_nb
+    color_list = color_base_list[:input_nb]
+    line_styles_base_list = ['solid', 'dashed', 'dashdot', 'dotted']
+    style_list = []
+    style_start = 0
+    while len(style_list) < input_nb:
+        if len(style_list) > colors_number - 1:
+            colors_number = colors_number * 2
+            style_start += style_start + 1
+        style_list.append(line_styles_base_list[style_start])
+
+    return color_list, style_list
