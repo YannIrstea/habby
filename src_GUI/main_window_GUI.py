@@ -1354,15 +1354,6 @@ class MainWindows(QMainWindow):
         self.central_widget.name_prj_c = self.name_prj
         self.save_project()
 
-        # update estimhab and stathab
-        if stathab_info is not None:  # if there is data for STATHAB
-            self.central_widget.stathab_tab.load_from_hdf5_gui()
-        self.central_widget.statmod_tab.open_estimhab_hdf5()
-
-        # update hydro
-        self.central_widget.update_hydro_hdf5_name()
-        self.central_widget.substrate_tab.update_sub_hdf5_name()
-
         # recreate new widget
         self.recreate_tabs_attributes()
         # self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
@@ -1374,6 +1365,15 @@ class MainWindows(QMainWindow):
         # self.central_widget.output_tab = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
         # self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
         # self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+
+        # update estimhab and stathab
+        if stathab_info is not None:  # if there is data for STATHAB
+            self.central_widget.stathab_tab.load_from_hdf5_gui()
+        self.central_widget.statmod_tab.open_estimhab_hdf5()
+
+        # update hydro
+        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
