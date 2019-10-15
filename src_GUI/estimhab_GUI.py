@@ -23,7 +23,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QFileDialog, QListWidget, QListWidgetItem, \
     QAbstractItemView, QMessageBox, QScrollArea, QFrame
@@ -173,12 +173,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_im = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_im
 
@@ -200,12 +195,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier hdf5"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_hdf5
 
@@ -227,12 +217,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_text = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_text
 
@@ -259,12 +244,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_out = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_out
 
@@ -286,12 +266,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_input = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the copied inputs"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_input
 
@@ -311,7 +286,7 @@ class StatModUseful(QScrollArea):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
-                self.send_log.emit(self.tr('Warning: too many information for the GUI.'))
+                self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'too many information for the GUI.'))
 
     def check_all_q(self):
         """
@@ -330,14 +305,14 @@ class StatModUseful(QScrollArea):
             q1 = self.qall[1]
 
         if q2 < 2 * q1:
-            self.send_log.emit('Warning: ' + self.tr('Measured discharges are not very different. The results might '
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Measured discharges are not very different. The results might '
                                'not be realistic. \n'))
         if (self.qall[4] < q1 / 10 or self.qall[4] > 5 * q2) and self.qall[4] != -99:  # q50 not always necessary
-            self.send_log.emit('Warning: ' + self.tr('Q50 should be between q1/10 and 5*q2 for optimum results. \n'))
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Q50 should be between q1/10 and 5*q2 for optimum results.'))
         if self.qall[2] < q1 / 10 or self.qall[2] > 5 * q2:
-            self.send_log.emit('Warning: ' + self.tr('Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n'))
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (1).'))
         if self.qall[3] < q1 / 10 or self.qall[3] > 5 * q2:
-            self.send_log.emit('Warning: ' + self.tr('Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n'))
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (2).'))
 
 
 class EstimhabW(StatModUseful):
@@ -438,7 +413,7 @@ class EstimhabW(StatModUseful):
         # send model
         button1 = QPushButton(self.tr('Save and Run ESTIMHAB'), self)
         button1.setStyleSheet("background-color: #47B5E6; color: black")
-        button1.clicked.connect(self.save_signal_estimhab.emit)
+        #button1.clicked.connect(self.save_signal_estimhab.emit)
         button1.clicked.connect(self.run_estmihab)
         # button2 = QPushButton(self.tr('Change folder (fish data)'), self)
         # button2.clicked.connect(self.change_folder)
@@ -575,11 +550,7 @@ class EstimhabW(StatModUseful):
                     self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
 
                 else:
-                    self.msge.setIcon(QMessageBox.Warning)
-                    self.msge.setWindowTitle(self.tr("hdf5 ESTIMHAB"))
-                    self.msge.setText(self.tr("The hdf5 file related to ESTIMHAB does not exist"))
-                    self.msge.setStandardButtons(QMessageBox.Ok)
-                    self.msge.show()
+                    self.send_log.emit('Error: ' + self.tr('The hdf5 file related to ESTIMHAB does not exist.'))
 
     def change_folder(self):
         """
@@ -621,92 +592,50 @@ class EstimhabW(StatModUseful):
         """
         # prepare data
         try:
-            q = [float(self.eq1.text()), float(self.eq2.text())]
-            w = [float(self.ew1.text()), float(self.ew2.text())]
-            h = [float(self.eh1.text()), float(self.eh2.text())]
-            q50 = float(self.eq50.text())
-            qrange = [float(self.eqmin.text()), float(self.eqmax.text())]
-            substrate = float(self.esub.text())
+            q = [float(self.eq1.text().replace(",", ".")), float(self.eq2.text().replace(",", "."))]
+            w = [float(self.ew1.text().replace(",", ".")), float(self.ew2.text().replace(",", "."))]
+            h = [float(self.eh1.text().replace(",", ".")), float(self.eh2.text().replace(",", "."))]
+            q50 = float(self.eq50.text().replace(",", "."))
+            qrange = [float(self.eqmin.text().replace(",", ".")), float(self.eqmax.text().replace(",", "."))]
+            substrate = float(self.esub.text().replace(",", "."))
         except ValueError:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Some data are empty or not float. Cannot run Estimhab"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
             return
 
         # get the list of xml file
-        all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
         fish_list = []
         fish_name2 = []
         for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
             fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
             fish_item_str = fish_item.text()
-            # for id, f in enumerate(self.filenames[0]):
-            #     if f == fish_item_str:
-            #         fish_list.append(os.path.basename(self.filenames[1][id]))
-            #         fish_name2.append(fish_item_str)
-
             fish_list.append(os.path.basename(fish_item.data(1)))
             fish_name2.append(fish_item_str)
         # check internal logic
         if not fish_list:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("No fish selected. Cannot run Estimhab."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
             return
         if qrange[0] >= qrange[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Minimum discharge bigger or equal to max discharge. Cannot run Estimhab."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
             return
         if q[0] == q[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Estimhab needs two differents measured discharges."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
             return
         if h[0] == h[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Estimhab needs two different measured height."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured height.'))
             return
         if w[0] == w[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Estimhab needs two different measured width."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured width.'))
             return
         if (q[0] > q[1] and h[0] < h[1]) or (q[0] > q[1] and w[0] < w[1]) or (q[1] > q[0] and h[1] < h[0]) \
                 or (q[1] > q[0] and w[1] < w[0]):
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Discharge, width, and height data are not coherent \n"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Discharge, width, and height data are not coherent.'))
             return
-        if q[0] < 0 or q[1] < 0 or w[0] < 0 or w[1] < 0 or h[0] < 0 or h[1] < 0 or qrange[0] < 0 or qrange[1] < 0 \
-                or substrate < 0 or q50 < 0:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Negative data found. Could not run estimhab. \n"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+        if q[0] <= 0 or q[1] <= 0 or w[0] <= 0 or w[1] <= 0 or h[0] <= 0 or h[1] <= 0 or qrange[0] <= 0 or qrange[1] <= 0 \
+                or substrate <= 0 or q50 <= 0:
+            self.send_log.emit('Error: ' + self.tr('Negative or zero data found. Could not run estimhab.'))
             return
         if substrate > 3:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Substrate is too large. Could not run estimhab. \n"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run estimhab.'))
             return
 
         self.send_log.emit(self.tr('# Computing: ESTIMHAB...'))
@@ -716,8 +645,6 @@ class EstimhabW(StatModUseful):
         self.check_all_q()
 
         # run and save
-        path_im = self.find_path_im_est()
-        path_txt = self.find_path_text_est()
         project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
 
@@ -741,6 +668,20 @@ class EstimhabW(StatModUseful):
         # wait end process
         while state.value != 1:
             pass
+
+        fname_no_path = self.name_prj + '_ESTIMHAB' + '.hab'
+        fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
+        doc = ET.parse(fnamep)
+        root = doc.getroot()
+        tree = ET.ElementTree(root)
+        child = root.find(".//ESTIMHAB_data")
+        # test if there is already estimhab data in the project
+        if child is None:
+            child = ET.SubElement(root, "ESTIMHAB_data")
+            child.text = fname_no_path
+        else:
+            child.text = fname_no_path
+        tree.write(fnamep)
 
         # log info
         str_found = mystdout.getvalue()
