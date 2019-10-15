@@ -548,6 +548,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # if .hab :
         if self.current_hab_informations_dict:
+            if new_item_text_dict:
+                if not new_item_text_dict["selected_aquatic_animal_list"]:
+                    self.send_log.emit("Warning: " + self.tr("No selected models."))
             self.selected_aquatic_animal_qtablewidget.setRowCount(total_item)
             self.hyd_mode_qtablewidget.setRowCount(total_item)
             self.sub_mode_qtablewidget.setRowCount(total_item)
@@ -557,7 +560,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
                 if new_item_text_dict:
-                    self.send_log.emit("NB: " + self.tr("Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values)."))
+                    if new_item_text_dict["selected_aquatic_animal_list"]:
+                        self.send_log.emit("NB: " + self.tr("Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values)."))
             else:
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(True)
 
@@ -565,7 +569,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if not self.current_hab_informations_dict["percentage_ok"]:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(False)
                 if new_item_text_dict:
-                    self.send_log.emit("NB: " + self.tr("Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage)."))
+                    if new_item_text_dict["selected_aquatic_animal_list"]:
+                        self.send_log.emit("NB: " + self.tr("Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage)."))
             else:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(True)
 
