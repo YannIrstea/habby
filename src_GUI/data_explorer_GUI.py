@@ -244,6 +244,8 @@ class DataExplorerFrame(QFrame):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 self.dataexporter_group.change_layout(1)
+                if len(names) == 1:
+                    self.names_hdf5_QListWidget.selectAll()
         # substrate
         if index == 2:
             names = hdf5_mod.get_filename_by_type("substrate", os.path.join(self.path_prj, "hdf5"))
@@ -258,6 +260,8 @@ class DataExplorerFrame(QFrame):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 self.dataexporter_group.change_layout(2)
+                if len(names) == 1:
+                    self.names_hdf5_QListWidget.selectAll()
         # merge hab
         if index == 3:
             names = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj, "hdf5"))
@@ -272,6 +276,8 @@ class DataExplorerFrame(QFrame):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 self.dataexporter_group.change_layout(3)
+                if len(names) == 1:
+                    self.names_hdf5_QListWidget.selectAll()
 
         # update progress bar
         self.plot_group.count_plot()
