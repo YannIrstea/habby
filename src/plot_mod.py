@@ -330,7 +330,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         plt.show()
 
 
-def plot_hydrosignature(state, data, fishname, project_preferences):
+def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferences):
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
@@ -344,8 +344,9 @@ def plot_hydrosignature(state, data, fishname, project_preferences):
 
     plt.figure(title_plot)
     # cmap should be coherent with text color
-    plt.imshow(data, cmap='Blues', interpolation='nearest', origin='lower')
-    #  extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()]
+    plt.imshow(data, cmap='Blues',
+               interpolation='nearest',
+               origin='lower')
     ax1 = plt.gca()
 
     # add percetage number
@@ -358,17 +359,18 @@ def plot_hydrosignature(state, data, fishname, project_preferences):
         else:
             ax1.text(i, j, np.round(label, 2), ha='center',
                      va='center', color='white')
+    ax1.set_xticks(np.arange(-0.5, 8.5, 1).tolist())
+    ax1.set_xticklabels(vclass)
+    ax1.set_yticks(np.arange(-0.5, 8.5, 1).tolist())
+    ax1.set_yticklabels(hclass)
     plt.title(title_plot)
     plt.xlabel('Velocity [m/s]')
     plt.ylabel('Height [m]')
-    plt.locator_params(nticks=3)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel('Relative area [%]')
 
     # output for plot_GUI
     state.value = 1  # process finished
-    # fm = plt.get_current_fig_manager()
-    # fm.window.showMinimized()
     plt.show()
 
 

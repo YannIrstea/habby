@@ -508,7 +508,7 @@ def get_hydrosignature(xmlfile):
         return
 
     data = data.reshape((len(vclass) - 1, len(hclass) - 1))
-    return data
+    return data, vclass, hclass
 
 
 def read_pref(xmlfile, aquatic_animal_type="fish"):
