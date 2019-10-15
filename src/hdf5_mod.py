@@ -30,13 +30,14 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from multiprocessing import Value
-
+from locale import localeconv
 from src import bio_info_mod
 from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
 from src.project_manag_mod import load_project_preferences
+from src.tools_mod import txt_file_convert_dot_to_comma
 from habby import HABBY_VERSION
 
 
@@ -2498,15 +2499,17 @@ class Hdf5Management:
                 output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
+        # prep data
         all_data = np.vstack((q_all, h_all, w_all, vel_all))
         for f in range(0, len(fish_name)):
             txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
             all_data = np.vstack((all_data, VH[f]))
             all_data = np.vstack((all_data, SPU[f]))
-
         txt_header += '\n[m3/sec]\t[m]\t[m]\t[m/s]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
+
+        # export estimhab output
         try:
             np.savetxt(os.path.join(path_txt, output_filename + '.txt'), all_data.T, header=txt_header,
                        delimiter='\t')  # , newline=os.linesep
@@ -2515,8 +2518,10 @@ class Hdf5Management:
             intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             np.savetxt(os.path.join(path_txt, output_filename + '.txt'), all_data.T, header=txt_header,
                        delimiter='\t')  # , newline=os.linesep
+        if localeconv()['decimal_point'] == ",":
+            txt_file_convert_dot_to_comma(os.path.join(path_txt, output_filename + '.txt'))
 
-        # text file input
+        # export estimhab input
         txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
         txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
         txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
@@ -2536,6 +2541,8 @@ class Hdf5Management:
             intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
                 f.write(txtin)
+        if localeconv()['decimal_point'] == ",":
+            txt_file_convert_dot_to_comma(os.path.join(path_txt, intput_filename + '.txt'))
 
 #################################################################
 

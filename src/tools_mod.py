@@ -375,6 +375,14 @@ def get_translator(path_prj, name_prj):
     return app
 
 
+def txt_file_convert_dot_to_comma(filename_full_path):
+    # read and convert
+    with open(filename_full_path, 'r') as file:
+        text_data_with_comma = file.read().replace('.', ',')
+    # write converted
+    with open(filename_full_path, 'w') as file:
+        file.write(text_data_with_comma)
+
 # GUI
 class QGroupBoxCollapsible(QGroupBox):
     def __init__(self):
