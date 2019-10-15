@@ -17,17 +17,19 @@ https://github.com/YannIrstea/habby
 import numpy as np
 import xml.etree.ElementTree as ET
 import os
-import sys
-from io import StringIO
 from src import hdf5_mod
 from src import plot_mod
+from src.tools_mod import get_translator
 
 
 def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     # compute
     q_all, h_all, w_all, vel_all, VH, SPU = estimhab(estimhab_dict["q"], estimhab_dict["w"], estimhab_dict["h"],
                        estimhab_dict["q50"], estimhab_dict["qrange"], estimhab_dict["substrate"],
-                       estimhab_dict["path_bio"], estimhab_dict["xml_list"], estimhab_dict["fish_list"])
+                       estimhab_dict["path_bio"], estimhab_dict["xml_list"], estimhab_dict["fish_list"],
+                                                     qt_tr)
 
     # save in dict
     estimhab_dict["q_all"] = q_all
@@ -53,7 +55,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     plot_mod.plot_estimhab(state, estimhab_dict, project_preferences, path_prj)
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fish_name):
+def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fish_name, qt_tr):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -101,7 +103,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
             qrange[0] = 10 ** -10  # if exactly zero, you cannot divide anymore
         q_all = np.arange(qrange[0], qrange[1] + diff, diff)
     else:
-        print('Error: The mininum discharge is higher or equal than the maximum')
+        print('Error: ' + qt_tr.translate("estimhab_mod", 'The mininum discharge is higher or equal than the maximum.'))
         return [-99], [-99]
 
     # height
@@ -139,7 +141,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
             doc = ET.parse(filename)
             root = doc.getroot()
         else:
-            print('Error: the xml file for the file ' + fish_xml[f] + " does not exist")
+            print('Error: ' + qt_tr.translate("estimhab_mod", 'The xml file for the file ') + filename +
+                  qt_tr.translate("estimhab_mod", " does not exist."))
             return [-99], [-99]
 
         # get data
@@ -149,7 +152,9 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
             coeff_const = pass_to_float_estimhab(".//coeff_const", root)
             var_const = pass_to_float_estimhab(".//var_const", root)
         except ValueError:
-            print('Error: Some data can not be read or are not number. Check the xml file ' + fish_name[f])
+            print('Error: ' + qt_tr.translate("estimhab_mod",
+                                              'Some data can not be read or are not number. Check the xml file ') +
+                  fish_name[f])
             return [-99], [-99]
 
         # calculate VH
@@ -158,7 +163,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
         elif func_q[0] == 1.:
             part_q = 1 + coeff_q[0] * np.exp(coeff_q[1] * re)
         else:
-            print('Error: no function defined for Q')
+            print('Error: ' + qt_tr.translate("estimhab_mod",
+                                              'No function defined for Q'))
         const = coeff_const[0]
         for i in range(0, len(var_const)):
             const += coeff_const[i + 1] * np.log(q50_data[int(var_const[i])])

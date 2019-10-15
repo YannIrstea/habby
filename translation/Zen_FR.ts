@@ -323,7 +323,7 @@
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="959"/>
         <source>Warning: Nothing to compute ! Models selected and their options exist in .hab</source>
-        <translation>Avertissement : Rien à calculer ! Les modèles sélectionnés et leurs options existent dans le .hab</translation>
+        <translation type="obsolete">Avertissement : Rien à calculer ! Les modèles sélectionnés et leurs options existent dans le .hab</translation>
     </message>
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="993"/>
@@ -356,7 +356,7 @@
         <translation>, ce fichier.hab a été supprimé par l&apos;utilisateur.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="904"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="888"/>
         <source>No merged hydraulic files available.</source>
         <translation>Aucun fichier hydraulique fusionné (.hab) n&apos;est disponible.</translation>
     </message>
@@ -400,7 +400,7 @@
         <translation type="obsolete">Le processus &apos;Calcul d&apos;habitat&apos; est en cours et fonctionne depuis </translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="986"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="970"/>
         <source>Habitat computation is finished (computation time = </source>
         <translation>Le calcul d&apos;habitat est terminé (temps de calcul = </translation>
     </message>
@@ -410,7 +410,7 @@
         <translation>Créez un fichier .hab avant d&apos;ajouter des modèles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="972"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="956"/>
         <source>&apos;Habitat computation&apos; is alive and run since </source>
         <translation>&apos;Calcul d&apos;habitat&apos; en cours depuis </translation>
     </message>
@@ -420,9 +420,19 @@
         <translation type="obsolete">Les figures et </translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="988"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="972"/>
         <source>Outputs data can be displayed and exported from &apos;Data explorer&apos; tab.</source>
         <translation>Les données de sorties peuveut être affichées et exportées dans l&apos;onglet &apos;Explorateur de données&apos;.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="862"/>
+        <source> model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed.</source>
+        <translation>, les options du modèle sont &apos;Neglect&apos; et &apos;Neglect&apos; pour les options hydrauliques et substrat. Ce calcul ne sera pas effectué.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="943"/>
+        <source>Warning: Nothing to compute !</source>
+        <translation>Warning : Rien à calculer !</translation>
     </message>
 </context>
 <context>
@@ -474,7 +484,7 @@
     <message>
         <location filename="../src_GUI/bio_model_explorer_GUI.py" line="185"/>
         <source>Guild</source>
-        <translation>Guild</translation>
+        <translation>Guilde</translation>
     </message>
     <message>
         <location filename="../src_GUI/bio_model_explorer_GUI.py" line="190"/>
@@ -1146,7 +1156,7 @@
     <message>
         <location filename="../src_GUI/estimhab_GUI.py" line="670"/>
         <source>Estimhab needs two different measured discharge.</source>
-        <translation>ESTIMHAB a besoin des données de deux débits mesurés. Il n&apos;est pas possible d&apos;executer ESTIMHAB.</translation>
+        <translation type="obsolete">ESTIMHAB a besoin des données de deux débits mesurés. Il n&apos;est pas possible d&apos;executer ESTIMHAB.</translation>
     </message>
     <message>
         <location filename="../src_GUI/estimhab_GUI.py" line="677"/>
@@ -1197,7 +1207,7 @@
     <message>
         <location filename="../src_GUI/estimhab_GUI.py" line="752"/>
         <source>Estimhab computation done. Estimhab .hab, figure and text files created.</source>
-        <translation>Calcul Estimhab fait. Estimhab .hab, figures et fichiers textes créés.</translation>
+        <translation type="obsolete">Calcul Estimhab fait. Estimhab .hab, figures et fichiers textes créés.</translation>
     </message>
     <message>
         <location filename="../src_GUI/estimhab_GUI.py" line="505"/>
@@ -1222,6 +1232,16 @@
         <location filename="../src_GUI/estimhab_GUI.py" line="712"/>
         <source># Computing: ESTIMHAB...</source>
         <translation># Calcul: ESTIMHAB...</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="752"/>
+        <source>Estimhab computation done. Figure and text files created.</source>
+        <translation>Calcul de Estimhab fait. Figures et fichiers textes créés.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="670"/>
+        <source>Estimhab needs two differents measured discharges.</source>
+        <translation>Estimhab a besoin de deux débits mesurés différents.</translation>
     </message>
 </context>
 <context>
@@ -4432,7 +4452,7 @@ Fermez-les et réessayez.</translation>
         <location filename="../src_GUI/estimhab_GUI.py" line="333"/>
         <source>Measured discharge are not very different. The results might not be realistic. 
 </source>
-        <translation>Les débits mesurés ne sont pas très différents. Les résultats pourraient ne pas être réalistes. 
+        <translation type="obsolete">Les débits mesurés ne sont pas très différents. Les résultats pourraient ne pas être réalistes. 
 </translation>
     </message>
     <message>
@@ -4447,6 +4467,13 @@ Fermez-les et réessayez.</translation>
         <source>Discharge range should be between q1/10 and 5*q2 for optimum results. (1) 
 </source>
         <translation>La plage de débit doit être comprise entre q1/10 et 5*q2 pour des résultats optimaux. (1) 
+</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="333"/>
+        <source>Measured discharges are not very different. The results might not be realistic. 
+</source>
+        <translation>Les débits mesurés ne sont pas très différents. Les résultats pourraient ne pas être réalistes. 
 </translation>
     </message>
 </context>
@@ -5790,6 +5817,39 @@ Fermez-les et réessayez.</translation>
     </message>
 </context>
 <context>
+    <name>estimhab_mod</name>
+    <message>
+        <location filename="../src/estimhab_mod.py" line="106"/>
+        <source>The mininum discharge is higher or equal than the maximum.</source>
+        <translation>Le débit minimum est supérieur ou égal au débit maximum.</translation>
+    </message>
+    <message>
+        <location filename="../src/estimhab_mod.py" line="144"/>
+        <source>The xml file for the file</source>
+        <translation type="obsolete">Le fichier xml pour le fichier</translation>
+    </message>
+    <message>
+        <location filename="../src/estimhab_mod.py" line="144"/>
+        <source> does not exist.</source>
+        <translation> n&apos;existe pas.</translation>
+    </message>
+    <message>
+        <location filename="../src/estimhab_mod.py" line="155"/>
+        <source>Some data can not be read or are not number. Check the xml file </source>
+        <translation>Certaines données ne peuvent pas être lues ou ne sont pas des valeur numériques. Vérifiez le fichier xml </translation>
+    </message>
+    <message>
+        <location filename="../src/estimhab_mod.py" line="166"/>
+        <source>No function defined for Q</source>
+        <translation>Aucune fonction définie pour Q</translation>
+    </message>
+    <message>
+        <location filename="../src/estimhab_mod.py" line="144"/>
+        <source>The xml file for the file </source>
+        <translation>Le fichier xml pour le fichier </translation>
+    </message>
+</context>
+<context>
     <name>hdf5_mod</name>
     <message>
         <location filename="../src/hdf5_mod.py" line="133"/>
@@ -5802,7 +5862,7 @@ Fermez-les et réessayez.</translation>
         <translation>Aucun projet enregistré. Veuillez d&apos;abord créer un projet dans l&apos;onglet &apos;Accueil&apos;.</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3178"/>
+        <location filename="../src/hdf5_mod.py" line="3199"/>
         <source>The dataset for tin or xy (3) is missing from the hdf5 file for one time step. 
 </source>
         <translation>Le jeux de données de TIN ou xy (3) est manquant dans le fichier hdf5 pour un pas de temps. 
@@ -5826,328 +5886,328 @@ Fermez-les et réessayez.</translation>
         <translation>Il manque le nombre de pas de temps de : </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3309"/>
+        <location filename="../src/hdf5_mod.py" line="3330"/>
         <source>Length of the list of fish name is not coherent</source>
         <translation>La longueur de la liste des noms de poissons n&apos;est pas cohérente</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1410"/>
+        <location filename="../src/hdf5_mod.py" line="1416"/>
         <source>Can&apos;t write .prj from EPSG code : </source>
         <translation>Impossible d&apos;écrire le .prj à partir du code EPSG : </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1876"/>
+        <location filename="../src/hdf5_mod.py" line="1882"/>
         <source>oh no!</source>
         <translation>zut alors !</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2241"/>
+        <location filename="../src/hdf5_mod.py" line="2247"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation>Le chemin d&apos;accès au fichier texte n&apos;est pas trouvé. Fichiers texte non créés 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2261"/>
+        <location filename="../src/hdf5_mod.py" line="2267"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation>Impossible de modifier le fichier texte car il est ouvert dans un autre programme. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2466"/>
+        <location filename="../src/hdf5_mod.py" line="2472"/>
         <source>Close .pdf to update fish information</source>
         <translation>Fermer le ou les .pdf pour mettre à jour les informations sur les poissons</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2539"/>
+        <location filename="../src/hdf5_mod.py" line="2560"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation>Le fichier doit être de type hdf5 (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2544"/>
+        <location filename="../src/hdf5_mod.py" line="2565"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation>Le fichier hdf5 n&apos;a pas pu être chargé.
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2570"/>
+        <location filename="../src/hdf5_mod.py" line="2591"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation>Aucun chemin vers le projet n&apos;a été donné, bien qu&apos;un chemin relatif ait été fourni</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2573"/>
+        <location filename="../src/hdf5_mod.py" line="2594"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation>hdf5 n&apos;a pas pu être ouvert. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2677"/>
+        <location filename="../src/hdf5_mod.py" line="2698"/>
         <source>Could not save hdf5 file. It might be used by another program.</source>
         <translation>Impossible d&apos;enregistrer le fichier hdf5. Il pourrait être utilisé par un autre programme.</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2785"/>
+        <location filename="../src/hdf5_mod.py" line="2806"/>
         <source>Reach number </source>
         <translation>Numéro de tronçon </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2785"/>
+        <location filename="../src/hdf5_mod.py" line="2806"/>
         <source> has an empty grid. It might be entierely dry.</source>
         <translation> a un mailage vide. Il pourrait être complètement sec.</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3017"/>
+        <location filename="../src/hdf5_mod.py" line="3038"/>
         <source>No project saved. Please create a project first in the General tab.
 </source>
         <translation>Aucun projet enregistré. Veuillez d&apos;abord créer un projet dans l&apos;onglet &apos;Accueil&apos;.
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2925"/>
+        <location filename="../src/hdf5_mod.py" line="2946"/>
         <source>Could not save hdf5 substrate file. It might be used by another program 
 </source>
         <translation>Impossible de sauvegarder le fichier substrat hdf5 (.sub). Il pourrait être utilisé par un autre programme 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2967"/>
+        <location filename="../src/hdf5_mod.py" line="2988"/>
         <source>Substrate data not recognized (1) 
 </source>
         <translation>Données de substrat non reconnues (1) 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2988"/>
+        <location filename="../src/hdf5_mod.py" line="3009"/>
         <source>Could not save hdf5 substrate data. It might be used by another program 
 </source>
         <translation>Impossible de sauvegarder les données du substrat hdf5 (.sub). Il pourrait être utilisé par un autre programme 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3124"/>
+        <location filename="../src/hdf5_mod.py" line="3145"/>
         <source>The dataset for tin or xy (1) is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de TIN ou xy (1) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3131"/>
+        <location filename="../src/hdf5_mod.py" line="3152"/>
         <source>The dataset for tin or xy (2) is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de TIN ou xy (2) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3191"/>
+        <location filename="../src/hdf5_mod.py" line="3212"/>
         <source>The dataset for tin or xy (4) is missing from the hdf5 file for one time step. 
 </source>
         <translation>Le jeu de données de TIN ou xy (4) est manquant dans le fichier hdf5 pour un pas de temps. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3710"/>
+        <location filename="../src/hdf5_mod.py" line="3731"/>
         <source>The number of time step is missing from the hdf5 file. Is </source>
         <translation>Le nombre de pas de temps est manquant dans le fichier hdf5. Est </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3710"/>
+        <location filename="../src/hdf5_mod.py" line="3731"/>
         <source> an hydrological input? 
 </source>
         <translation> une entrée hydraulique ? 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3407"/>
+        <location filename="../src/hdf5_mod.py" line="3428"/>
         <source>The dataset for ikle (1) is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de TIN (1) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3413"/>
+        <location filename="../src/hdf5_mod.py" line="3434"/>
         <source>The dataset for ikle (3) is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de TIN (2) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3428"/>
+        <location filename="../src/hdf5_mod.py" line="3449"/>
         <source>The dataset for ikle (2) is missing from the hdf5 file for one time step. 
 </source>
         <translation>Le jeu de données de TIN (2) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3434"/>
+        <location filename="../src/hdf5_mod.py" line="3455"/>
         <source>The dataset for ikle (4) is missing from the hdf5 file for one time step. 
 </source>
         <translation>Le jeu de données de TIN (4) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3454"/>
+        <location filename="../src/hdf5_mod.py" line="3475"/>
         <source>The dataset for coordinates of the points (3) is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données des coordonnées des points (3) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3468"/>
+        <location filename="../src/hdf5_mod.py" line="3489"/>
         <source>The dataset for coordinates of the points (2) is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données des coordonnées des points (2) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3474"/>
+        <location filename="../src/hdf5_mod.py" line="3495"/>
         <source>The dataset for coordinates of the points (4) is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données des coordonnées des points (4) est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3500"/>
+        <location filename="../src/hdf5_mod.py" line="3521"/>
         <source>The dataset for velocity is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de vitesse est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3504"/>
+        <location filename="../src/hdf5_mod.py" line="3525"/>
         <source>No velocity found in the hdf5 file. 
 </source>
         <translation>Aucune vitesse trouvée dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3513"/>
+        <location filename="../src/hdf5_mod.py" line="3534"/>
         <source>The dataset for water height is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de hauteur d&apos;eau est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3517"/>
+        <location filename="../src/hdf5_mod.py" line="3538"/>
         <source>No height found in the hdf5 file. 
 </source>
         <translation>Aucune hauteur d&apos;eau trouvée dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3527"/>
+        <location filename="../src/hdf5_mod.py" line="3548"/>
         <source>The dataset for substrate is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de substrat est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3534"/>
+        <location filename="../src/hdf5_mod.py" line="3555"/>
         <source>The dataset for substrate is missing from the hdf5 file (2). 
 </source>
         <translation>Le jeu de données de substrat est manquant dans le fichier hdf5 (2). 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3540"/>
+        <location filename="../src/hdf5_mod.py" line="3561"/>
         <source>The dataset for substrate is missing from the hdf5 file (3). 
 </source>
         <translation>Le jeu de données de substrat est manquant dans le fichier hdf5 (3). 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3717"/>
+        <location filename="../src/hdf5_mod.py" line="3738"/>
         <source>Time step are not found</source>
         <translation>Les pas de temps ne sont pas trouvés</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3745"/>
+        <location filename="../src/hdf5_mod.py" line="3766"/>
         <source>The dataset for substrate in percentage form is missing from the hdf5 file. 
 </source>
         <translation>Le jeu de données de substrat de type pourcentage est manquant dans le fichier hdf5. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3751"/>
+        <location filename="../src/hdf5_mod.py" line="3772"/>
         <source>The dataset for substrate in precentage is missing from the hdf5 file (2). 
 </source>
         <translation>Le jeu de données de substrat de type pourcentage est manquant dans le fichier hdf5 (2). 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3827"/>
+        <location filename="../src/hdf5_mod.py" line="3848"/>
         <source>The path to the hdf5 file is not found (1) 
 </source>
         <translation>Le chemin d&apos;accès au fichier hdf5 n&apos;est pas trouvé (1) 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3830"/>
+        <location filename="../src/hdf5_mod.py" line="3851"/>
         <source>The path to the hdf5 file is not found (2) 
 </source>
         <translation>Le chemin d&apos;accès au fichier hdf5 n&apos;est pas trouvé (2) 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3834"/>
+        <location filename="../src/hdf5_mod.py" line="3855"/>
         <source>The path to the hdf5 file is not correct 
 </source>
         <translation>Le chemin d&apos;accès au fichier hdf5 n&apos;est pas correct 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3864"/>
+        <location filename="../src/hdf5_mod.py" line="3885"/>
         <source>The hdf5 name for the model </source>
         <translation>Le nom de fichier hdf5 pour le modèle </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3864"/>
+        <location filename="../src/hdf5_mod.py" line="3885"/>
         <source> was not found (1)</source>
         <translation> n&apos;a pas été trouvé (1)</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3867"/>
+        <location filename="../src/hdf5_mod.py" line="3888"/>
         <source>The data for the model </source>
         <translation>Les données du modèle </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3867"/>
+        <location filename="../src/hdf5_mod.py" line="3888"/>
         <source> was not found (2)</source>
         <translation> n&apos;ont pas été trouvé (2)</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3871"/>
+        <location filename="../src/hdf5_mod.py" line="3892"/>
         <source>No project found by load_hdf5</source>
         <translation>Aucun projet trouvé par load_hdf5</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3929"/>
+        <location filename="../src/hdf5_mod.py" line="3950"/>
         <source>No fish habitat in this .hab file.</source>
         <translation>Aucun jeu de donnée d&apos;habitat dans ce fichier .hab.</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3950"/>
+        <location filename="../src/hdf5_mod.py" line="3971"/>
         <source>Folder not found to copy inputs 
 </source>
         <translation>Dossier non trouvé pour copier les entrées 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="3954"/>
+        <location filename="../src/hdf5_mod.py" line="3975"/>
         <source>The number of file to be copied is not equal to the number of paths</source>
         <translation>Le nombre de fichiers à copier n&apos;est pas égal au nombre de chemins d&apos;accès</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="4014"/>
+        <location filename="../src/hdf5_mod.py" line="4035"/>
         <source>Could not load the chosen hdf5. 
 </source>
         <translation>Impossible de charger le fichier hdf5 choisi. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="4019"/>
+        <location filename="../src/hdf5_mod.py" line="4040"/>
         <source>The number of time step between the two hdf5 is not coherent. 
 </source>
         <translation>Le nombre de pas de temps entre les deux hdf5 n&apos;est pas cohérent. 
@@ -6170,7 +6230,7 @@ Fermez-les et réessayez.</translation>
 <context>
     <name>plot_mod</name>
     <message>
-        <location filename="../src/plot_mod.py" line="1443"/>
+        <location filename="../src/plot_mod.py" line="1445"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
         <translation>Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
     </message>
@@ -6180,27 +6240,27 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">SPU [m^2]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1514"/>
+        <location filename="../src/plot_mod.py" line="1531"/>
         <source>Weighted Usable Area - </source>
         <translation>Surface Pondérée Utile - </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1542"/>
+        <location filename="../src/plot_mod.py" line="1574"/>
         <source>HV (WUA/A) []</source>
         <translation>VH (SPU/A) []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1476"/>
+        <location filename="../src/plot_mod.py" line="1482"/>
         <source>Habitat value - </source>
         <translation>Valeur d&apos;habitat - </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1571"/>
+        <location filename="../src/plot_mod.py" line="1608"/>
         <source>WUA_</source>
         <translation>SPU_</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1680"/>
+        <location filename="../src/plot_mod.py" line="1717"/>
         <source>WUA [m$^2$]</source>
         <translation>SPU [m$^2$]</translation>
     </message>
@@ -6210,62 +6270,62 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Unité [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1543"/>
+        <location filename="../src/plot_mod.py" line="1575"/>
         <source>Habitat Value - </source>
         <translation>Valeur d&apos;habitat - </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1541"/>
+        <location filename="../src/plot_mod.py" line="1573"/>
         <source>Units [</source>
         <translation>Unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1546"/>
+        <location filename="../src/plot_mod.py" line="1578"/>
         <source>Complete</source>
         <translation>Complet</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1547"/>
+        <location filename="../src/plot_mod.py" line="1579"/>
         <source>Incomplete</source>
         <translation>Incomplet</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1654"/>
+        <location filename="../src/plot_mod.py" line="1691"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Computational Step : </source>
         <translation>Valeur de l&apos;habitat et Surface Pondérée Utile interpolées -Unité(s) : </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1681"/>
+        <location filename="../src/plot_mod.py" line="1718"/>
         <source>Weighted Usable Area interpolated for the Reach </source>
         <translation>Surface Pondérée Utile interpolée pour le tronçon </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1699"/>
+        <location filename="../src/plot_mod.py" line="1736"/>
         <source>HV []</source>
         <translation>VH []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1700"/>
+        <location filename="../src/plot_mod.py" line="1737"/>
         <source>Habitat Value interpolated</source>
         <translation>Valeur d&apos;habitat interpolée</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1729"/>
+        <location filename="../src/plot_mod.py" line="1766"/>
         <source>Units</source>
         <translation>Unités</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1736"/>
+        <location filename="../src/plot_mod.py" line="1773"/>
         <source>Desired units [</source>
         <translation>Unités souhaitées [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1738"/>
+        <location filename="../src/plot_mod.py" line="1775"/>
         <source>units [</source>
         <translation>unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1731"/>
+        <location filename="../src/plot_mod.py" line="1768"/>
         <source>Chronicle [</source>
         <translation>Chronique [</translation>
     </message>

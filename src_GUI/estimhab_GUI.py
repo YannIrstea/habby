@@ -330,7 +330,7 @@ class StatModUseful(QScrollArea):
             q1 = self.qall[1]
 
         if q2 < 2 * q1:
-            self.send_log.emit('Warning: ' + self.tr('Measured discharge are not very different. The results might '
+            self.send_log.emit('Warning: ' + self.tr('Measured discharges are not very different. The results might '
                                'not be realistic. \n'))
         if (self.qall[4] < q1 / 10 or self.qall[4] > 5 * q2) and self.qall[4] != -99:  # q50 not always necessary
             self.send_log.emit('Warning: ' + self.tr('Q50 should be between q1/10 and 5*q2 for optimum results. \n'))
@@ -667,7 +667,7 @@ class EstimhabW(StatModUseful):
         if q[0] == q[1]:
             self.msge.setIcon(QMessageBox.Warning)
             self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Estimhab needs two different measured discharge."))
+            self.msge.setText(self.tr("Estimhab needs two differents measured discharges."))
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             return
