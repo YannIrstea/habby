@@ -1804,10 +1804,13 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
 def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
+                                                     "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    default_size = plt.rcParams['figure.figsize']
+    # default_size = plt.rcParams['figure.figsize']
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -1820,57 +1823,72 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     path_im = os.path.join(path_prj, "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # prepare figure
-    # c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'k', 'g', 'y', '#9F81F7', '#BDBDBD', '#F7819F', 'b', 'm', 'r',
-    #      'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
+    # prepare color
     color_list, style_list = get_colors_styles_line_from_nb_input(len(estimhab_dict["fish_list"]))
 
     # plot
-    fig, ax = plt.subplots(2, 1, sharey='row')
+    fig, (ax_vh, ax_spu, ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=5,
+                                                          sharey='row',
+                                                          gridspec_kw={'height_ratios': [3, 3, 1, 1, 1]})
     fig.canvas.set_window_title('ESTIMHAB - HABBY')
 
     # VH
-    ax[0].set_title("ESTIMHAB - HABBY")
+    ax_vh.set_title("ESTIMHAB - HABBY")
     for fish_index in range(len(estimhab_dict["fish_list"])):
-        ax[0].plot(estimhab_dict["q_all"],
+        ax_vh.plot(estimhab_dict["q_all"],
                    estimhab_dict["VH"][fish_index],
                    label=estimhab_dict["fish_list"][fish_index],
                    color=color_list[fish_index],
                    linestyle=style_list[fish_index])
-#                    color=c[fish_index],
-    if project_preferences['language'] == 0:
-        ax[0].set_ylabel('Habitat Value []')
-    elif project_preferences['language'] == 1:
-        ax[0].set_ylabel('Valeur habitat []')
-    else:
-        ax[0].set_ylabel('Habitat Value[]')
-    ax[0].set_ylim(0, 1)
+
+    ax_vh.set_ylabel(qt_tr.translate("plot_mod", "Habitat Value\n[]"))
+    ax_vh.set_ylim(0, 1)
+    ax_vh.set_xticklabels([])
+    ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # SPU
     for fish_index in range(len(estimhab_dict["fish_list"])):
-        ax[1].plot(estimhab_dict["q_all"],
-                   estimhab_dict["SPU"][fish_index],
-                   label=estimhab_dict["fish_list"][fish_index],
-                   color=color_list[fish_index],
-                   linestyle=style_list[fish_index])
+        ax_spu.plot(estimhab_dict["q_all"],
+                    estimhab_dict["SPU"][fish_index],
+                    label=estimhab_dict["fish_list"][fish_index],
+                    color=color_list[fish_index],
+                    linestyle=style_list[fish_index])
 
-    if project_preferences['language'] == 0:
-        ax[1].set_xlabel('Discharge [m$^{3}$/sec]')
-        ax[1].set_ylabel('WUA by 100 m [m²]')
-    elif project_preferences['language'] == 1:
-        ax[1].set_xlabel('Débit [m$^{3}$/sec]')
-        ax[1].set_ylabel('SPU par 100 m [m²]')
-    else:
-        ax[1].set_xlabel('Discharge [m$^{3}$/sec]')
-        ax[1].set_ylabel('WUA by 100 m [m²]')
+    ax_spu.set_ylabel(qt_tr.translate("plot_mod", "WUA by 100 m\n[m²]"))
+    ax_spu.set_xticklabels([])
+    ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # H
+    ax_h.plot(estimhab_dict["q_all"],
+              estimhab_dict["h_all"],
+              color="black")
+    ax_h.set_ylabel(qt_tr.translate("plot_mod", "height\n[m]"))
+    ax_h.set_xticklabels([])
+    ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # W
+    ax_w.plot(estimhab_dict["q_all"],
+              estimhab_dict["w_all"],
+              color="black")
+    ax_w.set_ylabel(qt_tr.translate("plot_mod", "width\n[m]"))
+    ax_w.set_xticklabels([])
+    ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # V
+    ax_v.plot(estimhab_dict["q_all"],
+              estimhab_dict["vel_all"],
+              color="black")
+    ax_v.set_ylabel(qt_tr.translate("plot_mod", "velocity\n[m/s]"))
+    ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
+    ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # LEGEND
-    handles, labels = ax[0].get_legend_handles_labels()
+    handles, labels = ax_vh.get_legend_handles_labels()
     fig.legend(handles=handles,
                labels=labels,
                loc="center right",
                borderaxespad=0.5,
-               fancybox=True)
+               fancybox=False)
 
     plt.subplots_adjust(right=0.73)
 
@@ -1889,8 +1907,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     # save image
     plt.savefig(os.path.join(path_im, name_pict), dpi=project_preferences['resolution'], transparent=True)
 
-    # reset original size fig window
-    fig.set_size_inches(default_size[0], default_size[1])
+    # # reset original size fig window
+    # fig.set_size_inches(default_size[0], default_size[1])
 
     # get data with mouse
     mplcursors.cursor()
