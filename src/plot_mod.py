@@ -1828,7 +1828,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # plot
     fig, (ax_vh, ax_spu, ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=5,
-                                                          sharey='row',
+                                                          sharex=True,
                                                           gridspec_kw={'height_ratios': [3, 3, 1, 1, 1]})
     fig.canvas.set_window_title('ESTIMHAB - HABBY')
 

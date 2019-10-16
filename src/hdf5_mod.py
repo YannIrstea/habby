@@ -2511,12 +2511,18 @@ class Hdf5Management:
 
         # export estimhab output
         try:
-            np.savetxt(os.path.join(path_txt, output_filename + '.txt'), all_data.T, header=txt_header,
+            np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+                       all_data.T,
+                       header=txt_header,
+                       fmt='%f',
                        delimiter='\t')  # , newline=os.linesep
         except PermissionError:
             output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            np.savetxt(os.path.join(path_txt, output_filename + '.txt'), all_data.T, header=txt_header,
+            np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+                       all_data.T,
+                       header=txt_header,
+                       fmt='%f',
                        delimiter='\t')  # , newline=os.linesep
         if localeconv()['decimal_point'] == ",":
             txt_file_convert_dot_to_comma(os.path.join(path_txt, output_filename + '.txt'))

@@ -96,15 +96,19 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
     a text file.
     """
     # Q
-    nb_q = 20  # number of calculated q
+    nb_q = 100  # number of calculated q
     if qrange[1] > qrange[0]:
-        diff = (qrange[1] - qrange[0]) / nb_q
+        #diff = (qrange[1] - qrange[0]) / nb_q
         if qrange[0] == 0:
             qrange[0] = 10 ** -10  # if exactly zero, you cannot divide anymore
-        q_all = np.arange(qrange[0], qrange[1] + diff, diff)
+        #q_all = np.arange(qrange[0], qrange[1] + diff, diff)
+        q_all = np.geomspace(start=qrange[0],
+                            stop=qrange[1],
+                            num=nb_q,
+                             endpoint=True)
     else:
         print('Error: ' + qt_tr.translate("estimhab_mod", 'The mininum discharge is higher or equal than the maximum.'))
-        return [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99]
 
     # height
     slope = (np.log(height[1]) - np.log(height[0])) / (np.log(qmes[1]) - np.log(qmes[0]))
@@ -143,7 +147,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
         else:
             print('Error: ' + qt_tr.translate("estimhab_mod", 'The xml file for the file ') + filename +
                   qt_tr.translate("estimhab_mod", " does not exist."))
-            return [-99], [-99]
+            return [-99], [-99], [-99], [-99], [-99], [-99]
 
         # get data
         try:
@@ -155,7 +159,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
             print('Error: ' + qt_tr.translate("estimhab_mod",
                                               'Some data can not be read or are not number. Check the xml file ') +
                   fish_name[f])
-            return [-99], [-99]
+            return [-99], [-99], [-99], [-99], [-99], [-99]
 
         # calculate VH
         if func_q[0] == 0.:

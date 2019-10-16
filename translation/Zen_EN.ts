@@ -4269,93 +4269,128 @@ Close them and try again.</source>
 <context>
     <name>plot_mod</name>
     <message>
-        <location filename="../src/plot_mod.py" line="1445"/>
+        <location filename="../src/plot_mod.py" line="1447"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1531"/>
+        <location filename="../src/plot_mod.py" line="1533"/>
         <source>Weighted Usable Area - </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1574"/>
+        <location filename="../src/plot_mod.py" line="1576"/>
         <source>HV (WUA/A) []</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1482"/>
+        <location filename="../src/plot_mod.py" line="1484"/>
         <source>Habitat value - </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1608"/>
+        <location filename="../src/plot_mod.py" line="1610"/>
         <source>WUA_</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1717"/>
+        <location filename="../src/plot_mod.py" line="1719"/>
         <source>WUA [m$^2$]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1575"/>
+        <location filename="../src/plot_mod.py" line="1577"/>
         <source>Habitat Value - </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1573"/>
+        <location filename="../src/plot_mod.py" line="1575"/>
         <source>Units [</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1578"/>
+        <location filename="../src/plot_mod.py" line="1580"/>
         <source>Complete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1579"/>
+        <location filename="../src/plot_mod.py" line="1581"/>
         <source>Incomplete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1691"/>
+        <location filename="../src/plot_mod.py" line="1693"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Computational Step : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1718"/>
+        <location filename="../src/plot_mod.py" line="1720"/>
         <source>Weighted Usable Area interpolated for the Reach </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1736"/>
+        <location filename="../src/plot_mod.py" line="1738"/>
         <source>HV []</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1737"/>
+        <location filename="../src/plot_mod.py" line="1739"/>
         <source>Habitat Value interpolated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1766"/>
+        <location filename="../src/plot_mod.py" line="1768"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1773"/>
+        <location filename="../src/plot_mod.py" line="1775"/>
         <source>Desired units [</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1775"/>
+        <location filename="../src/plot_mod.py" line="1777"/>
         <source>units [</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1768"/>
+        <location filename="../src/plot_mod.py" line="1770"/>
         <source>Chronicle [</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1846"/>
+        <source>Habitat Value
+[]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message encoding="UTF-8">
+        <location filename="../src/plot_mod.py" line="1859"/>
+        <source>WUA by 100 m
+[m²]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1867"/>
+        <source>height
+[m]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1875"/>
+        <source>width
+[m]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1883"/>
+        <source>velocity
+[m/s]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1884"/>
+        <source>Discharge [m$^{3}$/sec]</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

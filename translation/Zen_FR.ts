@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
 <context>
     <name>ASCII</name>
     <message>
@@ -5806,17 +5807,17 @@ Fermez-les et réessayez.</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="462"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0;</source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n°</source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante en fonction de l&apos;hydraulique de l&apos;unité n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source> of reach n&#xb0;</source>
+        <source> of reach n°</source>
         <translation type="obsolete"> du tronçon n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source>, the shear stress data present unknown values in unit n&#xb0;</source>
+        <source>, the shear stress data present unknown values in unit n°</source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n°</translation>
     </message>
     <message>
@@ -5826,17 +5827,17 @@ Fermez-les et réessayez.</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="456"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0; </source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n° </source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique de l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source>, the shear stress data present unknown values in unit n&#xb0; </source>
+        <source>, the shear stress data present unknown values in unit n° </source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source> of reach n&#xb0; </source>
+        <source> of reach n° </source>
         <translation type="obsolete"> du tronçon n° </translation>
     </message>
     <message>
@@ -6269,7 +6270,7 @@ Fermez-les et réessayez.</translation>
 <context>
     <name>plot_mod</name>
     <message>
-        <location filename="../src/plot_mod.py" line="1445"/>
+        <location filename="../src/plot_mod.py" line="1447"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
         <translation>Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
     </message>
@@ -6279,27 +6280,27 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">SPU [m^2]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1531"/>
+        <location filename="../src/plot_mod.py" line="1533"/>
         <source>Weighted Usable Area - </source>
         <translation>Surface Pondérée Utile - </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1574"/>
+        <location filename="../src/plot_mod.py" line="1576"/>
         <source>HV (WUA/A) []</source>
         <translation>VH (SPU/A) []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1482"/>
+        <location filename="../src/plot_mod.py" line="1484"/>
         <source>Habitat value - </source>
         <translation>Valeur d&apos;habitat - </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1608"/>
+        <location filename="../src/plot_mod.py" line="1610"/>
         <source>WUA_</source>
         <translation>SPU_</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1717"/>
+        <location filename="../src/plot_mod.py" line="1719"/>
         <source>WUA [m$^2$]</source>
         <translation>SPU [m$^2$]</translation>
     </message>
@@ -6309,64 +6310,104 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Unité [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1575"/>
+        <location filename="../src/plot_mod.py" line="1577"/>
         <source>Habitat Value - </source>
         <translation>Valeur d&apos;habitat - </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1573"/>
+        <location filename="../src/plot_mod.py" line="1575"/>
         <source>Units [</source>
         <translation>Unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1578"/>
+        <location filename="../src/plot_mod.py" line="1580"/>
         <source>Complete</source>
         <translation>Complet</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1579"/>
+        <location filename="../src/plot_mod.py" line="1581"/>
         <source>Incomplete</source>
         <translation>Incomplet</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1691"/>
+        <location filename="../src/plot_mod.py" line="1693"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Computational Step : </source>
         <translation>Valeur de l&apos;habitat et Surface Pondérée Utile interpolées -Unité(s) : </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1718"/>
+        <location filename="../src/plot_mod.py" line="1720"/>
         <source>Weighted Usable Area interpolated for the Reach </source>
         <translation>Surface Pondérée Utile interpolée pour le tronçon </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1736"/>
+        <location filename="../src/plot_mod.py" line="1738"/>
         <source>HV []</source>
         <translation>VH []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1737"/>
+        <location filename="../src/plot_mod.py" line="1739"/>
         <source>Habitat Value interpolated</source>
         <translation>Valeur d&apos;habitat interpolée</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1766"/>
+        <location filename="../src/plot_mod.py" line="1768"/>
         <source>Units</source>
         <translation>Unités</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1773"/>
+        <location filename="../src/plot_mod.py" line="1775"/>
         <source>Desired units [</source>
         <translation>Unités souhaitées [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1775"/>
+        <location filename="../src/plot_mod.py" line="1777"/>
         <source>units [</source>
         <translation>unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="1768"/>
+        <location filename="../src/plot_mod.py" line="1770"/>
         <source>Chronicle [</source>
         <translation>Chronique [</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1846"/>
+        <source>Habitat Value
+[]</source>
+        <translation>Valeur d&apos;habitat
+[]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1859"/>
+        <source>WUA by 100 m
+[m²]</source>
+        <translation>SPU pour 100 m
+[m²]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1867"/>
+        <source>height
+[m]</source>
+        <translation>hauteur
+[m]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1875"/>
+        <source>width
+[m]</source>
+        <translation>largeur
+[m]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1883"/>
+        <source>velocity
+[m/s]</source>
+        <translation>vitesse
+[m/s]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="1884"/>
+        <source>Discharge [m$^{3}$/sec]</source>
+        <translation>Débit [m$^{3}$/sec]</translation>
     </message>
 </context>
 <context>
