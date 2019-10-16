@@ -1327,6 +1327,7 @@ class Hdf5Management:
         self.file_object.create_dataset("hmes", [2, 1], data=estimhab_dict["h"])
         self.file_object.create_dataset("q50", [1, 1], data=estimhab_dict["q50"])
         self.file_object.create_dataset("qrange", [2, 1], data=estimhab_dict["qrange"])
+        self.file_object.create_dataset("qtarg", [1, 1], data=estimhab_dict["qtarg"])
         self.file_object.create_dataset("substrate", [1, 1], data=estimhab_dict["substrate"])
         xml_list = [n.encode("ascii", "ignore") for n in estimhab_dict["xml_list"]]  # unicode is not ok with hdf5
         fish_list = [n.encode("ascii", "ignore") for n in estimhab_dict["fish_list"]]  # unicode is not ok with hdf5
@@ -1357,6 +1358,7 @@ class Hdf5Management:
                              h=self.file_object["hmes"][:].flatten().tolist(),
                              q50=self.file_object["q50"][:].flatten().tolist()[0],
                              qrange=self.file_object["qrange"][:].flatten().tolist(),
+                             qtarg=self.file_object["qtarg"][:].flatten().tolist()[0],
                              substrate=self.file_object["substrate"][:].flatten().tolist()[0],
                              path_bio=self.file_object.attrs["path_bio_estimhab"],
                              xml_list=self.file_object["xml_list"][:].flatten().astype(np.str).tolist(),

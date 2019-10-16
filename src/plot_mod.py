@@ -17,14 +17,14 @@ https://github.com/YannIrstea/habby
 import os
 import time
 from datetime import datetime as dt
-
+import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import mplcursors
-import numpy as np
 from matplotlib.collections import PatchCollection
 from matplotlib.lines import Line2D
 from matplotlib.patches import Polygon
+from matplotlib.legend_handler import HandlerLine2D
+import mplcursors
 
 from src import tools_mod
 from src.tools_mod import get_translator
@@ -1828,67 +1828,92 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # plot
     fig, (ax_vh, ax_spu, ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=5,
-                                                          sharex=True,
+                                                          sharex="all",
                                                           gridspec_kw={'height_ratios': [3, 3, 1, 1, 1]})
     fig.canvas.set_window_title('ESTIMHAB - HABBY')
 
     # VH
     ax_vh.set_title("ESTIMHAB - HABBY")
+    if estimhab_dict["qtarg"]:
+        ax_vh.axvline(x=estimhab_dict["qtarg"],
+                      linestyle=":",
+                      color="black")
     for fish_index in range(len(estimhab_dict["fish_list"])):
         ax_vh.plot(estimhab_dict["q_all"],
                    estimhab_dict["VH"][fish_index],
                    label=estimhab_dict["fish_list"][fish_index],
                    color=color_list[fish_index],
                    linestyle=style_list[fish_index])
-
-    ax_vh.set_ylabel(qt_tr.translate("plot_mod", "Habitat Value\n[]"))
     ax_vh.set_ylim(0, 1)
-    ax_vh.set_xticklabels([])
+    ax_vh.set_ylabel(qt_tr.translate("plot_mod", "Habitat Value\n[]"))
     ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # SPU
+    if estimhab_dict["qtarg"]:
+        ax_spu.axvline(x=estimhab_dict["qtarg"],
+                       linestyle=":",
+                      color="black")
     for fish_index in range(len(estimhab_dict["fish_list"])):
         ax_spu.plot(estimhab_dict["q_all"],
                     estimhab_dict["SPU"][fish_index],
                     label=estimhab_dict["fish_list"][fish_index],
                     color=color_list[fish_index],
                     linestyle=style_list[fish_index])
-
     ax_spu.set_ylabel(qt_tr.translate("plot_mod", "WUA by 100 m\n[m²]"))
-    ax_spu.set_xticklabels([])
     ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # H
+    if estimhab_dict["qtarg"]:
+        ax_h.axvline(x=estimhab_dict["qtarg"],
+                     linestyle=":",
+                      color="black")
     ax_h.plot(estimhab_dict["q_all"],
               estimhab_dict["h_all"],
               color="black")
     ax_h.set_ylabel(qt_tr.translate("plot_mod", "height\n[m]"))
-    ax_h.set_xticklabels([])
     ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # W
+    if estimhab_dict["qtarg"]:
+        ax_w.axvline(x=estimhab_dict["qtarg"],
+                     linestyle=":",
+                      color="black")
     ax_w.plot(estimhab_dict["q_all"],
               estimhab_dict["w_all"],
               color="black")
     ax_w.set_ylabel(qt_tr.translate("plot_mod", "width\n[m]"))
-    ax_w.set_xticklabels([])
     ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # V
+    if estimhab_dict["qtarg"]:
+        vline_qtarg = ax_v.axvline(x=estimhab_dict["qtarg"],
+                                   linestyle=":",
+                      color="black")
     ax_v.plot(estimhab_dict["q_all"],
               estimhab_dict["vel_all"],
               color="black")
     ax_v.set_ylabel(qt_tr.translate("plot_mod", "velocity\n[m/s]"))
-    ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
     ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+    ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
+
+    # qtarg
+    if estimhab_dict["qtarg"]:
+        labels = ["Qtarg = " + str(estimhab_dict["qtarg"]) + " m$^{3}$/sec"]
+        fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
+                   labels=labels,
+                   loc="lower left",
+                   borderaxespad=0.5,
+                   fancybox=False,
+                   bbox_to_anchor=(0.73, 0.1))
 
     # LEGEND
     handles, labels = ax_vh.get_legend_handles_labels()
     fig.legend(handles=handles,
                labels=labels,
-               loc="center right",
+               loc="center left",
                borderaxespad=0.5,
-               fancybox=False)
+               fancybox=False,
+               bbox_to_anchor=(0.73, 0.5))
 
     plt.subplots_adjust(right=0.73)
 
@@ -1906,9 +1931,6 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # save image
     plt.savefig(os.path.join(path_im, name_pict), dpi=project_preferences['resolution'], transparent=True)
-
-    # # reset original size fig window
-    # fig.set_size_inches(default_size[0], default_size[1])
 
     # get data with mouse
     mplcursors.cursor()
@@ -1989,3 +2011,9 @@ def get_colors_styles_line_from_nb_input(input_nb):
         style_list.append(line_styles_base_list[style_start])
 
     return color_list, style_list
+
+
+def update_prop(handle, orig):
+    handle.update_from(orig)
+    x,y = handle.get_data()
+    handle.set_data([np.mean(x)]*2, [0, 2*y[0]])

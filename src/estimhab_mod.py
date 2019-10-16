@@ -26,10 +26,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     # compute
-    q_all, h_all, w_all, vel_all, VH, SPU = estimhab(estimhab_dict["q"], estimhab_dict["w"], estimhab_dict["h"],
-                       estimhab_dict["q50"], estimhab_dict["qrange"], estimhab_dict["substrate"],
-                       estimhab_dict["path_bio"], estimhab_dict["xml_list"], estimhab_dict["fish_list"],
-                                                     qt_tr)
+    q_all, h_all, w_all, vel_all, VH, SPU = estimhab(estimhab_dict, qt_tr)
 
     # save in dict
     estimhab_dict["q_all"] = q_all
@@ -55,7 +52,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     plot_mod.plot_estimhab(state, estimhab_dict, project_preferences, path_prj)
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fish_name, qt_tr):
+def estimhab(estimhab_dict, qt_tr):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -95,17 +92,30 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
     Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
     a text file.
     """
+    qmes = estimhab_dict["q"]
+    width = estimhab_dict["w"]
+    height = estimhab_dict["h"]
+    q50 = estimhab_dict["q50"]
+    qrange = estimhab_dict["qrange"]
+    qtarg = estimhab_dict["qtarg"]
+    substrat = estimhab_dict["substrate"]
+    path_bio = estimhab_dict["path_bio"]
+    fish_xml = estimhab_dict["xml_list"]
+    fish_name = estimhab_dict["fish_list"]
+
     # Q
     nb_q = 100  # number of calculated q
     if qrange[1] > qrange[0]:
-        #diff = (qrange[1] - qrange[0]) / nb_q
         if qrange[0] == 0:
             qrange[0] = 10 ** -10  # if exactly zero, you cannot divide anymore
-        #q_all = np.arange(qrange[0], qrange[1] + diff, diff)
         q_all = np.geomspace(start=qrange[0],
                             stop=qrange[1],
                             num=nb_q,
                              endpoint=True)
+        if qtarg:
+            q_all = np.insert(arr=q_all,
+                      obj=np.searchsorted(a=q_all, v=qtarg),
+                      values=qtarg)
     else:
         print('Error: ' + qt_tr.translate("estimhab_mod", 'The mininum discharge is higher or equal than the maximum.'))
         return [-99], [-99], [-99], [-99], [-99], [-99]

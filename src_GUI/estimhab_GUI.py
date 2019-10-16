@@ -24,8 +24,8 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
-    QLineEdit, QFileDialog, QListWidget, QListWidgetItem, \
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
+    QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, QFormLayout, \
     QAbstractItemView, QMessageBox, QScrollArea, QFrame
 from PyQt5.QtGui import QFont
 from multiprocessing import Process, Queue, Value
@@ -61,6 +61,7 @@ class StatModUseful(QScrollArea):
         self.eh2 = QLineEdit()
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
+        self.eqtarget = QLineEdit()
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
         self.msge = QMessageBox()
@@ -376,17 +377,79 @@ class EstimhabW(StatModUseful):
         # load the data if it exist already
         self.open_estimhab_hdf5()
 
-        # Data hydrological (QLineEdit in the init of StatModUseful)
-        l1 = QLabel(self.tr('<b>Hydrological Data</b>'))
-        l2 = QLabel(self.tr('Q [m3/sec]'))
-        l3 = QLabel(self.tr('Width [m]'))
-        l4 = QLabel(self.tr('Height [m]'))
-        l5 = QLabel(self.tr('<b>Median discharge Q50 [m3/sec]</b>'))
-        l6 = QLabel(self.tr('<b> Mean substrate size [m] </b>'))
-        l7 = QLabel(self.tr('<b> Discharge range [m3/sec] </b> (Qmin and Qmax)'))
-        # data fish type
-        l10 = QLabel(self.tr('<b>Available Fish and Guild </b>'))
-        l11 = QLabel(self.tr('Selected Fish'))
+        available_model_label = QLabel(self.tr('Available'))
+        selected_model_label = QLabel(self.tr('Selected'))
+
+        lineedit_width = 50
+        spacer_width = 50
+
+        # input
+        q1_layout = QHBoxLayout()
+        q1_layout.addWidget(QLabel(self.tr("Q1 [m3/sec]")))
+        q1_layout.addWidget(self.eq1)
+        q1_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eq1.setFixedWidth(lineedit_width)
+
+        q2_layout = QHBoxLayout()
+        q2_layout.addWidget(QLabel(self.tr("Q2 [m3/sec]")))
+        q2_layout.addWidget(self.eq2)
+        q2_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eq2.setFixedWidth(lineedit_width)
+
+        w1_layout = QHBoxLayout()
+        w1_layout.addWidget(QLabel(self.tr("Width1 [m]")))
+        w1_layout.addWidget(self.ew1)
+        w1_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.ew1.setFixedWidth(lineedit_width)
+
+        w2_layout = QHBoxLayout()
+        w2_layout.addWidget(QLabel(self.tr("Width2 [m]")))
+        w2_layout.addWidget(self.ew2)
+        w2_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.ew2.setFixedWidth(lineedit_width)
+
+        h1_layout = QHBoxLayout()
+        h1_layout.addWidget(QLabel(self.tr("Height1 [m]")))
+        h1_layout.addWidget(self.eh1)
+        h1_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eh1.setFixedWidth(lineedit_width)
+
+        h2_layout = QHBoxLayout()
+        h2_layout.addWidget(QLabel(self.tr("Height2 [m]")))
+        h2_layout.addWidget(self.eh2)
+        h2_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eh2.setFixedWidth(lineedit_width)
+
+        q50_layout = QHBoxLayout()
+        q50_layout.addWidget(QLabel(self.tr('Qmedian/Q50 [m3/sec]')))
+        q50_layout.addWidget(self.eq50)
+        q50_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eq50.setFixedWidth(lineedit_width)
+
+        sub_layout = QHBoxLayout()
+        sub_layout.addWidget(QLabel(self.tr('Mean substrate size [m]')))
+        sub_layout.addWidget(self.esub)
+        sub_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.esub.setFixedWidth(lineedit_width)
+
+        # output
+        q1out_layout = QHBoxLayout()
+        q1out_layout.addWidget(QLabel(self.tr("Qmin [m3/sec]")))
+        q1out_layout.addWidget(self.eqmin)
+        q1out_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eqmin.setFixedWidth(lineedit_width)
+
+        q2out_layout = QHBoxLayout()
+        q2out_layout.addWidget(QLabel(self.tr("Qmax [m3/sec]")))
+        q2out_layout.addWidget(self.eqmax)
+        q2out_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eqmax.setFixedWidth(lineedit_width)
+
+        q2target_layout = QHBoxLayout()
+        q2target_layout.addWidget(QLabel(self.tr("Qtarget [m3/sec]")))
+        q2target_layout.addWidget(self.eqtarget)
+        q2target_layout.addItem(QSpacerItem(spacer_width, 1))
+        self.eqtarget.setFixedWidth(lineedit_width)
 
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -411,41 +474,51 @@ class EstimhabW(StatModUseful):
         self.read_fish_name()
 
         # send model
-        button1 = QPushButton(self.tr('Save and Run ESTIMHAB'), self)
+        button1 = QPushButton(self.tr('Run and save ESTIMHAB'), self)
         button1.setStyleSheet("background-color: #47B5E6; color: black")
-        #button1.clicked.connect(self.save_signal_estimhab.emit)
         button1.clicked.connect(self.run_estmihab)
-        # button2 = QPushButton(self.tr('Change folder (fish data)'), self)
-        # button2.clicked.connect(self.change_folder)
 
         # empty frame scrolable
         content_widget = QFrame()
 
-        # layout
-        self.layout3 = QGridLayout(content_widget)
-        self.layout3.addWidget(l1, 0, 0)
-        self.layout3.addWidget(l2, 1, 0)
-        self.layout3.addWidget(l3, 1, 1)
-        self.layout3.addWidget(l4, 1, 2)
-        self.layout3.addWidget(self.eq1, 2, 0)
-        self.layout3.addWidget(self.ew1, 2, 1)
-        self.layout3.addWidget(self.eh1, 2, 2)
-        self.layout3.addWidget(self.eq2, 3, 0)
-        self.layout3.addWidget(self.ew2, 3, 1)
-        self.layout3.addWidget(self.eh2, 3, 2)
-        self.layout3.addWidget(l5, 4, 0)
-        self.layout3.addWidget(self.eq50, 5, 0)
-        self.layout3.addWidget(l6, 4, 1)
-        self.layout3.addWidget(self.esub, 5, 1)
-        self.layout3.addWidget(l7, 6, 0)
-        self.layout3.addWidget(self.eqmin, 7, 0)
-        self.layout3.addWidget(self.eqmax, 7, 1)
-        self.layout3.addWidget(l10, 8, 0)
-        self.layout3.addWidget(l11, 8, 1)
-        self.layout3.addWidget(self.list_f, 9, 0)
-        self.layout3.addWidget(self.selected_aquatic_animal_qtablewidget, 9, 1)
-        self.layout3.addWidget(button1, 10, 2)
-        # self.layout3.addWidget(button2, 10, 0)
+        # hydraulic_data_group
+        hydraulic_data_group = QGroupBox(self.tr('Hydraulic data input'))
+        hydraulic_data_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        hydraulic_data_layout = QGridLayout(hydraulic_data_group)
+        hydraulic_data_layout.addLayout(q1_layout, 0, 0)
+        hydraulic_data_layout.addLayout(w1_layout, 0, 1)
+        hydraulic_data_layout.addLayout(h1_layout, 0, 2)
+        hydraulic_data_layout.addLayout(q2_layout, 1, 0)
+        hydraulic_data_layout.addLayout(w2_layout, 1, 1)
+        hydraulic_data_layout.addLayout(h2_layout, 1, 2)
+        hydraulic_data_layout.addLayout(q50_layout, 2, 0)
+        hydraulic_data_layout.addLayout(sub_layout, 2, 1)
+        hydraulic_data_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+
+        # hydraulic_data_output_group
+        hydraulic_data_output_group = QGroupBox(self.tr('Hydraulic data desired'))
+        hydraulic_data_output_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
+        hydraulic_data_layout.addLayout(q1out_layout, 0, 0)
+        hydraulic_data_layout.addLayout(q2out_layout, 0, 1)
+        hydraulic_data_layout.addLayout(q2target_layout, 0, 2)
+        hydraulic_data_output_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+
+        # models_group
+        models_group = QGroupBox(self.tr('Biological models'))
+        models_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        models_layout = QGridLayout(models_group)
+        models_layout.addWidget(available_model_label, 0, 0)
+        models_layout.addWidget(selected_model_label, 0, 1)
+        models_layout.addWidget(self.list_f, 1, 0)
+        models_layout.addWidget(self.selected_aquatic_animal_qtablewidget, 1, 1)
+        models_layout.addWidget(button1, 2, 1)
+
+        # gereral_layout
+        self.layout3 = QVBoxLayout(content_widget)
+        self.layout3.addWidget(hydraulic_data_group, Qt.AlignLeft)
+        self.layout3.addWidget(hydraulic_data_output_group)
+        self.layout3.addWidget(models_group)
 
         # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
@@ -547,6 +620,7 @@ class EstimhabW(StatModUseful):
                     self.eq50.setText(str(hdf5.estimhab_dict["q50"]))
                     self.eqmin.setText(str(hdf5.estimhab_dict["qrange"][0]))
                     self.eqmax.setText(str(hdf5.estimhab_dict["qrange"][1]))
+                    self.eqtarget.setText(str(hdf5.estimhab_dict["qtarg"]))
                     self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
 
                 else:
@@ -597,6 +671,10 @@ class EstimhabW(StatModUseful):
             h = [float(self.eh1.text().replace(",", ".")), float(self.eh2.text().replace(",", "."))]
             q50 = float(self.eq50.text().replace(",", "."))
             qrange = [float(self.eqmin.text().replace(",", ".")), float(self.eqmax.text().replace(",", "."))]
+            if self.eqtarget.text():
+                qtarg = float(self.eqtarget.text().replace(",", "."))
+            else:
+                qtarg = None
             substrate = float(self.esub.text().replace(",", "."))
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
@@ -617,6 +695,11 @@ class EstimhabW(StatModUseful):
         if qrange[0] >= qrange[1]:
             self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
             return
+        if qtarg:
+            if qtarg < qrange[0] or qtarg > qrange[1]:
+                self.send_log.emit(
+                    'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run Estimhab.'))
+                return
         if q[0] == q[1]:
             self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
             return
@@ -653,6 +736,7 @@ class EstimhabW(StatModUseful):
                              h=h,
                              q50=q50,
                              qrange=qrange,
+                             qtarg=qtarg,
                              substrate=substrate,
                              path_bio=self.path_bio_estimhab,
                              xml_list=fish_list,
