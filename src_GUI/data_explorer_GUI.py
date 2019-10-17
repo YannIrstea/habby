@@ -18,7 +18,7 @@ import os
 from multiprocessing import Process, Value
 
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
-from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, \
     QSizePolicy, QScrollArea, QTableView, QMenu, QAction
 
@@ -57,15 +57,6 @@ class DataExplorerTab(QScrollArea):
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
-
-        # # empty frame scrolable
-        # content_widget = QFrame()
-
-        # # add widgets to layout
-        # self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
-        # self.plot_layout.setAlignment(Qt.AlignTop)
-        # self.plot_layout.addWidget(self.data_explorer_frame)
-        # self.data_explorer_frame.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         # add layout
         self.setWidgetResizable(True)
@@ -106,6 +97,7 @@ class DataExplorerFrame(QFrame):
         #self.setTitle(self.tr('HABBY data explorer'))
         #self.setStyleSheet('QGroupBox {font-weight: bold;}')
 
+        verticalSpacer = QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Expanding)
         """ File selection """
         # hab_filenames_qcombobox
         self.types_hdf5_QLabel = QLabel(self.tr('file types'))
@@ -113,87 +105,71 @@ class DataExplorerFrame(QFrame):
         self.types_hdf5_list = ["", "hydraulic", "substrate", "habitat"]
         self.types_hdf5_QComboBox.addItems(self.types_hdf5_list)
         self.types_hdf5_QComboBox.currentIndexChanged.connect(self.types_hdf5_change)
-        self.types_hdf5_layout = QVBoxLayout()
-        self.types_hdf5_layout.setAlignment(Qt.AlignTop)
-        self.types_hdf5_layout.addWidget(self.types_hdf5_QLabel)
-        self.types_hdf5_layout.addWidget(self.types_hdf5_QComboBox)
-
-        # available_units_qlistwidget
         self.names_hdf5_QLabel = QLabel(self.tr('filenames'))
         self.names_hdf5_QListWidget = QListWidget()
-        self.names_hdf5_QListWidget.setMinimumWidth(250)
+        #self.names_hdf5_QListWidget.setMinimumWidth(150)
+        self.names_hdf5_QListWidget.setMaximumHeight(100)
         self.names_hdf5_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.names_hdf5_QListWidget.itemSelectionChanged.connect(self.names_hdf5_change)
         self.names_hdf5_QListWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.names_hdf5_QListWidget.customContextMenuRequested.connect(self.show_menu_hdf5_remover)
+
+        """ types_hdf5_layout """
+        self.types_hdf5_layout = QVBoxLayout()
+        self.types_hdf5_layout.setAlignment(Qt.AlignTop)
+        self.types_hdf5_layout.addWidget(self.types_hdf5_QLabel)
+        self.types_hdf5_layout.addWidget(self.types_hdf5_QComboBox)
+        #self.types_hdf5_layout.addStretch()
+
+
+        """ names_hdf5_layout """
         self.names_hdf5_layout = QVBoxLayout()
         self.names_hdf5_layout.setAlignment(Qt.AlignTop)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QLabel)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QListWidget)
+        #self.names_hdf5_layout.addStretch()
 
-        """ Figure producer """
+        """ plot_group """
         self.plot_group = FigureProducerGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Figure viewer/exporter"))
         self.plot_group.setChecked(False)
         self.plot_group.hide()
 
-        """ export """
-        # interpolation group
+        """ dataexporter_group """
         self.dataexporter_group = DataExporterGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Data exporter"))
         self.dataexporter_group.setChecked(False)
         self.dataexporter_group.hide()
 
-        """ remove_fish """
+        """ habitatvalueremover_group """
         self.habitatvalueremover_group = HabitatValueRemover(self.path_prj, self.name_prj, self.send_log, self.tr("Habitat value remover"))
         self.habitatvalueremover_group.setChecked(False)
         self.habitatvalueremover_group.hide()
 
-        """ File information """
-        # attributes hdf5
-        self.hdf5_attributes_qtableview = QTableView(self)
-        self.hdf5_attributes_qtableview.setFrameShape(QFrame.NoFrame)
-        self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.hdf5_attributes_qtableview.verticalHeader().setVisible(False)
-        self.hdf5_attributes_qtableview.horizontalHeader().setVisible(False)
+        """ file_information_group """
+        self.file_information_group = FileInformation(self.path_prj, self.name_prj, self.send_log, self.tr("File informations"))
+        self.file_information_group.setChecked(False)
+        self.file_information_group.hide()
 
-        """ File selection """
-        # SELECTION FILE
+        """ selectionfile_layout """
         selectionfile_layout = QHBoxLayout()
         selectionfile_layout.addLayout(self.types_hdf5_layout)
         selectionfile_layout.addLayout(self.names_hdf5_layout)
-        selectionfile_group = QGroupBox(self.tr("File selection"))
-        selectionfile_group.setLayout(selectionfile_layout)
-
-        """ File information """
-        # ATTRIBUTE GROUP
-        attributes_layout = QVBoxLayout()
-        attributes_layout.addWidget(self.hdf5_attributes_qtableview)
-        attributes_group = QGroupBox(self.tr("File informations"))
-        attributes_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        attributes_group.setLayout(attributes_layout)
-
-        # first line layout (selection + (graphic+export))
-        hbox_layout = QHBoxLayout()
-        hbox_layout.addWidget(selectionfile_group, stretch=1)
-
-        vbox_plot_export_layout = QVBoxLayout()
-        vbox_plot_export_layout.addWidget(self.plot_group)
-        vbox_plot_export_layout.addWidget(self.dataexporter_group)
-        vbox_plot_export_layout.addWidget(self.habitatvalueremover_group)
-        vbox_plot_export_layout.setAlignment(Qt.AlignTop)
-        hbox_layout.addLayout(vbox_plot_export_layout, stretch=1)
-
-        # second line layout (attribute)
-        vbox_layout = QVBoxLayout()
-        vbox_layout.addWidget(attributes_group)
+        selectionfile_layout.setAlignment(Qt.AlignTop)
 
         # global layout
-        global_layout = QVBoxLayout(self)
-        global_layout.addLayout(hbox_layout)
-        global_layout.addLayout(vbox_layout)
+        global_layout = QVBoxLayout()
+        global_layout.setAlignment(Qt.AlignTop)
+        global_layout.addLayout(selectionfile_layout)
+        global_layout.addWidget(self.file_information_group)
+        global_layout.addWidget(self.plot_group)
+        global_layout.addWidget(self.dataexporter_group)
+        global_layout.addWidget(self.habitatvalueremover_group)
+        # global_layout.addItem(verticalSpacer)
+        global_layout.addStretch()
 
         # add layout to group
+        self.setLayout(global_layout)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         self.setFrameShape(QFrame.NoFrame)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     def resize_width_lists(self):
         # names
@@ -230,6 +206,7 @@ class DataExplorerFrame(QFrame):
             self.dataexporter_group.change_layout(0)
             self.dataexporter_group.hide()
             self.habitatvalueremover_group.hide()
+            self.file_information_group.hide()
         # hydraulic
         if index == 1:
             names = hdf5_mod.get_filename_by_type("hydraulic", os.path.join(self.path_prj, "hdf5"))
@@ -240,6 +217,7 @@ class DataExplorerFrame(QFrame):
             self.plot_group.show()
             self.dataexporter_group.show()
             self.habitatvalueremover_group.hide()
+            self.file_information_group.show()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -256,6 +234,7 @@ class DataExplorerFrame(QFrame):
             self.plot_group.show()
             self.dataexporter_group.show()
             self.habitatvalueremover_group.hide()
+            self.file_information_group.show()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -272,6 +251,7 @@ class DataExplorerFrame(QFrame):
             self.plot_group.show()
             self.dataexporter_group.show()
             self.habitatvalueremover_group.show()
+            self.file_information_group.show()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -326,6 +306,7 @@ class DataExplorerFrame(QFrame):
                             self.plot_group.reach_QListWidget.selectAll()
                             if hdf5.nb_unit == 1:
                                 self.plot_group.units_QListWidget.selectAll()
+
             # hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
@@ -339,14 +320,14 @@ class DataExplorerFrame(QFrame):
 
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
-            self.hdf5_attributes_qtableview.setModel(tablemodel)
-            header = self.hdf5_attributes_qtableview.horizontalHeader()
+            self.file_information_group.hdf5_attributes_qtableview.setModel(tablemodel)
+            header = self.file_information_group.hdf5_attributes_qtableview.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
             header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.hdf5_attributes_qtableview.verticalHeader().setDefaultSectionSize(self.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
+            self.file_information_group.hdf5_attributes_qtableview.verticalHeader().setDefaultSectionSize(self.file_information_group.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
 
         else:
-            self.hdf5_attributes_qtableview.setModel(None)
+            self.file_information_group.hdf5_attributes_qtableview.setModel(None)
 
         # count plot
         self.plot_group.count_plot()
@@ -1251,10 +1232,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.export_process_list.progress_bar.setValue(0)
             self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
-
-
-
-
     def start_export(self):
         types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
         if not types_hdf5:
@@ -1454,7 +1431,7 @@ class HabitatValueRemover(QGroupBoxCollapsible):
         if len(file_selection) == 1:
             hdf5name = file_selection[0].text()
         else:
-            print("Warning: No file selected.")
+            self.send_log.emit('Warning: ' + self.tr('No file selected.'))
             return
 
         # selected fish
@@ -1470,6 +1447,37 @@ class HabitatValueRemover(QGroupBoxCollapsible):
 
         # refresh
         self.parent().names_hdf5_change()
+
+
+class FileInformation(QGroupBoxCollapsible):
+    """
+    This class is a subclass of class QGroupBox.
+    """
+
+    def __init__(self, path_prj, name_prj, send_log, title):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.send_log = send_log
+        self.setTitle(title)
+        self.plot_process_list = MyProcessList("plot")
+        self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity",
+                                    "sub_coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress"]
+        self.init_ui()
+
+    def init_ui(self):
+        # attributes hdf5
+        self.hdf5_attributes_qtableview = QTableView(self)
+        self.hdf5_attributes_qtableview.setFrameShape(QFrame.NoFrame)
+        self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.hdf5_attributes_qtableview.verticalHeader().setVisible(False)
+        self.hdf5_attributes_qtableview.horizontalHeader().setVisible(False)
+
+        # ATTRIBUTE GROUP
+        attributes_layout = QVBoxLayout()
+        attributes_layout.addWidget(self.hdf5_attributes_qtableview)
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.setLayout(attributes_layout)
 
 
 class MyTableModel(QAbstractTableModel):
