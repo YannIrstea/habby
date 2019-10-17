@@ -24,14 +24,15 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
-    QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, QFormLayout, \
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
+    QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, \
     QAbstractItemView, QMessageBox, QScrollArea, QFrame
-from PyQt5.QtGui import QFont
-from multiprocessing import Process, Queue, Value
+from PyQt5.QtGui import QFont, QIcon
+from multiprocessing import Process, Value
 import sys
 from io import StringIO
 from src import hdf5_mod
+from src.tools_mod import DoubleClicOutputGroup
 from src_GUI.data_explorer_GUI import MyProcessList
 from src.project_manag_mod import load_project_preferences
 
@@ -62,6 +63,9 @@ class StatModUseful(QScrollArea):
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
         self.eqtarget = QLineEdit()
+        self.add_qtarget_button = QPushButton()
+        self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "plus.png")))
+        self.add_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
         self.msge = QMessageBox()
@@ -337,6 +341,7 @@ class EstimhabW(StatModUseful):
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
         self.plot_process_list = MyProcessList("estimhab")
+        self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []
         self.filenames = []  # a list which link the name of the fish name and the xml file
@@ -380,76 +385,75 @@ class EstimhabW(StatModUseful):
         available_model_label = QLabel(self.tr('Available'))
         selected_model_label = QLabel(self.tr('Selected'))
 
-        lineedit_width = 50
-        spacer_width = 50
+        self.lineedit_width = 50
+        self.spacer_width = 50
 
         # input
         q1_layout = QHBoxLayout()
         q1_layout.addWidget(QLabel(self.tr("Q1 [m3/sec]")))
         q1_layout.addWidget(self.eq1)
-        q1_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eq1.setFixedWidth(lineedit_width)
+        q1_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eq1.setFixedWidth(self.lineedit_width)
 
         q2_layout = QHBoxLayout()
         q2_layout.addWidget(QLabel(self.tr("Q2 [m3/sec]")))
         q2_layout.addWidget(self.eq2)
-        q2_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eq2.setFixedWidth(lineedit_width)
+        q2_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eq2.setFixedWidth(self.lineedit_width)
 
         w1_layout = QHBoxLayout()
         w1_layout.addWidget(QLabel(self.tr("Width1 [m]")))
         w1_layout.addWidget(self.ew1)
-        w1_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.ew1.setFixedWidth(lineedit_width)
+        w1_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.ew1.setFixedWidth(self.lineedit_width)
 
         w2_layout = QHBoxLayout()
         w2_layout.addWidget(QLabel(self.tr("Width2 [m]")))
         w2_layout.addWidget(self.ew2)
-        w2_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.ew2.setFixedWidth(lineedit_width)
+        w2_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.ew2.setFixedWidth(self.lineedit_width)
 
         h1_layout = QHBoxLayout()
         h1_layout.addWidget(QLabel(self.tr("Height1 [m]")))
         h1_layout.addWidget(self.eh1)
-        h1_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eh1.setFixedWidth(lineedit_width)
+        self.eh1.setFixedWidth(self.lineedit_width)
 
         h2_layout = QHBoxLayout()
         h2_layout.addWidget(QLabel(self.tr("Height2 [m]")))
         h2_layout.addWidget(self.eh2)
-        h2_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eh2.setFixedWidth(lineedit_width)
+        self.eh2.setFixedWidth(self.lineedit_width)
 
         q50_layout = QHBoxLayout()
         q50_layout.addWidget(QLabel(self.tr('Qmedian/Q50 [m3/sec]')))
         q50_layout.addWidget(self.eq50)
-        q50_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eq50.setFixedWidth(lineedit_width)
+        q50_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eq50.setFixedWidth(self.lineedit_width)
 
         sub_layout = QHBoxLayout()
         sub_layout.addWidget(QLabel(self.tr('Mean substrate size [m]')))
         sub_layout.addWidget(self.esub)
-        sub_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.esub.setFixedWidth(lineedit_width)
+        sub_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.esub.setFixedWidth(self.lineedit_width)
 
         # output
         q1out_layout = QHBoxLayout()
         q1out_layout.addWidget(QLabel(self.tr("Qmin [m3/sec]")))
         q1out_layout.addWidget(self.eqmin)
-        q1out_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eqmin.setFixedWidth(lineedit_width)
+        q1out_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eqmin.setFixedWidth(self.lineedit_width)
 
         q2out_layout = QHBoxLayout()
         q2out_layout.addWidget(QLabel(self.tr("Qmax [m3/sec]")))
         q2out_layout.addWidget(self.eqmax)
-        q2out_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eqmax.setFixedWidth(lineedit_width)
+        q2out_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eqmax.setFixedWidth(self.lineedit_width)
 
-        q2target_layout = QHBoxLayout()
-        q2target_layout.addWidget(QLabel(self.tr("Qtarget [m3/sec]")))
-        q2target_layout.addWidget(self.eqtarget)
-        q2target_layout.addItem(QSpacerItem(spacer_width, 1))
-        self.eqtarget.setFixedWidth(lineedit_width)
+        self.q2target_layout = QHBoxLayout()
+        self.q2target_layout.addWidget(QLabel(self.tr("Qtarget [m3/sec]")))
+        self.q2target_layout.addWidget(self.eqtarget)
+        self.q2target_layout.addWidget(self.add_qtarget_button)
+        self.add_qtarget_button.clicked.connect(self.add_new_qtarget)
+        self.eqtarget.setFixedWidth(self.lineedit_width)
 
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -493,14 +497,20 @@ class EstimhabW(StatModUseful):
         hydraulic_data_layout.addLayout(q50_layout, 2, 0)
         hydraulic_data_layout.addLayout(sub_layout, 2, 1)
         hydraulic_data_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.doubleclick_input_group = DoubleClicOutputGroup()
+        hydraulic_data_group.installEventFilter(self.doubleclick_input_group)
+        self.doubleclick_input_group.double_clic_signal.connect(self.reset_hydraulic_data_input_group)
 
         # hydraulic_data_output_group
         hydraulic_data_output_group = QGroupBox(self.tr('Hydraulic data desired'))
         hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
         hydraulic_data_layout.addLayout(q1out_layout, 0, 0)
         hydraulic_data_layout.addLayout(q2out_layout, 0, 1)
-        hydraulic_data_layout.addLayout(q2target_layout, 0, 2)
+        hydraulic_data_layout.addLayout(self.q2target_layout, 0, 2)
         hydraulic_data_output_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.doubleclick_output_group = DoubleClicOutputGroup()
+        hydraulic_data_output_group.installEventFilter(self.doubleclick_output_group)
+        self.doubleclick_output_group.double_clic_signal.connect(self.reset_hydraulic_data_output_group)
 
         # models_group
         models_group = QGroupBox(self.tr('Biological models'))
@@ -510,6 +520,9 @@ class EstimhabW(StatModUseful):
         models_layout.addWidget(self.list_f, 1, 0)
         models_layout.addWidget(self.selected_aquatic_animal_qtablewidget, 1, 1)
         models_layout.addWidget(button1, 2, 1)
+        self.doubleclick_models_group = DoubleClicOutputGroup()
+        models_group.installEventFilter(self.doubleclick_models_group)
+        self.doubleclick_models_group.double_clic_signal.connect(self.reset_models_group)
 
         # gereral_layout
         self.layout3 = QVBoxLayout(content_widget)
@@ -521,6 +534,42 @@ class EstimhabW(StatModUseful):
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
+
+    def add_new_qtarget(self):
+        # count existing number of lineedit
+        total_widget_number = self.q2target_layout.count()
+        self.total_lineedit_number = total_widget_number - 2  # first : qlabel and last : qpushbutton
+        setattr(self, 'new_qtarget' + str(total_widget_number - 1), QLineEdit())
+        getattr(self, 'new_qtarget' + str(total_widget_number - 1)).setFixedWidth(self.lineedit_width)
+        self.q2target_layout.insertWidget(total_widget_number - 1, getattr(self, 'new_qtarget' + str(total_widget_number - 1)))
+        self.total_lineedit_number = self.total_lineedit_number + 1
+
+    def reset_hydraulic_data_input_group(self):
+        print("reset_hydraulic_data_input_group")
+        # remove txt in lineedit
+        self.eq1.setText("")
+        self.eq2.setText("")
+        self.ew1.setText("")
+        self.ew2.setText("")
+        self.eh1.setText("")
+        self.eh2.setText("")
+        self.eq50.setText("")
+        self.esub.setText("")
+
+    def reset_hydraulic_data_output_group(self):
+        # remove txt in lineedit
+        self.eqmin.setText("")
+        self.eqmax.setText("")
+        self.eqtarget.setText("")
+        # remove lineedits qtarget
+        for i in reversed(range(2, self.q2target_layout.count() - 1)):
+            self.q2target_layout.itemAt(i).widget().setParent(None)
+            self.total_lineedit_number = self.total_lineedit_number - 1
+
+    def reset_models_group(self):
+        if self.selected_aquatic_animal_qtablewidget.count() > 0:
+            self.selected_aquatic_animal_qtablewidget.clear()
+            self.read_fish_name()
 
     def read_fish_name(self):
         """

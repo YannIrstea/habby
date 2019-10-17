@@ -26,7 +26,7 @@ from src import hdf5_mod
 from src import plot_mod
 from src.tools_mod import MyProcessList
 from src.project_manag_mod import load_project_preferences
-from src_GUI.preferences_GUI import QHLine, DoubleClicOutputGroup
+from src.tools_mod import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
 
 
