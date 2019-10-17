@@ -483,7 +483,6 @@ class EstimhabW(StatModUseful):
 
         # hydraulic_data_group
         hydraulic_data_group = QGroupBox(self.tr('Hydraulic data input'))
-        hydraulic_data_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hydraulic_data_layout = QGridLayout(hydraulic_data_group)
         hydraulic_data_layout.addLayout(q1_layout, 0, 0)
         hydraulic_data_layout.addLayout(w1_layout, 0, 1)
@@ -497,7 +496,6 @@ class EstimhabW(StatModUseful):
 
         # hydraulic_data_output_group
         hydraulic_data_output_group = QGroupBox(self.tr('Hydraulic data desired'))
-        hydraulic_data_output_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
         hydraulic_data_layout.addLayout(q1out_layout, 0, 0)
         hydraulic_data_layout.addLayout(q2out_layout, 0, 1)
@@ -506,7 +504,6 @@ class EstimhabW(StatModUseful):
 
         # models_group
         models_group = QGroupBox(self.tr('Biological models'))
-        models_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         models_layout = QGridLayout(models_group)
         models_layout.addWidget(available_model_label, 0, 0)
         models_layout.addWidget(selected_model_label, 0, 1)

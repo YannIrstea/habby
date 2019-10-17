@@ -2641,7 +2641,7 @@ class SoftInformationDialog(QDialog):
         layout_general_options = QFormLayout()
         general_options_group = QGroupBox(self.tr("HABBY version"))
         general_options_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         general_options_group.setLayout(layout_general_options)
         layout_general_options.addRow(actual_version_label_title, actual_version_label)
         layout_general_options.addRow(last_version_label_title, self.last_version_label)

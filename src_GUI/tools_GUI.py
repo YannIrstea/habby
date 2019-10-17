@@ -72,7 +72,7 @@ class ToolsTab(QScrollArea):
 
         # vertical layout
         self.setWidget(tools_frame)
-        global_layout = QVBoxLayout(self)
+        global_layout = QVBoxLayout()
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
         global_layout.addWidget(self.interpolation_group)

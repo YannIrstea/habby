@@ -219,7 +219,7 @@ class Hydro2W(QScrollArea):
 
         # layout hydraulic model
         hydrau_group = QGroupBox(self.tr('Hydraulic data'))
-        hydrau_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #hydrau_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hydrau_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.mod, Qt.AlignLeft)
@@ -233,7 +233,7 @@ class Hydro2W(QScrollArea):
 
         # layout hdf5 model
         hdf5_group = QGroupBox(self.tr('.hyd files created'))
-        hdf5_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #hdf5_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hdf5_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         hdf5_layout = QHBoxLayout()
         hdf5_layout.addWidget(self.drop_hyd)
@@ -5816,7 +5816,7 @@ class SubstrateW(SubHydroW):
         self.point_group.hide()
         self.constant_group.hide()
         susbtrate_group = QGroupBox(self.tr('Substrate data'))
-        susbtrate_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #susbtrate_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         susbtrate_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         susbtrate_group.setLayout(self.layout_sub)
 
@@ -5833,7 +5833,7 @@ class SubstrateW(SubHydroW):
         self.layout_merge.addWidget(self.last_merge_file_name_label, 3, 1)
         [self.layout_merge.setRowMinimumHeight(i, 30) for i in range(self.layout_merge.rowCount())]
         merge_group = QGroupBox(self.tr('Merging of hydraulic and substrate data'))
-        merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         merge_group.setLayout(self.layout_merge)
 

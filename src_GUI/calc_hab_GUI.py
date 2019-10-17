@@ -134,7 +134,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.setPalette(p)
 
         # the available merged data
-        l0 = QLabel(self.tr('<b> Habitat file(s) </b>'))
+        l0 = QLabel(self.tr('Habitat file(s)'))
         self.m_all = QComboBox()
         self.m_all.currentTextChanged.connect(lambda: self.fill_selected_models_listwidets([]))
         self.m_all.setSizeAdjustPolicy(QComboBox.AdjustToContents)
