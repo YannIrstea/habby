@@ -3956,6 +3956,13 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 return
             self.hydrau_description["epsg_code"] = self.epsg_label.text()
 
+
+        # check if extension is set by user (one hdf5 case)
+        self.name_hdf5 = self.hname.text()
+        if self.name_hdf5 == "":
+            self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
+            return
+
         # for error management and figures
         self.timer.start(100)
 
@@ -3967,8 +3974,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
 
-        # check if extension is set by user (one hdf5 case)
-        self.name_hdf5 = self.hname.text()
         if not self.multi_hdf5:
             if not os.path.splitext(self.name_hdf5)[1]:
                 self.name_hdf5 = self.name_hdf5 + ".hyd"
@@ -6196,7 +6201,7 @@ class SubstrateW(SubHydroW):
                 return
             # output_name_hdf5
             if not self.polygon_hname.text():
-                self.send_log.emit('Error: ' + self.tr('filename output is empty. Please specify it.'))
+                self.send_log.emit('Error: ' + self.tr('.sub output filename is empty. Please specify it.'))
                 return
         if sub_mapping_method == 'point':
             # input_filename
@@ -6205,7 +6210,7 @@ class SubstrateW(SubHydroW):
                 return
             # output_name_hdf5
             if not self.point_hname.text():
-                self.send_log.emit('Error: ' + self.tr('filename output is empty. Please specify it.'))
+                self.send_log.emit('Error: ' + self.tr('.sub output filename is empty. Please specify it.'))
                 return
         if sub_mapping_method == 'constant':
             # input_filename
@@ -6214,7 +6219,7 @@ class SubstrateW(SubHydroW):
                 return
             # output_name_hdf5
             if not self.constant_hname.text():
-                self.send_log.emit('Error: ' + self.tr('filename output is empty. Please specify it.'))
+                self.send_log.emit('Error: ' + self.tr('.sub output filename is empty. Please specify it.'))
                 return
 
         # info
