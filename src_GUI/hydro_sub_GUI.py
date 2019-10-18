@@ -48,6 +48,7 @@ from src import lammi_mod
 from src import paraview_mod
 from src import hydro_input_file_mod
 from src import ascii_mod
+from src.tools_mod import QGroupBoxCollapsible
 from src.user_preferences_mod import user_preferences
 from src.project_manag_mod import load_project_preferences
 np.set_printoptions(threshold=np.inf)
@@ -218,7 +219,9 @@ class Hydro2W(QScrollArea):
         self.layout = QVBoxLayout(content_widget)
 
         # layout hydraulic model
-        hydrau_group = QGroupBox(self.tr('Hydraulic data'))
+        #hydrau_group = QGroupBox(self.tr('Hydraulic data'))
+        hydrau_group = QGroupBoxCollapsible()
+        hydrau_group.setTitle(self.tr('Hydraulic data'))
         #hydrau_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hydrau_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         button_layout = QHBoxLayout()
@@ -5815,7 +5818,8 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addItem(laste_hdf5_sub_layout, 6, 0, 1, 4, Qt.AlignLeft)
         self.point_group.hide()
         self.constant_group.hide()
-        susbtrate_group = QGroupBox(self.tr('Substrate data'))
+        susbtrate_group = QGroupBoxCollapsible()
+        susbtrate_group.setTitle(self.tr('Substrate data'))
         #susbtrate_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         susbtrate_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         susbtrate_group.setLayout(self.layout_sub)
@@ -5832,10 +5836,12 @@ class SubstrateW(SubHydroW):
         self.layout_merge.addWidget(lm1, 3, 0)
         self.layout_merge.addWidget(self.last_merge_file_name_label, 3, 1)
         [self.layout_merge.setRowMinimumHeight(i, 30) for i in range(self.layout_merge.rowCount())]
-        merge_group = QGroupBox(self.tr('Merging of hydraulic and substrate data'))
+        merge_group = QGroupBoxCollapsible()
+        merge_group.setTitle(self.tr('Merging of hydraulic and substrate data'))
         #merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         merge_group.setLayout(self.layout_merge)
+        merge_group.setChecked(False)
 
         # empty frame scrolable
         content_widget = QFrame()
