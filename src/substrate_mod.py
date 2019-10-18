@@ -912,6 +912,56 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     # Coord
     point_in = np.vstack((np.array(x), np.array(y))).T
 
+    """ save substrate_point_shp """
+    name, ext = os.path.splitext(filename)
+    name = name + "_from_txt"
+    sub_filename_voronoi_shp = name + '.shp'
+    sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
+    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+    ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
+    crs = osr.SpatialReference()
+    if sub_epsg_code != "unknown":
+        try:
+            crs.ImportFromEPSG(int(sub_epsg_code))
+        except:
+            print("Warning : Can't write .prj from EPSG code :", sub_epsg_code)
+
+    if not crs.ExportToWkt():  # '' == crs unknown
+        layer = ds.CreateLayer(name=name, geom_type=ogr.wkbPoint)
+    else:  # crs known
+        layer = ds.CreateLayer(name=name, srs=crs, geom_type=ogr.wkbPoint)
+
+    if sub_classification_method == 'coarser-dominant':
+        layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))  # Add one attribute
+        layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))  # Add one attribute
+    if sub_classification_method == 'percentage':
+        for i in range(sub_class_number):
+            layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))  # Add one attribute
+
+    defn = layer.GetLayerDefn()
+    field_names = [defn.GetFieldDefn(i).GetName() for i in range(defn.GetFieldCount())]
+
+    layer.StartTransaction()  # faster
+    for i in range(point_in.shape[0]):
+        # create geom
+        point_geom = ogr.Geometry(ogr.wkbPoint)  # Create ring
+        point_geom.AddPoint(*point_in[i])
+
+        # Create a new feature
+        feat = ogr.Feature(defn)
+        for field_num, field in enumerate(field_names):
+            feat.SetField(field, sub_array[field_num][i])
+        # set geometry
+        feat.SetGeometry(point_geom)
+        # create
+        layer.CreateFeature(feat)
+
+    # Save and close everything
+    layer.CommitTransaction()  # faster
+
+    # close file
+    ds.Destroy()
+
     # translation ovtherwise numerical problems some voronoi cells may content several points
     min_x = min([pt[0] for pt in point_in])
     min_y = min([pt[1] for pt in point_in])
@@ -979,7 +1029,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     sub_array2 = [np.zeros(len(regions), ) for i in range(sub_class_number)]
 
     # filename output
-    name, ext = os.path.splitext(filename)
+    #name, ext = os.path.splitext(filename)
     sub_filename_voronoi_shp = name + '_voronoi' + '.shp'
     sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
     driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
