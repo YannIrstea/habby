@@ -6196,7 +6196,7 @@ class SubstrateW(SubHydroW):
         # if hdf5_filename_output empty: msg
         if sub_mapping_method == 'polygon':
             # input_filename
-            if self.file_polygon_label.text() == self.namefile[0]:
+            if self.file_polygon_label.text() == "unknown file":
                 self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
                 return
             # output_name_hdf5
@@ -6205,7 +6205,7 @@ class SubstrateW(SubHydroW):
                 return
         if sub_mapping_method == 'point':
             # input_filename
-            if self.file_point_label.text() == self.namefile[0]:
+            if self.file_point_label.text() == "unknown file":
                 self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
                 return
             # output_name_hdf5
@@ -6214,7 +6214,7 @@ class SubstrateW(SubHydroW):
                 return
         if sub_mapping_method == 'constant':
             # input_filename
-            if self.file_constant_label.text() == self.namefile[0]:
+            if self.file_constant_label.text() == "unknown file":
                 self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
                 return
             # output_name_hdf5
