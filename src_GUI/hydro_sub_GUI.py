@@ -6190,16 +6190,31 @@ class SubstrateW(SubHydroW):
         self.data_type = "SUBSTRATE"
         # if hdf5_filename_output empty: msg
         if sub_mapping_method == 'polygon':
+            # input_filename
+            if self.file_polygon_label.text() == self.namefile[0]:
+                self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
+                return
+            # output_name_hdf5
             if not self.polygon_hname.text():
-                self.send_log.emit(self.tr('Warning: filename output is empty. Please specify it.'))
+                self.send_log.emit('Error: ' + self.tr('filename output is empty. Please specify it.'))
                 return
         if sub_mapping_method == 'point':
+            # input_filename
+            if self.file_point_label.text() == self.namefile[0]:
+                self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
+                return
+            # output_name_hdf5
             if not self.point_hname.text():
-                self.send_log.emit(self.tr('Warning: filename output is empty. Please specify it.'))
+                self.send_log.emit('Error: ' + self.tr('filename output is empty. Please specify it.'))
                 return
         if sub_mapping_method == 'constant':
+            # input_filename
+            if self.file_constant_label.text() == self.namefile[0]:
+                self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
+                return
+            # output_name_hdf5
             if not self.constant_hname.text():
-                self.send_log.emit(self.tr('Warning: filename output is empty. Please specify it.'))
+                self.send_log.emit('Error: ' + self.tr('filename output is empty. Please specify it.'))
                 return
 
         # info
