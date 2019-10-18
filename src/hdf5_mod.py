@@ -1327,7 +1327,6 @@ class Hdf5Management:
         self.file_object.create_dataset("hmes", [2, 1], data=estimhab_dict["h"])
         self.file_object.create_dataset("q50", [1, 1], data=estimhab_dict["q50"])
         self.file_object.create_dataset("qrange", [2, 1], data=estimhab_dict["qrange"])
-        self.file_object.create_dataset("qtarg", [1, 1], data=estimhab_dict["qtarg"])
         self.file_object.create_dataset("substrate", [1, 1], data=estimhab_dict["substrate"])
         xml_list = [n.encode("ascii", "ignore") for n in estimhab_dict["xml_list"]]  # unicode is not ok with hdf5
         fish_list = [n.encode("ascii", "ignore") for n in estimhab_dict["fish_list"]]  # unicode is not ok with hdf5
@@ -1341,6 +1340,10 @@ class Hdf5Management:
         self.file_object.create_dataset("vel_all", estimhab_dict["vel_all"].shape, data=estimhab_dict["vel_all"])
         self.file_object.create_dataset("VH", estimhab_dict["VH"].shape, data=estimhab_dict["VH"])
         self.file_object.create_dataset("SPU", estimhab_dict["SPU"].shape, data=estimhab_dict["SPU"])
+
+        # targ
+        for k, v in estimhab_dict["qtarg_dict"].items():
+            self.file_object.create_dataset("targ_" + k, data=v)
 
         # close
         self.file_object.close()
@@ -1358,7 +1361,6 @@ class Hdf5Management:
                              h=self.file_object["hmes"][:].flatten().tolist(),
                              q50=self.file_object["q50"][:].flatten().tolist()[0],
                              qrange=self.file_object["qrange"][:].flatten().tolist(),
-                             qtarg=self.file_object["qtarg"][:].flatten().tolist()[0],
                              substrate=self.file_object["substrate"][:].flatten().tolist()[0],
                              path_bio=self.file_object.attrs["path_bio_estimhab"],
                              xml_list=self.file_object["xml_list"][:].flatten().astype(np.str).tolist(),
@@ -1369,6 +1371,10 @@ class Hdf5Management:
                              vel_all=self.file_object["vel_all"][:],
                              VH=self.file_object["VH"][:],
                              SPU=self.file_object["SPU"][:])
+
+        # targ
+        for k in ["q_all", "h_all", "w_all", "vel_all", "VH", "SPU"]:
+            estimhab_dict["targ_" + k] = self.file_object["targ_" + k][:]
 
         # close file
         self.file_object.close()
@@ -2507,6 +2513,15 @@ class Hdf5Management:
             txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
             all_data = np.vstack((all_data, VH[f]))
             all_data = np.vstack((all_data, SPU[f]))
+        if len(self.estimhab_dict["targ_q_all"]) != 0:
+            all_data_targ = np.vstack((self.estimhab_dict["targ_q_all"],
+                                       self.estimhab_dict["targ_h_all"],
+                                       self.estimhab_dict["targ_w_all"],
+                                       self.estimhab_dict["targ_vel_all"]))
+            for f in range(0, len(fish_name)):
+                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_VH"], axis=1)[f]))
+                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_SPU"], axis=1)[f]))
+
         txt_header += '\n[m3/sec]\t[m]\t[m]\t[m/s]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
@@ -2526,6 +2541,16 @@ class Hdf5Management:
                        header=txt_header,
                        fmt='%f',
                        delimiter='\t')  # , newline=os.linesep
+        if len(self.estimhab_dict["targ_q_all"]) != 0:
+            f = open(os.path.join(path_txt, output_filename + '.txt'), "a+")
+            np.savetxt(f,
+                       all_data_targ.T,
+                       header="target(s) discharge(s)",
+                       fmt='%f',
+                       delimiter='\t')
+            f.close()
+
+        # change decimal point
         if localeconv()['decimal_point'] == ",":
             txt_file_convert_dot_to_comma(os.path.join(path_txt, output_filename + '.txt'))
 
@@ -2536,6 +2561,11 @@ class Hdf5Management:
         txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
         txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
         txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
+        txtin += 'Discharge target  [m3/sec]:\t'
+        if len(self.estimhab_dict["targ_q_all"]) != 0:
+            for q_tar in self.estimhab_dict["targ_q_all"]:
+                txtin += str(q_tar) + "\t"
+            txtin += "\n"
         txtin += 'Fish chosen:\t'
         for n in fish_name:
             txtin += n + '\t'

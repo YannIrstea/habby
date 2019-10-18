@@ -1835,9 +1835,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     # VH
     ax_vh.set_title("ESTIMHAB - HABBY")
     if estimhab_dict["qtarg"]:
-        ax_vh.axvline(x=estimhab_dict["qtarg"],
-                      linestyle=":",
-                      color="black")
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_vh.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
     for fish_index in range(len(estimhab_dict["fish_list"])):
         ax_vh.plot(estimhab_dict["q_all"],
                    estimhab_dict["VH"][fish_index],
@@ -1850,9 +1851,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # SPU
     if estimhab_dict["qtarg"]:
-        ax_spu.axvline(x=estimhab_dict["qtarg"],
-                       linestyle=":",
-                      color="black")
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_spu.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
     for fish_index in range(len(estimhab_dict["fish_list"])):
         ax_spu.plot(estimhab_dict["q_all"],
                     estimhab_dict["SPU"][fish_index],
@@ -1864,9 +1866,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # H
     if estimhab_dict["qtarg"]:
-        ax_h.axvline(x=estimhab_dict["qtarg"],
-                     linestyle=":",
-                      color="black")
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_h.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
     ax_h.plot(estimhab_dict["q_all"],
               estimhab_dict["h_all"],
               color="black")
@@ -1875,9 +1878,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # W
     if estimhab_dict["qtarg"]:
-        ax_w.axvline(x=estimhab_dict["qtarg"],
-                     linestyle=":",
-                      color="black")
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_w.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
     ax_w.plot(estimhab_dict["q_all"],
               estimhab_dict["w_all"],
               color="black")
@@ -1886,9 +1890,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # V
     if estimhab_dict["qtarg"]:
-        vline_qtarg = ax_v.axvline(x=estimhab_dict["qtarg"],
-                                   linestyle=":",
-                      color="black")
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_v.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
     ax_v.plot(estimhab_dict["q_all"],
               estimhab_dict["vel_all"],
               color="black")
@@ -1898,7 +1903,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
     # qtarg
     if estimhab_dict["qtarg"]:
-        labels = ["Qtarg = " + str(estimhab_dict["qtarg"]) + " m$^{3}$/sec"]
+        labels = ["Qtarg [m$^{3}$/sec]"]
         fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
                    labels=labels,
                    loc="lower left",

@@ -26,7 +26,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     # compute
-    q_all, h_all, w_all, vel_all, VH, SPU = estimhab(estimhab_dict, qt_tr)
+    q_all, h_all, w_all, vel_all, VH, SPU, qtarg_dict = estimhab(estimhab_dict, qt_tr)
 
     # save in dict
     estimhab_dict["q_all"] = q_all
@@ -35,6 +35,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     estimhab_dict["vel_all"] = vel_all
     estimhab_dict["VH"] = VH
     estimhab_dict["SPU"] = SPU
+    estimhab_dict["qtarg_dict"] = qtarg_dict
 
     # name hdf5
     name_prj = os.path.basename(path_prj)
@@ -92,6 +93,7 @@ def estimhab(estimhab_dict, qt_tr):
     Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
     a text file.
     """
+    estimhab_dict["qtarg"].sort()
     qmes = estimhab_dict["q"]
     width = estimhab_dict["w"]
     height = estimhab_dict["h"]
@@ -191,7 +193,24 @@ def estimhab(estimhab_dict, qt_tr):
     VH = np.array(VH)
     SPU = np.array(SPU)
 
-    return q_all, h_all, w_all, vel, VH, SPU
+    # remove qtarget values to separate them
+    qtarg_dict = dict(q_all=[],
+                      h_all=[],
+                      w_all=[],
+                      vel_all=[],
+                      VH=np.empty((SPU.shape[0], len(qtarg))),
+                      SPU=np.empty((SPU.shape[0], len(qtarg))))
+    if qtarg:
+        for qtarg_indice, qtarg_value in enumerate(qtarg):
+            indice = np.where(q_all == qtarg_value)[0][0]
+            qtarg_dict["q_all"].append(q_all[indice])
+            qtarg_dict["h_all"].append(h_all[indice])
+            qtarg_dict["w_all"].append(w_all[indice])
+            qtarg_dict["vel_all"].append(vel[indice])
+            qtarg_dict["VH"][:, qtarg_indice] = VH[:, indice]
+            qtarg_dict["SPU"][:, qtarg_indice] = SPU[:, indice]
+
+    return q_all, h_all, w_all, vel, VH, SPU, qtarg_dict
 
 
 def pass_to_float_estimhab(var_name, root):

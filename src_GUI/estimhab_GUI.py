@@ -63,6 +63,7 @@ class StatModUseful(QScrollArea):
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
         self.eqtarget = QLineEdit()
+        self.target_lineedit_list = [self.eqtarget]
         self.add_qtarget_button = QPushButton()
         self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "plus.png")))
         self.add_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
@@ -379,9 +380,6 @@ class EstimhabW(StatModUseful):
          here, which save the data.
         """
 
-        # load the data if it exist already
-        self.open_estimhab_hdf5()
-
         available_model_label = QLabel(self.tr('Available'))
         selected_model_label = QLabel(self.tr('Selected'))
 
@@ -474,9 +472,6 @@ class EstimhabW(StatModUseful):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # add all fish name from a directory to the QListWidget self.list_f
-        self.read_fish_name()
-
         # send model
         button1 = QPushButton(self.tr('Run and save ESTIMHAB'), self)
         button1.setStyleSheet("background-color: #47B5E6; color: black")
@@ -535,12 +530,19 @@ class EstimhabW(StatModUseful):
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
+        # load the data if it exist already
+        self.open_estimhab_hdf5()
+
+        # add all fish name from a directory to the QListWidget self.list_f
+        self.read_fish_name()
+
     def add_new_qtarget(self):
         # count existing number of lineedit
         total_widget_number = self.q2target_layout.count()
         self.total_lineedit_number = total_widget_number - 2  # first : qlabel and last : qpushbutton
         setattr(self, 'new_qtarget' + str(total_widget_number - 1), QLineEdit())
         getattr(self, 'new_qtarget' + str(total_widget_number - 1)).setFixedWidth(self.lineedit_width)
+        self.target_lineedit_list.append(getattr(self, 'new_qtarget' + str(total_widget_number - 1)))
         self.q2target_layout.insertWidget(total_widget_number - 1, getattr(self, 'new_qtarget' + str(total_widget_number - 1)))
         self.total_lineedit_number = self.total_lineedit_number + 1
 
@@ -565,6 +567,7 @@ class EstimhabW(StatModUseful):
         for i in reversed(range(2, self.q2target_layout.count() - 1)):
             self.q2target_layout.itemAt(i).widget().setParent(None)
             self.total_lineedit_number = self.total_lineedit_number - 1
+        self.target_lineedit_list = [self.eqtarget]
 
     def reset_models_group(self):
         if self.selected_aquatic_animal_qtablewidget.count() > 0:
@@ -666,8 +669,14 @@ class EstimhabW(StatModUseful):
                     self.eq50.setText(str(hdf5.estimhab_dict["q50"]))
                     self.eqmin.setText(str(hdf5.estimhab_dict["qrange"][0]))
                     self.eqmax.setText(str(hdf5.estimhab_dict["qrange"][1]))
-                    self.eqtarget.setText(str(hdf5.estimhab_dict["qtarg"]))
                     self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
+                    # qtarg
+                    if len(hdf5.estimhab_dict["targ_q_all"]) > 0:
+                        self.eqtarget.setText(str(hdf5.estimhab_dict["targ_q_all"][0]))
+                        while self.total_lineedit_number != len(hdf5.estimhab_dict["targ_q_all"]):
+                            self.add_new_qtarget()
+                        for qtarg_num, qtarg_value in enumerate(hdf5.estimhab_dict["targ_q_all"][1:]):
+                            getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
 
                 else:
                     self.send_log.emit('Error: ' + self.tr('The hdf5 file related to ESTIMHAB does not exist.'))
@@ -717,10 +726,10 @@ class EstimhabW(StatModUseful):
             h = [float(self.eh1.text().replace(",", ".")), float(self.eh2.text().replace(",", "."))]
             q50 = float(self.eq50.text().replace(",", "."))
             qrange = [float(self.eqmin.text().replace(",", ".")), float(self.eqmax.text().replace(",", "."))]
-            if self.eqtarget.text():
-                qtarg = float(self.eqtarget.text().replace(",", "."))
-            else:
-                qtarg = None
+            qtarget_values_list = []
+            for qtarg_lineedit in self.target_lineedit_list:
+                if qtarg_lineedit.text():
+                    qtarget_values_list.append(float(qtarg_lineedit.text().replace(",", ".")))
             substrate = float(self.esub.text().replace(",", "."))
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
@@ -741,11 +750,12 @@ class EstimhabW(StatModUseful):
         if qrange[0] >= qrange[1]:
             self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
             return
-        if qtarg:
-            if qtarg < qrange[0] or qtarg > qrange[1]:
-                self.send_log.emit(
-                    'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run Estimhab.'))
-                return
+        if qtarget_values_list:
+            for qtarg in qtarget_values_list:
+                if qtarg < qrange[0] or qtarg > qrange[1]:
+                    self.send_log.emit(
+                        'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run Estimhab.'))
+                    return
         if q[0] == q[1]:
             self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
             return
@@ -782,7 +792,7 @@ class EstimhabW(StatModUseful):
                              h=h,
                              q50=q50,
                              qrange=qrange,
-                             qtarg=qtarg,
+                             qtarg=qtarget_values_list,
                              substrate=substrate,
                              path_bio=self.path_bio_estimhab,
                              xml_list=fish_list,
