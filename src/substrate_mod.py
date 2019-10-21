@@ -14,20 +14,17 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
+import os
 import sys
 from io import StringIO
-import os
+
 import numpy as np
-from scipy.spatial import Voronoi
 import triangle as tr
-from json import loads as jsonload
-from PyQt5.QtWidgets import QMessageBox
-from osgeo import osr
 from osgeo import ogr
+from osgeo import osr
+from scipy.spatial import Voronoi
 
 from src import hdf5_mod
-from src import manage_grid_mod
-from src.dev_tools import profileit
 
 
 def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, sub_classification_method, sub_epsg_code,
@@ -334,7 +331,6 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                  sub_classification_code, sub_epsg_code, default_values, queue=[]):
     """
     A function to load the substrate in form of shapefile.
-
     :param filename: the name of the shapefile
     :param path_prj: the path where the shapefile is
     :param sub_classification_code: the type of code used to define the substrate (string)
@@ -667,6 +663,44 @@ def get_useful_attribute(attributes):
     return sub_classification_method, attribute_name
 
 
+def remove_duplicates_points_to_triangulate(vertices_array, segments_array, holes_array):
+    """
+    # AIM: for using triangle to transform polygons into triangles it is necessary to avoid any duplicate point in the
+    # take great care of having only vertices defined in the x,y plane no Z or others coordinates !!!!!
+    :param vertices_array: coordinates of points duplicate may append
+    :param segments_array: segment definition by a serial of couple of 2 index points defining a segment
+    :param holes_array: list of coordinates of points inside holes (centroids)
+    :return:
+        vertices_array2 : a np-array of coordinates with no duplicate points,
+         segments_array2 : segment definition by a serial of couple of 2 index points( in vertices_array2) defining a segment
+         holes_array  : a np-array of coordinates of points inside holes (centroids) (nothing changed),
+    """
+    # TODO improve the effeciency of this function by using only numpy functions
+    inextpoint = len(vertices_array)
+    vertices_array = np.array(vertices_array)
+    n0 = np.array([[i] for i in range(inextpoint)])
+    t = np.hstack([vertices_array, n0])
+    t = t[np.lexsort((t[:, 1], t[:, 0]))]
+    vertices_array2 = []
+    corresp = np.empty((inextpoint, 2), dtype=np.int32)
+    j, k = -1, -1
+    for i in range(inextpoint):
+        if i == 0 or not (np.all(np.equal(t[i, 0:2], t[k, 0:2]))):
+            k = i
+            vertices_array2.append([t[i][0], t[i][1]])
+            j += 1
+        corresp[i] = [int(t[i][2]), j]
+    corresp = corresp[corresp[:, 0].argsort()]  # sort in n0 primary key
+    segments_array2 = []
+    for elem in segments_array:
+        segments_array2.append([corresp[elem[0]][1], corresp[elem[1]][1]])
+    segments_array2 = np.array(segments_array2)
+    vertices_array2 = np.array(vertices_array2)
+    holes_array = np.array(holes_array)
+
+    return vertices_array2, segments_array2, holes_array
+
+
 def point_inside_polygon(x, y, poly):
     """
     To know if point is inside or outsite of a polygon (without holes)
@@ -689,34 +723,6 @@ def point_inside_polygon(x, y, poly):
                         inside = not inside
         p1x, p1y = p2x, p2y
     return inside
-
-
-def remove_duplicates_points_to_triangulate(vertices_array, segments_array, holes_array):
-    inextpoint = len(vertices_array)
-    # AIM: for using triangle to transform polygons into triangles it is necessary to avoid any duplicate point
-    vertices_array = np.array(vertices_array)
-    n0 = np.array([[i] for i in range(inextpoint)])
-    t = np.hstack([vertices_array, n0])
-    t = t[t[:, 1].argsort()]  # sort in y secondary key
-    t = t[t[:, 0].argsort()]  # sort in x primary key
-    vertices_array2 = []
-    corresp = []
-    j = -1
-    for i in range(inextpoint):
-        if i == 0 or not (x0 == t[i][0] and y0 == t[i][1]):
-            x0, y0 = t[i][0], t[i][1]
-            vertices_array2.append([x0, y0])
-            j += 1
-        corresp.append([int(t[i][2]), j])
-    corresp = np.array(corresp)
-    corresp = corresp[corresp[:, 0].argsort()]  # sort in n0 primary key
-    segments_array2 = []
-    for elem in segments_array:
-        segments_array2.append([corresp[elem[0]][1], corresp[elem[1]][1]])
-    segments_array2 = np.array(segments_array2)
-    vertices_array2 = np.array(vertices_array2)
-    holes_array = np.array(holes_array)
-    return vertices_array2, segments_array2, holes_array
 
 
 def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_classification_code):

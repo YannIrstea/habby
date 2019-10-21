@@ -20,8 +20,8 @@ for p, lib in _osgeo_pyds:
 print(osgeo_pyds)
 
 hidden_imports = [
-    'gdal'
-]
+    'gdal']
+
 
 a = Analysis(['habby.py'],
              pathex=[],
