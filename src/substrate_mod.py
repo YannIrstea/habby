@@ -544,6 +544,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
             point_list = geom_part.GetPoints()[:-1]
             if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
                 triangle_records_list[i] = records[j]
+                break
 
     # close file
     ds.Destroy()
@@ -703,6 +704,7 @@ def remove_duplicates_points_to_triangulate(vertices_array, segments_array, hole
 
 def point_inside_polygon(x, y, poly):
     """
+    http://www.ariel.com.au/a/python-point-int-poly.html
     To know if point is inside or outsite of a polygon (without holes)
     :param x: coordinate x in float
     :param y: coordinate y in float
