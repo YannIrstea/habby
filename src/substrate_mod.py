@@ -201,14 +201,6 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
                                                                                  segments_array,
                                                                                  holes_array)
 
-    # check if duplicates
-    if len(np.unique(vertices_array2, axis=0)) != len(vertices_array2):
-        print("Error: Duplicates points presence before triangulation. Please remove them.")
-        return False
-    if len(np.unique(segments_array2, axis=0)) != len(segments_array2):
-        print("Error: Duplicates segments presence before triangulation. Please remove them.")
-        return False
-
     # triangulate on polygon (if we use regions)
     if holes_array.size == 0:
         polygon_from_shp = dict(vertices=vertices_array2,
@@ -312,23 +304,33 @@ def point_inside_polygon(x, y, poly):
 
 
 def remove_duplicates_points_to_triangulate(vertices_array, segments_array, holes_array):
+    """
+    # AIM: for using triangle to transform polygons into triangles it is necessary to avoid any duplicate point in the
+    # take great care of having only vertices defined in the x,y plane no Z or others coordinates !!!!!
+    :param vertices_array: coordinates of points duplicate may append
+    :param segments_array: segment definition by a serial of couple of 2 index points defining a segment
+    :param holes_array: list of coordinates of points inside holes (centroids)
+    :return:
+        vertices_array2 : a np-array of coordinates with no duplicate points,
+         segments_array2 : segment definition by a serial of couple of 2 index points( in vertices_array2) defining a segment
+         holes_array  : a np-array of coordinates of points inside holes (centroids) (nothing changed),
+    """
+    #TODO improve the effeciency of this function by using only numpy functions
+    sys.stdout = sys.__stdout__
     inextpoint = len(vertices_array)
-    # AIM: for using triangle to transform polygons into triangles it is necessary to avoid any duplicate point
     vertices_array = np.array(vertices_array)
     n0 = np.array([[i] for i in range(inextpoint)])
     t = np.hstack([vertices_array, n0])
-    t = t[t[:, 1].argsort()]  # sort in y secondary key
-    t = t[t[:, 0].argsort()]  # sort in x primary key
+    t = t[np.lexsort((t[:, 1], t[:, 0]))]
     vertices_array2 = []
-    corresp = []
-    j = -1
+    corresp = np.empty((inextpoint,2),dtype=np.int32)
+    j,k = -1,-1
     for i in range(inextpoint):
-        if i == 0 or not (x0 == t[i][0] and y0 == t[i][1]):
-            x0, y0 = t[i][0], t[i][1]
-            vertices_array2.append([x0, y0])
+        if i == 0 or not (np.all(np.equal(t[i,0:2],t[k,0:2]))):
+            k=i
+            vertices_array2.append([t[i][0], t[i][1]])
             j += 1
-        corresp.append([int(t[i][2]), j])
-    corresp = np.array(corresp)
+        corresp[i]=[int(t[i][2]), j]
     corresp = corresp[corresp[:, 0].argsort()]  # sort in n0 primary key
     segments_array2 = []
     for elem in segments_array:
@@ -336,6 +338,13 @@ def remove_duplicates_points_to_triangulate(vertices_array, segments_array, hole
     segments_array2 = np.array(segments_array2)
     vertices_array2 = np.array(vertices_array2)
     holes_array = np.array(holes_array)
+
+
+    # check if duplicates
+    if len(np.unique(vertices_array2, axis=0)) != len(vertices_array2):
+        print("Error: Duplicates points presence before triangulation. Please remove them.")
+        return False
+
     return vertices_array2, segments_array2, holes_array
 
 
