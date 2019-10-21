@@ -5624,7 +5624,7 @@ class SubstrateW(SubHydroW):
         l1 = QLabel(self.tr('Substrate mapping method from'))
         sub_spacer = QSpacerItem(1, 10)
         self.rb0 = QRadioButton(self.tr('polygons (.shp)'))
-        self.rb1 = QRadioButton(self.tr('points (.txt)'))
+        self.rb1 = QRadioButton(self.tr('points (.txt, .shp)'))
         self.rb2 = QRadioButton(self.tr('constant values (.txt)'))
         self.rb0.setChecked(True)
         self.rb0.clicked.connect(lambda: self.btnstate(self.rb0, self.rb1, self.rb2))
@@ -5663,7 +5663,7 @@ class SubstrateW(SubHydroW):
         filetitle_point_label = QLabel(self.tr('File'))
         self.file_point_label = QLabel(self.namefile[0], self)
         self.file_point_label.setToolTip(self.pathfile[0])
-        self.sub_choosefile_point = QPushButton(self.tr('Choose file (.txt)'), self)
+        self.sub_choosefile_point = QPushButton(self.tr('Choose file (.txt, .shp)'), self)
         self.sub_choosefile_point.clicked.connect(lambda: self.show_dialog_substrate("point"))
         self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setToolTip(self.pathfile[0]))
         self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setText(self.namefile[0]))
@@ -5910,7 +5910,7 @@ class SubstrateW(SubHydroW):
         if substrate_mapping_method == "polygon":
             extensions = [".shp"]
         if substrate_mapping_method == "point":
-            extensions = [".txt"]
+            extensions = [".txt", ".shp"]
         if substrate_mapping_method == "constant":
             extensions = [".txt"]
         filter = "File ("
@@ -6045,10 +6045,10 @@ class SubstrateW(SubHydroW):
             # POINT
             if substrate_mapping_method == "point":
                 # txt case
-                if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                    self.send_log.emit("Error: " + self.tr("The selected file don't exist."))
-                    return
-                if os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                if ext == ".txt":
+                    if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                        self.send_log.emit("Error: " + self.tr("The selected file don't exist."))
+                        return
                     with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                         dataraw = f.read()
                     if len(dataraw.split("\n")[:4]) < 4:
@@ -6100,20 +6100,99 @@ class SubstrateW(SubHydroW):
                                            " .txt file."))
                         return
 
-                    # save to attributes
-                    self.namefile[0] = filename
-                    self.pathfile_point = dirname
-                    self.namefile_point = filename
-                    self.name_hdf5_point = blob + ".sub"
+                if ext == ".shp":
+                    if not os.path.isfile(os.path.join(dirname, blob + ".shp")):
+                        self.send_log.emit("Error: " + self.tr("The selected file don't exist."))
+                        return
+                    # check classification code in .txt (polygon or point shp)
+                    if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                        self.send_log.emit("Error: " + self.tr(
+                            "The selected shapefile is not accompanied by its habby .txt file."))
+                        return
+                    if os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                        with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
+                            dataraw = f.read()
+                        substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
+                            "\n")
+                        if "substrate_classification_code=" in substrate_classification_code_raw:
+                            substrate_classification_code = \
+                                substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
+                            if substrate_classification_code not in self.substrate_classification_codes:
+                                self.send_log.emit(
+                                    "Error: " + self.tr("The classification code in .txt file is not recognized : ")
+                                    + substrate_classification_code)
+                                return
+                        else:
+                            self.send_log.emit(
+                                "Error: " + self.tr("The name 'substrate_classification_code=' is not found in"
+                                                    " .txt file."))
+                            return
+                        if "substrate_classification_method=" in substrate_classification_method_raw:
+                            substrate_classification_method = \
+                                substrate_classification_method_raw.split("substrate_classification_method=")[
+                                    1].strip()
+                            if substrate_classification_method not in self.substrate_classification_methods:
+                                self.send_log.emit("Error: " + self.tr(
+                                    "The classification method in .txt file is not recognized : ")
+                                                   + substrate_classification_method)
+                                return
+                        else:
+                            self.send_log.emit(
+                                "Error: " + self.tr("The name 'substrate_classification_method=' is not found in"
+                                                    " .txt file."))
+                            return
+                        if "default_values=" in substrate_default_values_raw:
+                            substrate_default_values = substrate_default_values_raw.split("default_values=")[
+                                1].strip()
+                            constant_values_list = substrate_default_values.split(",")
+                            for value in constant_values_list:
+                                try:
+                                    int(value.strip())
+                                except:
+                                    self.send_log.emit(
+                                        "Error: " + self.tr("Default values can't be converted to integer : ")
+                                        + substrate_default_values)
+                                    return
+                        else:
+                            self.send_log.emit("Error: " + self.tr("The name 'default_values=' is not found in"
+                                                                   " .txt file."))
+                            return
 
-                    # save to GUI
-                    self.file_point_label.setText(filename)
-                    self.file_point_label.setToolTip(self.pathfile_point)
-                    self.sub_classification_code_point_label.setText(substrate_classification_code)
-                    self.sub_classification_method_point_label.setText(substrate_classification_method)
-                    self.sub_default_values_point_label.setText(substrate_default_values)
-                    self.epsg_point_label.setText(str(epsg_code))
-                    self.point_hname.setText(self.name_hdf5_point)
+                    # check EPSG code in .prj
+                    if not os.path.isfile(os.path.join(dirname, blob + ".prj")):
+                        self.send_log.emit(
+                            "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
+                        epsg_code = "unknown"
+                    if os.path.isfile(os.path.join(dirname, blob + ".prj")):
+                        # ident = Sridentify()
+                        # ident.from_file(os.path.join(dirname, blob + ".prj"))
+                        # epsg_code = ident.get_epsg()
+                        driver = ogr.GetDriverByName('ESRI Shapefile')
+                        file_shp = driver.Open(os.path.join(dirname, blob + ".shp"))
+                        layer = file_shp.GetLayer()
+                        inSpatialRef = layer.GetSpatialRef()
+                        sr = osr.SpatialReference(str(inSpatialRef))
+                        res = sr.AutoIdentifyEPSG()
+                        epsg_code_str = sr.GetAuthorityCode(None)
+                        if epsg_code_str:
+                            epsg_code = int(epsg_code_str)
+                        else:
+                            epsg_code = "unknown"
+
+                # save to attributes
+                self.namefile[0] = filename
+                self.pathfile_point = dirname
+                self.namefile_point = filename
+                self.name_hdf5_point = blob + ".sub"
+
+                # save to GUI
+                self.file_point_label.setText(filename)
+                self.file_point_label.setToolTip(self.pathfile_point)
+                self.sub_classification_code_point_label.setText(substrate_classification_code)
+                self.sub_classification_method_point_label.setText(substrate_classification_method)
+                self.sub_default_values_point_label.setText(substrate_default_values)
+                self.epsg_point_label.setText(str(epsg_code))
+                self.point_hname.setText(self.name_hdf5_point)
 
             # CONSTANT
             if substrate_mapping_method == "constant":
@@ -6322,15 +6401,35 @@ class SubstrateW(SubHydroW):
 
             sys.stdout = self.mystdout = StringIO()  # out to GUI
 
-            sub_filename_voronoi_shp = substrate_mod.load_sub_txt(self.namefile[0], self.pathfile[0],
-                                                                  sub_mapping_method,
-                                                                  sub_classification_code,
-                                                                  sub_classification_method,
-                                                                  sub_epsg_code,
-                                                                  path_shp)
+            # read points and make voronoi
+            self.q = Queue()
+            # sub_filename_voronoi_shp = substrate_mod.load_sub_txt(self.namefile[0],
+            #                                                       self.pathfile[0],
+            #                                                       sub_mapping_method,
+            #                                                       sub_classification_code,
+            #                                                       sub_classification_method,
+            #                                                       sub_epsg_code,
+            #                                                       path_shp)
+            self.p_voronoi = Process(target=substrate_mod.load_sub_txt,
+                             args=(self.namefile[0],
+                                  self.pathfile[0],
+                                  sub_mapping_method,
+                                  sub_classification_code,
+                                  sub_classification_method,
+                                  sub_epsg_code,
+                                  path_shp,
+                                  self.q))
+            self.p_voronoi.name = "load_sub_txt (Voronoi from txt and shp)"
+            self.p_voronoi.start()
+            self.p_voronoi.join()
+            sub_filename_voronoi_shp = self.q.get()
+            # error case
+            if type(sub_filename_voronoi_shp) == list:
+                for warning in sub_filename_voronoi_shp:
+                    self.send_log.emit(warning)
 
             # if shp ok
-            if sub_filename_voronoi_shp:
+            if type(sub_filename_voronoi_shp) == str:
                 # load substrate shp (and triangulation)
                 self.q = Queue()
                 self.p = Process(target=substrate_mod.load_sub_shp,
