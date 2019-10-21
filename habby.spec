@@ -9,7 +9,7 @@ from osgeo import gdal, ogr, osr
 paths = [
 	'C:\\habby',
     'C:\\Users\\quentin.royer\\AppData\\Local\\Programs\\Python\\Python36\\DLLs',
-    'C:\\Users\\quentin.royer\\Documents\\TAF\\ENVIRONNEMENTS_VIRTUELS\\env_habby_dev2\\Lib\\site-packages\\osgeo'
+    'C:\\Users\\quentin.royer\\Documents\\TAF\\ENVIRONNEMENTS_VIRTUELS\\env_habby_dist\\Lib\\site-packages\\osgeo'
 ]
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)
@@ -20,9 +20,7 @@ for p, lib in _osgeo_pyds:
 print(osgeo_pyds)
 
 hidden_imports = [
-    'gdal',
-    'shapely',
-    'shapely.geometry'
+    'gdal'
 ]
 
 a = Analysis(['habby.py'],

@@ -888,10 +888,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_hdf5 = path_prj
 
         # Check shape fields data validity
-        sub_validity, dominant_case = substrate_mod.shp_validity(filename,
-                                                                 path,
-                                                                 code_type,
-                                                                 dominant_case)
+        # sub_validity, dominant_case = substrate_mod.shp_validity(filename,
+        #                                                          path,
+        #                                                          code_type,
+        #                                                          dominant_case)
 
         # if shape data not valid : stop
         if not sub_validity:

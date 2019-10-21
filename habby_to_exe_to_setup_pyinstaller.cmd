@@ -1,5 +1,5 @@
 ::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
-SET envir_virtuel_path=C:\Users\quentin.royer\Documents\TAF\ENVIRONNEMENTS_VIRTUELS\env_habby_dev2
+SET envir_virtuel_path=C:\Users\quentin.royer\Documents\TAF\ENVIRONNEMENTS_VIRTUELS\env_habby_dist
 call %envir_virtuel_path%\Scripts\activate.bat
 
 ::::::::::: RUN COMPILATION :::::::::::::::::::
