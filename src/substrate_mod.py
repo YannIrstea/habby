@@ -27,6 +27,570 @@ from osgeo import ogr
 
 from src import hdf5_mod
 from src import manage_grid_mod
+from src.dev_tools import profileit
+
+
+def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, sub_classification_method, sub_epsg_code,
+                 path_shp='.', queue=[], dominant_case=0):
+    """
+    A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
+    coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
+    transformation. There is one line of header (free texte).
+
+    The voronoi transformation might look strange as it is often bigger than the original point. However, this is
+    just the mathematical result.
+
+    At the end of this fnuction, the resulting grid is exported in a shapefile form.
+
+    :param filename: the name of the shapefile
+    :param path: the path where the shapefile is
+    :param sub_classification_code: the type of code used to define the substrate (string)
+    :param path_shp: the path where to save the shapefile (usually the input folder)
+    :return: grid in form of list of coordinate and connectivity table (two list)
+             and an array with substrate type and (x,y,sub) of the orginal data
+    """
+    warnings_list = []
+    file = os.path.join(path, filename)
+    if not os.path.isfile(file):
+        warnings_list.append("Error: The txt file " + filename + " does not exist.")
+        queue.put(warnings_list)
+        return False
+
+    if sub_classification_method == 'coarser-dominant':
+        sub_class_number = 2
+    if sub_classification_method == 'percentage' and sub_classification_code == "Cemagref":
+        sub_class_number = 8
+    if sub_classification_method == 'percentage' and sub_classification_code == "Sandre":
+        sub_class_number = 12
+
+    # input txt
+    if os.path.splitext(filename)[1] == ".txt":
+        # read
+        with open(file, 'rt') as f:
+            data = f.read()
+
+        # neglect the first line as it is the header
+        ind1 = data.find('\n')
+        if ind1 == -1:
+            print('Error: Could not find more than one line in the substrate input file. Check format \n')
+
+        sub_end_info_habby_index = 4
+        sub_header_index = 5
+
+        # header
+        header = data.split("\n")[sub_end_info_habby_index].split("\t")[2:]
+        fake_field = [None] * len(header)  # fake fields like shapefile
+        header = list(zip(header, fake_field))
+        [attribute_type, _] = get_useful_attribute(header)
+
+        data = data.split("\n")[sub_header_index:]
+
+        if attribute_type == -99:
+            print('Error: The substrate data not recognized.\n')
+            return
+
+        if not attribute_type == sub_classification_method:
+            print("Error: The sub classification code don't match headers.\n")
+            return
+
+        x = []
+        y = []
+        sub_array = [[] for _ in range(sub_class_number)]
+
+        for line in data:
+            try:
+                line_list = line.split()
+                x.append(float(line_list[0]))
+                y.append(float(line_list[1]))
+            except TypeError:
+                print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
+                return False
+            for i in range(sub_class_number):
+                index = i + 2
+                try:
+                    sub_array[i].append(int(line_list[index]))
+                except TypeError:
+                    print("Error: Substrate data could not be read as integer. Check format of the file " + filename + '.\n')
+                    return False
+
+        # Coord
+        point_in = np.vstack((np.array(x), np.array(y))).T
+
+        """ save substrate_point_shp """
+        name, ext = os.path.splitext(filename)
+        name = name + "_from_txt"
+        sub_filename_voronoi_shp = name + '.shp'
+        sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
+        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+        ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
+        crs = osr.SpatialReference()
+        if sub_epsg_code != "unknown":
+            try:
+                crs.ImportFromEPSG(int(sub_epsg_code))
+            except:
+                print("Warning : Can't write .prj from EPSG code :", sub_epsg_code)
+
+        if not crs.ExportToWkt():  # '' == crs unknown
+            layer = ds.CreateLayer(name=name, geom_type=ogr.wkbPoint)
+        else:  # crs known
+            layer = ds.CreateLayer(name=name, srs=crs, geom_type=ogr.wkbPoint)
+
+        if sub_classification_method == 'coarser-dominant':
+            layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))  # Add one attribute
+            layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))  # Add one attribute
+        if sub_classification_method == 'percentage':
+            for i in range(sub_class_number):
+                layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))  # Add one attribute
+
+        defn = layer.GetLayerDefn()
+        field_names = [defn.GetFieldDefn(i).GetName() for i in range(defn.GetFieldCount())]
+
+        layer.StartTransaction()  # faster
+        for i in range(point_in.shape[0]):
+            # create geom
+            point_geom = ogr.Geometry(ogr.wkbPoint)  # Create ring
+            point_geom.AddPoint(*point_in[i])
+
+            # Create a new feature
+            feat = ogr.Feature(defn)
+            for field_num, field in enumerate(field_names):
+                feat.SetField(field, sub_array[field_num][i])
+            # set geometry
+            feat.SetGeometry(point_geom)
+            # create
+            layer.CreateFeature(feat)
+
+        # Save and close everything
+        layer.CommitTransaction()  # faster
+
+        # close file
+        ds.Destroy()
+
+    # input shp
+    if os.path.splitext(filename)[1] == ".shp":
+        name, ext = os.path.splitext(filename)
+        # read source shapefile
+        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+        ds = driver.Open(file, 0)  # 0 means read-only. 1 means writeable.
+        layer = ds.GetLayer(0)  # one layer in shapefile
+        layer_defn = layer.GetLayerDefn()
+
+        # get geom type
+        if layer.GetGeomType() != 1:  # point type
+            # print("file is not point type")
+            return False
+
+        # fields = sf.fields[1:]
+        header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+
+        # Extract list of points and sub values from shp
+        point_in = np.empty(shape=(len(layer), 2), dtype=np.float)
+        x = []
+        y = []
+        sub_array = [[] for _ in range(sub_class_number)]
+        for feature_ind, feature in enumerate(layer):
+            for j, sub_type in enumerate(header_list):
+                sub_array[j].append(feature.GetField(j))
+            shape_geom = feature.geometry()
+            XY = shape_geom.GetPoints()[0]
+            point_in[feature_ind] = XY
+            x.append(XY[0])
+            y.append(XY[1])
+
+    """ all input check """
+    # check if duplicate tuple coord presence
+    u, c = np.unique(point_in, return_counts=True, axis=0)
+    dup = u[c > 1]
+    if len(dup) > 0:
+        warnings_list.append("Error: The substrate data has duplicates points coordinates :" + str(dup) + ". Please remove them and try again.")
+        queue.put(warnings_list)
+        return False
+
+    """ voronoi """
+    # translation ovtherwise numerical problems some voronoi cells may content several points
+    translation_value = np.array([point_in[:, 0].min(), point_in[:, 1].min()])
+    point_voronoi = point_in - translation_value
+
+    # voronoi
+    vor = Voronoi(point_voronoi, qhull_options="Qt")
+
+    # remove translation
+    vor.vertices = vor.vertices + translation_value
+    for point_element_num in range(len(vor.points)):
+        vor.points[point_element_num] = vor.points[point_element_num] + translation_value
+
+    # voronoi_finite_polygons_2d (all points)
+    regions, vertices = voronoi_finite_polygons_2d(vor, 200)
+
+    """ voronoi intersection with buffer """
+    # convex_hull buffer to cut polygons (ogr)
+    multipoint_geom = ogr.Geometry(ogr.wkbMultiPoint)
+    for point_coord in point_in:
+        point_geom = ogr.Geometry(ogr.wkbPoint)
+        point_geom.AddPoint(*point_coord)
+        multipoint_geom.AddGeometry(point_geom)
+    convex_hull = multipoint_geom.ConvexHull().Buffer(200)
+
+    # for each polyg voronoi
+    list_polyg = []
+    intersect_buffer = False
+    for region in regions:
+        polygon = vertices[region]
+        shape = list(polygon.shape)
+        shape[0] += 1
+        # ogr
+        ring = ogr.Geometry(ogr.wkbLinearRing)  # Create ring
+        for polyg_point_ind in list(range(len(polygon))) + [0]:
+            ring.AddPoint(*polygon[polyg_point_ind])
+        poly = ogr.Geometry(ogr.wkbPolygon)  # Create polygon
+        poly.AddGeometry(ring)
+        if poly.Intersect(convex_hull):
+            list_polyg.append(poly.Intersection(convex_hull))
+            intersect_buffer = True
+        else:
+            list_polyg.append(poly)
+
+    # if not intersect_buffer:
+    #     warnings_list.append('Error: Voronoi polygons buffer intersection failed')
+    #     queue.put(warnings_list)
+    #     return False
+
+    # find one sub data by polyg
+    if len(list_polyg) == 0:
+        warnings_list.append('Error: The substrate does not create a meangiful grid. Please add more substrate points.')
+        queue.put(warnings_list)
+        return False
+
+    sub_array2 = [np.zeros(len(list_polyg), ) for _ in range(sub_class_number)]
+
+    for e in range(0, len(list_polyg)):
+        polygon = list_polyg[e]
+        centerx = np.float64(polygon.Centroid().GetX())
+        centery = np.float64(polygon.Centroid().GetY())
+        nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
+        for k in range(sub_class_number):
+            sub_array2[k][e] = sub_array[k][nearest_ind]
+
+    sub_array2 = [np.zeros(len(regions), ) for i in range(sub_class_number)]
+
+    """ voronoi shapefile export """
+    # filename output
+    sub_filename_voronoi_shp = name + '_voronoi' + '.shp'
+    sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
+    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+    ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
+    crs = osr.SpatialReference()
+    if sub_epsg_code != "unknown":
+        crs.ImportFromEPSG(int(sub_epsg_code))
+
+    if not crs.ExportToWkt():  # '' == crs unknown
+        layer = ds.CreateLayer(name=name + '_voronoi', geom_type=ogr.wkbPolygon)
+    else:  # crs known
+        layer = ds.CreateLayer(name=name + '_voronoi', srs=crs, geom_type=ogr.wkbPolygon)
+
+    if sub_classification_method == 'coarser-dominant':
+        layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))  # Add one attribute
+        layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))  # Add one attribute
+    if sub_classification_method == 'percentage':
+        for i in range(sub_class_number):
+            layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))  # Add one attribute
+
+    defn = layer.GetLayerDefn()
+    field_names = [defn.GetFieldDefn(i).GetName() for i in range(defn.GetFieldCount())]
+
+    layer.StartTransaction()  # faster
+    for i, polygon in enumerate(list_polyg):  # for each polygon with buffer
+        polygon.SetCoordinateDimension(2)
+        # coord_list = polygon.GetGeometryRef(0).GetPoints()
+        # ring = ogr.Geometry(ogr.wkbLinearRing)
+        # for point in coord_list:
+        #     ring.AddPoint(*point)
+        # # Create polygon
+        # poly = ogr.Geometry(ogr.wkbPolygon)
+        # poly.AddGeometry(ring)
+        # Create a new feature
+        feat = ogr.Feature(defn)
+        for k in range(sub_class_number):
+            sub_array2[k][i] = sub_array[k][i]
+        data_here = [item[i] for item in sub_array2]
+        for field_num, field in enumerate(field_names):
+            feat.SetField(field, data_here[field_num])
+        # set geometry
+        #feat.SetGeometry(poly)
+        feat.SetGeometry(polygon)
+        # create
+        layer.CreateFeature(feat)
+
+    # Save and close everything
+    layer.CommitTransaction()  # faster
+
+    # close file
+    ds.Destroy()
+
+    queue.put(sub_filename_voronoi_shp)
+
+
+def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, sub_mapping_method,
+                 sub_classification_code, sub_epsg_code, default_values, queue=[]):
+    """
+    A function to load the substrate in form of shapefile.
+
+    :param filename: the name of the shapefile
+    :param path_prj: the path where the shapefile is
+    :param sub_classification_code: the type of code used to define the substrate (string)
+    :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+           maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+           if 0, we do not know.
+    :return: grid in form of list of coordinate and connectivity table (two list)
+            and an array with substrate type and a boolean which allows to get the case where we have tow dominant case
+
+    """
+    sys.stdout = mystdout = StringIO()
+
+    # open shape file
+    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+    ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
+    layer = ds.GetLayer(0)  # one layer in shapefile
+    layer_defn = layer.GetLayerDefn()
+
+    header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+    sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+    for feature_ind, feature in enumerate(layer):
+        sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
+
+    # check data validity
+    data_validity, sub_description_system = data_substrate_validity(header_list,
+                                                                    sub_array,
+                                                                    sub_mapping_method,
+                                                                    sub_classification_code)
+
+    sub_description_system["sub_filename_source"] = filename
+    sub_description_system["sub_class_number"] = str(len(sub_array[0]))
+    sub_description_system["sub_default_values"] = default_values
+    sub_description_system["sub_reach_number"] = "1"
+    sub_description_system["sub_reach_list"] = "unknown"
+    sub_description_system["sub_unit_number"] = "1"
+    sub_description_system["sub_unit_list"] = "0.0"
+    sub_description_system["sub_unit_type"] = "unknown"
+    sub_description_system["sub_epsg_code"] = sub_epsg_code
+
+    if data_validity:
+        # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
+        if polygon_shp_to_triangle_shp(filename, path_file, path_prj):
+            # file name triangulated
+            filename = filename[:-4] + "_triangulated.shp"
+
+            # initialization
+            xy = []  # point
+            tin = []  # connectivity table
+            ind = 0
+
+            # open shape file (think about zero or one to start! )
+            #sf = open_shp(filename, os.path.join(path_prj, "input"))
+            driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+            ds = driver.Open(os.path.join(path_prj, "input", filename), 0)  # 0 means read-only. 1 means writeable.
+            layer = ds.GetLayer(0)  # one layer in shapefile
+            layer_defn = layer.GetLayerDefn()
+
+            # get point coordinates and connectivity table in two lists
+            sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+            for feature_ind, feature in enumerate(layer):
+                sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
+                shape_geom = feature.geometry()
+                geom_part = shape_geom.GetGeometryRef(0)  # only one if triangular mesh
+                p_all = geom_part.GetPoints()
+                tin_i = []
+                for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
+                    try:
+                        tin_i.append(int(xy.index(p_all[j])))
+                    except ValueError:
+                        tin_i.append(int(len(xy)))
+                        xy.append(p_all[j])
+                tin.append(tin_i)
+
+            # get data
+            data_2d = dict()
+            data_2d["tin"] = [np.array(tin)]
+            data_2d["xy"] = [np.array(xy)]
+            data_2d["sub"] = [sub_array]
+            data_2d["nb_unit"] = 1
+            data_2d["nb_reach"] = 1
+
+            # save hdf5
+            hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5)
+            hdf5.create_hdf5_sub(sub_description_system, data_2d)
+
+    queue.put(mystdout)
+
+
+def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
+    """
+    Convert a polygon shapefile to a polygon triangle shapefile
+    with a constrained Delaunay triangulation
+    of a Planar Straight Line Graph (PSLG)
+    :param in_shp_path: path where the input shapefile is present.
+    :param in_shp_filename: input filename (with extension)
+    :param out_shp_path: path where the output shapefile will be produced.
+    :param out_shp_filename: output filename (with extension)
+    :return: True (triangle shapefile produced) False (error)
+    """
+    # init
+    shapefile_type = 3  # polygon in ogr
+
+    in_shp_abs_path = os.path.join(path_file, filename)
+
+    # read source shapefile
+    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+    ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
+    layer = ds.GetLayer(0)  # one layer in shapefile
+    layer_defn = layer.GetLayerDefn()
+
+    # get geom type
+    if layer.GetGeomType() != shapefile_type:
+        print("file is not polygon type")
+        return False
+
+    # fields = sf.fields[1:]
+    header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+
+    # get EPSG
+    crs = layer.GetSpatialRef()
+
+    # Extract list of points and segments from shp
+    vertices_array = []  # point
+    segments_array = []  # segment index or connectivity table
+    holes_array = []
+    inextpoint = 0
+    records = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+    for feature_ind, feature in enumerate(layer):
+        records[feature_ind] = [feature.GetField(j) for j in header_list]
+        shape_geom = feature.geometry()
+        shape_geom.SetCoordinateDimension(2)  # never z values
+        if shape_geom.GetGeometryCount() > 1:  # polygon a trous
+            # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
+            index_hole = [0]
+            all_coord = []
+            for part_num, part in enumerate(range(shape_geom.GetGeometryCount())):
+                geom_part = shape_geom.GetGeometryRef(part_num)
+                coord_part = geom_part.GetPoints()
+                all_coord.extend(coord_part)
+                if part_num == shape_geom.GetGeometryCount() - 1:  # last
+                    index_hole.append(index_hole[-1] + len(coord_part))
+                else:
+                    index_hole.append(len(coord_part))
+
+            new_points = []
+            lnbptspolys = []
+            for j in range(len(index_hole) - 1):
+                new_points.extend(all_coord[index_hole[j]:index_hole[j + 1] - 1])
+                lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
+                if j > 0:  # hole presence : creating a single point inside the hole using triangulation
+                    vertices_hole = np.array(all_coord[index_hole[j]:index_hole[j + 1] - 1])
+                    segments_hole = []
+                    for k in range(lnbptspolys[-1]):
+                        segments_hole.append([k % lnbptspolys[-1], (k + 1) % lnbptspolys[-1]])
+                    segments_hole = np.array(segments_hole)
+                    polygon_hole = dict(vertices=vertices_hole, segments=segments_hole)
+                    polygon_hole_triangle = tr.triangulate(polygon_hole, "p")
+                    p1 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][0]].tolist()
+                    p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
+                    p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
+                    holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
+        else:
+            new_points = shape_geom.GetGeometryRef(0).GetPoints()
+            lnbptspolys = [len(new_points)]
+        # add
+        vertices_array.extend(new_points)  # add the points to list
+        for j in range(len(lnbptspolys)):  # add the segments to list
+            for k in range(lnbptspolys[j]):
+                segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
+            inextpoint += lnbptspolys[j]
+
+    # Remove duplicates
+    vertices_array2, segments_array2, holes_array = remove_duplicates_points_to_triangulate(vertices_array,
+                                                                                 segments_array,
+                                                                                 holes_array)
+
+    # check if duplicates
+    if len(np.unique(vertices_array2, axis=0)) != len(vertices_array2):
+        print("Error: Duplicates points presence before triangulation. Please remove them.")
+        return False
+
+    # triangulate on polygon (if we use regions)
+    if holes_array.size == 0:
+        polygon_from_shp = dict(vertices=vertices_array2,
+                                segments=segments_array2)
+    else:
+        polygon_from_shp = dict(vertices=vertices_array2,
+                                segments=segments_array2,
+                                holes=holes_array)
+    polygon_triangle = tr.triangulate(polygon_from_shp, "p")  # triangulation
+    #tr.compare(plt, polygon_from_shp, polygon_triangle)
+
+    # get geometry and attributes of triangles
+    triangle_geom_list = []
+    triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
+    for i in range(len(polygon_triangle["triangles"])):
+        # triangle coords
+        p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]]
+        p2 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][1]]
+        p3 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][2]]
+        triangle_geom_list.append([p1, p2, p3])
+        # triangle centroid
+        xmean = (p1[0] + p2[0] + p3[0]) / 3
+        ymean = (p1[1] + p2[1] + p3[1]) / 3
+        polyg_center = (xmean, ymean)
+        layer.ResetReading()  # reset the read position to the start
+        # if center in polygon: get attributes
+        for j, feature in enumerate(layer):
+            shape_geom = feature.geometry()
+            geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
+            point_list = geom_part.GetPoints()[:-1]
+            if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
+                triangle_records_list[i] = records[j]
+
+    # close file
+    ds.Destroy()
+
+    # write triangulate shapefile
+    out_shp_basename = os.path.splitext(filename)[0]
+    out_shp_filename = out_shp_basename + "_triangulated.shp"
+    out_shp_path = os.path.join(path_prj, "input")
+    out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
+    ds = driver.CreateDataSource(out_shp_abs_path)
+    if not crs:  # '' == crs unknown
+        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
+    else:  # crs known
+        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
+
+    for field in header_list:
+        layer.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
+
+    defn = layer.GetLayerDefn()
+    layer.StartTransaction()  # faster
+    for i in range(len(triangle_geom_list)):
+        ring = ogr.Geometry(ogr.wkbLinearRing)
+        for point_ind in [0, 1, 2, 0]:
+            ring.AddPoint(triangle_geom_list[i][point_ind][0], triangle_geom_list[i][point_ind][1])
+        # Create polygon
+        poly = ogr.Geometry(ogr.wkbPolygon)
+        poly.AddGeometry(ring)
+        # Create a new feature
+        feat = ogr.Feature(defn)
+        for field_num, field in enumerate(header_list):
+            feat.SetField(field, int(triangle_records_list[i][field_num]))
+        # set geometry
+        feat.SetGeometry(poly)
+        # create
+        layer.CreateFeature(feat)
+
+    # Save and close everything
+    layer.CommitTransaction()  # faster
+
+    # close file
+    ds.Destroy()
+
+    return True
 
 
 def get_useful_attribute(attributes):
@@ -101,190 +665,6 @@ def get_useful_attribute(attributes):
         sub_classification_method = -99
 
     return sub_classification_method, attribute_name
-
-
-def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
-    """
-    Convert a polygon shapefile to a polygon triangle shapefile
-    with a constrained Delaunay triangulation
-    of a Planar Straight Line Graph (PSLG)
-    :param in_shp_path: path where the input shapefile is present.
-    :param in_shp_filename: input filename (with extension)
-    :param out_shp_path: path where the output shapefile will be produced.
-    :param out_shp_filename: output filename (with extension)
-    :return: True (triangle shapefile produced) False (error)
-    """
-    # init
-    # shapefile_type = 5  # polygon in pyshp
-    shapefile_type = 3  # polygon in ogr
-    prj = False  # presence of the .prj accompanying the shapefile
-
-    in_shp_abs_path = os.path.join(path_file, filename)
-    in_shp_basename_abs_path = os.path.splitext(in_shp_abs_path)[0]
-
-    # read source shapefile
-    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-    ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
-    layer = ds.GetLayer(0)  # one layer in shapefile
-    layer_defn = layer.GetLayerDefn()
-
-    # get geom type
-    # if sf.shapeType != shapefile_type:
-    #     print("file is not polygon type")
-    #     return False
-    if layer.GetGeomType() != shapefile_type:
-        #print("file is not polygon type")
-        return False
-
-    # fields = sf.fields[1:]
-    header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-
-    # shapes = sf.shapes()
-    # records = sf.records()
-
-    # get EPSG
-    crs = layer.GetSpatialRef()
-
-    # Extract list of points and segments from shp
-    vertices_array = []  # point
-    segments_array = []  # segment index or connectivity table
-    holes_array = []
-    inextpoint = 0
-    records = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
-    for feature_ind, feature in enumerate(layer):
-        records[feature_ind] = [feature.GetField(j) for j in header_list]
-        shape_geom = feature.geometry()
-        if shape_geom.GetGeometryCount() > 1:  # polygon a trous
-            # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
-            index_hole = [0]
-            all_coord = []
-            for part_num, part in enumerate(range(shape_geom.GetGeometryCount())):
-                geom_part = shape_geom.GetGeometryRef(part_num)
-                coord_part = eval(geom_part.ExportToJson())
-                all_coord.extend(coord_part["coordinates"])
-                if part_num == shape_geom.GetGeometryCount() - 1:  # last
-                    index_hole.append(index_hole[-1] + len(coord_part["coordinates"]))
-                else:
-                    index_hole.append(len(coord_part["coordinates"]))
-
-            new_points = []
-            lnbptspolys = []
-            for j in range(len(index_hole) - 1):
-                new_points.extend(all_coord[index_hole[j]:index_hole[j + 1] - 1])
-                lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
-                if j > 0:  # hole presence : creating a single point inside the hole using triangulation
-                    vertices_hole = np.array(all_coord[index_hole[j]:index_hole[j + 1] - 1])
-                    segments_hole = []
-                    for k in range(lnbptspolys[-1]):
-                        segments_hole.append([k % lnbptspolys[-1], (k + 1) % lnbptspolys[-1]])
-                    segments_hole = np.array(segments_hole)
-                    polygon_hole = dict(vertices=vertices_hole, segments=segments_hole)
-                    polygon_hole_triangle = tr.triangulate(polygon_hole, "p")
-                    p1 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][0]].tolist()
-                    p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
-                    p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
-                    holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
-        else:
-            # new_points = list((shapes[i].points[:-1]))  # taking off the first redundant description point
-            feature_geom_coord_dict = eval(shape_geom.ExportToJson())
-            new_points = feature_geom_coord_dict['coordinates'][0][:-1]
-            lnbptspolys = [len(new_points)]
-        # add
-        vertices_array.extend(new_points)  # add the points to list
-        for j in range(len(lnbptspolys)):  # add the segments to list
-            for k in range(lnbptspolys[j]):
-                segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
-            inextpoint += lnbptspolys[j]
-
-    # Remove duplicates
-    vertices_array2, segments_array2, holes_array = remove_duplicates_points_to_triangulate(vertices_array,
-                                                                                 segments_array,
-                                                                                 holes_array)
-
-    # check if duplicates
-    if len(np.unique(vertices_array2, axis=0)) != len(vertices_array2):
-        print("Error: Duplicates points presence before triangulation. Please remove them.")
-        return False
-    if len(np.unique(segments_array2, axis=0)) != len(segments_array2):
-        print("Error: Duplicates segments presence before triangulation. Please remove them.")
-        return False
-
-    # triangulate on polygon (if we use regions)
-    if holes_array.size == 0:
-        polygon_from_shp = dict(vertices=vertices_array2,
-                                segments=segments_array2)
-    else:
-        polygon_from_shp = dict(vertices=vertices_array2,
-                                segments=segments_array2,
-                                holes=holes_array)
-    polygon_triangle = tr.triangulate(polygon_from_shp, "p")  # triangulation
-    #tr.compare(plt, polygon_from_shp, polygon_triangle)
-
-    # get geometry and attributes of triangles
-    triangle_geom_list = []
-    triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
-    for i in range(len(polygon_triangle["triangles"])):
-        # triangle coords
-        p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]]
-        p2 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][1]]
-        p3 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][2]]
-        triangle_geom_list.append([p1, p2, p3])
-        # triangle centroid
-        xmean = (p1[0] + p2[0] + p3[0]) / 3
-        ymean = (p1[1] + p2[1] + p3[1]) / 3
-        polyg_center = (xmean, ymean)
-        layer.ResetReading()  # reset the read position to the start
-        # if center in polygon: get attributes
-        for j, feature in enumerate(layer):
-            shape_geom = feature.geometry()
-            geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
-            coord_part = eval(geom_part.ExportToJson())
-            point_list = coord_part["coordinates"][:-1]
-            if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
-                triangle_records_list[i] = records[j]
-
-    # close file
-    ds.Destroy()
-
-    # write triangulate shapefile
-    out_shp_basename = os.path.splitext(filename)[0]
-    out_shp_filename = out_shp_basename + "_triangulated.shp"
-    out_shp_path = os.path.join(path_prj, "input")
-    out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
-    ds = driver.CreateDataSource(out_shp_abs_path)
-    if not crs:  # '' == crs unknown
-        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
-    else:  # crs known
-        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
-
-    for field in header_list:
-        layer.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
-
-    defn = layer.GetLayerDefn()
-    layer.StartTransaction()  # faster
-    for i in range(len(triangle_geom_list)):
-        ring = ogr.Geometry(ogr.wkbLinearRing)
-        for point_ind in [0, 1, 2, 0]:
-            ring.AddPoint(triangle_geom_list[i][point_ind][0], triangle_geom_list[i][point_ind][1])
-        # Create polygon
-        poly = ogr.Geometry(ogr.wkbPolygon)
-        poly.AddGeometry(ring)
-        # Create a new feature
-        feat = ogr.Feature(defn)
-        for field_num, field in enumerate(header_list):
-            feat.SetField(field, int(triangle_records_list[i][field_num]))
-        # set geometry
-        feat.SetGeometry(poly)
-        # create
-        layer.CreateFeature(feat)
-
-    # Save and close everything
-    layer.CommitTransaction()  # faster
-
-    # close file
-    ds.Destroy()
-
-    return True
 
 
 def point_inside_polygon(x, y, poly):
@@ -420,254 +800,6 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
             return False, sub_description_system
 
 
-def shp_validity(filename, path_prj, code_type, dominant_case=1):
-    ind = 0
-
-    driver = ogr.GetDriverByName('GPKG')  # GPKG
-    ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
-
-    fields = sf.fields
-
-    # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
-    [attribute_type, attribute_name] = get_useful_attribute(fields)
-    if attribute_type == -99:
-        print('Error: The substrate data not recognized.\n')
-        return False, dominant_case
-
-    # if percentage type
-    if attribute_type == 1:
-        record_all = []
-        # get the data and pass it int
-        for f in fields:
-            if f[0] in attribute_name:
-                record_here = sf.records()
-                record_here = np.array(record_here)
-                record_here = record_here[:, ind]
-                try:
-                    record_here = list(map(int, record_here))
-                except ValueError:
-                    print('Error: The substrate code should be formed by an int.\n')
-                    return False, dominant_case
-                record_all.append(record_here)
-                ind += 1
-        record_all = np.array(record_all).T
-
-        # get the dominant and coarser from the percentage
-        [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
-
-        # dominant case unknown
-        if len(sub_dom) == 1:
-            if sub_dom[0] == -99:
-                # in this case ask the user
-                msg2 = QMessageBox()
-                msg2.setWindowTitle('Dominant substrate')
-                msg2.setText('Our analysis found that the dominant substrate of certain substrate'
-                                          ' cells cannot be determined. Indeed, the maximum percentage of two or '
-                                          'more classes are equal. In these cases, should we take the larger or the'
-                                          ' smaller substrate class?')
-                b1 = msg2.addButton('Larger', QMessageBox.NoRole)
-                b2 = msg2.addButton('Smaller', QMessageBox.YesRole)
-                msg2.exec()
-                if msg2.clickedButton() == b1:
-                    dominant_case = 1
-                elif msg2.clickedButton() == b2:
-                    dominant_case = -1
-
-                # recompute
-                [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
-
-        # transform to cemagref substrate form
-        if code_type == 'Cemagref':
-            if min(sub_dom) < 1 or min(sub_pg) < 1:
-                print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                return False, dominant_case
-            elif max(sub_dom) > 8 or max(sub_pg) > 8:
-                print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                return False, dominant_case
-            else:
-                return True, dominant_case
-        # # code type edf - checked and transform
-        # elif code_type == 'EDF':
-        #     if min(sub_dom) < 1 or min(sub_pg) < 1:
-        #         print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
-        #         return False, dominant_case
-        #     elif max(sub_dom) > 8 or max(sub_pg) > 8:
-        #         print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
-        #         return False, dominant_case
-        #     else:
-        #         sub_dom = edf_to_cemagref(sub_dom)
-        #         sub_pg = edf_to_cemagref(sub_pg)
-        #         return True, dominant_case
-        # code type sandre
-        elif code_type == 'Sandre':
-            if min(sub_dom) < 1 or min(sub_pg) < 1:
-                print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                return False, dominant_case
-            elif max(sub_dom) > 12 or max(sub_pg) > 12:
-                print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                return False, dominant_case
-            else:
-                sub_dom = sandre_to_cemagref(sub_dom)
-                sub_pg = sandre_to_cemagref(sub_pg)
-                return True, dominant_case
-        else:
-            print('Error: The substrate code is not recognized.\n')
-            return False, dominant_case
-
-    # pg/coarser/accessory type
-    elif attribute_type == 0:
-        for f in fields:
-            if f[0] == attribute_name[0] or f[0] == attribute_name[1]:  # [0] coarser and [1] pg
-                # read for all code type
-                a = int('2')
-                record_here = sf.records()
-                record_here = np.array(record_here)
-                record_here = record_here[:, ind - 1]
-                try:
-                    record_here = list(map(float, record_here))  # int('2.000' ) throw an error
-                    record_here = list(map(int, record_here))
-                except ValueError:
-                    print('Error: The substrate code should be formed by an int.\n')
-                    return False, dominant_case
-
-                # code type cemagref - checked
-                if code_type == 'Cemagref':
-                    if min(record_here) < 1:
-                        print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                        return False, dominant_case
-                    elif max(record_here) > 8:
-                        print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                        return False, dominant_case
-                # code type edf - checked and transform
-                elif code_type == 'EDF':
-                    if min(record_here) < 1:
-                        print('Error: The edf code should be formed by an int between 1 and 8. (2)')
-                        return False, dominant_case
-                    elif max(record_here) > 8:
-                        print('Error: The edf code should be formed by an int between 1 and 8. (3)')
-                        return False, dominant_case
-                    else:
-                        record_here = edf_to_cemagref(record_here)
-                # code type sandre
-                elif code_type == 'Sandre':
-                    if min(record_here) < 1:
-                        print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                        return False, dominant_case
-                    elif max(record_here) > 12:
-                        print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                        return False, dominant_case
-                    else:
-                        record_here = sandre_to_cemagref(record_here)
-                else:
-                    print('Error: The substrate code is not recognized.\n')
-                    return False, dominant_case
-
-                # now that we have checked and transform, give the data
-                if f[0] == attribute_name[0]:
-                    sub_pg = record_here
-                if f[0] == attribute_name[1]:
-                    sub_dom = record_here
-            ind += 1
-        return True, dominant_case
-    else:
-        print('Error: Attribute type not recognized.\n')
-        return False, dominant_case
-
-
-def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, sub_mapping_method,
-                 sub_classification_code, sub_epsg_code, default_values, queue=[]):
-    """
-    A function to load the substrate in form of shapefile.
-
-    :param filename: the name of the shapefile
-    :param path_prj: the path where the shapefile is
-    :param sub_classification_code: the type of code used to define the substrate (string)
-    :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
-           maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
-           if 0, we do not know.
-    :return: grid in form of list of coordinate and connectivity table (two list)
-            and an array with substrate type and a boolean which allows to get the case where we have tow dominant case
-
-    """
-    sys.stdout = mystdout = StringIO()
-
-    # open shape file
-    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-    ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
-    layer = ds.GetLayer(0)  # one layer in shapefile
-    layer_defn = layer.GetLayerDefn()
-
-    header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-    sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
-    for feature_ind, feature in enumerate(layer):
-        sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
-
-    # check data validity
-    data_validity, sub_description_system = data_substrate_validity(header_list,
-                                                                    sub_array,
-                                                                    sub_mapping_method,
-                                                                    sub_classification_code)
-
-    sub_description_system["sub_filename_source"] = filename
-    sub_description_system["sub_class_number"] = str(len(sub_array[0]))
-    sub_description_system["sub_default_values"] = default_values
-    sub_description_system["sub_reach_number"] = "1"
-    sub_description_system["sub_reach_list"] = "unknown"
-    sub_description_system["sub_unit_number"] = "1"
-    sub_description_system["sub_unit_list"] = "0.0"
-    sub_description_system["sub_unit_type"] = "unknown"
-    sub_description_system["sub_epsg_code"] = sub_epsg_code
-
-    if data_validity:
-        # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
-        if polygon_shp_to_triangle_shp(filename, path_file, path_prj):
-            # file name triangulated
-            filename = filename[:-4] + "_triangulated.shp"
-
-            # initialization
-            xy = []  # point
-            tin = []  # connectivity table
-            ind = 0
-
-            # open shape file (think about zero or one to start! )
-            #sf = open_shp(filename, os.path.join(path_prj, "input"))
-            driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-            ds = driver.Open(os.path.join(path_prj, "input", filename), 0)  # 0 means read-only. 1 means writeable.
-            layer = ds.GetLayer(0)  # one layer in shapefile
-            layer_defn = layer.GetLayerDefn()
-
-            # get point coordinates and connectivity table in two lists
-            sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
-            for feature_ind, feature in enumerate(layer):
-                sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
-                shape_geom = feature.geometry()
-                geom_part = shape_geom.GetGeometryRef(0)  # only one if triangular mesh
-                coord_part = eval(geom_part.ExportToJson())
-                p_all = coord_part["coordinates"]
-                tin_i = []
-                for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
-                    try:
-                        tin_i.append(int(xy.index(p_all[j])))
-                    except ValueError:
-                        tin_i.append(int(len(xy)))
-                        xy.append(p_all[j])
-                tin.append(tin_i)
-
-            # get data
-            data_2d = dict()
-            data_2d["tin"] = [np.array(tin)]
-            data_2d["xy"] = [np.array(xy)]
-            data_2d["sub"] = [sub_array]
-            data_2d["nb_unit"] = 1
-            data_2d["nb_reach"] = 1
-
-            # save hdf5
-            hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5)
-            hdf5.create_hdf5_sub(sub_description_system, data_2d)
-
-    queue.put(mystdout)
-
-
 def edf_to_cemagref(records):
     """
     This function passes the substrate data from the code type 'EDF" to the code type "Cemagref". As the code 1 from EDF
@@ -728,41 +860,6 @@ def edf_to_cemagref_by_percentage(records):
         new_record.append(r2)
 
     return new_record
-
-
-def sandre_to_cemagref(record_sandre_values):
-    """
-    This function change the subtrate value from sandre code to cemagref code
-    :param record_sandre_values: one record sandre
-    :return: record_cemagref_values: one record cemagref
-    """
-    record_cemagref_values = []
-    for r in record_sandre_values:
-        if r == 1:
-            record_cemagref_values.append(1)
-        elif r == 2:
-            record_cemagref_values.append(2)
-        elif r == 3:
-            record_cemagref_values.append(3)
-        elif r == 4:
-            record_cemagref_values.append(3)
-        elif r == 5:
-            record_cemagref_values.append(4)
-        elif r == 6:
-            record_cemagref_values.append(4)
-        elif r == 7:
-            record_cemagref_values.append(5)
-        elif r == 8:
-            record_cemagref_values.append(5)
-        elif r == 9:
-            record_cemagref_values.append(6)
-        elif r == 10:
-            record_cemagref_values.append(6)
-        elif r == 11:
-            record_cemagref_values.append(7)
-        elif r == 12:
-            record_cemagref_values.append(8)
-    return record_cemagref_values
 
 
 def sandre_to_cemagref_array(records_sandre_array):
@@ -843,443 +940,6 @@ def percentage_to_domcoarse(sub_data, dominant_case):
             sub_pg[e] = sub_dom[e]
 
     return sub_dom, sub_pg
-
-
-def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, sub_classification_method, sub_epsg_code,
-                 path_shp='.', queue=[], dominant_case=0):
-    """
-    A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
-    coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
-    transformation. There is one line of header (free texte).
-
-    The voronoi transformation might look strange as it is often bigger than the original point. However, this is
-    just the mathematical result.
-
-    At the end of this fnuction, the resulting grid is exported in a shapefile form.
-
-    :param filename: the name of the shapefile
-    :param path: the path where the shapefile is
-    :param sub_classification_code: the type of code used to define the substrate (string)
-    :param path_shp: the path where to save the shapefile (usually the input folder)
-    :return: grid in form of list of coordinate and connectivity table (two list)
-             and an array with substrate type and (x,y,sub) of the orginal data
-    """
-    warnings_list = []
-    file = os.path.join(path, filename)
-    if not os.path.isfile(file):
-        warnings_list.append("Error: The txt file " + filename + " does not exist.")
-        queue.put(warnings_list)
-        return False
-
-    if sub_classification_method == 'coarser-dominant':
-        sub_class_number = 2
-    if sub_classification_method == 'percentage' and sub_classification_code == "Cemagref":
-        sub_class_number = 8
-    if sub_classification_method == 'percentage' and sub_classification_code == "Sandre":
-        sub_class_number = 12
-
-    if os.path.splitext(filename)[1] == ".txt":
-        # read
-        with open(file, 'rt') as f:
-            data = f.read()
-
-        # neglect the first line as it is the header
-        ind1 = data.find('\n')
-        if ind1 == -1:
-            print('Error: Could not find more than one line in the substrate input file. Check format \n')
-
-        sub_end_info_habby_index = 4
-        sub_header_index = 5
-
-        # header
-        header = data.split("\n")[sub_end_info_habby_index].split("\t")[2:]
-        fake_field = [None] * len(header)  # fake fields like shapefile
-        header = list(zip(header, fake_field))
-        [attribute_type, _] = get_useful_attribute(header)
-
-        data = data.split("\n")[sub_header_index:]
-
-        if attribute_type == -99:
-            print('Error: The substrate data not recognized.\n')
-            return
-
-        if not attribute_type == sub_classification_method:
-            print("Error: The sub classification code don't match headers.\n")
-            return
-
-        x = []
-        y = []
-        sub_array = [[] for _ in range(sub_class_number)]
-
-        for line in data:
-            try:
-                line_list = line.split()
-                x.append(float(line_list[0]))
-                y.append(float(line_list[1]))
-            except TypeError:
-                print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
-                return False
-            for i in range(sub_class_number):
-                index = i + 2
-                try:
-                    sub_array[i].append(int(line_list[index]))
-                except TypeError:
-                    print("Error: Substrate data could not be read as integer. Check format of the file " + filename + '.\n')
-                    return False
-
-        # Coord
-        point_in = np.vstack((np.array(x), np.array(y))).T
-
-        """ save substrate_point_shp """
-        name, ext = os.path.splitext(filename)
-        name = name + "_from_txt"
-        sub_filename_voronoi_shp = name + '.shp'
-        sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
-        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-        ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
-        crs = osr.SpatialReference()
-        if sub_epsg_code != "unknown":
-            try:
-                crs.ImportFromEPSG(int(sub_epsg_code))
-            except:
-                print("Warning : Can't write .prj from EPSG code :", sub_epsg_code)
-
-        if not crs.ExportToWkt():  # '' == crs unknown
-            layer = ds.CreateLayer(name=name, geom_type=ogr.wkbPoint)
-        else:  # crs known
-            layer = ds.CreateLayer(name=name, srs=crs, geom_type=ogr.wkbPoint)
-
-        if sub_classification_method == 'coarser-dominant':
-            layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))  # Add one attribute
-            layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))  # Add one attribute
-        if sub_classification_method == 'percentage':
-            for i in range(sub_class_number):
-                layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))  # Add one attribute
-
-        defn = layer.GetLayerDefn()
-        field_names = [defn.GetFieldDefn(i).GetName() for i in range(defn.GetFieldCount())]
-
-        layer.StartTransaction()  # faster
-        for i in range(point_in.shape[0]):
-            # create geom
-            point_geom = ogr.Geometry(ogr.wkbPoint)  # Create ring
-            point_geom.AddPoint(*point_in[i])
-
-            # Create a new feature
-            feat = ogr.Feature(defn)
-            for field_num, field in enumerate(field_names):
-                feat.SetField(field, sub_array[field_num][i])
-            # set geometry
-            feat.SetGeometry(point_geom)
-            # create
-            layer.CreateFeature(feat)
-
-        # Save and close everything
-        layer.CommitTransaction()  # faster
-
-        # close file
-        ds.Destroy()
-
-    if os.path.splitext(filename)[1] == ".shp":
-        name, ext = os.path.splitext(filename)
-        # read source shapefile
-        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-        ds = driver.Open(file, 0)  # 0 means read-only. 1 means writeable.
-        layer = ds.GetLayer(0)  # one layer in shapefile
-        layer_defn = layer.GetLayerDefn()
-
-        # get geom type
-        if layer.GetGeomType() != 1:  # point type
-            # print("file is not point type")
-            return False
-
-        # fields = sf.fields[1:]
-        header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-
-        # Extract list of points and sub values from shp
-        point_in = np.empty(shape=(len(layer), 2), dtype=np.float)
-        x = []
-        y = []
-        sub_array = [[] for _ in range(sub_class_number)]
-        for feature_ind, feature in enumerate(layer):
-            for j, sub_type in enumerate(header_list):
-                sub_array[j].append(feature.GetField(j))
-            shape_geom = feature.geometry()
-            XY = eval(shape_geom.ExportToJson())["coordinates"]
-            point_in[feature_ind] = XY
-            x.append(XY[0])
-            y.append(XY[1])
-
-    # check if duplicate tuple coord presence
-    u, c = np.unique(point_in, return_counts=True, axis=0)
-    dup = u[c > 1]
-    if len(dup) > 0:
-        warnings_list.append("Error: The substrate data has duplicates points coordinates :" + str(dup) + ". Please remove them and try again.")
-        queue.put(warnings_list)
-        return False
-
-    # translation ovtherwise numerical problems some voronoi cells may content several points
-    min_x = min([pt[0] for pt in point_in])
-    min_y = min([pt[1] for pt in point_in])
-    for dataelement in point_in:
-        dataelement[0] = dataelement[0] - min_x
-        dataelement[1] = dataelement[1] - min_y
-
-    # voronoi
-    vor = Voronoi(point_in, qhull_options="Qt")  #
-
-    # remove translation
-    for dataelement in vor.vertices:
-        dataelement[0] = dataelement[0] + min_x
-        dataelement[1] = dataelement[1] + min_y
-    for dataelement in vor.points:
-        dataelement[0] = dataelement[0] + min_x
-        dataelement[1] = dataelement[1] + min_y
-    for dataelement in point_in:
-        dataelement[0] = dataelement[0] + min_x
-        dataelement[1] = dataelement[1] + min_y
-
-    # voronoi_finite_polygons_2d (all points)
-    regions, vertices = voronoi_finite_polygons_2d(vor, 200)
-
-    # convex_hull buffer to cut polygons (ogr)
-    multipoint_geom = ogr.Geometry(ogr.wkbMultiPoint)
-    for point_coord in point_in:
-        point_geom = ogr.Geometry(ogr.wkbPoint)
-        point_geom.AddPoint(*point_coord)
-        multipoint_geom.AddGeometry(point_geom)
-    convex_hull = multipoint_geom.ConvexHull().Buffer(200)
-
-    # for each polyg voronoi
-    list_polyg = []
-    for region in regions:
-        polygon = vertices[region]
-        shape = list(polygon.shape)
-        shape[0] += 1
-        # ogr
-        ring = ogr.Geometry(ogr.wkbLinearRing)  # Create ring
-        for polyg_point_ind in list(range(len(polygon))) + [0]:
-            ring.AddPoint(*polygon[polyg_point_ind])
-        poly = ogr.Geometry(ogr.wkbPolygon)  # Create polygon
-        poly.AddGeometry(ring)
-        if poly.Intersect(convex_hull):
-            list_polyg.append(poly.Intersection(convex_hull))
-        else:
-            list_polyg.append(poly)
-
-    # find one sub data by polyg
-    if len(list_polyg) == 0:
-        warnings_list.append('Error the substrate does not create a meangiful grid. Please add more substrate points.')
-        queue.put(warnings_list)
-        return False
-
-    sub_array2 = [np.zeros(len(list_polyg), ) for _ in range(sub_class_number)]
-
-    for e in range(0, len(list_polyg)):
-        polygon = list_polyg[e]
-        centerx = np.float64(polygon.Centroid().GetX())
-        centery = np.float64(polygon.Centroid().GetY())
-        nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
-        for k in range(sub_class_number):
-            sub_array2[k][e] = sub_array[k][nearest_ind]
-
-    sub_array2 = [np.zeros(len(regions), ) for i in range(sub_class_number)]
-
-    # filename output
-    #name, ext = os.path.splitext(filename)
-    sub_filename_voronoi_shp = name + '_voronoi' + '.shp'
-    sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
-    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-    ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
-    crs = osr.SpatialReference()
-    if sub_epsg_code != "unknown":
-        # try:
-        crs.ImportFromEPSG(int(sub_epsg_code))
-        # except:
-        #     print("Warning : Can't write .prj from EPSG code :", sub_epsg_code)
-
-    if not crs.ExportToWkt():  # '' == crs unknown
-        layer = ds.CreateLayer(name=name + '_voronoi' + "_triangulated", geom_type=ogr.wkbPolygon)
-    else:  # crs known
-        layer = ds.CreateLayer(name=name + '_voronoi' + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
-
-    if sub_classification_method == 'coarser-dominant':
-        layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))  # Add one attribute
-        layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))  # Add one attribute
-    if sub_classification_method == 'percentage':
-        for i in range(sub_class_number):
-            layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))  # Add one attribute
-
-    defn = layer.GetLayerDefn()
-    field_names = [defn.GetFieldDefn(i).GetName() for i in range(defn.GetFieldCount())]
-
-    layer.StartTransaction()  # faster
-    for i, polygon in enumerate(list_polyg):  # for each polygon with buffer
-        polygon.SetCoordinateDimension(2)
-        geojson = jsonload(polygon.ExportToJson())
-        coord_list = geojson["coordinates"][0]
-        ring = ogr.Geometry(ogr.wkbLinearRing)
-        for point in coord_list:
-            ring.AddPoint(*point)
-        # Create polygon
-        poly = ogr.Geometry(ogr.wkbPolygon)
-        poly.AddGeometry(ring)
-        # Create a new feature
-        feat = ogr.Feature(defn)
-        for k in range(sub_class_number):
-            sub_array2[k][i] = sub_array[k][i]
-        data_here = [item[i] for item in sub_array2]
-        for field_num, field in enumerate(field_names):
-            feat.SetField(field, data_here[field_num])
-        # set geometry
-        feat.SetGeometry(poly)
-        # create
-        layer.CreateFeature(feat)
-
-    # Save and close everything
-    layer.CommitTransaction()  # faster
-
-    # close file
-    ds.Destroy()
-
-    queue.put(sub_filename_voronoi_shp)
-
-
-def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
-    """
-    This function check if the grid in entry is composed of convex cell. Indeed, it is possible to have concave
-    cells in the substrate grid. However, this is unpractical when the hydrological grid is merged with the subtrate
-    grid. Hence, we find here the concave cells. These cells are then modified using the triangle module.
-
-    The algotithm is based on the idea that when you have a convex polygon you turn always in the same direction.
-    When you have a concave polygon sometime you will turn left, sometime you will turn right. To check this,
-    we can take the determinant betwen each vector which compose the cells and check if they have the same sign.
-    Triangle are always convex.
-
-    :param ikle: the connectivity table of the grid (one reach, one time step as substrate grid is constant)
-    :param point_all: the point of the grid
-    :param sub_pg: the coarser substrate, one data by cell
-    :param sub_dom: the dominant subtrate, one data by cell
-    :return: ikle, point_all with only convexe cells
-    """
-
-    point_alla = np.array(point_all)
-
-    to_delete = []
-    for ic, c in enumerate(ikle):
-        concave = False
-        lenc = len(c)
-        sign_old = 0
-        if lenc > 3:  # triangle are convex
-            v00 = point_alla[c[1]] - point_alla[c[0]]
-            v0 = v00
-            for ind in range(0, lenc):
-                # find vector
-                if ind < lenc - 2:
-                    v1 = point_alla[c[ind + 2]] - point_alla[c[ind + 1]]
-                elif ind == lenc - 2:
-                    v1 = point_alla[c[0]] - point_alla[c[ind + 1]]
-                elif ind == lenc - 1:
-                    v1 = v00
-                # calulate deteminant (x0y1 - x1y0)
-                det = v0[0] * v1[1] - v1[0] * v0[1]
-                # check sign
-                if ind == 0:
-                    sign_old = np.sign(det)
-                else:
-                    sign = np.sign(det)
-                    if sign != sign_old:
-                        concave = True
-                    break
-                v0 = v1
-
-        # if concave, correct the substrate grid
-        if concave:
-            to_delete.append(ic)
-            # create triangle intput
-            point_cell = np.zeros((lenc, 2))
-            seg_cell = np.zeros((lenc, 2))
-            for ind in range(0, lenc):
-                point_cell[ind] = point_all[c[ind]]
-                if ind < lenc - 1:
-                    seg_cell[ind] = [ind, ind + 1]
-                else:
-                    seg_cell[ind] = [ind, 0]
-            # triangulate
-            try:
-                dict_point = dict(vertices=point_cell, segments=seg_cell)
-                grid_dict = tr.triangulate(dict_point, 'p')
-            except:
-                # to be done: create a second threat so that the error management will function
-                print('Triangulation failed')
-                return
-
-            try:
-                ikle_new = grid_dict['triangles']
-                point_new = grid_dict['vertices']
-                # add this triagulation to the ikle
-                ikle.extend(list(np.array(ikle_new) + len(point_all)))
-                point_all.extend(point_new)
-                for m in range(0, len(ikle_new)):
-                    sub_pg.append(sub_pg[ic])
-                    sub_dom.append(sub_dom[ic])
-            except KeyError:
-                # in case triangulation was not ok
-                print('Warning: A concave element of the substrate grid could not be corrected \n')
-
-    # remove element
-    if len(to_delete) > 0:
-        for d in reversed(to_delete):  # to_delete is ordered
-            del ikle[d]
-        sub_pg = np.delete(sub_pg, to_delete)
-        sub_dom = np.delete(sub_dom, to_delete)
-
-    return ikle, point_all, sub_pg, sub_dom
-
-
-def clip_polygons_from_rect(polygon_regions, polygon_vertices, rect):
-    # create rect_sides (clockwise)
-    xMin = rect[0] - 200
-    yMin = rect[1] - 200
-    xMax = rect[2] + 200
-    yMax = rect[3] + 200
-    left_side = [[xMin, yMin], [xMin, yMax]]
-    top_side = [[xMin, yMax], [xMax, yMax]]
-    right_side = [[xMax, yMax], [xMax, yMin]]
-    bottom_side = [[xMax, yMin], [xMin, yMin]]
-    extent = [xMin, yMin, xMax, yMax]
-    rect_sides = np.stack([left_side, top_side, right_side, bottom_side])
-
-    # for each polygon
-    for i, region in enumerate(polygon_regions):  # for each polygon
-        # coord_list = list(polygon.exterior.coords)
-        coord_array = polygon_vertices[region]
-        first_done = False
-        # for each segment
-        for j in range(len(coord_array)):
-            segment = np.stack([coord_array[j], coord_array[j - 1]])
-            # segment outside of extent
-            if not rectContains(extent, segment[0]) and not rectContains(extent, segment[1]):
-                print("segment outside of extent")
-                polygon_vertices[region[j]] = polygon_vertices[region[j - 1]]
-            # segment inside extent
-            else:
-                if not first_done:
-                    # for each side of rectangle
-                    for rect_side in rect_sides:
-                        intersect, point = manage_grid_mod.intersection_seg(rect_side[0], rect_side[1], segment[0], segment[1])
-                        if intersect:
-                            print("intersect")
-                            polygon_vertices[region[j]] = np.array(point[0])
-                            first_done = True
-
-
-    return polygon_regions, polygon_vertices
-
-
-def rectContains(rect, pt):
-    logic = rect[0] < pt[0] < rect[0]+rect[2] and rect[1] < pt[1] < rect[1]+rect[3]
-    return logic
 
 
 def voronoi_finite_polygons_2d(vor, radius=None):
