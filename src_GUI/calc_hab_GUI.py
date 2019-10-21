@@ -134,7 +134,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.setPalette(p)
 
         # the available merged data
-        l0 = QLabel(self.tr('<b> Habitat file(s) </b>'))
+        l0 = QLabel(self.tr('Habitat file(s)'))
         self.m_all = QComboBox()
         self.m_all.currentTextChanged.connect(lambda: self.fill_selected_models_listwidets([]))
         self.m_all.setSizeAdjustPolicy(QComboBox.AdjustToContents)
@@ -548,6 +548,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # if .hab :
         if self.current_hab_informations_dict:
+            if new_item_text_dict:
+                if not new_item_text_dict["selected_aquatic_animal_list"]:
+                    self.send_log.emit("Warning: " + self.tr("No selected models."))
             self.selected_aquatic_animal_qtablewidget.setRowCount(total_item)
             self.hyd_mode_qtablewidget.setRowCount(total_item)
             self.sub_mode_qtablewidget.setRowCount(total_item)
@@ -557,7 +560,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(False)
                 if new_item_text_dict:
-                    self.send_log.emit("NB: " + self.tr("Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values)."))
+                    if new_item_text_dict["selected_aquatic_animal_list"]:
+                        self.send_log.emit("NB: " + self.tr("Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values)."))
             else:
                 self.general_option_hyd_combobox.model().item(self.all_hyd_choice.index("HEM")).setEnabled(True)
 
@@ -565,7 +569,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if not self.current_hab_informations_dict["percentage_ok"]:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(False)
                 if new_item_text_dict:
-                    self.send_log.emit("NB: " + self.tr("Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage)."))
+                    if new_item_text_dict["selected_aquatic_animal_list"]:
+                        self.send_log.emit("NB: " + self.tr("Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage)."))
             else:
                 self.general_option_sub_combobox.model().item(self.all_sub_choice.index("Percentage")).setEnabled(True)
 
@@ -850,10 +855,17 @@ class BioInfo(estimhab_GUI.StatModUseful):
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # check if not exist
             if not self.presence_qtablewidget.cellWidget(i, 0).layout().itemAt(0).widget().isChecked():
+                # options
+                hyd_opt = self.hyd_mode_qtablewidget.cellWidget(i, 0).currentText()
+                sub_opt = self.sub_mode_qtablewidget.cellWidget(i, 0).currentText()
                 # get info from 1 list widget
                 label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
                 fish_item_text = label.text()
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
+                if hyd_opt == "Neglect" and sub_opt == "Neglect":
+                    self.send_log.emit('Warning: ' + fish_item_text + self.tr(" model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed."))
+                    continue
+
                 name_fish_sel += fish_item_text + ","
                 name_fish_list.append(code_bio_model)
                 index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
@@ -864,35 +876,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # name_fish_sel += name_fish + ','
                 xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
                 # get info from 2 list widget
-                hyd_opt_list.append(self.hyd_mode_qtablewidget.cellWidget(i, 0).currentText())
+                hyd_opt_list.append(hyd_opt)
                 # get info from 3 list widget
-                sub_opt_list.append(self.sub_mode_qtablewidget.cellWidget(i, 0).currentText())
+                sub_opt_list.append(sub_opt)
                 aquatic_animal_type.append(user_preferences.biological_models_dict["aquatic_animal_type"][index_fish])
 
         if xmlfiles:
-            # # save the selected fish in the xml project file
-            # try:
-            #     try:
-            #         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
-            #         docxml = ET.parse(filename_path_pro)
-            #         root = docxml.getroot()
-            #     except IOError:
-            #         self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist \n"))
-            #         return
-            # except ET.ParseError:
-            #     self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed.\n"))
-            #     return
-            # hab_child = root.find(".//Habitat")
-            # if hab_child is None:
-            #     blob = ET.SubElement(root, "Habitat")
-            #     hab_child = root.find(".//Habitat")
-            # fish_child = root.find(".//Habitat/Fish_Selected")
-            # if fish_child is None:
-            #     blob = ET.SubElement(hab_child, "Fish_Selected")
-            #     fish_child = root.find(".//Habitat/Fish_Selected")
-            # fish_child.text = name_fish_sel[:-1]  # last comma
-            # docxml.write(filename_path_pro)
-
             # get the name of the merged file
             path_hdf5 = self.find_path_hdf5_est()
             ind = self.m_all.currentIndex()
@@ -955,7 +944,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         else:
             # disable the button
             self.runhab.setDisabled(False)
-            self.send_log.emit(self.tr('Warning: Nothing to compute ! Models selected and their options exist in .hab'))
+            self.send_log.emit(self.tr('Warning: Nothing to compute !'))
 
     def show_prog(self):
         """

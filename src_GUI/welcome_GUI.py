@@ -22,7 +22,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
-from PyQt5.QtWidgets import QWidget, QPushButton, \
+from PyQt5.QtWidgets import QWidget, QPushButton, QGroupBox,\
     QLabel, QGridLayout, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
     QMessageBox, QScrollArea, \
     QFrame
@@ -94,7 +94,6 @@ class WelcomeW(QScrollArea):
         highpart = QWidget()  # used to regroup all QWidgt in the first part of the Windows
 
         # general into to put in the xml .prj file
-        lg = QLabel(self.tr(" <b> Current project </b>"))
         l1 = QLabel(self.tr('Project name: '))
         self.e1 = QLabel(self.name_prj)
         l2 = QLabel(self.tr('Main folder: '))
@@ -113,13 +112,12 @@ class WelcomeW(QScrollArea):
         # this is used to save the data if the QLineEdit is going out of Focus
         self.e4.installEventFilter(self.outfocus_filter)
         self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
-        self.lowpart = QWidget()
 
         # background image
         self.pic = QLabel()
         self.pic.setMaximumSize(1000, 200)
         # use full ABSOLUTE path to the image, not relative
-        self.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
+        self.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(500, 500))  # 800 500
         # animal_picture_label.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
 
         # insist on white background color (for linux, mac)
@@ -147,7 +145,6 @@ class WelcomeW(QScrollArea):
         # layout (in two parts)
         layout2 = QGridLayout(content_widget)
         layouth = QGridLayout()
-        layoutl = QGridLayout()
 
         layouth.addItem(spacerleft, 1, 0)
         layouth.addItem(spacerright, 1, 5)
@@ -157,17 +154,16 @@ class WelcomeW(QScrollArea):
         layouth.addItem(spacer2, 5, 2)
         highpart.setLayout(layouth)
 
-        layoutl.addWidget(lg, 0, 0)
+        self.lowpart = QGroupBox(self.tr("Current project"))
+        layoutl = QGridLayout(self.lowpart)
         layoutl.addWidget(l1, 1, 0)
         layoutl.addWidget(self.e1, 1, 1)
         layoutl.addWidget(l2, 2, 0)
         layoutl.addWidget(self.e2, 2, 1)
-        #layoutl.addWidget(button2, 2, 2)
         layoutl.addWidget(l4, 3, 0)
         layoutl.addWidget(self.e4, 3, 1)
         layoutl.addWidget(l3, 4, 0)
         layoutl.addWidget(self.e3, 4, 1)
-        self.lowpart.setLayout(layoutl)
 
         layout2.addWidget(self.pic, 0, 0)
         layout2.addWidget(highpart, 0, 0)

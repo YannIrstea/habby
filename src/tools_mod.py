@@ -19,8 +19,8 @@ import numpy as np
 import urllib
 from copy import deepcopy
 import sys
-from PyQt5.QtWidgets import QApplication, QGroupBox, QProgressBar, QLabel
-from PyQt5.QtCore import QTranslator, QCoreApplication
+from PyQt5.QtWidgets import QApplication, QGroupBox, QProgressBar, QLabel, QFrame
+from PyQt5.QtCore import QTranslator, QCoreApplication, QObject, pyqtSignal, QEvent
 
 from src.project_manag_mod import load_project_preferences
 
@@ -375,6 +375,15 @@ def get_translator(path_prj, name_prj):
     return app
 
 
+def txt_file_convert_dot_to_comma(filename_full_path):
+    # read and convert
+    with open(filename_full_path, 'r') as file:
+        text_data_with_comma = file.read().replace('.', ',')
+    # write converted
+    with open(filename_full_path, 'w') as file:
+        file.write(text_data_with_comma)
+
+
 # GUI
 class QGroupBoxCollapsible(QGroupBox):
     def __init__(self):
@@ -492,3 +501,20 @@ class MyProcessList(list):
             #print(self[i][0].name, "terminate(), state : ", self[i][1].value)
 
 
+class QHLine(QFrame):
+    def __init__(self):
+        super(QHLine, self).__init__()
+        self.setFrameShape(QFrame.HLine)
+        self.setFrameShadow(QFrame.Sunken)
+
+
+class DoubleClicOutputGroup(QObject):
+    double_clic_signal = pyqtSignal()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonDblClick:
+            self.double_clic_signal.emit()
+            return True  # eat double click
+        else:
+            # standard event processing
+            return QObject.eventFilter(self, obj, event)

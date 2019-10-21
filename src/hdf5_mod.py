@@ -30,13 +30,14 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from multiprocessing import Value
-
+from locale import localeconv
 from src import bio_info_mod
 from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
 from src.project_manag_mod import load_project_preferences
+from src.tools_mod import txt_file_convert_dot_to_comma
 from habby import HABBY_VERSION
 
 
@@ -1334,8 +1335,15 @@ class Hdf5Management:
 
         # output data
         self.file_object.create_dataset("q_all", estimhab_dict["q_all"].shape, data=estimhab_dict["q_all"])
+        self.file_object.create_dataset("h_all", estimhab_dict["h_all"].shape, data=estimhab_dict["h_all"])
+        self.file_object.create_dataset("w_all", estimhab_dict["w_all"].shape, data=estimhab_dict["w_all"])
+        self.file_object.create_dataset("vel_all", estimhab_dict["vel_all"].shape, data=estimhab_dict["vel_all"])
         self.file_object.create_dataset("VH", estimhab_dict["VH"].shape, data=estimhab_dict["VH"])
         self.file_object.create_dataset("SPU", estimhab_dict["SPU"].shape, data=estimhab_dict["SPU"])
+
+        # targ
+        for k, v in estimhab_dict["qtarg_dict"].items():
+            self.file_object.create_dataset("targ_" + k, data=v)
 
         # close
         self.file_object.close()
@@ -1358,8 +1366,15 @@ class Hdf5Management:
                              xml_list=self.file_object["xml_list"][:].flatten().astype(np.str).tolist(),
                              fish_list=self.file_object["fish_list"][:].flatten().astype(np.str).tolist(),
                              q_all=self.file_object["q_all"][:],
+                             h_all=self.file_object["h_all"][:],
+                             w_all=self.file_object["w_all"][:],
+                             vel_all=self.file_object["vel_all"][:],
                              VH=self.file_object["VH"][:],
                              SPU=self.file_object["SPU"][:])
+
+        # targ
+        for k in ["q_all", "h_all", "w_all", "vel_all", "VH", "SPU"]:
+            estimhab_dict["targ_" + k] = self.file_object["targ_" + k][:]
 
         # close file
         self.file_object.close()
@@ -2468,8 +2483,11 @@ class Hdf5Management:
 
     def export_estimhab(self):
         # text files output
-        txt_header = 'Q '
+        txt_header = 'Discharge\tHeight\tWidth\tVelocity'
         q_all = self.estimhab_dict["q_all"]
+        h_all = self.estimhab_dict["h_all"]
+        w_all = self.estimhab_dict["w_all"]
+        vel_all = self.estimhab_dict["vel_all"]
         fish_name = self.estimhab_dict["fish_list"]
         qmes = self.estimhab_dict["q"]
         width = self.estimhab_dict["w"]
@@ -2489,32 +2507,80 @@ class Hdf5Management:
                 output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
+        # prep data
+        all_data = np.vstack((q_all, h_all, w_all, vel_all))
         for f in range(0, len(fish_name)):
             txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
-            q_all = np.vstack((q_all, VH[f]))
-            q_all = np.vstack((q_all, SPU[f]))
-        txt_header += '\n[m3/sec]'
+            all_data = np.vstack((all_data, VH[f]))
+            all_data = np.vstack((all_data, SPU[f]))
+        if len(self.estimhab_dict["targ_q_all"]) != 0:
+            all_data_targ = np.vstack((self.estimhab_dict["targ_q_all"],
+                                       self.estimhab_dict["targ_h_all"],
+                                       self.estimhab_dict["targ_w_all"],
+                                       self.estimhab_dict["targ_vel_all"]))
+            for f in range(0, len(fish_name)):
+                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_VH"], axis=1)[f]))
+                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_SPU"], axis=1)[f]))
+
+        txt_header += '\n[m3/sec]\t[m]\t[m]\t[m/s]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
-        np.savetxt(os.path.join(path_txt, output_filename + '.txt'), q_all.T, header=txt_header,
-                   delimiter='\t')  # , newline=os.linesep
 
-        # text file input
+        # export estimhab output
+        try:
+            np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+                       all_data.T,
+                       header=txt_header,
+                       fmt='%f',
+                       delimiter='\t')  # , newline=os.linesep
+        except PermissionError:
+            output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+                       all_data.T,
+                       header=txt_header,
+                       fmt='%f',
+                       delimiter='\t')  # , newline=os.linesep
+        if len(self.estimhab_dict["targ_q_all"]) != 0:
+            f = open(os.path.join(path_txt, output_filename + '.txt'), "a+")
+            np.savetxt(f,
+                       all_data_targ.T,
+                       header="target(s) discharge(s)",
+                       fmt='%f',
+                       delimiter='\t')
+            f.close()
+
+        # change decimal point
+        if localeconv()['decimal_point'] == ",":
+            txt_file_convert_dot_to_comma(os.path.join(path_txt, output_filename + '.txt'))
+
+        # export estimhab input
         txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
         txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
         txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
         txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
         txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
         txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
+        txtin += 'Discharge target  [m3/sec]:\t'
+        if len(self.estimhab_dict["targ_q_all"]) != 0:
+            for q_tar in self.estimhab_dict["targ_q_all"]:
+                txtin += str(q_tar) + "\t"
+            txtin += "\n"
         txtin += 'Fish chosen:\t'
         for n in fish_name:
             txtin += n + '\t'
         txtin = txtin[:-1]
         txtin += '\n'
         txtin += 'Output file:\t' + output_filename + '.txt\n'
-        with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
-            f.write(txtin)
-
+        try:
+            with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
+                f.write(txtin)
+        except PermissionError:
+            intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
+                f.write(txtin)
+        if localeconv()['decimal_point'] == ",":
+            txt_file_convert_dot_to_comma(os.path.join(path_txt, intput_filename + '.txt'))
 
 #################################################################
 

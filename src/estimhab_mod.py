@@ -17,22 +17,25 @@ https://github.com/YannIrstea/habby
 import numpy as np
 import xml.etree.ElementTree as ET
 import os
-import sys
-from io import StringIO
 from src import hdf5_mod
 from src import plot_mod
+from src.tools_mod import get_translator
 
 
 def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     # compute
-    q_all, VH, SPU = estimhab(estimhab_dict["q"], estimhab_dict["w"], estimhab_dict["h"],
-                       estimhab_dict["q50"], estimhab_dict["qrange"], estimhab_dict["substrate"],
-                       estimhab_dict["path_bio"], estimhab_dict["xml_list"], estimhab_dict["fish_list"])
+    q_all, h_all, w_all, vel_all, VH, SPU, qtarg_dict = estimhab(estimhab_dict, qt_tr)
 
     # save in dict
     estimhab_dict["q_all"] = q_all
+    estimhab_dict["h_all"] = h_all
+    estimhab_dict["w_all"] = w_all
+    estimhab_dict["vel_all"] = vel_all
     estimhab_dict["VH"] = VH
     estimhab_dict["SPU"] = SPU
+    estimhab_dict["qtarg_dict"] = qtarg_dict
 
     # name hdf5
     name_prj = os.path.basename(path_prj)
@@ -50,8 +53,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     plot_mod.plot_estimhab(state, estimhab_dict, project_preferences, path_prj)
 
 
-
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fish_name):
+def estimhab(estimhab_dict, qt_tr):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -91,16 +93,34 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
     Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
     a text file.
     """
+    estimhab_dict["qtarg"].sort()
+    qmes = estimhab_dict["q"]
+    width = estimhab_dict["w"]
+    height = estimhab_dict["h"]
+    q50 = estimhab_dict["q50"]
+    qrange = estimhab_dict["qrange"]
+    qtarg = estimhab_dict["qtarg"]
+    substrat = estimhab_dict["substrate"]
+    path_bio = estimhab_dict["path_bio"]
+    fish_xml = estimhab_dict["xml_list"]
+    fish_name = estimhab_dict["fish_list"]
+
     # Q
-    nb_q = 20  # number of calculated q
+    nb_q = 100  # number of calculated q
     if qrange[1] > qrange[0]:
-        diff = (qrange[1] - qrange[0]) / nb_q
         if qrange[0] == 0:
             qrange[0] = 10 ** -10  # if exactly zero, you cannot divide anymore
-        q_all = np.arange(qrange[0], qrange[1] + diff, diff)
+        q_all = np.geomspace(start=qrange[0],
+                            stop=qrange[1],
+                            num=nb_q,
+                             endpoint=True)
+        if qtarg:
+            q_all = np.insert(arr=q_all,
+                      obj=np.searchsorted(a=q_all, v=qtarg),
+                      values=qtarg)
     else:
-        print('Error: The mininum discharge is higher or equal than the maximum')
-        return [-99], [-99]
+        print('Error: ' + qt_tr.translate("estimhab_mod", 'The mininum discharge is higher or equal than the maximum.'))
+        return [-99], [-99], [-99], [-99], [-99], [-99]
 
     # height
     slope = (np.log(height[1]) - np.log(height[0])) / (np.log(qmes[1]) - np.log(qmes[0]))
@@ -137,8 +157,9 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
             doc = ET.parse(filename)
             root = doc.getroot()
         else:
-            print('Error: the xml file for the file ' + fish_xml[f] + " does not exist")
-            return [-99], [-99]
+            print('Error: ' + qt_tr.translate("estimhab_mod", 'The xml file for the file ') + filename +
+                  qt_tr.translate("estimhab_mod", " does not exist."))
+            return [-99], [-99], [-99], [-99], [-99], [-99]
 
         # get data
         try:
@@ -147,8 +168,10 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
             coeff_const = pass_to_float_estimhab(".//coeff_const", root)
             var_const = pass_to_float_estimhab(".//var_const", root)
         except ValueError:
-            print('Error: Some data can not be read or are not number. Check the xml file ' + fish_name[f])
-            return [-99], [-99]
+            print('Error: ' + qt_tr.translate("estimhab_mod",
+                                              'Some data can not be read or are not number. Check the xml file ') +
+                  fish_name[f])
+            return [-99], [-99], [-99], [-99], [-99], [-99]
 
         # calculate VH
         if func_q[0] == 0.:
@@ -156,7 +179,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
         elif func_q[0] == 1.:
             part_q = 1 + coeff_q[0] * np.exp(coeff_q[1] * re)
         else:
-            print('Error: no function defined for Q')
+            print('Error: ' + qt_tr.translate("estimhab_mod",
+                                              'No function defined for Q'))
         const = coeff_const[0]
         for i in range(0, len(var_const)):
             const += coeff_const[i + 1] * np.log(q50_data[int(var_const[i])])
@@ -169,7 +193,24 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, fis
     VH = np.array(VH)
     SPU = np.array(SPU)
 
-    return q_all, VH, SPU
+    # remove qtarget values to separate them
+    qtarg_dict = dict(q_all=[],
+                      h_all=[],
+                      w_all=[],
+                      vel_all=[],
+                      VH=np.empty((SPU.shape[0], len(qtarg))),
+                      SPU=np.empty((SPU.shape[0], len(qtarg))))
+    if qtarg:
+        for qtarg_indice, qtarg_value in enumerate(qtarg):
+            indice = np.where(q_all == qtarg_value)[0][0]
+            qtarg_dict["q_all"].append(q_all[indice])
+            qtarg_dict["h_all"].append(h_all[indice])
+            qtarg_dict["w_all"].append(w_all[indice])
+            qtarg_dict["vel_all"].append(vel[indice])
+            qtarg_dict["VH"][:, qtarg_indice] = VH[:, indice]
+            qtarg_dict["SPU"][:, qtarg_indice] = SPU[:, indice]
+
+    return q_all, h_all, w_all, vel, VH, SPU, qtarg_dict
 
 
 def pass_to_float_estimhab(var_name, root):

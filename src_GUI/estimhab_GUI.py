@@ -23,15 +23,16 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
-    QLineEdit, QFileDialog, QListWidget, QListWidgetItem, \
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
+    QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, \
     QAbstractItemView, QMessageBox, QScrollArea, QFrame
-from PyQt5.QtGui import QFont
-from multiprocessing import Process, Queue, Value
+from PyQt5.QtGui import QFont, QIcon
+from multiprocessing import Process, Value
 import sys
 from io import StringIO
 from src import hdf5_mod
+from src.tools_mod import DoubleClicOutputGroup
 from src_GUI.data_explorer_GUI import MyProcessList
 from src.project_manag_mod import load_project_preferences
 
@@ -61,6 +62,11 @@ class StatModUseful(QScrollArea):
         self.eh2 = QLineEdit()
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
+        self.eqtarget = QLineEdit()
+        self.target_lineedit_list = [self.eqtarget]
+        self.add_qtarget_button = QPushButton()
+        self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "plus.png")))
+        self.add_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
         self.msge = QMessageBox()
@@ -173,12 +179,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_im = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_im
 
@@ -200,12 +201,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier hdf5"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_hdf5
 
@@ -227,12 +223,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_text = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_text
 
@@ -259,12 +250,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_out = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_out
 
@@ -286,12 +272,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_input = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the copied inputs"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_input
 
@@ -311,7 +292,7 @@ class StatModUseful(QScrollArea):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
-                self.send_log.emit(self.tr('Warning: too many information for the GUI.'))
+                self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'too many information for the GUI.'))
 
     def check_all_q(self):
         """
@@ -330,14 +311,14 @@ class StatModUseful(QScrollArea):
             q1 = self.qall[1]
 
         if q2 < 2 * q1:
-            self.send_log.emit('Warning: ' + self.tr('Measured discharge are not very different. The results might '
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Measured discharges are not very different. The results might '
                                'not be realistic. \n'))
         if (self.qall[4] < q1 / 10 or self.qall[4] > 5 * q2) and self.qall[4] != -99:  # q50 not always necessary
-            self.send_log.emit('Warning: ' + self.tr('Q50 should be between q1/10 and 5*q2 for optimum results. \n'))
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Q50 should be between q1/10 and 5*q2 for optimum results.'))
         if self.qall[2] < q1 / 10 or self.qall[2] > 5 * q2:
-            self.send_log.emit('Warning: ' + self.tr('Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n'))
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (1).'))
         if self.qall[3] < q1 / 10 or self.qall[3] > 5 * q2:
-            self.send_log.emit('Warning: ' + self.tr('Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n'))
+            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (2).'))
 
 
 class EstimhabW(StatModUseful):
@@ -361,6 +342,7 @@ class EstimhabW(StatModUseful):
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
         self.plot_process_list = MyProcessList("estimhab")
+        self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []
         self.filenames = []  # a list which link the name of the fish name and the xml file
@@ -398,20 +380,78 @@ class EstimhabW(StatModUseful):
          here, which save the data.
         """
 
-        # load the data if it exist already
-        self.open_estimhab_hdf5()
+        available_model_label = QLabel(self.tr('Available'))
+        selected_model_label = QLabel(self.tr('Selected'))
 
-        # Data hydrological (QLineEdit in the init of StatModUseful)
-        l1 = QLabel(self.tr('<b>Hydrological Data</b>'))
-        l2 = QLabel(self.tr('Q [m3/sec]'))
-        l3 = QLabel(self.tr('Width [m]'))
-        l4 = QLabel(self.tr('Height [m]'))
-        l5 = QLabel(self.tr('<b>Median discharge Q50 [m3/sec]</b>'))
-        l6 = QLabel(self.tr('<b> Mean substrate size [m] </b>'))
-        l7 = QLabel(self.tr('<b> Discharge range [m3/sec] </b> (Qmin and Qmax)'))
-        # data fish type
-        l10 = QLabel(self.tr('<b>Available Fish and Guild </b>'))
-        l11 = QLabel(self.tr('Selected Fish'))
+        self.lineedit_width = 50
+        self.spacer_width = 50
+
+        # input
+        q1_layout = QHBoxLayout()
+        q1_layout.addWidget(QLabel(self.tr("Q1 [m3/sec]")))
+        q1_layout.addWidget(self.eq1)
+        q1_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eq1.setFixedWidth(self.lineedit_width)
+
+        q2_layout = QHBoxLayout()
+        q2_layout.addWidget(QLabel(self.tr("Q2 [m3/sec]")))
+        q2_layout.addWidget(self.eq2)
+        q2_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eq2.setFixedWidth(self.lineedit_width)
+
+        w1_layout = QHBoxLayout()
+        w1_layout.addWidget(QLabel(self.tr("Width1 [m]")))
+        w1_layout.addWidget(self.ew1)
+        w1_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.ew1.setFixedWidth(self.lineedit_width)
+
+        w2_layout = QHBoxLayout()
+        w2_layout.addWidget(QLabel(self.tr("Width2 [m]")))
+        w2_layout.addWidget(self.ew2)
+        w2_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.ew2.setFixedWidth(self.lineedit_width)
+
+        h1_layout = QHBoxLayout()
+        h1_layout.addWidget(QLabel(self.tr("Height1 [m]")))
+        h1_layout.addWidget(self.eh1)
+        self.eh1.setFixedWidth(self.lineedit_width)
+
+        h2_layout = QHBoxLayout()
+        h2_layout.addWidget(QLabel(self.tr("Height2 [m]")))
+        h2_layout.addWidget(self.eh2)
+        self.eh2.setFixedWidth(self.lineedit_width)
+
+        q50_layout = QHBoxLayout()
+        q50_layout.addWidget(QLabel(self.tr('Qmedian/Q50 [m3/sec]')))
+        q50_layout.addWidget(self.eq50)
+        q50_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eq50.setFixedWidth(self.lineedit_width)
+
+        sub_layout = QHBoxLayout()
+        sub_layout.addWidget(QLabel(self.tr('Mean substrate size [m]')))
+        sub_layout.addWidget(self.esub)
+        sub_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.esub.setFixedWidth(self.lineedit_width)
+
+        # output
+        q1out_layout = QHBoxLayout()
+        q1out_layout.addWidget(QLabel(self.tr("Qmin [m3/sec]")))
+        q1out_layout.addWidget(self.eqmin)
+        q1out_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eqmin.setFixedWidth(self.lineedit_width)
+
+        q2out_layout = QHBoxLayout()
+        q2out_layout.addWidget(QLabel(self.tr("Qmax [m3/sec]")))
+        q2out_layout.addWidget(self.eqmax)
+        q2out_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        self.eqmax.setFixedWidth(self.lineedit_width)
+
+        self.q2target_layout = QHBoxLayout()
+        self.q2target_layout.addWidget(QLabel(self.tr("Qtarget [m3/sec]")))
+        self.q2target_layout.addWidget(self.eqtarget)
+        self.q2target_layout.addWidget(self.add_qtarget_button)
+        self.add_qtarget_button.clicked.connect(self.add_new_qtarget)
+        self.eqtarget.setFixedWidth(self.lineedit_width)
 
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -432,50 +472,107 @@ class EstimhabW(StatModUseful):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # add all fish name from a directory to the QListWidget self.list_f
-        self.read_fish_name()
-
         # send model
-        button1 = QPushButton(self.tr('Save and Run ESTIMHAB'), self)
+        button1 = QPushButton(self.tr('Run and save ESTIMHAB'), self)
         button1.setStyleSheet("background-color: #47B5E6; color: black")
-        button1.clicked.connect(self.save_signal_estimhab.emit)
         button1.clicked.connect(self.run_estmihab)
-        # button2 = QPushButton(self.tr('Change folder (fish data)'), self)
-        # button2.clicked.connect(self.change_folder)
 
         # empty frame scrolable
         content_widget = QFrame()
 
-        # layout
-        self.layout3 = QGridLayout(content_widget)
-        self.layout3.addWidget(l1, 0, 0)
-        self.layout3.addWidget(l2, 1, 0)
-        self.layout3.addWidget(l3, 1, 1)
-        self.layout3.addWidget(l4, 1, 2)
-        self.layout3.addWidget(self.eq1, 2, 0)
-        self.layout3.addWidget(self.ew1, 2, 1)
-        self.layout3.addWidget(self.eh1, 2, 2)
-        self.layout3.addWidget(self.eq2, 3, 0)
-        self.layout3.addWidget(self.ew2, 3, 1)
-        self.layout3.addWidget(self.eh2, 3, 2)
-        self.layout3.addWidget(l5, 4, 0)
-        self.layout3.addWidget(self.eq50, 5, 0)
-        self.layout3.addWidget(l6, 4, 1)
-        self.layout3.addWidget(self.esub, 5, 1)
-        self.layout3.addWidget(l7, 6, 0)
-        self.layout3.addWidget(self.eqmin, 7, 0)
-        self.layout3.addWidget(self.eqmax, 7, 1)
-        self.layout3.addWidget(l10, 8, 0)
-        self.layout3.addWidget(l11, 8, 1)
-        self.layout3.addWidget(self.list_f, 9, 0)
-        self.layout3.addWidget(self.selected_aquatic_animal_qtablewidget, 9, 1)
-        self.layout3.addWidget(button1, 10, 2)
-        # self.layout3.addWidget(button2, 10, 0)
+        # hydraulic_data_group
+        hydraulic_data_group = QGroupBox(self.tr('Hydraulic data input'))
+        hydraulic_data_layout = QGridLayout(hydraulic_data_group)
+        hydraulic_data_layout.addLayout(q1_layout, 0, 0)
+        hydraulic_data_layout.addLayout(w1_layout, 0, 1)
+        hydraulic_data_layout.addLayout(h1_layout, 0, 2)
+        hydraulic_data_layout.addLayout(q2_layout, 1, 0)
+        hydraulic_data_layout.addLayout(w2_layout, 1, 1)
+        hydraulic_data_layout.addLayout(h2_layout, 1, 2)
+        hydraulic_data_layout.addLayout(q50_layout, 2, 0)
+        hydraulic_data_layout.addLayout(sub_layout, 2, 1)
+        hydraulic_data_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.doubleclick_input_group = DoubleClicOutputGroup()
+        hydraulic_data_group.installEventFilter(self.doubleclick_input_group)
+        self.doubleclick_input_group.double_clic_signal.connect(self.reset_hydraulic_data_input_group)
+
+        # hydraulic_data_output_group
+        hydraulic_data_output_group = QGroupBox(self.tr('Hydraulic data desired'))
+        hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
+        hydraulic_data_layout.addLayout(q1out_layout, 0, 0)
+        hydraulic_data_layout.addLayout(q2out_layout, 0, 1)
+        hydraulic_data_layout.addLayout(self.q2target_layout, 0, 2)
+        hydraulic_data_output_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.doubleclick_output_group = DoubleClicOutputGroup()
+        hydraulic_data_output_group.installEventFilter(self.doubleclick_output_group)
+        self.doubleclick_output_group.double_clic_signal.connect(self.reset_hydraulic_data_output_group)
+
+        # models_group
+        models_group = QGroupBox(self.tr('Biological models'))
+        models_layout = QGridLayout(models_group)
+        models_layout.addWidget(available_model_label, 0, 0)
+        models_layout.addWidget(selected_model_label, 0, 1)
+        models_layout.addWidget(self.list_f, 1, 0)
+        models_layout.addWidget(self.selected_aquatic_animal_qtablewidget, 1, 1)
+        models_layout.addWidget(button1, 2, 1)
+        self.doubleclick_models_group = DoubleClicOutputGroup()
+        models_group.installEventFilter(self.doubleclick_models_group)
+        self.doubleclick_models_group.double_clic_signal.connect(self.reset_models_group)
+
+        # gereral_layout
+        self.layout3 = QVBoxLayout(content_widget)
+        self.layout3.addWidget(hydraulic_data_group, Qt.AlignLeft)
+        self.layout3.addWidget(hydraulic_data_output_group)
+        self.layout3.addWidget(models_group)
 
         # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
+
+        # load the data if it exist already
+        self.open_estimhab_hdf5()
+
+        # add all fish name from a directory to the QListWidget self.list_f
+        self.read_fish_name()
+
+    def add_new_qtarget(self):
+        # count existing number of lineedit
+        total_widget_number = self.q2target_layout.count()
+        self.total_lineedit_number = total_widget_number - 2  # first : qlabel and last : qpushbutton
+        setattr(self, 'new_qtarget' + str(total_widget_number - 1), QLineEdit())
+        getattr(self, 'new_qtarget' + str(total_widget_number - 1)).setFixedWidth(self.lineedit_width)
+        self.target_lineedit_list.append(getattr(self, 'new_qtarget' + str(total_widget_number - 1)))
+        self.q2target_layout.insertWidget(total_widget_number - 1, getattr(self, 'new_qtarget' + str(total_widget_number - 1)))
+        self.total_lineedit_number = self.total_lineedit_number + 1
+
+    def reset_hydraulic_data_input_group(self):
+        print("reset_hydraulic_data_input_group")
+        # remove txt in lineedit
+        self.eq1.setText("")
+        self.eq2.setText("")
+        self.ew1.setText("")
+        self.ew2.setText("")
+        self.eh1.setText("")
+        self.eh2.setText("")
+        self.eq50.setText("")
+        self.esub.setText("")
+
+    def reset_hydraulic_data_output_group(self):
+        # remove txt in lineedit
+        self.eqmin.setText("")
+        self.eqmax.setText("")
+        self.eqtarget.setText("")
+        # remove lineedits qtarget
+        for i in reversed(range(2, self.q2target_layout.count() - 1)):
+            self.q2target_layout.itemAt(i).widget().setParent(None)
+            self.total_lineedit_number = self.total_lineedit_number - 1
+        self.target_lineedit_list = [self.eqtarget]
+
+    def reset_models_group(self):
+        if self.selected_aquatic_animal_qtablewidget.count() > 0:
+            self.selected_aquatic_animal_qtablewidget.clear()
+            self.read_fish_name()
 
     def read_fish_name(self):
         """
@@ -573,13 +670,16 @@ class EstimhabW(StatModUseful):
                     self.eqmin.setText(str(hdf5.estimhab_dict["qrange"][0]))
                     self.eqmax.setText(str(hdf5.estimhab_dict["qrange"][1]))
                     self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
+                    # qtarg
+                    if len(hdf5.estimhab_dict["targ_q_all"]) > 0:
+                        self.eqtarget.setText(str(hdf5.estimhab_dict["targ_q_all"][0]))
+                        while self.total_lineedit_number != len(hdf5.estimhab_dict["targ_q_all"]):
+                            self.add_new_qtarget()
+                        for qtarg_num, qtarg_value in enumerate(hdf5.estimhab_dict["targ_q_all"][1:]):
+                            getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
 
                 else:
-                    self.msge.setIcon(QMessageBox.Warning)
-                    self.msge.setWindowTitle(self.tr("hdf5 ESTIMHAB"))
-                    self.msge.setText(self.tr("The hdf5 file related to ESTIMHAB does not exist"))
-                    self.msge.setStandardButtons(QMessageBox.Ok)
-                    self.msge.show()
+                    self.send_log.emit('Error: ' + self.tr('The hdf5 file related to ESTIMHAB does not exist.'))
 
     def change_folder(self):
         """
@@ -621,92 +721,60 @@ class EstimhabW(StatModUseful):
         """
         # prepare data
         try:
-            q = [float(self.eq1.text()), float(self.eq2.text())]
-            w = [float(self.ew1.text()), float(self.ew2.text())]
-            h = [float(self.eh1.text()), float(self.eh2.text())]
-            q50 = float(self.eq50.text())
-            qrange = [float(self.eqmin.text()), float(self.eqmax.text())]
-            substrate = float(self.esub.text())
+            q = [float(self.eq1.text().replace(",", ".")), float(self.eq2.text().replace(",", "."))]
+            w = [float(self.ew1.text().replace(",", ".")), float(self.ew2.text().replace(",", "."))]
+            h = [float(self.eh1.text().replace(",", ".")), float(self.eh2.text().replace(",", "."))]
+            q50 = float(self.eq50.text().replace(",", "."))
+            qrange = [float(self.eqmin.text().replace(",", ".")), float(self.eqmax.text().replace(",", "."))]
+            qtarget_values_list = []
+            for qtarg_lineedit in self.target_lineedit_list:
+                if qtarg_lineedit.text():
+                    qtarget_values_list.append(float(qtarg_lineedit.text().replace(",", ".")))
+            substrate = float(self.esub.text().replace(",", "."))
         except ValueError:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Some data are empty or not float. Cannot run Estimhab"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
             return
 
         # get the list of xml file
-        all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
         fish_list = []
         fish_name2 = []
         for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
             fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
             fish_item_str = fish_item.text()
-            # for id, f in enumerate(self.filenames[0]):
-            #     if f == fish_item_str:
-            #         fish_list.append(os.path.basename(self.filenames[1][id]))
-            #         fish_name2.append(fish_item_str)
-
             fish_list.append(os.path.basename(fish_item.data(1)))
             fish_name2.append(fish_item_str)
         # check internal logic
         if not fish_list:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("No fish selected. Cannot run Estimhab."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
             return
         if qrange[0] >= qrange[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Minimum discharge bigger or equal to max discharge. Cannot run Estimhab."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
             return
+        if qtarget_values_list:
+            for qtarg in qtarget_values_list:
+                if qtarg < qrange[0] or qtarg > qrange[1]:
+                    self.send_log.emit(
+                        'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run Estimhab.'))
+                    return
         if q[0] == q[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Estimhab needs two different measured discharge."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
             return
         if h[0] == h[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Estimhab needs two different measured height."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured height.'))
             return
         if w[0] == w[1]:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Estimhab needs two different measured width."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured width.'))
             return
         if (q[0] > q[1] and h[0] < h[1]) or (q[0] > q[1] and w[0] < w[1]) or (q[1] > q[0] and h[1] < h[0]) \
                 or (q[1] > q[0] and w[1] < w[0]):
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Discharge, width, and height data are not coherent \n"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Discharge, width, and height data are not coherent.'))
             return
-        if q[0] < 0 or q[1] < 0 or w[0] < 0 or w[1] < 0 or h[0] < 0 or h[1] < 0 or qrange[0] < 0 or qrange[1] < 0 \
-                or substrate < 0 or q50 < 0:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Negative data found. Could not run estimhab. \n"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+        if q[0] <= 0 or q[1] <= 0 or w[0] <= 0 or w[1] <= 0 or h[0] <= 0 or h[1] <= 0 or qrange[0] <= 0 or qrange[1] <= 0 \
+                or substrate <= 0 or q50 <= 0:
+            self.send_log.emit('Error: ' + self.tr('Negative or zero data found. Could not run estimhab.'))
             return
         if substrate > 3:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Substrate is too large. Could not run estimhab. \n"))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
+            self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run estimhab.'))
             return
 
         self.send_log.emit(self.tr('# Computing: ESTIMHAB...'))
@@ -716,8 +784,6 @@ class EstimhabW(StatModUseful):
         self.check_all_q()
 
         # run and save
-        path_im = self.find_path_im_est()
-        path_txt = self.find_path_text_est()
         project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
 
@@ -726,6 +792,7 @@ class EstimhabW(StatModUseful):
                              h=h,
                              q50=q50,
                              qrange=qrange,
+                             qtarg=qtarget_values_list,
                              substrate=substrate,
                              path_bio=self.path_bio_estimhab,
                              xml_list=fish_list,
@@ -742,6 +809,20 @@ class EstimhabW(StatModUseful):
         while state.value != 1:
             pass
 
+        fname_no_path = self.name_prj + '_ESTIMHAB' + '.hab'
+        fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
+        doc = ET.parse(fnamep)
+        root = doc.getroot()
+        tree = ET.ElementTree(root)
+        child = root.find(".//ESTIMHAB_data")
+        # test if there is already estimhab data in the project
+        if child is None:
+            child = ET.SubElement(root, "ESTIMHAB_data")
+            child.text = fname_no_path
+        else:
+            child.text = fname_no_path
+        tree.write(fnamep)
+
         # log info
         str_found = mystdout.getvalue()
         str_found = str_found.split('\n')
@@ -750,7 +831,7 @@ class EstimhabW(StatModUseful):
                 self.send_log.emit(str_found[i])
 
         self.send_log.emit(
-            self.tr("Estimhab computation done. Estimhab .hab, figure and text files created."))
+            self.tr("Estimhab computation done. Figure and text files created."))
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')

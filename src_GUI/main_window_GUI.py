@@ -96,7 +96,7 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION)
-        self.beta = True  # if set to True : GUI beta version mode is runned
+        self.beta = False  # if set to True : GUI beta version mode is runned
         # user_preferences
         self.user_preferences = user_preferences
 
@@ -245,8 +245,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.open_proj.connect(self.open_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # right click
         self.create_menu_right_clic()
@@ -571,8 +569,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
         self.central_widget.welcome_tab.save_info_signal.connect(self.central_widget.save_info_projet)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+
         # re-connect signals for the other tabs
         self.central_widget.connect_signal_fig_and_drop()
         # re-connect signals for the log
@@ -1354,15 +1351,6 @@ class MainWindows(QMainWindow):
         self.central_widget.name_prj_c = self.name_prj
         self.save_project()
 
-        # update estimhab and stathab
-        if stathab_info is not None:  # if there is data for STATHAB
-            self.central_widget.stathab_tab.load_from_hdf5_gui()
-        self.central_widget.statmod_tab.open_estimhab_hdf5()
-
-        # update hydro
-        self.central_widget.update_hydro_hdf5_name()
-        self.central_widget.substrate_tab.update_sub_hdf5_name()
-
         # recreate new widget
         self.recreate_tabs_attributes()
         # self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
@@ -1374,6 +1362,15 @@ class MainWindows(QMainWindow):
         # self.central_widget.output_tab = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
         # self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
         # self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+
+        # update estimhab and stathab
+        if stathab_info is not None:  # if there is data for STATHAB
+            self.central_widget.stathab_tab.load_from_hdf5_gui()
+        self.central_widget.statmod_tab.open_estimhab_hdf5()
+
+        # update hydro
+        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
@@ -1398,8 +1395,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.open_proj.connect(self.open_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -1598,8 +1593,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.open_proj.connect(self.open_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -1727,141 +1720,6 @@ class MainWindows(QMainWindow):
             call(["xdg-open", path_choosen])
         elif self.operatingsystemactual == 'Darwin':
             call(['open', path_choosen])
-
-    def save_project_estimhab(self):
-        """
-        A function to save the information linked with Estimhab in an hdf5 file.
-
-        **Technical comments**
-
-        This function save the data and result from the estimhab calculation. It would look more logic if it was in
-        the esimhab.py script, but it was easier to call it from here instead of in the child class.
-
-        This function get all estimhab input, create an hdf5 file using h5py and save the data in the hdf5. One
-        specialty of hdf5 is that is cannot use Unicode. Hence all string have to be passed to ascii using the encode
-        function. The size of each data should also be known.
-
-        Finally, we save the name and path of the estimhab file in the xml project file.
-        """
-
-        # a boolean to check to progress of the saving
-        self.does_it_work = True
-
-        # get all the float
-        q1 = self.test_entry_float(self.central_widget.statmod_tab.eq1)
-        q2 = self.test_entry_float(self.central_widget.statmod_tab.eq2)
-        w1 = self.test_entry_float(self.central_widget.statmod_tab.ew1)
-        w2 = self.test_entry_float(self.central_widget.statmod_tab.ew2)
-        h1 = self.test_entry_float(self.central_widget.statmod_tab.eh1)
-        h2 = self.test_entry_float(self.central_widget.statmod_tab.eh2)
-        q50 = self.test_entry_float(self.central_widget.statmod_tab.eq50)
-        qmin = self.test_entry_float(self.central_widget.statmod_tab.eqmin)
-        qmax = self.test_entry_float(self.central_widget.statmod_tab.eqmax)
-        sub = self.test_entry_float(self.central_widget.statmod_tab.esub)
-
-        # get chosen fish (xml name of the file)
-        fish_list = []
-        for i in range(0, self.central_widget.statmod_tab.selected_aquatic_animal_qtablewidget.count()):
-            fish_item = self.central_widget.statmod_tab.selected_aquatic_animal_qtablewidget.item(i)
-            fish_item_str = fish_item.text()
-            fish_list.append(fish_item_str)
-
-        # create an empty hdf5 file using all default prop.
-        fname_no_path = self.name_prj + '_ESTIMHAB' + '.hab'
-        fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if not os.path.isfile(fnamep):
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save project"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the\
-                 start tab before saving ESTIMHAB data"))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-        else:
-            doc = ET.parse(fnamep)
-            root = doc.getroot()
-            tree = ET.ElementTree(root)
-            child = root.find(".//Path_Hdf5")
-            path_hdf5 = child.text
-
-        fname = os.path.join(os.path.join(self.path_prj, path_hdf5), fname_no_path)
-        file = h5py.File(fname, 'w')
-
-        # create all datasets and group
-        file.attrs['path_bio'] = self.central_widget.statmod_tab.path_bio
-        file.attrs['HDF5_version'] = h5py.version.hdf5_version
-        file.attrs['h5py_version'] = h5py.version.version
-
-        qmesg = file.create_group('qmes')
-        qmes = qmesg.create_dataset(fname_no_path, [2, 1], data=[q1, q2])
-        wmesg = file.create_group('wmes')
-        wmes = wmesg.create_dataset(fname_no_path, [2, 1], data=[w1, w2])
-        hmesg = file.create_group('hmes')
-        hmes = hmesg.create_dataset(fname_no_path, [2, 1], data=[h1, h2])
-        q50_natg = file.create_group('q50')
-        q50_nat = q50_natg.create_dataset(fname_no_path, [1, 1], data=[q50])
-        qrangeg = file.create_group('qrange')
-        qrange = qrangeg.create_dataset(fname_no_path, [2, 1], data=[qmin, qmax])
-        subg = file.create_group('substrate')
-        sub = subg.create_dataset(fname_no_path, [1, 1], data=[sub])
-        ascii_str = [n.encode("ascii", "ignore") for n in fish_list]  # unicode is not ok with hdf5
-        # to see if this work dt = h5py.special_dtype(vlen=unicode)
-        fish_typeg = file.create_group('fish_type')
-        fish_type_all = fish_typeg.create_dataset(fname_no_path, (len(fish_list), 1), data=ascii_str)
-        file.close()
-
-        # add the name of this h5 file to the xml file of the project
-
-        if not os.path.isfile(fnamep):
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save project"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the start tab before saving ESTIMHAB data"))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-        else:
-            doc = ET.parse(fnamep)
-            root = doc.getroot()
-            tree = ET.ElementTree(root)
-            child = root.find(".//ESTIMHAB_data")
-            # test if there is already estimhab data in the project
-            if child is None:
-                child = ET.SubElement(root, "ESTIMHAB_data")
-                child.text = fname_no_path
-            else:
-                child.text = fname_no_path
-            tree.write(fnamep)
-
-    def test_entry_float(self, var_in):
-        """
-        An utility function to test if var_in are float or not
-        the boolean self.does_it_work is used to know if the functions run until the end.
-
-        :param var_in: the QlineEdit which contains the data (so var_in.text is a string)
-
-        :return: the tested variable var_in
-        """
-
-        var_str = var_in.text()
-        var = -99
-        if self.does_it_work:
-            try:
-                var = float(var_str)
-            except ValueError:
-                self.does_it_work = False
-                self.msg2.setIcon(QMessageBox.Warning)
-                self.msg2.setWindowTitle(self.tr("Data for ESTIMHAB"))
-                if var_str:
-                    self.msg2.setText(self.tr("Data cannot be converted to float."))
-                    add_text = self.tr("First problematic data is ")
-                    self.msg2.setDetailedText(add_text + var_str)
-                else:
-                    self.msg2.setText(
-                        self.tr("Data is empty or partially empty. Data is saved, but cannot be executed"))
-                self.msg2.setStandardButtons(QMessageBox.Ok)
-                self.msg2.show()
-
-        return var
 
     def open_close_physic(self):
         phisical_tabs_list = ["hydraulic", "substrate", "calc hab", "data explorer", "tools"]
@@ -2783,7 +2641,7 @@ class SoftInformationDialog(QDialog):
         layout_general_options = QFormLayout()
         general_options_group = QGroupBox(self.tr("HABBY version"))
         general_options_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         general_options_group.setLayout(layout_general_options)
         layout_general_options.addRow(actual_version_label_title, actual_version_label)
         layout_general_options.addRow(last_version_label_title, self.last_version_label)

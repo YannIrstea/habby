@@ -72,7 +72,7 @@ class ToolsTab(QScrollArea):
 
         # vertical layout
         self.setWidget(tools_frame)
-        global_layout = QVBoxLayout(self)
+        global_layout = QVBoxLayout()
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
         global_layout.addWidget(self.interpolation_group)
@@ -331,9 +331,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         # ok
         else:
-            from_sequ = float(self.from_qlineedit.text())  # from
-            to_sequ = float(self.to_qlineedit.text())  # to
-            by_sequ = float(self.by_qlineedit.text())  # by
+            from_sequ = float(self.from_qlineedit.text().replace(",", "."))  # from
+            to_sequ = float(self.to_qlineedit.text().replace(",", "."))  # to
+            by_sequ = float(self.by_qlineedit.text().replace(",", "."))  # by
 
             # dict range
             chonicle_from_seq = dict(units=list(self.frange(from_sequ, to_sequ, by_sequ)))

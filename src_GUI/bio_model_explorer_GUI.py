@@ -852,7 +852,7 @@ class BioModelInfoSelection(QScrollArea):
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
 
         # get data
-        data = bio_info_mod.get_hydrosignature(xmlfile)
+        data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
         if isinstance(data, np.ndarray):
             # do the plot
             if not hasattr(self, 'plot_process_list'):
@@ -863,6 +863,8 @@ class BioModelInfoSelection(QScrollArea):
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                              args=(state,
                                                    data,
+                                                   vclass,
+                                                   hclass,
                                                    fishname,
                                                    project_preferences))
             self.plot_process_list.append((hydrosignature_process, state))

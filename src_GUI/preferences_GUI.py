@@ -25,7 +25,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 import os
-
+from src.tools_mod import DoubleClicOutputGroup, QHLine
 from src.project_manag_mod import load_project_preferences, create_default_project_preferences
 
 
@@ -192,7 +192,7 @@ class PreferenceWindow(QDialog):
         # general options
         layout_general_options = QFormLayout()
         general_options_group = QGroupBox(self.tr("General"))
-        general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         general_options_group.setLayout(layout_general_options)
         layout_general_options.addRow(self.cut_2d_grid_label, self.cut_2d_grid_checkbox)
         layout_general_options.addRow(min_height_label, self.min_height_lineedit)
@@ -205,7 +205,7 @@ class PreferenceWindow(QDialog):
         available_exports_group.installEventFilter(self.doubleclick_check_uncheck_filter)
         self.doubleclick_check_uncheck_filter.double_clic_signal.connect(self.check_uncheck_all_checkboxs_at_once)
 
-        available_exports_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #available_exports_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         available_exports_group.setLayout(self.layout_available_exports)
 
         # row 0
@@ -258,7 +258,7 @@ class PreferenceWindow(QDialog):
         # figure options
         layout_figures = QFormLayout()
         figures_group = QGroupBox(self.tr("Figures"))
-        figures_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #figures_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         figures_group.setLayout(layout_figures)
         layout_figures.addRow(fig_size_label, self.fig_size_lineedit)
         layout_figures.addRow(color_map_label, self.color_map_combobox)
@@ -622,25 +622,6 @@ class PreferenceWindow(QDialog):
 
         # close window if opened
         self.close()
-
-
-class QHLine(QFrame):
-    def __init__(self):
-        super(QHLine, self).__init__()
-        self.setFrameShape(QFrame.HLine)
-        self.setFrameShadow(QFrame.Sunken)
-
-
-class DoubleClicOutputGroup(QObject):
-    double_clic_signal = pyqtSignal()
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.MouseButtonDblClick:
-            self.double_clic_signal.emit()
-            return True  # eat double click
-        else:
-            # standard event processing
-            return QObject.eventFilter(self, obj, event)
 
 
 if __name__ == '__main__':
