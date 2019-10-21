@@ -6425,6 +6425,21 @@ class SubstrateW(SubHydroW):
             self.name_hdf5 = self.point_hname.text()
             self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
+            if ext == ".shp":
+                # check if we have all files
+                name1 = namebase + '.dbf'
+                name2 = namebase + '.shx'
+                name3 = namebase + '.prj'  # it is ok if it does not exists
+                pathname1 = os.path.join(self.pathfile_point, name1)
+                pathname2 = os.path.join(self.pathfile_point, name2)
+                pathname3 = os.path.join(self.pathfile_point, name3)
+                if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
+                    self.send_log.emit(
+                        'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
+                        ' a .dbf file.')
+                    self.load_point_substrate.setDisabled(False)
+                    return
+
             sys.stdout = self.mystdout = StringIO()  # out to GUI
 
             # read points and make voronoi
@@ -6477,8 +6492,19 @@ class SubstrateW(SubHydroW):
                 self.send_err_log()
 
                 # copy
-                path_input = self.find_path_input()
-                self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+                if ext == ".shp":
+                    # copy shape file (compsed of .shp, .shx and .dbf)
+                    path_input = self.find_path_input()
+                    name_all = [filename, name1, name2]
+                    path_all = [self.pathfile_point, self.pathfile_point, self.pathfile_point]
+                    # we might have an addition projection file to copy
+                    if os.path.isfile(pathname3):
+                        name_all = [filename, name1, name2, name3]
+                        path_all = [self.pathfile_point, self.pathfile_point, self.pathfile_point, self.pathfile_point]
+                    self.p2 = Process(target=hdf5_mod.copy_files, args=(name_all, path_all, path_input))
+                else:  # .txt
+                    path_input = self.find_path_input()
+                    self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
                 self.p2.start()
 
                 # log info
