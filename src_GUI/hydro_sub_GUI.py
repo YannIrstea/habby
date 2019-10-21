@@ -5964,6 +5964,20 @@ class SubstrateW(SubHydroW):
                 if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
                     self.send_log.emit("Error: " + self.tr("The selected shapefile is not accompanied by its habby .txt file."))
                     return
+
+                # get type shapefile
+                driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+                ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+                layer = ds.GetLayer(0)  # one layer in shapefile
+                # get geom type
+                if layer.GetGeomType() != 3:  # polygon type
+                    # get the first feature
+                    feature = layer.GetNextFeature()
+                    geom_type = feature.GetGeometryRef().GetGeometryName()
+                    self.send_log.emit(
+                        "Error : " + self.tr("Selected shapefile is not polygon type. Type : " + geom_type))
+                    return
+
                 if os.path.isfile(os.path.join(dirname, blob + ".txt")):
                     with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                         dataraw = f.read()
@@ -6103,6 +6117,18 @@ class SubstrateW(SubHydroW):
                 if ext == ".shp":
                     if not os.path.isfile(os.path.join(dirname, blob + ".shp")):
                         self.send_log.emit("Error: " + self.tr("The selected file don't exist."))
+                        return
+                    # get type shapefile
+                    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+                    ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+                    layer = ds.GetLayer(0)  # one layer in shapefile
+                    # get geom type
+                    if layer.GetGeomType() != 1:  # polygon type
+                        # get the first feature
+                        feature = layer.GetNextFeature()
+                        geom_type = feature.GetGeometryRef().GetGeometryName()
+                        self.send_log.emit(
+                            "Error : " + self.tr("Selected shapefile is not point type. Type : " + geom_type))
                         return
                     # check classification code in .txt (polygon or point shp)
                     if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
