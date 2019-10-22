@@ -3860,6 +3860,7 @@ def get_filename_by_type(type, path):
                     filenames.append(file)
             else:
                 filenames.append(file)
+    filenames.sort()
     return filenames
 
 

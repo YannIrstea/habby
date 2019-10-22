@@ -269,6 +269,7 @@ class MainWindows(QMainWindow):
             self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
             self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
+            self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(self.rename_hdf5_file)
 
         # set theme
         if self.actual_theme == "classic":
@@ -455,20 +456,49 @@ class MainWindows(QMainWindow):
                             del element
                 doc.write(filename_path_pro)
 
-            # refresh GUI
-            combobox_list = [self.central_widget.substrate_tab.drop_hyd,
-                             self.central_widget.substrate_tab.drop_sub,
-                             self.central_widget.bioinfo_tab.m_all]
-            for combobox in combobox_list:
-                item_str_list = [combobox.itemText(i) for i in range(combobox.count())]
-                if file_to_remove in item_str_list:
-                    combobox.removeItem(item_str_list.index(file_to_remove))
-
-            # refresh data explorer
-            self.central_widget.data_explorer_tab.refresh_type()
+            # update_combobox_filenames
+            self.central_widget.update_combobox_filenames()
 
             # log
-            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File(s) deleted.') + " <br>")
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File(s) deleted. <br>'))
+
+    def rename_hdf5_file(self):
+        # get names
+        file_to_rename = self.central_widget.data_explorer_tab.data_explorer_frame.file_to_rename
+        ext = os.path.splitext(file_to_rename)[1]
+        file_renamed = self.central_widget.data_explorer_tab.data_explorer_frame.file_renamed
+
+        # rename file
+        os.rename(os.path.join(self.path_prj, "hdf5", file_to_rename),
+                  os.path.join(self.path_prj, "hdf5", file_renamed))
+
+        # change attribute
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_renamed)
+        hdf5.open_hdf5_file()
+        hdf5.file_object.attrs[ext[1:] + "_filename"] = file_renamed
+        input_type = hdf5.input_type
+        hdf5.file_object.close()
+
+        # refresh .xml project
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.findall(".//" + input_type)
+            if not child:
+                pass
+            else:
+                childs = child[0].getchildren()
+                for element in childs:
+                    if file_to_rename == element.text:
+                        element.text = file_renamed
+            doc.write(filename_path_pro)
+
+        # update_combobox_filenames
+        self.central_widget.update_combobox_filenames()
+
+        # log
+        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File renamed. <br>'))
 
     def fill_selected_models_listwidets(self):
         # get dict
@@ -575,7 +605,7 @@ class MainWindows(QMainWindow):
         # re-connect signals for the log
         self.central_widget.connect_signal_log()
 
-        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.update_combobox_filenames()
         # if hasattr(self.central_widget, 'chronicle_tab') == True:
         #     self.central_widget.update_merge_for_chronicle()
 
@@ -959,14 +989,21 @@ class MainWindows(QMainWindow):
                     self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
                     self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
                         self.remove_hdf5_files)
+                    self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(
+                        self.rename_hdf5_file)
 
                 else:
                     self.central_widget.data_explorer_tab.__init__(self.path_prj, self.name_prj)
                     self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
                         self.remove_hdf5_files)
+                    self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(
+                        self.rename_hdf5_file)
             else:
                 self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
-                self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
+                self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
+                    self.remove_hdf5_files)
+                self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(
+                    self.rename_hdf5_file)
 
             if hasattr(self.central_widget, "tools_tab"):
                 if not self.central_widget.tools_tab:
@@ -1239,7 +1276,7 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_log()
 
         # update name
-        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.update_combobox_filenames()
 
         # save_preferences
         project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -1369,7 +1406,7 @@ class MainWindows(QMainWindow):
         self.central_widget.statmod_tab.open_estimhab_hdf5()
 
         # update hydro
-        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.update_combobox_filenames()
         self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # set the central widget
@@ -1449,7 +1486,7 @@ class MainWindows(QMainWindow):
         self.save_project()
 
         # update hydro
-        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.update_combobox_filenames()
         self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # update stathab and estimhab
@@ -2115,7 +2152,7 @@ class CentralW(QWidget):
         self.connect_signal_log()
 
         # fill the QComboBox on the substrate and hydro tab
-        self.update_hydro_hdf5_name()
+        self.update_combobox_filenames()
 
         # get the log option (should we take log or not)
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
@@ -2286,17 +2323,17 @@ class CentralW(QWidget):
 
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
-            self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.telemac.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.ascii.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.rubar2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.sw2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.iber2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.hecras1D.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.hecras2D.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.telemac.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.ascii.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.rubar2d.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.rubar1d.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.sw2d.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.iber2d.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.mascar.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_combobox_filenames)
 
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
@@ -2418,7 +2455,7 @@ class CentralW(QWidget):
 
         return
 
-    def update_hydro_hdf5_name(self):
+    def update_combobox_filenames(self):
         """
         This is a short function used to read all the hydrological data (contained in an hdf5 files) available in
         one project.
@@ -2436,48 +2473,27 @@ class CentralW(QWidget):
         """
 
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.habby')):
-            # clear QCombox from Hydro2W() and Substratew()
+            # substrate hyd combobox
             self.substrate_tab.drop_hyd.clear()
-            #self.hydro_tab.drop_hyd.clear()
+            names_hyd = hdf5_mod.get_filename_by_type("hydraulic", os.path.join(self.path_prj_c, "hdf5"))
+            self.substrate_tab.drop_hyd.addItems(names_hyd)
+            self.substrate_tab.hyd_name = names_hyd
 
-            # get the hdf5 path
-            filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
-            if os.path.isfile(filename_path_pro):
-                doc = ET.parse(filename_path_pro)
-                root = doc.getroot()
-                child = root.find(".//Path_Hdf5")
-                if child is None:
-                    path_hdf5 = os.path.join(self.path_prj_c, self.name_prj_c)
-                else:
-                    path_hdf5 = os.path.join(self.path_prj_c, child.text)
-            else:
-                self.write_log(self.tr('Error: Project is not saved. \n'))
-                return
+            # substrate sub combobox
+            self.substrate_tab.drop_sub.clear()
+            names_sub = hdf5_mod.get_filename_by_type("substrate", os.path.join(self.path_prj_c, "hdf5"))
+            self.substrate_tab.drop_sub.addItems(names_sub)
+            self.substrate_tab.sub_name = names_sub
 
-            # read name
-            self.hyd_name = self.substrate_tab.read_attribute_xml('hdf5_hydrodata')
-            self.hyd_name = list(reversed(self.hyd_name.split(',')))
-            if not os.path.isabs(self.hyd_name[0]):
-                for i in range(0, len(self.hyd_name)):
-                    self.hyd_name[i] = os.path.join(path_hdf5, self.hyd_name[i])
-            hyd_name2 = []  # we might have no hdf5 file in the xml project file
-            for i in range(0, len(self.hyd_name)):
-                if os.path.isfile(self.hyd_name[i]):
-                    hyd_name2.append(self.hyd_name[i])
-            self.hyd_name = hyd_name2
-            self.substrate_tab.hyd_name = self.hyd_name
+            # calc hab combobox
+            self.bioinfo_tab.m_all.clear()
+            names_hab = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj_c, "hdf5"))
+            self.bioinfo_tab.m_all.addItems(names_hab)
+            self.bioinfo_tab.hdf5_merge = names_hab
 
-            # add new name to the QComboBox()
-            for i in range(0, len(self.hyd_name)):
-                if i == 0 and len(self.hyd_name) > 1:
-                    self.substrate_tab.drop_hyd.addItem(' ')
-                if os.path.isfile(self.hyd_name[i]):
-                    if len(self.hyd_name[i]) > self.max_lengthshow:
-                        self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
-                        #self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
-                    else:
-                        self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
-                        #self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+            # data explorer
+            self.data_explorer_tab.refresh_type()
+
 
     def save_info_projet(self):
         """
