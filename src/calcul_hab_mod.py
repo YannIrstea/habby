@@ -193,10 +193,12 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
                     if information_model_dict["ModelType"] != 'bivariate suitability index models':
                         if pref_height[1][-1] == 0:
                             #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m : ") + name_fish + " " + stade_bio)
-                            pref_height[0][-1] = 100
+                            pref_height[0].append(1000)
+                            pref_height[1].append(0)
                         if pref_vel[1][-1] == 0:
                             #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x velocity value set to 100m/s : ") + name_fish + " " + stade_bio)
-                            pref_vel[0][-1] = 100
+                            pref_vel[0].append(1000)
+                            pref_vel[1].append(0)
 
                 # invertebrate case
                 elif aquatic_animal_type_select == "invertebrate":
@@ -393,12 +395,19 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                             # HV
                             if "H" in hyd_opt and "V" in hyd_opt:
                                 vh = h_pref_c * v_pref_c * s_pref_c
+                                vh[h_pref_c == 0] = 0
+                                vh[v_pref_c == 0] = 0
+                                vh[s_pref_c == 0] = 0
                             # H
                             elif "H" in hyd_opt:
                                 vh = h_pref_c * s_pref_c
+                                vh[h_pref_c == 0] = 0
+                                vh[s_pref_c == 0] = 0
                             # V
                             elif "V" in hyd_opt:
                                 vh = v_pref_c * s_pref_c
+                                vh[v_pref_c == 0] = 0
+                                vh[s_pref_c == 0] = 0
                             # Neglect
                             else:
                                 vh = s_pref_c
