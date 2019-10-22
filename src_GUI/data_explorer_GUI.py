@@ -81,6 +81,7 @@ class DataExplorerFrame(QFrame):
     This class is a subclass of class QGroupBox.
     """
     send_remove = pyqtSignal(str, name='send_remove')
+    send_rename = pyqtSignal(str, name='send_rename')
 
     def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
@@ -339,10 +340,21 @@ class DataExplorerFrame(QFrame):
         if selection:
             # create get_hdf5_list_to_remove_and_emit
             self.hdf5_remover_menu = QMenu()
-            remove_action = QAction(self.tr("Remove selected file"))
-            remove_action.setStatusTip(self.tr('Remove selected file and refresh solftware informations'))
+            if len(selection) == 1:
+                remove_action = QAction(self.tr("Remove selected file"))
+                remove_action.setStatusTip(self.tr('Remove selected file and refresh solftware informations'))
+            if len(selection) > 1:
+                remove_action = QAction(self.tr("Remove selected files"))
+                remove_action.setStatusTip(self.tr('Remove selected files and refresh solftware informations'))
             remove_action.triggered.connect(self.get_hdf5_list_to_remove_and_emit)
             self.hdf5_remover_menu.addAction(remove_action)
+            # rename
+            if len(selection) == 1:
+                rename_action = QAction(self.tr("Rename selected file"))
+                rename_action.setStatusTip(self.tr('Rename selected file and refresh solftware informations'))
+                rename_action.triggered.connect(self.rename_item_selected)
+                self.hdf5_remover_menu.addAction(rename_action)
+            # all cases
             self.hdf5_remover_menu.exec_(self.names_hdf5_QListWidget.mapToGlobal(point))
 
     def get_hdf5_list_to_remove_and_emit(self):
@@ -351,10 +363,34 @@ class DataExplorerFrame(QFrame):
         for item_selected in selection:
             self.file_to_remove_list.append(item_selected.text())
 
-        # question validation
-
-        # run
+        # emit signal
         self.send_remove.emit("")
+
+    def rename_item_selected(self):
+        """
+        Set the item editable and connect function to analyse user filename edition.
+        """
+        selection = self.names_hdf5_QListWidget.selectedItems()[0]  # get the selection
+        self.file_to_rename = selection.text()  # get name before modification
+        selection.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)  # set item editable
+        self.names_hdf5_QListWidget.editItem(selection)  # edit this item
+        self.names_hdf5_QListWidget.itemChanged.connect(self.get_hdf5_name_to_rename_and_emit)  # connect function
+
+    def get_hdf5_name_to_rename_and_emit(self, selection):
+        self.file_renamed = selection.text()  # get name after modification
+        # check if ext is not removed by user
+        ext_before = os.path.splitext(self.file_to_rename)[1]
+        ext_after = os.path.splitext(self.file_renamed)[1]
+        if ext_after != ext_before:
+            self.file_renamed = os.path.splitext(self.file_renamed)[0] + ext_before
+
+        # disconnect, set item non editable and reconnect
+        self.names_hdf5_QListWidget.disconnect()  # disconnect all function
+        selection.setFlags(~Qt.ItemIsEditable | Qt.ItemIsEnabled)  # set item not editable
+        self.names_hdf5_QListWidget.customContextMenuRequested.connect(self.show_menu_hdf5_remover)  # reconnect
+
+        # emit signal
+        self.send_rename.emit("")
 
 
 class FigureProducerGroup(QGroupBoxCollapsible):

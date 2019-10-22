@@ -1093,7 +1093,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     ipt_all_ok_wetdry = []
     # all meshes are entirely wet
     if all(mikle_keep):
-        print('Warning: all meshes are entirely wet')
+        print('Warning: All meshes are entirely wet on one of the timestep.')
         iklekeep=ikle
         point_all_ok=point_all
         water_height_ok=water_height
