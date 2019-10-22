@@ -180,9 +180,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             selectedfiles_textfiles_match = [True] * 2
         elif ext != ".txt":  # from file
             # selectedfiles textfiles matching
-            selectedfiles_textfiles_match = [False] * len(filename_list)
-            for i, file_path in enumerate(filename_list):
-                if os.path.basename(file_path) in data_index_file["filename"]:
+            selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
+            for i, file_path in enumerate(data_index_file["filename"]):
+                if file_path in filename:
                     selectedfiles_textfiles_match[i] = True
         elif ext == ".txt":  # from indexHYDRAU.txt
             # more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
@@ -357,7 +357,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexHYDRAU files", None
+                pass
+                #return "Error: selected files are different from indexHYDRAU files", None
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
