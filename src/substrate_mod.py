@@ -666,8 +666,8 @@ def remove_duplicates_points_to_triangulate(vertices_array, segments_array, hole
     AIM: for using triangle in order to transform polygons into triangles it is necessary to avoid any duplicate point
     in the data set to be given to triangle
     Take great care of having only vertices defined in the x,y plane no Z or others coordinates !!!!!
-    :param vertices_array: coordinates of points duplicate may append
-    :param segments_array: segment definition by a serial of couple of 2 index points defining a segment
+    :param vertices_array:  list, coordinates of points duplicate may append
+    :param segments_array: list, segment definition by a serial of couple of 2 index points defining a segment
     :param holes_array: list of coordinates of points inside holes (centroids)
     :return:
         vertices_array2 : a np-array of coordinates with no duplicate points,
