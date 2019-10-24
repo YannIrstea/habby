@@ -103,7 +103,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.mytablemodel = None
-        self.plot_process_list = MyProcessList("interpolation_tab")
+        self.process_list = MyProcessList("plot")
         self.setTitle(title)
         self.init_ui()
         # Signal Connection
@@ -125,7 +125,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.unit_min_qlabel = QLabel("")
         self.unit_max_qlabel = QLabel("")
         self.unit_type_qlabel = QLabel("")
-        fish_available_qlabel = QLabel(self.tr('fish(s) :'))
+        fish_available_qlabel = QLabel(self.tr('aquatic animal(s) :'))
         self.fish_available_qlistwidget = QListWidget()
         self.fish_available_qlistwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.export_empty_text_pushbutton = QPushButton(self.tr("export empty required text file"))
@@ -510,7 +510,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                                types,
                                                                project_preferences),
                                                          name="plot_interpolate_chronicle")
-            self.plot_process_list.append((plot_interpolate_chronicle_process, state))
+            self.process_list.append((plot_interpolate_chronicle_process, state))
 
     def export_chronicle(self):
         # is fish ?

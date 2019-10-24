@@ -34,7 +34,6 @@ from PyQt5.QtWidgets import QMainWindow, QComboBox,QDialog, QApplication, QWidge
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 import qdarkstyle
 from webbrowser import open as wbopen
-import h5py
 import matplotlib as mpl
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
@@ -264,7 +263,7 @@ class MainWindows(QMainWindow):
         # bio_model_explorer_dialog
         if hasattr(self.central_widget, "data_explorer_tab"):
             self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
             self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
@@ -534,8 +533,8 @@ class MainWindows(QMainWindow):
             ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
         # if plot process are open, close them
         if hasattr(self.central_widget, "data_explorer_tab"):
-            if hasattr(self.central_widget.data_explorer_tab.data_explorer_frame, 'plot_process_list'):
-                self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list.kill_all_process()
+            if hasattr(self.central_widget.data_explorer_tab.data_explorer_frame, 'process_list'):
+                self.central_widget.data_explorer_tab.data_explorer_frame.process_list.close_all_export()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
@@ -1040,18 +1039,18 @@ class MainWindows(QMainWindow):
             if hasattr(self, "bio_model_explorer_dialog"):
                 if not self.bio_model_explorer_dialog:
                     self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
                     self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
 
                 else:
                     self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon,
-                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
             else:
                 self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list)
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
                 self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
                     self.central_widget.write_log)
                 self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
@@ -1959,6 +1958,7 @@ class MainWindows(QMainWindow):
         if hasattr(self, "central_widget"):
             central_widget_attrib = getattr(self, "central_widget")
             for tabs in tab_list:
+                # hydraulic tabs
                 if type(tabs) == tuple:
                     if hasattr(central_widget_attrib, tabs[0]):
                         process_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).p
@@ -1971,6 +1971,7 @@ class MainWindows(QMainWindow):
                                                               " The files produced by this process can be damaged."))
                                 # hide button
                                 self.kill_process.setVisible(False)
+                # substrate, calc hab, data_explorer and tools tabs
                 else:
                     if hasattr(central_widget_attrib, tabs):
                         process_object = getattr(central_widget_attrib, tabs).p
@@ -2267,24 +2268,27 @@ class CentralW(QWidget):
         """
         method to close the images opened in HABBY and managed by matplotlib
         """
-        # data explorer tab
+        # data_explorer_tab
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
-                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'plot_process_list'):
-                    self.data_explorer_tab.data_explorer_frame.plot_group.plot_process_list.kill_all_process()
+                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'process_list'):
+                    self.data_explorer_tab.data_explorer_frame.plot_group.process_list.close_all_plot()
+            if hasattr(self.data_explorer_tab.data_explorer_frame, 'dataexporter_group'):
+                if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'process_list'):
+                    self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_list.close_all_export()
         # calc hab
         if hasattr(self, 'bioinfo_tab'):
-            if hasattr(self.bioinfo_tab, 'plot_process_list'):
-                self.bioinfo_tab.plot_process_list.kill_all_process()
+            if hasattr(self.bioinfo_tab, 'process_list'):
+                self.bioinfo_tab.process_list.close_all_plot()
         # estimhab
         if hasattr(self, 'statmod_tab'):
-            if hasattr(self.statmod_tab, 'plot_process_list'):
-                self.statmod_tab.plot_process_list.kill_all_process()
+            if hasattr(self.statmod_tab, 'process_list'):
+                self.statmod_tab.process_list.close_all_plot()
         # tools_tab
         if hasattr(self, 'tools_tab'):
             if hasattr(self.tools_tab, 'interpolation_group'):
-                if hasattr(self.tools_tab.interpolation_group, 'plot_process_list'):
-                    self.tools_tab.interpolation_group.plot_process_list.kill_all_process()
+                if hasattr(self.tools_tab.interpolation_group, 'process_list'):
+                    self.tools_tab.interpolation_group.process_list.close_all_plot()
 
     def connect_signal_log(self):
         """

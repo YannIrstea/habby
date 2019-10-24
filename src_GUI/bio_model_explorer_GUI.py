@@ -50,19 +50,19 @@ class BioModelExplorerWindow(QDialog):
     A PyQtsignal used to write the log.
     """
 
-    def __init__(self, parent, path_prj, name_prj, name_icon, plot_process_list):
+    def __init__(self, parent, path_prj, name_prj, name_icon, process_list):
         super().__init__(parent)
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.name_icon = name_icon
         self.msg2 = QMessageBox()
         self.path_bio = user_preferences.path_bio
-        self.plot_process_list = plot_process_list
+        self.process_list = process_list
         # filters index
 
         # tabs
         self.bio_model_filter_tab = BioModelFilterTab(path_prj, name_prj)
-        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj, plot_process_list)
+        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj, process_list)
         self.init_iu()
 
     def init_iu(self):
@@ -513,13 +513,13 @@ class BioModelInfoSelection(QScrollArea):
     A PyQt signal to send the log.
     """
 
-    def __init__(self, path_prj, name_prj, plot_process_list):
+    def __init__(self, path_prj, name_prj, process_list):
         super().__init__()
         self.tab_name = "model_selected"
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.plot_process_list = plot_process_list
+        self.process_list = process_list
         self.selected_fish_cd_biological_model = None
         self.selected_aquatic_animal_list = []
         self.msg2 = QMessageBox()
@@ -787,8 +787,8 @@ class BioModelInfoSelection(QScrollArea):
         # plot the pref
         project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         # do the plot
-        if not hasattr(self, 'plot_process_list'):
-            self.plot_process_list = MyProcessList("plot")
+        if not hasattr(self, 'process_list'):
+            self.process_list = MyProcessList("plot")
         state = Value("i", 0)
         if information_model_dict["ModelType"] != "bivariate suitability index models":
             if aquatic_animal_type == "fish":
@@ -834,7 +834,7 @@ class BioModelInfoSelection(QScrollArea):
                                               False,
                                               project_preferences))
         # append
-        self.plot_process_list.append((curve_process, state))
+        self.process_list.append((curve_process, state))
 
     def show_hydrosignature(self):
         """
@@ -855,8 +855,8 @@ class BioModelInfoSelection(QScrollArea):
         data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
         if isinstance(data, np.ndarray):
             # do the plot
-            if not hasattr(self, 'plot_process_list'):
-                self.plot_process_list = MyProcessList("plot")
+            if not hasattr(self, 'process_list'):
+                self.process_list = MyProcessList("plot")
             project_preferences = load_project_preferences(self.path_prj,
                                                                self.name_prj)
             state = Value("i", 0)
@@ -867,7 +867,7 @@ class BioModelInfoSelection(QScrollArea):
                                                    hclass,
                                                    fishname,
                                                    project_preferences))
-            self.plot_process_list.append((hydrosignature_process, state))
+            self.process_list.append((hydrosignature_process, state))
 
     def add_selected_to_main(self):
         # source

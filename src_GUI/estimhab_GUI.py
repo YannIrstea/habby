@@ -341,7 +341,7 @@ class EstimhabW(StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
-        self.plot_process_list = MyProcessList("estimhab")
+        self.plot_process_list = MyProcessList("plot")
         self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []

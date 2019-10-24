@@ -19,8 +19,10 @@ import numpy as np
 import urllib
 from copy import deepcopy
 import sys
+from time import sleep
+
 from PyQt5.QtWidgets import QApplication, QGroupBox, QProgressBar, QLabel, QFrame
-from PyQt5.QtCore import QTranslator, QCoreApplication, QObject, pyqtSignal, QEvent
+from PyQt5.QtCore import QTranslator, QCoreApplication, QObject, pyqtSignal, QEvent, QThread, QTimer
 
 from src.project_manag_mod import load_project_preferences
 
@@ -411,94 +413,176 @@ class QGroupBoxCollapsible(QGroupBox):
             self.setFixedHeight(30)
 
 
-class MyProcessList(list):
+class MyProcessList(QThread):
     """
     This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
 
     :param nb_plot_total: integer value representing the total number of graphs to be produced.
     :param progress_bar: Qprogressbar of DataExplorerFrame to be refreshed
     """
+    progress_signal = pyqtSignal(int)
 
-    def __init__(self, type):
-        super().__init__()
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(False)
-        self.progress_label = QLabel()
-        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+    def __init__(self, type, parent=None):
+        QThread.__init__(self, parent)
+        self.plot_production_stoped = False
+        self.add_plots_state = False
+        self.thread_started = False
+        self.all_process_runned = False
+        self.nb_finished = 0
         self.nb_plot_total = 0
         self.export_production_stoped = False
         self.process_type = type  # cal or plot or export
-
-    def new_plots(self, nb_plot_total):
-        self.add_plots_state = False
-        self.nb_plot_total = nb_plot_total
+        self.process_list = []
         self.save_process = []
-        self[:] = []
 
-    def add_plots(self, nb_plot_total):
+    def new_plots(self):
+        self.add_plots_state = False
+        self.save_process = []
+        self.process_list = []
+
+    def add_plots(self):
+        #print("add_plots")
         self.add_plots_state = True
-        self.nb_plot_total = nb_plot_total
-        self.save_process = self[:]
-        self[:] = []
+        self.plot_production_stoped = False
+        # remove plots not started
+        self.remove_process_not_started()
 
-    def append(self, *args):
+    def append(self, process):
+        self.process_list.append(process)
+
+    def run(self):
+        self.thread_started = True
+        self.nb_plot_total = len(self.process_list)
+        if self.process_type == "plot":
+            for i in range(len(self.process_list)):
+                if not self.plot_production_stoped:
+                    if self.process_list[i][1].value == 0:
+                        self.process_list[i][0].start()
+            #print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
+            self.check_all_plot_produced()
+
+        if self.process_type == "export":
+            for i in range(len(self.process_list)):
+                self.process_list[i][0].start()
+            #print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
+            self.all_process_runned = True
+            self.check_all_export_produced()
+
+    def stop_plot_production(self):
+        #print("stop_plot_production")
+        self.plot_production_stoped = True
+
+    def stop_export_production(self):
+        self.export_production_stoped = True
+
+    def close_all_plot(self):
+        #print("close_all_plot")
+        # remove plots not started
+        self.remove_process_not_started()
+        for i in range(len(self.process_list)):
+            #print(self.process_list[i][0].name, "terminate !!")
+            self.process_list[i][0].terminate()
+        self.process_list = []
+
+    def close_all_export(self):
         """
-        Overriding of append method in order to analyse state of plot processes and refresh progress bar.
-        Each time the list is appended, state is analysed and progress bar refreshed.
-
-        :param args: tuple(process, state of process)
+        Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
         """
-        args[0][0].start()
-        self.extend(args)
+        #print("close_all_export")
+        if self.thread_started:
+            self.export_production_stoped = True
+            while not self.all_process_runned:
+                #print("waiting", self.all_process_runned)
+                pass
 
-        self.check_all_process_produced()
+            for i in range(len(self.process_list)):
+                # print(self.process_list[i][0].name,
+                #       self.process_list[i][0].exitcode,
+                #       self.process_list[i][0].is_alive(),
+                #       self.process_list[i][1].value)
+                if self.process_list[i][0].is_alive() or self.process_list[i][1].value == 1:
+                    #print(self.process_list[i][0].name, "terminate !!")
+                    self.process_list[i][0].terminate()
+            self.thread_started = False
+            self.process_list = []
 
-    def check_all_process_produced(self):
+    def check_all_plot_produced(self):
         """
         State is analysed and progress bar refreshed.
         """
-        nb_finished = 0
+        #print("check_all_plot_produced")
+        self.nb_finished = 0
+        self.nb_plot_total = len(self.process_list)
         state_list = []
-        for i in range(len(self)):
-            state = self[i][1].value
+        for i in range(len(self.process_list)):
+            state = self.process_list[i][1].value
             state_list.append(state)
             if state == 1:
-                nb_finished = nb_finished + 1
+                self.nb_finished = self.nb_finished + 1
+                self.progress_signal.emit(self.nb_finished)
+                #print("emit")
             if state == 0:
                 if i == self.nb_plot_total - 1:  # last of all plot
                     while 0 in state_list:
-                        if self.export_production_stoped:
-                            break
                         for j in [k for k, l in enumerate(state_list) if l == 0]:
-                            state = self[j][1].value
+                            state = self.process_list[j][1].value
                             state_list[j] = state
                             if state == 1:
-                                nb_finished = nb_finished + 1
-                                self.progress_bar.setValue(nb_finished)
-                                self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
-                                QCoreApplication.processEvents()
+                                self.nb_finished = self.nb_finished + 1
+                                self.progress_signal.emit(self.nb_finished)
+                                #print("emit")
+                        if self.plot_production_stoped:
+                            sleep(1)
+                            for j in [k for k, l in enumerate(state_list) if l == 0]:
+                                state = self.process_list[j][1].value
+                                state_list[j] = state
+                                if state == 1:
+                                    self.nb_finished = self.nb_finished + 1
+                                    self.progress_signal.emit(self.nb_finished)
+                                    #print("emit")
+                            break
 
-        self.progress_bar.setValue(nb_finished)
-        self.progress_label.setText("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
-        QCoreApplication.processEvents()
+    def check_all_export_produced(self):
+        self.nb_finished = 0
+        self.nb_export_total = len(self.process_list)
+        state_list = []
+        for i in range(len(self.process_list)):
+            state = self.process_list[i][1].value
+            state_list.append(state)
+            if state == 1:
+                self.nb_finished = self.nb_finished + 1
+                self.progress_signal.emit(self.nb_finished)
+                #print("emit")
+            if state == 0:
+                if i == self.nb_export_total - 1:  # last of all plot
+                    while 0 in state_list:
+                        for j in [k for k, l in enumerate(state_list) if l == 0]:
+                            state = self.process_list[j][1].value
+                            state_list[j] = state
+                            if state == 1:
+                                self.nb_finished = self.nb_finished + 1
+                                self.progress_signal.emit(self.nb_finished)
+                                #print("emit")
+                        if self.export_production_stoped:
+                            break
 
     def check_all_process_closed(self):
         """
         Check if a process is alive (plot window open)
         """
-        if any([self[i][0].is_alive() for i in range(len(self))]):  # plot window open or plot not finished
+        #print("check_all_process_closed")
+        if any([self.process_list[i][0].is_alive() for i in range(len(self.process_list))]):  # plot window open or plot not finished
             return False
         else:
             return True
 
-    def kill_all_process(self):
-        """
-        Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
-        """
-        for i in range(len(self)):
-            self[i][0].terminate()
-            #print(self[i][0].name, "terminate(), state : ", self[i][1].value)
+    def remove_process_not_started(self):
+        #print("remove_process_not_started")
+        for i in reversed(range(len(self.process_list))):
+            if not self.process_list[i][0].is_alive():
+                print(self.process_list[i][0].name, "removed from list")
+                self.process_list.pop(i)
+        self.nb_plot_total = len(self.process_list)
 
 
 class QHLine(QFrame):

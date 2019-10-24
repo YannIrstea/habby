@@ -20,7 +20,7 @@ from multiprocessing import Process, Value
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox, \
-    QSizePolicy, QScrollArea, QTableView, QMenu, QAction
+    QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QProgressBar
 
 from src import hdf5_mod
 from src import plot_mod
@@ -108,7 +108,6 @@ class DataExplorerFrame(QFrame):
         self.types_hdf5_QComboBox.currentIndexChanged.connect(self.types_hdf5_change)
         self.names_hdf5_QLabel = QLabel(self.tr('filenames'))
         self.names_hdf5_QListWidget = QListWidget()
-        #self.names_hdf5_QListWidget.setMinimumWidth(150)
         self.names_hdf5_QListWidget.setMaximumHeight(100)
         self.names_hdf5_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.names_hdf5_QListWidget.itemSelectionChanged.connect(self.names_hdf5_change)
@@ -120,15 +119,12 @@ class DataExplorerFrame(QFrame):
         self.types_hdf5_layout.setAlignment(Qt.AlignTop)
         self.types_hdf5_layout.addWidget(self.types_hdf5_QLabel)
         self.types_hdf5_layout.addWidget(self.types_hdf5_QComboBox)
-        #self.types_hdf5_layout.addStretch()
-
 
         """ names_hdf5_layout """
         self.names_hdf5_layout = QVBoxLayout()
         self.names_hdf5_layout.setAlignment(Qt.AlignTop)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QLabel)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QListWidget)
-        #self.names_hdf5_layout.addStretch()
 
         """ plot_group """
         self.plot_group = FigureProducerGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Figure viewer/exporter"))
@@ -160,11 +156,10 @@ class DataExplorerFrame(QFrame):
         global_layout = QVBoxLayout()
         global_layout.setAlignment(Qt.AlignTop)
         global_layout.addLayout(selectionfile_layout)
-        global_layout.addWidget(self.file_information_group)
         global_layout.addWidget(self.plot_group)
         global_layout.addWidget(self.dataexporter_group)
         global_layout.addWidget(self.habitatvalueremover_group)
-        # global_layout.addItem(verticalSpacer)
+        global_layout.addWidget(self.file_information_group)
         global_layout.addStretch()
 
         # add layout to group
@@ -404,9 +399,11 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.setTitle(title)
-        self.plot_process_list = MyProcessList("plot")
+        self.process_list = MyProcessList("plot")
+        self.process_list.progress_signal.connect(self.show_prog)
         self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity",
                                     "sub_coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress"]
+        self.nb_plot = 0
         self.init_ui()
 
     def init_ui(self):
@@ -453,6 +450,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.export_type_layout.addWidget(self.export_type_QLabel)
         self.export_type_layout.addWidget(self.export_type_QComboBox)
 
+        # progress
+        self.plot_progressbar = QProgressBar()
+        self.plot_progressbar.setValue(0)
+        self.plot_progressbar.setTextVisible(False)
+        self.plot_progress_label = QLabel()
+        self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+
         # buttons plot_button
         self.plot_button = QPushButton(self.tr("run"))
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
@@ -489,8 +493,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         plot_type_layout.addWidget(self.plot_result_QCheckBox)
         plot_type_layout.setAlignment(Qt.AlignLeft)
         progress_layout = QHBoxLayout()
-        progress_layout.addWidget(self.plot_process_list.progress_bar)
-        progress_layout.addWidget(self.plot_process_list.progress_label)
+        progress_layout.addWidget(self.plot_progressbar)
+        progress_layout.addWidget(self.plot_progress_label)
         plot_layout2.addLayout(plot_layout)
         plot_layout2.addLayout(plot_type_layout)
         # plot_layout2.addWidget(self.progress_bar)
@@ -560,16 +564,28 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
             # set prog
             if self.nb_plot != 0:
-                self.plot_process_list.progress_bar.setRange(0, self.nb_plot)
+                self.plot_progressbar.setRange(0, self.nb_plot)
                 self.plot_button.setEnabled(True)
-            self.plot_process_list.progress_bar.setValue(0)
-            self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
+            self.plot_progressbar.setValue(0)
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
         else:
             self.nb_plot = 0
             self.plot_button.setEnabled(False)
             # set prog
-            self.plot_process_list.progress_bar.setValue(0)
-            self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+            self.plot_progressbar.setValue(0)
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+
+    def show_prog(self, value):
+        self.plot_progressbar.setValue(value)
+        self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_plot))
+
+        if value == self.nb_plot and self.nb_plot != 0:  # != 0 if closefig of mainwindow
+            # activate
+            self.plot_button.setEnabled(True)
+            # disable stop button
+            self.plot_stop_button.setEnabled(False)
+            # log
+            self.send_log.emit(self.tr("Figure(s) done."))
 
     def collect_data_from_gui(self):
         """
@@ -730,17 +746,17 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             path_hdf5 = os.path.join(self.path_prj, "hdf5")
             path_im = os.path.join(self.path_prj, "output", "figures")
 
-            self.plot_process_list.export_production_stoped = False
+            self.process_list.export_production_stoped = False
 
             # check plot process done
-            if self.plot_process_list.check_all_process_closed():
-                self.plot_process_list.new_plots(self.nb_plot)
+            if self.process_list.check_all_process_closed():
+                self.process_list.new_plots()
             else:
-                self.plot_process_list.add_plots(self.nb_plot)
+                self.process_list.add_plots()
 
             # progress bar
-            self.plot_process_list.progress_bar.setValue(0)
-            self.plot_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
+            self.plot_progressbar.setValue(0)
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
             QCoreApplication.processEvents()
 
             # loop on all desired hdf5 file
@@ -794,7 +810,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      name_hdf5,
                                                                      project_preferences),
                                                                name="plot_fish_hv_wua")
-                            self.plot_process_list.append((plot_hab_fig_spu_process, state))
+                            self.process_list.append([plot_hab_fig_spu_process, state])
 
                         # for each desired units ==> maps
                         if plot_type != ["result"]:
@@ -813,7 +829,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  units[unit_num],
                                                                  False),
                                                                name="plot_map_mesh")
-                                    self.plot_process_list.append((mesh_process, state))
+                                    self.process_list.append([mesh_process, state])
                                 if "mesh and points" in variables and not self.plot_production_stoped:  # mesh
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_mesh,
@@ -827,7 +843,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  units[unit_num],
                                                                  True),
                                                                name="plot_map_mesh_and_point")
-                                    self.plot_process_list.append((mesh_process, state))
+                                    self.process_list.append([mesh_process, state])
                                 if "points elevation" in variables and not self.plot_production_stoped:  # mesh
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_elevation,
@@ -841,7 +857,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  reach_name,
                                                                  units[unit_num]),
                                                                name="plot_map_elevation")
-                                    self.plot_process_list.append((mesh_process, state))
+                                    self.process_list.append([mesh_process, state])
                                 if "height" in variables and not self.plot_production_stoped:  # height
                                     state = Value("i", 0)
                                     height_process = Process(target=plot_mod.plot_map_height,
@@ -855,7 +871,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                    reach_name,
                                                                    units[unit_num]),
                                                                name="plot_map_height")
-                                    self.plot_process_list.append((height_process, state))
+                                    self.process_list.append([height_process, state])
                                 if "velocity" in variables and not self.plot_production_stoped:  # velocity
                                     state = Value("i", 0)
                                     velocity_process = Process(target=plot_mod.plot_map_velocity,
@@ -869,7 +885,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      reach_name,
                                                                      units[unit_num]),
                                                                name="plot_map_velocity")
-                                    self.plot_process_list.append((velocity_process, state))
+                                    self.process_list.append([velocity_process, state])
                                 if "sub_coarser_dominant" in variables and not self.plot_production_stoped:  # coarser_dominant
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate,
@@ -883,7 +899,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      reach_name,
                                                                      units[unit_num]),
                                                                name="plot_map_substrate")
-                                    self.plot_process_list.append((susbtrat_process, state))
+                                    self.process_list.append([susbtrat_process, state])
                                 if "max_slope_bottom" in variables and not self.plot_production_stoped:  # height
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_slope_bottom,
@@ -897,7 +913,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                          reach_name,
                                                                          units[unit_num]),
                                                                name="plot_map_slope_bottom")
-                                    self.plot_process_list.append((slope_bottom_process, state))
+                                    self.process_list.append([slope_bottom_process, state])
                                 if "max_slope_energy" in variables and not self.plot_production_stoped:  # height
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_slope_energy,
@@ -911,7 +927,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                          reach_name,
                                                                          units[unit_num]),
                                                                name="plot_map_slope_energy")
-                                    self.plot_process_list.append((slope_bottom_process, state))
+                                    self.process_list.append([slope_bottom_process, state])
                                 if "shear_stress" in variables and not self.plot_production_stoped:  # height
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_shear_stress,
@@ -925,7 +941,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                          reach_name,
                                                                          units[unit_num]),
                                                                name="plot_map_shear_stress")
-                                    self.plot_process_list.append((slope_bottom_process, state))
+                                    self.process_list.append([slope_bottom_process, state])
                                 if fish_names and not self.plot_production_stoped:  # habitat data (maps)
                                     # map by fish
                                     for fish_index, fish_name in enumerate(fish_names):
@@ -944,15 +960,16 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                             reach_name,
                                                                             units[unit_num]),
                                                                name="plot_map_fish_habitat")
-                                        self.plot_process_list.append((habitat_map_process, state))
+                                        self.process_list.append([habitat_map_process, state])
 
-            # end of loop file
-            if self.plot_process_list.add_plots_state:  # if plot windows are open ==> add news to existing (don't close them)
-                self.plot_process_list[:] = self.plot_process_list[:] + self.plot_process_list.save_process[:]
+            # ajust total plot if add_plots
+            self.nb_plot = len(self.process_list.process_list)
+            # start thread
+            self.process_list.start()
             # activate
-            self.plot_button.setEnabled(True)
+            self.plot_button.setEnabled(False)
             # disable stop button
-            self.plot_stop_button.setEnabled(False)
+            self.plot_stop_button.setEnabled(True)
 
     def stop_plot(self):
         # stop plot production
@@ -961,8 +978,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.plot_button.setEnabled(True)
         # disable stop button
         self.plot_stop_button.setEnabled(False)
-        # stop loop
-        self.plot_process_list.export_production_stoped = True
+        # close_all_export
+        self.process_list.stop_plot_production()
+        # self.process_list.quit()
+        # self.process_list.wait()
+        # log
+        self.send_log.emit(self.tr("Figure(s) production stoped by user."))
 
 
 class DataExporterGroup(QGroupBoxCollapsible):
@@ -976,7 +997,8 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.setTitle(title)
-        self.export_process_list = MyProcessList("export")
+        self.process_list = MyProcessList("export")
+        self.process_list.progress_signal.connect(self.show_prog)
         self.current_type = 0
         self.checkbox_list = []
         self.nb_export = 0
@@ -1067,7 +1089,11 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.data_exporter_stop_pushbutton.setEnabled(False)
         self.data_exporter_stop_pushbutton.setFixedWidth(110)
         self.data_exporter_stop_pushbutton.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-
+        self.data_exporter_progressbar = QProgressBar()
+        self.data_exporter_progressbar.setValue(0)
+        self.data_exporter_progressbar.setTextVisible(False)
+        self.data_exporter_progress_label = QLabel()
+        self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
         """ empty layout """
         self.empty_export_layout = QGridLayout()
         self.empty_export_widget = QWidget()
@@ -1156,8 +1182,8 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
         """ progress layout """
         progress_layout = QHBoxLayout()
-        progress_layout.addWidget(self.export_process_list.progress_bar)
-        progress_layout.addWidget(self.export_process_list.progress_label)
+        progress_layout.addWidget(self.data_exporter_progressbar)
+        progress_layout.addWidget(self.data_exporter_progress_label)
 
         """ run_stop_layout """
         run_stop_layout = QVBoxLayout()
@@ -1257,16 +1283,28 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
             # set prog
             if self.nb_export != 0:
-                self.export_process_list.progress_bar.setRange(0, self.nb_export)
+                self.data_exporter_progressbar.setRange(0, self.nb_export)
                 self.data_exporter_run_pushbutton.setEnabled(True)
-            self.export_process_list.progress_bar.setValue(0)
-            self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
+            self.data_exporter_progressbar.setValue(0)
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
         else:
             self.nb_export = 0
             self.data_exporter_run_pushbutton.setEnabled(False)
             # set prog
-            self.export_process_list.progress_bar.setValue(0)
-            self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+            self.data_exporter_progressbar.setValue(0)
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+
+    def show_prog(self, value):
+        self.data_exporter_progressbar.setValue(value)
+        self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_export))
+
+        if value == self.nb_export and self.nb_export != 0:  # != 0 if closefig of mainwindow
+            # activate
+            self.data_exporter_run_pushbutton.setEnabled(True)
+            # disable stop button
+            self.data_exporter_stop_pushbutton.setEnabled(False)
+            # log
+            self.send_log.emit(self.tr("Export(s) done."))
 
     def start_export(self):
         types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
@@ -1279,10 +1317,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
         # Go export
         if types_hdf5 and names_hdf5:
-            # disable
-            self.data_exporter_run_pushbutton.setEnabled(False)
-            # active stop button
-            self.data_exporter_stop_pushbutton.setEnabled(True)
             self.export_production_stoped = False
 
             # figure option
@@ -1290,17 +1324,14 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                                            self.name_prj)
 
             # export_production_stoped
-            self.export_process_list.export_production_stoped = False
+            self.process_list.export_production_stoped = False
 
-            # check plot process done
-            if self.export_process_list.check_all_process_closed():
-                self.export_process_list.new_plots(self.nb_export)
-            else:
-                self.export_process_list.add_plots(self.nb_export)
+            # disable
+            self.data_exporter_run_pushbutton.setEnabled(False)
 
             # progress bar
-            self.export_process_list.progress_bar.setValue(0)
-            self.export_process_list.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
+            self.data_exporter_progressbar.setValue(0)
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
             QCoreApplication.processEvents()
 
             # loop on all desired hdf5 file
@@ -1331,31 +1362,31 @@ class DataExporterGroup(QGroupBoxCollapsible):
                         if export_dict["mesh_whole_profile_hyd"] or export_dict["point_whole_profile_hyd"] or export_dict["mesh_units_hyd"] or export_dict["point_units_hyd"]:
                             # append fake first
                             for fake_num in range(1, total_gpkg_export):
-                                self.export_process_list.append((Process(name="fake" + str(fake_num)), Value("i", 1)))
+                                self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
                             state = Value("i", 0)
                             export_gpkg_process = Process(target=hdf5.export_gpkg,
                                                           args=(state, ),
                                                           name="export_gpkg")
-                            self.export_process_list.append((export_gpkg_process, state))
+                            self.process_list.append([export_gpkg_process, state])
 
                         if export_dict["elevation_whole_profile_hyd"]:
                             state = Value("i", 0)
                             export_stl_process = Process(target=hdf5.export_stl,
                                                           args=(state, ),
                                                           name="export_stl")
-                            self.export_process_list.append((export_stl_process, state))
+                            self.process_list.append([export_stl_process, state])
                         if export_dict["variables_units_hyd"]:
                             state = Value("i", 0)
                             export_paraview_process = Process(target=hdf5.export_paraview,
                                                           args=(state, ),
                                                           name="export_paraview")
-                            self.export_process_list.append((export_paraview_process, state))
+                            self.process_list.append([export_paraview_process, state])
                         if export_dict["detailled_text_hyd"]:
                             state = Value("i", 0)
                             export_detailled_mesh_txt_process = Process(target=hdf5.export_detailled_txt,
                                                                         args=(state,),
                                                                         name="export_detailled_txt")
-                            self.export_process_list.append((export_detailled_mesh_txt_process, state))
+                            self.process_list.append([export_detailled_mesh_txt_process, state])
 
                     # substrate
                     if types_hdf5 == "substrate":  # load substrate data
@@ -1368,50 +1399,52 @@ class DataExporterGroup(QGroupBoxCollapsible):
                         if export_dict["mesh_units_hab"] or export_dict["point_units_hab"]:
                             # append fake first
                             for fake_num in range(1, total_gpkg_export):
-                                self.export_process_list.append((Process(name="fake" + str(fake_num)), Value("i", 1)))
+                                self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
                             state = Value("i", 0)
                             export_gpkg_process = Process(target=hdf5.export_gpkg,
                                                           args=(state, ),
                                                           name="export_gpkg")
-                            self.export_process_list.append((export_gpkg_process, state))
+                            self.process_list.append([export_gpkg_process, state])
                         if export_dict["elevation_whole_profile_hab"]:
                             state = Value("i", 0)
                             export_stl_process = Process(target=hdf5.export_stl,
                                                           args=(state, ),
                                                           name="export_stl")
-                            self.export_process_list.append((export_stl_process, state))
+                            self.process_list.append([export_stl_process, state])
                         if export_dict["variables_units_hab"]:
                             state = Value("i", 0)
                             export_paraview_process = Process(target=hdf5.export_paraview,
                                                           args=(state, ),
                                                           name="export_paraview")
-                            self.export_process_list.append((export_paraview_process, state))
+                            self.process_list.append([export_paraview_process, state])
                         if export_dict["habitat_text_hab"]:
                             state = Value("i", 0)
                             export_spu_txt_process = Process(target=hdf5.export_spu_txt,
                                                           args=(state, ),
                                                           name="export_spu_txt")
-                            self.export_process_list.append((export_spu_txt_process, state))
+                            self.process_list.append([export_spu_txt_process, state])
                         if export_dict["detailled_text_hab"]:
                             state = Value("i", 0)
                             export_detailled_mesh_txt_process = Process(target=hdf5.export_detailled_txt,
                                                           args=(state, ),
                                                           name="export_detailled_txt")
-                            self.export_process_list.append((export_detailled_mesh_txt_process, state))
+                            self.process_list.append([export_detailled_mesh_txt_process, state])
                         if export_dict["fish_information_hab"]:
                             if hdf5.fish_list:
                                 state = Value("i", 0)
                                 export_pdf_process = Process(target=hdf5.export_pdf,
                                                               args=(state,),
                                                           name="export_pdf")
-                                self.export_process_list.append((export_pdf_process, state))
+                                self.process_list.append([export_pdf_process, state])
                             else:
                                 self.send_log.emit('Error: ' + self.tr('No computed models in this .hab file.'))
 
-            # activate
-            self.data_exporter_run_pushbutton.setEnabled(True)
-            # disable stop button
-            self.data_exporter_stop_pushbutton.setEnabled(False)
+            # start thread
+            self.process_list.start()
+            # disable run_pushbutton
+            self.data_exporter_run_pushbutton.setEnabled(False)
+            # enable stop_pushbutton
+            self.data_exporter_stop_pushbutton.setEnabled(True)
 
     def stop_export(self):
         # stop plot production
@@ -1420,10 +1453,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.data_exporter_run_pushbutton.setEnabled(True)
         # disable stop button
         self.data_exporter_stop_pushbutton.setEnabled(False)
-        # stop loop
-        self.export_process_list.export_production_stoped = True
-        # kill_all_process
-        self.export_process_list.kill_all_process()
+        # close_all_export
+        self.process_list.close_all_export()
+        #self.process_list.quit()
+        #self.process_list.wait()
+        # log
+        self.send_log.emit(self.tr("Export(s) stoped by user."))
 
 
 class HabitatValueRemover(QGroupBoxCollapsible):
