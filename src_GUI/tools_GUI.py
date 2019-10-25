@@ -84,12 +84,16 @@ class ToolsTab(QScrollArea):
     def refresh_hab_filenames(self):
         # get list of file name by type
         names = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj, "hdf5"))
+        current_index = self.interpolation_group.hab_filenames_qcombobox.currentIndex()
+        self.interpolation_group.hab_filenames_qcombobox.blockSignals(True)
         self.interpolation_group.hab_filenames_qcombobox.clear()
         if names:
             # append_empty_element_to_list
             names = [""] + names
             # change list widget
             self.interpolation_group.hab_filenames_qcombobox.addItems(names)
+            self.interpolation_group.hab_filenames_qcombobox.setCurrentIndex(current_index)
+        self.interpolation_group.hab_filenames_qcombobox.blockSignals(False)
 
 
 class InterpolationGroup(QGroupBoxCollapsible):
@@ -511,6 +515,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                                project_preferences),
                                                          name="plot_interpolate_chronicle")
             self.process_list.append((plot_interpolate_chronicle_process, state))
+            self.process_list.start()
 
     def export_chronicle(self):
         # is fish ?

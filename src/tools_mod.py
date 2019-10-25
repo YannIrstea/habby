@@ -580,7 +580,7 @@ class MyProcessList(QThread):
         #print("remove_process_not_started")
         for i in reversed(range(len(self.process_list))):
             if not self.process_list[i][0].is_alive():
-                print(self.process_list[i][0].name, "removed from list")
+                #print(self.process_list[i][0].name, "removed from list")
                 self.process_list.pop(i)
         self.nb_plot_total = len(self.process_list)
 

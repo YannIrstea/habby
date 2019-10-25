@@ -835,6 +835,7 @@ class BioModelInfoSelection(QScrollArea):
                                               project_preferences))
         # append
         self.process_list.append((curve_process, state))
+        self.process_list.start()
 
     def show_hydrosignature(self):
         """
@@ -868,6 +869,7 @@ class BioModelInfoSelection(QScrollArea):
                                                    fishname,
                                                    project_preferences))
             self.process_list.append((hydrosignature_process, state))
+            self.process_list.start()
 
     def add_selected_to_main(self):
         # source
