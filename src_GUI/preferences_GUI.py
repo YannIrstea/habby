@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QFrame, QSizePolicy, QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
-    QLineEdit, QComboBox, QMessageBox, QFormLayout, QCheckBox
+    QLineEdit, QComboBox, QMessageBox, QFormLayout, QCheckBox, QHBoxLayout
 
 try:
     import xml.etree.cElementTree as ET
@@ -94,6 +94,7 @@ class PreferenceWindow(QDialog):
 
         vertical_exaggeration = QLabel("3D vertical exaggeration")
         self.vertical_exaggeration_lineedit = QLineEdit("10")
+        self.vertical_exaggeration_lineedit.setToolTip(self.tr("Exaggeration coefficient of z nodes values (all 3D)"))
         self.vertical_exaggeration_lineedit.setAlignment(Qt.AlignCenter)
         self.vertical_exaggeration_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         self.vertical_exaggeration_lineedit.setFixedHeight(self.point_units_hyd.sizeHint().height())
@@ -102,6 +103,8 @@ class PreferenceWindow(QDialog):
         self.elevation_whole_profile_hyd = QCheckBox("")
         self.elevation_whole_profile_hyd.setObjectName("elevation_whole_profile_hyd")
 
+        self.pvd_variable_z_combobox = QComboBox()
+        self.pvd_variable_z_combobox.setToolTip(self.tr("Choose the variable to assign to the z nodes (3D)"))
         self.variables_units_hyd = QCheckBox("")
         self.variables_units_hab = QCheckBox("")
         self.variables_units_hyd.setObjectName("variables_units_hyd")
@@ -221,7 +224,7 @@ class PreferenceWindow(QDialog):
         self.layout_available_exports.addWidget(self.point_whole_profile_hyd, 2, 2, Qt.AlignCenter)
         # row 3
         self.layout_available_exports.addWidget(QLabel("Geopackage (.gpkg)"), 3, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh units")), 3, 1)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh units")))
         self.layout_available_exports.addWidget(self.mesh_units_hyd, 3, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(self.mesh_units_hab, 3, 3, Qt.AlignCenter)
         # row 4
@@ -237,7 +240,11 @@ class PreferenceWindow(QDialog):
         self.layout_available_exports.addWidget(self.elevation_whole_profile_hyd, 6, 2, Qt.AlignCenter)
         # row 7
         self.layout_available_exports.addWidget(QLabel("3D (.pvd, .vtu)"), 7, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh units")), 7, 1)
+        self.pvd_variable_z_layout = QHBoxLayout()
+        self.pvd_variable_z_layout.addWidget(QLabel(self.tr("Mesh units")))
+        self.pvd_variable_z_layout.addWidget(self.pvd_variable_z_combobox)
+        self.layout_available_exports.addLayout(self.pvd_variable_z_layout, 7, 1)
+#        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh units")), 7, 1)
         self.layout_available_exports.addWidget(self.variables_units_hyd, 7, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(self.variables_units_hab, 7, 3, Qt.AlignCenter)
         # row 8
@@ -287,6 +294,7 @@ class PreferenceWindow(QDialog):
         self.cut_2d_grid_checkbox.stateChanged.connect(self.set_modification_presence)
         self.min_height_lineedit.textChanged.connect(self.set_modification_presence)
         self.erase_data_checkbox.stateChanged.connect(self.set_modification_presence)
+        self.pvd_variable_z_combobox.currentIndexChanged.connect(self.set_modification_presence)
         self.vertical_exaggeration_lineedit.textChanged.connect(self.set_modification_presence)
         for checkbox in self.output_checkbox_list:
             checkbox.stateChanged.connect(self.set_modification_presence)
@@ -322,6 +330,12 @@ class PreferenceWindow(QDialog):
             self.erase_data_checkbox.setChecked(True)
         else:
             self.erase_data_checkbox.setChecked(False)
+
+        # pvd_variable_z_combobox
+        item_list = ["water_level", "hydraulic_head", "conveyance", "Froude", "water_height", "water_velocity"]
+        self.pvd_variable_z_combobox.clear()
+        self.pvd_variable_z_combobox.addItems(item_list)
+        self.pvd_variable_z_combobox.setCurrentIndex(item_list.index(project_preferences["pvd_variable_z"]))
 
         # vertical_exaggeration
         self.vertical_exaggeration_lineedit.setText(str(project_preferences["vertical_exaggeration"]))
@@ -493,6 +507,9 @@ class PreferenceWindow(QDialog):
             self.send_log.emit("Error: " + self.tr("Vertical exaggeration value is not integer. Value set to 1."))
             project_preferences['vertical_exaggeration'] = 1
 
+        # pvd_variable_z
+        project_preferences['pvd_variable_z'] = self.pvd_variable_z_combobox.currentText()
+
         # other option
         try:
             project_preferences['min_height_hyd'] = float(self.min_height_lineedit.text())
@@ -540,6 +557,7 @@ class PreferenceWindow(QDialog):
                     locals()[checkbox_name] = root.find(".//" + checkbox_name)
 
                 vertical_exaggeration1 = root.find(".//vertical_exaggeration")
+                pvd_variable_z = root.find(".//pvd_variable_z")
 
                 langfig1 = root.find(".//LangFig")
                 hopt1 = root.find(".//MinHeight")
@@ -562,6 +580,7 @@ class PreferenceWindow(QDialog):
                 for checkbox_name in self.checkbox_list_set:
                     locals()[checkbox_name] = ET.SubElement(child1, checkbox_name)
                 vertical_exaggeration1 = ET.SubElement(child1, "vertical_exaggeration")
+                pvd_variable_z = ET.SubElement(child1, "pvd_variable_z")
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
                 CutMeshPartialyDry = ET.SubElement(child1, "CutMeshPartialyDry")
@@ -589,6 +608,9 @@ class PreferenceWindow(QDialog):
             if vertical_exaggeration1 is None:
                 vertical_exaggeration1 = ET.SubElement(child1, "vertical_exaggeration")
             vertical_exaggeration1.text = str(project_preferences["vertical_exaggeration"])
+            if pvd_variable_z is None:
+                pvd_variable_z = ET.SubElement(child1, "pvd_variable_z")
+            pvd_variable_z.text = str(project_preferences["pvd_variable_z"])
             # text1.text = str(project_preferences['text_output'])
             # shape1.text = str(project_preferences['shape_output'])
             # para1.text = str(project_preferences['paraview'])

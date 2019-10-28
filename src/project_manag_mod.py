@@ -128,6 +128,7 @@ def load_project_preferences(path_prj, name_prj):
             point_whole_profile = root.find(".//point_whole_profile")
             mesh_units = root.find(".//mesh_units")
             point_units = root.find(".//point_units")
+            pvd_variable_z = root.find(".//pvd_variable_z")
             vertical_exaggeration = root.find(".//vertical_exaggeration")
             elevation_whole_profile = root.find(".//elevation_whole_profile")
             variables_units = root.find(".//variables_units")
@@ -175,6 +176,8 @@ def load_project_preferences(path_prj, name_prj):
                     project_preferences['mesh_units'] = eval(mesh_units.text)
                 if point_units is not None:
                     project_preferences['point_units'] = eval(point_units.text)
+                if pvd_variable_z is not None:
+                    project_preferences['pvd_variable_z'] = pvd_variable_z.text
                 if vertical_exaggeration is not None:
                     project_preferences['vertical_exaggeration'] = int(vertical_exaggeration.text)
                 if elevation_whole_profile is not None:
@@ -239,6 +242,7 @@ def create_default_project_preferences():
     project_preferences['mesh_whole_profile'] = [False, False]  # shapefile mesh whole profile
     project_preferences['point_whole_profile'] = [False, False]  # shapefile point whole profile
     project_preferences['mesh_units'] = [False, False]  # shapefile mesh by unit
+    project_preferences['pvd_variable_z'] = "water_level"
     project_preferences['point_units'] = [False, False]  # shapefile point by unit
     project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
     project_preferences['elevation_whole_profile'] = [False, False]  # mesh .stl of topography whole profile (vertical_exaggeration)

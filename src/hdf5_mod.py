@@ -17,14 +17,16 @@ https://github.com/YannIrstea/habby
 import os
 import shutil
 import time
-from PyQt5.QtCore import QCoreApplication as qt_tr
+
 import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from PyQt5.QtCore import QCoreApplication as qt_tr
 from osgeo import ogr
 from osgeo import osr
 from stl import mesh
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -37,12 +39,15 @@ from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
 from src.project_manag_mod import load_project_preferences
-from src.tools_mod import txt_file_convert_dot_to_comma
+from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_values, \
+    c_mesh_max_slope_bottom, c_mesh_max_slope_energy, c_mesh_shear_stress, c_mesh_froude, c_mesh_hydraulic_head, \
+    c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head
 from habby import HABBY_VERSION
 
 
 class Hdf5Management:
     def __init__(self, path_prj, hdf5_filename):
+        self.gravity_acc = 9.80665
         # hdf5 version attributes
         self.h5py_version = h5py.version.version
         self.hdf5_version = h5py.version.hdf5_version
@@ -248,13 +253,13 @@ class Hdf5Management:
                 if "z" in variables:
                     variables.remove("z")
                     variables.insert(1, "points elevation")
-                if "mesh" in variables:
-                    variables.insert(1, "mesh and points")
+                variables = variables + ["max slope bottom", 'max slope energy', 'shear stress',
+                             "water level", "hydraulic head", "conveyance", "Froude"]
 
                 # estithic sort for GUI (classic variables + fish variables (alphanumeric))
                 variables.sort(key=str.lower)  # sort alphanumeric
-                list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "sub_coarser_dominant",
-                               'max_slope_bottom', 'max_slope_energy', 'shear_stress']
+                list_to_gui = ["mesh", "points elevation", "height", "velocity", "sub coarser dominant",
+                               'max slope bottom', 'max slope energy', 'shear stress']
                 list_to_gui = [x for x in list_to_gui if x in variables]  # remove variable not present in hdf5
 
                 for variable_index, variable in enumerate(list_to_gui):
@@ -265,15 +270,10 @@ class Hdf5Management:
                 self.variables = variables
 
             """ get_hdf5_fish_names """
-            variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "sub_coarser_dominant",
+            variables_to_remove = ["mesh", "points elevation", "height", "velocity", "sub_coarser_dominant",
                                    'max_slope_bottom', 'max_slope_energy', 'shear_stress']
             fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
             self.fish_list = fish_list
-
-            """ get_hdf5_fish_shortnames """
-            # variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
-            # fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
-            # self.fish_list = fish_list
 
             """ get_hdf5_reach_name """
             # units name
@@ -450,7 +450,7 @@ class Hdf5Management:
                 # UNIT GROUP
                 for unit_num in range(int(hyd_description["hyd_unit_number"])):
                     unit_group = reach_group.create_group('unit_' + str(unit_num))
-                    unit_group.attrs['total_wet_area'] = data_2d["total_wet_area"][reach_num][unit_num]
+                    #unit_group.attrs['total_wet_area'] = data_2d["total_wet_area"][reach_num][unit_num]
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
                     mesh_group.create_dataset(name="tin",
@@ -459,15 +459,15 @@ class Hdf5Management:
                     mesh_group.create_dataset(name="i_whole_profile",
                                               shape=[len(data_2d["i_whole_profile"][reach_num][unit_num]), 1],
                                               data=data_2d["i_whole_profile"][reach_num][unit_num])
-                    mesh_group.create_dataset(name="max_slope_bottom",
-                                              shape=[len(data_2d["max_slope_bottom"][reach_num][unit_num]), 1],
-                                              data=data_2d["max_slope_bottom"][reach_num][unit_num])
-                    mesh_group.create_dataset(name="max_slope_energy",
-                                              shape=[len(data_2d["max_slope_energy"][reach_num][unit_num]), 1],
-                                              data=data_2d["max_slope_energy"][reach_num][unit_num])
-                    mesh_group.create_dataset(name="shear_stress",
-                                              shape=[len(data_2d["shear_stress"][reach_num][unit_num]), 1],
-                                              data=data_2d["shear_stress"][reach_num][unit_num])
+                    # mesh_group.create_dataset(name="max_slope_bottom",
+                    #                           shape=[len(data_2d["max_slope_bottom"][reach_num][unit_num]), 1],
+                    #                           data=data_2d["max_slope_bottom"][reach_num][unit_num])
+                    # mesh_group.create_dataset(name="max_slope_energy",
+                    #                           shape=[len(data_2d["max_slope_energy"][reach_num][unit_num]), 1],
+                    #                           data=data_2d["max_slope_energy"][reach_num][unit_num])
+                    # mesh_group.create_dataset(name="shear_stress",
+                    #                           shape=[len(data_2d["shear_stress"][reach_num][unit_num]), 1],
+                    #                           data=data_2d["shear_stress"][reach_num][unit_num])
                     # NODE GROUP
                     node_group = unit_group.create_group('node')
                     node_group.create_dataset(name="h",
@@ -508,11 +508,14 @@ class Hdf5Management:
         # open an hdf5
         self.open_hdf5_file(new=False)
 
+        # save unit_index for computing variables
+        self.units_index = units_index
+
         # attributes
-        if units_index == "all":
+        if self.units_index == "all":
             # load the number of time steps
             nb_t = int(self.file_object.attrs['hyd_unit_number'])
-            units_index = list(range(nb_t))
+            self.units_index = list(range(nb_t))
 
         # get attributes
         hyd_description = dict()
@@ -528,10 +531,12 @@ class Hdf5Management:
         # WHOLE PROFIL
         if whole_profil:
             data_2D_whole_profile = dict()
-            data_2D_whole_profile["tin"] = []
-            data_2D_whole_profile["xy"] = []
+            data_2D_whole_profile["mesh"] = dict()
+            data_2D_whole_profile["node"] = dict()
+            data_2D_whole_profile["mesh"]["tin"] = []
+            data_2D_whole_profile["node"]["xy"] = []
             if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
-                data_2D_whole_profile["z"] = []
+                data_2D_whole_profile["node"]["z"] = []
             data_group = 'data_2D_whole_profile'
 
             # for all reach
@@ -544,43 +549,53 @@ class Hdf5Management:
                     z_list = []
 
                 # for all units (selected or all)
-                for unit_num in units_index:
+                for unit_num in self.units_index:
                     if not hyd_description['hyd_varying_mesh']:
                         unit_group = reach_group + "/unit_all"
                     else:
                         unit_group = reach_group + "/unit_" + str(unit_num)
                     mesh_group = unit_group + "/mesh"
                     node_group = unit_group + "/node"
+
+                    """ get data """
                     try:
-                        # mesh
-                        tin_list.append(self.file_object[mesh_group + "/tin"][:])
-                        # node
-                        xy_list.append(self.file_object[node_group + "/xy"][:])
+                        tin = self.file_object[mesh_group + "/tin"][:]
+                        xy = self.file_object[node_group + "/xy"][:]
                         if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
-                            # TODO : if hyd_varying_mesh == False and hyd_unit_z_equal == False ==> load each z in whole profile
-                            z_list.append(self.file_object[node_group + "/z"][:].flatten())
+                            z = self.file_object[node_group + "/z"][:].flatten()
                     except KeyError:
                         print(
                             'Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
                         self.file_object.close()
                         return
-                data_2D_whole_profile["tin"].append(tin_list)
-                data_2D_whole_profile["xy"].append(xy_list)
+
+                    """ append data """
+                    # mesh
+                    tin_list.append(tin)
+                    # node
+                    xy_list.append(xy)
+                    if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
+                        # TODO : if hyd_varying_mesh == False and hyd_unit_z_equal == False ==> load each z in whole profile
+                        z_list.append(z)
+
+                data_2D_whole_profile["mesh"]["tin"].append(tin_list)
+                data_2D_whole_profile["node"]["xy"].append(xy_list)
                 if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
-                    data_2D_whole_profile["z"].append(z_list)
+                    data_2D_whole_profile["node"]["z"].append(z_list)
 
         # DATA 2D
         data_2d = dict()
-        data_2d["tin"] = []
-        data_2d["i_whole_profile"] = []
-        data_2d["xy"] = []
-        data_2d["h"] = []
-        data_2d["v"] = []
-        data_2d["z"] = []
-        data_2d["max_slope_bottom"] = []
-        data_2d["max_slope_energy"] = []
-        data_2d["shear_stress"] = []
-        data_2d["total_wet_area"] = []
+
+        data_2d["mesh"] = dict()
+        data_2d["node"] = dict()
+
+
+        data_2d["mesh"]["tin"] = []
+        data_2d["mesh"]["i_whole_profile"] = []
+        data_2d["node"]["xy"] = []
+        data_2d["node"]["h"] = []
+        data_2d["node"]["v"] = []
+        data_2d["node"]["z"] = []
         data_group = 'data_2D'
         # for all reach
         for r in range(0, int(self.file_object.attrs['hyd_reach_number'])):
@@ -588,46 +603,52 @@ class Hdf5Management:
             # for all unit
             tin_list = []
             i_whole_profile_list = []
-            max_slope_bottom = []
-            max_slope_energy = []
-            shear_stress = []
-            total_wet_area = []
             xy_list = []
             h_list = []
             v_list = []
             z_list = []
-            for t in units_index:
+            for t in self.units_index:
                 unit_group = reach_group + "/unit_" + str(t)
                 mesh_group = unit_group + "/mesh"
                 node_group = unit_group + "/node"
+
+                """ get data """
                 try:
-                    # unit
-                    total_wet_area.append(self.file_object[unit_group].attrs['total_wet_area'])
                     # mesh
-                    tin_list.append(self.file_object[mesh_group + "/tin"][:])
-                    i_whole_profile_list.append(self.file_object[mesh_group + "/i_whole_profile"][:])
-                    max_slope_bottom.append(self.file_object[mesh_group + "/max_slope_bottom"][:])
-                    max_slope_energy.append(self.file_object[mesh_group + "/max_slope_energy"][:])
-                    shear_stress.append(self.file_object[mesh_group + "/shear_stress"][:])
+                    i_whole_profile = self.file_object[mesh_group + "/i_whole_profile"][:]
+                    tin = self.file_object[mesh_group + "/tin"][:]
+
                     # node
-                    h_list.append(self.file_object[node_group + "/h"][:].flatten())
-                    v_list.append(self.file_object[node_group + "/v"][:].flatten())
-                    xy_list.append(self.file_object[node_group + "/xy"][:])
-                    z_list.append(self.file_object[node_group + "/z"][:].flatten())
+                    h = self.file_object[node_group + "/h"][:].flatten()
+                    v = self.file_object[node_group + "/v"][:].flatten()
+                    xy = self.file_object[node_group + "/xy"][:]
+                    z = self.file_object[node_group + "/z"][:].flatten()
                 except KeyError:
-                    print('Warning: ' + qt_tr.translate("hdf5_mod", 'The dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n'))
+                    print('Warning: ' + qt_tr.translate("hdf5_mod",
+                                                        'The dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n'))
                     self.file_object.close()
                     return
-            data_2d["tin"].append(tin_list)
-            data_2d["i_whole_profile"].append(i_whole_profile_list)
-            data_2d["max_slope_bottom"].append(max_slope_bottom)
-            data_2d["max_slope_energy"].append(max_slope_energy)
-            data_2d["shear_stress"].append(shear_stress)
-            data_2d["total_wet_area"].append(total_wet_area)
-            data_2d["xy"].append(xy_list)
-            data_2d["h"].append(h_list)
-            data_2d["v"].append(v_list)
-            data_2d["z"].append(z_list)
+
+                """ append data """
+                # mesh
+                i_whole_profile_list.append(i_whole_profile)
+                tin_list.append(tin)
+
+                # node
+                h_list.append(h)
+                v_list.append(v)
+                xy_list.append(xy)
+                z_list.append(z)
+
+            # node
+            data_2d["node"]["h"].append(h_list)
+            data_2d["node"]["v"].append(v_list)
+            data_2d["node"]["xy"].append(xy_list)
+            data_2d["node"]["z"].append(z_list)
+
+            # mesh
+            data_2d["mesh"]["i_whole_profile"].append(i_whole_profile_list)
+            data_2d["mesh"]["tin"].append(tin_list)
 
         # close file
         self.file_object.close()
@@ -1309,6 +1330,141 @@ class Hdf5Management:
                 for fish_name_to_remove in fish_names_to_remove:
                     del mesh_group[fish_name_to_remove]
 
+    # COMPUTATION
+    def compute_variables(self, variables_node=[], variables_mesh=[]):
+        variables_mesh = variables_mesh.copy()  # if not copy : this list is updated in "data_explorer_tab" also..
+        variables_node = variables_node.copy()  # if not copy : this list is updated in "data_explorer_tab" also..
+
+        if variables_mesh:
+            # replace height by h, same for velocity
+            if "height" in variables_mesh:
+                variables_mesh[variables_mesh.index("height")] = "h"
+            if "velocity" in variables_mesh:
+                variables_mesh[variables_mesh.index("velocity")] = "v"
+
+            # create keys and empty list
+            for variable in variables_mesh:
+                self.data_2d["mesh"][variable] = []
+
+            # for all reach
+            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+
+                # append empty list
+                for variable in variables_mesh:
+                    self.data_2d["mesh"][variable].append([])
+
+                # for all units
+                for unit_num in range(len(self.data_2d["mesh"]["tin"][reach_num])):
+                    for variable in variables_mesh:
+                        # compute height mean
+                        if variable == "h":
+                            h = c_mesh_mean_from_node_values(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                             self.data_2d["node"]["h"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(h)
+
+                        # compute velocity mean
+                        if variable == "v":
+                            v = c_mesh_mean_from_node_values(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                             self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(v)
+
+                        # compute max_slope_bottom
+                        if variable == "max_slope_bottom":
+                            max_slope_bottom = c_mesh_max_slope_bottom(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                                       self.data_2d["node"]["xy"][reach_num][unit_num],
+                                                                       self.data_2d["node"]["z"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(max_slope_bottom)
+
+                        # compute max_slope_energy
+                        if variable == "max_slope_energy":
+                            max_slope_bottom = c_mesh_max_slope_energy(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                                       self.data_2d["node"]["xy"][reach_num][unit_num],
+                                                                       self.data_2d["node"]["z"][reach_num][unit_num],
+                                                                       self.data_2d["node"]["h"][reach_num][unit_num],
+                                                                       self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(max_slope_bottom)
+
+                        # compute shear_stress
+                        if variable == "shear_stress":
+                            shear_stress = c_mesh_shear_stress(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                               self.data_2d["node"]["xy"][reach_num][unit_num],
+                                                               self.data_2d["node"]["z"][reach_num][unit_num],
+                                                               self.data_2d["node"]["h"][reach_num][unit_num],
+                                                               self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(shear_stress)
+
+                        # compute conveyance
+                        if variable == "conveyance":
+                            conveyance = c_mesh_conveyance(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                           self.data_2d["node"]["h"][reach_num][unit_num],
+                                                           self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(conveyance)
+
+                        # compute Froude
+                        if variable == "Froude":
+                            froude = c_mesh_froude(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                   self.data_2d["node"]["h"][reach_num][unit_num],
+                                                   self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(froude)
+
+                        # compute hydraulic_head
+                        if variable == "hydraulic_head":
+                            hydraulic_head = c_mesh_hydraulic_head(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                                   self.data_2d["node"]["z"][reach_num][unit_num],
+                                                                   self.data_2d["node"]["h"][reach_num][unit_num],
+                                                                   self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(hydraulic_head)
+
+                        # compute hydraulic_head
+                        if variable == "water_level":
+                            water_level = self.data_2d["node"]["z"][reach_num][unit_num] + self.data_2d["node"]["h"][reach_num][unit_num]
+                            self.data_2d["mesh"][variable][reach_num].append(water_level)
+
+        if variables_node:
+            # replace height by h, same for velocity
+            if "height" in variables_node:
+                variables_node[variables_node.index("height")] = "h"
+            if "velocity" in variables_node:
+                variables_node[variables_node.index("velocity")] = "v"
+
+            # create keys and empty list
+            for variable in variables_node:
+                self.data_2d["node"][variable] = []
+
+            # for all reach
+            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+
+                # append empty list
+                for variable in variables_node:
+                    self.data_2d["node"][variable].append([])
+
+                # for all units
+                for unit_num in range(len(self.data_2d["mesh"]["tin"][reach_num])):
+                    for variable in variables_node:
+                        # compute conveyance
+                        if variable == "conveyance":
+                            conveyance = c_node_conveyance(self.data_2d["node"]["h"][reach_num][unit_num],
+                                                             self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["node"][variable][reach_num].append(conveyance)
+
+                        # compute conveyance
+                        if variable == "Froude":
+                            Froude = c_node_froude(self.data_2d["node"]["h"][reach_num][unit_num],
+                                                             self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["node"][variable][reach_num].append(Froude)
+
+                        # compute water_level
+                        if variable == "hydraulic_head":
+                            hydraulic_head = c_node_hydraulic_head(self.data_2d["node"]["z"][reach_num][unit_num],
+                                                                   self.data_2d["node"]["h"][reach_num][unit_num],
+                                                                   self.data_2d["node"]["v"][reach_num][unit_num])
+                            self.data_2d["node"][variable][reach_num].append(hydraulic_head)
+
+                        # compute water_level
+                        if variable == "water_level":
+                            water_level = self.data_2d["node"]["z"][reach_num][unit_num] + self.data_2d["node"]["h"][reach_num][unit_num]
+                            self.data_2d["node"][variable][reach_num].append(water_level)
+
     # HABITAT ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
         # create a new hdf5
@@ -1514,17 +1670,17 @@ class Hdf5Management:
                     layer.StartTransaction()  # faster
 
                     # for each mesh
-                    for mesh_num in range(0, len(self.data_2d_whole["tin"][reach_num][unit_num])):
-                        node1 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                        node2 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][1]
-                        node3 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][2]
+                    for mesh_num in range(0, len(self.data_2d_whole["mesh"]["tin"][reach_num][unit_num])):
+                        node1 = self.data_2d_whole["mesh"]["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                        node2 = self.data_2d_whole["mesh"]["tin"][reach_num][unit_num][mesh_num][1]
+                        node3 = self.data_2d_whole["mesh"]["tin"][reach_num][unit_num][mesh_num][2]
                         # data geom (get the triangle coordinates)
-                        p1 = list(self.data_2d_whole["xy"][reach_num][unit_num][node1].tolist() + [
+                        p1 = list(self.data_2d_whole["node"]["xy"][reach_num][unit_num][node1].tolist() + [
                             self.data_2d_whole["z"][reach_num][unit_num][node1]])
-                        p2 = list(self.data_2d_whole["xy"][reach_num][unit_num][node2].tolist() + [
+                        p2 = list(self.data_2d_whole["node"]["xy"][reach_num][unit_num][node2].tolist() + [
                             self.data_2d_whole["z"][reach_num][unit_num][node2]])
-                        p3 = list(self.data_2d_whole["xy"][reach_num][unit_num][node3].tolist() + [
-                            self.data_2d_whole["z"][reach_num][unit_num][node3]])
+                        p3 = list(self.data_2d_whole["node"]["xy"][reach_num][unit_num][node3].tolist() + [
+                            self.data_2d_whole["node"]["z"][reach_num][unit_num][node3]])
                         # Create triangle
                         ring = ogr.Geometry(ogr.wkbLinearRing)
                         ring.AddPoint(*p1)
@@ -1578,10 +1734,10 @@ class Hdf5Management:
                                 layer.CreateField(new_field)
                             # add fish data for each mesh
                             layer.StartTransaction()  # faster
-                            for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                            for mesh_num in range(0, len(self.data_2d["mesh"]["tin"][reach_num][unit_num])):
                                 feature = layer.GetFeature(mesh_num + 1)  # 1 because gpkg start at 1
                                 for fish_num, fish_name in enumerate(fish_names):
-                                    data = self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num]
+                                    data = self.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num][mesh_num]
                                     feature.SetField(fish_name, data)
                                 layer.SetFeature(feature)
                             layer.CommitTransaction()  # faster
@@ -1622,53 +1778,53 @@ class Hdf5Management:
                         layer.StartTransaction()  # faster
 
                         # for each mesh
-                        for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                            node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                            node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
-                            node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                        for mesh_num in range(0, len(self.data_2d["mesh"]["tin"][reach_num][unit_num])):
+                            node1 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                            node2 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][1]
+                            node3 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][2]
                             # V
-                            v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
-                            v2 = self.data_2d["v"][reach_num][unit_num][node2]
-                            v3 = self.data_2d["v"][reach_num][unit_num][node3]
+                            v1 = self.data_2d["node"]["v"][reach_num][unit_num][node1]  # velocity
+                            v2 = self.data_2d["node"]["v"][reach_num][unit_num][node2]
+                            v3 = self.data_2d["node"]["v"][reach_num][unit_num][node3]
                             v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
                             # H
-                            h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
-                            h2 = self.data_2d["h"][reach_num][unit_num][node2]
-                            h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                            h1 = self.data_2d["node"]["h"][reach_num][unit_num][node1]  # height
+                            h2 = self.data_2d["node"]["h"][reach_num][unit_num][node2]
+                            h3 = self.data_2d["node"]["h"][reach_num][unit_num][node3]
                             h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
                             # conveyance
                             conveyance = v_mean_mesh * h_mean_mesh
                             # other
-                            if len(self.data_2d["max_slope_bottom"][reach_num][unit_num]) != len(
-                                    self.data_2d["tin"][reach_num][unit_num]):
+                            if len(self.data_2d["mesh"]["max_slope_bottom"][reach_num][unit_num]) != len(
+                                    self.data_2d["mesh"]["tin"][reach_num][unit_num]):
                                 max_slope_bottom = None
                                 max_slope_energy = None
                                 shear_stress = None
                             else:
-                                max_slope_bottom = self.data_2d["max_slope_bottom"][reach_num][unit_num][mesh_num][0]
-                                max_slope_energy = self.data_2d["max_slope_energy"][reach_num][unit_num][mesh_num][0]
-                                shear_stress = self.data_2d["shear_stress"][reach_num][unit_num][mesh_num][0]
+                                max_slope_bottom = self.data_2d["mesh"]["max_slope_bottom"][reach_num][unit_num][mesh_num][0]
+                                max_slope_energy = self.data_2d["mesh"]["max_slope_energy"][reach_num][unit_num][mesh_num][0]
+                                shear_stress = self.data_2d["mesh"]["shear_stress"][reach_num][unit_num][mesh_num][0]
                             # i_whole_profile
-                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(
-                                    self.data_2d["tin"][reach_num][unit_num]):
+                            if len(self.data_2d["mesh"]["i_whole_profile"][reach_num][unit_num]) != len(
+                                    self.data_2d["mesh"]["tin"][reach_num][unit_num]):
                                 i_whole_profile = None
                             else:
-                                i_whole_profile = int(self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0])
+                                i_whole_profile = int(self.data_2d["mesh"]["i_whole_profile"][reach_num][unit_num][mesh_num][0])
                             # data geom (get the triangle coordinates)
-                            p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
-                                self.data_2d["z"][reach_num][unit_num][node1]])
-                            p2 = list(self.data_2d["xy"][reach_num][unit_num][node2].tolist() + [
-                                self.data_2d["z"][reach_num][unit_num][node2]])
-                            p3 = list(self.data_2d["xy"][reach_num][unit_num][node3].tolist() + [
-                                self.data_2d["z"][reach_num][unit_num][node3]])
+                            p1 = list(self.data_2d["node"]["xy"][reach_num][unit_num][node1].tolist() + [
+                                self.data_2d["node"]["z"][reach_num][unit_num][node1]])
+                            p2 = list(self.data_2d["node"]["xy"][reach_num][unit_num][node2].tolist() + [
+                                self.data_2d["node"]["z"][reach_num][unit_num][node2]])
+                            p3 = list(self.data_2d["node"]["xy"][reach_num][unit_num][node3].tolist() + [
+                                self.data_2d["node"]["z"][reach_num][unit_num][node3]])
                             # data attrbiutes
                             if self.type_for_xml == "hdf5_habitat":
-                                sub = self.data_2d["sub"][reach_num][unit_num][mesh_num].tolist()
+                                sub = self.data_2d["mesh"]["sub"][reach_num][unit_num][mesh_num].tolist()
                                 if fish_names:
                                     fish_data = []
                                     for fish_name in fish_names:
                                         fish_data.append(
-                                            self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
+                                            self.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num][mesh_num])
 
                             # Create triangle
                             ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -1730,11 +1886,11 @@ class Hdf5Management:
                     layer.StartTransaction()  # faster
 
                     # for each point
-                    for point_num in range(0, len(self.data_2d_whole["xy"][reach_num][unit_num])):
+                    for point_num in range(0, len(self.data_2d_whole["node"]["xy"][reach_num][unit_num])):
                         # data geom (get the triangle coordinates)
-                        x = self.data_2d_whole["xy"][reach_num][unit_num][point_num][0]
-                        y = self.data_2d_whole["xy"][reach_num][unit_num][point_num][1]
-                        z = self.data_2d_whole["z"][reach_num][unit_num][point_num]
+                        x = self.data_2d_whole["mesh"]["xy"][reach_num][unit_num][point_num][0]
+                        y = self.data_2d_whole["mesh"]["xy"][reach_num][unit_num][point_num][1]
+                        z = self.data_2d_whole["mesh"]["z"][reach_num][unit_num][point_num]
                         # Create a point
                         point = ogr.Geometry(ogr.wkbPoint)
                         point.AddPoint(x, y, z)
@@ -1781,13 +1937,13 @@ class Hdf5Management:
                         layer.StartTransaction()  # faster
 
                         # for each point
-                        for point_num in range(0, len(self.data_2d["xy"][reach_num][unit_num])):
+                        for point_num in range(0, len(self.data_2d["node"]["xy"][reach_num][unit_num])):
                             # data geom (get the triangle coordinates)
-                            x = self.data_2d["xy"][reach_num][unit_num][point_num][0]
-                            y = self.data_2d["xy"][reach_num][unit_num][point_num][1]
-                            z = self.data_2d["z"][reach_num][unit_num][point_num]
-                            h = self.data_2d["h"][reach_num][unit_num][point_num]
-                            v = self.data_2d["v"][reach_num][unit_num][point_num]
+                            x = self.data_2d["node"]["xy"][reach_num][unit_num][point_num][0]
+                            y = self.data_2d["node"]["xy"][reach_num][unit_num][point_num][1]
+                            z = self.data_2d["node"]["z"][reach_num][unit_num][point_num]
+                            h = self.data_2d["node"]["h"][reach_num][unit_num][point_num]
+                            v = self.data_2d["node"]["v"][reach_num][unit_num][point_num]
 
                             # Create a point
                             point = ogr.Geometry(ogr.wkbPoint)
@@ -1825,9 +1981,9 @@ class Hdf5Management:
                 # for all units (selected or all)
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                     # get data
-                    xy = self.data_2d_whole["xy"][reach_num][unit_num]
-                    z = self.data_2d_whole["z"][reach_num][unit_num] * self.project_preferences["vertical_exaggeration"]
-                    faces = self.data_2d_whole["tin"][reach_num][unit_num]
+                    xy = self.data_2d_whole["node"]["xy"][reach_num][unit_num]
+                    z = self.data_2d_whole["node"]["z"][reach_num][unit_num] * self.project_preferences["vertical_exaggeration"]
+                    faces = self.data_2d_whole["mesh"]["tin"][reach_num][unit_num]
                     vertices = np.column_stack([xy, z])
                     # Create the mesh
                     stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
@@ -1880,21 +2036,49 @@ class Hdf5Management:
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                     part_timestep_indice.append((reach_num, unit_num))
                     # create one vtu file by time step
-                    x = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
-                    y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
+                    x = np.ascontiguousarray(self.data_2d["node"]["xy"][reach_num][unit_num][:, 0])
+                    y = np.ascontiguousarray(self.data_2d["node"]["xy"][reach_num][unit_num][:, 1])
                     try:
-                        z = np.ascontiguousarray((
-                                                         self.data_2d["z"][reach_num][unit_num] +
-                                                         self.data_2d["h"][reach_num][unit_num]) *
-                                                 self.project_preferences["vertical_exaggeration"])
+                        aa = 1
+                        # # ["water_level", "energy", "conveyance", "Froude", "water_height", "water_velocity"]
+                        # if self.project_preferences['pvd_variable_z'] == "water_level":
+                        #     z = np.ascontiguousarray((self.data_2d["z"][reach_num][unit_num] +
+                        #                               self.data_2d["h"][reach_num][unit_num]) *
+                        #                              self.project_preferences["vertical_exaggeration"])
+                        #
+                        # elif self.project_preferences['pvd_variable_z'] == "energy":
+                        #     z = np.ascontiguousarray(((self.data_2d["z"][reach_num][unit_num] +
+                        #                               self.data_2d["h"][reach_num][unit_num]) +
+                        #                               ((self.data_2d["v"][reach_num][unit_num]**2) / (2 * self.gravity_acc)))*
+                        #                              self.project_preferences["vertical_exaggeration"])
+                        #
+                        # elif self.project_preferences['pvd_variable_z'] == "conveyance":
+                        #     z = np.ascontiguousarray((self.data_2d["h"][reach_num][unit_num] *
+                        #                               self.data_2d["v"][reach_num][unit_num]) *
+                        #                              self.project_preferences["vertical_exaggeration"])
+                        #
+                        # elif self.project_preferences['pvd_variable_z'] == "Froude":
+                        #     z = np.ascontiguousarray((self.data_2d["v"][reach_num][unit_num] /
+                        #                               np.sqrt(self.gravity_acc * self.data_2d["h"][reach_num][unit_num])) *
+                        #                              self.project_preferences["vertical_exaggeration"])
+                        #     z[self.data_2d["h"][reach_num][unit_num] == 0] = 0
+                        #
+                        # elif self.project_preferences['pvd_variable_z'] == "water_height":
+                        #     z = np.ascontiguousarray(self.data_2d["h"][reach_num][unit_num] *
+                        #                              self.project_preferences["vertical_exaggeration"])
+                        #
+                        # else:  # water_velocity
+                        #     z = np.ascontiguousarray(self.data_2d["v"][reach_num][unit_num] *
+                        #                              self.project_preferences["vertical_exaggeration"])
+
                     except Warning:
                         print('Error: ' + qt_tr.translate("hdf5_mod", 'oh no!'))
 
-                    connectivity = np.reshape(self.data_2d["tin"][reach_num][unit_num],
-                                              (len(self.data_2d["tin"][reach_num][unit_num]) * 3,))
-                    offsets = np.arange(3, len(self.data_2d["tin"][reach_num][unit_num]) * 3 + 3, 3)
+                    connectivity = np.reshape(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                              (len(self.data_2d["mesh"]["tin"][reach_num][unit_num]) * 3,))
+                    offsets = np.arange(3, len(self.data_2d["mesh"]["tin"][reach_num][unit_num]) * 3 + 3, 3)
                     offsets = np.array(list(map(int, offsets)))
-                    cell_types = np.zeros(len(self.data_2d["tin"][reach_num][unit_num]), ) + 5  # triangle
+                    cell_types = np.zeros(len(self.data_2d["mesh"]["tin"][reach_num][unit_num]), ) + 5  # triangle
                     cell_types = np.array(list((map(int, cell_types))))
 
                     cellData = {}
@@ -1904,13 +2088,13 @@ class Hdf5Management:
                         if name_fish:
                             for fish_name in self.data_description["hab_fish_list"].split(", "):
                                 newkey = "HV " + fish_name
-                                cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
+                                cellData[newkey] = self.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num]
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
                             cellData["sub_coarser"] = np.ascontiguousarray(
-                                self.data_2d["sub"][reach_num][unit_num][:, 0])
+                                self.data_2d["mesh"]["sub"][reach_num][unit_num][:, 0])
                             cellData["sub_dominant"] = np.ascontiguousarray(
-                                self.data_2d["sub"][reach_num][unit_num][:, 1])
+                                self.data_2d["mesh"]["sub"][reach_num][unit_num][:, 1])
 
                         if self.data_description["sub_classification_method"] == 'percentage':
                             if self.data_description["sub_classification_code"] == "Cemagref":
@@ -1919,25 +2103,25 @@ class Hdf5Management:
                                 sub_class_number = 12
                             for i in range(sub_class_number):
                                 cellData['S' + str(i + 1)] = np.ascontiguousarray(
-                                    self.data_2d["sub"][reach_num][unit_num][:, i])
+                                    self.data_2d["mesh"]["sub"][reach_num][unit_num][:, i])
 
                     # hydrau data creation for each mesh
                     v_mean_mesh_list = []
                     h_mean_mesh_list = []
 
-                    for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                        node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                        node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
-                        node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                    for mesh_num in range(0, len(self.data_2d["mesh"]["tin"][reach_num][unit_num])):
+                        node1 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                        node2 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][1]
+                        node3 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][2]
                         # data attributes
-                        v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
-                        v2 = self.data_2d["v"][reach_num][unit_num][node2]
-                        v3 = self.data_2d["v"][reach_num][unit_num][node3]
+                        v1 = self.data_2d["node"]["v"][reach_num][unit_num][node1]  # velocity
+                        v2 = self.data_2d["node"]["v"][reach_num][unit_num][node2]
+                        v3 = self.data_2d["node"]["v"][reach_num][unit_num][node3]
                         v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
                         v_mean_mesh_list.append(v_mean_mesh)
-                        h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
-                        h2 = self.data_2d["h"][reach_num][unit_num][node2]
-                        h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                        h1 = self.data_2d["node"]["h"][reach_num][unit_num][node1]  # height
+                        h2 = self.data_2d["node"]["h"][reach_num][unit_num][node2]
+                        h3 = self.data_2d["node"]["h"][reach_num][unit_num][node3]
                         h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
                         h_mean_mesh_list.append(h_mean_mesh)
 
@@ -1945,22 +2129,23 @@ class Hdf5Management:
                     cellData['velocity'] = np.array(v_mean_mesh_list)
 
                     # other
-                    other_length = len(self.data_2d["max_slope_bottom"][reach_num][unit_num])
-                    base_length = len(self.data_2d["tin"][reach_num][unit_num])
+                    other_length = len(self.data_2d["mesh"]["max_slope_bottom"][reach_num][unit_num])
+                    base_length = len(self.data_2d["mesh"]["tin"][reach_num][unit_num])
                     if other_length != base_length:
-                        fake_array = np.array([0.0] * len(self.data_2d["tin"][reach_num][unit_num]),
+                        fake_array = np.array([0.0] * len(self.data_2d["mesh"]["tin"][reach_num][unit_num]),
                                               dtype=np.float64)
                         cellData['max_slope_bottom'] = fake_array
                         cellData['max_slope_energy'] = fake_array
                         cellData['shear_stress'] = fake_array
                     else:
-                        cellData['max_slope_bottom'] = self.data_2d["max_slope_bottom"][reach_num][unit_num][:, 0]
-                        cellData['max_slope_energy'] = self.data_2d["max_slope_energy"][reach_num][unit_num][:, 0]
-                        cellData['shear_stress'] = self.data_2d["shear_stress"][reach_num][unit_num][:, 0]
+                        cellData['max_slope_bottom'] = self.data_2d["mesh"]["max_slope_bottom"][reach_num][unit_num][:, 0]
+                        cellData['max_slope_energy'] = self.data_2d["mesh"]["max_slope_energy"][reach_num][unit_num][:, 0]
+                        cellData['shear_stress'] = self.data_2d["mesh"]["shear_stress"][reach_num][unit_num][:, 0]
+                    #cellData['z'] = z
 
                     # create the grid and the vtu files
                     name_file = os.path.join(self.path_visualisation,
-                                             self.basename_output_reach_unit[reach_num][unit_num])
+                                             self.basename_output_reach_unit[reach_num][unit_num] + "_" + self.project_preferences['pvd_variable_z'])
                     if self.project_preferences['erase_id']:  # erase file if exist ?
                         if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
                             try:
@@ -1971,14 +2156,15 @@ class Hdf5Management:
                                 return
                     else:
                         if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
-                            name_file = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.shp'
+                            name_file = os.path.join(self.path_visualisation,
+                                             self.basename_output_reach_unit[reach_num][unit_num] + "_" + self.project_preferences['pvd_variable_z']) + "_" + time.strftime(
+                                "%d_%m_%Y_at_%H_%M_%S")
                     file_names_all.append(name_file + ".vtu")
                     hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
                                                  cellData)
 
             # create the "grouping" file to read all time step together
-            name_here = self.basename + "_allreachs_allunits.pvd"
+            name_here = self.basename + "_allreachs_allunits_" + self.project_preferences['pvd_variable_z'] + ".pvd"
             file_names_all = list(map(os.path.basename, file_names_all))
             if self.project_preferences['erase_id']:  # erase file if exist ?
                 if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
@@ -2197,23 +2383,23 @@ class Hdf5Management:
                     data_here = ""
                     for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                         # for each mesh
-                        for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                            node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                            node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
-                            node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                        for mesh_num in range(0, len(self.data_2d["mesh"]["tin"][reach_num][unit_num])):
+                            node1 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                            node2 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][1]
+                            node3 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][2]
                             # data node data
-                            p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
-                                float(self.data_2d["z"][reach_num][unit_num][node1])])
-                            p2 = list(self.data_2d["xy"][reach_num][unit_num][node2].tolist() + [
-                                float(self.data_2d["z"][reach_num][unit_num][node2])])
-                            p3 = list(self.data_2d["xy"][reach_num][unit_num][node3].tolist() + [
-                                float(self.data_2d["z"][reach_num][unit_num][node3])])
-                            v1 = self.data_2d["v"][reach_num][unit_num][node1]
-                            v2 = self.data_2d["v"][reach_num][unit_num][node2]
-                            v3 = self.data_2d["v"][reach_num][unit_num][node3]
-                            h1 = self.data_2d["h"][reach_num][unit_num][node1]
-                            h2 = self.data_2d["h"][reach_num][unit_num][node2]
-                            h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                            p1 = list(self.data_2d["node"]["xy"][reach_num][unit_num][node1].tolist() + [
+                                float(self.data_2d["node"]["z"][reach_num][unit_num][node1])])
+                            p2 = list(self.data_2d["node"]["xy"][reach_num][unit_num][node2].tolist() + [
+                                float(self.data_2d["node"]["z"][reach_num][unit_num][node2])])
+                            p3 = list(self.data_2d["node"]["xy"][reach_num][unit_num][node3].tolist() + [
+                                float(self.data_2d["node"]["z"][reach_num][unit_num][node3])])
+                            v1 = self.data_2d["node"]["v"][reach_num][unit_num][node1]
+                            v2 = self.data_2d["node"]["v"][reach_num][unit_num][node2]
+                            v3 = self.data_2d["node"]["v"][reach_num][unit_num][node3]
+                            h1 = self.data_2d["node"]["h"][reach_num][unit_num][node1]
+                            h2 = self.data_2d["node"]["h"][reach_num][unit_num][node2]
+                            h3 = self.data_2d["node"]["h"][reach_num][unit_num][node3]
                             # compute velocity
                             velocity_str = str((v1 + v2 + v3) / 3)
                             # compute height
@@ -2229,11 +2415,11 @@ class Hdf5Management:
                             data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
 
                             if self.type_for_xml == "hdf5_habitat":
-                                sub = self.data_2d["sub"][reach_num][unit_num][mesh_num]
+                                sub = self.data_2d["mesh"]["sub"][reach_num][unit_num][mesh_num]
                                 data_here += "\t" + "\t".join(str(e) for e in sub.tolist())
                                 if fish_names:
                                     for fish_name in fish_names:
-                                        data_here += f"\t{str(self.data_2d['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
+                                        data_here += f"\t{str(self.data_2d['mesh']['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
                     # write file
                     f.write(data_here)
 
@@ -2295,13 +2481,13 @@ class Hdf5Management:
                     data_here = ""
                     for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                         # for each point
-                        for point_num in range(0, len(self.data_2d["xy"][reach_num][unit_num])):
+                        for point_num in range(0, len(self.data_2d["node"]["xy"][reach_num][unit_num])):
                             # data geom (get the triangle coordinates)
-                            x = str(self.data_2d["xy"][reach_num][unit_num][point_num][0])
-                            y = str(self.data_2d["xy"][reach_num][unit_num][point_num][1])
-                            z = str(self.data_2d["z"][reach_num][unit_num][point_num])
-                            h = str(self.data_2d["h"][reach_num][unit_num][point_num])
-                            v = str(self.data_2d["v"][reach_num][unit_num][point_num])
+                            x = str(self.data_2d["node"]["xy"][reach_num][unit_num][point_num][0])
+                            y = str(self.data_2d["node"]["xy"][reach_num][unit_num][point_num][1])
+                            z = str(self.data_2d["node"]["z"][reach_num][unit_num][point_num])
+                            h = str(self.data_2d["node"]["h"][reach_num][unit_num][point_num])
+                            v = str(self.data_2d["node"]["v"][reach_num][unit_num][point_num])
 
                             data_here += '\n'
                             data_here += f"{str(reach_num)}\t{x}\t{y}\t{z}\t{v}\t{h}"

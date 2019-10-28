@@ -125,32 +125,32 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                         print("Warning: " + "The mesh of timestep " + str(data_description["unit_list"][reach_num][unit_num]) + " is entirely dry.")
                         continue  # Continue to next iteration.
 
-                max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
-                    xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
-                    z1=xy_cuted[tin_data[:, 0]][:, 2],
-                    h1=h_data[tin_data[:, 0]],
-                    v1=v_data[tin_data[:, 0]],
-                    xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
-                    z2=xy_cuted[tin_data[:, 1]][:, 2],
-                    h2=h_data[tin_data[:, 1]],
-                    v2=v_data[tin_data[:, 1]],
-                    xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
-                    z3=xy_cuted[tin_data[:, 2]][:, 2],
-                    h3=h_data[tin_data[:, 2]],
-                    v3=v_data[tin_data[:, 2]])
-
-                # get area (based on Heron's formula)
-                p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-                p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-                p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-                d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
-                d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
-                d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
-                s2 = (d1 + d2 + d3) / 2
-                area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-                area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-                area = area ** 0.5
-                area_reach = np.sum(area)
+                # max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                #     xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                #     z1=xy_cuted[tin_data[:, 0]][:, 2],
+                #     h1=h_data[tin_data[:, 0]],
+                #     v1=v_data[tin_data[:, 0]],
+                #     xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                #     z2=xy_cuted[tin_data[:, 1]][:, 2],
+                #     h2=h_data[tin_data[:, 1]],
+                #     v2=v_data[tin_data[:, 1]],
+                #     xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                #     z3=xy_cuted[tin_data[:, 2]][:, 2],
+                #     h3=h_data[tin_data[:, 2]],
+                #     v3=v_data[tin_data[:, 2]])
+                #
+                # # get area (based on Heron's formula)
+                # p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+                # p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+                # p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+                # d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
+                # d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
+                # d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
+                # s2 = (d1 + d2 + d3) / 2
+                # area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
+                # area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+                # area = area ** 0.5
+                # area_reach = np.sum(area)
 
                 # get substrate after cuting mesh
                 if sub_presence:
@@ -163,10 +163,10 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                 data_2d["h"][reach_num].append(h_data)
                 data_2d["v"][reach_num].append(v_data)
                 data_2d["z"][reach_num].append(xy_cuted[:, 2])
-                data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
-                data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
-                data_2d["shear_stress"][reach_num].append(shear_stress)
-                data_2d["total_wet_area"][reach_num].append(area_reach)
+                # data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
+                # data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
+                # data_2d["shear_stress"][reach_num].append(shear_stress)
+                # data_2d["total_wet_area"][reach_num].append(area_reach)
                 if sub_presence:
                     data_2d["sub"][reach_num].append(sub)
             # erase unit in whole_profile

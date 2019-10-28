@@ -862,29 +862,29 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                         print("Warning: " + qt_tr.translate("rubar1d2d_mod", "The mesh of timestep ") + description_from_rubar2d["unit_list"][reach_num][unit_num] + qt_tr.translate("rubar1d2d_mod", " is entirely dry."))
                         continue  # Continue to next iteration.
                 else:
-                    max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
-                        xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
-                        z1=xy_cuted[tin_data[:, 0]][:, 2],
-                        h1=h_data[tin_data[:, 0]],
-                        v1=v_data[tin_data[:, 0]],
-                        xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
-                        z2=xy_cuted[tin_data[:, 1]][:, 2],
-                        h2=h_data[tin_data[:, 1]],
-                        v2=v_data[tin_data[:, 1]],
-                        xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
-                        z3=xy_cuted[tin_data[:, 2]][:, 2],
-                        h3=h_data[tin_data[:, 2]],
-                        v3=v_data[tin_data[:, 2]])
-
-                    # get points coord
-                    pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-                    pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-                    pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-
-                    # get area
-                    area = 0.5 * abs(
-                        (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-                    area_reach = np.sum(area)
+                    # max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                    #     xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                    #     z1=xy_cuted[tin_data[:, 0]][:, 2],
+                    #     h1=h_data[tin_data[:, 0]],
+                    #     v1=v_data[tin_data[:, 0]],
+                    #     xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                    #     z2=xy_cuted[tin_data[:, 1]][:, 2],
+                    #     h2=h_data[tin_data[:, 1]],
+                    #     v2=v_data[tin_data[:, 1]],
+                    #     xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                    #     z3=xy_cuted[tin_data[:, 2]][:, 2],
+                    #     h3=h_data[tin_data[:, 2]],
+                    #     v3=v_data[tin_data[:, 2]])
+                    #
+                    # # get points coord
+                    # pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+                    # pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+                    # pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+                    #
+                    # # get area
+                    # area = 0.5 * abs(
+                    #     (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
+                    # area_reach = np.sum(area)
 
                     # get cuted grid
                     data_2d["tin"][reach_num].append(tin_data)
@@ -893,10 +893,10 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                     data_2d["h"][reach_num].append(h_data)
                     data_2d["v"][reach_num].append(v_data)
                     data_2d["z"][reach_num].append(xy_cuted[:, 2])
-                    data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
-                    data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
-                    data_2d["shear_stress"][reach_num].append(shear_stress)
-                    data_2d["total_wet_area"][reach_num].append(area_reach)
+                    # data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
+                    # data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
+                    # data_2d["shear_stress"][reach_num].append(shear_stress)
+                    # data_2d["total_wet_area"][reach_num].append(area_reach)
 
             # erase unit in whole_profile
             else:

@@ -126,10 +126,10 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         data_2d["h"] = [[]]  # always one reach
         data_2d["v"] = [[]]  # always one reach
         data_2d["z"] = [[]]  # always one reach
-        data_2d["max_slope_bottom"] = [[]]  # always one reach
-        data_2d["max_slope_energy"] = [[]]  # always one reach
-        data_2d["shear_stress"] = [[]]  # always one reach
-        data_2d["total_wet_area"] = [[]]
+        # data_2d["max_slope_bottom"] = [[]]  # always one reach
+        # data_2d["max_slope_energy"] = [[]]  # always one reach
+        # data_2d["shear_stress"] = [[]]  # always one reach
+        # data_2d["total_wet_area"] = [[]]
         # get unit list from telemac file
         file_list = hydrau_description[hyd_file]["filename_source"].split(", ")
         if len(file_list) > 1:
@@ -215,28 +215,28 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
                     continue  # Continue to next iteration.
             else:
-                max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
-                    xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
-                    z1=xy_cuted[tin_data[:, 0]][:, 2],
-                    h1=h_data[tin_data[:, 0]],
-                    v1=v_data[tin_data[:, 0]],
-                    xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
-                    z2=xy_cuted[tin_data[:, 1]][:, 2],
-                    h2=h_data[tin_data[:, 1]],
-                    v2=v_data[tin_data[:, 1]],
-                    xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
-                    z3=xy_cuted[tin_data[:, 2]][:, 2],
-                    h3=h_data[tin_data[:, 2]],
-                    v3=v_data[tin_data[:, 2]])
-
-                # get points coord
-                pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-                pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-                pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-
-                # get area2
-                area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-                area_reach = np.sum(area)
+                # max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
+                #     xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
+                #     z1=xy_cuted[tin_data[:, 0]][:, 2],
+                #     h1=h_data[tin_data[:, 0]],
+                #     v1=v_data[tin_data[:, 0]],
+                #     xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
+                #     z2=xy_cuted[tin_data[:, 1]][:, 2],
+                #     h2=h_data[tin_data[:, 1]],
+                #     v2=v_data[tin_data[:, 1]],
+                #     xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
+                #     z3=xy_cuted[tin_data[:, 2]][:, 2],
+                #     h3=h_data[tin_data[:, 2]],
+                #     v3=v_data[tin_data[:, 2]])
+                #
+                # # get points coord
+                # pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
+                # pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
+                # pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
+                #
+                # # get area2
+                # area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
+                # area_reach = np.sum(area)
 
                 # save data in dict
                 data_2d["tin"][0].append(tin_data)
@@ -245,10 +245,10 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                 data_2d["h"][0].append(h_data)
                 data_2d["v"][0].append(v_data)
                 data_2d["z"][0].append(xy_cuted[:, 2])
-                data_2d["max_slope_bottom"][0].append(max_slope_bottom)
-                data_2d["max_slope_energy"][0].append(max_slope_energy)
-                data_2d["shear_stress"][0].append(shear_stress)
-                data_2d["total_wet_area"][0].append(area_reach)
+                # data_2d["max_slope_bottom"][0].append(max_slope_bottom)
+                # data_2d["max_slope_energy"][0].append(max_slope_energy)
+                # data_2d["shear_stress"][0].append(shear_stress)
+                # data_2d["total_wet_area"][0].append(area_reach)
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress

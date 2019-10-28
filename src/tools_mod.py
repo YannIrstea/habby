@@ -15,19 +15,261 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import numpy as np
+import sys
 import urllib
 from copy import deepcopy
-import sys
 from time import sleep
 
-from PyQt5.QtWidgets import QApplication, QGroupBox, QProgressBar, QLabel, QFrame
-from PyQt5.QtCore import QTranslator, QCoreApplication, QObject, pyqtSignal, QEvent, QThread, QTimer
+import numpy as np
+from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread
+from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
 
 from src.project_manag_mod import load_project_preferences
 
 
-# INTERPOLATION TOOLS
+""" HYDRAULIC TOOLS """
+
+
+# mesh
+def c_mesh_mean_from_node_values(tin, all_nodes_values):
+    """
+    Compute mesh values from point values for one unit.
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param all_nodes_values: numpy.ndarray representing all the node values. Shape : (N_points, )
+    :return: mesh_values: numpy.ndarray representing all the mesh values. Shape : (N_mesh, ).
+    """
+    mesh_values = np.mean([all_nodes_values[tin[:, 0]],
+                           all_nodes_values[tin[:, 1]],
+                           all_nodes_values[tin[:, 2]]], axis=0)
+    return mesh_values
+
+
+def c_mesh_max_slope_bottom(tin, xy, z):
+    """
+    Compute mesh values from point values for one unit.
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param xy: numpy.ndarray representing all the coordinates points. Shape : (N_points, )
+    :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
+    :return: max_slope_bottom: numpy.ndarray representing all the max_slope_bottom mesh values. Shape : (N_mesh, ).
+    """
+    xy1 = xy[tin[:, 0]]
+    z1 = z[tin[:, 0]]
+    xy2 = xy[tin[:, 1]]
+    z2 = z[tin[:, 1]]
+    xy3 = xy[tin[:, 2]]
+    z3 = z[tin[:, 2]]
+
+    w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
+    u = (xy2[:, 1] - xy1[:, 1]) * (z3 - z1) - (z2 - z1) * (xy3[:, 1] - xy1[:, 1])
+    v = (xy3[:, 0] - xy1[:, 0]) * (z2 - z1) - (z3 - z1) * (xy2[:, 0] - xy1[:, 0])
+
+    with np.errstate(divide='ignore', invalid='ignore'):
+        max_slope_bottom = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
+
+    # change inf values to nan
+    if np.inf in max_slope_bottom:
+        max_slope_bottom[max_slope_bottom == np.inf] = np.NaN
+
+    # change incoherent values to nan
+    with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
+        max_slope_bottom[max_slope_bottom > 0.55] = np.NaN  # 0.55
+
+    return max_slope_bottom
+
+
+def c_mesh_max_slope_energy(tin, xy, z, h, v):
+    """
+    Compute mesh values from point values for one unit.
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param xy: numpy.ndarray representing all the coordinates points. Shape : (N_points, )
+    :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: max_slope_energy: numpy.ndarray representing all the max_slope_energy mesh values. Shape : (N_mesh, ).
+    """
+    g = 9.80665  # [m/s2] standard acceleration due to gravity
+
+    xy1 = xy[tin[:, 0]]
+    z1 = z[tin[:, 0]]
+    h1 = h[tin[:, 0]]
+    v1 = v[tin[:, 0]]
+    xy2 = xy[tin[:, 1]]
+    z2 = z[tin[:, 1]]
+    h2 = h[tin[:, 1]]
+    v2 = v[tin[:, 1]]
+    xy3 = xy[tin[:, 2]]
+    z3 = z[tin[:, 2]]
+    h3 = h[tin[:, 2]]
+    v3 = v[tin[:, 2]]
+
+    w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
+    zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * g), z2 + h2 + v2 ** 2 / (2 * g), z3 + h3 + v3 ** 2 / (2 * g)
+    u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
+    v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
+    with np.errstate(divide='ignore', invalid='ignore'):
+        max_slope_energy = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
+
+    # change inf values to nan
+    if np.inf in max_slope_energy:
+        max_slope_energy[max_slope_energy == np.inf] = np.NaN
+
+    # change incoherent values to nan
+    with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
+        max_slope_energy[max_slope_energy > 0.08] = np.NaN  # 0.08
+
+    return max_slope_energy
+
+
+def c_mesh_shear_stress(tin, xy, z, h, v):
+    """
+    Compute shear_stress mesh values from point values for one unit.
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param xy: numpy.ndarray representing all the coordinates points. Shape : (N_points, )
+    :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: shear_stress: numpy.ndarray representing all the shear_stress mesh values. Shape : (N_mesh, ).
+    """
+    g = 9.80665  # [m/s2] standard acceleration due to gravity
+    ro = 999.7  # [kg/m3]  density of water 10Â°C /1 atm
+
+    xy1 = xy[tin[:, 0]]
+    z1 = z[tin[:, 0]]
+    h1 = h[tin[:, 0]]
+    v1 = v[tin[:, 0]]
+    xy2 = xy[tin[:, 1]]
+    z2 = z[tin[:, 1]]
+    h2 = h[tin[:, 1]]
+    v2 = v[tin[:, 1]]
+    xy3 = xy[tin[:, 2]]
+    z3 = z[tin[:, 2]]
+    h3 = h[tin[:, 2]]
+    v3 = v[tin[:, 2]]
+
+    w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
+    zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * g), z2 + h2 + v2 ** 2 / (2 * g), z3 + h3 + v3 ** 2 / (2 * g)
+    u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
+    v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
+    with np.errstate(divide='ignore', invalid='ignore'):
+        max_slope_energy = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
+    shear_stress = ro * g * (h1 + h2 + h3) * max_slope_energy / 3
+
+    # change inf values to nan
+    if np.inf in shear_stress:
+        shear_stress[shear_stress == np.inf] = np.NaN
+
+    # change incoherent values to nan
+    with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
+        shear_stress[shear_stress > 800] = np.NaN  # 800
+
+    return shear_stress
+
+
+def c_mesh_froude(tin, h, v):
+    """
+    Compute mesh Froude (mean Froude of 3 points)
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: mesh_froude: numpy.ndarray representing all the Froude mesh values. Shape : (N_mesh, ).
+    """
+
+    # compute Froude at nodes
+    node_froude = c_node_froude(h, v)
+
+    # compute mesh mean
+    mesh_froude = c_mesh_mean_from_node_values(tin, node_froude)
+
+    return mesh_froude
+
+
+def c_mesh_hydraulic_head(tin, z, h, v):
+    """
+    Compute hydraulic_head mesh values from point values for one unit.
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param xy: numpy.ndarray representing all the coordinates points. Shape : (N_points, )
+    :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: shear_stress: numpy.ndarray representing all the shear_stress mesh values. Shape : (N_mesh, ).
+    """
+
+    # compute hydraulic_head at nodes
+    node_hydraulic_head = c_node_hydraulic_head(z, h, v)
+
+    # compute mesh mean
+    mesh_hydraulic_head = c_mesh_mean_from_node_values(tin, node_hydraulic_head)
+
+    return mesh_hydraulic_head
+
+
+def c_mesh_conveyance(tin, h, v):
+    """
+    Compute mesh Froude (mean Froude of 3 points)
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: mesh_froude: numpy.ndarray representing all the Froude mesh values. Shape : (N_mesh, ).
+    """
+
+    # compute hydraulic_head at nodes
+    node_hydraulic_head = c_node_conveyance(h, v)
+
+    # compute mesh mean
+    mesh_conveyance = c_mesh_mean_from_node_values(tin, node_hydraulic_head)
+
+    return mesh_conveyance
+
+
+# node
+def c_node_froude(h, v):
+    """
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: node_froude: numpy.ndarray representing all the Froude nodes values. Shape : (N_points, ).
+    """
+    g = 9.80665  # [m/s2] standard acceleration due to gravity
+
+    # compute Froude
+    with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
+        node_froude = v / np.sqrt(g * h)
+    node_froude[h == 0] = 0
+
+    return node_froude
+
+
+def c_node_hydraulic_head(z, h, v):
+    """
+    :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: node_hydraulic_head: numpy.ndarray representing all the hydraulic_head nodes values. Shape : (N_points, ).
+    """
+    g = 9.80665  # [m/s2] standard acceleration due to gravity
+
+    # compute hydraulic_head
+    #node_hydraulic_head = (z + h) + ((v ** 2) / (2 * g))
+    node_hydraulic_head = h + ((v ** 2) / (2 * g))
+    # TODO: add z for 3d pvd
+
+    return node_hydraulic_head
+
+
+def c_node_conveyance(h, v):
+    """
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
+    :return: node_conveyance: numpy.ndarray representing all the conveyance nodes values. Shape : (N_points, ).
+    """
+    node_conveyance = h * v
+
+    return node_conveyance
+
+
+
+""" INTERPOLATION TOOLS """
+
+
 def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_prj):
     # get unit type
     start = unit_type.find('[')
@@ -290,7 +532,9 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
         return False
 
 
-# OTHERS TOOLS
+""" OTHERS TOOLS """
+
+
 def get_prj_from_epsg_web(epsg_code):
     wkt = urllib.request.urlopen("http://spatialreference.org/ref/epsg/{0}/prettywkt/".format(epsg_code))
     data_byte = wkt.read()
@@ -386,7 +630,9 @@ def txt_file_convert_dot_to_comma(filename_full_path):
         file.write(text_data_with_comma)
 
 
-# GUI
+""" GUI """
+
+
 class QGroupBoxCollapsible(QGroupBox):
     def __init__(self):
         super().__init__()
