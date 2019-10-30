@@ -5846,7 +5846,7 @@ class SubstrateW(SubHydroW):
         #merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         merge_group.setLayout(self.layout_merge)
-        merge_group.setChecked(False)
+        merge_group.setChecked(True)
 
         # empty frame scrolable
         content_widget = QFrame()

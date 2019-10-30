@@ -332,7 +332,7 @@ class PreferenceWindow(QDialog):
             self.erase_data_checkbox.setChecked(False)
 
         # pvd_variable_z_combobox
-        item_list = ["water_level", "hydraulic_head", "conveyance", "Froude", "water_height", "water_velocity"]
+        item_list = ["point_elevation", "height", "velocity", "water_level", "hydraulic_head", "conveyance", "Froude"]
         self.pvd_variable_z_combobox.clear()
         self.pvd_variable_z_combobox.addItems(item_list)
         self.pvd_variable_z_combobox.setCurrentIndex(item_list.index(project_preferences["pvd_variable_z"]))

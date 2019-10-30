@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
 
 from src.project_manag_mod import load_project_preferences
 
+GRAVITY = 9.80665  # [m/s2] standard acceleration due to gravity
 
 """ HYDRAULIC TOOLS """
 
@@ -87,8 +88,6 @@ def c_mesh_max_slope_energy(tin, xy, z, h, v):
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
     :return: max_slope_energy: numpy.ndarray representing all the max_slope_energy mesh values. Shape : (N_mesh, ).
     """
-    g = 9.80665  # [m/s2] standard acceleration due to gravity
-
     xy1 = xy[tin[:, 0]]
     z1 = z[tin[:, 0]]
     h1 = h[tin[:, 0]]
@@ -103,7 +102,7 @@ def c_mesh_max_slope_energy(tin, xy, z, h, v):
     v3 = v[tin[:, 2]]
 
     w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
-    zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * g), z2 + h2 + v2 ** 2 / (2 * g), z3 + h3 + v3 ** 2 / (2 * g)
+    zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * GRAVITY), z2 + h2 + v2 ** 2 / (2 * GRAVITY), z3 + h3 + v3 ** 2 / (2 * GRAVITY)
     u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
     v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -130,7 +129,6 @@ def c_mesh_shear_stress(tin, xy, z, h, v):
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
     :return: shear_stress: numpy.ndarray representing all the shear_stress mesh values. Shape : (N_mesh, ).
     """
-    g = 9.80665  # [m/s2] standard acceleration due to gravity
     ro = 999.7  # [kg/m3]  density of water 10Â°C /1 atm
 
     xy1 = xy[tin[:, 0]]
@@ -147,12 +145,12 @@ def c_mesh_shear_stress(tin, xy, z, h, v):
     v3 = v[tin[:, 2]]
 
     w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
-    zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * g), z2 + h2 + v2 ** 2 / (2 * g), z3 + h3 + v3 ** 2 / (2 * g)
+    zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * GRAVITY), z2 + h2 + v2 ** 2 / (2 * GRAVITY), z3 + h3 + v3 ** 2 / (2 * GRAVITY)
     u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
     v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
     with np.errstate(divide='ignore', invalid='ignore'):
         max_slope_energy = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
-    shear_stress = ro * g * (h1 + h2 + h3) * max_slope_energy / 3
+    shear_stress = ro * GRAVITY * (h1 + h2 + h3) * max_slope_energy / 3
 
     # change inf values to nan
     if np.inf in shear_stress:
@@ -221,6 +219,24 @@ def c_mesh_conveyance(tin, h, v):
     return mesh_conveyance
 
 
+def c_mesh_water_level(tin, z, h):
+    """
+    Compute mesh Froude (mean Froude of 3 points)
+    :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
+    :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :return: mesh_water_level: numpy.ndarray representing all the water_level mesh values. Shape : (N_mesh, ).
+    """
+
+    # node_water_level
+    node_water_level = c_node_water_level(z, h)
+
+    # compute mesh mean
+    mesh_water_level = c_mesh_mean_from_node_values(tin, node_water_level)
+
+    return mesh_water_level
+
+
 # node
 def c_node_froude(h, v):
     """
@@ -228,12 +244,12 @@ def c_node_froude(h, v):
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
     :return: node_froude: numpy.ndarray representing all the Froude nodes values. Shape : (N_points, ).
     """
-    g = 9.80665  # [m/s2] standard acceleration due to gravity
-
     # compute Froude
-    with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
-        node_froude = v / np.sqrt(g * h)
-    node_froude[h == 0] = 0
+    null_values = h == 0
+    h[null_values] = 100000
+    node_froude = v / np.sqrt(GRAVITY * h)
+    h[null_values] = 0
+    node_froude[null_values] = 0
 
     return node_froude
 
@@ -245,11 +261,9 @@ def c_node_hydraulic_head(z, h, v):
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
     :return: node_hydraulic_head: numpy.ndarray representing all the hydraulic_head nodes values. Shape : (N_points, ).
     """
-    g = 9.80665  # [m/s2] standard acceleration due to gravity
-
     # compute hydraulic_head
-    #node_hydraulic_head = (z + h) + ((v ** 2) / (2 * g))
-    node_hydraulic_head = h + ((v ** 2) / (2 * g))
+    #node_hydraulic_head = (z + h) + ((v ** 2) / (2 * GRAVITY))
+    node_hydraulic_head = h + ((v ** 2) / (2 * GRAVITY))
     # TODO: add z for 3d pvd
 
     return node_hydraulic_head
@@ -265,6 +279,16 @@ def c_node_conveyance(h, v):
 
     return node_conveyance
 
+
+def c_node_water_level(z, h):
+    """
+    :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
+    :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
+    :return: node_conveyance: numpy.ndarray representing all the water_level nodes values. Shape : (N_points, ).
+    """
+    water_level = z + h
+
+    return water_level
 
 
 """ INTERPOLATION TOOLS """
@@ -788,29 +812,43 @@ class MyProcessList(QThread):
                                     #print("emit")
                             break
 
+    # def check_all_export_produced(self):
+    #     self.nb_finished = 0
+    #     self.nb_export_total = len(self.process_list)
+    #     state_list = []
+    #     for i in range(len(self.process_list)):
+    #         state = self.process_list[i][1].value
+    #         state_list.append(state)
+    #         if state == 1:
+    #             self.nb_finished = self.nb_finished + 1
+    #             self.progress_signal.emit(self.nb_finished)
+    #             #print("emit")
+    #         if state == 0:
+    #             if i == self.nb_export_total - 1:  # last of all plot
+    #                 while 0 in state_list:
+    #                     for j in [k for k, l in enumerate(state_list) if l == 0]:
+    #                         state = self.process_list[j][1].value
+    #                         state_list[j] = state
+    #                         if state == 1:
+    #                             self.nb_finished = self.nb_finished + 1
+    #                             self.progress_signal.emit(self.nb_finished)
+    #                             #print("emit")
+    #                     if self.export_production_stoped:
+    #                         break
+
     def check_all_export_produced(self):
         self.nb_finished = 0
         self.nb_export_total = len(self.process_list)
-        state_list = []
-        for i in range(len(self.process_list)):
-            state = self.process_list[i][1].value
-            state_list.append(state)
-            if state == 1:
-                self.nb_finished = self.nb_finished + 1
+        state_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
+        self.nb_finished = state_list.count(1)
+        self.progress_signal.emit(self.nb_finished)
+        while 0 in state_list:
+            if self.export_production_stoped:
+                break
+            state_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
+            if state_list.count(1) != self.nb_finished:
+                self.nb_finished = state_list.count(1)
                 self.progress_signal.emit(self.nb_finished)
-                #print("emit")
-            if state == 0:
-                if i == self.nb_export_total - 1:  # last of all plot
-                    while 0 in state_list:
-                        for j in [k for k, l in enumerate(state_list) if l == 0]:
-                            state = self.process_list[j][1].value
-                            state_list[j] = state
-                            if state == 1:
-                                self.nb_finished = self.nb_finished + 1
-                                self.progress_signal.emit(self.nb_finished)
-                                #print("emit")
-                        if self.export_production_stoped:
-                            break
 
     def check_all_process_closed(self):
         """

@@ -299,24 +299,25 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                 # max_slope_energy_all_by_unit = []
                 # shear_stress_all_by_unit = []
                 area_all_by_unit = []
+                area_reach_unit = []
                 point_all_by_unit = []
                 point_z_all_by_unit = []
                 # for each unit
                 for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
                     first_time = False
-                    point_before = np.array(hdf5_hydro.data_2d["xy"][reach_num][unit_num])
-                    point_z_before = np.array(hdf5_hydro.data_2d["z"][reach_num][unit_num])
-                    ikle_before = np.array(hdf5_hydro.data_2d["tin"][reach_num][unit_num])
-                    vel_before = hdf5_hydro.data_2d["v"][reach_num][unit_num]
-                    height_before = hdf5_hydro.data_2d["h"][reach_num][unit_num]
+                    point_before = np.array(hdf5_hydro.data_2d["node"]["xy"][reach_num][unit_num])
+                    point_z_before = np.array(hdf5_hydro.data_2d["node"]["z"][reach_num][unit_num])
+                    ikle_before = np.array(hdf5_hydro.data_2d["mesh"]["tin"][reach_num][unit_num])
+                    vel_before = hdf5_hydro.data_2d["node"]["v"][reach_num][unit_num]
+                    height_before = hdf5_hydro.data_2d["node"]["h"][reach_num][unit_num]
 
                     # find intersection betweeen hydrology and substrate
                     [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
-                        find_sub_and_cross(hdf5_sub.data_2d["tin"][reach_num][0],
-                                           hdf5_sub.data_2d["xy"][reach_num][0],
-                                           hdf5_sub.data_2d["sub"][reach_num][0],
-                                           hdf5_hydro.data_2d["tin"][reach_num][unit_num],
-                                           hdf5_hydro.data_2d["xy"][reach_num][unit_num],
+                        find_sub_and_cross(hdf5_sub.data_2d["mesh"]["tin"][reach_num][0],
+                                           hdf5_sub.data_2d["node"]["xy"][reach_num][0],
+                                           hdf5_sub.data_2d["mesh"]["sub"][reach_num][0],
+                                           hdf5_hydro.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                           hdf5_hydro.data_2d["node"]["xy"][reach_num][unit_num],
                                            progress_value, delta,
                                            first_time)
 
@@ -333,14 +334,13 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                             print('Error: no float in substrate. (only float accepted for now).\n')
                             return failload
                         sub_array_by_unit.append(sub_data_here)
+                        vel_before[vel_before < 0] = 0  # set negative values to 0
+                        vel_before[height_before == 0] = 0  # set all velocity to 0 if height ==0
                         vel_by_unit.append(vel_before)
                         height_by_unit.append(height_before)
                         ikle_all_by_unit.append(ikle_before)
                         point_all_by_unit.append(point_before)
                         point_z_all_by_unit.append(point_z_before)
-                        # max_slope_bottom_all_by_unit.append(hdf5_hydro.data_2d["max_slope_bottom"][reach_num][unit_num])
-                        # max_slope_energy_all_by_unit.append(hdf5_hydro.data_2d["max_slope_energy"][reach_num][unit_num])
-                        # shear_stress_all_by_unit.append(hdf5_hydro.data_2d["shear_stress"][reach_num][unit_num])
                     else:
 
                         # create the new grid based on intersection found
@@ -358,23 +358,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
 
                         # check that each triangle of the grid is clock-wise (useful for shapefile)
                         ikle_here = check_clockwise(ikle_here, point_all_here)
-
-                        # # recompute hydraulic variables (bottom slope, energy slope and shearstress)
-                        # max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
-                        #     xy1=point_all_here[ikle_here[:, 0]][:, [0, 1]],
-                        #     z1=z_values_new[ikle_here[:, 0]],
-                        #     h1=height_new[ikle_here[:, 0]],
-                        #     v1=vel_new[ikle_here[:, 0]],
-                        #     xy2=point_all_here[ikle_here[:, 1]][:, [0, 1]],
-                        #     z2=z_values_new[ikle_here[:, 1]],
-                        #     h2=height_new[ikle_here[:, 1]],
-                        #     v2=vel_new[ikle_here[:, 1]],
-                        #     xy3=point_all_here[ikle_here[:, 2]][:, [0, 1]],
-                        #     z3=z_values_new[ikle_here[:, 2]],
-                        #     h3=height_new[ikle_here[:, 2]],
-                        #     v3=vel_new[ikle_here[:, 2]])
-
                         sub_array_by_unit.append(new_data_sub)
+                        # TODO: invalid mesh create negatives values
+                        height_new[height_new < 0] = 0  # set negative values to 0
+                        vel_new[height_new == 0] = 0  # set all velocity to 0 if height ==0
                         vel_by_unit.append(vel_new)
                         height_by_unit.append(height_new)
                         ikle_all_by_unit.append(ikle_here)
@@ -392,6 +379,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                     # get area2
                     area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
                     area_reach = np.sum(area)
+                    area_reach_unit.append(area_reach)
                     area_all_by_unit.append(area)
 
                 ikle_both.append(ikle_all_by_unit)
@@ -404,22 +392,19 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                 # max_slope_energy_both.append(max_slope_energy_all_by_unit)
                 # shear_stress_both.append(shear_stress_all_by_unit)
                 area_both.append(area_all_by_unit)
-                area_reach_both.append(area_reach)
+                area_reach_both.append(area_reach_unit)
                 # progress
                 prog += delta
                 progress_value.value = int(prog)
 
             # add sub data to dict
-            data_2d_merge["tin"] = ikle_both
-            data_2d_merge["xy"] = point_all_both
-            data_2d_merge["sub"] = sub_data_all_t
-            data_2d_merge["v"] = vel_all_both
-            data_2d_merge["h"] = height_all_both
-            data_2d_merge["z"] = z_all_both
-            # data_2d_merge["max_slope_bottom"] = max_slope_bottom_both
-            # data_2d_merge["max_slope_energy"] = max_slope_energy_both
-            # data_2d_merge["shear_stress"] = shear_stress_both
-            data_2d_merge["area"] = area_both
+            data_2d_merge["mesh"]["tin"] = ikle_both
+            data_2d_merge["node"]["xy"] = point_all_both
+            data_2d_merge["mesh"]["sub"] = sub_data_all_t
+            data_2d_merge["node"]["v"] = vel_all_both
+            data_2d_merge["node"]["h"] = height_all_both
+            data_2d_merge["node"]["z"] = z_all_both
+            data_2d_merge["mesh"]["area"] = area_both
             data_2d_merge["total_wet_area"] = area_reach_both
 
     return data_2d_merge, data_2d_whole_merge, merge_description
@@ -1320,7 +1305,6 @@ def finit_element_interpolation(newp, point_old, data_old):
         valm = va1 + ((xm - x1) * ((y2 - y1) * (va2 - va3) - (y2 - y3) * (va2 - va1)) + (ym - y1) * (
                     (x2 - x3) * (va2 - va1) - (x2 - x1) * (va2 - va3))) / (
                            (x2 - x3) * (y2 - y1) - (x2 - x1) * (y2 - y3))
-
     return valm
 
 

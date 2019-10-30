@@ -72,6 +72,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     # load hab file
     hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(path_hdf5), hdf5_file)
     hdf5.load_hdf5_hab()
+    variable_mesh = ["height", "velocity"]
+    if "invertebrate" in aquatic_animal_type:
+        variable_mesh = variable_mesh + ["shear_stress"]
+    hdf5.compute_variables(variables_mesh=variable_mesh)
 
     # fig options
     if not project_preferences:
@@ -92,7 +96,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
                  aquatic_animal_type,
                  progress_value,
                  qt_tr)
-    aa = 1
+
     # valid ?
     if vh_all_t_sp == [-99]:
         if q:
@@ -249,31 +253,30 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
 
     # progress
     prog = progress_value.value
-    delta_reach = delta / len(data_2d["h"])
+    delta_reach = delta / len(data_2d["node"]["h"])
 
     # for each reach
-    for reach_num in range(len(data_2d["tin"])):
+    for reach_num in range(len(data_2d["mesh"]["tin"])):
         vh_all = []
         area_c_all = []
         spu_all = []
 
         # progress
-        delta_unit = delta_reach / len(data_2d["h"][reach_num])
+        delta_unit = delta_reach / len(data_2d["node"]["h"][reach_num])
         warning_range_list = []
 
         if aquatic_animal_type_select == "invertebrate":
             warning_shearstress_list = []
 
         # for each unit
-        for unit_num in range(len(data_2d["h"][reach_num])):
-            height_t = data_2d["h"][reach_num][unit_num]
-            vel_t = data_2d["v"][reach_num][unit_num]
+        for unit_num in range(len(data_2d["node"]["h"][reach_num])):
+            height_t = data_2d["mesh"]["h"][reach_num][unit_num]
+            vel_t = data_2d["mesh"]["v"][reach_num][unit_num]
             if aquatic_animal_type_select == "invertebrate":
-                shear_stress_t = data_2d["shear_stress"][reach_num][unit_num]
-            sub_t = data_2d["sub"][reach_num][unit_num]
-            ikle_t = data_2d["tin"][reach_num][unit_num]
-            point_t = data_2d["xy"][reach_num][unit_num]
-
+                shear_stress_t = data_2d["mesh"]["shear_stress"][reach_num][unit_num]
+            sub_t = data_2d["mesh"]["sub"][reach_num][unit_num]
+            ikle_t = data_2d["mesh"]["tin"][reach_num][unit_num]
+            area = data_2d["mesh"]["area"][reach_num][unit_num]
             if len(ikle_t) == 0:
                 print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'The connectivity table was not well-formed for one reach (1) \n'))
                 vh = [-99]
@@ -285,26 +288,7 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 spu_reach = -99
                 area = [-99]
             else:
-                # get area
-                pa = point_t[ikle_t[:, 0], :]
-                pb = point_t[ikle_t[:, 1], :]
-                pc = point_t[ikle_t[:, 2], :]
-
-                # # get area (based on Heron's formula)
-                # d1 = np.sqrt((pb[:, 0] - pa[:, 0]) ** 2 + (pb[:, 1] - pa[:, 1]) ** 2)
-                # d2 = np.sqrt((pc[:, 0] - pb[:, 0]) ** 2 + (pc[:, 1] - pb[:, 1]) ** 2)
-                # d3 = np.sqrt((pc[:, 0] - pa[:, 0]) ** 2 + (pc[:, 1] - pa[:, 1]) ** 2)
-                # s2 = (d1 + d2 + d3) / 2
-                # area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-                # area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-                # area = area ** 0.5
-                # area_reach = np.sum(area)
-
-                # get area2
-                area = 0.5 * abs(
-                    (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-
-                # uni
+                # univariate
                 if model_type != 'bivariate suitability index models':
                     # HEM
                     if aquatic_animal_type_select == "invertebrate":
@@ -331,23 +315,15 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                         """ hydraulic pref """
                         # get H pref value
                         if hyd_opt in ["HV", "H"]:
-                            h1 = height_t[ikle_t[:, 0]]
-                            h2 = height_t[ikle_t[:, 1]]
-                            h3 = height_t[ikle_t[:, 2]]
-                            h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
-                            if max(pref_height[0]) < h_cell.max():  # check range suitability VS range input data
+                            if max(pref_height[0]) < height_t.max():  # check range suitability VS range input data
                                 warning_range_list.append(unit_num)
-                            h_pref_c = np.interp(h_cell, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
+                            h_pref_c = np.interp(height_t, pref_height[0], pref_height[1], left=np.nan, right=np.nan)
 
                         # get V pref value
                         if hyd_opt in ["HV", "V"]:
-                            v1 = vel_t[ikle_t[:, 0]]
-                            v2 = vel_t[ikle_t[:, 1]]
-                            v3 = vel_t[ikle_t[:, 2]]
-                            v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-                            if max(pref_vel[0]) < v_cell.max():  # check range suitability VS range input data
+                            if max(pref_vel[0]) < vel_t.max():  # check range suitability VS range input data
                                 warning_range_list.append(unit_num)
-                            v_pref_c = np.interp(v_cell, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
+                            v_pref_c = np.interp(vel_t, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
 
                         """ substrate pref """
                         # Neglect
@@ -418,18 +394,10 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 # bivariate suitability index models
                 else:
                     # height data
-                    h1 = height_t[ikle_t[:, 0]]
-                    h2 = height_t[ikle_t[:, 1]]
-                    h3 = height_t[ikle_t[:, 2]]
-                    h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
-                    if max(pref_height) < h_cell.max():  # check range suitability VS range input data
+                    if max(pref_height) < height_t.max():  # check range suitability VS range input data
                         warning_range_list.append(unit_num)
                     # velocity data
-                    v1 = vel_t[ikle_t[:, 0]]
-                    v2 = vel_t[ikle_t[:, 1]]
-                    v3 = vel_t[ikle_t[:, 2]]
-                    v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-                    if max(pref_vel) < v_cell.max():  # check range suitability VS range input data
+                    if max(pref_vel) < vel_t.max():  # check range suitability VS range input data
                         warning_range_list.append(unit_num)
 
                     # prep data
@@ -441,7 +409,7 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                         y_coord = pref_vel
                         pref_xy_repeated.extend(list(zip(x_coord, y_coord)))
                     pref_xy_repeated = np.array(pref_xy_repeated)
-                    xy_input = np.dstack((v_cell, h_cell))
+                    xy_input = np.dstack((vel_t, height_t))
 
                     # calc from model points
                     vh = griddata(pref_xy_repeated, pref_sub, xy_input, method='linear')[0]

@@ -71,10 +71,12 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
         # get data_2d_whole_profile
         data_2d_whole_profile = dict()
-        data_2d_whole_profile["tin"] = [[]]  # always one reach
-        data_2d_whole_profile["xy_center"] = [[]]  # always one reach
-        data_2d_whole_profile["xy"] = [[]]  # always one reach
-        data_2d_whole_profile["z"] = [[]]  # always one reach
+        data_2d_whole_profile["mesh"] = dict()
+        data_2d_whole_profile["node"] = dict()
+        data_2d_whole_profile["mesh"]["tin"] = [[]]  # always one reach
+        data_2d_whole_profile["mesh"]["xy_center"] = [[]]  # always one reach
+        data_2d_whole_profile["node"]["xy"] = [[]]  # always one reach
+        data_2d_whole_profile["node"]["z"] = [[]]  # always one reach
         data_2d_whole_profile["unit_correspondence"] = [[]]  # always one reach
         for i, file in enumerate(filename_source):
             # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
@@ -82,19 +84,19 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
                 return
-            data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
-            data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
-            data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
+            data_2d_whole_profile["mesh"]["tin"][0].append(data_2d_telemac["tin"])
+            data_2d_whole_profile["mesh"]["xy_center"][0].append(data_2d_telemac["xy_center"])
+            data_2d_whole_profile["node"]["xy"][0].append(data_2d_telemac["xy"])
             if description_from_telemac_file["hyd_unit_z_equal"]:
-                data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][0])
+                data_2d_whole_profile["node"]["z"][0].append(data_2d_telemac["z"][0])
             elif not description_from_telemac_file["hyd_unit_z_equal"]:
                 for unit_num in range(len(hydrau_description[hyd_file]["unit_list"])):
-                    data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][unit_num])
+                    data_2d_whole_profile["node"]["z"][0].append(data_2d_telemac["z"][unit_num])
 
             data_2d_whole_profile["unit_correspondence"][0].append(str(i))
 
         # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
-        temp_list = data_2d_whole_profile["xy_center"][0]
+        temp_list = data_2d_whole_profile["mesh"]["xy_center"][0]
         for i in range(len(temp_list)):
             temp_list[i].sort(axis=0)
         # TODO: sort function may be unadapted to check TIN equality between units
@@ -110,9 +112,9 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
             data_2d_whole_profile["unit_correspondence"] = True
         if "diff" not in whole_profil_egual_index:  # one tin for all unit
-            data_2d_whole_profile["tin"][0] = [data_2d_whole_profile["tin"][0][0]]
-            data_2d_whole_profile["xy_center"][0] = [data_2d_whole_profile["xy_center"][0][0]]
-            data_2d_whole_profile["xy"][0] = [data_2d_whole_profile["xy"][0][0]]
+            data_2d_whole_profile["mesh"]["tin"][0] = [data_2d_whole_profile["mesh"]["tin"][0][0]]
+            data_2d_whole_profile["mesh"]["xy_center"][0] = [data_2d_whole_profile["mesh"]["xy_center"][0][0]]
+            data_2d_whole_profile["node"]["xy"][0] = [data_2d_whole_profile["node"]["xy"][0][0]]
             data_2d_whole_profile["unit_correspondence"] = False
 
         # progress from 10 to 90 : from 0 to len(units_index)
@@ -120,16 +122,15 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
         # cut the grid to have the precise wet area and put data in new form
         data_2d = dict()
-        data_2d["tin"] = [[]]  # always one reach
-        data_2d["i_whole_profile"] = [[]]  # always one reach
-        data_2d["xy"] = [[]]  # always one reach
-        data_2d["h"] = [[]]  # always one reach
-        data_2d["v"] = [[]]  # always one reach
-        data_2d["z"] = [[]]  # always one reach
-        # data_2d["max_slope_bottom"] = [[]]  # always one reach
-        # data_2d["max_slope_energy"] = [[]]  # always one reach
-        # data_2d["shear_stress"] = [[]]  # always one reach
-        # data_2d["total_wet_area"] = [[]]
+        data_2d["mesh"] = dict()
+        data_2d["node"] = dict()
+        data_2d["mesh"]["tin"] = [[]]  # always one reach
+        data_2d["mesh"]["i_whole_profile"] = [[]]  # always one reach
+        data_2d["node"]["xy"] = [[]]  # always one reach
+        data_2d["node"]["h"] = [[]]  # always one reach
+        data_2d["node"]["v"] = [[]]  # always one reach
+        data_2d["node"]["z"] = [[]]  # always one reach
+
         # get unit list from telemac file
         file_list = hydrau_description[hyd_file]["filename_source"].split(", ")
         if len(file_list) > 1:
@@ -215,40 +216,13 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
                     continue  # Continue to next iteration.
             else:
-                # max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
-                #     xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
-                #     z1=xy_cuted[tin_data[:, 0]][:, 2],
-                #     h1=h_data[tin_data[:, 0]],
-                #     v1=v_data[tin_data[:, 0]],
-                #     xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
-                #     z2=xy_cuted[tin_data[:, 1]][:, 2],
-                #     h2=h_data[tin_data[:, 1]],
-                #     v2=v_data[tin_data[:, 1]],
-                #     xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
-                #     z3=xy_cuted[tin_data[:, 2]][:, 2],
-                #     h3=h_data[tin_data[:, 2]],
-                #     v3=v_data[tin_data[:, 2]])
-                #
-                # # get points coord
-                # pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-                # pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-                # pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-                #
-                # # get area2
-                # area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-                # area_reach = np.sum(area)
-
                 # save data in dict
-                data_2d["tin"][0].append(tin_data)
-                data_2d["i_whole_profile"][0].append(ind_new)
-                data_2d["xy"][0].append(xy_cuted[:, :2])
-                data_2d["h"][0].append(h_data)
-                data_2d["v"][0].append(v_data)
-                data_2d["z"][0].append(xy_cuted[:, 2])
-                # data_2d["max_slope_bottom"][0].append(max_slope_bottom)
-                # data_2d["max_slope_energy"][0].append(max_slope_energy)
-                # data_2d["shear_stress"][0].append(shear_stress)
-                # data_2d["total_wet_area"][0].append(area_reach)
+                data_2d["mesh"]["tin"][0].append(tin_data)
+                data_2d["mesh"]["i_whole_profile"][0].append(ind_new)
+                data_2d["node"]["xy"][0].append(xy_cuted[:, :2])
+                data_2d["node"]["h"][0].append(h_data)
+                data_2d["node"]["v"][0].append(v_data)
+                data_2d["node"]["z"][0].append(xy_cuted[:, 2])
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress
@@ -282,7 +256,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         #     hydrau_description[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
         # remove unused keys
-        del data_2d_whole_profile["xy_center"]
+        del data_2d_whole_profile["mesh"]["xy_center"]
 
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hyd_file]["path_prj"],

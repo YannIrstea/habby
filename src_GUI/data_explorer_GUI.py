@@ -401,7 +401,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.setTitle(title)
         self.process_list = MyProcessList("plot")
         self.process_list.progress_signal.connect(self.show_prog)
-        self.variables_to_remove = ["mesh", "points elevation", "height", "velocity",
+        self.variables_to_remove = ["mesh", "points_elevation", "height", "velocity",
                                     "sub_coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress",
                                     "conveyance", "Froude", "hydraulic_head", "water_level"]
         self.nb_plot = 0
@@ -767,19 +767,18 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     variables_mesh = variables.copy()
                     variables_node = variables.copy()
                     # remove useless variables names for mesh
-                    variables_useless = ['mesh', 'points elevation', "height", "velocity"]
+                    variables_useless = ['mesh', 'points_elevation', "height", "velocity"]
                     for variables_useless in variables_useless:
                         if variables_useless in variables_mesh:
                             variables_mesh.remove(variables_useless)
                     # remove useless variables names for node
-                    variables_useless = ['mesh', 'points elevation', "height", "velocity", 'points_elevation', 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
+                    variables_useless = ['mesh', "height", "velocity", 'points_elevation', 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
                     for variables_useless in variables_useless:
                         if variables_useless in variables_node:
                             variables_node.remove(variables_useless)
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
                         hdf5.load_hdf5_hyd(units_index=units_index)
-                        print("variables_mesh compute", variables_mesh)
                         hdf5.compute_variables(variables_mesh=variables_mesh,
                                                variables_node=variables_node)
                         data_description = dict(reach_list=hdf5.data_description["hyd_reach_list"].split(", "),
@@ -800,7 +799,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                            fish_names=fish_names,
                                            whole_profil=False,
                                            convert_to_coarser_dom=True)
-                        hdf5.compute_variables(variables_mesh=variables_mesh)
+                        hdf5.compute_variables(variables_mesh=variables_mesh,
+                                               variables_node=variables_node)
                         data_description = dict(hdf5.data_description)
                         # change name attributes
                         data_description["reach_list"] = hdf5.data_description["hyd_reach_list"].split(", ")
@@ -843,7 +843,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  units[unit_num]),
                                                                name="plot_map_mesh_and_point")
                                     self.process_list.append([mesh_process, state])
-                                if "points elevation" in variables and not self.plot_production_stoped:  # mesh
+                                if "points_elevation" in variables and not self.plot_production_stoped:  # mesh
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_elevation,
                                                            args=(state,
@@ -1414,6 +1414,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
                     # hydraulic
                     if types_hdf5 == "hydraulic":  # load hydraulic data
                         hdf5.load_hdf5_hyd(whole_profil=True)
+                        hdf5.get_variables_from_dict_and_compute()
                         total_gpkg_export = sum([export_dict["mesh_whole_profile_hyd"], export_dict["point_whole_profile_hyd"], export_dict["mesh_units_hyd"], export_dict["point_units_hyd"]])
                         if export_dict["mesh_whole_profile_hyd"] or export_dict["point_whole_profile_hyd"] or export_dict["mesh_units_hyd"] or export_dict["point_units_hyd"]:
                             # append fake first
@@ -1451,11 +1452,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
                     # habitat
                     if types_hdf5 == "habitat":  # load habitat data
                         hdf5.load_hdf5_hab(whole_profil=True)
+                        hdf5.get_variables_from_dict_and_compute()
                         total_gpkg_export = sum([export_dict["mesh_units_hab"], export_dict["point_units_hab"]])
                         if export_dict["mesh_units_hab"] or export_dict["point_units_hab"]:
                             # append fake first
                             for fake_num in range(1, total_gpkg_export):
-                                self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
+                                self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
                             state = Value("i", 0)
                             export_gpkg_process = Process(target=hdf5.export_gpkg,
                                                           args=(state, ),
@@ -1482,8 +1484,8 @@ class DataExporterGroup(QGroupBoxCollapsible):
                         if export_dict["detailled_text_hab"]:
                             state = Value("i", 0)
                             export_detailled_mesh_txt_process = Process(target=hdf5.export_detailled_txt,
-                                                          args=(state, ),
-                                                          name="export_detailled_txt")
+                                                                        args=(state,),
+                                                                        name="export_detailled_txt")
                             self.process_list.append([export_detailled_mesh_txt_process, state])
                         if export_dict["fish_information_hab"]:
                             if hdf5.fish_list:
@@ -1493,7 +1495,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                                           name="export_pdf")
                                 self.process_list.append([export_pdf_process, state])
                             else:
-                                self.send_log.emit('Error: ' + self.tr('No computed models in this .hab file.'))
+                                # append fake first
+                                self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
+                                self.send_log.emit('Warning: ' + self.tr('No habitat data in this .hab file to export Fish informations report.'))
 
             # start thread
             self.process_list.start()
