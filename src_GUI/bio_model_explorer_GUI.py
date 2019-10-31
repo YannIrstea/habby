@@ -795,6 +795,7 @@ class BioModelInfoSelection(QScrollArea):
                 # open the pref
                 [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
                                                                                                  aquatic_animal_type)
+                sub_type = self.biological_models_dict_gui["substrate_type"][i]
                 curve_process = Process(target=plot_mod.plot_suitability_curve,
                                         args=(state,
                                               h_all,
@@ -803,6 +804,7 @@ class BioModelInfoSelection(QScrollArea):
                                               code_fish,
                                               name_fish,
                                               stages,
+                                              sub_type,
                                               project_preferences,
                                               False))
             if aquatic_animal_type == "invertebrate":
