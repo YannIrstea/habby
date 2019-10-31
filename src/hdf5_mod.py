@@ -41,7 +41,8 @@ from src import paraview_mod
 from src.project_manag_mod import load_project_preferences
 from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_values, \
     c_mesh_max_slope_bottom, c_mesh_max_slope_energy, c_mesh_shear_stress, c_mesh_froude, c_mesh_hydraulic_head, \
-    c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level
+    c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level,\
+    c_mesh_area
 from habby import HABBY_VERSION
 
 
@@ -64,7 +65,7 @@ class Hdf5Management:
         self.hyd_variables = ["mesh", "points_elevation", "height", "velocity", "water_level",
                                "Froude", "hydraulic_head", "conveyance",
                               "max_slope_bottom", "max_slope_energy", "shear_stress"]
-        self.hyd_variables_computed_mesh = ["h", "v", "water_level",
+        self.hyd_variables_computed_mesh = ["area", "h", "v", "water_level",
                                "Froude", "hydraulic_head", "conveyance",
                               "max_slope_bottom", "max_slope_energy", "shear_stress"]
         self.hyd_variables_computed_node = ["water_level", "Froude", "hydraulic_head", "conveyance"]
@@ -431,17 +432,6 @@ class Hdf5Management:
                     mesh_group.create_dataset(name="i_whole_profile",
                                               shape=[len(data_2d["mesh"]["i_whole_profile"][reach_num][unit_num]), 1],
                                               data=data_2d["mesh"]["i_whole_profile"][reach_num][unit_num])
-                    # get points coord
-                    pa = data_2d["node"]["xy"][reach_num][unit_num][data_2d["mesh"]["tin"][reach_num][unit_num][:, 0]]
-                    pb = data_2d["node"]["xy"][reach_num][unit_num][data_2d["mesh"]["tin"][reach_num][unit_num][:, 1]]
-                    pc = data_2d["node"]["xy"][reach_num][unit_num][data_2d["mesh"]["tin"][reach_num][unit_num][:, 2]]
-
-                    # get area2
-                    area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-
-                    mesh_group.create_dataset(name="area",
-                                              shape=[len(area), 1],
-                                              data=area)
                     # NODE GROUP
                     node_group = unit_group.create_group('node')
                     node_group.create_dataset(name="h",
@@ -564,7 +554,6 @@ class Hdf5Management:
         data_2d["node"] = dict()
         data_2d["mesh"]["tin"] = []
         data_2d["mesh"]["i_whole_profile"] = []
-        data_2d["mesh"]["area"] = []
         data_2d["node"]["xy"] = []
         data_2d["node"]["h"] = []
         data_2d["node"]["v"] = []
@@ -576,7 +565,6 @@ class Hdf5Management:
             # for all unit
             tin_list = []
             i_whole_profile_list = []
-            area_list = []
             xy_list = []
             h_list = []
             v_list = []
@@ -591,7 +579,6 @@ class Hdf5Management:
                     # mesh
                     i_whole_profile = self.file_object[mesh_group + "/i_whole_profile"][:]
                     tin = self.file_object[mesh_group + "/tin"][:]
-                    area = self.file_object[mesh_group + "/area"][:].flatten()
 
                     # node
                     h = self.file_object[node_group + "/h"][:].flatten()
@@ -608,7 +595,6 @@ class Hdf5Management:
                 # mesh
                 i_whole_profile_list.append(i_whole_profile)
                 tin_list.append(tin)
-                area_list.append(area)
 
                 # node
                 h_list.append(h)
@@ -619,7 +605,6 @@ class Hdf5Management:
             # mesh
             data_2d["mesh"]["i_whole_profile"].append(i_whole_profile_list)
             data_2d["mesh"]["tin"].append(tin_list)
-            data_2d["mesh"]["area"].append(area_list)
 
             # node
             data_2d["node"]["h"].append(h_list)
@@ -865,10 +850,6 @@ class Hdf5Management:
                                           shape=[data_2d["mesh"]["sub"][reach_num][unit_num].shape[0],
                                                  data_2d["mesh"]["sub"][reach_num][unit_num].shape[1]],
                                           data=data_2d["mesh"]["sub"][reach_num][unit_num])
-                mesh_group.create_dataset(name="area",
-                                          shape=[len(data_2d["mesh"]["area"][reach_num][unit_num]),
-                                                 1],
-                                          data=data_2d["mesh"]["area"][reach_num][unit_num])
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
                 node_group.create_dataset(name="h",
@@ -990,7 +971,6 @@ class Hdf5Management:
         data_2d["mesh"] = dict()
         data_2d["node"] = dict()
         data_2d["mesh"]["tin"] = []
-        data_2d["mesh"]["area"] = []
         data_2d["mesh"]["i_whole_profile"] = []
         data_2d["mesh"]["sub"] = []
         data_2d["node"]["xy"] = []
@@ -1025,7 +1005,6 @@ class Hdf5Management:
             data_2d["mesh"]["tin"].append([])
             data_2d["mesh"]["i_whole_profile"].append([])
             data_2d["mesh"]["sub"].append([])
-            data_2d["mesh"]["area"].append([])
             data_2d["node"]["xy"].append([])
             data_2d["node"]["z"].append([])
             data_2d["node"]["h"].append([])
@@ -1048,7 +1027,6 @@ class Hdf5Management:
                     total_wet_area = self.file_object[unit_group].attrs['total_wet_area']
                     # mesh
                     tin = self.file_object[mesh_group + "/tin"][:]
-                    area = self.file_object[mesh_group + "/area"][:].flatten()
                     i_whole_profile = self.file_object[mesh_group + "/i_whole_profile"][:]
                     if convert_to_coarser_dom and data_description["sub_classification_method"] != "coarser-dominant":
                         sub_array = self.file_object[mesh_group + "/sub"][:]
@@ -1077,7 +1055,6 @@ class Hdf5Management:
                 data_2d["total_wet_area"][reach_num].append(total_wet_area)
                 # mesh
                 data_2d["mesh"]["tin"][reach_num].append(tin)
-                data_2d["mesh"]["area"][reach_num].append(area)
                 data_2d["mesh"]["i_whole_profile"][reach_num].append(i_whole_profile)
                 data_2d["mesh"]["sub"][reach_num].append(sub_array)
 
@@ -1363,6 +1340,12 @@ class Hdf5Management:
                 # for all units
                 for unit_num in range(len(self.data_2d["mesh"]["tin"][reach_num])):
                     for variable in variables_mesh:
+                        # compute area mean
+                        if variable == "area":
+                            area = c_mesh_area(self.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                            self.data_2d["node"]["xy"][reach_num][unit_num])
+                            self.data_2d["mesh"][variable][reach_num].append(area)
+
                         # compute height mean
                         if variable == "h":
                             h = c_mesh_mean_from_node_values(self.data_2d["mesh"]["tin"][reach_num][unit_num],

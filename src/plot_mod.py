@@ -2375,7 +2375,7 @@ def get_colors_styles_line_from_nb_input(input_nb):
     cm = plt.get_cmap('gist_ncar')
     color_base_list = [cm(i/colors_number) for i in range(colors_number)] * input_nb
     color_list = color_base_list[:input_nb]
-    line_styles_base_list = ['solid', 'dashed', 'dashdot', 'dotted']
+    line_styles_base_list = ['solid', 'dotted', 'dashed', 'dashdot']
     style_list = []
     style_start = 0
     while len(style_list) < input_nb:

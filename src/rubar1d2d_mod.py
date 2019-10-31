@@ -786,39 +786,35 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     progress_value.value = 10
 
     # create copy
-    data_2d_whole_profile = deepcopy(data_2d_from_rubar2d)
-    data_2d_whole_profile["tin"] = [[data_2d_whole_profile["tin"]]]
-    data_2d_whole_profile["xy"] = [[data_2d_whole_profile["xy"]]]
-    data_2d_whole_profile["z"] = [[data_2d_whole_profile["z"]]]
+    data_2d_whole_profile = dict()
+    data_2d_whole_profile["mesh"] = dict()
+    data_2d_whole_profile["node"] = dict()
+    data_2d_whole_profile["mesh"]["tin"] = [[data_2d_from_rubar2d["tin"]]]
+    data_2d_whole_profile["node"]["xy"] = [[data_2d_from_rubar2d["xy"]]]
+    data_2d_whole_profile["node"]["z"] = [[data_2d_from_rubar2d["z"]]]
 
     # create empty dict
     data_2d = dict()
-    data_2d["tin"] = []
-    data_2d["i_whole_profile"] = []
-    data_2d["xy"] = []
-    data_2d["h"] = []
-    data_2d["v"] = []
-    data_2d["z"] = []
-    data_2d["max_slope_bottom"] = []
-    data_2d["max_slope_energy"] = []
-    data_2d["shear_stress"] = []
-    data_2d["total_wet_area"] = []
+    data_2d["mesh"] = dict()
+    data_2d["node"] = dict()
+    data_2d["mesh"]["tin"] = []
+    data_2d["mesh"]["i_whole_profile"] = []
+    data_2d["node"]["xy"] = []
+    data_2d["node"]["h"] = []
+    data_2d["node"]["v"] = []
+    data_2d["node"]["z"] = []
 
     # progress from 10 to 90 : from 0 to len(units_index)
     delta = int(80 / int(description_from_rubar2d["unit_number"]))
 
     # for each reach
     for reach_num in range(int(description_from_rubar2d["reach_number"])):
-        data_2d["tin"].append([])
-        data_2d["i_whole_profile"].append([])
-        data_2d["xy"].append([])
-        data_2d["h"].append([])
-        data_2d["v"].append([])
-        data_2d["z"].append([])
-        data_2d["max_slope_bottom"].append([])
-        data_2d["max_slope_energy"].append([])
-        data_2d["shear_stress"].append([])
-        data_2d["total_wet_area"].append([])
+        data_2d["mesh"]["tin"].append([])
+        data_2d["mesh"]["i_whole_profile"].append([])
+        data_2d["node"]["xy"].append([])
+        data_2d["node"]["h"].append([])
+        data_2d["node"]["v"].append([])
+        data_2d["node"]["z"].append([])
 
         # index to remove (from user selection GUI)
         index_to_remove = []
@@ -828,12 +824,6 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
         for unit_num in range(len(description_from_rubar2d["unit_list"][reach_num])):
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
-
-                # # get data no the node (and not on the cells) by linear interpolation
-                # [vel_node, height_node] = manage_grid_mod.habby_grid_data(data_2d_from_rubar2d["xy"],
-                #                                                           data_2d_from_rubar2d["xy_center"],
-                #                                                           data_2d_from_rubar2d["v"][reach_num][unit_num],
-                #                                                           data_2d_from_rubar2d["h"][reach_num][unit_num])
 
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_rubar2d["xy"],
@@ -862,56 +852,23 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                         print("Warning: " + qt_tr.translate("rubar1d2d_mod", "The mesh of timestep ") + description_from_rubar2d["unit_list"][reach_num][unit_num] + qt_tr.translate("rubar1d2d_mod", " is entirely dry."))
                         continue  # Continue to next iteration.
                 else:
-                    # max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
-                    #     xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
-                    #     z1=xy_cuted[tin_data[:, 0]][:, 2],
-                    #     h1=h_data[tin_data[:, 0]],
-                    #     v1=v_data[tin_data[:, 0]],
-                    #     xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
-                    #     z2=xy_cuted[tin_data[:, 1]][:, 2],
-                    #     h2=h_data[tin_data[:, 1]],
-                    #     v2=v_data[tin_data[:, 1]],
-                    #     xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
-                    #     z3=xy_cuted[tin_data[:, 2]][:, 2],
-                    #     h3=h_data[tin_data[:, 2]],
-                    #     v3=v_data[tin_data[:, 2]])
-                    #
-                    # # get points coord
-                    # pa = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-                    # pb = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-                    # pc = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-                    #
-                    # # get area
-                    # area = 0.5 * abs(
-                    #     (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-                    # area_reach = np.sum(area)
-
                     # get cuted grid
-                    data_2d["tin"][reach_num].append(tin_data)
-                    data_2d["i_whole_profile"][reach_num].append(i_whole_profile)
-                    data_2d["xy"][reach_num].append(xy_cuted[:, :2])
-                    data_2d["h"][reach_num].append(h_data)
-                    data_2d["v"][reach_num].append(v_data)
-                    data_2d["z"][reach_num].append(xy_cuted[:, 2])
-                    # data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
-                    # data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
-                    # data_2d["shear_stress"][reach_num].append(shear_stress)
-                    # data_2d["total_wet_area"][reach_num].append(area_reach)
+                    data_2d["mesh"]["tin"][reach_num].append(tin_data)
+                    data_2d["mesh"]["i_whole_profile"][reach_num].append(i_whole_profile)
+                    data_2d["node"]["xy"][reach_num].append(xy_cuted[:, :2])
+                    data_2d["node"]["h"][reach_num].append(h_data)
+                    data_2d["node"]["v"][reach_num].append(v_data)
+                    data_2d["node"]["z"][reach_num].append(xy_cuted[:, 2])
 
-            # erase unit in whole_profile
+            # erase unit
             else:
                 index_to_remove.append(unit_num)
 
         # index to remove (from user selection GUI)
         for index in reversed(index_to_remove):
-            data_2d_whole_profile["tin"][reach_num].pop(index)
-            data_2d_whole_profile["xy"][reach_num].pop(index)
-            data_2d_whole_profile["z"][reach_num].pop(index)
-
-    # remove unused keys
-    #del data_2d_whole_profile["i_whole_profile"]
-    del data_2d_whole_profile["h"]
-    del data_2d_whole_profile["v"]
+            data_2d_whole_profile["mesh"]["tin"][reach_num].pop(index)
+            data_2d_whole_profile["node"]["xy"][reach_num].pop(index)
+            data_2d_whole_profile["node"]["z"][reach_num].pop(index)
 
     # refresh unit (if unit mesh entirely dry)
     for reach_num in reversed(range(int(description_from_rubar2d["reach_number"]))):  # for each reach

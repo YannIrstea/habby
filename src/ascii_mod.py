@@ -53,38 +53,39 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         sub_presence = True
 
     # create copy
-    data_2d_whole_profile = deepcopy(data_2d_from_ascii)
+    data_2d_whole_profile = dict()
+    data_2d_whole_profile["mesh"] = dict()
+    data_2d_whole_profile["node"] = dict()
+    data_2d_whole_profile["mesh"]["tin"] = data_2d_from_ascii["tin"]
+    data_2d_whole_profile["node"]["xy"] = data_2d_from_ascii["xy"]
+    data_2d_whole_profile["node"]["z"] = data_2d_from_ascii["z"]
 
     # create empty dict
     data_2d = dict()
-    data_2d["tin"] = []
-    data_2d["i_whole_profile"] = []
-    data_2d["sub"] = []
-    data_2d["xy"] = []
-    data_2d["h"] = []
-    data_2d["v"] = []
-    data_2d["z"] = []
-    data_2d["max_slope_bottom"] = []
-    data_2d["max_slope_energy"] = []
-    data_2d["shear_stress"] = []
-    data_2d["total_wet_area"] = []
+    data_2d["mesh"] = dict()
+    data_2d["node"] = dict()
+    data_2d["mesh"]["tin"] = []
+    data_2d["mesh"]["i_whole_profile"] = []
+    if sub_presence:
+        data_2d["mesh"]["sub"] = []
+    data_2d["node"]["xy"] = []
+    data_2d["node"]["h"] = []
+    data_2d["node"]["v"] = []
+    data_2d["node"]["z"] = []
 
     # progress from 10 to 90 : from 0 to len(units_index)
     delta = int(80 / int(data_description["reach_number"]))
 
     # for each reach
     for reach_num in range(int(data_description["reach_number"])):
-        data_2d["tin"].append([])
-        data_2d["i_whole_profile"].append([])
-        data_2d["sub"].append([])
-        data_2d["xy"].append([])
-        data_2d["h"].append([])
-        data_2d["v"].append([])
-        data_2d["z"].append([])
-        data_2d["max_slope_bottom"].append([])
-        data_2d["max_slope_energy"].append([])
-        data_2d["shear_stress"].append([])
-        data_2d["total_wet_area"].append([])
+        data_2d["mesh"]["tin"].append([])
+        data_2d["mesh"]["i_whole_profile"].append([])
+        if sub_presence:
+            data_2d["mesh"]["sub"].append([])
+        data_2d["node"]["xy"].append([])
+        data_2d["node"]["h"].append([])
+        data_2d["node"]["v"].append([])
+        data_2d["node"]["z"].append([])
 
         # index to remove (from user selection GUI)
         index_to_remove = []
@@ -111,10 +112,6 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     project_preferences["CutMeshPartialyDry"],
                     minwh)
 
-                # if not isinstance(tin_data, np.ndarray):
-                #     print("Error: cut_2d_grid")
-                #     q.put(mystdout)
-                #     return
                 if not isinstance(tin_data, np.ndarray):  # error or warning
                     if not tin_data:  # error
                         print("Error: " + "cut_2d_grid")
@@ -125,64 +122,30 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                         print("Warning: " + "The mesh of timestep " + str(data_description["unit_list"][reach_num][unit_num]) + " is entirely dry.")
                         continue  # Continue to next iteration.
 
-                # max_slope_bottom, max_slope_energy, shear_stress = manage_grid_mod.slopebottom_lopeenergy_shearstress_max(
-                #     xy1=xy_cuted[tin_data[:, 0]][:, [0, 1]],
-                #     z1=xy_cuted[tin_data[:, 0]][:, 2],
-                #     h1=h_data[tin_data[:, 0]],
-                #     v1=v_data[tin_data[:, 0]],
-                #     xy2=xy_cuted[tin_data[:, 1]][:, [0, 1]],
-                #     z2=xy_cuted[tin_data[:, 1]][:, 2],
-                #     h2=h_data[tin_data[:, 1]],
-                #     v2=v_data[tin_data[:, 1]],
-                #     xy3=xy_cuted[tin_data[:, 2]][:, [0, 1]],
-                #     z3=xy_cuted[tin_data[:, 2]][:, 2],
-                #     h3=h_data[tin_data[:, 2]],
-                #     v3=v_data[tin_data[:, 2]])
-                #
-                # # get area (based on Heron's formula)
-                # p1 = xy_cuted[tin_data[:, 0]][:, [0, 1]]
-                # p2 = xy_cuted[tin_data[:, 1]][:, [0, 1]]
-                # p3 = xy_cuted[tin_data[:, 2]][:, [0, 1]]
-                # d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
-                # d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
-                # d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
-                # s2 = (d1 + d2 + d3) / 2
-                # area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-                # area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-                # area = area ** 0.5
-                # area_reach = np.sum(area)
-
                 # get substrate after cuting mesh
                 if sub_presence:
                     sub = data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile]
 
                 # get cuted grid
-                data_2d["tin"][reach_num].append(tin_data)
-                data_2d["i_whole_profile"][reach_num].append(i_whole_profile)
-                data_2d["xy"][reach_num].append(xy_cuted[:, :2])
-                data_2d["h"][reach_num].append(h_data)
-                data_2d["v"][reach_num].append(v_data)
-                data_2d["z"][reach_num].append(xy_cuted[:, 2])
-                # data_2d["max_slope_bottom"][reach_num].append(max_slope_bottom)
-                # data_2d["max_slope_energy"][reach_num].append(max_slope_energy)
-                # data_2d["shear_stress"][reach_num].append(shear_stress)
-                # data_2d["total_wet_area"][reach_num].append(area_reach)
+                data_2d["mesh"]["tin"][reach_num].append(tin_data)
+                data_2d["mesh"]["i_whole_profile"][reach_num].append(i_whole_profile)
                 if sub_presence:
-                    data_2d["sub"][reach_num].append(sub)
+                    data_2d["mesh"]["sub"][reach_num].append(sub)
+                data_2d["node"]["xy"][reach_num].append(xy_cuted[:, :2])
+                data_2d["node"]["h"][reach_num].append(h_data)
+                data_2d["node"]["v"][reach_num].append(v_data)
+                data_2d["node"]["z"][reach_num].append(xy_cuted[:, 2])
+
             # erase unit in whole_profile
             else:
                 index_to_remove.append(unit_num)
 
         # index to remove (from user selection GUI)
         for index in reversed(index_to_remove):
-            data_2d_whole_profile["tin"][reach_num].pop(index)
-            data_2d_whole_profile["xy"][reach_num].pop(index)
-            data_2d_whole_profile["z"][reach_num].pop(index)
+            data_2d_whole_profile["mesh"]["tin"][reach_num].pop(index)
+            data_2d_whole_profile["node"]["xy"][reach_num].pop(index)
+            data_2d_whole_profile["node"]["z"][reach_num].pop(index)
 
-    # remove unused keys
-    del data_2d_whole_profile["i_whole_profile"]
-    del data_2d_whole_profile["h"]
-    del data_2d_whole_profile["v"]
 
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress

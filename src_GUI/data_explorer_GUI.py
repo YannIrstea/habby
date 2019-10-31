@@ -718,12 +718,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         if self.nb_plot == 0:
             self.send_log.emit('Error: ' + self.tr('Selected variables and units not corresponding with figure type choices.'))
         # check if number of display plot are > 30
-        if export_type in ("display", "both") and self.nb_plot > 30:
+        if export_type in ("interactive", "both") and self.nb_plot > 30:  # "interactive", "image export", "both
             qm = QMessageBox
             ret = qm.question(self, self.tr("Warning"),
                               self.tr("Displaying a large number of plots may crash HABBY. "
                                       "It is recommended not to exceed a total number of plots "
-                                      "greater than 30 at a time. \n\nDo you still want to display") + str(self.nb_plot) + self.tr("plots ?"
+                                      "greater than 30 at a time. \n\nDo you still want to display ") + str(self.nb_plot) + self.tr(" figures ?"
                                       "\n\nNB : There is no limit for exports."), qm.Yes | qm.No)
             if ret == qm.No:  # pas de plot
                 return
@@ -738,7 +738,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # figure option
             project_preferences = load_project_preferences(self.path_prj,
                                                                self.name_prj)
-            project_preferences['type_plot'] = export_type  # "display", "export", "both"
+            project_preferences['type_plot'] = export_type  # "interactive", "image export", "both
 
             # init
             fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
@@ -767,7 +767,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     variables_mesh = variables.copy()
                     variables_node = variables.copy()
                     # remove useless variables names for mesh
-                    variables_useless = ['mesh', 'points_elevation', "height", "velocity"]
+                    variables_useless = ['mesh', 'points_elevation', "height", "velocity", "water_level", "Froude",
+                                         "hydraulic_head", "conveyance"]
                     for variables_useless in variables_useless:
                         if variables_useless in variables_mesh:
                             variables_mesh.remove(variables_useless)

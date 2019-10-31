@@ -237,6 +237,18 @@ def c_mesh_water_level(tin, z, h):
     return mesh_water_level
 
 
+def c_mesh_area(tin, xy):
+    # get points coord
+    pa = xy[tin[:, 0]]
+    pb = xy[tin[:, 1]]
+    pc = xy[tin[:, 2]]
+
+    # compute area
+    area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (
+            pb[:, 1] - pa[:, 1]))
+
+    return area
+
 # node
 def c_node_froude(h, v):
     """

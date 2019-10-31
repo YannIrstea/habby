@@ -72,7 +72,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     # load hab file
     hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(path_hdf5), hdf5_file)
     hdf5.load_hdf5_hab()
-    variable_mesh = ["height", "velocity"]
+    variable_mesh = ["area", "height", "velocity"]
     if "invertebrate" in aquatic_animal_type:
         variable_mesh = variable_mesh + ["shear_stress"]
     hdf5.compute_variables(variables_mesh=variable_mesh)

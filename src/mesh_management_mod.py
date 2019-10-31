@@ -282,7 +282,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             # max_slope_bottom_both = []
             # max_slope_energy_both = []
             # shear_stress_both = []
-            area_both = []
+            #area_both = []
             area_reach_both = []
             point_all_both = []
             vel_all_both = []
@@ -298,7 +298,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                 # max_slope_bottom_all_by_unit = []
                 # max_slope_energy_all_by_unit = []
                 # shear_stress_all_by_unit = []
-                area_all_by_unit = []
+                #area_all_by_unit = []
                 area_reach_unit = []
                 point_all_by_unit = []
                 point_z_all_by_unit = []
@@ -380,7 +380,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                     area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
                     area_reach = np.sum(area)
                     area_reach_unit.append(area_reach)
-                    area_all_by_unit.append(area)
+                    #area_all_by_unit.append(area)
 
                 ikle_both.append(ikle_all_by_unit)
                 point_all_both.append(point_all_by_unit)
@@ -391,7 +391,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                 # max_slope_bottom_both.append(max_slope_bottom_all_by_unit)
                 # max_slope_energy_both.append(max_slope_energy_all_by_unit)
                 # shear_stress_both.append(shear_stress_all_by_unit)
-                area_both.append(area_all_by_unit)
+                #area_both.append(area_all_by_unit)
                 area_reach_both.append(area_reach_unit)
                 # progress
                 prog += delta
@@ -404,7 +404,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             data_2d_merge["node"]["v"] = vel_all_both
             data_2d_merge["node"]["h"] = height_all_both
             data_2d_merge["node"]["z"] = z_all_both
-            data_2d_merge["mesh"]["area"] = area_both
+            #data_2d_merge["mesh"]["area"] = area_both
             data_2d_merge["total_wet_area"] = area_reach_both
 
     return data_2d_merge, data_2d_whole_merge, merge_description
