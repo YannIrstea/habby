@@ -641,6 +641,10 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                             model_dimension=str(2),
                             epsg_code=epsgcode)
     # data_description
+    if bfvm:
+        data_description["2D_numerical_method"] = "FiniteVolumeMethod"
+    else:
+        data_description["2D_numerical_method"] = "FiniteElementMethod"
     data_description["unit_list"] = lunitall
     data_description["unit_list_full"] = lunitall
     data_description["unit_list_tf"] = []
