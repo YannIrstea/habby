@@ -21,7 +21,7 @@ from io import StringIO
 
 import numpy as np
 
-from src.tools_mod import isstranumber
+from src.tools_mod import isstranumber, c_mesh_area
 from src import hdf5_mod
 from src import manage_grid_mod
 from src import mesh_management_mod
@@ -68,6 +68,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     data_2d["mesh"]["i_whole_profile"] = []
     if sub_presence:
         data_2d["mesh"]["sub"] = []
+        data_2d["total_wet_area"] = []
     data_2d["node"]["xy"] = []
     data_2d["node"]["h"] = []
     data_2d["node"]["v"] = []
@@ -82,6 +83,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         data_2d["mesh"]["i_whole_profile"].append([])
         if sub_presence:
             data_2d["mesh"]["sub"].append([])
+            data_2d["total_wet_area"].append([])
         data_2d["node"]["xy"].append([])
         data_2d["node"]["h"].append([])
         data_2d["node"]["v"].append([])
@@ -125,6 +127,10 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                 # get substrate after cuting mesh
                 if sub_presence:
                     sub = data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile]
+                    # compute area reach
+                    area = c_mesh_area(tin_data, xy_cuted[:, :2])
+                    area_reach = np.sum(area)
+                    data_2d["total_wet_area"][reach_num].append(area_reach)
 
                 # get cuted grid
                 data_2d["mesh"]["tin"][reach_num].append(tin_data)
@@ -145,7 +151,6 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
             data_2d_whole_profile["mesh"]["tin"][reach_num].pop(index)
             data_2d_whole_profile["node"]["xy"][reach_num].pop(index)
             data_2d_whole_profile["node"]["z"][reach_num].pop(index)
-
 
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
