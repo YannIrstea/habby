@@ -157,6 +157,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description = dict()
     hyd_description["hyd_filename_source"] = data_description["filename_source"]
     hyd_description["hyd_model_type"] = data_description["model_type"]
+    hyd_description["hyd_2D_numerical_method"] = data_description["2D_numerical_method"]
     hyd_description["hyd_model_dimension"] = data_description["model_dimension"]
     hyd_description["hyd_variables_list"] = "h, v, z"
     hyd_description["hyd_epsg_code"] = data_description["epsg_code"]
