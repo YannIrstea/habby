@@ -1385,7 +1385,7 @@ class MainWindows(QMainWindow):
         # save the project
         self.central_widget.path_prj_c = self.path_prj
         self.central_widget.name_prj_c = self.name_prj
-        self.save_project()
+        #self.save_project()
 
         # recreate new widget
         self.recreate_tabs_attributes()
@@ -1438,7 +1438,7 @@ class MainWindows(QMainWindow):
         # check if project open somewhere else
         self.check_concurrency()
 
-        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Project opened. <br>'))
+        self.central_widget.write_log(self.tr('Project opened.'))
 
     def open_recent_project(self, j):
         """
@@ -2167,7 +2167,7 @@ class CentralW(QWidget):
             # name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
             # self.msg2.setWindowIcon(QIcon(name_icon))
             # self.msg2.show()
-            self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.'))
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.' + '</br><br>'))
 
         else:
             doc = ET.parse(fname)
