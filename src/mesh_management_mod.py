@@ -279,10 +279,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             prog = progress_value.value
             warn_inter = True
             ikle_both = []
-            # max_slope_bottom_both = []
-            # max_slope_energy_both = []
-            # shear_stress_both = []
-            #area_both = []
             area_reach_both = []
             point_all_both = []
             vel_all_both = []
@@ -295,10 +291,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                 vel_by_unit = []
                 height_by_unit = []
                 ikle_all_by_unit = []
-                # max_slope_bottom_all_by_unit = []
-                # max_slope_energy_all_by_unit = []
-                # shear_stress_all_by_unit = []
-                #area_all_by_unit = []
                 area_reach_unit = []
                 point_all_by_unit = []
                 point_z_all_by_unit = []
@@ -906,25 +898,39 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
     return ikle_sub, coord_p_sub, data_sub, data_crossing, sub_cell
 
 
-
 def set_constant_values_to_merge_data(hdf5_hydro, hdf5_sub, data_2d_merge, data_2d_whole_merge):
     # for each reach
     sub_array_by_reach = []
+    area_array_by_reach = []
     for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
         # for each unit
         sub_array_by_unit = []
+        area_array_by_unit = []
         for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
             try:
                 default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
-                sub_array = np.repeat([default_data], len(data_2d_merge["tin"][reach_num][unit_num]), 0)
+                sub_array = np.repeat([default_data], len(data_2d_merge["mesh"]["tin"][reach_num][unit_num]), 0)
             except ValueError or TypeError:
                 print('Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
                 return False, False
             sub_array_by_unit.append(sub_array)
+
+            # get points coord
+            pa = data_2d_merge["node"]["xy"][reach_num][unit_num][data_2d_merge["mesh"]["tin"][reach_num][unit_num][:, 0]]
+            pb = data_2d_merge["node"]["xy"][reach_num][unit_num][data_2d_merge["mesh"]["tin"][reach_num][unit_num][:, 1]]
+            pc = data_2d_merge["node"]["xy"][reach_num][unit_num][data_2d_merge["mesh"]["tin"][reach_num][unit_num][:, 2]]
+            # get area2
+            area = 0.5 * abs(
+                (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
+            area_array_by_unit.append(np.sum(area))
+
         sub_array_by_reach.append(sub_array_by_unit)
+        area_array_by_reach.append(area_array_by_unit)
+
     # add sub data to dict
-    data_2d_merge["sub"] = sub_array_by_reach
-    data_2d_whole_merge["sub"] = sub_array_by_reach
+    data_2d_merge["total_wet_area"] = area_array_by_reach
+    data_2d_merge["mesh"]["sub"] = sub_array_by_reach
+    data_2d_whole_merge["mesh"]["sub"] = sub_array_by_reach
     return data_2d_merge, data_2d_whole_merge
 
 
