@@ -734,6 +734,7 @@ class MyProcessList(QThread):
 
     def run(self):
         self.thread_started = True
+        self.plot_production_stoped = False
         self.nb_plot_total = len(self.process_list)
         if self.process_type == "plot":
             for i in range(len(self.process_list)):

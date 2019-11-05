@@ -399,6 +399,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.setTitle(title)
+        self.total_fish_result = 0
         self.process_list = MyProcessList("plot")
         self.process_list.progress_signal.connect(self.show_prog)
         self.variables_to_remove = ["mesh", "points_elevation", "height", "velocity",
@@ -554,6 +555,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             if len(fish_names) > 1:
                 if plot_type == ["result"]:
                     self.nb_plot = 1  #(len(names_hdf5) * len(variables_other) * len(units)) + 1
+                    self.total_fish_result = len(fish_names)
                 if plot_type == ["map"]:
                     # one map by fish by unit
                     nb_map = len(fish_names) * len(reach) * len(units)
@@ -717,6 +719,10 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.send_log.emit('Error: ' + self.tr('No unit selected.'))
         if self.nb_plot == 0:
             self.send_log.emit('Error: ' + self.tr('Selected variables and units not corresponding with figure type choices.'))
+            return
+        if self.nb_plot == 1 and self.total_fish_result > 32:
+            self.send_log.emit('Error: ' + self.tr('You cannot display more than 32 habitat values per graph. Current selected : ') + str(self.total_fish_result))
+            return
         # check if number of display plot are > 30
         if export_type in ("interactive", "both") and self.nb_plot > 30:  # "interactive", "image export", "both
             qm = QMessageBox

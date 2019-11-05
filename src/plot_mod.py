@@ -1786,7 +1786,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     if project_preferences['marker']:
-        mar = 'o'
+        mar = '.'
     else:
         mar = None
     mar2 = "2"
@@ -1817,7 +1817,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plot_window_title = plot_window_title[:80] + "..."
 
     # fig = plt.figure(plot_window_title)
-    fig, ax = plt.subplots(2, 1, sharey='row')
+    fig, ax = plt.subplots(3, 1, sharey='row')
     fig.canvas.set_window_title(plot_window_title)
 
     name_fish_origin = list(name_fish)
@@ -1828,7 +1828,9 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     if len(area_all) == 1:
         # SPU
         data_bar = []
+        percent = []
         for name_fish_value in name_fish_origin:
+            percent.append(float(data_description["percent_area_unknown"][name_fish_value][reach_num][0]))
             data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
 
         y_pos = np.arange(len(name_fish))
@@ -1843,10 +1845,23 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         vh = data_bar2 / area_all[reach_num]
         ax[1].bar(y_pos, vh)
         ax[1].set_xticks(y_pos)
-        ax[1].set_xticklabels(name_fish, horizontalalignment="right")
-        ax[1].xaxis.set_tick_params(rotation=15)
+        # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
+        # ax[1].xaxis.set_tick_params(rotation=15)
+        ax[1].set_xticklabels([])
         ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
-        ax[1].set_title(qt_tr.translate("plot_mod", "Habitat value - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
+        ax[1].set_title(qt_tr.translate("plot_mod", "Habitat value"))
+
+        # %
+        percent = np.array(percent)
+        ax[2].bar(y_pos, percent)
+        ax[2].set_xticks(y_pos)
+        ax[2].set_xticklabels(name_fish, horizontalalignment="right")
+        ax[2].xaxis.set_tick_params(rotation=15)
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
+        ax[2].set_title(
+            qt_tr.translate("plot_mod", "Unknown area"))
+
+        # GENERAL
         mplcursors.cursor()  # get data with mouse
         plt.tight_layout()
         # export or not
@@ -1877,37 +1892,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                      y_data_spu,
                      label=name_fish_value,
                      color=color_list[fish_index],
-                     linestyle=style_list[fish_index])
-        handles, labels = ax[0].get_legend_handles_labels()
-
-        for fish_index, name_fish_value in enumerate(name_fish_origin):
-            y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
-            # plot points
-            for unit_index, percent in enumerate(data_description["percent_area_unknown"][name_fish_value][reach_num]):
-                if percent == 0.0:
-                    markers = mar
-                else:
-                    markers = mar2
-                ax[0].scatter(x_data[unit_index],
-                              y_data_spu[unit_index],
-                              color="black",
-                              label=name_fish_value,
-                              marker=markers) #color_list[fish_index],
+                     linestyle=style_list[fish_index],
+                       marker=mar)
 
         ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
         ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
-        # LEGEND
-        fig.legend(handles=handles,
-                   labels=labels,
-                   loc="center right",
-                   borderaxespad=0.5,
-                   fancybox=True)
-
-        # spu_ax.xaxis.set_ticklabels([])
-        if len(unit_name[0]) > 5:
-            rot = 'vertical'
-        else:
-            rot = 'horizontal'
         if len(unit_name) < 25:
             ax[0].set_xticks(x_data)
         elif len(unit_name) < 100:
@@ -1925,48 +1914,58 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                      y_data_hv,
                     label=name_fish_value,
                      color=color_list[fish_index],
-                     linestyle=style_list[fish_index])
-            # plot points
-            for unit_index, percent in enumerate(data_description["percent_area_unknown"][name_fish_value][reach_num]):
-                if percent == 0.0:
-                    markers = mar
-                else:
-                    markers = mar2
-                ax[1].scatter(x_data[unit_index],
-                              y_data_hv[unit_index],
-                              color="black",
-                              label=name_fish_value,
-                              marker=markers)  # color_list[fish_index]
-        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
+                     linestyle=style_list[fish_index],
+                       marker=mar)
+
         ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
-        ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value - ') + reach_name)
-        #ax[1].set_ylim(0, 1)
-        # legend markers
-        legend_elements = [Line2D([0], [0], marker=mar, color='black', label=qt_tr.translate("plot_mod", 'Complete'), markerfacecolor='black'),
-                           Line2D([0], [0], marker=mar2, color='black', label=qt_tr.translate("plot_mod", 'Incomplete'), markerfacecolor='black')]
-        ax[1].legend(handles=legend_elements, fancybox=True, framealpha=0.5)  # make the legend transparent
-        # view data with mouse
-        mplcursors.cursor()
-        # cursorPT = SnaptoCursorPT(fig.canvas, spu_ax, hv_ax, x_data, y_data_spu_list, y_data_hv_list)
-        # fig.canvas.mpl_connect('motion_notify_event', cursorPT.mouse_move)
-        # label
-        if len(unit_name[0]) > 5:
-            rot = 'vertical'
-        else:
-            rot = 'horizontal'
+        ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value'))
         if len(unit_name) < 25:
             ax[1].set_xticks(x_data)
-            ax[1].set_xticklabels(unit_name)
         elif len(unit_name) < 100:
             ax[1].set_xticks(x_data[::3])
-            ax[1].set_xticklabels(unit_name[::3])
         else:
             ax[1].set_xticks(x_data[::10])
-            ax[1].set_xticklabels(unit_name[::10])
-        ax[1].xaxis.set_tick_params(rotation=45)
+        ax[1].set_xticklabels([])
+
+        # % inconnu
+        for fish_index, name_fish_value in enumerate(name_fish_origin):
+            y_data_percent = list(map(float, data_description["percent_area_unknown"][name_fish_value][reach_num]))
+            # plot line
+            ax[2].plot(x_data,
+                     y_data_percent,
+                    label=name_fish_value,
+                     color=color_list[fish_index],
+                     linestyle=style_list[fish_index],
+                       marker=mar)
+
+        ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
+        ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
+        # label
+        if len(unit_name) < 25:
+            ax[2].set_xticks(x_data)
+            ax[2].set_xticklabels(unit_name)
+        elif len(unit_name) < 100:
+            ax[2].set_xticks(x_data[::3])
+            ax[2].set_xticklabels(unit_name[::3])
+        else:
+            ax[2].set_xticks(x_data[::10])
+            ax[2].set_xticklabels(unit_name[::10])
+        ax[2].xaxis.set_tick_params(rotation=45)
+
+        # LEGEND
+        handles, labels = ax[0].get_legend_handles_labels()
+        fig.legend(handles=handles,
+                   labels=labels,
+                   loc="center right",
+                   borderaxespad=0.5,
+                   fancybox=True)
 
         plt.tight_layout()
-        plt.subplots_adjust(right=0.73)
+        plt.subplots_adjust(right=0.71)
+
+        # view data with mouse
+        mplcursors.cursor()
 
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
@@ -2369,11 +2368,18 @@ class SnaptoCursorPT(object):
 
 
 def get_colors_styles_line_from_nb_input(input_nb):
+    """
+    Get color_list and style_list for a given number of input.
+    Total number of available color and style = colors_number * line_styles_base_list : 8 * 4 = 32
+    :param input_nb: total number of input to plot.
+    :return: color_list: by input
+    :return: style_list: by input
+    """
     colors_number = 8
     cm = plt.get_cmap('gist_ncar')
     color_base_list = [cm(i/colors_number) for i in range(colors_number)] * input_nb
     color_list = color_base_list[:input_nb]
-    line_styles_base_list = ['solid', 'dotted', 'dashed', 'dashdot']
+    line_styles_base_list = ['solid', 'dotted', 'dashed', 'dashdot']  # 4 style
     style_list = []
     style_start = 0
     while len(style_list) < input_nb:
