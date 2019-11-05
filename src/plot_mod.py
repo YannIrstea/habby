@@ -2017,14 +2017,12 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     if project_preferences['marker']:
         mar = 'o'
     else:
         mar = None
-    erase1 = project_preferences['erase_id']
     is_constant = False
     # prep data
     if len(types.keys()) > 1:  # date
@@ -2042,16 +2040,12 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         # is sim_name constant float
         is_constant = all(round(j - i, number_decimal_mean) == first_delta for i, j in zip(sim_name, sim_name[1:]))
 
+    # colors
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
 
-    reach_num = int(data_description["hyd_reach_number"]) - 1
-    name_base = data_description["hab_filename"][:-4]
+    reach_name = data_description["hyd_reach_list"]
     unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
-
-    if len(str(sim_name[0])) > 5:
-        rot = 'vertical'
-    else:
-        rot = 'horizontal'
 
     # plot
     title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Computational Step : ")
@@ -2077,11 +2071,15 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         x_data = sim_name
     else:
         x_data = range(len(sim_name))
-    for name_fish_value in name_fish_origin:
+    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
         y_data_spu = data_to_table["spu_" + name_fish_value]
-        ax[0].plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
+        ax[0].plot(x_data, y_data_spu,
+                   color=color_list[name_fish_num],
+                   linestyle=style_list[name_fish_num],
+                   label=name_fish_value,
+                   marker=mar)
     ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-    ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated for the Reach ') + str(0))
+    ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
     if len(sim_name) < 25:
         ax[0].set_xticks(x_data, [])  #, rotation=rot
     elif len(sim_name) < 100:
@@ -2092,13 +2090,15 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         ax[0].set_xticks(x_data[::20], [])
     # remove ticks labels
     ax[0].xaxis.set_ticklabels([])
-    ax[0].xaxis.grid()
-    ax[0].legend(fancybox=True, framealpha=0.5)  # make the legend transparent
 
     # VH
-    for name_fish_value in name_fish_origin:
+    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
         y_data_hv = data_to_table["hv_" + name_fish_value]
-        ax[1].plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
+        ax[1].plot(x_data, y_data_hv,
+                   color=color_list[name_fish_num],
+                   linestyle=style_list[name_fish_num],
+                   label=name_fish_value,
+                   marker=mar)
     ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV []'))
     ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
     ax[1].set_ylim(0, 1)
@@ -2122,7 +2122,6 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         # remove ticks labels
         ax[1].xaxis.set_ticklabels([])
     # all case
-    ax[1].xaxis.grid()
     if is_constant:
         ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
 
@@ -2150,17 +2149,26 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         else:
             ax[2].set_xticks(x_data[::20])
             ax[2].set_xticklabels(sim_name[::20])
-        ax[2].xaxis.grid()
         ax[2].tick_params(axis='x', rotation=45)
         if not date_presence and not is_constant:
             # remove ticks labels
             ax[2].xaxis.set_ticklabels([])
         if date_presence:
             ax[2].xaxis.set_major_formatter(date_format_mpl)
-    # get data with mouse
-    mplcursors.cursor()
+
+    # LEGEND
+    handles, labels = ax[0].get_legend_handles_labels()
+    fig.legend(handles=handles,
+               labels=labels,
+               loc="center right",
+               borderaxespad=0.5,
+               fancybox=True)
 
     plt.tight_layout()
+    plt.subplots_adjust(right=0.71)
+
+    # view data with mouse
+    mplcursors.cursor()
 
     # output for plot_GUI
     state.value = 1  # process finished
