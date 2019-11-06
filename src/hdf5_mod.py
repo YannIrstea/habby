@@ -2511,7 +2511,9 @@ class Hdf5Management:
                         [f, axarr] = plot_mod.plot_suitability_curve(fake_value,
                                                                  h_all, vel_all, sub_all,
                                                                  code_fish, name_fish,
-                                                                 stages, self.project_preferences, True)
+                                                                 stages,
+                                                                 information_model_dict["substrate_type"],
+                                                                     self.project_preferences, True)
                     if hab_aquatic_animal_type_list[idx] == "invertebrate":
                         [f, axarr] = plot_mod.plot_suitability_curve_invertebrate(fake_value,
                                                                                   shear_stress_all, hem_all, hv_all,
