@@ -31,6 +31,7 @@ from src.tools_mod import get_translator
 from src_GUI import preferences_GUI
 
 
+# other
 def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, sub_type, project_preferences, get_fig=False):
     """
     This function is used to plot the preference curves.
@@ -372,6 +373,573 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     plt.show()
 
 
+def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_hdf5, project_preferences={}):
+    """
+    This function creates the figure of the spu as a function of time for each reach. if there is only one
+    time step, it reverse to a bar plot. Otherwise it is a line plot.
+
+    :param area_all: the area for all reach
+    :param spu_all: the "surface pondere utile" (SPU) for each reach
+    :param name_fish: the list of fish latin name + stage
+    :param path_im: the path where to save the image
+    :param project_preferences: the dictionnary with the figure options
+    :param name_hdf5: a string on which to base the name of the files
+    :param unit_name: the name of the time steps if not 0,1,2,3
+    """
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    default_size = plt.rcParams['figure.figsize']
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    if project_preferences['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42
+    if project_preferences['marker']:
+        mar = '.'
+    else:
+        mar = None
+    mar2 = "2"
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    # colors
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
+
+    # prep data
+    name_hdf5 = name_hdf5[:-4]
+    area_all = list(map(float, data_description["total_wet_area"][reach_num]))
+    unit_name = []
+    if len(area_all) == 1:
+        for unit_index in data_description["units_index"]:
+            unit_name.append(data_description["hyd_unit_list"][0][unit_index])
+    if len(area_all) > 1:
+        for unit_index in data_description["units_index"]:
+            unit_name.append(str(data_description["hyd_unit_list"][reach_num][unit_index]))
+    unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    reach_name = data_description["hyd_reach_list"].split(", ")[reach_num]
+
+    # plot
+    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
+    if len(unit_name) == 1:
+        plot_window_title = title + str(unit_name[0]) + " " + unit_type
+    else:
+        plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type
+        plot_window_title = plot_window_title[:80] + "..."
+
+    # fig = plt.figure(plot_window_title)
+    fig, ax = plt.subplots(3, 1, sharex=True)
+    fig.canvas.set_window_title(plot_window_title)
+
+    name_fish_origin = list(name_fish)
+    for id, n in enumerate(name_fish):
+        name_fish[id] = n.replace('_', ' ')
+
+    # one time step - bar
+    if len(area_all) == 1:
+        # SPU
+        data_bar = []
+        percent = []
+        for name_fish_value in name_fish_origin:
+            percent.append(float(data_description["percent_area_unknown"][name_fish_value][reach_num][0]))
+            data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
+
+        y_pos = np.arange(len(name_fish))
+        data_bar2 = np.array(data_bar)
+        ax[0].bar(y_pos, data_bar2)
+        ax[0].set_xticks(y_pos)
+        ax[0].set_xticklabels([])
+        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
+
+        # VH
+        vh = data_bar2 / area_all[reach_num]
+        ax[1].bar(y_pos, vh)
+        ax[1].set_xticks(y_pos)
+        # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
+        # ax[1].xaxis.set_tick_params(rotation=15)
+        ax[1].set_xticklabels([])
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
+        ax[1].set_title(qt_tr.translate("plot_mod", "Habitat value"))
+
+        # %
+        percent = np.array(percent)
+        ax[2].bar(y_pos, percent)
+        ax[2].set_xticks(y_pos)
+        ax[2].set_xticklabels(name_fish, horizontalalignment="right")
+        ax[2].xaxis.set_tick_params(rotation=15)
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
+        ax[2].set_title(
+            qt_tr.translate("plot_mod", "Unknown area"))
+
+        # GENERAL
+        mplcursors.cursor()  # get data with mouse
+        plt.tight_layout()
+        # export or not
+        if types_plot == "image export" or types_plot == "both":
+            if not project_preferences['erase_id']:
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0]) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            else:
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0])
+                test = tools_mod.remove_image(name, path_im, format1)
+                if not test:
+                    return
+
+            if format1 == 0:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+
+    # many time step - lines
+    if len(area_all) > 1:
+        # SPU
+        x_data = list(map(float, unit_name))
+        for fish_index, name_fish_value in enumerate(name_fish_origin):
+            y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
+            # plot line
+            ax[0].plot(x_data,
+                     y_data_spu,
+                     label=name_fish_value,
+                     color=color_list[fish_index],
+                     linestyle=style_list[fish_index],
+                       marker=mar)
+
+        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
+        if len(unit_name) < 25:
+            ax[0].set_xticks(x_data)
+        elif len(unit_name) < 100:
+            ax[0].set_xticks(x_data[::3])
+        else:
+            ax[0].set_xticks(x_data[::10])
+        ax[0].set_xticklabels([])
+
+        # VH
+        for fish_index, name_fish_value in enumerate(name_fish_origin):
+            y_data_hv = [b / m for b, m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
+                                                        area_all)]
+            # plot line
+            ax[1].plot(x_data,
+                     y_data_hv,
+                    label=name_fish_value,
+                     color=color_list[fish_index],
+                     linestyle=style_list[fish_index],
+                       marker=mar)
+
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
+        ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value'))
+        if len(unit_name) < 25:
+            ax[1].set_xticks(x_data)
+        elif len(unit_name) < 100:
+            ax[1].set_xticks(x_data[::3])
+        else:
+            ax[1].set_xticks(x_data[::10])
+        ax[1].set_xticklabels([])
+
+        # % inconnu
+        for fish_index, name_fish_value in enumerate(name_fish_origin):
+            y_data_percent = list(map(float, data_description["percent_area_unknown"][name_fish_value][reach_num]))
+            # plot line
+            ax[2].plot(x_data,
+                     y_data_percent,
+                    label=name_fish_value,
+                     color=color_list[fish_index],
+                     linestyle=style_list[fish_index],
+                       marker=mar)
+
+        ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
+        ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
+        # label
+        if len(unit_name) < 25:
+            ax[2].set_xticks(x_data)
+            ax[2].set_xticklabels(unit_name)
+        elif len(unit_name) < 100:
+            ax[2].set_xticks(x_data[::3])
+            ax[2].set_xticklabels(unit_name[::3])
+        else:
+            ax[2].set_xticks(x_data[::10])
+            ax[2].set_xticklabels(unit_name[::10])
+        ax[2].xaxis.set_tick_params(rotation=45)
+
+        # LEGEND
+        handles, labels = ax[0].get_legend_handles_labels()
+        fig.legend(handles=handles,
+                   labels=labels,
+                   loc="center right",
+                   borderaxespad=0.5,
+                   fancybox=True)
+
+        plt.tight_layout()
+        plt.subplots_adjust(right=0.71)
+
+        # view data with mouse
+        mplcursors.cursor()
+
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            else:
+                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name
+                test = tools_mod.remove_image(name, path_im, format1)
+                if not test:
+                    return
+            if format1 == 0:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "interactive" or types_plot == "both":
+        # reset original size fig window
+        fig.set_size_inches(default_size[0], default_size[1])
+        plt.show()
+    if types_plot == "image export":
+        plt.close()
+
+
+def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, project_preferences):
+    """
+    This function creates the figure of the spu as a function of time for each reach. if there is only one
+    time step, it reverse to a bar plot. Otherwise it is a line plot.
+
+    :param area_all: the area for all reach
+    :param spu_all: the "surface pondere utile" (SPU) for each reach
+    :param name_fish: the list of fish latin name + stage
+    :param path_im: the path where to save the image
+    :param project_preferences: the dictionnary with the figure options
+    :param name_base: a string on which to base the name of the files
+    :param sim_name: the name of the time steps if not 0,1,2,3
+    """
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    if project_preferences['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42
+    if project_preferences['marker']:
+        mar = 'o'
+    else:
+        mar = None
+    is_constant = False
+    # prep data
+    if len(types.keys()) > 1:  # date
+        date_presence = True
+        date_type = types["date"]
+        sim_name = np.array([dt.strptime(date, date_type).date() for date in vertical_headers], dtype='datetime64')
+        date_format_mpl = mpl.dates.DateFormatter(date_type)
+    else:
+        date_presence = False
+        sim_name = list(map(float, vertical_headers))
+        # get number of decimals
+        number_decimal_list = [vertical_headers[i][::-1].find('.') for i in range(len(vertical_headers))]
+        number_decimal_mean = int(sum(number_decimal_list) / len(number_decimal_list))
+        first_delta = sim_name[1] - sim_name[0]
+        # is sim_name constant float
+        is_constant = all(round(j - i, number_decimal_mean) == first_delta for i, j in zip(sim_name, sim_name[1:]))
+
+    # colors
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
+
+    reach_name = data_description["hyd_reach_list"]
+    unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
+    data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
+
+    # plot
+    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Computational Step : ")
+    if len(sim_name) == 1:
+        plot_window_title = title + str(sim_name[0]) + " " + unit_type
+    if len(sim_name) > 1:
+        plot_window_title = title + ", ".join(
+            map(str, sim_name[::10])) + ".. " + unit_type
+
+    if not is_constant:
+        fig, ax = plt.subplots(3, 1, sharex=True)
+    if is_constant:
+        fig, ax = plt.subplots(2, 1, sharex=True)
+    fig.canvas.set_window_title(plot_window_title)
+
+    name_fish_origin = list(name_fish)
+
+    for id, n in enumerate(name_fish):
+        name_fish[id] = n.replace('_', ' ')
+
+    # SPU
+    if len(types.keys()) > 1:  # date
+        x_data = sim_name
+    else:
+        x_data = range(len(sim_name))
+    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
+        y_data_spu = data_to_table["spu_" + name_fish_value]
+        ax[0].plot(x_data, y_data_spu,
+                   color=color_list[name_fish_num],
+                   linestyle=style_list[name_fish_num],
+                   label=name_fish_value,
+                   marker=mar)
+    ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
+    ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
+    if len(sim_name) < 25:
+        ax[0].set_xticks(x_data, [])  #, rotation=rot
+    elif len(sim_name) < 100:
+        ax[0].set_xticks(x_data[::3], [])
+    elif len(sim_name) < 200:
+        ax[0].set_xticks(x_data[::10], [])
+    else:
+        ax[0].set_xticks(x_data[::20], [])
+    # remove ticks labels
+    ax[0].xaxis.set_ticklabels([])
+
+    # VH
+    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
+        y_data_hv = data_to_table["hv_" + name_fish_value]
+        ax[1].plot(x_data, y_data_hv,
+                   color=color_list[name_fish_num],
+                   linestyle=style_list[name_fish_num],
+                   label=name_fish_value,
+                   marker=mar)
+    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV []'))
+    ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
+    ax[1].set_ylim(0, 1)
+    if len(sim_name) < 25:
+        ax[1].set_xticks(x_data, [])  #, rotation=rot
+        if not date_presence and is_constant:
+            ax[1].set_xticks(x_data, sim_name)
+    elif len(sim_name) < 100:
+        ax[1].set_xticks(x_data[::3], [])
+        if not date_presence and is_constant:
+            ax[1].set_xticklabels(sim_name[::3])
+    elif len(sim_name) < 200:
+        ax[1].set_xticks(x_data[::10], [])
+        if not date_presence and is_constant:
+            ax[1].set_xticklabels(sim_name[::10])
+    else:
+        ax[1].set_xticks(x_data[::20], [])
+        if not date_presence and is_constant:
+            ax[1].set_xticklabels(sim_name[::20])
+    if date_presence or not is_constant:
+        # remove ticks labels
+        ax[1].xaxis.set_ticklabels([])
+    # all case
+    if is_constant:
+        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
+
+    # unit
+    if not is_constant:
+        ax[2].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
+        ax[2].set_title(qt_tr.translate("plot_mod", "Units"))
+        if date_presence:
+            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Chronicle [') + date_type + ']')
+        if not date_presence:
+            if not is_constant:
+                ax[2].set_xlabel("")
+            if is_constant:
+                ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
+
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
+        if len(sim_name) < 25:
+            ax[2].set_xticks(x_data, sim_name)  # , rotation=45
+        elif len(sim_name) < 100:
+            ax[2].set_xticks(x_data[::3])
+            ax[2].set_xticklabels(sim_name[::3])
+        elif len(sim_name) < 200:
+            ax[2].set_xticks(x_data[::10])
+            ax[2].set_xticklabels(sim_name[::10])
+        else:
+            ax[2].set_xticks(x_data[::20])
+            ax[2].set_xticklabels(sim_name[::20])
+        ax[2].tick_params(axis='x', rotation=45)
+        if not date_presence and not is_constant:
+            # remove ticks labels
+            ax[2].xaxis.set_ticklabels([])
+        if date_presence:
+            ax[2].xaxis.set_major_formatter(date_format_mpl)
+
+    # LEGEND
+    handles, labels = ax[0].get_legend_handles_labels()
+    fig.legend(handles=handles,
+               labels=labels,
+               loc="center right",
+               borderaxespad=0.5,
+               fancybox=True)
+
+    plt.tight_layout()
+    plt.subplots_adjust(right=0.71)
+
+    # view data with mouse
+    mplcursors.cursor()
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    plt.show()
+
+
+def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
+                                                     "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    # default_size = plt.rcParams['figure.figsize']
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    if project_preferences['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    erase1 = project_preferences['erase_id']
+    path_im = os.path.join(path_prj, "output", "figures")
+    mpl.rcParams['pdf.fonttype'] = 42
+
+    # prepare color
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(estimhab_dict["fish_list"]))
+
+    # plot
+    fig, (ax_vh, ax_spu, ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=5,
+                                                          sharex="all",
+                                                          gridspec_kw={'height_ratios': [3, 3, 1, 1, 1]})
+    fig.canvas.set_window_title('ESTIMHAB - HABBY')
+
+    # VH
+    ax_vh.set_title("ESTIMHAB - HABBY")
+    if estimhab_dict["qtarg"]:
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_vh.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
+    for fish_index in range(len(estimhab_dict["fish_list"])):
+        ax_vh.plot(estimhab_dict["q_all"],
+                   estimhab_dict["VH"][fish_index],
+                   label=estimhab_dict["fish_list"][fish_index],
+                   color=color_list[fish_index],
+                   linestyle=style_list[fish_index])
+    ax_vh.set_ylim(0, 1)
+    ax_vh.set_ylabel(qt_tr.translate("plot_mod", "Habitat Value\n[]"))
+    ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # SPU
+    if estimhab_dict["qtarg"]:
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_spu.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
+    for fish_index in range(len(estimhab_dict["fish_list"])):
+        ax_spu.plot(estimhab_dict["q_all"],
+                    estimhab_dict["SPU"][fish_index],
+                    label=estimhab_dict["fish_list"][fish_index],
+                    color=color_list[fish_index],
+                    linestyle=style_list[fish_index])
+    ax_spu.set_ylabel(qt_tr.translate("plot_mod", "WUA by 100 m\n[m²]"))
+    ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # H
+    if estimhab_dict["qtarg"]:
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_h.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
+    ax_h.plot(estimhab_dict["q_all"],
+              estimhab_dict["h_all"],
+              color="black")
+    ax_h.set_ylabel(qt_tr.translate("plot_mod", "height\n[m]"))
+    ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # W
+    if estimhab_dict["qtarg"]:
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_w.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
+    ax_w.plot(estimhab_dict["q_all"],
+              estimhab_dict["w_all"],
+              color="black")
+    ax_w.set_ylabel(qt_tr.translate("plot_mod", "width\n[m]"))
+    ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # V
+    if estimhab_dict["qtarg"]:
+        for q_tar in estimhab_dict["qtarg"]:
+            ax_v.axvline(x=q_tar,
+                          linestyle=":",
+                          color="black")
+    ax_v.plot(estimhab_dict["q_all"],
+              estimhab_dict["vel_all"],
+              color="black")
+    ax_v.set_ylabel(qt_tr.translate("plot_mod", "velocity\n[m/s]"))
+    ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+    ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
+
+    # qtarg
+    if estimhab_dict["qtarg"]:
+        labels = ["Qtarg [m$^{3}$/sec]"]
+        fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
+                   labels=labels,
+                   loc="lower left",
+                   borderaxespad=0.5,
+                   fancybox=False,
+                   bbox_to_anchor=(0.73, 0.1))
+
+    # LEGEND
+    handles, labels = ax_vh.get_legend_handles_labels()
+    fig.legend(handles=handles,
+               labels=labels,
+               loc="center left",
+               borderaxespad=0.5,
+               fancybox=False,
+               bbox_to_anchor=(0.73, 0.5))
+
+    plt.subplots_adjust(right=0.73)
+
+    # name with date and time
+    if format1 == 0:
+        name_pict = "Estimhab" + ".pdf"
+    if format1 == 1:
+        name_pict = "Estimhab" + ".png"
+    if format1 == 2:
+        name_pict = "Estimhab" + ".jpg"
+
+    if os.path.exists(os.path.join(path_im, name_pict)):
+        if not erase1:
+            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+
+    # save image
+    plt.savefig(os.path.join(path_im, name_pict), dpi=project_preferences['resolution'], transparent=True)
+
+    # get data with mouse
+    mplcursors.cursor()
+
+    # finish process
+    state.value = 1  # process finished
+
+    # show
+    plt.show()
+
+
+# map
 def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_description, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
@@ -1753,572 +2321,6 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
         plt.show()
     if types_plot == "image export":
         plt.close()
-
-
-def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_hdf5, project_preferences={}):
-    """
-    This function creates the figure of the spu as a function of time for each reach. if there is only one
-    time step, it reverse to a bar plot. Otherwise it is a line plot.
-
-    :param area_all: the area for all reach
-    :param spu_all: the "surface pondere utile" (SPU) for each reach
-    :param name_fish: the list of fish latin name + stage
-    :param path_im: the path where to save the image
-    :param project_preferences: the dictionnary with the figure options
-    :param name_hdf5: a string on which to base the name of the files
-    :param unit_name: the name of the time steps if not 0,1,2,3
-    """
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    default_size = plt.rcParams['figure.figsize']
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    if project_preferences['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
-    if project_preferences['marker']:
-        mar = '.'
-    else:
-        mar = None
-    mar2 = "2"
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-    # colors
-    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
-
-    # prep data
-    name_hdf5 = name_hdf5[:-4]
-    area_all = list(map(float, data_description["total_wet_area"][reach_num]))
-    unit_name = []
-    if len(area_all) == 1:
-        for unit_index in data_description["units_index"]:
-            unit_name.append(data_description["hyd_unit_list"][0][unit_index])
-    if len(area_all) > 1:
-        for unit_index in data_description["units_index"]:
-            unit_name.append(str(data_description["hyd_unit_list"][reach_num][unit_index]))
-    unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = data_description["hyd_reach_list"].split(", ")[reach_num]
-
-    # plot
-    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
-    if len(unit_name) == 1:
-        plot_window_title = title + str(unit_name[0]) + " " + unit_type
-    else:
-        plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type
-        plot_window_title = plot_window_title[:80] + "..."
-
-    # fig = plt.figure(plot_window_title)
-    fig, ax = plt.subplots(3, 1, sharey='row')
-    fig.canvas.set_window_title(plot_window_title)
-
-    name_fish_origin = list(name_fish)
-    for id, n in enumerate(name_fish):
-        name_fish[id] = n.replace('_', ' ')
-
-    # one time step - bar
-    if len(area_all) == 1:
-        # SPU
-        data_bar = []
-        percent = []
-        for name_fish_value in name_fish_origin:
-            percent.append(float(data_description["percent_area_unknown"][name_fish_value][reach_num][0]))
-            data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
-
-        y_pos = np.arange(len(name_fish))
-        data_bar2 = np.array(data_bar)
-        ax[0].bar(y_pos, data_bar2)
-        ax[0].set_xticks(y_pos)
-        ax[0].set_xticklabels([])
-        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
-
-        # VH
-        vh = data_bar2 / area_all[reach_num]
-        ax[1].bar(y_pos, vh)
-        ax[1].set_xticks(y_pos)
-        # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
-        # ax[1].xaxis.set_tick_params(rotation=15)
-        ax[1].set_xticklabels([])
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
-        ax[1].set_title(qt_tr.translate("plot_mod", "Habitat value"))
-
-        # %
-        percent = np.array(percent)
-        ax[2].bar(y_pos, percent)
-        ax[2].set_xticks(y_pos)
-        ax[2].set_xticklabels(name_fish, horizontalalignment="right")
-        ax[2].xaxis.set_tick_params(rotation=15)
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
-        ax[2].set_title(
-            qt_tr.translate("plot_mod", "Unknown area"))
-
-        # GENERAL
-        mplcursors.cursor()  # get data with mouse
-        plt.tight_layout()
-        # export or not
-        if types_plot == "image export" or types_plot == "both":
-            if not project_preferences['erase_id']:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0]) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            else:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0])
-                test = tools_mod.remove_image(name, path_im, format1)
-                if not test:
-                    return
-
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
-
-    # many time step - lines
-    if len(area_all) > 1:
-        # SPU
-        x_data = list(map(float, unit_name))
-        for fish_index, name_fish_value in enumerate(name_fish_origin):
-            y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
-            # plot line
-            ax[0].plot(x_data,
-                     y_data_spu,
-                     label=name_fish_value,
-                     color=color_list[fish_index],
-                     linestyle=style_list[fish_index],
-                       marker=mar)
-
-        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
-        if len(unit_name) < 25:
-            ax[0].set_xticks(x_data)
-        elif len(unit_name) < 100:
-            ax[0].set_xticks(x_data[::3])
-        else:
-            ax[0].set_xticks(x_data[::10])
-        ax[0].set_xticklabels([])
-
-        # VH
-        for fish_index, name_fish_value in enumerate(name_fish_origin):
-            y_data_hv = [b / m for b, m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
-                                                        area_all)]
-            # plot line
-            ax[1].plot(x_data,
-                     y_data_hv,
-                    label=name_fish_value,
-                     color=color_list[fish_index],
-                     linestyle=style_list[fish_index],
-                       marker=mar)
-
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
-        ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value'))
-        if len(unit_name) < 25:
-            ax[1].set_xticks(x_data)
-        elif len(unit_name) < 100:
-            ax[1].set_xticks(x_data[::3])
-        else:
-            ax[1].set_xticks(x_data[::10])
-        ax[1].set_xticklabels([])
-
-        # % inconnu
-        for fish_index, name_fish_value in enumerate(name_fish_origin):
-            y_data_percent = list(map(float, data_description["percent_area_unknown"][name_fish_value][reach_num]))
-            # plot line
-            ax[2].plot(x_data,
-                     y_data_percent,
-                    label=name_fish_value,
-                     color=color_list[fish_index],
-                     linestyle=style_list[fish_index],
-                       marker=mar)
-
-        ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
-        ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
-        # label
-        if len(unit_name) < 25:
-            ax[2].set_xticks(x_data)
-            ax[2].set_xticklabels(unit_name)
-        elif len(unit_name) < 100:
-            ax[2].set_xticks(x_data[::3])
-            ax[2].set_xticklabels(unit_name[::3])
-        else:
-            ax[2].set_xticks(x_data[::10])
-            ax[2].set_xticklabels(unit_name[::10])
-        ax[2].xaxis.set_tick_params(rotation=45)
-
-        # LEGEND
-        handles, labels = ax[0].get_legend_handles_labels()
-        fig.legend(handles=handles,
-                   labels=labels,
-                   loc="center right",
-                   borderaxespad=0.5,
-                   fancybox=True)
-
-        plt.tight_layout()
-        plt.subplots_adjust(right=0.71)
-
-        # view data with mouse
-        mplcursors.cursor()
-
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            else:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name
-                test = tools_mod.remove_image(name, path_im, format1)
-                if not test:
-                    return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if types_plot == "interactive" or types_plot == "both":
-        # reset original size fig window
-        fig.set_size_inches(default_size[0], default_size[1])
-        plt.show()
-    if types_plot == "image export":
-        plt.close()
-
-
-def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, project_preferences):
-    """
-    This function creates the figure of the spu as a function of time for each reach. if there is only one
-    time step, it reverse to a bar plot. Otherwise it is a line plot.
-
-    :param area_all: the area for all reach
-    :param spu_all: the "surface pondere utile" (SPU) for each reach
-    :param name_fish: the list of fish latin name + stage
-    :param path_im: the path where to save the image
-    :param project_preferences: the dictionnary with the figure options
-    :param name_base: a string on which to base the name of the files
-    :param sim_name: the name of the time steps if not 0,1,2,3
-    """
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    if project_preferences['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
-    if project_preferences['marker']:
-        mar = 'o'
-    else:
-        mar = None
-    is_constant = False
-    # prep data
-    if len(types.keys()) > 1:  # date
-        date_presence = True
-        date_type = types["date"]
-        sim_name = np.array([dt.strptime(date, date_type).date() for date in vertical_headers], dtype='datetime64')
-        date_format_mpl = mpl.dates.DateFormatter(date_type)
-    else:
-        date_presence = False
-        sim_name = list(map(float, vertical_headers))
-        # get number of decimals
-        number_decimal_list = [vertical_headers[i][::-1].find('.') for i in range(len(vertical_headers))]
-        number_decimal_mean = int(sum(number_decimal_list) / len(number_decimal_list))
-        first_delta = sim_name[1] - sim_name[0]
-        # is sim_name constant float
-        is_constant = all(round(j - i, number_decimal_mean) == first_delta for i, j in zip(sim_name, sim_name[1:]))
-
-    # colors
-    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
-
-    reach_name = data_description["hyd_reach_list"]
-    unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
-    data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
-
-    # plot
-    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Computational Step : ")
-    if len(sim_name) == 1:
-        plot_window_title = title + str(sim_name[0]) + " " + unit_type
-    if len(sim_name) > 1:
-        plot_window_title = title + ", ".join(
-            map(str, sim_name[::10])) + ".. " + unit_type
-
-    if not is_constant:
-        fig, ax = plt.subplots(3, 1, sharey='row')
-    if is_constant:
-        fig, ax = plt.subplots(2, 1, sharey='row')
-    fig.canvas.set_window_title(plot_window_title)
-
-    name_fish_origin = list(name_fish)
-
-    for id, n in enumerate(name_fish):
-        name_fish[id] = n.replace('_', ' ')
-
-    # SPU
-    if len(types.keys()) > 1:  # date
-        x_data = sim_name
-    else:
-        x_data = range(len(sim_name))
-    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
-        y_data_spu = data_to_table["spu_" + name_fish_value]
-        ax[0].plot(x_data, y_data_spu,
-                   color=color_list[name_fish_num],
-                   linestyle=style_list[name_fish_num],
-                   label=name_fish_value,
-                   marker=mar)
-    ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-    ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
-    if len(sim_name) < 25:
-        ax[0].set_xticks(x_data, [])  #, rotation=rot
-    elif len(sim_name) < 100:
-        ax[0].set_xticks(x_data[::3], [])
-    elif len(sim_name) < 200:
-        ax[0].set_xticks(x_data[::10], [])
-    else:
-        ax[0].set_xticks(x_data[::20], [])
-    # remove ticks labels
-    ax[0].xaxis.set_ticklabels([])
-
-    # VH
-    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
-        y_data_hv = data_to_table["hv_" + name_fish_value]
-        ax[1].plot(x_data, y_data_hv,
-                   color=color_list[name_fish_num],
-                   linestyle=style_list[name_fish_num],
-                   label=name_fish_value,
-                   marker=mar)
-    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV []'))
-    ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
-    ax[1].set_ylim(0, 1)
-    if len(sim_name) < 25:
-        ax[1].set_xticks(x_data, [])  #, rotation=rot
-        if not date_presence and is_constant:
-            ax[1].set_xticks(x_data, sim_name)
-    elif len(sim_name) < 100:
-        ax[1].set_xticks(x_data[::3], [])
-        if not date_presence and is_constant:
-            ax[1].set_xticklabels(sim_name[::3])
-    elif len(sim_name) < 200:
-        ax[1].set_xticks(x_data[::10], [])
-        if not date_presence and is_constant:
-            ax[1].set_xticklabels(sim_name[::10])
-    else:
-        ax[1].set_xticks(x_data[::20], [])
-        if not date_presence and is_constant:
-            ax[1].set_xticklabels(sim_name[::20])
-    if date_presence or not is_constant:
-        # remove ticks labels
-        ax[1].xaxis.set_ticklabels([])
-    # all case
-    if is_constant:
-        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
-
-    # unit
-    if not is_constant:
-        ax[2].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
-        ax[2].set_title(qt_tr.translate("plot_mod", "Units"))
-        if date_presence:
-            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Chronicle [') + date_type + ']')
-        if not date_presence:
-            if not is_constant:
-                ax[2].set_xlabel("")
-            if is_constant:
-                ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
-
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
-        if len(sim_name) < 25:
-            ax[2].set_xticks(x_data, sim_name)  # , rotation=45
-        elif len(sim_name) < 100:
-            ax[2].set_xticks(x_data[::3])
-            ax[2].set_xticklabels(sim_name[::3])
-        elif len(sim_name) < 200:
-            ax[2].set_xticks(x_data[::10])
-            ax[2].set_xticklabels(sim_name[::10])
-        else:
-            ax[2].set_xticks(x_data[::20])
-            ax[2].set_xticklabels(sim_name[::20])
-        ax[2].tick_params(axis='x', rotation=45)
-        if not date_presence and not is_constant:
-            # remove ticks labels
-            ax[2].xaxis.set_ticklabels([])
-        if date_presence:
-            ax[2].xaxis.set_major_formatter(date_format_mpl)
-
-    # LEGEND
-    handles, labels = ax[0].get_legend_handles_labels()
-    fig.legend(handles=handles,
-               labels=labels,
-               loc="center right",
-               borderaxespad=0.5,
-               fancybox=True)
-
-    plt.tight_layout()
-    plt.subplots_adjust(right=0.71)
-
-    # view data with mouse
-    mplcursors.cursor()
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    plt.show()
-
-
-def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
-                                                     "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    # default_size = plt.rcParams['figure.figsize']
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    if project_preferences['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    plt.rcParams['legend.loc'] = 'best'
-    erase1 = project_preferences['erase_id']
-    path_im = os.path.join(path_prj, "output", "figures")
-    mpl.rcParams['pdf.fonttype'] = 42
-
-    # prepare color
-    color_list, style_list = get_colors_styles_line_from_nb_input(len(estimhab_dict["fish_list"]))
-
-    # plot
-    fig, (ax_vh, ax_spu, ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=5,
-                                                          sharex="all",
-                                                          gridspec_kw={'height_ratios': [3, 3, 1, 1, 1]})
-    fig.canvas.set_window_title('ESTIMHAB - HABBY')
-
-    # VH
-    ax_vh.set_title("ESTIMHAB - HABBY")
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
-            ax_vh.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    for fish_index in range(len(estimhab_dict["fish_list"])):
-        ax_vh.plot(estimhab_dict["q_all"],
-                   estimhab_dict["VH"][fish_index],
-                   label=estimhab_dict["fish_list"][fish_index],
-                   color=color_list[fish_index],
-                   linestyle=style_list[fish_index])
-    ax_vh.set_ylim(0, 1)
-    ax_vh.set_ylabel(qt_tr.translate("plot_mod", "Habitat Value\n[]"))
-    ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-
-    # SPU
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
-            ax_spu.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    for fish_index in range(len(estimhab_dict["fish_list"])):
-        ax_spu.plot(estimhab_dict["q_all"],
-                    estimhab_dict["SPU"][fish_index],
-                    label=estimhab_dict["fish_list"][fish_index],
-                    color=color_list[fish_index],
-                    linestyle=style_list[fish_index])
-    ax_spu.set_ylabel(qt_tr.translate("plot_mod", "WUA by 100 m\n[m²]"))
-    ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-
-    # H
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
-            ax_h.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    ax_h.plot(estimhab_dict["q_all"],
-              estimhab_dict["h_all"],
-              color="black")
-    ax_h.set_ylabel(qt_tr.translate("plot_mod", "height\n[m]"))
-    ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-
-    # W
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
-            ax_w.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    ax_w.plot(estimhab_dict["q_all"],
-              estimhab_dict["w_all"],
-              color="black")
-    ax_w.set_ylabel(qt_tr.translate("plot_mod", "width\n[m]"))
-    ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-
-    # V
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
-            ax_v.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    ax_v.plot(estimhab_dict["q_all"],
-              estimhab_dict["vel_all"],
-              color="black")
-    ax_v.set_ylabel(qt_tr.translate("plot_mod", "velocity\n[m/s]"))
-    ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-    ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
-
-    # qtarg
-    if estimhab_dict["qtarg"]:
-        labels = ["Qtarg [m$^{3}$/sec]"]
-        fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
-                   labels=labels,
-                   loc="lower left",
-                   borderaxespad=0.5,
-                   fancybox=False,
-                   bbox_to_anchor=(0.73, 0.1))
-
-    # LEGEND
-    handles, labels = ax_vh.get_legend_handles_labels()
-    fig.legend(handles=handles,
-               labels=labels,
-               loc="center left",
-               borderaxespad=0.5,
-               fancybox=False,
-               bbox_to_anchor=(0.73, 0.5))
-
-    plt.subplots_adjust(right=0.73)
-
-    # name with date and time
-    if format1 == 0:
-        name_pict = "Estimhab" + ".pdf"
-    if format1 == 1:
-        name_pict = "Estimhab" + ".png"
-    if format1 == 2:
-        name_pict = "Estimhab" + ".jpg"
-
-    if os.path.exists(os.path.join(path_im, name_pict)):
-        if not erase1:
-            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-
-    # save image
-    plt.savefig(os.path.join(path_im, name_pict), dpi=project_preferences['resolution'], transparent=True)
-
-    # get data with mouse
-    mplcursors.cursor()
-
-    # finish process
-    state.value = 1  # process finished
-
-    # show
-    plt.show()
 
 
 class SnaptoCursorPT(object):
