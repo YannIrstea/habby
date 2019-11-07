@@ -609,7 +609,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         for i in range(len(selection)):
             variables.append(selection[i].text().replace(" ", "_"))
 
-        # variables
+        # reach
         selection = self.reach_QListWidget.selectedItems()
         reach = []
         for i in range(len(selection)):

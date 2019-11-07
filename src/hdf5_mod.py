@@ -256,7 +256,12 @@ class Hdf5Management:
             hdf5_attributes = list(self.file_object.attrs.items())
             for attribute_name, attribute_data in hdf5_attributes:
                 if "reach_list" in attribute_name:
-                    reach_name = attribute_data.split(", ")
+                    if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
+                        if attribute_name[:3] == "hyd":
+                            reach_name = attribute_data.split(", ")
+                    else:
+                        if attribute_name[:3] == "sub":
+                            reach_name = attribute_data.split(", ")
 
             # to attributes
             self.reach_name = reach_name
