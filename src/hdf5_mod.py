@@ -2504,11 +2504,11 @@ class Hdf5Management:
                 if information_model_dict["ModelType"] != "bivariate suitability index models":
                     # read pref
                     if hab_aquatic_animal_type_list[idx] == "fish":
-                        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
+                        h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
                             bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
                     if hab_aquatic_animal_type_list[idx] == "invertebrate":
                         # open the pref
-                        [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = \
+                        shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
                             bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
 
                     # plot pref
@@ -2526,7 +2526,7 @@ class Hdf5Management:
                                                                                   stages, True, self.project_preferences)
                 else:
                     # open the pref
-                    [h_all, vel_all, pref_values_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                    [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
                                                                                                              hab_aquatic_animal_type_list[idx])
                     [f, axarr] = plot_mod.plot_suitability_curve_bivariate(state,
                                                   h_all,

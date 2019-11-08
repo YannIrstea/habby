@@ -32,7 +32,7 @@ from src_GUI import preferences_GUI
 
 
 # other
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, sub_type, project_preferences, get_fig=False):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, sub_type, sub_code, project_preferences, get_fig=False):
     """
     This function is used to plot the preference curves.
 
@@ -85,7 +85,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             else:
                 axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
             axarr[s, 0].set_ylabel('Coeff. pref.\n' + stade[s])
-            axarr[s, 0].set_ylim([0, 1])
+            axarr[s, 0].set_ylim([-0.1, 1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
             if project_preferences['language'] == 0:
@@ -93,18 +93,18 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             else:
                 axarr[s, 1].set_xlabel('Vitesse [m/sec]')
             #axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 1].set_ylim([0, 1])
+            axarr[s, 1].set_ylim([-0.1, 1.1])
 
             if len(sub[0][0]) > 2:  # if substrate is accounted,
                 # it is accounted for all stages
                 axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
                                 align='center')
                 if project_preferences['language'] == 0:
-                    axarr[s, 2].set_xlabel('Substrate ' + sub_type[s] + ' []')
+                    axarr[s, 2].set_xlabel('Substrate ' + sub_type[s] + ' [' + sub_code[s] +']')
                 else:
-                    axarr[s, 2].set_xlabel('Substrat ' + sub_type[s] + ' []')
+                    axarr[s, 2].set_xlabel('Substrat ' + sub_type[s] + ' [' + sub_code[s] +']')
                 #axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
-                axarr[s, 2].set_ylim([0, 1])
+                axarr[s, 2].set_ylim([-0.1, 1.1])
                 axarr[s, 2].set_xlim([0.4, 8.6])
 
     else:
@@ -113,6 +113,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             f, axarr = plt.subplots(3, 1, sharey='row')
         else:  # no sub
             f, axarr = plt.subplots(2, 1, sharey='row')
+        title_plot = title_plot + "- " + stade[0]
         f.canvas.set_window_title(title_plot)
         plt.suptitle(title_plot)
         axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
@@ -121,24 +122,24 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         else:
             axarr[0].set_xlabel("Hauteur d'eau [m]")
         axarr[0].set_ylabel('Coeff. pref. ')
-        axarr[0].set_ylim([0, 1])
+        axarr[0].set_ylim([-0.1, 1.1])
         axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
         if project_preferences['language'] == 0:
             axarr[1].set_xlabel('Velocity [m/sec]')
         else:
             axarr[1].set_xlabel('Vitesse [m/sec]')
         #axarr[1].set_ylabel('Coeff. pref. ')
-        axarr[1].set_ylim([0, 1])
+        axarr[1].set_ylim([-0.1, 1.1])
 
         # if sub
         if len(sub[0][0]) > 2:
             axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
             if project_preferences['language'] == 0:
-                axarr[2].set_xlabel('Substrate ' + sub_type[0] + ' []')
+                axarr[2].set_xlabel('Substrate ' + sub_type[0] + ' [' + sub_code[0] +']')
             else:
-                axarr[2].set_xlabel('Substrat ' + sub_type[0] + ' []')
+                axarr[2].set_xlabel('Substrat ' + sub_type[0] + ' [' + sub_code[0] +']')
             #axarr[2].set_ylabel('Coeff. pref. ')
-            axarr[2].set_ylim([0, 1])
+            axarr[2].set_ylim([-0.1, 1.1])
             axarr[2].set_xlim([0.4, 8.6])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -277,7 +278,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
             else:
                 axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
                 axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 0].set_ylim([0, 1.1])
+            axarr[s, 0].set_ylim([-0.1, 1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
             if project_preferences['language'] == 0:
@@ -285,7 +286,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
             else:
                 axarr[s, 1].set_xlabel('Vitesse [m/sec]')
             axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 1].set_ylim([0, 1.1])
+            axarr[s, 1].set_ylim([-0.1, 1.1])
 
             # if len(sub[0][0]) > 2:  # if substrate is accounted,
             #     # it is accounted for all stages
@@ -315,7 +316,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         else:
             axarr.set_ylabel("Hauteur d'eau [m]")
             axarr.set_xlabel("Vitesse de l'eau [m/s]")
-        axarr.set_ylim([0, 1.1])
+        axarr.set_ylim([-0.1, 1.1])
         cbar = plt.colorbar(meshcolor)
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
@@ -719,7 +720,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
                    marker=mar)
     ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV []'))
     ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
-    ax[1].set_ylim(0, 1)
+    ax[1].set_ylim([-0.1, 1.1])
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data, [])  #, rotation=rot
         if not date_presence and is_constant:
@@ -837,7 +838,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
                    label=estimhab_dict["fish_list"][fish_index],
                    color=color_list[fish_index],
                    linestyle=style_list[fish_index])
-    ax_vh.set_ylim(0, 1)
+    ax_vh.set_ylim([-0.1, 1.1])
     ax_vh.set_ylabel(qt_tr.translate("plot_mod", "Habitat Value\n[]"))
     ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 

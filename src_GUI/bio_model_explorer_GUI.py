@@ -21,7 +21,7 @@ import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, \
-    QMessageBox, QTabWidget, \
+    QMessageBox, QTabWidget, QApplication,\
     QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QTextEdit
 from subprocess import call
@@ -568,6 +568,7 @@ class BioModelInfoSelection(QScrollArea):
         self.latin_name_label = QLabel("")
         # show_curve
         self.show_curve_pushbutton = QPushButton(self.tr('Show suitability curve'))
+        self.show_curve_pushbutton.setToolTip(self.tr("clic = Selected stage ; SHIFT+clic = All stages"))
         self.show_curve_pushbutton.clicked.connect(self.show_pref)
         # code_alternative
         code_alternative_title_label = QLabel(self.tr('Code alternative:'))
@@ -649,7 +650,7 @@ class BioModelInfoSelection(QScrollArea):
                     if selected_stage_tf:
                         stage_wish = self.dicoselect["stage_and_size"][0][selected_stage_ind]
                         if stage_wish in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
-                            item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " +
+                            item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + " - " +
                                              self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " +
                                              self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
@@ -706,8 +707,11 @@ class BioModelInfoSelection(QScrollArea):
         if not i1:
             return
 
-        self.selected_fish_cd_biological_model = i1.text()
-        self.selected_fish_cd_biological_model = self.selected_fish_cd_biological_model.split(' - ')[-1]
+        # get info
+        name_fish, stage, code_bio_model = bio_info_mod.get_name_stage_codebio_fromstr(i1.text())
+        self.selected_fish_cd_biological_model = code_bio_model
+        self.selected_fish_stage = stage
+        self.selected_name_fish = name_fish
         i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
 
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
@@ -772,10 +776,15 @@ class BioModelInfoSelection(QScrollArea):
         read_pref and figure_pref of bio_info_mod.py. Hence, this function justs makes the link between the GUI and
         the functions effectively doing the image.
         """
-
         if not self.selected_fish_cd_biological_model:
             self.send_log.emit("Warning: " + self.tr("No fish selected to create suitability curves."))
             return
+
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ShiftModifier:
+            selected_fish_stage = None
+        else:
+            selected_fish_stage = self.selected_fish_stage
 
         # get the file
         i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
@@ -783,18 +792,20 @@ class BioModelInfoSelection(QScrollArea):
         aquatic_animal_type = self.biological_models_dict_gui["aquatic_animal_type"][i]
 
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
-
         # plot the pref
         project_preferences = load_project_preferences(self.path_prj, self.name_prj)
         # do the plot
         if not hasattr(self, 'process_list'):
             self.process_list = MyProcessList("plot")
         state = Value("i", 0)
-        if information_model_dict["ModelType"] != "bivariate suitability index models":
+        if information_model_dict["ModelType"] == "univariate suitability index curves":
             if aquatic_animal_type == "fish":
                 # open the pref
-                [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
-                                                                                                 aquatic_animal_type)
+                h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
+                                                                                                 aquatic_animal_type,
+                                                                                               selected_fish_stage)
+
+
                 sub_type = self.biological_models_dict_gui["substrate_type"][i]
                 curve_process = Process(target=plot_mod.plot_suitability_curve,
                                         args=(state,
@@ -805,11 +816,12 @@ class BioModelInfoSelection(QScrollArea):
                                               name_fish,
                                               stages,
                                               sub_type,
+                                              sub_code,
                                               project_preferences,
                                               False))
             if aquatic_animal_type == "invertebrate":
                 # open the pref
-                [shear_stress_all, hem_all, hv_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                [shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
                                                                                                  aquatic_animal_type)
                 curve_process = Process(target=plot_mod.plot_suitability_curve_invertebrate,
                                         args=(state,
@@ -821,9 +833,9 @@ class BioModelInfoSelection(QScrollArea):
                                               stages,
                                               False,
                                               project_preferences))
-        else:
+        else:  # bivariate
             # open the pref
-            [h_all, vel_all, pref_values_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+            [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
                                                                                                        aquatic_animal_type)
             curve_process = Process(target=plot_mod.plot_suitability_curve_bivariate,
                                     args=(state,

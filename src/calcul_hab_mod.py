@@ -174,7 +174,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
         aquatic_animal_type_select = aquatic_animal_type[idx]
         # load bio data
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(bio_name)
-        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name, aquatic_animal_type_select)
+        [pref_height, pref_vel, pref_sub, sub_code, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name, aquatic_animal_type_select)
         # hyd opt
         hyd_opt = run_choice["hyd_opt"][idx]
         # sub opt

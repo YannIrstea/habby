@@ -198,9 +198,7 @@ def get_biomodels_informations_for_database(path_xml):
 
 
 def get_name_stage_codebio_fromstr(item_str):
-    name_fish = item_str.split(":")[0]
-    stage, code_bio_model = item_str.split(":")[1].split(" - ")
-    stage = stage.strip()
+    name_fish, stage, code_bio_model = item_str.split(" - ")
     return name_fish, stage, code_bio_model
 
 
@@ -511,7 +509,7 @@ def get_hydrosignature(xmlfile):
     return data, vclass, hclass
 
 
-def read_pref(xmlfile, aquatic_animal_type="fish"):
+def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
     """
     This function reads the preference curve from the xml file and
      get the subtrate, height and velocity data.
@@ -620,6 +618,7 @@ def read_pref(xmlfile, aquatic_animal_type="fish"):
 
         # substrate
         sub_all = []
+        sub_code = []
         if ModelType != 'bivariate suitability index models':
             pref_sub = root.findall(".//PreferenceSubstrate")
             if pref_sub:
@@ -628,6 +627,10 @@ def read_pref(xmlfile, aquatic_animal_type="fish"):
                     sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
                     sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
                     sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
+                    if pref_sub_i.getchildren()[0].attrib['ClassificationName'] == "Code EVHA 2.0 (GINOT 1998)":
+                        sub_code.append("Cemagref")
+                    else:  # TODO : if another code
+                        sub_code.append("Cemagref")
                     if not sub[0]:
                         # case without substrate
                         sub = [[0, 1], [1, 1]]
@@ -642,6 +645,7 @@ def read_pref(xmlfile, aquatic_animal_type="fish"):
 
     # fish case
     if aquatic_animal_type == "invertebrate":
+        sub_code = []
         # shear_stress_all, hem_all, hv_all
         h_all = []  # fake height (HEM)
         pref_hei = root.findall(".//PreferenceShearStress")
@@ -653,18 +657,25 @@ def read_pref(xmlfile, aquatic_animal_type="fish"):
 
             if not height[0]:
                 print('Error: Height data was not found \n')
-                #return failload
+                return failload
 
             # check increasing velocity
             if height[0] != sorted(height[0]):
                 print('Error: Height data is not sorted for the xml file '
                       + xml_name + '.\n')
-                #return failload
+                return failload
             h_all.append(height[0])
             vel_all.append(height[1])
             sub_all.append(height[2])
 
-    return h_all, vel_all, sub_all, code_fish, name_fish, stages
+    if desired_stages:
+        desired_stage_index = stages.index(desired_stages)
+        h_all = [h_all[desired_stage_index]]
+        vel_all = [vel_all[desired_stage_index]]
+        sub_all = [sub_all[desired_stage_index]]
+        stages = [stages[desired_stage_index]]
+
+    return h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages
 
 
 def change_unit(data, unit):
@@ -680,8 +691,7 @@ def change_unit(data, unit):
 
     if unit == 'Centimeter' or unit == "CentimeterPerSecond":
         data[0] = [x / 100 for x in data[0]]
-    elif unit == "Meter" or unit == "MeterPerSecond" \
-            or unit == "Code EVHA 2.0 (GINOT 1998)":
+    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Code EVHA 2.0 (GINOT 1998)":
         pass
     elif unit == "Millimeter":
         data[0] = [x / 1000 for x in data[0]]
