@@ -916,8 +916,12 @@ class MainWindows(QMainWindow):
         newAction.setStatusTip(self.tr('Create a new project'))
         newAction.triggered.connect(self.new_project)
 
-        self.seeAction = QAction(icon_see, self.tr('See files of the current project'), self)
-        self.seeAction.setStatusTip(self.tr('See the existing file of a project and open them.'))
+        self.seeAction = QAction(icon_see, "clic = See current HABBY project files\n"
+                                          "CTRL+clic == See user HABBY AppData files\n"
+                                          "SHIFT+clic = See HABBY installation files", self)
+        self.seeAction.setStatusTip(self.tr("clic = See current HABBY project files / "
+                                          "CTRL+clic == See user HABBY AppData files / "
+                                          "SHIFT+clic = See HABBY installation files"))
         self.seeAction.triggered.connect(self.see_file)
 
         closeAction = QAction(icon_closefig, self.tr('Close figure windows'), self)
