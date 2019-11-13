@@ -525,6 +525,7 @@ class BioModelInfoSelection(QScrollArea):
         self.msg2 = QMessageBox()
         self.init_iu()
         self.lang = 0
+        self.animal_picture_path = None
 
     def init_iu(self):
         # insist on white background color (for linux, mac)
@@ -561,7 +562,6 @@ class BioModelInfoSelection(QScrollArea):
         self.selected_aquatic_animal_listwidget.setSortingEnabled(True)
         self.selected_aquatic_animal_listwidget.model().rowsInserted.connect(self.count_models_listwidgets)
         self.selected_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
-        # self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
         latin_name_title_label = QLabel(self.tr('Latin Name: '))
@@ -575,6 +575,8 @@ class BioModelInfoSelection(QScrollArea):
         self.code_alternative_label = QLabel("")
         # hydrosignature
         self.hydrosignature_pushbutton = QPushButton(self.tr('Show Measurement Conditions (Hydrosignature)'))
+        self.hydrosignature_pushbutton.setToolTip(self.tr('A hydrosignature quantifies the hydraulic diversity in any area/part of the aquatic space \n'
+                                                          'defined by either volume or area percentages on a depth and current velocity cross grid.'))
         self.hydrosignature_pushbutton.clicked.connect(self.show_hydrosignature)
         # description
         description_title_label = QLabel(self.tr('Description:'))
