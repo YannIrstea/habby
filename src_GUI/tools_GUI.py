@@ -323,7 +323,17 @@ class InterpolationGroup(QGroupBoxCollapsible):
     def display_required_units_from_sequence(self):
         # is value entry ?
         if self.from_qlineedit.text() == "" or self.to_qlineedit.text() == "" or self.by_qlineedit.text() == "":
-            self.send_log.emit('Error: ' + self.tr('Sequence values must be specified (from, to and by).'))
+            self.send_log.emit('Error: ' + self.tr('The sequence values must be specified (from, to and by).'))
+            return
+
+        # is float string
+        if not tools_mod.isstranumber(self.from_qlineedit.text()) or not tools_mod.isstranumber(self.to_qlineedit.text()) or not tools_mod.isstranumber(self.by_qlineedit.text()):
+            self.send_log.emit('Error: ' + self.tr('The sequence values must be of numerical type.'))
+            return
+
+        # is min > max
+        if float(self.from_qlineedit.text()) >= float(self.to_qlineedit.text()):
+            self.send_log.emit('Error: ' + self.tr('Max sequence value must be strictly greater than min sequence value.'))
             return
 
         # is fish ?
