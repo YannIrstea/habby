@@ -3317,11 +3317,11 @@ class HEC_RAS2D(SubHydroW):
                 self.reach_name_label.setText(self.hydrau_description["reach_list"])
                 self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
                 self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"].split(", "))
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
                 if not self.hydrau_description["unit_list_tf"]:
                     self.units_QListWidget.selectAll()
                 else:
-                    for i in range(len(self.hydrau_description["unit_list_full"].split(", "))):
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
                         self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                 self.units_QListWidget.setEnabled(True)
@@ -3351,7 +3351,7 @@ class HEC_RAS2D(SubHydroW):
                 self.reach_name_label.setText(self.hydrau_description["reach_list"])
                 self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
                 self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"].split(", "))
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
                 if not self.hydrau_description["unit_list_tf"]:
                     self.units_QListWidget.selectAll()
                 else:
@@ -3408,14 +3408,14 @@ class HEC_RAS2D(SubHydroW):
         # save multi
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = ", ".join(unit_list)
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = ", ".join(unit_list_full)
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
         # save one
         else:
-            self.hydrau_description["unit_list"] = ", ".join(unit_list)
-            self.hydrau_description["unit_list_full"] = ", ".join(unit_list_full)
+            self.hydrau_description["unit_list"] = unit_list
+            self.hydrau_description["unit_list_full"] = unit_list_full
             self.hydrau_description["unit_list_tf"] = selected_list
             self.hydrau_description["unit_number"] = str(selected)
 
@@ -3444,23 +3444,6 @@ class HEC_RAS2D(SubHydroW):
         self.epsg_hec_ras2d_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
         self.load_b.setText(self.tr("Create .hyd file"))
-
-    def get_time_step(self):
-        """
-        The function get timestep if selafin files to display them in GUI, in order for the user to be able to choose some of them.
-        """
-        nbtimes, timestep = hec_ras2d_mod.get_time_step(self.namefile[0], self.pathfile[0])
-
-        # number timestep
-        self.number_timstep_label.setText(str(nbtimes))
-
-        self.units_QListWidget.clear()
-        self.units_QListWidget.addItems(timestep)
-        for i in range(nbtimes):
-            self.units_QListWidget.item(i).setSelected(True)
-            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignRight)
-        # self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0)
-        # + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
 
     def set_epsg_code(self):
         if hasattr(self, 'hydrau_description'):
@@ -6386,15 +6369,10 @@ class SubstrateW(SubHydroW):
             sys.stdout = sys.__stdout__  # reset to console
             self.send_err_log()
 
-            # copy shape file (compsed of .shp, .shx and .dbf)
+            # copy_shapefiles
             path_input = self.find_path_input()
-            name_all = [filename, name1, name2]
-            path_all = [self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon]
-            # we might have an addition projection file to copy
-            if os.path.isfile(pathname3):
-                name_all = [filename, name1, name2, name3]
-                path_all = [self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon]
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(name_all, path_all, path_input))
+            self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_polygon,
+                                                                                       filename), path_input))
             self.p2.start()
 
             # log info
@@ -6493,18 +6471,14 @@ class SubstrateW(SubHydroW):
 
                 # copy
                 if ext == ".shp":
-                    # copy shape file (compsed of .shp, .shx and .dbf)
+                    # copy_shapefiles
                     path_input = self.find_path_input()
-                    name_all = [filename, name1, name2]
-                    path_all = [self.pathfile_point, self.pathfile_point, self.pathfile_point]
-                    # we might have an addition projection file to copy
-                    if os.path.isfile(pathname3):
-                        name_all = [filename, name1, name2, name3]
-                        path_all = [self.pathfile_point, self.pathfile_point, self.pathfile_point, self.pathfile_point]
-                    self.p2 = Process(target=hdf5_mod.copy_files, args=(name_all, path_all, path_input))
+                    self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_point,
+                                                                                               filename), path_input))
                 else:  # .txt
                     path_input = self.find_path_input()
                     self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+
                 self.p2.start()
 
                 # log info
@@ -6525,10 +6499,6 @@ class SubstrateW(SubHydroW):
             # save path and name substrate
             self.save_xml(0)  # txt filename in xml
             filename = self.file_constant_label.text()
-            namebase, ext = os.path.splitext(filename)
-            path_im = self.find_path_im()
-            path_shp = self.find_path_input()
-            path_hdf5 = self.find_path_hdf5()
             sub_classification_code = self.sub_classification_code_constant_label.text()
             sub_classification_method = self.sub_classification_method_constant_label.text()
             sub_constant_values = self.valuesdata_constant_label.text()

@@ -17,6 +17,8 @@ https://github.com/YannIrstea/habby
 import os
 import sys
 from io import StringIO
+from glob import glob
+from shutil import copy as sh_copy
 
 import numpy as np
 import triangle as tr
@@ -452,137 +454,158 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     # get EPSG
     crs = layer.GetSpatialRef()
 
-    # Extract list of points and segments from shp
-    vertices_array = []  # point
-    segments_array = []  # segment index or connectivity table
-    holes_array = []
-    inextpoint = 0
-    records = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+    # check if all polygon are triangle yet
+    point_nb_list = []
     for feature_ind, feature in enumerate(layer):
-        records[feature_ind] = [feature.GetField(j) for j in header_list]
         shape_geom = feature.geometry()
-        shape_geom.SetCoordinateDimension(2)  # never z values
-        if shape_geom.GetGeometryCount() > 1:  # polygon a trous
-            # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
-            index_hole = [0]
-            all_coord = []
-            for part_num, part in enumerate(range(shape_geom.GetGeometryCount())):
-                geom_part = shape_geom.GetGeometryRef(part_num)
-                coord_part = geom_part.GetPoints()
-                all_coord.extend(coord_part)
-                if part_num == shape_geom.GetGeometryCount() - 1:  # last
-                    index_hole.append(index_hole[-1] + len(coord_part))
-                else:
-                    index_hole.append(len(coord_part))
+        new_points = shape_geom.GetGeometryRef(0).GetPoints()
+        point_nb_list.append(len(new_points))
 
-            new_points = []
-            lnbptspolys = []
-            for j in range(len(index_hole) - 1):
-                new_points.extend(all_coord[index_hole[j]:index_hole[j + 1] - 1])
-                lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
-                if j > 0:  # hole presence : creating a single point inside the hole using triangulation
-                    vertices_hole = np.array(all_coord[index_hole[j]:index_hole[j + 1] - 1])
-                    segments_hole = []
-                    for k in range(lnbptspolys[-1]):
-                        segments_hole.append([k % lnbptspolys[-1], (k + 1) % lnbptspolys[-1]])
-                    segments_hole = np.array(segments_hole)
-                    polygon_hole = dict(vertices=vertices_hole, segments=segments_hole)
-                    polygon_hole_triangle = tr.triangulate(polygon_hole, "p")
-                    p1 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][0]].tolist()
-                    p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
-                    p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
-                    holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
-        else:
-            new_points = shape_geom.GetGeometryRef(0).GetPoints()
-            lnbptspolys = [len(new_points)]
-        # add
-        vertices_array.extend(new_points)  # add the points to list
-        for j in range(len(lnbptspolys)):  # add the segments to list
-            for k in range(lnbptspolys[j]):
-                segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
-            inextpoint += lnbptspolys[j]
+    # all_polygon_triangle_tf
+    if list(set(point_nb_list)) == [4]:
+        # copy input file to input files folder with suffix triangulated
+        all_input_files_abspath_list = glob(os.path.join(path_file, filename[:-4]) + "*")
+        all_input_files_files_list = [os.path.basename(file_path) for file_path in all_input_files_abspath_list]
+        for i in range(len(all_input_files_files_list)):
+            sh_copy(all_input_files_abspath_list[i],
+                    os.path.join(os.path.join(path_prj, "input"),
+                                          all_input_files_files_list[i][:-4] +
+                                          "_triangulated" +
+                                          all_input_files_files_list[i][-4:]))
+        print("Warning: Input selected shapefile polygon is already a triangle type.")
 
-    # Remove duplicates
-    vertices_array2, segments_array2, holes_array = remove_duplicates_points_to_triangulate(vertices_array,
-                                                                                 segments_array,
-                                                                                 holes_array)
-
-
-
-    # triangulate on polygon (if we use regions)
-    if holes_array.size == 0:
-        polygon_from_shp = dict(vertices=vertices_array2,
-                                segments=segments_array2)
+    # not all_polygon_triangle_tf
     else:
-        polygon_from_shp = dict(vertices=vertices_array2,
-                                segments=segments_array2,
-                                holes=holes_array)
-    polygon_triangle = tr.triangulate(polygon_from_shp, "p")  # triangulation
-    #tr.compare(plt, polygon_from_shp, polygon_triangle)
-
-    # get geometry and attributes of triangles
-    triangle_geom_list = []
-    triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
-    for i in range(len(polygon_triangle["triangles"])):
-        # triangle coords
-        p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]]
-        p2 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][1]]
-        p3 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][2]]
-        triangle_geom_list.append([p1, p2, p3])
-        # triangle centroid
-        xmean = (p1[0] + p2[0] + p3[0]) / 3
-        ymean = (p1[1] + p2[1] + p3[1]) / 3
-        polyg_center = (xmean, ymean)
-        layer.ResetReading()  # reset the read position to the start
-        # if center in polygon: get attributes
-        for j, feature in enumerate(layer):
+        # Extract list of points and segments from shp
+        vertices_array = []  # point
+        segments_array = []  # segment index or connectivity table
+        holes_array = []
+        inextpoint = 0
+        records = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+        layer.ResetReading()
+        for feature_ind, feature in enumerate(layer):
+            records[feature_ind] = [feature.GetField(j) for j in header_list]
             shape_geom = feature.geometry()
-            geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
-            point_list = geom_part.GetPoints()[:-1]
-            if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
-                triangle_records_list[i] = records[j]
-                break
+            shape_geom.SetCoordinateDimension(2)  # never z values
+            if shape_geom.GetGeometryCount() > 1:  # polygon a trous
+                # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
+                index_hole = [0]
+                all_coord = []
+                for part_num, part in enumerate(range(shape_geom.GetGeometryCount())):
+                    geom_part = shape_geom.GetGeometryRef(part_num)
+                    coord_part = geom_part.GetPoints()
+                    all_coord.extend(coord_part)
+                    if part_num == shape_geom.GetGeometryCount() - 1:  # last
+                        index_hole.append(index_hole[-1] + len(coord_part))
+                    else:
+                        index_hole.append(len(coord_part))
 
-    # close file
-    ds.Destroy()
+                new_points = []
+                lnbptspolys = []
+                for j in range(len(index_hole) - 1):
+                    new_points.extend(all_coord[index_hole[j]:index_hole[j + 1] - 1])
+                    lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
+                    if j > 0:  # hole presence : creating a single point inside the hole using triangulation
+                        vertices_hole = np.array(all_coord[index_hole[j]:index_hole[j + 1] - 1])
+                        segments_hole = []
+                        for k in range(lnbptspolys[-1]):
+                            segments_hole.append([k % lnbptspolys[-1], (k + 1) % lnbptspolys[-1]])
+                        segments_hole = np.array(segments_hole)
+                        polygon_hole = dict(vertices=vertices_hole, segments=segments_hole)
+                        polygon_hole_triangle = tr.triangulate(polygon_hole, "p")
+                        p1 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][0]].tolist()
+                        p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
+                        p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
+                        holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
+            else:
+                new_points = shape_geom.GetGeometryRef(0).GetPoints()
+                lnbptspolys = [len(new_points)]
+            # add
+            vertices_array.extend(new_points)  # add the points to list
+            for j in range(len(lnbptspolys)):  # add the segments to list
+                for k in range(lnbptspolys[j]):
+                    segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
+                inextpoint += lnbptspolys[j]
 
-    # write triangulate shapefile
-    out_shp_basename = os.path.splitext(filename)[0]
-    out_shp_filename = out_shp_basename + "_triangulated.shp"
-    out_shp_path = os.path.join(path_prj, "input")
-    out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
-    ds = driver.CreateDataSource(out_shp_abs_path)
-    if not crs:  # '' == crs unknown
-        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
-    else:  # crs known
-        layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
+        # Remove duplicates
+        vertices_array2, segments_array2, holes_array = remove_duplicates_points_to_triangulate(vertices_array,
+                                                                                     segments_array,
+                                                                                     holes_array)
 
-    for field in header_list:
-        layer.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
+        # triangulate on polygon (if we use regions)
+        if holes_array.size == 0:
+            polygon_from_shp = dict(vertices=vertices_array2,
+                                    segments=segments_array2)
+        else:
+            polygon_from_shp = dict(vertices=vertices_array2,
+                                    segments=segments_array2,
+                                    holes=holes_array)
+        polygon_triangle = tr.triangulate(polygon_from_shp, "p")  # triangulation
+        #tr.compare(plt, polygon_from_shp, polygon_triangle)
 
-    defn = layer.GetLayerDefn()
-    layer.StartTransaction()  # faster
-    for i in range(len(triangle_geom_list)):
-        ring = ogr.Geometry(ogr.wkbLinearRing)
-        for point_ind in [0, 1, 2, 0]:
-            ring.AddPoint(triangle_geom_list[i][point_ind][0], triangle_geom_list[i][point_ind][1])
-        # Create polygon
-        poly = ogr.Geometry(ogr.wkbPolygon)
-        poly.AddGeometry(ring)
-        # Create a new feature
-        feat = ogr.Feature(defn)
-        for field_num, field in enumerate(header_list):
-            feat.SetField(field, int(triangle_records_list[i][field_num]))
-        # set geometry
-        feat.SetGeometry(poly)
-        # create
-        layer.CreateFeature(feat)
+        # get geometry and attributes of triangles
+        triangle_geom_list = []
+        triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
+        for i in range(len(polygon_triangle["triangles"])):
+            # triangle coords
+            p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]]
+            p2 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][1]]
+            p3 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][2]]
+            triangle_geom_list.append([p1, p2, p3])
+            # triangle centroid
+            xmean = (p1[0] + p2[0] + p3[0]) / 3
+            ymean = (p1[1] + p2[1] + p3[1]) / 3
+            polyg_center = (xmean, ymean)
+            layer.ResetReading()  # reset the read position to the start
+            # if center in polygon: get attributes
+            for j, feature in enumerate(layer):
+                shape_geom = feature.geometry()
+                geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
+                point_list = geom_part.GetPoints()[:-1]
+                if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
+                    triangle_records_list[i] = records[j]
+                    break
 
-    # Save and close everything
-    layer.CommitTransaction()  # faster
+        # close file
+        ds.Destroy()
 
-    # close file
-    ds.Destroy()
+        # write triangulate shapefile
+        out_shp_basename = os.path.splitext(filename)[0]
+        out_shp_filename = out_shp_basename + "_triangulated.shp"
+        out_shp_path = os.path.join(path_prj, "input")
+        out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
+        ds = driver.CreateDataSource(out_shp_abs_path)
+        if not crs:  # '' == crs unknown
+            layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
+        else:  # crs known
+            layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
+
+        for field in header_list:
+            layer.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
+
+        defn = layer.GetLayerDefn()
+        layer.StartTransaction()  # faster
+        for i in range(len(triangle_geom_list)):
+            ring = ogr.Geometry(ogr.wkbLinearRing)
+            for point_ind in [0, 1, 2, 0]:
+                ring.AddPoint(triangle_geom_list[i][point_ind][0], triangle_geom_list[i][point_ind][1])
+            # Create polygon
+            poly = ogr.Geometry(ogr.wkbPolygon)
+            poly.AddGeometry(ring)
+            # Create a new feature
+            feat = ogr.Feature(defn)
+            for field_num, field in enumerate(header_list):
+                feat.SetField(field, int(triangle_records_list[i][field_num]))
+            # set geometry
+            feat.SetGeometry(poly)
+            # create
+            layer.CreateFeature(feat)
+
+        # Save and close everything
+        layer.CommitTransaction()  # faster
+
+        # close file
+        ds.Destroy()
 
     return True
 
@@ -1037,60 +1060,13 @@ def pref_substrate_coarser_from_percentage_description(prefsub, c1):
     codsub = list(range(1, len(prefsub) + 1))
     return prefsub[np.amax((c1 != 0) * codsub, axis=1) - 1]
 
-# prefsub=np.array([0.1,0.2,0.25,0.5,1,0.3,0.7,0.6])
-# #la description du substrat par maille est sous forme de % pour ici les 8 classes substrat Cemagref
-# c1=np.array([[ 8, 15,  12, 20, 11, 20,  0,  14],
-#        [ 1, 10,  2, 11,  6, 34,  2, 34],
-#        [15, 15,  15,  10, 10, 11, 12,  12],
-#        [27,  4,  8,  8,  0,  2, 34, 17],
-#        [34,  6,  4, 27,  2,  9, 14,  4],
-#        [ 1, 16, 10, 11, 20, 29, 11,  2],
-#        [26,  46,  5, 20,  3, 0,  0,  0],
-#        [22,  19,  2, 19, 32,  6, 0,  0],
-#        [ 8,  1, 24,  3, 22, 13, 25,  4],
-#        [17,  7,  6, 11, 36,  7,  9,  7],
-#        [ 9, 11, 26, 32,  3,  0,  0, 19]])
-#
 
-
-#vhdom=pref_substrate_dominant_from_percentage_description(prefsub,c1)
-##>>> vhdom
-##array([0.4       , 0.45      , 0.18333333, 0.7       , 0.1       ,
-##       0.3       , 0.2       , 1.        , 0.7       , 1.        ,
-##       0.5       ])
-#vhcoarser=pref_substrate_coarser_from_percentage_description(prefsub,c1)
-#array([0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 1. , 0.3, 0.6, 0.6, 0.6])
-
-def main():
+def copy_shapefiles(input_shapefile_abspath, dest_folder_path):
     """
-    Used to test this module.
+    get all file with same prefix of input_shapefile_abspath and copy them to dest_folder_path.
     """
-
-    path = r'D:\Diane_work\output_hydro\substrate'
-
-    # test create shape
-    # filename = 'mytest.shp'
-    # filetxt = 'sub_txt2.txt'
-    # # load shp file
-    # [coord_p, ikle_sub, sub_info] = load_sub_shp(filename, path, 'VELOCITY')
-    # fig_substrate(coord_p, ikle_sub, sub_info, path)
-    # # load txt file
-    # [coord_pt, ikle_subt, sub_infot,  x, y, sub] = load_sub_txt(filetxt, path,)
-    # fig_substrate(coord_pt, ikle_subt, sub_infot, path, x, y, sub)
-
-    # test merge grid
-    path1 = r'D:\Diane_work\dummy_folder\DefaultProj'
-    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.hab')
-    hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.hab')
-    # [ikle_both, point_all_both, sub_data1, subdata2,  vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, -1)
-    # fig_merge_grid(point_all_both[0], ikle_both[0], path1)
-    # plt.show()
-
-    # test create dummy substrate
-    # path = r'D:\Diane_work\dummy_folder\DefaultProj'
-    # fileh5 = 'Hydro_RUBAR2D_BS15a607_02_2017_at_15_50_13.hab'
-    # create_dummy_substrate_from_hydro(fileh5, path, 'dummy_hydro_substrate2', 'Sandre', 0)
-
-
-if __name__ == '__main__':
-    main()
+    # copy input file to input files folder with suffix triangulated
+    all_input_files_abspath_list = glob(input_shapefile_abspath[:-4] + "*")
+    all_input_files_files_list = [os.path.basename(file_path) for file_path in all_input_files_abspath_list]
+    for i in range(len(all_input_files_files_list)):
+        sh_copy(all_input_files_abspath_list[i], os.path.join(dest_folder_path, all_input_files_files_list[i]))

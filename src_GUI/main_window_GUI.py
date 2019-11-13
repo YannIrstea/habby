@@ -917,7 +917,7 @@ class MainWindows(QMainWindow):
         newAction.triggered.connect(self.new_project)
 
         self.seeAction = QAction(icon_see, "clic = See current HABBY project files\n"
-                                          "CTRL+clic == See user HABBY AppData files\n"
+                                          "CTRL+clic = See user HABBY AppData files\n"
                                           "SHIFT+clic = See HABBY installation files", self)
         self.seeAction.setStatusTip(self.tr("clic = See current HABBY project files / "
                                           "CTRL+clic == See user HABBY AppData files / "
@@ -1523,6 +1523,8 @@ class MainWindows(QMainWindow):
         This function close the current project without opening a new project
         """
 
+        self.end_concurrency()
+
         # open an empty project (so it close the old one)
         self.empty_project()
 
@@ -1538,7 +1540,6 @@ class MainWindows(QMainWindow):
         self.clear_log()
         self.central_widget.write_log(self.tr('Create or open a project.'))
 
-        self.end_concurrency()
 
     def save_project_if_new_project(self):
         """
