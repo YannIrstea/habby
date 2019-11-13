@@ -128,7 +128,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             axarr[1].set_xlabel('Velocity [m/sec]')
         else:
             axarr[1].set_xlabel('Vitesse [m/sec]')
-        #axarr[1].set_ylabel('Coeff. pref. ')
+        axarr[1].set_ylabel('Coeff. pref. ')
         axarr[1].set_ylim([-0.1, 1.1])
 
         # if sub
@@ -138,7 +138,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
                 axarr[2].set_xlabel('Substrate ' + sub_type[0] + ' [' + sub_code[0] +']')
             else:
                 axarr[2].set_xlabel('Substrat ' + sub_type[0] + ' [' + sub_code[0] +']')
-            #axarr[2].set_ylabel('Coeff. pref. ')
+            axarr[2].set_ylabel('Coeff. pref. ')
             axarr[2].set_ylim([-0.1, 1.1])
             axarr[2].set_xlim([0.4, 8.6])
 
