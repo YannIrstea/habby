@@ -6651,9 +6651,20 @@ class SubstrateW(SubHydroW):
         """
         self.model_type = 'HABITAT'
         self.data_type = "HABITAT"
-        # if hdf5_filename_output empty: msg
+
+        # if not .hyd
+        if not self.drop_hyd.currentText():
+            self.send_log.emit(self.tr('Error: no input .hyd file selected. Please specify it.'))
+            return
+
+        # if not .sub
+        if not self.drop_sub.currentText():
+            self.send_log.emit(self.tr('Error: no input .sub file selected. Please specify it.'))
+            return
+
+        # if not .hab name
         if not self.hdf5_merge_lineedit.text():
-            self.send_log.emit(self.tr('Warning: .hab filename output is empty. Please specify it.'))
+            self.send_log.emit(self.tr('Error: .hab filename output is empty. Please specify it.'))
             return
 
         # show progressbar
@@ -6665,7 +6676,6 @@ class SubstrateW(SubHydroW):
 
         # get useful data
         path_hdf5 = self.find_path_hdf5()
-        path_shp = self.find_path_output("Path_Shape")
         if len(self.drop_hyd) > 1:
             hdf5_name_hyd = self.drop_hyd.currentText()  # path_hdf5 + "/" +
         elif len(self.drop_hyd) == 0:
@@ -6686,7 +6696,6 @@ class SubstrateW(SubHydroW):
             nb = nb + 1
             name_hdf5merge = self.hdf5_merge_lineedit.text() + "_" + str(nb)
 
-        # get if we erase old data or not
         # get the figure options and the type of output to be created
         project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
@@ -6715,7 +6724,6 @@ class SubstrateW(SubHydroW):
         self.p.start()
 
         # log
-        # functions if ind is zero also
         self.send_log.emit("py    file_hyd=r'" + self.hyd_name[self.drop_hyd.currentIndex() - 1] + "'")
         self.send_log.emit("py    name_sub=r'" + self.sub_name[self.drop_sub.currentIndex()] + "'")
         self.send_log.emit("py    path_sub=r'" + path_hdf5 + "'")
