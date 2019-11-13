@@ -29,7 +29,7 @@ from src.tools_mod import get_translator
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_names, name_fish_sh, run_choice, path_bio,
                         path_txt, progress_value, q=[], print_cmd=False, project_preferences={},
-                        aquatic_animal_type="fish", xmlfiles=[]):
+                        aquatic_animal_type=[], xmlfiles=[]):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
@@ -69,12 +69,38 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    # load hab file
+    # load data and get variable to compute
     hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(path_hdf5), hdf5_file)
     hdf5.load_hdf5_hab()
     variable_mesh = ["area", "height", "velocity"]
+    HEM_computation = False
     if "invertebrate" in aquatic_animal_type:
+        HEM_computation = True
+        if int(hdf5.data_description["hyd_model_dimension"]) == 1:
+            print("Error: To compute shearstress for invertebrates, the dimension of the hydraulic model "
+                  ".hab must be at least 2D.")
+            HEM_computation = False
+        if not hdf5.data_description["hyd_cuted_mesh_partialy_dry"]:
+            print("Warning: To compute the shearstress for invertebrates, the partially dry hydraulic meshes in the "
+                  ".hab file must be cuted (option in general preferences). Invertebrate models will not be computed.")
+            HEM_computation = False
+
+    if HEM_computation:
         variable_mesh = variable_mesh + ["shear_stress"]
+    else:
+        # invertebrate indice
+        invertebrate_indice = [x for x in range(len(aquatic_animal_type)) if aquatic_animal_type[x] == "invertebrate"]
+        # remove invertebrate models
+        for i in reversed(invertebrate_indice):
+            aquatic_animal_type.pop(i)
+            fish_names.pop(i)
+            name_fish_sh.pop(i)
+            pref_list.pop(i)
+            stages_chosen.pop(i)
+            run_choice["hyd_opt"].pop(i)
+            run_choice["sub_opt"].pop(i)
+
+    # compute_variables
     hdf5.compute_variables(variables_mesh=variable_mesh)
 
     # fig options
