@@ -2249,6 +2249,12 @@ class Hdf5Management:
                             data_here += '\t' + str(wua_fish)
 
                         data_here += '\n'
+
+                        # change decimal point
+                        if localeconv()['decimal_point'] == ",":
+                            data_here = data_here.replace('.', ',')
+
+                        # write file
                         f.write(data_here)
 
             if state:
@@ -2368,6 +2374,10 @@ class Hdf5Management:
                                 if fish_names:
                                     for fish_name in fish_names:
                                         data_here += f"\t{str(self.data_2d['mesh']['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
+                    # change decimal point
+                    if localeconv()['decimal_point'] == ",":
+                        data_here = data_here.replace('.', ',')
+
                     # write file
                     f.write(data_here)
 
@@ -2445,6 +2455,9 @@ class Hdf5Management:
                             data_here += '\n'
                             data_here += f"{str(reach_num)}\t{x}\t{y}\t{z}\t{v}\t{h}\t{water_level}\t{Froude}\t{hydraulic_head}\t{conveyance}"
 
+                    # change decimal point
+                    if localeconv()['decimal_point'] == ",":
+                        data_here = data_here.replace('.', ',')
                     # write file
                     f.write(data_here)
 

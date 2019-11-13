@@ -19,6 +19,7 @@ import sys
 import urllib
 from copy import deepcopy
 from time import sleep
+from locale import localeconv
 
 import numpy as np
 from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread
@@ -325,6 +326,9 @@ def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_pr
     try:
         output_full_path = os.path.join(path_prj, "output", "text", os.path.splitext(filename)[0] + "_empty_chronicle.txt")
         with open(output_full_path, 'wt') as f:
+            # change decimal point
+            if localeconv()['decimal_point'] == ",":
+                text = text.replace('.', ',')
             f.write(text)
         return True
     except:
@@ -374,6 +378,7 @@ def read_chronicle_from_text_file(chronicle_filepath):
                     if not data:
                         chronicle_from_file["units"].append(None)
                     if data:
+                        data = data.replace(",", ".")  # decimal_point_security
                         chronicle_from_file["units"].append(float(data))
                 # date presence
                 if index == date_index:
@@ -553,6 +558,9 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
             if not data_hv:
                 linetext += "None" + "\t"
             if data_hv:
+                # change decimal point
+                if localeconv()['decimal_point'] == ",":
+                    data_hv = data_hv.replace('.', ',')
                 linetext += str(data_hv) + "\t"
         # new line
         linetext += "\n"
