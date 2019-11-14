@@ -127,6 +127,7 @@ class BioModelExplorerWindow(QDialog):
 
     def showEvent(self, QShowEvent):
         self.load_model_selected_to_available()
+        self.bio_model_infoselection_tab.add_selected_to_main_pushbutton.setFocus()
 
 
 class BioModelFilterTab(QScrollArea):
@@ -665,6 +666,7 @@ class BioModelInfoSelection(QScrollArea):
         """
         method to count total number of models in twice listwidgets. Sort is automatic but not apply when dra/drop in same listwidget.
         """
+        self.add_selected_to_main_pushbutton.setFocus()
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(self.available_aquatic_animal_listwidget.count()) + ")")
         self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(self.selected_aquatic_animal_listwidget.count()) + ")")
 
