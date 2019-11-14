@@ -154,7 +154,8 @@ def estimhab(estimhab_dict, qt_tr):
         # load xml file
         filename = os.path.join(path_bio, fish_xml[f])
         if os.path.isfile(filename):
-            doc = ET.parse(filename)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename, parser)
             root = doc.getroot()
         else:
             print('Error: ' + qt_tr.translate("estimhab_mod", 'The xml file for the file ') + filename +

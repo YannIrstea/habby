@@ -30,10 +30,7 @@ from src import hdf5_mod
 from src import plot_mod
 from src_GUI import preferences_GUI
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 
 
 def get_biomodels_informations_for_database(path_xml):
@@ -87,9 +84,9 @@ def get_biomodels_informations_for_database(path_xml):
         CdAlternative = [root.find('.//CdAlternative').text]
 
     # aquatic_animal_type
-    if root.find(".//Fish"):
+    if root.find(".//Fish") is not None:
         aquatic_animal_type = "fish"
-    elif root.find(".//Invertebrate"):
+    elif root.find(".//Invertebrate") is not None:
         aquatic_animal_type = "invertebrate"
     else:
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)

@@ -15,10 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 import shutil
 
 
@@ -39,7 +36,8 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
         # print('Error: project is not found \n')
         return
     else:
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         child1 = root.find(".//Figure_Option")
         if child1 is not None:  # modify existing option
@@ -47,7 +45,7 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
             if langfig1 is None:
                 langfig1 = ET.SubElement(child1, "LangFig")
             langfig1.text = str(nb_lang)
-            doc.write(fname)
+            doc.write(fname, pretty_print=True)
 
 
 def set_project_type(physical, statistical, path_prj, name_prj):
@@ -66,7 +64,8 @@ def set_project_type(physical, statistical, path_prj, name_prj):
         return
     else:
         # project_type
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         general_element = root.find('.//General')
         physic_tabs_element = general_element.find('Physic_Tabs')
@@ -81,7 +80,7 @@ def set_project_type(physical, statistical, path_prj, name_prj):
             stat_tabs_element.text = str(statistical)
         else:
             stat_tabs_element.text = str(statistical)
-        doc.write(fname)
+        doc.write(fname, pretty_print=True)
 
 
 def load_project_preferences(path_prj, name_prj):
@@ -107,7 +106,8 @@ def load_project_preferences(path_prj, name_prj):
     elif not os.path.isfile(fname):  # the project is not found
         print('Warning: No project file (.habby) found.\n')
     else:
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         child1 = root.find(".//General")
         if child1 is not None:  # modify existing option
@@ -348,7 +348,7 @@ def create_project_structure(path_prj, logon, version, username_prj, descri_prj,
     # save new xml file
     if name_prj != '':
         fname = os.path.join(path_prj, name_prj + '.habby')
-        tree.write(fname)
+        tree.write(fname, pretty_print=True)
 
     # create a default directory for the figures and the hdf5
     if not os.path.exists(path_input):

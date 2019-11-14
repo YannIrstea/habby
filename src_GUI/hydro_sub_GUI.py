@@ -52,10 +52,7 @@ from src.tools_mod import QGroupBoxCollapsible
 from src.user_preferences_mod import user_preferences
 from src.project_manag_mod import load_project_preferences
 np.set_printoptions(threshold=np.inf)
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 
 
 class Hydro2W(QScrollArea):
@@ -644,7 +641,8 @@ class SubHydroW(QWidget):
         """
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//" + self.attributexml[i])
             # if there is data in the project file about the model
@@ -830,7 +828,8 @@ class SubHydroW(QWidget):
             self.end_log.emit('Error: The project is not saved. '
                               'Save the project in the General tab before saving hydrological data. \n')
         else:
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
 
             # save last file path
@@ -852,7 +851,7 @@ class SubHydroW(QWidget):
                     child.text += filename_path_file
                 else:
                     child.text = filename_path_file
-            doc.write(filename_path_pro, method="xml")
+            doc.write(filename_path_pro, method="xml", pretty_print=True)
 
     def find_path_im(self):
         """
@@ -866,7 +865,8 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
@@ -896,7 +896,8 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
@@ -918,7 +919,8 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Input")
             if child is None:
@@ -949,7 +951,8 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//" + att)
             if child is None:
@@ -976,7 +979,8 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.findall('.//' + att_here)
             if child is not None:
@@ -1303,7 +1307,8 @@ class SubHydroW(QWidget):
             self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The project is not saved. '
                                'Save the project in the General tab before saving hydraulic data. \n'))
         else:
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             # geo data
             if type == "hdf5_substrate": # substrate hdf5
@@ -5460,7 +5465,8 @@ class HabbyHdf5(SubHydroW):
             self.send_log.emit('Error: ' + self.tr('No project saved. Please create a project first in the General tab.\n'))
             return
         else:
-            doc = ET.parse(filename_prj)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
             # new xml category in case the hydrological model is not supported by HABBY
             # as long s loded in the right format, it would not be a problem
@@ -5479,7 +5485,7 @@ class HabbyHdf5(SubHydroW):
                     hdf5file = ET.SubElement(child, "hdf5_hydrodata")
                 hdf5file.text = self.new_name
 
-            doc.write(filename_prj)
+            doc.write(filename_prj, pretty_print=True)
 
     def add_two_hdf5(self, merge):
         """
@@ -6634,7 +6640,8 @@ class SubstrateW(SubHydroW):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             for i in range(0, len(self.attributexml)):
                 child = root.find(".//" + self.attributexml[1])

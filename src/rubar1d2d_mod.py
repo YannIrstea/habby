@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import sys
 import time
-import xml.etree.ElementTree as Etree
+from lxml import etree as ET
 from copy import deepcopy
 from io import StringIO
 
@@ -441,7 +441,7 @@ def load_coord_1d(name_rbe, path):
         print('Error: the .reb file does not exist.\n')
         return [-99], [-99], [-99], [-99]
     try:
-        docxml = Etree.parse(filename_path)
+        docxml = ET.parse(filename_path)
         root = docxml.getroot()
     except IOError:
         print("Error: " + qt_tr.translate("rubar1d2d_mod", "the .rbe file cannot be open.\n"))
@@ -819,9 +819,6 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
         data_2d["node"]["h"].append([])
         data_2d["node"]["v"].append([])
         data_2d["node"]["z"].append([])
-
-        # index to remove (from user selection GUI)
-        index_to_remove = []
 
         # for each units
         description_from_rubar2d["unit_list"] = [description_from_rubar2d["unit_list"].split(", ")]

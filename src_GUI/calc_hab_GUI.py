@@ -23,10 +23,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
     QComboBox, QTableWidget, \
     QSizePolicy, QFrame, QCheckBox, QWidget
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import calcul_hab_mod
 from src import hdf5_mod
@@ -296,7 +293,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
     def load_selected_aquatic_animal_dict(self):
         # load selected_aquatic_animal_dict in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         # geo data
         child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
@@ -758,7 +756,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # save in xml project
             fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             # geo data
             child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
@@ -767,7 +766,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 child1.text = str(selected_aquatic_animal_list_calc_hab)
             else:
                 child1.text = str(selected_aquatic_animal_list_calc_hab)
-            doc.write(fname)
+            doc.write(fname, pretty_print=True)
 
     def update_merge_list(self):
         """

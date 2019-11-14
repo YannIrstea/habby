@@ -14,17 +14,14 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QFrame, QSizePolicy, QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
+from PyQt5.QtWidgets import QSizePolicy, QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QComboBox, QMessageBox, QFormLayout, QCheckBox, QHBoxLayout
-
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 import numpy as np
 import os
+
 from src.tools_mod import DoubleClicOutputGroup, QHLine
 from src.project_manag_mod import load_project_preferences, create_default_project_preferences
 
@@ -411,18 +408,6 @@ class PreferenceWindow(QDialog):
         If you change things here, it is necessary to start a new project as the old projects will not be compatible.
         For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
         """
-        # # really user want to save ?
-        # if self.is_modification:
-        #     self.msg2.setIcon(QMessageBox.Warning)
-        #     self.msg2.setWindowTitle(self.tr("Preferences modified"))
-        #     self.msg2.setText(self.tr("Do you really want to save and close new preferences ?"))
-        #     self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        #     res = self.msg2.exec_()
-        #
-        #     # delete
-        #     if res == QMessageBox.No:
-        #         return
-
         # get default option for security
         project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
@@ -537,10 +522,11 @@ class PreferenceWindow(QDialog):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
-            child1 = root.find(".//Figure_Option")
-            if child1 is not None:  # modify existing option
+            figure_option_el = root.find(".//Figure_Option")
+            if figure_option_el is not None:  # modify existing option
                 width1 = root.find(".//Width")
                 height1 = root.find(".//Height")
                 colormap1 = root.find(".//ColorMap1")
@@ -564,27 +550,27 @@ class PreferenceWindow(QDialog):
                 CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
                 erase1 = root.find(".//EraseId")
             else:  # save in case no fig option exist
-                child1 = ET.SubElement(root, 'Figure_Option')
-                width1 = ET.SubElement(child1, 'Width')
-                height1 = ET.SubElement(child1, 'Height')
-                colormap1 = ET.SubElement(child1, 'ColorMap1')
-                colormap2 = ET.SubElement(child1, 'ColorMap2')
-                fontsize1 = ET.SubElement(child1, 'FontSize')
-                linewidth1 = ET.SubElement(child1, 'LineWidth')
-                grid1 = ET.SubElement(child1, 'Grid')
-                format1 = ET.SubElement(child1, "Format")
-                reso1 = ET.SubElement(child1, "Resolution")
-                fish1 = ET.SubElement(child1, "FishNameType")
-                marker1 = ET.SubElement(child1, "Marker")
+                figure_option_el = ET.SubElement(root, 'Figure_Option')
+                width1 = ET.SubElement(figure_option_el, 'Width')
+                height1 = ET.SubElement(figure_option_el, 'Height')
+                colormap1 = ET.SubElement(figure_option_el, 'ColorMap1')
+                colormap2 = ET.SubElement(figure_option_el, 'ColorMap2')
+                fontsize1 = ET.SubElement(figure_option_el, 'FontSize')
+                linewidth1 = ET.SubElement(figure_option_el, 'LineWidth')
+                grid1 = ET.SubElement(figure_option_el, 'Grid')
+                format1 = ET.SubElement(figure_option_el, "Format")
+                reso1 = ET.SubElement(figure_option_el, "Resolution")
+                fish1 = ET.SubElement(figure_option_el, "FishNameType")
+                marker1 = ET.SubElement(figure_option_el, "Marker")
 
                 for checkbox_name in self.checkbox_list_set:
-                    locals()[checkbox_name] = ET.SubElement(child1, checkbox_name)
-                vertical_exaggeration1 = ET.SubElement(child1, "vertical_exaggeration")
-                pvd_variable_z = ET.SubElement(child1, "pvd_variable_z")
-                langfig1 = ET.SubElement(child1, "LangFig")
-                hopt1 = ET.SubElement(child1, "MinHeight")
-                CutMeshPartialyDry = ET.SubElement(child1, "CutMeshPartialyDry")
-                erase1 = ET.SubElement(child1, "EraseId")
+                    locals()[checkbox_name] = ET.SubElement(figure_option_el, checkbox_name)
+                vertical_exaggeration1 = ET.SubElement(figure_option_el, "vertical_exaggeration")
+                pvd_variable_z = ET.SubElement(figure_option_el, "pvd_variable_z")
+                langfig1 = ET.SubElement(figure_option_el, "LangFig")
+                hopt1 = ET.SubElement(figure_option_el, "MinHeight")
+                CutMeshPartialyDry = ET.SubElement(figure_option_el, "CutMeshPartialyDry")
+                erase1 = ET.SubElement(figure_option_el, "EraseId")
             width1.text = str(project_preferences['width'])
             height1.text = str(project_preferences['height'])
             colormap1.text = project_preferences['color_map1']
@@ -596,20 +582,20 @@ class PreferenceWindow(QDialog):
             reso1.text = str(project_preferences['resolution'])
             # usually not useful, but should be added to new options for comptability with older project
             if fish1 is None:
-                fish1 = ET.SubElement(child1, "FishNameType")
+                fish1 = ET.SubElement(figure_option_el, "FishNameType")
             fish1.text = str(project_preferences['fish_name_type'])
             marker1.text = str(project_preferences['marker'])
             if langfig1 is None:
-                langfig1 = ET.SubElement(child1, "LangFig")
+                langfig1 = ET.SubElement(figure_option_el, "LangFig")
             langfig1.text = str(project_preferences['language'])
 
             for checkbox_name in self.checkbox_list_set:
                 locals()[checkbox_name].text = str(project_preferences[checkbox_name])
             if vertical_exaggeration1 is None:
-                vertical_exaggeration1 = ET.SubElement(child1, "vertical_exaggeration")
+                vertical_exaggeration1 = ET.SubElement(figure_option_el, "vertical_exaggeration")
             vertical_exaggeration1.text = str(project_preferences["vertical_exaggeration"])
             if pvd_variable_z is None:
-                pvd_variable_z = ET.SubElement(child1, "pvd_variable_z")
+                pvd_variable_z = ET.SubElement(figure_option_el, "pvd_variable_z")
             pvd_variable_z.text = str(project_preferences["pvd_variable_z"])
             # text1.text = str(project_preferences['text_output'])
             # shape1.text = str(project_preferences['shape_output'])
@@ -620,7 +606,7 @@ class PreferenceWindow(QDialog):
             hopt1.text = str(project_preferences['min_height_hyd'])
             CutMeshPartialyDry.text = str(project_preferences['CutMeshPartialyDry'])
             erase1.text = str(project_preferences['erase_id'])
-            doc.write(fname)
+            doc.write(fname, pretty_print=True)
 
         self.send_log.emit(self.tr('# Preferences saved.'))
         self.close()

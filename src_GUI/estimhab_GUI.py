@@ -19,10 +19,7 @@ from src import estimhab_mod
 import glob
 import matplotlib.pyplot as plt
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
     QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, \
@@ -136,7 +133,8 @@ class StatModUseful(QScrollArea):
         # open the xml file
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             # get the selected fish
             child = root.find(".//Habitat/Fish_Selected")
@@ -167,7 +165,8 @@ class StatModUseful(QScrollArea):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
@@ -193,7 +192,8 @@ class StatModUseful(QScrollArea):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
@@ -215,7 +215,8 @@ class StatModUseful(QScrollArea):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Text")
             if child is None:
@@ -242,7 +243,8 @@ class StatModUseful(QScrollArea):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//" + att)
             if child is None:
@@ -264,7 +266,8 @@ class StatModUseful(QScrollArea):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Input")
             if child is None:
@@ -640,7 +643,8 @@ class EstimhabW(StatModUseful):
 
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(fname):
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             child = root.find(".//ESTIMHAB_data")
             if child is not None:  # if there is data for ESTIHAB
@@ -811,7 +815,8 @@ class EstimhabW(StatModUseful):
 
         fname_no_path = self.name_prj + '_ESTIMHAB' + '.hab'
         fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
-        doc = ET.parse(fnamep)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fnamep, parser)
         root = doc.getroot()
         tree = ET.ElementTree(root)
         child = root.find(".//ESTIMHAB_data")
@@ -821,7 +826,7 @@ class EstimhabW(StatModUseful):
             child.text = fname_no_path
         else:
             child.text = fname_no_path
-        tree.write(fnamep)
+        tree.write(fnamep, pretty_print=True)
 
         # log info
         str_found = mystdout.getvalue()

@@ -27,10 +27,7 @@ from osgeo import ogr
 from osgeo import osr
 from stl import mesh
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from multiprocessing import Value
 from locale import localeconv
 from src import bio_info_mod
@@ -161,7 +158,8 @@ class Hdf5Management:
             print('Error: ' + qt_tr.translate("hdf5_mod", 'No project saved. Please create a project first in the General tab.'))
             return
         else:
-            doc = ET.parse(self.absolute_path_prj_xml)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(self.absolute_path_prj_xml, parser)
             root = doc.getroot()
             child = root.find(".//" + model_type)
             # if the xml attribute do not exist yet, xml name should be saved
@@ -193,7 +191,7 @@ class Hdf5Management:
                     hdf5file = ET.SubElement(child, self.type_for_xml)
                     hdf5file.text = self.filename
             # write xml
-            doc.write(self.absolute_path_prj_xml)
+            doc.write(self.absolute_path_prj_xml, pretty_print=True)
 
     # GET HDF5 INFORMATIONS
     def get_hdf5_attributes(self):
@@ -3047,7 +3045,8 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
         print('Error: ' + qt_tr.translate("hdf5_mod", 'No project saved. Please create a project first in the General tab.\n'))
         return
     else:
-        doc = ET.parse(filename_prj)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(filename_prj, parser)
         root = doc.getroot()
         child = root.find(".//" + model_type)
         # if the xml attribute do not exist yet, xml name should be saved
@@ -3084,7 +3083,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
                     hdf5file = ET.SubElement(child, type_hdf5)
                     hdf5file.text = h5name
 
-        doc.write(filename_prj)
+        doc.write(filename_prj, pretty_print=True)
 
     return
 
@@ -3236,7 +3235,8 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
         return
     else:
         if save_xml:
-            doc = ET.parse(filename_prj)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
             child = root.find(".//" + model_type)
             if child is None:  # don't exist ==> create it
@@ -3249,7 +3249,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
                         child.remove(app)
                 hdf5file = ET.SubElement(child, "hdf5_substrate")
                 hdf5file.text = h5name
-            doc.write(filename_prj)
+            doc.write(filename_prj, pretty_print=True)
 
     if return_name:
         return h5name
@@ -4037,7 +4037,8 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     # open the xml project file
     filename_path_pro = os.path.join(path_prj, name_prj + '.habby')
     if os.path.isfile(filename_path_pro):
-        doc = ET.parse(filename_path_pro)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(filename_path_pro, parser)
         root = doc.getroot()
 
         # get the path to hdf5

@@ -24,10 +24,7 @@ import time
 import matplotlib.pyplot as plt
 import h5py
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import hdf5_mod
 from src.project_manag_mod import load_project_preferences
@@ -217,7 +214,8 @@ class Stathab:
         if not os.path.isfile(fname):
             print('Error: The .habby project file was not found. Save the project in the General Tab. \n')
             return
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         child = root.find(".//hdf5Stathab")
         if child is None:  # if there is data for STATHAB
@@ -449,7 +447,8 @@ class Stathab:
             print('Error: No project saved. Please create a project first in the Start tab.\n')
             return
         else:
-            doc = ET.parse(filename_prj)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
             child = root.find(".//Stathab")
             if child is None:
@@ -465,7 +464,7 @@ class Stathab:
                 else:
                     hdf5file.text = fname_no_path
                 hdf5file.set('riverint', str(self.riverint))  # attribute
-            doc.write(filename_prj)
+            doc.write(filename_prj, pretty_print=True)
 
     def stathab_calc(self, path_pref='.', name_pref='Pref_latin.txt'):
         """
@@ -1266,7 +1265,8 @@ class Stathab:
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:

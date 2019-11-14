@@ -27,7 +27,7 @@ import copy
 from src import stathab_mod
 from src import hdf5_mod
 from src_GUI import estimhab_GUI
-import xml.etree.ElementTree as ET
+from lxml import etree as ET
 
 
 class StathabW(estimhab_GUI.StatModUseful):
@@ -114,7 +114,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         # if both are there, reload as the last time
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_prj):
-            doc = ET.parse(filename_prj)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
             child = root.find(".//Stathab")
             if child is not None:
@@ -133,7 +134,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         # check if there is a path where to save the figures
         # and if there is a type of river selected
         if os.path.isfile(filename_prj):
-            doc = ET.parse(filename_prj)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
             child = root.find(".//" + 'Path_Figure')
             if child is not None:
@@ -299,7 +301,8 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit('Error: No project saved. Please create a project first in the General tab.')
             return
         else:
-            doc = ET.parse(filename_prj)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
             child = root.find(".//Stathab")
             if child is None:
@@ -321,7 +324,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     dirxml.text = 'txt'
                 else:
                     dirxml.text = 'txt'
-            doc.write(filename_prj)
+            doc.write(filename_prj, pretty_print=True)
 
             # fill the lists with the existing files
             self.load_from_txt_gui()
@@ -630,7 +633,8 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit('Error: No project saved. Please create a project first in the General tab.')
             return
         else:
-            doc = ET.parse(filename_prj)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
             child = root.find(".//Stathab")
             if child is None:
@@ -652,7 +656,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     typeload.text = 'hdf5'
                 else:
                     typeload.text = 'hdf5'
-            doc.write(filename_prj)
+            doc.write(filename_prj, pretty_print=True)
 
         # clear list of the GUI
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)

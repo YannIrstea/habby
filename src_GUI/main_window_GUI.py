@@ -24,10 +24,7 @@ from subprocess import call
 
 import numpy as np
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, Qt, pyqtRemoveInputHook
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
@@ -442,7 +439,8 @@ class MainWindows(QMainWindow):
             # refresh .xml project
             filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
             if os.path.isfile(filename_path_pro):
-                doc = ET.parse(filename_path_pro)
+                parser = ET.XMLParser(remove_blank_text=True)
+                doc = ET.parse(filename_path_pro, parser)
                 root = doc.getroot()
                 child = root.findall(".//" + input_type)
                 if not child:
@@ -453,7 +451,7 @@ class MainWindows(QMainWindow):
                         if file_to_remove == element.text:
                             child[0].remove(element)
                             del element
-                doc.write(filename_path_pro)
+                doc.write(filename_path_pro, pretty_print=True)
 
             # update_combobox_filenames
             self.central_widget.update_combobox_filenames()
@@ -481,7 +479,8 @@ class MainWindows(QMainWindow):
         # refresh .xml project
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.findall(".//" + input_type)
             if not child:
@@ -491,7 +490,7 @@ class MainWindows(QMainWindow):
                 for element in childs:
                     if file_to_rename == element.text:
                         element.text = file_renamed
-            doc.write(filename_path_pro)
+            doc.write(filename_path_pro, pretty_print=True)
 
         # update_combobox_filenames
         self.central_widget.update_combobox_filenames()
@@ -1167,7 +1166,8 @@ class MainWindows(QMainWindow):
 
         # project exist
         else:
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             child = root.find(".//Project_Name")
             path_child = root.find(".//Path_Project")
@@ -1224,7 +1224,7 @@ class MainWindows(QMainWindow):
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-            doc.write(fname)
+            doc.write(fname, pretty_print=True)
             project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
             # create needed folder if not there yet
@@ -1384,7 +1384,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
         self.central_widget.welcome_tab.e3.setText(self.descri_prj)
-        docxml2.write(filename_path)
+        docxml2.write(filename_path, pretty_print=True)
 
         # save the project
         self.central_widget.path_prj_c = self.path_prj
@@ -1618,7 +1618,8 @@ class MainWindows(QMainWindow):
         # change the path_im
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         self.path_im = os.path.join(self.path_prj, 'figures')
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         # geo data
         child1 = root.find('.//Path_Figure')
@@ -1627,7 +1628,7 @@ class MainWindows(QMainWindow):
             child1.text = os.path.join("output", "figures")
         else:
             child1.text = os.path.join("output", "figures")
-        doc.write(fname)
+        doc.write(fname, pretty_print=True)
 
         # reconnect method to button
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
@@ -1673,7 +1674,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.write_log("Error: " + self.tr("the old project file does not exist (1)\n."))
                 return
             # write the new name in the copied xml
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             name_child = root.find(".//Project_Name")
             # change project path
@@ -1697,7 +1699,7 @@ class MainWindows(QMainWindow):
             except FileNotFoundError:
                 self.central_widget.write_log("Error: " + self.tr("the old log files do not exist (2)\n."))
                 return
-            doc.write(fname)
+            doc.write(fname, pretty_print=True)
             # # erase old xml
             os.remove(fname_old)
             # rename directory
@@ -1857,12 +1859,13 @@ class MainWindows(QMainWindow):
 
         # save the option in the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         savelog_child = root.find(".//Save_Log")
         try:
             savelog_child.text = str(self.central_widget.logon)
-            doc.write(fname)
+            doc.write(fname, pretty_print=True)
         except AttributeError:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Log Info"))
@@ -1884,7 +1887,8 @@ class MainWindows(QMainWindow):
         path_im = ''
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
@@ -2175,7 +2179,8 @@ class CentralW(QWidget):
             self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.' + '</br><br>'))
 
         else:
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             logon_child = root.find(".//Save_Log")
             if logon_child == 'False' or logon_child == 'false':
@@ -2373,7 +2378,8 @@ class CentralW(QWidget):
         # read xml file to find the path to the log file
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.habby')
         if os.path.isfile(fname):
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             # python-based log
             child_logfile = root.find(".//File_Log")
@@ -2519,7 +2525,8 @@ class CentralW(QWidget):
         if not os.path.isfile(fname):
             self.write_log('Error: ' + self.tr('The project file is not found. \n'))
         else:
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             user_child = root.find(".//User_Name")
             des_child = root.find(".//Description")
@@ -2531,7 +2538,7 @@ class CentralW(QWidget):
                 des_child.text = self.descri_prj
             else:
                 self.write_log("Warning: " + self.tr("xml file miss one attribute (2) \n"))
-            doc.write(fname)
+            doc.write(fname, pretty_print=True)
 
     def save_on_change_tab(self):
         """

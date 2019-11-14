@@ -27,10 +27,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWi
 from subprocess import call
 from platform import system as operatingsystem
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 
 from src import bio_info_mod
 from src import plot_mod
@@ -91,7 +88,8 @@ class BioModelExplorerWindow(QDialog):
 
         # load dicoselect in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
@@ -936,7 +934,8 @@ class BioModelInfoSelection(QScrollArea):
 
         # save dicoselect in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        doc = ET.parse(fname)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fname, parser)
         root = doc.getroot()
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
@@ -945,7 +944,7 @@ class BioModelInfoSelection(QScrollArea):
             child1.text = str(dicoselect)
         else:
             child1.text = str(dicoselect)
-        doc.write(fname)
+        doc.write(fname, pretty_print=True)
         self.parent().parent().parent().close()
 
 

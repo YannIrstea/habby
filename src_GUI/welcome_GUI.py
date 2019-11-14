@@ -17,10 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import shutil
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QWidget, QPushButton, QGroupBox,\
     QLabel, QGridLayout, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
@@ -132,7 +129,8 @@ class WelcomeW(QScrollArea):
             pass
         # otherwise, fill it
         else:
-            doc = ET.parse(fname)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fname, parser)
             root = doc.getroot()
             user_child = root.find(".//User_Name")
             des_child = root.find(".//Description")
@@ -205,7 +203,8 @@ class WelcomeW(QScrollArea):
             # write new project path
             if not os.path.exists(new_path):
                 self.path_prj = new_path
-                doc = ET.parse(fname_old)
+                parser = ET.XMLParser(remove_blank_text=True)
+                doc = ET.parse(fname_old, parser)
                 root = doc.getroot()
                 path_child = root.find(".//Path_Project")
                 path_child.text = self.path_prj  # new name
@@ -221,7 +220,7 @@ class WelcomeW(QScrollArea):
                 except shutil.Error:
                     self.send_log.emit(self.tr('Could not copy the project. Permission Error?'))
                     return
-                doc.write(fname)
+                doc.write(fname, pretty_print=True)
                 self.e2.setText(self.path_prj)
                 self.save_signal.emit()  # if not project folder, will create one
             else:

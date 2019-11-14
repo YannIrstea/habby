@@ -14,10 +14,7 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 import json
 import os
 

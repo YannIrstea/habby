@@ -14,10 +14,7 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+from lxml import etree as ET
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
@@ -191,7 +188,8 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.send_log.emit("The project is not saved. Save the project in the Start tab before saving FStress data.")
             return
 
-        doc = ET.parse(fnamep)
+        parser = ET.XMLParser(remove_blank_text=True)
+        doc = ET.parse(fnamep, parser)
         root = doc.getroot()
         tree = ET.ElementTree(root)
         child = root.find(".//FStress_data")
