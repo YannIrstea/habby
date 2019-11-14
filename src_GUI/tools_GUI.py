@@ -321,22 +321,31 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 self.unit_qlabel.setText(unit_type_value)
 
     def display_required_units_from_sequence(self):
-        # is value entry ?
-        if self.from_qlineedit.text() == "" or self.to_qlineedit.text() == "" or self.by_qlineedit.text() == "":
+        from_sequ = self.from_qlineedit.text().replace(",", ".")
+        to_sequ = self.to_qlineedit.text().replace(",", ".")
+        by_sequ = self.by_qlineedit.text().replace(",", ".")
+
+        # is string
+        if from_sequ == "" or to_sequ == "" or by_sequ == "":
             self.send_log.emit('Error: ' + self.tr('The sequence values must be specified (from, to and by).'))
             return
 
         # is float string
-        if not tools_mod.isstranumber(self.from_qlineedit.text()) or not tools_mod.isstranumber(self.to_qlineedit.text()) or not tools_mod.isstranumber(self.by_qlineedit.text()):
+        if not tools_mod.isstranumber(from_sequ) or not tools_mod.isstranumber(to_sequ) or not tools_mod.isstranumber(by_sequ):
             self.send_log.emit('Error: ' + self.tr('The sequence values must be of numerical type.'))
             return
 
-        # is min > max
-        if float(self.from_qlineedit.text()) >= float(self.to_qlineedit.text()):
+        # is float min < max
+        if not float(from_sequ) < float(to_sequ):
             self.send_log.emit('Error: ' + self.tr('Max sequence value must be strictly greater than min sequence value.'))
             return
 
-        # is fish ?
+        # is by > 0
+        if not float(by_sequ) > 0:
+            self.send_log.emit('Error: ' + self.tr('By sequence value must be strictly greater than 0.'))
+            return
+
+        # is fish selected
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
@@ -345,12 +354,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         # ok
         else:
-            from_sequ = float(self.from_qlineedit.text().replace(",", "."))  # from
-            to_sequ = float(self.to_qlineedit.text().replace(",", "."))  # to
-            by_sequ = float(self.by_qlineedit.text().replace(",", "."))  # by
+            from_sequ = float(from_sequ)  # from
+            to_sequ = float(to_sequ)  # to
+            by_sequ = float(by_sequ)  # by
 
             # dict range
-            chonicle_from_seq = dict(units=list(self.frange(from_sequ, to_sequ, by_sequ)))
+            chonicle_from_seq = dict(units=list(tools_mod.frange(from_sequ, to_sequ, by_sequ)))
 
             # types
             text_unit = self.unit_type_qlabel.text()
@@ -429,12 +438,6 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # disable pushbutton
             self.plot_chronicle_qpushbutton.setEnabled(True)
             self.export_txt_chronicle_qpushbutton.setEnabled(True)
-
-    def frange(self, start, stop, step):
-        i = start
-        while i <= stop:
-            yield i
-            i += step
 
     def export_empty_text_file(self):
         hdf5name = self.hab_filenames_qcombobox.currentText()

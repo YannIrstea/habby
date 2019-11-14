@@ -674,6 +674,13 @@ def txt_file_convert_dot_to_comma(filename_full_path):
         file.write(text_data_with_comma)
 
 
+def frange(start, stop, step):
+    i = start
+    while i <= stop:
+        yield i
+        i += step
+
+
 """ GUI """
 
 
