@@ -48,7 +48,7 @@ from src import lammi_mod
 from src import paraview_mod
 from src import hydro_input_file_mod
 from src import ascii_mod
-from src.tools_mod import QGroupBoxCollapsible
+from src.tools_mod import QGroupBoxCollapsible, polygon_type_values, point_type_values
 from src.user_preferences_mod import user_preferences
 from src.project_manag_mod import load_project_preferences
 np.set_printoptions(threshold=np.inf)
@@ -5612,8 +5612,8 @@ class SubstrateW(SubHydroW):
         # choose between loading substrate by polygon, point or constant
         l1 = QLabel(self.tr('Substrate mapping method from'))
         sub_spacer = QSpacerItem(1, 10)
-        self.rb0 = QRadioButton(self.tr('polygons (.shp)'))
-        self.rb1 = QRadioButton(self.tr('points (.txt, .shp)'))
+        self.rb0 = QRadioButton(self.tr('polygons (.shp, .gpkg)'))
+        self.rb1 = QRadioButton(self.tr('points (.txt, .shp, .gpkg)'))
         self.rb2 = QRadioButton(self.tr('constant values (.txt)'))
         self.rb0.setChecked(True)
         self.rb0.clicked.connect(lambda: self.btnstate(self.rb0, self.rb1, self.rb2))
@@ -5627,7 +5627,7 @@ class SubstrateW(SubHydroW):
         filetitle_polygon_label = QLabel(self.tr('File'))
         self.file_polygon_label = QLabel(self.namefile[0], self)
         self.file_polygon_label.setToolTip(self.pathfile_polygon)
-        self.sub_choosefile_polygon = QPushButton(self.tr('Choose file (.shp)'), self)
+        self.sub_choosefile_polygon = QPushButton(self.tr('Choose file (.shp, .gpkg)'), self)
         self.sub_choosefile_polygon.clicked.connect(lambda: self.show_dialog_substrate("polygon"))
         # POLYGON (1 line)
         classification_codetitle_polygon_label = QLabel(self.tr('Classification code'))
@@ -5652,7 +5652,7 @@ class SubstrateW(SubHydroW):
         filetitle_point_label = QLabel(self.tr('File'))
         self.file_point_label = QLabel(self.namefile[0], self)
         self.file_point_label.setToolTip(self.pathfile[0])
-        self.sub_choosefile_point = QPushButton(self.tr('Choose file (.txt, .shp)'), self)
+        self.sub_choosefile_point = QPushButton(self.tr('Choose file (.txt, .shp, .gpkg)'), self)
         self.sub_choosefile_point.clicked.connect(lambda: self.show_dialog_substrate("point"))
         self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setToolTip(self.pathfile[0]))
         self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setText(self.namefile[0]))
@@ -5897,9 +5897,9 @@ class SubstrateW(SubHydroW):
         """
         # prepare the filter to show only useful files
         if substrate_mapping_method == "polygon":
-            extensions = [".shp"]
+            extensions = [".shp", "gpkg"]
         if substrate_mapping_method == "point":
-            extensions = [".txt", ".shp"]
+            extensions = [".txt", ".shp", "gpkg"]
         if substrate_mapping_method == "constant":
             extensions = [".txt"]
         filter = "File ("
@@ -5954,12 +5954,20 @@ class SubstrateW(SubHydroW):
                     self.send_log.emit("Error: " + self.tr("The selected shapefile is not accompanied by its habby .txt file."))
                     return
 
-                # get type shapefile
-                driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-                ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
-                layer = ds.GetLayer(0)  # one layer in shapefile
+                if ext == ".shp":
+                    # get type shapefile
+                    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+                    ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+                elif ext == ".gpkg":
+                    # get type shapefile
+                    driver = ogr.GetDriverByName('GPKG')  # GPKG
+                    ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+
+                # get layer
+                layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
+
                 # get geom type
-                if layer.GetGeomType() != 3:  # polygon type
+                if layer.GetGeomType() not in polygon_type_values:
                     # get the first feature
                     feature = layer.GetNextFeature()
                     geom_type = feature.GetGeometryRef().GetGeometryName()
@@ -6010,17 +6018,11 @@ class SubstrateW(SubHydroW):
                         return
 
                 # check EPSG code in .prj
-                if not os.path.isfile(os.path.join(dirname, blob + ".prj")):
+                if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
                     self.send_log.emit(
                         "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
                     epsg_code = "unknown"
-                if os.path.isfile(os.path.join(dirname, blob + ".prj")):
-                    # ident = Sridentify()
-                    # ident.from_file(os.path.join(dirname, blob + ".prj"))
-                    # epsg_code = ident.get_epsg()
-                    driver = ogr.GetDriverByName('ESRI Shapefile')
-                    file_shp = driver.Open(os.path.join(dirname, blob + ".shp"))
-                    layer = file_shp.GetLayer()
+                else:
                     inSpatialRef  = layer.GetSpatialRef()
                     sr = osr.SpatialReference(str(inSpatialRef))
                     res = sr.AutoIdentifyEPSG()
@@ -6103,28 +6105,34 @@ class SubstrateW(SubHydroW):
                                            " .txt file."))
                         return
 
-                if ext == ".shp":
-                    if not os.path.isfile(os.path.join(dirname, blob + ".shp")):
-                        self.send_log.emit("Error: " + self.tr("The selected file don't exist."))
+                if ext == ".shp" or ext == ".gpkg":
+                    # check classification code in .txt (polygon or point shp)
+                    if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                        self.send_log.emit("Error: " + self.tr(
+                            "The selected shapefile is not accompanied by its habby .txt file."))
                         return
-                    # get type shapefile
-                    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-                    ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
-                    layer = ds.GetLayer(0)  # one layer in shapefile
+
+                    if ext == ".shp":
+                        # get type shapefile
+                        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+                        ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+                    elif ext == ".gpkg":
+                        # get type shapefile
+                        driver = ogr.GetDriverByName('GPKG')  # GPKG
+                        ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+
+                    layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
+
                     # get geom type
-                    if layer.GetGeomType() != 1:  # polygon type
+                    if layer.GetGeomType() not in point_type_values:  # point type
                         # get the first feature
                         feature = layer.GetNextFeature()
                         geom_type = feature.GetGeometryRef().GetGeometryName()
                         self.send_log.emit(
                             "Error : " + self.tr("Selected shapefile is not point type. Type : " + geom_type))
                         return
-                    # check classification code in .txt (polygon or point shp)
-                    if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                        self.send_log.emit("Error: " + self.tr(
-                            "The selected shapefile is not accompanied by its habby .txt file."))
-                        return
-                    if os.path.isfile(os.path.join(dirname, blob + ".txt")):
+
+                    else:
                         with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                             dataraw = f.read()
                         substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
@@ -6174,17 +6182,11 @@ class SubstrateW(SubHydroW):
                             return
 
                     # check EPSG code in .prj
-                    if not os.path.isfile(os.path.join(dirname, blob + ".prj")):
+                    if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
                         self.send_log.emit(
                             "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
                         epsg_code = "unknown"
-                    if os.path.isfile(os.path.join(dirname, blob + ".prj")):
-                        # ident = Sridentify()
-                        # ident.from_file(os.path.join(dirname, blob + ".prj"))
-                        # epsg_code = ident.get_epsg()
-                        driver = ogr.GetDriverByName('ESRI Shapefile')
-                        file_shp = driver.Open(os.path.join(dirname, blob + ".shp"))
-                        layer = file_shp.GetLayer()
+                    else:
                         inSpatialRef = layer.GetSpatialRef()
                         sr = osr.SpatialReference(str(inSpatialRef))
                         res = sr.AutoIdentifyEPSG()
@@ -6338,20 +6340,6 @@ class SubstrateW(SubHydroW):
             default_values = self.sub_default_values_polygon_label.text()
             self.name_hdf5 = self.polygon_hname.text()
             self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
-
-            # check if we have all files
-            name1 = namebase + '.dbf'
-            name2 = namebase + '.shx'
-            name3 = namebase + '.prj'  # it is ok if it does not exists
-            pathname1 = os.path.join(self.pathfile_polygon, name1)
-            pathname2 = os.path.join(self.pathfile_polygon, name2)
-            pathname3 = os.path.join(self.pathfile_polygon, name3)
-            if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
-                self.send_log.emit(
-                    'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
-                    ' a .dbf file.')
-                self.load_polygon_substrate.setDisabled(False)
-                return
 
             sys.stdout = self.mystdout = StringIO()  # out to GUI
 

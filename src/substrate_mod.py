@@ -27,6 +27,7 @@ from osgeo import osr
 from scipy.spatial import Voronoi
 
 from src import hdf5_mod
+from src.tools_mod import polygon_type_values, point_type_values
 
 
 def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, sub_classification_method, sub_epsg_code,
@@ -62,8 +63,10 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     if sub_classification_method == 'percentage' and sub_classification_code == "Sandre":
         sub_class_number = 12
 
+    name, ext = os.path.splitext(filename)
+
     # input txt
-    if os.path.splitext(filename)[1] == ".txt":
+    if ext == ".txt":
         # read
         with open(file, 'rt') as f:
             data = f.read()
@@ -166,17 +169,20 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         ds.Destroy()
 
     # input shp
-    if os.path.splitext(filename)[1] == ".shp":
-        name, ext = os.path.splitext(filename)
-        # read source shapefile
-        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-        ds = driver.Open(file, 0)  # 0 means read-only. 1 means writeable.
+    if ext == ".shp" or ext == ".gpkg":
+        if ext == ".shp":
+            driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+            ds = driver.Open(file, 0)  # 0 means read-only. 1 means writeable.
+        elif ext == ".gpkg":
+            driver = ogr.GetDriverByName('GPKG')  # GPKG
+            ds = driver.Open(file, 0)  # 0 means read-only. 1 means writeable.
+
         layer = ds.GetLayer(0)  # one layer in shapefile
         layer_defn = layer.GetLayerDefn()
 
         # get geom type
-        if layer.GetGeomType() != 1:  # point type
-            # print("file is not point type")
+        if layer.GetGeomType() not in point_type_values:  # point type
+            print("file is not point type : ", layer.GetGeomType())
             return False
 
         # fields = sf.fields[1:]
@@ -345,10 +351,18 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
     """
     sys.stdout = mystdout = StringIO()
 
-    # open shape file
-    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-    ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
-    layer = ds.GetLayer(0)  # one layer in shapefile
+    blob, ext = os.path.splitext(filename)
+
+    if ext == ".shp":
+        # open shape file
+        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+        ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
+    elif ext == ".gpkg":
+        # get type shapefile
+        driver = ogr.GetDriverByName('GPKG')  # GPKG
+        ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
+
+    layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
     layer_defn = layer.GetLayerDefn()
 
     header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
@@ -376,7 +390,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
         if polygon_shp_to_triangle_shp(filename, path_file, path_prj):
             # file name triangulated
-            filename = filename[:-4] + "_triangulated.shp"
+            filename = blob + "_triangulated.shp"
 
             # initialization
             xy = []  # point
@@ -384,7 +398,6 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
             ind = 0
 
             # open shape file (think about zero or one to start! )
-            #sf = open_shp(filename, os.path.join(path_prj, "input"))
             driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
             ds = driver.Open(os.path.join(path_prj, "input", filename), 0)  # 0 means read-only. 1 means writeable.
             layer = ds.GetLayer(0)  # one layer in shapefile
@@ -432,20 +445,22 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     :param out_shp_filename: output filename (with extension)
     :return: True (triangle shapefile produced) False (error)
     """
-    # init
-    shapefile_type = 3  # polygon in ogr
-
     in_shp_abs_path = os.path.join(path_file, filename)
+    blob, ext = os.path.splitext(filename)
 
-    # read source shapefile
-    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-    ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
+    if ext == ".shp":
+        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+        ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
+    elif ext == ".gpkg":
+        driver = ogr.GetDriverByName('GPKG')  # GPKG
+        ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
+
     layer = ds.GetLayer(0)  # one layer in shapefile
     layer_defn = layer.GetLayerDefn()
 
     # get geom type
-    if layer.GetGeomType() != shapefile_type:
-        print("file is not polygon type")
+    if layer.GetGeomType() not in polygon_type_values:
+        print("file is not polygon type : ", layer.GetGeomType())
         return False
 
     # fields = sf.fields[1:]
@@ -464,14 +479,14 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     # all_polygon_triangle_tf
     if list(set(point_nb_list)) == [4]:
         # copy input file to input files folder with suffix triangulated
-        all_input_files_abspath_list = glob(os.path.join(path_file, filename[:-4]) + "*")
+        all_input_files_abspath_list = glob(os.path.join(path_file, blob) + "*")
         all_input_files_files_list = [os.path.basename(file_path) for file_path in all_input_files_abspath_list]
         for i in range(len(all_input_files_files_list)):
             sh_copy(all_input_files_abspath_list[i],
                     os.path.join(os.path.join(path_prj, "input"),
-                                          all_input_files_files_list[i][:-4] +
+                                        os.path.splitext(all_input_files_files_list[i])[0] +
                                           "_triangulated" +
-                                          all_input_files_files_list[i][-4:]))
+                                          os.path.splitext(all_input_files_files_list[i])[1]))
         print("Warning: Input selected shapefile polygon is already a triangle type.")
 
     # not all_polygon_triangle_tf
@@ -574,6 +589,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
         out_shp_filename = out_shp_basename + "_triangulated.shp"
         out_shp_path = os.path.join(path_prj, "input")
         out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
+        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
         ds = driver.CreateDataSource(out_shp_abs_path)
         if not crs:  # '' == crs unknown
             layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)

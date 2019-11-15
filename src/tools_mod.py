@@ -18,8 +18,8 @@ import os
 import sys
 import urllib
 from copy import deepcopy
-from time import sleep
 from locale import localeconv
+from time import sleep
 
 import numpy as np
 from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread
@@ -679,6 +679,31 @@ def frange(start, stop, step):
     while i <= stop:
         yield i
         i += step
+
+#
+# OGRwkbGeometryType = dict(
+#     wkbUnknown=0, wkbPoint=1, wkbLineString=2, wkbPolygon=3,
+#     wkbMultiPoint=4, wkbMultiLineString=5, wkbMultiPolygon=6, wkbGeometryCollection=7,
+#     wkbCircularString=8, wkbCompoundCurve=9, wkbCurvePolygon=10, wkbMultiCurve=11,
+#     wkbMultiSurface=12, wkbCurve=13, wkbSurface=14, wkbPolyhedralSurface=15,
+#     wkbTIN=16, wkbTriangle=17, wkbNone=100, wkbLinearRing=101,
+#     wkbCircularStringZ=1008, wkbCompoundCurveZ=1009, wkbCurvePolygonZ=1010, wkbMultiCurveZ=1011,
+#     wkbMultiSurfaceZ=1012, wkbCurveZ=1013, wkbSurfaceZ=1014, wkbPolyhedralSurfaceZ=1015,
+#     wkbTINZ=1016, wkbTriangleZ=1017, wkbPointM=2001, wkbLineStringM=2002,
+#     wkbPolygonM=2003, wkbMultiPointM=2004, wkbMultiLineStringM=2005, wkbMultiPolygonM=2006,
+#     wkbGeometryCollectionM=2007, wkbCircularStringM=2008, wkbCompoundCurveM=2009, wkbCurvePolygonM=2010,
+#     wkbMultiCurveM=2011, wkbMultiSurfaceM=2012, wkbCurveM=2013, wkbSurfaceM=2014,
+#     wkbPolyhedralSurfaceM=2015, wkbTINM=2016, wkbTriangleM=2017, wkbPointZM=3001,
+#     wkbLineStringZM=3002, wkbPolygonZM=3003, wkbMultiPointZM=3004, wkbMultiLineStringZM=3005,
+#     wkbMultiPolygonZM=3006, wkbGeometryCollectionZM=3007, wkbCircularStringZM=3008, wkbCompoundCurveZM=3009,
+#     wkbCurvePolygonZM=3010, wkbMultiCurveZM=3011, wkbMultiSurfaceZM=3012, wkbCurveZM=3013,
+#     wkbSurfaceZM=3014, wkbPolyhedralSurfaceZM=3015, wkbTINZM=3016, wkbTriangleZM=3017,
+#     wkbPoint25D=0x80000001, wkbLineString25D=0x80000002, wkbPolygon25D=0x80000003, wkbMultiPoint25D=0x80000004,
+#     wkbMultiLineString25D=0x80000005, wkbMultiPolygon25D=0x80000006, wkbGeometryCollection25D=0x80000007
+# )
+
+polygon_type_values = (3, 2003, 3003, 0x80000003)  # wkbPolygon wkbPolygonM, wkbPolygonZM, wkbPolygon25D,
+point_type_values = (1, 2001, 3001, 0x80000001)  # wkbPoint, wkbPointM, wkbPointZM, wkbPoint25D
 
 
 """ GUI """
