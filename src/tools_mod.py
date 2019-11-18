@@ -785,6 +785,7 @@ class MyProcessList(QThread):
             self.check_all_plot_produced()
 
         if self.process_type == "export":
+            self.all_process_runned = False
             for i in range(len(self.process_list)):
                 self.process_list[i][0].start()
             #print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
