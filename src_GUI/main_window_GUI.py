@@ -21,6 +21,7 @@ import urllib.request
 from functools import partial
 from platform import system as operatingsystem
 from subprocess import call
+from webbrowser import open as open_webbrowser
 
 import numpy as np
 
@@ -1540,7 +1541,6 @@ class MainWindows(QMainWindow):
         self.clear_log()
         self.central_widget.write_log(self.tr('Create or open a project.'))
 
-
     def save_project_if_new_project(self):
         """
         This function is used to save a project when the project is created from the other Windows CreateNewProjectDialog. It
@@ -1757,12 +1757,13 @@ class MainWindows(QMainWindow):
         else:
             path_choosen = os.path.normpath(self.path_prj)
 
-        if self.operatingsystemactual == 'Windows':
-            call(['explorer', path_choosen])
-        elif self.operatingsystemactual == 'Linux':
-            call(["xdg-open", path_choosen])
-        elif self.operatingsystemactual == 'Darwin':
-            call(['open', path_choosen])
+        # if self.operatingsystemactual == 'Windows':
+        #     call(['explorer', path_choosen])
+        # elif self.operatingsystemactual == 'Linux':
+        #     call(["xdg-open", path_choosen])
+        # elif self.operatingsystemactual == 'Darwin':
+        #     call(['open', path_choosen])
+        open_webbrowser(path_choosen)
 
     def open_close_physic(self):
         phisical_tabs_list = ["hydraulic", "substrate", "calc hab", "data explorer", "tools"]
