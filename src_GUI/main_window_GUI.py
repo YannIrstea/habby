@@ -2084,7 +2084,7 @@ class CreateNewProjectDialog(QWidget):
                                                     )  # check for invalid null parameter on Linux git
         dir_name = os.path.normpath(dir_name)
         # os.getenv('HOME')
-        if dir_name != '':  # cancel case
+        if dir_name not in ['', '.']:  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project.')
 
