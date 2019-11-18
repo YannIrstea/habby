@@ -21,7 +21,6 @@ import urllib.request
 from functools import partial
 from platform import system as operatingsystem
 from subprocess import call
-from webbrowser import open as open_webbrowser
 
 import numpy as np
 
@@ -99,6 +98,17 @@ class MainWindows(QMainWindow):
 
         # operating system
         self.operatingsystemactual = operatingsystem()
+        self.myEnv = dict(os.environ)
+
+        if self.operatingsystemactual == "Linux":
+            lp_key = 'LD_LIBRARY_PATH'
+            lp_orig = self.myEnv.get(lp_key + '_ORIG')
+            if lp_orig is not None:
+                self.myEnv[lp_key] = lp_orig
+            else:
+                lp = self.myEnv.get(lp_key)
+                if lp is not None:
+                    self.myEnv.pop(lp_key)
 
         # load user setting
         # self.settings = QSettings('irstea', 'HABBY' + str(self.version))
@@ -1757,13 +1767,12 @@ class MainWindows(QMainWindow):
         else:
             path_choosen = os.path.normpath(self.path_prj)
 
-        # if self.operatingsystemactual == 'Windows':
-        #     call(['explorer', path_choosen])
-        # elif self.operatingsystemactual == 'Linux':
-        #     call(["xdg-open", path_choosen])
-        # elif self.operatingsystemactual == 'Darwin':
-        #     call(['open', path_choosen])
-        open_webbrowser(path_choosen)
+        if self.operatingsystemactual == 'Windows':
+            call(['explorer', path_choosen])
+        elif self.operatingsystemactual == 'Linux':
+            call(["xdg-open", path_choosen], env=self.myEnv)
+        elif self.operatingsystemactual == 'Darwin':
+            call(['open', path_choosen])
 
     def open_close_physic(self):
         phisical_tabs_list = ["hydraulic", "substrate", "calc hab", "data explorer", "tools"]
