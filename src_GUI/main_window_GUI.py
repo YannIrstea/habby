@@ -1453,6 +1453,14 @@ class MainWindows(QMainWindow):
         # check if project open somewhere else
         self.check_concurrency()
 
+        self.user_preferences.data["name_prj"] = self.name_prj
+        self.user_preferences.data["path_prj"] = self.path_prj
+        if not self.name_prj in self.user_preferences.data["recent_project_name"]:
+            self.user_preferences.data["recent_project_name"] = self.user_preferences.data["recent_project_name"] + [self.name_prj]
+        if not self.path_prj in self.user_preferences.data["recent_project_path"]:
+            self.user_preferences.data["recent_project_path"] = self.user_preferences.data["recent_project_path"] + [self.path_prj]
+        self.user_preferences.save_user_preferences_json()
+
         self.central_widget.write_log(self.tr('Project opened.'))
 
     def open_recent_project(self, j):

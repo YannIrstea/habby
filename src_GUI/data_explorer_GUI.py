@@ -1364,7 +1364,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def show_prog(self, value):
-        print("show_prog", value)
+        #print("show_prog", value)
         self.data_exporter_progressbar.setValue(value)
         self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_export))
 
