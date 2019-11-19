@@ -18,7 +18,6 @@ import os
 import sys
 import time
 from lxml import etree as ET
-from copy import deepcopy
 from io import StringIO
 
 import matplotlib as mpl
@@ -30,7 +29,7 @@ from src import dist_vistess_mod
 from src import hdf5_mod
 from src import hec_ras2D_mod
 from src import manage_grid_mod
-from src.dev_tools import profileit
+from src.tools_mod import create_empty_data_2_dict
 from src.project_manag_mod import load_project_preferences
 from src_GUI import preferences_GUI
 from src.user_preferences_mod import user_preferences
@@ -794,15 +793,9 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     data_2d_whole_profile["node"]["z"] = []
 
     # create empty dict
-    data_2d = dict()
-    data_2d["mesh"] = dict()
-    data_2d["node"] = dict()
-    data_2d["mesh"]["tin"] = []
-    data_2d["mesh"]["i_whole_profile"] = []
-    data_2d["node"]["xy"] = []
-    data_2d["node"]["h"] = []
-    data_2d["node"]["v"] = []
-    data_2d["node"]["z"] = []
+    data_2d = create_empty_data_2_dict(1,  # always one reach
+                                       mesh_variables=list(data_2d_from_rubar2d["mesh"]["data"].keys()),
+                                       node_variables=list(data_2d_from_rubar2d["node"]["data"].keys()))
 
     # progress from 10 to 90 : from 0 to len(units_index)
     delta = int(80 / int(description_from_rubar2d["unit_number"]))
@@ -813,13 +806,6 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
         data_2d_whole_profile["node"]["xy"].append([])
         data_2d_whole_profile["node"]["z"].append([])
 
-        data_2d["mesh"]["tin"].append([])
-        data_2d["mesh"]["i_whole_profile"].append([])
-        data_2d["node"]["xy"].append([])
-        data_2d["node"]["h"].append([])
-        data_2d["node"]["v"].append([])
-        data_2d["node"]["z"].append([])
-
         # for each units
         description_from_rubar2d["unit_list"] = [description_from_rubar2d["unit_list"].split(", ")]
         for unit_num in range(len(description_from_rubar2d["unit_list"][reach_num])):
@@ -827,17 +813,17 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
 
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                xy = np.insert(data_2d_from_rubar2d["xy"],
+                xy = np.insert(data_2d_from_rubar2d["node"]["xy"][reach_num],
                                2,
-                               values=data_2d_from_rubar2d["z"],
+                               values=data_2d_from_rubar2d["node"]["z"][reach_num],
                                axis=1)  # Insert values before column 2
 
                 # remove mesh dry and cut partialy dry in option
                 tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
-                    data_2d_from_rubar2d["tin"],
+                    data_2d_from_rubar2d["mesh"]["tin"][reach_num],
                     xy,
-                    data_2d_from_rubar2d["h"][reach_num][unit_num],
-                    data_2d_from_rubar2d["v"][reach_num][unit_num],
+                    data_2d_from_rubar2d["node"]["data"]["h"][reach_num][unit_num],
+                    data_2d_from_rubar2d["node"]["data"]["v"][reach_num][unit_num],
                     progress_value,
                     delta,
                     project_preferences["CutMeshPartialyDry"],
@@ -854,17 +840,19 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                         continue  # Continue to next iteration.
                 else:
                     # get original data
-                    data_2d_whole_profile["mesh"]["tin"][reach_num].append(data_2d_from_rubar2d["tin"])
-                    data_2d_whole_profile["node"]["xy"][reach_num].append(data_2d_from_rubar2d["xy"])
-                    data_2d_whole_profile["node"]["z"][reach_num].append(data_2d_from_rubar2d["z"])
+                    data_2d_whole_profile["mesh"]["tin"][reach_num].append(data_2d_from_rubar2d["mesh"]["tin"][reach_num])
+                    data_2d_whole_profile["node"]["xy"][reach_num].append(data_2d_from_rubar2d["node"]["xy"][reach_num])
+                    data_2d_whole_profile["node"]["z"][reach_num].append(data_2d_from_rubar2d["node"]["z"][reach_num])
 
                     # get cuted grid
                     data_2d["mesh"]["tin"][reach_num].append(tin_data)
                     data_2d["mesh"]["i_whole_profile"][reach_num].append(i_whole_profile)
+                    for mesh_variable in data_2d_from_rubar2d["mesh"]["data"].keys():
+                        data_2d["mesh"]["data"][mesh_variable][reach_num].append(data_2d_from_rubar2d["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
                     data_2d["node"]["xy"][reach_num].append(xy_cuted[:, :2])
-                    data_2d["node"]["h"][reach_num].append(h_data)
-                    data_2d["node"]["v"][reach_num].append(v_data)
                     data_2d["node"]["z"][reach_num].append(xy_cuted[:, 2])
+                    data_2d["node"]["data"]["h"][reach_num].append(h_data)
+                    data_2d["node"]["data"]["v"][reach_num].append(v_data)
 
     # refresh unit (if unit mesh entirely dry)
     for reach_num in reversed(range(int(description_from_rubar2d["reach_number"]))):  # for each reach
@@ -882,7 +870,8 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     hyd_description["hyd_model_type"] = description_from_rubar2d["model_type"]
     hyd_description["hyd_2D_numerical_method"] = "FiniteVolumeMethod"
     hyd_description["hyd_model_dimension"] = description_from_rubar2d["model_dimension"]
-    hyd_description["hyd_variables_list"] = "h, v, z"
+    hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_from_rubar2d["mesh"]["data"].keys()))
+    hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_from_rubar2d["node"]["data"].keys()))
     hyd_description["hyd_epsg_code"] = "unknown"
     hyd_description["hyd_reach_list"] = "unknown"
     hyd_description["hyd_reach_number"] = description_from_rubar2d["reach_number"]
@@ -966,12 +955,13 @@ def load_rubar2d(filename, file_path, progress_value):
     z = xyz[:, 2]
 
     # data 2d dict
-    data_2d = dict()
-    data_2d["h"] = [h_list]
-    data_2d["v"] = [v_list]
-    data_2d["z"] = z
-    data_2d["xy"] = xy
-    data_2d["tin"] = ikle
+    data_2d = create_empty_data_2_dict(1,
+                                       node_variables=["h", "v"])
+    data_2d["mesh"]["tin"][0] = ikle
+    data_2d["node"]["xy"][0] = xy
+    data_2d["node"]["z"][0] = z
+    data_2d["node"]["data"]["h"][0] = h_list
+    data_2d["node"]["data"]["v"][0] = v_list
 
     return data_2d, description_from_file
 

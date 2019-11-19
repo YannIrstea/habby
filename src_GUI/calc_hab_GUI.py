@@ -205,7 +205,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.verticalHeader().setVisible(False)
         self.presence_qtablewidget.horizontalHeader().setVisible(False)
 
-        self.runhab = QPushButton(self.tr('Compute Habitat Value'))
+        self.runhab = QPushButton(self.tr('Compute habitat value'))
         self.runhab.setStyleSheet("background-color: #47B5E6; color: black")
         self.runhab.clicked.connect(self.run_habitat_value)
 
@@ -713,8 +713,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
                 required_dict["dimension_ok"] = True
-            if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
-                required_dict["z_presence_ok"] = True
+            # if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
+            required_dict["z_presence_ok"] = True  # TODO : always True ??
             if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
                 required_dict["percentage_ok"] = True
             required_dict["fish_list"] = hdf5.fish_list

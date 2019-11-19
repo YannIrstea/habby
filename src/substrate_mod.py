@@ -421,9 +421,12 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
 
             # get data
             data_2d = dict()
-            data_2d["tin"] = [np.array(tin)]
-            data_2d["xy"] = [np.array(xy)]
-            data_2d["sub"] = [sub_array]
+            data_2d["mesh"] = dict()
+            data_2d["mesh"]["data"] = dict()
+            data_2d["node"] = dict()
+            data_2d["mesh"]["tin"] = [[np.array(tin)]]
+            data_2d["node"]["xy"] = [[np.array(xy)]]
+            data_2d["mesh"]["data"]["sub"] = [[sub_array]]
             data_2d["nb_unit"] = 1
             data_2d["nb_reach"] = 1
 

@@ -300,14 +300,14 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                     point_before = np.array(hdf5_hydro.data_2d["node"]["xy"][reach_num][unit_num])
                     point_z_before = np.array(hdf5_hydro.data_2d["node"]["z"][reach_num][unit_num])
                     ikle_before = np.array(hdf5_hydro.data_2d["mesh"]["tin"][reach_num][unit_num])
-                    vel_before = hdf5_hydro.data_2d["node"]["v"][reach_num][unit_num]
-                    height_before = hdf5_hydro.data_2d["node"]["h"][reach_num][unit_num]
+                    vel_before = hdf5_hydro.data_2d["node"]["data"]["v"][reach_num][unit_num]
+                    height_before = hdf5_hydro.data_2d["node"]["data"]["h"][reach_num][unit_num]
 
                     # find intersection betweeen hydrology and substrate
                     [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
                         find_sub_and_cross(hdf5_sub.data_2d["mesh"]["tin"][reach_num][0],
                                            hdf5_sub.data_2d["node"]["xy"][reach_num][0],
-                                           hdf5_sub.data_2d["mesh"]["sub"][reach_num][0],
+                                           hdf5_sub.data_2d["mesh"]["data"]["sub"][reach_num][0],
                                            hdf5_hydro.data_2d["mesh"]["tin"][reach_num][unit_num],
                                            hdf5_hydro.data_2d["node"]["xy"][reach_num][unit_num],
                                            progress_value, delta,
@@ -391,11 +391,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
 
             # add sub data to dict
             data_2d_merge["mesh"]["tin"] = ikle_both
+            data_2d_merge["mesh"]["data"]["sub"] = sub_data_all_t
             data_2d_merge["node"]["xy"] = point_all_both
-            data_2d_merge["mesh"]["sub"] = sub_data_all_t
-            data_2d_merge["node"]["v"] = vel_all_both
-            data_2d_merge["node"]["h"] = height_all_both
             data_2d_merge["node"]["z"] = z_all_both
+            data_2d_merge["node"]["data"]["v"] = vel_all_both
+            data_2d_merge["node"]["data"]["h"] = height_all_both
             #data_2d_merge["mesh"]["area"] = area_both
             data_2d_merge["total_wet_area"] = area_reach_both
 
@@ -929,8 +929,8 @@ def set_constant_values_to_merge_data(hdf5_hydro, hdf5_sub, data_2d_merge, data_
 
     # add sub data to dict
     data_2d_merge["total_wet_area"] = area_array_by_reach
-    data_2d_merge["mesh"]["sub"] = sub_array_by_reach
-    data_2d_whole_merge["mesh"]["sub"] = sub_array_by_reach
+    data_2d_merge["mesh"]["data"]["sub"] = sub_array_by_reach
+    #data_2d_whole_merge["mesh"]["sub"] = sub_array_by_reach
     return data_2d_merge, data_2d_whole_merge
 
 

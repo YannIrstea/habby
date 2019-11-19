@@ -279,7 +279,7 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
 
     # progress
     prog = progress_value.value
-    delta_reach = delta / len(data_2d["node"]["h"])
+    delta_reach = delta / len(data_2d["node"]["data"]["h"])
 
     # for each reach
     for reach_num in range(len(data_2d["mesh"]["tin"])):
@@ -288,21 +288,21 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
         spu_all = []
 
         # progress
-        delta_unit = delta_reach / len(data_2d["node"]["h"][reach_num])
+        delta_unit = delta_reach / len(data_2d["node"]["data"]["h"][reach_num])
         warning_range_list = []
 
         if aquatic_animal_type_select == "invertebrate":
             warning_shearstress_list = []
 
         # for each unit
-        for unit_num in range(len(data_2d["node"]["h"][reach_num])):
-            height_t = data_2d["mesh"]["h"][reach_num][unit_num]
-            vel_t = data_2d["mesh"]["v"][reach_num][unit_num]
+        for unit_num in range(len(data_2d["node"]["data"]["h"][reach_num])):
+            height_t = data_2d["mesh"]["data"]["h"][reach_num][unit_num]
+            vel_t = data_2d["mesh"]["data"]["v"][reach_num][unit_num]
             if aquatic_animal_type_select == "invertebrate":
-                shear_stress_t = data_2d["mesh"]["shear_stress"][reach_num][unit_num]
-            sub_t = data_2d["mesh"]["sub"][reach_num][unit_num]
+                shear_stress_t = data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num]
+            sub_t = data_2d["mesh"]["data"]["sub"][reach_num][unit_num]
             ikle_t = data_2d["mesh"]["tin"][reach_num][unit_num]
-            area = data_2d["mesh"]["area"][reach_num][unit_num]
+            area = data_2d["mesh"]["data"]["area"][reach_num][unit_num]
             if len(ikle_t) == 0:
                 print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'The connectivity table was not well-formed for one reach (1) \n'))
                 vh = [-99]

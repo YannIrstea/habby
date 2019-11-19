@@ -250,6 +250,7 @@ def c_mesh_area(tin, xy):
 
     return area
 
+
 # node
 def c_node_froude(h, v):
     """
@@ -577,6 +578,29 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
 
 
 """ OTHERS TOOLS """
+
+
+def create_empty_data_2_dict(reach_number, mesh_variables=[], node_variables=[]):
+    # create empty dict
+    data_2d = dict()
+
+    # mesh
+    data_2d["mesh"] = dict()
+    data_2d["mesh"]["tin"] = [[] for _ in range(reach_number)]
+    data_2d["mesh"]["i_whole_profile"] = [[] for _ in range(reach_number)]
+    data_2d["mesh"]["data"] = dict()
+    for mesh_variable in mesh_variables:
+        data_2d["mesh"]["data"][mesh_variable] = [[] for _ in range(reach_number)]
+
+    # node
+    data_2d["node"] = dict()
+    data_2d["node"]["xy"] = [[] for _ in range(reach_number)]
+    data_2d["node"]["z"] = [[] for _ in range(reach_number)]
+    data_2d["node"]["data"] = dict()
+    for node_variable in node_variables:
+        data_2d["node"]["data"][node_variable] = [[] for _ in range(reach_number)]
+
+    return data_2d
 
 
 def get_prj_from_epsg_web(epsg_code):

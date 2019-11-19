@@ -773,13 +773,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     variables_mesh = variables.copy()
                     variables_node = variables.copy()
                     # remove useless variables names for mesh
-                    variables_useless = ['mesh', 'points_elevation', "height", "velocity", "water_level", "Froude",
+                    variables_useless = ['mesh', 'sub_coarser_dominant', 'points_elevation', "height", "velocity", "water_level", "Froude",
                                          "hydraulic_head", "conveyance"]
                     for variables_useless in variables_useless:
                         if variables_useless in variables_mesh:
                             variables_mesh.remove(variables_useless)
                     # remove useless variables names for node
-                    variables_useless = ['mesh', "height", "velocity", 'points_elevation', 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
+                    variables_useless = ['mesh', 'sub_coarser_dominant', 'points_elevation', "height", "velocity", 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
                     for variables_useless in variables_useless:
                         if variables_useless in variables_node:
                             variables_node.remove(variables_useless)
@@ -806,6 +806,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                            fish_names=fish_names,
                                            whole_profil=False,
                                            convert_to_coarser_dom=True)
+                        # remove list fish
+                        for variables_fish in fish_names:
+                            if variables_fish in variables_mesh:
+                                variables_mesh.remove(variables_fish)
+                            if variables_fish in variables_node:
+                                variables_node.remove(variables_fish)
+                        # compute variables
                         hdf5.compute_variables(variables_mesh=variables_mesh,
                                                variables_node=variables_node)
                         data_description = dict(hdf5.data_description)
@@ -872,7 +879,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                    project_preferences,
                                                                    data_description,
-                                                                   hdf5.data_2d["node"]["h"][reach_num][unit_num],
+                                                                   hdf5.data_2d["node"]["data"]["h"][reach_num][unit_num],
                                                                    path_im,
                                                                    reach_name,
                                                                    units[unit_num]),
@@ -886,7 +893,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                      project_preferences,
                                                                      data_description,
-                                                                     hdf5.data_2d["node"]["v"][reach_num][unit_num],
+                                                                     hdf5.data_2d["node"]["data"]["v"][reach_num][unit_num],
                                                                      path_im,
                                                                      reach_name,
                                                                      units[unit_num]),
@@ -898,7 +905,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                args=(state,
                                                                      hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                      hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                     hdf5.data_2d["mesh"]["sub"][reach_num][unit_num],
+                                                                     hdf5.data_2d["mesh"]["data"]["sub"][reach_num][unit_num],
                                                                      data_description,
                                                                      path_im,
                                                                      project_preferences,
@@ -912,7 +919,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                    args=(state,
                                                                          hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                          hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                         hdf5.data_2d["mesh"]["max_slope_bottom"][reach_num][unit_num],
+                                                                         hdf5.data_2d["mesh"]["data"]["max_slope_bottom"][reach_num][unit_num],
                                                                          data_description,
                                                                          project_preferences,
                                                                          path_im,
@@ -926,7 +933,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                    args=(state,
                                                                          hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                          hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                         hdf5.data_2d["mesh"]["max_slope_energy"][reach_num][unit_num],
+                                                                         hdf5.data_2d["mesh"]["data"]["max_slope_energy"][reach_num][unit_num],
                                                                          data_description,
                                                                          project_preferences,
                                                                          path_im,
@@ -940,7 +947,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                    args=(state,
                                                                          hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                          hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                         hdf5.data_2d["mesh"]["shear_stress"][reach_num][unit_num],
+                                                                         hdf5.data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num],
                                                                          data_description,
                                                                          project_preferences,
                                                                          path_im,
@@ -956,7 +963,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                    project_preferences,
                                                                    data_description,
-                                                                   hdf5.data_2d["node"]["conveyance"][reach_num][unit_num],
+                                                                   hdf5.data_2d["node"]["data"]["conveyance"][reach_num][unit_num],
                                                                    path_im,
                                                                    reach_name,
                                                                    units[unit_num]),
@@ -970,7 +977,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                        project_preferences,
                                                                        data_description,
-                                                                       hdf5.data_2d["node"]["Froude"][reach_num][unit_num],
+                                                                       hdf5.data_2d["node"]["data"]["Froude"][reach_num][unit_num],
                                                                        path_im,
                                                                        reach_name,
                                                                        units[unit_num]),
@@ -984,7 +991,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                        project_preferences,
                                                                        data_description,
-                                                                       hdf5.data_2d["node"]["hydraulic_head"][reach_num][unit_num],
+                                                                       hdf5.data_2d["node"]["data"]["hydraulic_head"][reach_num][unit_num],
                                                                        path_im,
                                                                        reach_name,
                                                                        units[unit_num]),
@@ -998,7 +1005,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                        project_preferences,
                                                                        data_description,
-                                                                       hdf5.data_2d["node"]["water_level"][reach_num][unit_num],
+                                                                       hdf5.data_2d["node"]["data"]["water_level"][reach_num][unit_num],
                                                                        path_im,
                                                                        reach_name,
                                                                        units[unit_num]),
@@ -1357,6 +1364,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def show_prog(self, value):
+        print("show_prog", value)
         self.data_exporter_progressbar.setValue(value)
         self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_export))
 

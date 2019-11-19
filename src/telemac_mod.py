@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src import hdf5_mod
+from src.tools_mod import create_empty_data_2_dict
 from src import manage_grid_mod
 from src_GUI import preferences_GUI
 
@@ -84,14 +85,14 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
                 return
-            data_2d_whole_profile["mesh"]["tin"][0].append(data_2d_telemac["tin"])
-            data_2d_whole_profile["mesh"]["xy_center"][0].append(data_2d_telemac["xy_center"])
-            data_2d_whole_profile["node"]["xy"][0].append(data_2d_telemac["xy"])
+            data_2d_whole_profile["mesh"]["tin"][0].append(data_2d_telemac["mesh"]["tin"][0])
+            data_2d_whole_profile["mesh"]["xy_center"][0].append(data_2d_telemac["mesh"]["xy_center"][0])
+            data_2d_whole_profile["node"]["xy"][0].append(data_2d_telemac["node"]["xy"][0])
             if description_from_telemac_file["hyd_unit_z_equal"]:
-                data_2d_whole_profile["node"]["z"][0].append(data_2d_telemac["z"][0])
+                data_2d_whole_profile["node"]["z"][0].append(data_2d_telemac["node"]["z"][0][0])
             elif not description_from_telemac_file["hyd_unit_z_equal"]:
                 for unit_num in range(len(hydrau_description[hyd_file]["unit_list"])):
-                    data_2d_whole_profile["node"]["z"][0].append(data_2d_telemac["z"][unit_num])
+                    data_2d_whole_profile["node"]["z"][0].append(data_2d_telemac["z"][0][unit_num])
 
             data_2d_whole_profile["unit_correspondence"][0].append(str(i))
 
@@ -121,15 +122,9 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         delta = int(80 / int(hydrau_description[hyd_file]["unit_number"]))
 
         # cut the grid to have the precise wet area and put data in new form
-        data_2d = dict()
-        data_2d["mesh"] = dict()
-        data_2d["node"] = dict()
-        data_2d["mesh"]["tin"] = [[]]  # always one reach
-        data_2d["mesh"]["i_whole_profile"] = [[]]  # always one reach
-        data_2d["node"]["xy"] = [[]]  # always one reach
-        data_2d["node"]["h"] = [[]]  # always one reach
-        data_2d["node"]["v"] = [[]]  # always one reach
-        data_2d["node"]["z"] = [[]]  # always one reach
+        data_2d = create_empty_data_2_dict(1,  # always one reach
+                                           mesh_variables=list(data_2d_telemac["mesh"]["data"].keys()),
+                                           node_variables=list(data_2d_telemac["node"]["data"].keys()))
 
         # get unit list from telemac file
         file_list = hydrau_description[hyd_file]["filename_source"].split(", ")
@@ -171,9 +166,9 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
         if not data_2d_whole_profile["unit_correspondence"]:
             # conca xy with z value to facilitate the cutting of the grid (interpolation)
-            xy = np.insert(data_2d_telemac["xy"],
+            xy = np.insert(data_2d_telemac["node"]["xy"][0],
                            2,
-                           values=data_2d_telemac["z"][0],
+                           values=data_2d_telemac["node"]["z"][0][0],
                            axis=1)  # Insert values before column 2
         else:
             data_2d_telemac, description_from_telemac_file = load_telemac(file,
@@ -186,17 +181,17 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                                                                               hydrau_description[
                                                                                   hyd_file]["path_filename_source"])
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                xy = np.insert(data_2d_telemac["xy"],
+                xy = np.insert(data_2d_telemac["node"]["xy"][0],
                                2,
-                               values=data_2d_telemac["z"][unit_num],
+                               values=data_2d_telemac["node"]["z"][0][unit_num],
                                axis=1)  # Insert values before column 2
 
-            [tin_data, xy_cuted, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
+            [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(data_2d_telemac["mesh"]["tin"][0],
                                                                                         xy,
                                                                                         # with z value (facilitate)
-                                                                                        data_2d_telemac["h"][
+                                                                                        data_2d_telemac["node"]["data"]["h"][0][
                                                                                             unit_num],
-                                                                                        data_2d_telemac["v"][
+                                                                                        data_2d_telemac["node"]["data"]["v"][0][
                                                                                             unit_num],
                                                                                         progress_value,
                                                                                         delta,
@@ -218,11 +213,13 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
             else:
                 # save data in dict
                 data_2d["mesh"]["tin"][0].append(tin_data)
-                data_2d["mesh"]["i_whole_profile"][0].append(ind_new)
+                data_2d["mesh"]["i_whole_profile"][0].append(i_whole_profile)
+                for mesh_variable in data_2d_telemac["mesh"]["data"].keys():
+                    data_2d["mesh"]["data"][mesh_variable][0].append(data_2d_telemac["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
                 data_2d["node"]["xy"][0].append(xy_cuted[:, :2])
-                data_2d["node"]["h"][0].append(h_data)
-                data_2d["node"]["v"][0].append(v_data)
                 data_2d["node"]["z"][0].append(xy_cuted[:, 2])
+                data_2d["node"]["data"]["h"][0].append(h_data)
+                data_2d["node"]["data"]["v"][0].append(v_data)
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress
@@ -233,7 +230,8 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         hyd_description["hyd_model_type"] = hydrau_description[hyd_file]["model_type"]
         hyd_description["hyd_2D_numerical_method"] = "FiniteElementMethod"
         hyd_description["hyd_model_dimension"] = hydrau_description[hyd_file]["model_dimension"]
-        hyd_description["hyd_variables_list"] = "h, v, z"
+        hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_telemac["mesh"]["data"].keys()))
+        hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_telemac["node"]["data"].keys()))
         hyd_description["hyd_epsg_code"] = hydrau_description[hyd_file]["epsg_code"]
         hyd_description["hyd_reach_list"] = hydrau_description[hyd_file]["reach_list"]
         hyd_description["hyd_reach_number"] = hydrau_description[hyd_file]["reach_number"]
@@ -376,13 +374,14 @@ def load_telemac(namefilet, pathfilet):
     description_from_telemac_file["hyd_unit_z_equal"] = all_z_equal
 
     # data 2d dict
-    data_2d = dict()
-    data_2d["h"] = np.array(h, dtype=np.float64)
-    data_2d["v"] = np.array(v, dtype=np.float64)
-    data_2d["z"] = np.array(z, dtype=np.float64)
-    data_2d["xy"] = coord_p
-    data_2d["tin"] = ikle
-    data_2d["xy_center"] = coord_c
+    data_2d = create_empty_data_2_dict(1,
+                                       node_variables=["h", "v"])
+    data_2d["mesh"]["tin"][0] = ikle
+    data_2d["mesh"]["xy_center"] = [coord_c]
+    data_2d["node"]["xy"][0] = coord_p
+    data_2d["node"]["z"][0] = np.array(z, dtype=np.float64)
+    data_2d["node"]["data"]["h"][0] = np.array(h, dtype=np.float64)
+    data_2d["node"]["data"]["v"][0] = np.array(v, dtype=np.float64)
 
     del telemac_data
     #     return v, h, coord_p, ikle, coord_c, timestep
