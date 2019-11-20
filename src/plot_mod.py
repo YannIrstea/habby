@@ -940,7 +940,724 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     plt.show()
 
 
-# map
+# map node
+def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, ):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams[
+        'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
+    else:
+        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
+
+    # plot
+    plt.figure(filename)
+    # the grid
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    plt.title(title)
+    plt.axis('equal')
+
+    # plot
+    # color map (the same for al reach)
+    cm = plt.cm.get_cmap(project_preferences['color_map2'])
+    min_value = data_z.min()
+    max_value = data_z.max()
+    bounds_nb = 50
+    bounds = np.linspace(min_value, max_value, bounds_nb)
+    while not np.all(np.diff(bounds) > 0):
+        bounds_nb += - 1
+        bounds = np.linspace(min_value, max_value, bounds_nb)
+    # plot
+    sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_z,
+                         cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+
+    # normal case
+    if len(bounds) > 2:
+        cbar = plt.colorbar(sc)
+        cbar.set_label("[m]")
+    # constant case
+    else:
+        plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant elevation",
+                 fontsize=14, horizontalalignment='center', verticalalignment='center')
+
+
+    plt.ticklabel_format(useOffset=False)
+
+    # save figures
+    plt.tight_layout()  # remove margin out of plot
+    if types_plot == "image export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=project_preferences['resolution'], transparent=True)
+        else:
+            test = tools_mod.remove_image(filename, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
+                return
+            if format1 == 0:
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "interactive" or types_plot == "both":
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
+        plt.show()
+    if types_plot == "image export":
+        plt.close()
+
+
+def plot_map_height(state, data_xy, data_tin, project_preferences, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : hauteur d'eau - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_profondeur_{reach_name}_{unit_name}"
+    else:
+        title = f"{name_hdf5[:-4]} : water depth - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_depth_{reach_name}_{unit_name}"
+
+    # plot the height
+    if len(data_h) > 0:  # 0
+        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        plt.figure(filename)
+        plt.ticklabel_format(useOffset=False)
+        plt.axis('equal')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title(title)
+        # color map (the same for al reach)
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
+        min_value = 0
+        max_value = data_h.max()
+        bounds_nb = 50
+        bounds = np.linspace(min_value, max_value, bounds_nb)
+        while not np.all(np.diff(bounds) > 0):
+            bounds_nb += - 1
+            bounds = np.linspace(min_value, max_value, bounds_nb)
+        # plot
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h,
+                             cmap=cm, vmin=0, vmax=max_value, levels=bounds, extend='both')
+
+        # normal case
+        if len(bounds) > 2:
+            cbar = plt.colorbar(sc)
+            if project_preferences['language'] == 0:
+                cbar.ax.set_ylabel('Water depth [m]')
+            elif project_preferences['language'] == 1:
+                cbar.ax.set_ylabel("Hauteur d'eau [m]")
+            else:
+                cbar.ax.set_ylabel('Water depth [m]')
+        # constant case
+        else:
+            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant height",
+                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+
+
+        # save figure
+        plt.tight_layout()  # remove margin out of plot
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=project_preferences['resolution'], transparent=True)
+            else:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
+                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                    return
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                                transparent=True)
+
+        # output for plot_GUI
+        state.value = 1  # process finished
+        if types_plot == "interactive" or types_plot == "both":
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
+            plt.show()
+        if types_plot == "image export":
+            plt.close()
+
+
+def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : vitesse - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_vitesse_{reach_name}_{unit_name}"
+    else:
+        title = f"{name_hdf5[:-4]} : velocity - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_velocity_{reach_name}_{unit_name}"
+
+    # plot
+    if len(data_v) > 0:  # 0
+        plt.figure(filename)
+        plt.ticklabel_format(useOffset=False)
+        plt.axis('equal')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title(title)
+        # get colormap limit
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
+        min_value = 0
+        max_value = data_v.max()
+        bounds_nb = 50
+        bounds = np.linspace(min_value, max_value, bounds_nb)
+        while not np.all(np.diff(bounds) > 0):
+            bounds_nb += - 1
+            bounds = np.linspace(min_value, max_value, bounds_nb)
+        # plot
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_v,
+                             cmap=cm, vmin=0, vmax=max_value, levels=bounds, extend='both')
+
+        # normal case
+        if len(bounds) > 2:
+            cbar = plt.colorbar(sc)
+            if project_preferences['language'] == 0:
+                cbar.ax.set_ylabel('Velocity [m/sec]')
+            elif project_preferences['language'] == 1:
+                cbar.ax.set_ylabel('Vitesse [m/sec]')
+            else:
+                cbar.ax.set_ylabel('Velocity [m/sec]')
+        # constant case
+        else:
+            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant velocity",
+                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+
+
+
+        # save figure
+        plt.tight_layout()  # remove margin out of plot
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=project_preferences['resolution'], transparent=True)
+            else:
+                test = tools_mod.remove_image(filename, path_im, format1)
+                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                    return
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                                transparent=True)
+        # output for plot_GUI
+        state.value = 1  # process finished
+        if types_plot == "interactive" or types_plot == "both":
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
+            plt.show()
+        if types_plot == "image export":
+            plt.close()
+
+
+def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_description, data_conveyance=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : débitance - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_debitance_{reach_name}_{unit_name}"
+    else:
+        title = f"{name_hdf5[:-4]} : conveyance - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_conveyance_{reach_name}_{unit_name}"
+
+    # plot the height
+    if len(data_conveyance) > 0:  # 0
+        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        plt.figure(filename)
+        plt.ticklabel_format(useOffset=False)
+        plt.axis('equal')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title(title)
+        # color map (the same for al reach)
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
+        min_value = data_conveyance.min()
+        max_value = data_conveyance.max()
+        bounds_nb = 50
+        bounds = np.linspace(min_value, max_value, bounds_nb)
+        while not np.all(np.diff(bounds) > 0):
+            bounds_nb += - 1
+            bounds = np.linspace(min_value, max_value, bounds_nb)
+        # plot
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_conveyance,
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+
+        # normal case
+        if len(bounds) > 2:
+            cbar = plt.colorbar(sc)
+            if project_preferences['language'] == 0:
+                cbar.ax.set_ylabel('Conveyance [m²/s]')
+            elif project_preferences['language'] == 1:
+                cbar.ax.set_ylabel("Débitance [m²/s]")
+            else:
+                cbar.ax.set_ylabel('Conveyance [m²/s]')
+        # constant case
+        else:
+            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant conveyance",
+                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+
+        # save figure
+        plt.tight_layout()  # remove margin out of plot
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=project_preferences['resolution'], transparent=True)
+            else:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
+                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                    return
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                                transparent=True)
+
+        # output for plot_GUI
+        state.value = 1  # process finished
+        if types_plot == "interactive" or types_plot == "both":
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
+            plt.show()
+        if types_plot == "image export":
+            plt.close()
+
+
+def plot_map_froude(state, data_xy, data_tin, project_preferences, data_description, data_froude=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : Nombre de Froude - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_froude_{reach_name}_{unit_name}"
+    else:
+        title = f"{name_hdf5[:-4]} : Froude number - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_froude_{reach_name}_{unit_name}"
+
+    # plot the height
+    if len(data_froude) > 0:  # 0
+        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        plt.figure(filename)
+        plt.ticklabel_format(useOffset=False)
+        plt.axis('equal')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title(title)
+        # color map (the same for al reach)
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
+        min_value = 0
+        max_value = data_froude.max()
+        bounds_nb = 50
+        bounds = np.linspace(min_value, max_value, bounds_nb)
+        while not np.all(np.diff(bounds) > 0):
+            bounds_nb += - 1
+            bounds = np.linspace(min_value, max_value, bounds_nb)
+        # plot
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_froude,
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+
+        # normal case
+        if len(bounds) > 2:
+            cbar = plt.colorbar(sc)
+            if project_preferences['language'] == 0:
+                cbar.ax.set_ylabel('Froude number []')
+            elif project_preferences['language'] == 1:
+                cbar.ax.set_ylabel("Nombre de Froude []")
+            else:
+                cbar.ax.set_ylabel('Froude number []')
+        # constant case
+        else:
+            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant Froude",
+                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+
+        # save figure
+        plt.tight_layout()  # remove margin out of plot
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=project_preferences['resolution'], transparent=True)
+            else:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
+                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                    return
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                                transparent=True)
+
+        # output for plot_GUI
+        state.value = 1  # process finished
+        if types_plot == "interactive" or types_plot == "both":
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
+            plt.show()
+        if types_plot == "image export":
+            plt.close()
+
+
+def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_description, data_hydraulic_head=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : Charge hydraulique - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_charge_hydraulique_{reach_name}_{unit_name}"
+    else:
+        title = f"{name_hdf5[:-4]} : Hydraulic head - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_hydraulic_head_{reach_name}_{unit_name}"
+
+    # plot the height
+    if len(data_hydraulic_head) > 0:  # 0
+        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        plt.figure(filename)
+        plt.ticklabel_format(useOffset=False)
+        plt.axis('equal')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title(title)
+        # color map (the same for al reach)
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
+        min_value = data_hydraulic_head.min()
+        max_value = data_hydraulic_head.max()
+        bounds_nb = 50
+        bounds = np.linspace(min_value, max_value, bounds_nb)
+        while not np.all(np.diff(bounds) > 0):
+            bounds_nb += - 1
+            bounds = np.linspace(min_value, max_value, bounds_nb)
+        # plot
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_hydraulic_head,
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+
+        # normal case
+        if len(bounds) > 2:
+            cbar = plt.colorbar(sc)
+            if project_preferences['language'] == 0:
+                cbar.ax.set_ylabel('Hydraulic head [m]')
+            elif project_preferences['language'] == 1:
+                cbar.ax.set_ylabel("Charge hydraulique [m]")
+            else:
+                cbar.ax.set_ylabel('Hydraulic head [m]')
+        # constant case
+        else:
+            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant hydraulic head",
+                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+
+        # save figure
+        plt.tight_layout()  # remove margin out of plot
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=project_preferences['resolution'], transparent=True)
+            else:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
+                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                    return
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                                transparent=True)
+
+        # output for plot_GUI
+        state.value = 1  # process finished
+        if types_plot == "interactive" or types_plot == "both":
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
+            plt.show()
+        if types_plot == "image export":
+            plt.close()
+
+
+def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_description, data_water_level=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if project_preferences['language'] == 1:
+        title = f"{name_hdf5[:-4]} : Niveau d'eau - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_niveau_eau_{reach_name}_{unit_name}"
+    else:
+        title = f"{name_hdf5[:-4]} : Water level - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_water_level_{reach_name}_{unit_name}"
+
+    # plot the height
+    if len(data_water_level) > 0:  # 0
+        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        plt.figure(filename)
+        plt.ticklabel_format(useOffset=False)
+        plt.axis('equal')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title(title)
+        # color map (the same for al reach)
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
+        min_value = data_water_level.min()
+        max_value = data_water_level.max()
+        bounds_nb = 50
+        bounds = np.linspace(min_value, max_value, bounds_nb)
+        while not np.all(np.diff(bounds) > 0):
+            bounds_nb += - 1
+            bounds = np.linspace(min_value, max_value, bounds_nb)
+        # plot
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_water_level,
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+
+        # normal case
+        if len(bounds) > 2:
+            cbar = plt.colorbar(sc)
+            if project_preferences['language'] == 0:
+                cbar.ax.set_ylabel('Water level [m]')
+            elif project_preferences['language'] == 1:
+                cbar.ax.set_ylabel("Niveau d'eau [m]")
+            else:
+                cbar.ax.set_ylabel('Water level [m]')
+        # constant case
+        else:
+            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant water level",
+                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+
+        # save figure
+        plt.tight_layout()  # remove margin out of plot
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=project_preferences['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=project_preferences['resolution'], transparent=True)
+            else:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
+                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                    return
+                if format1 == 0:
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 1:
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
+                                transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
+                                transparent=True)
+
+        # output for plot_GUI
+        state.value = 1  # process finished
+        if types_plot == "interactive" or types_plot == "both":
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
+            plt.show()
+        if types_plot == "image export":
+            plt.close()
+
+
+# map mesh
 def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_description, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = preferences_GUI.create_default_project_preferences()
@@ -1045,670 +1762,6 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
         plt.show()
     if types_plot == "image export":
         plt.close()
-
-
-def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, ):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams[
-        'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-    name_hdf5 = data_description["name_hdf5"]
-    unit_type = data_description["unit_type"][
-           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-
-    # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
-
-    # plot
-    plt.figure(filename)
-    # the grid
-    plt.xlabel('x coord []')
-    plt.ylabel('y coord []')
-    plt.title(title)
-    plt.axis('equal')
-
-    # plot
-    # color map (the same for al reach)
-    mvc = 0.001
-    cm = plt.cm.get_cmap(project_preferences['color_map2'])
-    mv = max(data_z)
-    minv = min(data_z)
-    if mv > mvc:
-        mvc = mv
-    bounds = np.linspace(minv, mvc, 50)
-    # plot
-    sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_z,
-                         cmap=cm, vmin=minv, vmax=mvc, levels=bounds, extend='both')
-    cbar = plt.colorbar(sc)
-
-    cbar.set_label("[m]")
-    plt.ticklabel_format(useOffset=False)
-
-    # save figures
-    plt.tight_layout()  # remove margin out of plot
-    if types_plot == "image export" or types_plot == "both":
-        if not erase1:
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=project_preferences['resolution'], transparent=True)
-        else:
-            test = tools_mod.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
-                return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if types_plot == "interactive" or types_plot == "both":
-        # fm = plt.get_current_fig_manager()
-        # fm.window.showMinimized()
-        plt.show()
-    if types_plot == "image export":
-        plt.close()
-
-
-def plot_map_height(state, data_xy, data_tin, project_preferences, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-    name_hdf5 = data_description["name_hdf5"]
-    unit_type = data_description["unit_type"][
-           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-
-    # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : hauteur d'eau - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_profondeur_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : water depth - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_depth_{reach_name}_{unit_name}"
-
-    # plot the height
-    if len(data_h) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
-        plt.figure(filename)
-        plt.ticklabel_format(useOffset=False)
-        plt.axis('equal')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        plt.title(title)
-        # color map (the same for al reach)
-        mvc = 0.001
-        cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        mv = max(data_h)
-        if mv > mvc:
-            mvc = mv
-        bounds = np.linspace(0, mvc, 50)
-        # negative value ?
-        #data_h[data_h < 0] = 0
-
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h,
-                             cmap=cm, vmin=0, vmax=mvc, levels=bounds, extend='both')
-        cbar = plt.colorbar(sc)
-        if project_preferences['language'] == 0:
-            cbar.ax.set_ylabel('Water depth [m]')
-        elif project_preferences['language'] == 1:
-            cbar.ax.set_ylabel("Hauteur d'eau [m]")
-        else:
-            cbar.ax.set_ylabel('Water depth [m]')
-
-        # save figure
-        plt.tight_layout()  # remove margin out of plot
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
-            else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
-                    return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
-
-        # output for plot_GUI
-        state.value = 1  # process finished
-        if types_plot == "interactive" or types_plot == "both":
-            # fm = plt.get_current_fig_manager()
-            # fm.window.showMinimized()
-            plt.show()
-        if types_plot == "image export":
-            plt.close()
-
-
-def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-
-
-    name_hdf5 = data_description["name_hdf5"]
-    unit_type = data_description["unit_type"][
-           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-
-    # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : vitesse - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_vitesse_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : velocity - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_velocity_{reach_name}_{unit_name}"
-
-    # plot
-    if len(data_v) > 0:  # 0
-        plt.figure(filename)
-        plt.ticklabel_format(useOffset=False)
-        plt.axis('equal')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        plt.title(title)
-        # get colormap limit
-        mvc = 0.001
-        cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        mv = max(data_v)
-        if mv > mvc:
-            mvc = mv
-        bounds = np.linspace(0, mvc, 50)
-
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_v,
-                             cmap=cm, levels=bounds, extend='both')
-
-        # plt.clim(0, np.nanmax(inter_vel))
-        cbar = plt.colorbar(sc)
-        if project_preferences['language'] == 0:
-            cbar.ax.set_ylabel('Velocity [m/sec]')
-        elif project_preferences['language'] == 1:
-            cbar.ax.set_ylabel('Vitesse [m/sec]')
-        else:
-            cbar.ax.set_ylabel('Velocity [m/sec]')
-
-        # save figure
-        plt.tight_layout()  # remove margin out of plot
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
-            else:
-                test = tools_mod.remove_image(filename, path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
-                    return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
-        # output for plot_GUI
-        state.value = 1  # process finished
-        if types_plot == "interactive" or types_plot == "both":
-            # fm = plt.get_current_fig_manager()
-            # fm.window.showMinimized()
-            plt.show()
-        if types_plot == "image export":
-            plt.close()
-
-
-def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_description, data_conveyance=[], path_im=[], reach_name="", unit_name=0):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-    name_hdf5 = data_description["name_hdf5"]
-    unit_type = data_description["unit_type"][
-           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-
-    # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : débitance - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_debitance_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : conveyance - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_conveyance_{reach_name}_{unit_name}"
-
-    # plot the height
-    if len(data_conveyance) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
-        plt.figure(filename)
-        plt.ticklabel_format(useOffset=False)
-        plt.axis('equal')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        plt.title(title)
-        # color map (the same for al reach)
-        mvc = 0.001
-        cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        mv = max(data_conveyance)
-        if mv > mvc:
-            mvc = mv
-        bounds = np.linspace(min(data_conveyance), mvc, 50)
-        # negative value ?
-        #data_h[data_h < 0] = 0
-
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_conveyance,
-                             cmap=cm, vmin=min(data_conveyance), vmax=mvc, levels=bounds, extend='both')
-        cbar = plt.colorbar(sc)
-        if project_preferences['language'] == 0:
-            cbar.ax.set_ylabel('Conveyance [m²/s]')
-        elif project_preferences['language'] == 1:
-            cbar.ax.set_ylabel("Débitance [m²/s]")
-        else:
-            cbar.ax.set_ylabel('Conveyance [m²/s]')
-
-        # save figure
-        plt.tight_layout()  # remove margin out of plot
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
-            else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
-                    return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
-
-        # output for plot_GUI
-        state.value = 1  # process finished
-        if types_plot == "interactive" or types_plot == "both":
-            # fm = plt.get_current_fig_manager()
-            # fm.window.showMinimized()
-            plt.show()
-        if types_plot == "image export":
-            plt.close()
-
-
-def plot_map_froude(state, data_xy, data_tin, project_preferences, data_description, data_froude=[], path_im=[], reach_name="", unit_name=0):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-    name_hdf5 = data_description["name_hdf5"]
-    unit_type = data_description["unit_type"][
-           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-
-    # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Nombre de Froude - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_froude_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : Froude number - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_froude_{reach_name}_{unit_name}"
-
-    # plot the height
-    if len(data_froude) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
-        plt.figure(filename)
-        plt.ticklabel_format(useOffset=False)
-        plt.axis('equal')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        plt.title(title)
-        # color map (the same for al reach)
-        mvc = 0.001
-        cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        mv = max(data_froude)
-        if mv > mvc:
-            mvc = mv
-        bounds = np.linspace(0, mvc, 50)
-        # negative value ?
-        #data_h[data_h < 0] = 0
-
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_froude,
-                             cmap=cm, vmin=0, vmax=mvc, levels=bounds, extend='both')
-        cbar = plt.colorbar(sc)
-        if project_preferences['language'] == 0:
-            cbar.ax.set_ylabel('Froude number []')
-        elif project_preferences['language'] == 1:
-            cbar.ax.set_ylabel("Nombre de Froude []")
-        else:
-            cbar.ax.set_ylabel('Froude number []')
-
-        # save figure
-        plt.tight_layout()  # remove margin out of plot
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
-            else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
-                    return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
-
-        # output for plot_GUI
-        state.value = 1  # process finished
-        if types_plot == "interactive" or types_plot == "both":
-            # fm = plt.get_current_fig_manager()
-            # fm.window.showMinimized()
-            plt.show()
-        if types_plot == "image export":
-            plt.close()
-
-
-def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_description, data_hydraulic_head=[], path_im=[], reach_name="", unit_name=0):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-    name_hdf5 = data_description["name_hdf5"]
-    unit_type = data_description["unit_type"][
-           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-
-    # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Charge hydraulique - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_charge_hydraulique_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : Hydraulic head - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_hydraulic_head_{reach_name}_{unit_name}"
-
-    # plot the height
-    if len(data_hydraulic_head) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
-        plt.figure(filename)
-        plt.ticklabel_format(useOffset=False)
-        plt.axis('equal')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        plt.title(title)
-        # color map (the same for al reach)
-        mvc = 0.001
-        cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        mv = max(data_hydraulic_head)
-        if mv > mvc:
-            mvc = mv
-        bounds = np.linspace(min(data_hydraulic_head), mvc, 50)
-        # negative value ?
-        #data_h[data_h < 0] = 0
-
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_hydraulic_head,
-                             cmap=cm, vmin=min(data_hydraulic_head), vmax=mvc, levels=bounds, extend='both')
-        cbar = plt.colorbar(sc)
-        if project_preferences['language'] == 0:
-            cbar.ax.set_ylabel('Hydraulic head [m]')
-        elif project_preferences['language'] == 1:
-            cbar.ax.set_ylabel("Charge hydraulique [m]")
-        else:
-            cbar.ax.set_ylabel('Hydraulic head [m]')
-
-        # save figure
-        plt.tight_layout()  # remove margin out of plot
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
-            else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
-                    return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
-
-        # output for plot_GUI
-        state.value = 1  # process finished
-        if types_plot == "interactive" or types_plot == "both":
-            # fm = plt.get_current_fig_manager()
-            # fm.window.showMinimized()
-            plt.show()
-        if types_plot == "image export":
-            plt.close()
-
-
-def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_description, data_water_level=[], path_im=[], reach_name="", unit_name=0):
-    if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
-
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
-    name_hdf5 = data_description["name_hdf5"]
-    unit_type = data_description["unit_type"][
-           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-
-    # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Niveau d'eau - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_niveau_eau_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : Water level - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_water_level_{reach_name}_{unit_name}"
-
-    # plot the height
-    if len(data_water_level) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
-        plt.figure(filename)
-        plt.ticklabel_format(useOffset=False)
-        plt.axis('equal')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        plt.title(title)
-        # color map (the same for al reach)
-        mvc = 0.001
-        cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        mv = max(data_water_level)
-        if mv > mvc:
-            mvc = mv
-        bounds = np.linspace(min(data_water_level), mvc, 50)
-        # negative value ?
-        #data_h[data_h < 0] = 0
-
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_water_level,
-                             cmap=cm, vmin=min(data_water_level), vmax=mvc, levels=bounds, extend='both')
-        cbar = plt.colorbar(sc)
-        if project_preferences['language'] == 0:
-            cbar.ax.set_ylabel('Water level [m]')
-        elif project_preferences['language'] == 1:
-            cbar.ax.set_ylabel("Niveau d'eau [m]")
-        else:
-            cbar.ax.set_ylabel('Water level [m]')
-
-        # save figure
-        plt.tight_layout()  # remove margin out of plot
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
-            else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
-                    return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
-
-        # output for plot_GUI
-        state.value = 1  # process finished
-        if types_plot == "interactive" or types_plot == "both":
-            # fm = plt.get_current_fig_manager()
-            # fm.window.showMinimized()
-            plt.show()
-        if types_plot == "image export":
-            plt.close()
 
 
 def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
@@ -2324,60 +2377,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
         plt.close()
 
 
-class SnaptoCursorPT(object):
-    """
-    Display nearest data from x mouse position of matplotlib canvas.
-    """
-
-    def __init__(self, mpl_canvas, ax_wua, ax_hv, x, y_wua_list, y_hv_list):
-        self.x_loc = None
-        self.mpl_canvas = mpl_canvas
-        self.ax_wua = ax_wua
-        self.ax_hv = ax_hv
-        self.x = x
-        self.y_wua_list = y_wua_list
-        self.y_hv_list = y_hv_list
-        self.text_wua_list_mpl = []
-        self.text_hv_list_mpl = []
-        # prep text object in list
-        for i in range(len(self.y_wua_list)):
-            self.text_wua_list_mpl.append(self.ax_wua.text(x=self.x[0],
-                                                           y=self.y_wua_list[i][0],
-                                                           s="2 m²", horizontalalignment='center'))
-            self.text_hv_list_mpl.append(self.ax_hv.text(x=self.x[0],
-                                                         y=self.y_hv_list[i][0],
-                                                         s="2 m²", horizontalalignment='center'))
-            self.text_wua_list_mpl[i].set_alpha(0)
-            self.text_hv_list_mpl[i].set_alpha(0)
-
-    def mouse_move(self, event):
-        if event.inaxes:
-            # LOCATE
-            self.take_closest(event.xdata, self.x)
-            for i in range(len(self.y_wua_list)):  # for each fish list
-                # PLOT WUA
-                y_wua = self.y_wua_list[i][self.x.index(self.x_loc)]
-                text_wua = '{:0.0f}'.format(y_wua) + " m²"
-                self.text_wua_list_mpl[i].set_alpha(1)
-                self.text_wua_list_mpl[i].set_text(text_wua)
-                self.text_wua_list_mpl[i].set_position((self.x_loc, y_wua))
-                # PLOT HV
-                y_hv = self.y_hv_list[i][self.x.index(self.x_loc)]
-                text_hv = '{:0.2f}'.format(y_hv)
-                self.text_hv_list_mpl[i].set_alpha(1)
-                self.text_hv_list_mpl[i].set_text(text_hv)
-                self.text_hv_list_mpl[i].set_position((self.x_loc, y_hv))
-        if not event.inaxes:
-            # HIDE
-            for i in range(len(self.y_wua_list)):
-                self.text_wua_list_mpl[i].set_alpha(0)
-                self.text_hv_list_mpl[i].set_alpha(0)
-        self.mpl_canvas.draw()
-
-    def take_closest(self, num, collection):
-        self.x_loc = min(collection, key=lambda x: abs(x - num))
-
-
+# plot tool
 def get_colors_styles_line_from_nb_input(input_nb):
     """
     Get color_list and style_list for a given number of input.
