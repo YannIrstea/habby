@@ -26,7 +26,7 @@ import numpy as np
 from src import hdf5_mod
 from src.tools_mod import create_empty_data_2_dict
 from src import manage_grid_mod
-from src_GUI import preferences_GUI
+from src.project_manag_mod import create_default_project_preferences
 
 
 def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -54,7 +54,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
     # minimum water height
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     minwh = project_preferences['min_height_hyd']
 
     # progress

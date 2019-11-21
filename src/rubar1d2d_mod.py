@@ -30,8 +30,7 @@ from src import hdf5_mod
 from src import hec_ras2D_mod
 from src import manage_grid_mod
 from src.tools_mod import create_empty_data_2_dict
-from src.project_manag_mod import load_project_preferences
-from src_GUI import preferences_GUI
+from src.project_manag_mod import load_project_preferences, create_default_project_preferences
 from src.user_preferences_mod import user_preferences
 
 
@@ -639,7 +638,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
     """
 
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -769,7 +768,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
 
     # minimum water height
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     minwh = project_preferences['min_height_hyd']
 
     # progress

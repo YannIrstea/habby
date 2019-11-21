@@ -22,12 +22,12 @@ import bisect
 from io import StringIO
 import sys
 import time
-from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
-    show, subplot, fill_between, rcParams, savefig, close, rcParams, suptitle
+from matplotlib.pyplot import axis, plot, step, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
+    show, subplot, fill_between, savefig, close, rcParams, suptitle
 import matplotlib as mpl
 from src import manage_grid_mod
 from src import hdf5_mod
-from src_GUI import preferences_GUI
+from src.project_manag_mod import create_default_project_preferences
 
 
 def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
@@ -63,7 +63,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     # load the hec-ra data (the function is just below)
     [coord_pro, vh_pro, nb_pro_reach, sim_name] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1],

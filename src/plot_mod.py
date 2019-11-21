@@ -21,12 +21,12 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
-from matplotlib.lines import Line2D
 from matplotlib.patches import Polygon
 from matplotlib.legend_handler import HandlerLine2D
 import mplcursors
 
 from src import tools_mod
+from src.project_manag_mod import create_default_project_preferences
 from src.tools_mod import get_translator
 from src_GUI import preferences_GUI
 
@@ -51,7 +51,8 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
-        #project_preferences = preferences_GUI.create_default_project_preferences()
+        if not project_preferences:
+            project_preferences = create_default_project_preferences()
         plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
@@ -174,7 +175,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         if not project_preferences:
-            project_preferences = preferences_GUI.create_default_project_preferences()
+            project_preferences = create_default_project_preferences()
         plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
@@ -248,7 +249,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         if not project_preferences:
-            project_preferences = preferences_GUI.create_default_project_preferences()
+            project_preferences = create_default_project_preferences()
         plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
@@ -335,7 +336,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     if project_preferences['language'] == 0:
         title_plot = 'Measurement conditions \n' + fishname
@@ -391,7 +392,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     default_size = plt.rcParams['figure.figsize']
@@ -625,7 +626,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     :param sim_name: the name of the time steps if not 0,1,2,3
     """
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
@@ -796,7 +797,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
 
 def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -943,7 +944,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 # map node
 def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, ):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1040,7 +1041,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
 
 def plot_map_height(state, data_xy, data_tin, project_preferences, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1144,7 +1145,7 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
 
 def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1247,7 +1248,7 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
 
 def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_description, data_conveyance=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1350,7 +1351,7 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
 
 def plot_map_froude(state, data_xy, data_tin, project_preferences, data_description, data_froude=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1453,7 +1454,7 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
 
 def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_description, data_hydraulic_head=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1556,7 +1557,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
 
 def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_description, data_water_level=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1660,7 +1661,7 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
 # map mesh
 def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_description, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1766,7 +1767,7 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
 
 def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
@@ -1875,7 +1876,7 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
 
 def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
@@ -1984,7 +1985,7 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
 
 def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
@@ -2108,7 +2109,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     :param reach_num: If we plot more than one reach, this is the reach number
     """
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
@@ -2265,7 +2266,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
 
 def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']

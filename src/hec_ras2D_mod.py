@@ -23,7 +23,7 @@ import sys
 from io import StringIO
 from src import manage_grid_mod
 from src import hdf5_mod
-from src_GUI import preferences_GUI
+from src.project_manag_mod import create_default_project_preferences
 
 
 def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -59,7 +59,7 @@ def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_va
 
     # minimum water height
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     minwh = project_preferences['min_height_hyd']
 
     # progress
@@ -70,7 +70,8 @@ def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_va
     inter_h_all_t = []
 
     # load
-    [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, timesteps] = load_hec_ras2d(filename, path)
+    vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, timesteps = load_hec_ras2d(description_from_indextelemac_file["filename_source"],
+                                                                                          description_from_indextelemac_file["path_filename_source"])
     if isinstance(vel_cell[0], int):
         if vel_cell == [-99]:
             print("Error: HEC-RAS2D data could not be loaded.")
@@ -192,7 +193,7 @@ def load_hec_ras2d(filename, path):
     # initialization
     coord_p_all = []
     coord_c_all = []
-    elev_all = []
+    elev_c_all = []
     ikle_all = []
     vel_c_all = []
     water_depth_c_all = []
@@ -213,23 +214,23 @@ def load_hec_ras2d(filename, path):
     # geometry and grid data
     try:
         geometry_base = file2D["Geometry/2D Flow Areas"]
-        name_area = np.array(geometry_base["Names"])
+        name_area = geometry_base["Names"][:].astype(str).tolist()
     except KeyError:
         print('Error: Name of flow area could not be extracted. Check format of the hdf file.')
         return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
         # print(list(geometry.items()))
     try:
         for i in range(0, len(name_area)):
-            name_area_i = str(name_area[i].strip())
-            path_h5_geo = "Geometry/2D Flow Areas" + '/' + name_area_i[2:-1]
+            name_area_i = name_area[i]
+            path_h5_geo = "Geometry/2D Flow Areas" + '/' + name_area_i
             geometry = file2D[path_h5_geo]
             # print(list(geometry.keys()))
             # basic geometry
             coord_p = np.array(geometry["FacePoints Coordinate"])
             coord_c = np.array(geometry["Cells Center Coordinate"])
             ikle = np.array(geometry["Cells FacePoint Indexes"])
-            elev = np.array(geometry["Cells Minimum Elevation"])
-            elev_all.append(elev)
+            #elev = np.array(geometry["Cells Minimum Elevation"])
+            #elev_all.append(elev)
             coord_p_all.append(coord_p)
             coord_c_all.append(coord_c)
             ikle_all.append(ikle)
@@ -237,11 +238,14 @@ def load_hec_ras2d(filename, path):
         print('Error: Geometry data could not be extracted. Check format of the hdf file.')
         return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
+    # elevation
+    elevation = geometry["Faces Minimum Elevation"][:]
+
     # water depth
     for i in range(0, len(name_area)):
-        name_area_i = str(name_area[i].strip())
+        name_area_i = name_area[i]
         path_h5_geo = '/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas' \
-                      + '/' + name_area_i[2:-1]
+                      + '/' + name_area_i
         result = file2D[path_h5_geo]
         water_depth = np.array(result['Depth'])
         water_depth_c_all.append(water_depth)
@@ -257,22 +261,32 @@ def load_hec_ras2d(filename, path):
         where_is_cells_face1 = where_is_cells_face[:, 1]
         face_unit_vec = np.array(geometry["Faces NormalUnitVector and Length"])
         face_unit_vec = face_unit_vec[:, :2]
-        velocity = np.array(result["Face Velocity"])
+        velocity = result["Face Velocity"][:]
         new_vel = np.hstack((face_unit_vec, velocity.T))  # for optimization (looking for face is slow)
+        new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
         lim_b = 0
         nbtstep = velocity.shape[0]
         vel_c = np.zeros((len(coord_c_all[i]), nbtstep))
+        elev_c = np.zeros((len(coord_c_all[i])))
         for c in range(0, len(coord_c_all[i])):
             # find face
             nb_face = where_is_cells_face1[c]
             lim_a = lim_b
             lim_b = lim_a + nb_face
             face = cells_face[lim_a:lim_b]
+            # vel
             data_face = new_vel[face, :]
             data_face_t = data_face[:, 2:].T
             add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
             add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
             vel_c[c, :] = (1.0 / nb_face) * np.sqrt(add_vec_x ** 2 + add_vec_y ** 2)
+            # elev
+            data_face = new_elev[face, :]
+            data_face_t = data_face[:, 2:].T
+            add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
+            add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
+            elev_c[c] = (1.0 / nb_face) * np.sqrt(add_vec_x ** 2 + add_vec_y ** 2)
+        elev_all.append(elev_c)
         vel_c_all.append(vel_c)
 
     # get data time step by time step
@@ -300,7 +314,39 @@ def load_hec_ras2d(filename, path):
     [ikle_all, coord_c_all, coord_p_all, vel_t_all2, water_depth_t_all2] = get_triangular_grid_hecras(
         ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
 
-    return vel_t_all2, water_depth_t_all2, elev_all, coord_p_all, coord_c_all, ikle_all, timesteps
+    # description telemac data dict
+    description_from_file = dict()
+    description_from_file["filename_source"] = filename
+    description_from_file["model_type"] = "HECRAS2D"
+    description_from_file["model_dimension"] = str(2)
+    description_from_file["unit_list"] = ", ".join(timesteps)
+    description_from_file["unit_number"] = str(len(timesteps))
+    description_from_file["unit_type"] = "timestep [s]"
+    description_from_file["unit_z_equal"] = True
+    description_from_file["reach_number"] = str(len(name_area))
+    description_from_file["reach_name"] = ", ".join(name_area)
+
+    # data 2d dict
+    data_2d = dict()
+    data_2d["h"] = []
+    data_2d["v"] = []
+    data_2d["z"] = []
+    data_2d["xy"] = []
+    data_2d["tin"] = []
+    for reach_num in range(len(ikle_all)):
+        data_2d["tin"].append(ikle_all[reach_num])
+        data_2d["h"].append([])
+        data_2d["v"].append([])
+        data_2d["z"].append([])
+        data_2d["xy"].append([])
+        for unit_num in range(len(timesteps)):
+            data_2d["h"][reach_num].append(water_depth_t_all2[unit_num][reach_num])
+            data_2d["v"][reach_num].append(vel_t_all2[unit_num][reach_num])
+            data_2d["z"][reach_num].append(elev_all[reach_num])
+            data_2d["xy"][reach_num].append(coord_p_all[unit_num][reach_num])
+
+    # vel_t_all2, water_depth_t_all2, elev_all, coord_p_all, coord_c_all, ikle_all, timesteps
+    return data_2d, description_from_file
 
 
 def get_time_step(filename_path):
@@ -322,6 +368,7 @@ def get_time_step(filename_path):
         timesteps[idx] = t.decode('utf-8')
         timesteps[idx] = timesteps[idx].replace(':', '-')
     return len(timesteps), timesteps
+
 
 def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     """

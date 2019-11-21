@@ -45,7 +45,7 @@ from src import bio_info_mod
 from src import mesh_management_mod
 from src import lammi_mod
 from src import hydro_input_file_mod
-from src import project_manag_mod
+from src.project_manag_mod import create_default_project_preferences
 from src_GUI import preferences_GUI
 
 
@@ -767,7 +767,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         if riv_int == 0:
             [mystathab.fish_chosen, coeff_all] = stathab_mod.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
-            project_preferences = preferences_GUI.create_default_project_preferences()
+            project_preferences = create_default_project_preferences()
             project_preferences['erase_id'] = True
             mystathab.project_preferences = project_preferences
             mystathab.savetxt_stathab()
@@ -1297,7 +1297,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         #             merge_name = f
 
 
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
 
         # run calculation
         progress_value = Value("i", 0)

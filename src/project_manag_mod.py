@@ -267,7 +267,10 @@ def create_default_project_preferences():
     return project_preferences
 
 
-def create_project_structure(path_prj, logon, version, username_prj, descri_prj, path_bio_default):
+def create_project_structure(path_prj, logon, version, username_prj, descri_prj, path_bio_default=None, mode="GUI"):
+    # check if folder exist
+    if not os.path.exists(path_prj):
+        os.makedirs(path_prj)
     # get name
     name_prj = os.path.basename(path_prj)
     # create the root <root> and general tab
@@ -372,3 +375,92 @@ def create_project_structure(path_prj, logon, version, username_prj, descri_prj,
         with open(filenamec, 'wt') as f:
             f.write('open')
     return path_last_file_loaded_child
+
+
+def save_project_preferences(path_prj, name_prj, project_preferences):
+    fname = os.path.join(path_prj, name_prj + '.habby')
+
+    export_list = ['point_units', 'detailled_text', 'fish_information', 'point_whole_profile', 'mesh_units', 'mesh_whole_profile',
+     'variables_units', 'elevation_whole_profile']
+
+    parser = ET.XMLParser(remove_blank_text=True)
+    doc = ET.parse(fname, parser)
+    root = doc.getroot()
+    figure_option_el = root.find(".//Figure_Option")
+    if figure_option_el is not None:  # modify existing option
+        width1 = root.find(".//Width")
+        height1 = root.find(".//Height")
+        colormap1 = root.find(".//ColorMap1")
+        colormap2 = root.find(".//ColorMap2")
+        fontsize1 = root.find(".//FontSize")
+        linewidth1 = root.find(".//LineWidth")
+        grid1 = root.find(".//Grid")
+        format1 = root.find(".//Format")
+        reso1 = root.find(".//Resolution")
+        fish1 = root.find(".//FishNameType")
+        marker1 = root.find(".//Marker")
+
+        for checkbox_name in export_list:
+            locals()[checkbox_name] = root.find(".//" + checkbox_name)
+
+        vertical_exaggeration1 = root.find(".//vertical_exaggeration")
+        pvd_variable_z = root.find(".//pvd_variable_z")
+
+        langfig1 = root.find(".//LangFig")
+        hopt1 = root.find(".//MinHeight")
+        CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
+        erase1 = root.find(".//EraseId")
+    else:  # save in case no fig option exist
+        figure_option_el = ET.SubElement(root, 'Figure_Option')
+        width1 = ET.SubElement(figure_option_el, 'Width')
+        height1 = ET.SubElement(figure_option_el, 'Height')
+        colormap1 = ET.SubElement(figure_option_el, 'ColorMap1')
+        colormap2 = ET.SubElement(figure_option_el, 'ColorMap2')
+        fontsize1 = ET.SubElement(figure_option_el, 'FontSize')
+        linewidth1 = ET.SubElement(figure_option_el, 'LineWidth')
+        grid1 = ET.SubElement(figure_option_el, 'Grid')
+        format1 = ET.SubElement(figure_option_el, "Format")
+        reso1 = ET.SubElement(figure_option_el, "Resolution")
+        fish1 = ET.SubElement(figure_option_el, "FishNameType")
+        marker1 = ET.SubElement(figure_option_el, "Marker")
+
+        for checkbox_name in export_list:
+            locals()[checkbox_name] = ET.SubElement(figure_option_el, checkbox_name)
+        vertical_exaggeration1 = ET.SubElement(figure_option_el, "vertical_exaggeration")
+        pvd_variable_z = ET.SubElement(figure_option_el, "pvd_variable_z")
+        langfig1 = ET.SubElement(figure_option_el, "LangFig")
+        hopt1 = ET.SubElement(figure_option_el, "MinHeight")
+        CutMeshPartialyDry = ET.SubElement(figure_option_el, "CutMeshPartialyDry")
+        erase1 = ET.SubElement(figure_option_el, "EraseId")
+
+    width1.text = str(project_preferences['width'])
+    height1.text = str(project_preferences['height'])
+    colormap1.text = project_preferences['color_map1']
+    colormap2.text = project_preferences['color_map2']
+    fontsize1.text = str(project_preferences['font_size'])
+    linewidth1.text = str(project_preferences['line_width'])
+    grid1.text = str(project_preferences['grid'])
+    format1.text = str(project_preferences['format'])
+    reso1.text = str(project_preferences['resolution'])
+    # usually not useful, but should be added to new options for comptability with older project
+    if fish1 is None:
+        fish1 = ET.SubElement(figure_option_el, "FishNameType")
+    fish1.text = str(project_preferences['fish_name_type'])
+    marker1.text = str(project_preferences['marker'])
+    if langfig1 is None:
+        langfig1 = ET.SubElement(figure_option_el, "LangFig")
+    langfig1.text = str(project_preferences['language'])
+
+    for checkbox_name in export_list:
+        locals()[checkbox_name].text = str(project_preferences[checkbox_name])
+    if vertical_exaggeration1 is None:
+        vertical_exaggeration1 = ET.SubElement(figure_option_el, "vertical_exaggeration")
+    vertical_exaggeration1.text = str(project_preferences["vertical_exaggeration"])
+    if pvd_variable_z is None:
+        pvd_variable_z = ET.SubElement(figure_option_el, "pvd_variable_z")
+    pvd_variable_z.text = str(project_preferences["pvd_variable_z"])
+    hopt1.text = str(project_preferences['min_height_hyd'])
+    CutMeshPartialyDry.text = str(project_preferences['CutMeshPartialyDry'])
+    erase1.text = str(project_preferences['erase_id'])
+    doc.write(fname, pretty_print=True)
+

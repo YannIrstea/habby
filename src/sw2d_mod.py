@@ -19,7 +19,7 @@ import sys
 import os
 from io import StringIO
 from src import manage_grid_mod
-from src_GUI import preferences_GUI
+from src.project_manag_mod import create_default_project_preferences
 from src import hdf5_mod
 from src import rubar1d2d_mod
 
@@ -52,7 +52,7 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
 
     # get minimum water height
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     minwh = project_preferences['min_height_hyd']
 
     # find where we should send the error (cmd or GUI)

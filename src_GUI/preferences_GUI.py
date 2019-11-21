@@ -23,7 +23,7 @@ import numpy as np
 import os
 
 from src.tools_mod import DoubleClicOutputGroup, QHLine
-from src.project_manag_mod import load_project_preferences, create_default_project_preferences
+from src.project_manag_mod import load_project_preferences, create_default_project_preferences, save_project_preferences
 
 
 class PreferenceWindow(QDialog):
@@ -399,20 +399,13 @@ class PreferenceWindow(QDialog):
         else:
             [checkbox.setChecked(True) for checkbox in self.output_checkbox_list]
 
-    def save_preferences(self):
+    def collect_project_preferences_choice(self):
         """
-        A function which save the options for the figures in the xlm project file. The options for the figures are
-        contained in a dictionnary. The idea is to give this dictinnory in argument to all the fonction which create
-        figures. In the xml project file, the options for the figures are saved under the attribute "Figure_Option".
-
-        If you change things here, it is necessary to start a new project as the old projects will not be compatible.
-        For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
+        Function to collect user choices of project preferences GUI
         """
-        # get default option for security
+        # get default option for security and facility
         project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
-        # get the data and check validity
-        # fig_size
         fig_size = self.fig_size_lineedit.text()
         if fig_size:
             fig_size = fig_size.split(',')
@@ -460,7 +453,8 @@ class PreferenceWindow(QDialog):
             self.send_log.emit('Error: ' + self.tr('The resolution should be higher than zero \n'))
             return
         if project_preferences['resolution'] > 2000:
-            self.send_log.emit('Warning: ' + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
+            self.send_log.emit(
+                'Warning: ' + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
 
         # fish name type
         project_preferences['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())
@@ -486,7 +480,8 @@ class PreferenceWindow(QDialog):
         try:
             project_preferences['vertical_exaggeration'] = int(self.vertical_exaggeration_lineedit.text())
             if int(self.vertical_exaggeration_lineedit.text()) < 1:
-                self.send_log.emit("Error: " + self.tr("Vertical exaggeration value must be superior than 1. Value set to 1."))
+                self.send_log.emit(
+                    "Error: " + self.tr("Vertical exaggeration value must be superior than 1. Value set to 1."))
                 project_preferences['vertical_exaggeration'] = 1
         except:
             self.send_log.emit("Error: " + self.tr("Vertical exaggeration value is not integer. Value set to 1."))
@@ -510,6 +505,21 @@ class PreferenceWindow(QDialog):
         else:
             project_preferences['CutMeshPartialyDry'] = False
 
+        return project_preferences
+
+    def save_preferences(self):
+        """
+        A function which save the options for the figures in the xlm project file. The options for the figures are
+        contained in a dictionnary. The idea is to give this dictinnory in argument to all the fonction which create
+        figures. In the xml project file, the options for the figures are saved under the attribute "Figure_Option".
+
+        If you change things here, it is necessary to start a new project as the old projects will not be compatible.
+        For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
+        """
+        # get the data and check validity
+        # fig_size
+        project_preferences = self.collect_project_preferences_choice()
+
         # save the data in the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
@@ -522,91 +532,7 @@ class PreferenceWindow(QDialog):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(fname, parser)
-            root = doc.getroot()
-            figure_option_el = root.find(".//Figure_Option")
-            if figure_option_el is not None:  # modify existing option
-                width1 = root.find(".//Width")
-                height1 = root.find(".//Height")
-                colormap1 = root.find(".//ColorMap1")
-                colormap2 = root.find(".//ColorMap2")
-                fontsize1 = root.find(".//FontSize")
-                linewidth1 = root.find(".//LineWidth")
-                grid1 = root.find(".//Grid")
-                format1 = root.find(".//Format")
-                reso1 = root.find(".//Resolution")
-                fish1 = root.find(".//FishNameType")
-                marker1 = root.find(".//Marker")
-
-                for checkbox_name in self.checkbox_list_set:
-                    locals()[checkbox_name] = root.find(".//" + checkbox_name)
-
-                vertical_exaggeration1 = root.find(".//vertical_exaggeration")
-                pvd_variable_z = root.find(".//pvd_variable_z")
-
-                langfig1 = root.find(".//LangFig")
-                hopt1 = root.find(".//MinHeight")
-                CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
-                erase1 = root.find(".//EraseId")
-            else:  # save in case no fig option exist
-                figure_option_el = ET.SubElement(root, 'Figure_Option')
-                width1 = ET.SubElement(figure_option_el, 'Width')
-                height1 = ET.SubElement(figure_option_el, 'Height')
-                colormap1 = ET.SubElement(figure_option_el, 'ColorMap1')
-                colormap2 = ET.SubElement(figure_option_el, 'ColorMap2')
-                fontsize1 = ET.SubElement(figure_option_el, 'FontSize')
-                linewidth1 = ET.SubElement(figure_option_el, 'LineWidth')
-                grid1 = ET.SubElement(figure_option_el, 'Grid')
-                format1 = ET.SubElement(figure_option_el, "Format")
-                reso1 = ET.SubElement(figure_option_el, "Resolution")
-                fish1 = ET.SubElement(figure_option_el, "FishNameType")
-                marker1 = ET.SubElement(figure_option_el, "Marker")
-
-                for checkbox_name in self.checkbox_list_set:
-                    locals()[checkbox_name] = ET.SubElement(figure_option_el, checkbox_name)
-                vertical_exaggeration1 = ET.SubElement(figure_option_el, "vertical_exaggeration")
-                pvd_variable_z = ET.SubElement(figure_option_el, "pvd_variable_z")
-                langfig1 = ET.SubElement(figure_option_el, "LangFig")
-                hopt1 = ET.SubElement(figure_option_el, "MinHeight")
-                CutMeshPartialyDry = ET.SubElement(figure_option_el, "CutMeshPartialyDry")
-                erase1 = ET.SubElement(figure_option_el, "EraseId")
-            width1.text = str(project_preferences['width'])
-            height1.text = str(project_preferences['height'])
-            colormap1.text = project_preferences['color_map1']
-            colormap2.text = project_preferences['color_map2']
-            fontsize1.text = str(project_preferences['font_size'])
-            linewidth1.text = str(project_preferences['line_width'])
-            grid1.text = str(project_preferences['grid'])
-            format1.text = str(project_preferences['format'])
-            reso1.text = str(project_preferences['resolution'])
-            # usually not useful, but should be added to new options for comptability with older project
-            if fish1 is None:
-                fish1 = ET.SubElement(figure_option_el, "FishNameType")
-            fish1.text = str(project_preferences['fish_name_type'])
-            marker1.text = str(project_preferences['marker'])
-            if langfig1 is None:
-                langfig1 = ET.SubElement(figure_option_el, "LangFig")
-            langfig1.text = str(project_preferences['language'])
-
-            for checkbox_name in self.checkbox_list_set:
-                locals()[checkbox_name].text = str(project_preferences[checkbox_name])
-            if vertical_exaggeration1 is None:
-                vertical_exaggeration1 = ET.SubElement(figure_option_el, "vertical_exaggeration")
-            vertical_exaggeration1.text = str(project_preferences["vertical_exaggeration"])
-            if pvd_variable_z is None:
-                pvd_variable_z = ET.SubElement(figure_option_el, "pvd_variable_z")
-            pvd_variable_z.text = str(project_preferences["pvd_variable_z"])
-            # text1.text = str(project_preferences['text_output'])
-            # shape1.text = str(project_preferences['shape_output'])
-            # para1.text = str(project_preferences['paraview'])
-            # stl1.text = str(project_preferences['stl'])
-            # fishinfo1.text = str(project_preferences['fish_info'])
-
-            hopt1.text = str(project_preferences['min_height_hyd'])
-            CutMeshPartialyDry.text = str(project_preferences['CutMeshPartialyDry'])
-            erase1.text = str(project_preferences['erase_id'])
-            doc.write(fname, pretty_print=True)
+            save_project_preferences(self.path_prj, self.name_prj, project_preferences)
 
         self.send_log.emit(self.tr('# Preferences saved.'))
         self.close()

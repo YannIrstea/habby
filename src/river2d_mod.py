@@ -25,7 +25,7 @@ import time
 from src import manage_grid_mod
 from src import hdf5_mod
 from io import StringIO
-from src_GUI import preferences_GUI
+from src.project_manag_mod import create_default_project_preferences
 
 
 def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
@@ -50,7 +50,7 @@ def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, m
 
     # minimum water height
     if not project_preferences:
-        project_preferences = preferences_GUI.create_default_project_preferences()
+        project_preferences = create_default_project_preferences()
     minwh = project_preferences['min_height_hyd']
 
     # creation of array
