@@ -694,11 +694,17 @@ class Hdf5Management:
         # CONSTANT
         if sub_description_system["sub_mapping_method"] == "constant":
             # create attributes
-            self.file_object.attrs['sub_constant_values'] = sub_description_system["sub_constant_values"]
+            self.file_object.attrs['sub_constant_values'] = sub_description_system["sub_default_values"]
 
             # add the constant value of substrate
+            if sub_description_system["sub_classification_method"] == 'coarser-dominant':
+                sub_class_number = 2
+            if sub_description_system["sub_classification_method"] == 'percentage' and sub_description_system["sub_classification_code"] == "Cemagref":
+                sub_class_number = 8
+            if sub_description_system["sub_classification_method"] == 'percentage' and sub_description_system["sub_classification_code"] == "Sandre":
+                sub_class_number = 12
             self.file_object.create_dataset(name="sub",
-                                            shape=[1, int(sub_description_system["sub_class_number"])],
+                                            shape=[1, sub_class_number],
                                             data=data_2d["sub"][0])
 
         # close file

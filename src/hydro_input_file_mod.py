@@ -15,12 +15,15 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-
 from PyQt5.QtCore import QCoreApplication as qt_tr
+from osgeo.ogr import GetDriverByName
+from osgeo.osr import SpatialReference
+
 from src import ascii_mod
 from src import hec_ras2D_mod
 from src import telemac_mod
 from src import rubar1d2d_mod
+from src.tools_mod import polygon_type_values, point_type_values
 
 
 def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_dim):
@@ -622,6 +625,313 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
     #print("hydrau_case, " + hydrau_case)
     return hydrau_description, warning_list
+
+
+def get_sub_description_from_source(filename_path, substrate_mapping_method):
+    warning_list = []  # text warning output
+    substrate_classification_code = None
+    substrate_classification_method = None
+    substrate_default_values = None
+    substrate_classification_codes = ['Cemagref', 'Sandre']
+    substrate_classification_methods = ['coarser-dominant', 'percentage']
+    
+    dirname = os.path.dirname(filename_path)
+    filename = os.path.basename(filename_path)
+    blob, ext = os.path.splitext(filename)
+
+    # POLYGON
+    if substrate_mapping_method == "polygon":
+        # check classification code in .txt (polygon or point shp)
+        if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+            warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The selected shapefile is not accompanied by its habby .txt file."))
+            return
+    
+        if ext == ".shp":
+            # get type shapefile
+            driver = GetDriverByName('ESRI Shapefile')  # Shapefile
+            ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+        elif ext == ".gpkg":
+            # get type shapefile
+            driver = GetDriverByName('GPKG')  # GPKG
+            ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+    
+        # get layer
+        layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
+    
+        # get geom type
+        if layer.GetGeomType() not in polygon_type_values:
+            # get the first feature
+            feature = layer.GetNextFeature()
+            geom_type = feature.GetGeometryRef().GetGeometryName()
+            warning_list.append(
+                "Error : " + qt_tr.translate("hydro_input_file_mod", "Selected shapefile is not polygon type. Type : " + geom_type))
+            return
+    
+        if os.path.isfile(os.path.join(dirname, blob + ".txt")):
+            with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
+                dataraw = f.read()
+            substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
+                "\n")
+            if "substrate_classification_code=" in substrate_classification_code_raw:
+                substrate_classification_code = \
+                    substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
+                if substrate_classification_code not in substrate_classification_codes:
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
+                                       + substrate_classification_code)
+                    return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
+                                                       " .txt file."))
+                return
+            if "substrate_classification_method=" in substrate_classification_method_raw:
+                substrate_classification_method = \
+                    substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
+                if substrate_classification_method not in substrate_classification_methods:
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification method in .txt file is not recognized : ")
+                                       + substrate_classification_method)
+                    return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
+                                                       " .txt file."))
+                return
+            if "default_values=" in substrate_default_values_raw:
+                substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
+                constant_values_list = substrate_default_values.split(",")
+                for value in constant_values_list:
+                    try:
+                        int(value.strip())
+                    except:
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "Default values can't be converted to integer : ")
+                                           + substrate_default_values)
+                        return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
+                                                       " .txt file."))
+                return
+    
+        # check EPSG code in .prj
+        if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
+            warning_list.append(
+                "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
+            epsg_code = "unknown"
+        else:
+            inSpatialRef = layer.GetSpatialRef()
+            sr = SpatialReference(str(inSpatialRef))
+            res = sr.AutoIdentifyEPSG()
+            epsg_code_str = sr.GetAuthorityCode(None)
+            if epsg_code_str:
+                epsg_code = int(epsg_code_str)
+            else:
+                epsg_code = "unknown"
+
+    # POINT
+    if substrate_mapping_method == "point":
+        # txt case
+        if ext == ".txt":
+            if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The selected file don't exist."))
+                return
+            with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
+                dataraw = f.read()
+            if len(dataraw.split("\n")[:4]) < 4:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "This text file is not a valid point substrate."))
+                return
+            epsg_raw, substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
+                "\n")[:4]
+            # check EPSG in .txt (polygon or point shp)
+            if "EPSG=" in epsg_raw:
+                epsg_code = epsg_raw.split("EPSG=")[1].strip()
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'EPSG=' is not found in .txt file."))
+                return
+            # check classification code in .txt ()
+            if "substrate_classification_code=" in substrate_classification_code_raw:
+                substrate_classification_code = \
+                    substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
+                if substrate_classification_code not in substrate_classification_codes:
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
+                                       + substrate_classification_code)
+                    return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
+                                                       " .txt file."))
+                return
+            if "substrate_classification_method=" in substrate_classification_method_raw:
+                substrate_classification_method = \
+                    substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
+                if substrate_classification_method not in substrate_classification_methods:
+                    warning_list.append(
+                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The classification method in .txt file is not recognized : ")
+                        + substrate_classification_method)
+                    return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
+                                                       " .txt file."))
+                return
+            if "default_values=" in substrate_default_values_raw:
+                substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
+                constant_values_list = substrate_default_values.split(",")
+                for value in constant_values_list:
+                    try:
+                        int(value.strip())
+                    except:
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "Default values can't be converted to integer : ")
+                                           + substrate_default_values)
+                        return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
+                                                       " .txt file."))
+                return
+
+        if ext == ".shp" or ext == ".gpkg":
+            # check classification code in .txt (polygon or point shp)
+            if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", 
+                    "The selected shapefile is not accompanied by its habby .txt file."))
+                return
+
+            if ext == ".shp":
+                # get type shapefile
+                driver = GetDriverByName('ESRI Shapefile')  # Shapefile
+                ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+            elif ext == ".gpkg":
+                # get type shapefile
+                driver = GetDriverByName('GPKG')  # GPKG
+                ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
+
+            layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
+
+            # get geom type
+            if layer.GetGeomType() not in point_type_values:  # point type
+                # get the first feature
+                feature = layer.GetNextFeature()
+                geom_type = feature.GetGeometryRef().GetGeometryName()
+                warning_list.append(
+                    "Error : " + qt_tr.translate("hydro_input_file_mod", "Selected shapefile is not point type. Type : " + geom_type))
+                return
+
+            else:
+                with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
+                    dataraw = f.read()
+                substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
+                    "\n")
+                if "substrate_classification_code=" in substrate_classification_code_raw:
+                    substrate_classification_code = \
+                        substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
+                    if substrate_classification_code not in substrate_classification_codes:
+                        warning_list.append(
+                            "Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
+                            + substrate_classification_code)
+                        return
+                else:
+                    warning_list.append(
+                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
+                                            " .txt file."))
+                    return
+                if "substrate_classification_method=" in substrate_classification_method_raw:
+                    substrate_classification_method = \
+                        substrate_classification_method_raw.split("substrate_classification_method=")[
+                            1].strip()
+                    if substrate_classification_method not in substrate_classification_methods:
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", 
+                            "The classification method in .txt file is not recognized : ")
+                                           + substrate_classification_method)
+                        return
+                else:
+                    warning_list.append(
+                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
+                                            " .txt file."))
+                    return
+                if "default_values=" in substrate_default_values_raw:
+                    substrate_default_values = substrate_default_values_raw.split("default_values=")[
+                        1].strip()
+                    constant_values_list = substrate_default_values.split(",")
+                    for value in constant_values_list:
+                        try:
+                            int(value.strip())
+                        except:
+                            warning_list.append(
+                                "Error: " + qt_tr.translate("hydro_input_file_mod", "Default values can't be converted to integer : ")
+                                + substrate_default_values)
+                            return
+                else:
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
+                                                           " .txt file."))
+                    return
+
+            # check EPSG code in .prj
+            if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
+                warning_list.append(
+                    "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
+                epsg_code = "unknown"
+            else:
+                inSpatialRef = layer.GetSpatialRef()
+                sr = SpatialReference(str(inSpatialRef))
+                res = sr.AutoIdentifyEPSG()
+                epsg_code_str = sr.GetAuthorityCode(None)
+                if epsg_code_str:
+                    epsg_code = int(epsg_code_str)
+                else:
+                    epsg_code = "unknown"
+
+    # CONSTANT
+    if substrate_mapping_method == "constant":
+        epsg_code = None
+        # txt
+        if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+            warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The selected text file don't exist."))
+            return
+        if os.path.isfile(os.path.join(dirname, blob + ".txt")):
+            with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
+                dataraw = f.read()
+            substrate_classification_code_raw, substrate_classification_method_raw, constant_values_raw = dataraw.split(
+                "\n")
+            # classification code
+            if "substrate_classification_code=" in substrate_classification_code_raw:
+                substrate_classification_code = \
+                    substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
+                if substrate_classification_code not in substrate_classification_codes:
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
+                                       + substrate_classification_code)
+                    return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
+                                                       " .txt file."))
+                return
+            if "substrate_classification_method=" in substrate_classification_method_raw:
+                substrate_classification_method = \
+                    substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
+                if substrate_classification_method not in substrate_classification_methods:
+                    warning_list.append(
+                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The classification method in .txt file is not recognized : ")
+                        + substrate_classification_method)
+                    return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
+                                                       " .txt file."))
+                return
+            # constant values
+            if "constant_values=" in constant_values_raw:
+                substrate_default_values = constant_values_raw.split("constant_values=")[1].strip()
+                substrate_default_values_list = substrate_default_values.split(",")
+                for value in substrate_default_values_list:
+                    try:
+                        int(value.strip())
+                    except:
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "Constant values can't be converted to integer : ")
+                                           + substrate_default_values)
+                        return
+            else:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'constant_values=' is not found in .txt file."))
+                return
+
+    # create dict
+    sub_description = dict(substrate_classification_code=substrate_classification_code,
+                           substrate_classification_method=substrate_classification_method,
+                           substrate_default_values=substrate_default_values,
+                           epsg_code=epsg_code)
+
+    return sub_description, warning_list
 
 
 def get_time_step(file_path, model_type):
