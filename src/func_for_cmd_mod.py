@@ -45,11 +45,11 @@ from src import bio_info_mod
 from src import mesh_management_mod
 from src import lammi_mod
 from src import hydro_input_file_mod
-from src.project_manag_mod import create_default_project_preferences
-from src_GUI import preferences_GUI
+from src.project_manag_mod import create_project_structure, save_project_preferences, \
+    create_default_project_preferences, load_project_preferences
 
 
-def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, erase_id=True):
+def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
     """
     This function is used to call HABBY from the command line. The general form is to call:
     habby_cmd command_name input1 input2 .. input n. The list of the command_name is given in the documentation and by
@@ -85,16 +85,16 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('Input folder found for the restart function.')
 
     # check if the path given are ok
-    if not os.path.isdir(path_prj):
-        print('Error: the path to the project does not exists \n')
-        return
     file_prof = os.path.join(path_prj, name_prj + '.habby')
-    if not os.path.isfile(file_prof):
-        print('Error: the .habby project is not found \n')
-        return
-    if not os.path.isdir(path_bio):
-        print('Error: the path to the biological folder is not found \n')
-        return
+    # create project
+    if not os.path.isdir(path_prj) or not os.path.isfile(file_prof):
+        print("Warning: Specified project_path or project_name don't exist, the latter will be created.")
+        create_project_structure(path_prj, False, HABBY_VERSION, "CLI", "CLI-mode", mode="CLI")
+        project_preferences = create_default_project_preferences(all_export_enabled=False)
+        save_project_preferences(path_prj, name_prj, project_preferences)
+    # load project preferences
+    else:
+        project_preferences = load_project_preferences(path_prj, name_prj)
 
     # ----------------------------------------------------------------------------------
     if all_arg[0] == 'LIST_COMMAND':
@@ -193,10 +193,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # remove the first arg LOAD_TELEMAC
         all_arg = all_arg[1:]
 
-        # check
-        if not 0 < len(all_arg) < 4:
-            print('The function LOAD_TELEMAC needs one or two inputs, the .res file name and the output name.')
-            return
+        # # check
+        # if not 0 < len(all_arg) < 4:
+        #     print('The function LOAD_TELEMAC needs one or two inputs, the .res file name and the output name.')
+        #     return
 
         # optionnal args
         units_string = None
@@ -241,24 +241,30 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_hdf5 = path_prj
 
         # get_hydrau_description_from_source
-        telemac_description = hydro_input_file_mod.get_hydrau_description_from_source(filename,
+        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename,
                                                                                       path_prj,
                                                                                        "TELEMAC",
                                                                                       2)
 
+        # warnings
+        if warning_list:
+            for warn in warning_list:
+                print(warn)
+
         # run process
         progress_value = Value("i", 0)
         q = Queue()
-        p = Process(target=telemac_mod.load_telemac_and_cut_grid, args=(telemac_description,
+        p = Process(target=telemac_mod.load_telemac_and_cut_grid, args=(hydrau_description,
                                                                         progress_value,
                                                                         q,
-                                                                        True))
+                                                                        True,
+                                                                        project_preferences))
 
         p.start()
         while p.is_alive():
             print("Progress : " + str(progress_value.value) + "%\r", end="")
         p.join()
-        #print("--- done ! ---")
+        print("--- LOAD_TELEMAC finished ! ---")
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_1D':

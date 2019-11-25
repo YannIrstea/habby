@@ -219,7 +219,7 @@ def load_project_preferences(path_prj, name_prj):
     return project_preferences
 
 
-def create_default_project_preferences():
+def create_default_project_preferences(all_export_enabled=False):
     """
     This function creates the default dictionnary of project user preferences.
     """
@@ -239,17 +239,17 @@ def create_default_project_preferences():
     project_preferences['erase_id'] = True  # erase file (hdf5, outputs) if exist. if not set date/hour in filename
 
     # output (first element list == for .hyd and second element list == for .hab)
-    project_preferences['mesh_whole_profile'] = [False, False]  # shapefile mesh whole profile
-    project_preferences['point_whole_profile'] = [False, False]  # shapefile point whole profile
-    project_preferences['mesh_units'] = [False, False]  # shapefile mesh by unit
+    project_preferences['mesh_whole_profile'] = [all_export_enabled, all_export_enabled]  # shapefile mesh whole profile
+    project_preferences['point_whole_profile'] = [all_export_enabled, all_export_enabled]  # shapefile point whole profile
+    project_preferences['mesh_units'] = [all_export_enabled, all_export_enabled]  # shapefile mesh by unit
     project_preferences['pvd_variable_z'] = "water_level"
-    project_preferences['point_units'] = [False, False]  # shapefile point by unit
+    project_preferences['point_units'] = [all_export_enabled, all_export_enabled]  # shapefile point by unit
     project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
-    project_preferences['elevation_whole_profile'] = [False, False]  # mesh .stl of topography whole profile (vertical_exaggeration)
-    project_preferences['variables_units'] = [False, False]  # mesh .pvd and .vtu by unit (vertical_exaggeration)
-    project_preferences['habitat_text'] = [False, True]  # .txt with detail values by mesh
-    project_preferences['detailled_text'] = [False, False]  # .txt with detail values by mesh
-    project_preferences['fish_information'] = [False, False]  # image of fish informations
+    project_preferences['elevation_whole_profile'] = [all_export_enabled, all_export_enabled]  # mesh .stl of topography whole profile (vertical_exaggeration)
+    project_preferences['variables_units'] = [all_export_enabled, all_export_enabled]  # mesh .pvd and .vtu by unit (vertical_exaggeration)
+    project_preferences['habitat_text'] = [all_export_enabled, True]  # .txt with detail values by mesh
+    project_preferences['detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
+    project_preferences['fish_information'] = [all_export_enabled, all_export_enabled]  # image of fish informations
 
     # figures
     project_preferences['height'] = 7.0
