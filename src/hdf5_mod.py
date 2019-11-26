@@ -1104,8 +1104,7 @@ class Hdf5Management:
             self.data_2d = data_2d
             self.data_description = data_description
 
-    def add_fish_hab(self, vh_cell, area_c_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh,
-                     project_preferences, aquatic_animal_type):
+    def add_fish_hab(self, vh_cell, area_c_all, spu_all, code_alternative_list, pref_file_list, stage_list, aquatic_animal_type_list, project_preferences):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -1139,10 +1138,13 @@ class Hdf5Management:
             return
 
         # add name and stage of fish
-        if len(vh_cell) != len(fish_names):
+        if len(vh_cell) != len(code_alternative_list):
             print('Error: ' + qt_tr.translate("hdf5_mod", 'Length of the list of fish name is not coherent'))
             self.file_object.close()
             return
+
+        # create name_fish_sh
+        name_fish_sh = [code_alternative_list[fish_num] + "_" + stage_list[fish_num] for fish_num in range(len(code_alternative_list))]
 
         fish_replaced = []
 
@@ -1159,7 +1161,7 @@ class Hdf5Management:
                 mesh_group = unit_group["mesh"]
                 mesh_hv_data_group = mesh_group["hv_data"]
                 # HV by celle for each fish
-                for fish_num, fish_name in enumerate(fish_names):
+                for fish_num, fish_name in enumerate(code_alternative_list):
                     if fish_name in mesh_hv_data_group:  # if exist erase it
                         del mesh_hv_data_group[fish_name]
                         fish_data_set = mesh_hv_data_group.create_dataset(name=fish_name,
@@ -1172,11 +1174,11 @@ class Hdf5Management:
                                                                   shape=[len(vh_cell[fish_num][reach_num][unit_num]),
                                                                          1],
                                                                   data=vh_cell[fish_num][reach_num][unit_num])
-                    fish_data_set.attrs['pref_file'] = pref_list[fish_num]
-                    fish_data_set.attrs['stage'] = stages_chosen[fish_num]
+                    fish_data_set.attrs['pref_file'] = pref_file_list[fish_num]
+                    fish_data_set.attrs['stage'] = stage_list[fish_num]
                     fish_data_set.attrs['short_name'] = name_fish_sh[fish_num]
                     fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
-                    fish_data_set.attrs['aquatic_animal_type'] = aquatic_animal_type[fish_num]
+                    fish_data_set.attrs['aquatic_animal_type_list'] = aquatic_animal_type_list[fish_num]
 
                     if any(np.isnan(vh_cell[fish_num][reach_num][unit_num])):
                         area = np.sum(area_c_all[reach_num][unit_num][
@@ -1206,12 +1208,12 @@ class Hdf5Management:
         xml_names = []
         stage_names = []
         names_short = []
-        aquatic_animal_type = []
+        aquatic_animal_type_list = []
         for fish_ind, fish_name in enumerate(fish_names_total_list):
             xml_names.append(mesh_hv_data_group[fish_name].attrs['pref_file'])
             stage_names.append(mesh_hv_data_group[fish_name].attrs['stage'])
             names_short.append(mesh_hv_data_group[fish_name].attrs['short_name'])
-            aquatic_animal_type.append(mesh_hv_data_group[fish_name].attrs['aquatic_animal_type'])
+            aquatic_animal_type_list.append(mesh_hv_data_group[fish_name].attrs['aquatic_animal_type_list'])
 
         # set to attributes
         self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
@@ -1219,7 +1221,7 @@ class Hdf5Management:
         self.file_object.attrs["hab_fish_pref_list"] = ", ".join(xml_names)
         self.file_object.attrs["hab_fish_stage_list"] = ", ".join(stage_names)
         self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(names_short)
-        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(aquatic_animal_type)
+        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(aquatic_animal_type_list)
 
         if fish_replaced:
             fish_replaced = set(fish_replaced)
@@ -1298,8 +1300,9 @@ class Hdf5Management:
             for unit_num in range(nb_t):
                 unit_group = reach_group["unit_" + str(unit_num)]
                 mesh_group = unit_group["mesh"]
+                mesh_hv_data_group = mesh_group["hv_data"]
                 for fish_name_to_remove in fish_names_to_remove:
-                    del mesh_group[fish_name_to_remove]
+                    del mesh_hv_data_group[fish_name_to_remove]
 
     # COMPUTATION
     def get_variables_from_dict_and_compute(self):

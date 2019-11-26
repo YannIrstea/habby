@@ -31,40 +31,53 @@ from src.tools_mod import polygon_type_values, point_type_values
 
 
 def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+    """
+    :param sub_description: substrate description dict
+    :param progress_value: progress value from multiprocessing
+    :param q: Queue from multiprocessing
+    :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
+    :param project_preferences: project_preferences dict
+    :return:
+    """
+
     sys.stdout = mystdout = StringIO()
     data_2d = None
 
     # prog
     progress_value.value = 5
 
-    path_prj = sub_description["path_prj"]
-    name_hdf5 = sub_description["name_hdf5"]
-    abs_path_file = os.path.join(sub_description["sub_path_source"], sub_description["sub_filename_source"])
-    input_project_path = os.path.join(path_prj, "input")
+    # security if point case
+    sub_path_source = sub_description["sub_path_source"]
 
+    # set extension if not done
+    if os.path.splitext(sub_description["name_hdf5"])[-1] != ".sub":
+        sub_description["name_hdf5"] = sub_description["name_hdf5"] + ".sub"
+
+    # load specific sub
     if sub_description["sub_mapping_method"] == "polygon":
         data_2d = load_sub_shp(sub_description, progress_value)
 
     if sub_description["sub_mapping_method"] == "point":
-        data_2d = load_sub_txt(sub_description, progress_value, q)
+        data_2d = load_sub_txt(sub_description, progress_value)
 
     if sub_description["sub_mapping_method"] == "constant":
         data_2d = load_sub_cst(sub_description, progress_value)
 
     # save hdf5
     if data_2d:
-        hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5)
+        hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"],
+                                       sub_description["name_hdf5"])
         hdf5.create_hdf5_sub(sub_description, data_2d)
 
         # prog
         progress_value.value = 95
 
         # copy input files to input project folder
-        copy_shapefiles(abs_path_file,
-                        input_project_path)
+        copy_shapefiles(os.path.join(sub_path_source, sub_description["sub_filename_source"]),
+                        os.path.join(sub_description["path_prj"], "input"))
 
-    # prog
-    progress_value.value = 100
+        # prog
+        progress_value.value = 100
 
     if q and not print_cmd:
         q.put(mystdout)
@@ -73,7 +86,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         return
 
 
-def load_sub_txt(sub_description, progress_value, q=[]):
+def load_sub_txt(sub_description, progress_value):
     """
     A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
     coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
@@ -99,11 +112,9 @@ def load_sub_txt(sub_description, progress_value, q=[]):
     path_shp = os.path.join(path_prj, "input")
     sub_epsg_code = sub_description["sub_epsg_code"]
 
-    #warnings_list = []
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
         print("Error: The txt file " + filename + " does not exist.")
-        #q.put(warnings_list)
         return False
 
     if sub_classification_method == 'coarser-dominant':
@@ -261,7 +272,6 @@ def load_sub_txt(sub_description, progress_value, q=[]):
     dup = u[c > 1]
     if len(dup) > 0:
         print("Error: The substrate data has duplicates points coordinates :" + str(dup) + ". Please remove them and try again.")
-        #q.put(warnings_list)
         return False
 
     """ voronoi """
@@ -310,13 +320,11 @@ def load_sub_txt(sub_description, progress_value, q=[]):
 
     if not intersect_buffer:
         print('Error: Voronoi polygons buffer intersection failed')
-        #q.put(warnings_list)
         return False
 
     # find one sub data by polyg
     if len(list_polyg) == 0:
         print('Error: The substrate does not create a meangiful grid. Please add more substrate points.')
-        #q.put(warnings_list)
         return False
 
     sub_array2 = [np.zeros(len(list_polyg), ) for _ in range(sub_class_number)]
@@ -359,14 +367,6 @@ def load_sub_txt(sub_description, progress_value, q=[]):
     layer.StartTransaction()  # faster
     for i, polygon in enumerate(list_polyg):  # for each polygon with buffer
         polygon.SetCoordinateDimension(2)
-        # coord_list = polygon.GetGeometryRef(0).GetPoints()
-        # ring = ogr.Geometry(ogr.wkbLinearRing)
-        # for point in coord_list:
-        #     ring.AddPoint(*point)
-        # # Create polygon
-        # poly = ogr.Geometry(ogr.wkbPolygon)
-        # poly.AddGeometry(ring)
-        # Create a new feature
         feat = ogr.Feature(defn)
         for k in range(sub_class_number):
             sub_array2[k][i] = sub_array[k][i]
@@ -374,7 +374,6 @@ def load_sub_txt(sub_description, progress_value, q=[]):
         for field_num, field in enumerate(field_names):
             feat.SetField(field, data_here[field_num])
         # set geometry
-        #feat.SetGeometry(poly)
         feat.SetGeometry(polygon)
         # create
         layer.CreateFeature(feat)
@@ -388,7 +387,7 @@ def load_sub_txt(sub_description, progress_value, q=[]):
     # prog (read done)
     progress_value.value = 40
 
-    #q.put(sub_filename_voronoi_shp)
+    # set temporary names with voronoi suffix
     sub_description["sub_filename_source"] = sub_filename_voronoi_shp
     sub_description["sub_path_source"] = path_shp
 

@@ -109,19 +109,16 @@ def quadrangles_to_triangles(ikle4,xy,z,h,v):
     return ikle3,xy[nbnodes0-nbnodes:,:],z[nbnodes0-nbnodes:],h[nbnodes0-nbnodes:],v[nbnodes0-nbnodes:]
 
 
-def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path_prj,
-                        model_type, progress_value,
-                        q=[], print_cmd=False, project_preferences=[]):
+def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False, project_preferences=[]):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
     thread to avoid freezin gthe GUI. This is why we have this extra-function just to call save_hdf5() and
     merge_grid_hydro_sub().
 
-
-    :param name_hdf5merge: the name of the hdf5 merge output
     :param hdf5_name_hyd: the name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the name of the hdf5 with the substrate data
+    :param hdf5_name_hab: the name of the hdf5 merge output
     :param path_hdf5: the path to the hdf5 data
     :param name_prj: the name of the project
     :param path_prj: the path to the project
@@ -143,7 +140,6 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
                                                                                   path_prj, progress_value)
 
     if not any([data_2d_merge, data_2d_whole_profile, data_description]) and not print_cmd:
-        sys.stdout = sys.__stdout__
         if q:
             q.put(mystdout)
             return
@@ -152,7 +148,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 90
 
     # create hdf5 hab
-    hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5merge)
+    hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hab)
     hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, data_description, project_preferences)
 
     # progress
@@ -160,7 +156,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q:
+    if q and not print_cmd:
         q.put(mystdout)
         return
     else:

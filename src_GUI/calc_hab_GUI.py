@@ -842,14 +842,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.remove_duplicates()
 
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
-        pref_list = []
-        stages_chosen = []
-        name_fish_list = []
+        pref_file_list = []
+        stage_list = []
+        code_alternative_list = []
         hyd_opt_list = []
         sub_opt_list = []
-        name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
-        aquatic_animal_type = []
+        aquatic_animal_type_list = []
         xmlfiles = []
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # check if not exist
@@ -866,26 +865,24 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     continue
 
                 name_fish_sel += fish_item_text + ","
-                name_fish_list.append(code_bio_model)
+                code_alternative_list.append(code_bio_model)
                 index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
-                pref_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
-                stages_chosen.append(stage)
-                name_fish_sh_text = code_bio_model + "_" + stage
-                name_fish_sh.append(name_fish_sh_text)
+                pref_file_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
+                stage_list.append(stage)
                 # name_fish_sel += name_fish + ','
                 xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
                 # get info from 2 list widget
                 hyd_opt_list.append(hyd_opt)
                 # get info from 3 list widget
                 sub_opt_list.append(sub_opt)
-                aquatic_animal_type.append(user_preferences.biological_models_dict["aquatic_animal_type"][index_fish])
+                aquatic_animal_type_list.append(user_preferences.biological_models_dict["aquatic_animal_type"][index_fish])
 
         if xmlfiles:
             # get the name of the merged file
             path_hdf5 = self.find_path_hdf5_est()
             ind = self.m_all.currentIndex()
             if len(self.hdf5_merge) > 0:
-                hdf5_file = self.hdf5_merge[ind]
+                hab_filename = self.hdf5_merge[ind]
             else:
                 self.runhab.setDisabled(False)
                 self.send_log.emit('Error: ' + self.tr('No merged hydraulic files available.'))
@@ -896,49 +893,39 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().progress_bar.setValue(0)
             self.nativeParentWidget().progress_bar.setVisible(True)
 
-            # get the path where to save the different outputs (function in estimhab_GUI.py)
-            path_txt = self.find_path_text_est()
-            path_im = self.find_path_im_est()
-            path_shp = self.find_path_output_est("Path_Shape")
-            path_para = self.find_path_output_est("Path_Visualisation")
-
             # get the type of option choosen for the habitat calculation
-            run_choice = dict(hyd_opt=hyd_opt_list,
+            run_choice = dict(pref_file_list=pref_file_list,
+                              stage_list=stage_list,
+                              hyd_opt=hyd_opt_list,
                               sub_opt=sub_opt_list)
 
             # only useful if we want to also show the 2d figure in the GUI
-            self.hdf5_file = hdf5_file
+            self.hdf5_file = hab_filename
             self.path_hdf5 = path_hdf5
-            path_im_bioa = os.path.join(os.getcwd(), self.path_im_bio)
 
             # send the calculation of habitat and the creation of output
             self.timer.start(100)  # to refresh progress info
             self.q4 = Queue()
             self.progress_value = Value("i", 0)
             self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
-                             args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
-                                   name_fish_list, name_fish_sh, run_choice,
-                                   self.path_bio, path_txt, self.progress_value,
-                                   self.q4, False, project_preferences, aquatic_animal_type,
-                                   xmlfiles))
+                             args=(hab_filename, run_choice, self.progress_value, self.q4, False, project_preferences))
             self.p.name = "Habitat calculation"
             self.p.start()
 
             # log
-            self.send_log.emit("py    file1='" + hdf5_file + "'")
+            self.send_log.emit("py    file1='" + hab_filename + "'")
             self.send_log.emit("py    path1= os.path.join(path_prj, 'hdf5')")
-            self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
-            self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
+            self.send_log.emit("py    pref_file_list= ['" + "', '".join(pref_file_list) + "']")
+            self.send_log.emit("py    stages= ['" + "', '".join(stage_list) + "']")
             self.send_log.emit("py    type=" + str(run_choice))
             self.send_log.emit("py    name_fish1 = ['" + "', '".join(name_fish) + "']")
-            self.send_log.emit("py    name_fish2 = ['" + "', '".join(name_fish_sh) + "']")
             self.send_log.emit(
-                "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_list, stages, name_fish1, name_fish2, type, "
+                "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_file_list, stages, name_fish1, name_fish2, type, "
                 "path_bio, path_prj, path_prj, path_prj, path_prj, [], True, [])")
             self.send_log.emit("restart RUN_HABITAT")
-            self.send_log.emit("restart    file1: " + hdf5_file)
-            self.send_log.emit("restart    list of preference file: " + ",".join(pref_list))
-            self.send_log.emit("restart    stages chosen: " + ",".join(stages_chosen))
+            self.send_log.emit("restart    file1: " + hab_filename)
+            self.send_log.emit("restart    list of preference file: " + ",".join(pref_file_list))
+            self.send_log.emit("restart    stages chosen: " + ",".join(stage_list))
             self.send_log.emit("restart    type of calculation: " + str(run_choice))
         else:
             # disable the button

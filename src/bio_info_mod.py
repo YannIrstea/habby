@@ -47,6 +47,9 @@ def get_biomodels_informations_for_database(path_xml):
     #  4 codebiomodel and stage don't have to contain " " and "_"
 
     # open the file
+    if os.path.split(path_xml)[0] == '':  # without path : get classic curves
+        path_xml = os.path.join("biology", "models", path_xml)
+
     try:
         try:
             docxml = ET.parse(path_xml)
@@ -519,8 +522,13 @@ def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
     :return: height, vel, sub, code_fish, name_fish, stade
 
     """
-    failload = [-99], [-99], [-99], [-99], '-99', [-99]
+    failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+
+    if os.path.split(xmlfile)[0] == '':  # without path : get classic curves
+        xmlfile = os.path.join("biology", "models", xmlfile)
+
     xml_name = os.path.basename(xmlfile)
+
     h_all, vel_all, sub_all = [], [], []
 
     # load the file
@@ -529,7 +537,7 @@ def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
             docxml = ET.parse(xmlfile)
             root = docxml.getroot()
         except IOError:
-            print("Error: the xml file" + xml_name + "does not exist \n")
+            print("Error: the xml file" + xml_name + " does not exist \n")
             return failload
     except ET.ParseError:
         print("Error: the xml file " + xml_name + " is not well-formed.\n")

@@ -5582,6 +5582,7 @@ class SubstrateW(SubHydroW):
         super(SubstrateW, self).__init__(path_prj, name_prj)
         # update attribute
         self.tab_name = "substrate"
+        self.sub_description = None
         self.attributexml = ['substrate_path', 'att_name']
         self.model_type = 'SUBSTRATE'
         self.data_type = "SUBSTRATE"
@@ -5947,65 +5948,72 @@ class SubstrateW(SubHydroW):
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
 
-
             # get_sub_description_from_source
             sub_description, warning_list = hydro_input_file_mod.get_sub_description_from_source(filename_path,
-                                                                                   substrate_mapping_method)
-
-            # warnings
-            if warning_list:
+                                                                                   substrate_mapping_method,
+                                                                                                 self.path_prj)
+            # save to attribute
+            self.sub_description = sub_description
+            # error
+            if not sub_description:
                 for warn in warning_list:
                     self.send_log.emit(warn)
+            # ok
+            if sub_description:
+                # but warnings
+                if warning_list:
+                    for warn in warning_list:
+                        self.send_log.emit(warn)
 
-            # all cases
-            self.namefile[0] = filename
+                # all cases
+                self.namefile[0] = filename
 
-            # POLYGON
-            if substrate_mapping_method == "polygon":
-                # save to attributes
-                self.pathfile_polygon = dirname
-                self.namefile_polygon = filename
-                self.name_hdf5_polygon = blob + ".sub"
+                # POLYGON
+                if substrate_mapping_method == "polygon":
+                    # save to attributes
+                    self.pathfile_polygon = dirname
+                    self.namefile_polygon = filename
+                    self.name_hdf5_polygon = blob + ".sub"
 
-                # save to GUI
-                self.file_polygon_label.setText(filename)
-                self.file_polygon_label.setToolTip(self.pathfile_polygon)
-                self.sub_classification_code_polygon_label.setText(sub_description["substrate_classification_code"])
-                self.sub_classification_method_polygon_label.setText(sub_description["substrate_classification_method"])
-                self.sub_default_values_polygon_label.setText(sub_description["substrate_default_values"])
-                self.epsg_polygon_label.setText(str(sub_description["epsg_code"]))
-                self.polygon_hname.setText(self.name_hdf5_polygon)
+                    # save to GUI
+                    self.file_polygon_label.setText(filename)
+                    self.file_polygon_label.setToolTip(self.pathfile_polygon)
+                    self.sub_classification_code_polygon_label.setText(sub_description["sub_classification_code"])
+                    self.sub_classification_method_polygon_label.setText(sub_description["sub_classification_method"])
+                    self.sub_default_values_polygon_label.setText(sub_description["sub_default_values"])
+                    self.epsg_polygon_label.setText(sub_description["sub_epsg_code"])
+                    self.polygon_hname.setText(self.name_hdf5_polygon)
 
-            # POINT
-            if substrate_mapping_method == "point":
-                # save to attributes
-                self.pathfile_point = dirname
-                self.namefile_point = filename
-                self.name_hdf5_point = blob + ".sub"
+                # POINT
+                if substrate_mapping_method == "point":
+                    # save to attributes
+                    self.pathfile_point = dirname
+                    self.namefile_point = filename
+                    self.name_hdf5_point = blob + ".sub"
 
-                # save to GUI
-                self.file_point_label.setText(filename)
-                self.file_point_label.setToolTip(self.pathfile_point)
-                self.sub_classification_code_point_label.setText(sub_description["substrate_classification_code"])
-                self.sub_classification_method_point_label.setText(sub_description["substrate_classification_method"])
-                self.sub_default_values_point_label.setText(sub_description["substrate_default_values"])
-                self.epsg_point_label.setText(str(sub_description["epsg_code"]))
-                self.point_hname.setText(self.name_hdf5_point)
+                    # save to GUI
+                    self.file_point_label.setText(filename)
+                    self.file_point_label.setToolTip(self.pathfile_point)
+                    self.sub_classification_code_point_label.setText(sub_description["sub_classification_code"])
+                    self.sub_classification_method_point_label.setText(sub_description["sub_classification_method"])
+                    self.sub_default_values_point_label.setText(sub_description["sub_default_values"])
+                    self.epsg_point_label.setText(sub_description["sub_epsg_code"])
+                    self.point_hname.setText(self.name_hdf5_point)
 
-            # CONSTANT
-            if substrate_mapping_method == "constant":
-                # save to attributes
-                self.pathfile_constant = dirname
-                self.namefile_constant = filename
-                self.name_hdf5_constant = blob + ".sub"
+                # CONSTANT
+                if substrate_mapping_method == "constant":
+                    # save to attributes
+                    self.pathfile_constant = dirname
+                    self.namefile_constant = filename
+                    self.name_hdf5_constant = blob + ".sub"
 
-                # save to GUI
-                self.file_constant_label.setText(filename)
-                self.file_constant_label.setToolTip(self.pathfile_constant)
-                self.sub_classification_code_constant_label.setText(sub_description["substrate_classification_code"])
-                self.sub_classification_method_constant_label.setText(sub_description["substrate_classification_method"])
-                self.valuesdata_constant_label.setText(sub_description["substrate_default_values"])
-                self.constant_hname.setText(self.name_hdf5_constant)
+                    # save to GUI
+                    self.file_constant_label.setText(filename)
+                    self.file_constant_label.setToolTip(self.pathfile_constant)
+                    self.sub_classification_code_constant_label.setText(sub_description["sub_classification_code"])
+                    self.sub_classification_method_constant_label.setText(sub_description["sub_classification_method"])
+                    self.valuesdata_constant_label.setText(sub_description["sub_default_values"])
+                    self.constant_hname.setText(self.name_hdf5_constant)
 
     def load_sub_gui(self, sub_mapping_method):
         """
@@ -6052,260 +6060,263 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit('Error: ' + self.tr('.sub output filename is empty. Please specify it.'))
                 return
 
-        # info
-        self.timer.start(100)
+        if self.sub_description:
+            # info
+            self.timer.start(100)
 
-        # show progressbar
-        self.nativeParentWidget().progress_bar.setRange(0, 100)
-        self.nativeParentWidget().progress_bar.setValue(0)
-        self.nativeParentWidget().progress_bar.setVisible(True)
+            # show progressbar
+            self.nativeParentWidget().progress_bar.setRange(0, 100)
+            self.nativeParentWidget().progress_bar.setValue(0)
+            self.nativeParentWidget().progress_bar.setVisible(True)
 
-        # polygon case
-        if sub_mapping_method == 'polygon':
-            # block button substrate
-            self.load_polygon_substrate.setDisabled(True)  # substrate
-            # save path and name substrate
-            self.save_xml(0)  # shp filename in xml
-            filename = self.file_polygon_label.text()
-            namebase, ext = os.path.splitext(filename)
-            path_im = self.find_path_im()
-            sub_classification_code = self.sub_classification_code_polygon_label.text()
-            sub_classification_method = self.sub_classification_method_polygon_label.text()
-            sub_epsg_code = self.epsg_polygon_label.text()
-            default_values = self.sub_default_values_polygon_label.text()
-            self.name_hdf5 = self.polygon_hname.text()
-            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+            # polygon case
+            if sub_mapping_method == 'polygon':
+                # block button substrate
+                self.load_polygon_substrate.setDisabled(True)  # substrate
+                self.name_hdf5 = self.polygon_hname.text()
+                # filename = self.file_polygon_label.text()
+                # namebase, ext = os.path.splitext(filename)
+                # path_im = self.find_path_im()
+                # sub_classification_code = self.sub_classification_code_polygon_label.text()
+                # sub_classification_method = self.sub_classification_method_polygon_label.text()
+                # sub_epsg_code = self.epsg_polygon_label.text()
+                # default_values = self.sub_default_values_polygon_label.text()
+                # self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+                #
+                # sys.stdout = self.mystdout = StringIO()  # out to GUI
+                #
+                # sub_description = dict(sub_mapping_method=sub_mapping_method,
+                #                               sub_classification_code=sub_classification_code,
+                #                               sub_classification_method=sub_classification_method,
+                #                               sub_filename_source=filename,
+                #                               sub_path_source=self.pathfile_polygon,
+                #                               sub_default_values=default_values,
+                #                               sub_epsg_code=sub_epsg_code,
+                #                               sub_reach_number="1",
+                #                               sub_unit_number="1",
+                #                               sub_unit_list="0.0",
+                #                               sub_unit_type="unknown",
+                #                               path_prj=self.path_prj,
+                #                               name_hdf5=self.name_hdf5)
 
-            sys.stdout = self.mystdout = StringIO()  # out to GUI
+            # point case
+            if sub_mapping_method == 'point':
+                # block button substrate
+                self.load_point_substrate.setDisabled(True)  # substrate
+                self.name_hdf5 = self.point_hname.text()
+                # filename = self.file_point_label.text()
+                # namebase, ext = os.path.splitext(filename)
+                # path_im = self.find_path_im()
+                # path_shp = self.find_path_input()
+                # sub_classification_code = self.sub_classification_code_point_label.text()
+                # sub_classification_method = self.sub_classification_method_point_label.text()
+                # sub_epsg_code = self.epsg_point_label.text()
+                # default_values = self.sub_default_values_point_label.text()
+                # self.name_hdf5 = self.point_hname.text()
+                # self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+                #
+                # sub_description = dict(sub_mapping_method=sub_mapping_method,
+                #                               sub_classification_code=sub_classification_code,
+                #                               sub_classification_method=sub_classification_method,
+                #                               sub_filename_source=filename,
+                #                               sub_path_source=self.pathfile_point,
+                #                               sub_default_values=default_values,
+                #                               sub_epsg_code=sub_epsg_code,
+                #                               sub_reach_number="1",
+                #                               sub_unit_number="1",
+                #                               sub_unit_list="0.0",
+                #                               sub_unit_type="unknown",
+                #                               path_prj=self.path_prj,
+                #                               name_hdf5=self.name_hdf5)
 
-            sub_description = dict(sub_mapping_method=sub_mapping_method,
-                                          sub_classification_code=sub_classification_code,
-                                          sub_classification_method=sub_classification_method,
-                                          sub_filename_source=filename,
-                                          sub_path_source=self.pathfile_polygon,
-                                          sub_default_values=default_values,
-                                          sub_epsg_code=sub_epsg_code,
-                                          sub_reach_number="1",
-                                          sub_unit_number="1",
-                                          sub_unit_list="0.0",
-                                          sub_unit_type="unknown",
-                                          path_prj=self.path_prj,
-                                          name_hdf5=self.name_hdf5)
+                # if ext == ".shp":
+                #     # check if we have all files
+                #     name1 = namebase + '.dbf'
+                #     name2 = namebase + '.shx'
+                #     name3 = namebase + '.prj'  # it is ok if it does not exists
+                #     pathname1 = os.path.join(self.pathfile_point, name1)
+                #     pathname2 = os.path.join(self.pathfile_point, name2)
+                #     pathname3 = os.path.join(self.pathfile_point, name3)
+                #     if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
+                #         self.send_log.emit(
+                #             'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
+                #             ' a .dbf file.')
+                #         self.load_point_substrate.setDisabled(False)
+                #         return
+                #
+                # sys.stdout = self.mystdout = StringIO()  # out to GUI
+                #
+                # # read points and make voronoi
+                # self.q = Queue()
+                # # sub_filename_voronoi_shp = substrate_mod.load_sub_txt(self.namefile[0],
+                # #                                                       self.pathfile[0],
+                # #                                                       sub_mapping_method,
+                # #                                                       sub_classification_code,
+                # #                                                       sub_classification_method,
+                # #                                                       sub_epsg_code,
+                # #                                                       path_shp)
+                # self.p_voronoi = Process(target=substrate_mod.load_sub_txt,
+                #                  args=(self.namefile[0],
+                #                       self.pathfile[0],
+                #                       sub_mapping_method,
+                #                       sub_classification_code,
+                #                       sub_classification_method,
+                #                       sub_epsg_code,
+                #                       path_shp,
+                #                       self.q))
+                # self.p_voronoi.name = "load_sub_txt (Voronoi from txt and shp)"
+                # self.p_voronoi.start()
+                # self.p_voronoi.join()
+                # sub_filename_voronoi_shp = self.q.get()
+                # # error case
+                # if type(sub_filename_voronoi_shp) == list:
+                #     for warning in sub_filename_voronoi_shp:
+                #         self.send_log.emit(warning)
+                #
+                # # if shp ok
+                # if type(sub_filename_voronoi_shp) == str:
+                #     # load substrate shp (and triangulation)
+                #     self.q = Queue()
+                #     self.p = Process(target=substrate_mod.load_sub_shp,
+                #                      args=(sub_filename_voronoi_shp,
+                #                            path_shp,
+                #                            self.path_prj,
+                #                            self.path_prj + "/hdf5",
+                #                            self.name_prj,
+                #                            self.name_hdf5,
+                #                            sub_mapping_method,
+                #                            sub_classification_code,
+                #                            sub_epsg_code,
+                #                            default_values,
+                #                            self.q))
+                #     self.p.name = "Substrate data loading from points"
+                #     self.p.start()
+                #
+                #     sys.stdout = sys.__stdout__  # reset to console
+                #     self.send_err_log()
+                #
+                #     # copy
+                #     if ext == ".shp":
+                #         # copy_shapefiles
+                #         path_input = self.find_path_input()
+                #         self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_point,
+                #                                                                                    filename), path_input))
+                #     else:  # .txt
+                #         path_input = self.find_path_input()
+                #         self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+                #
+                #     self.p2.start()
+                #
+                #     # log info
+                #     self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
+                #     self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+                #     self.send_log.emit("py    path1=r'" + path_input + "'")
+                #     self.send_log.emit("py    type='" + sub_classification_code + "'")
+                #     self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
+                #                        "(file1, path1, type)\n")
+                #     self.send_log.emit("restart LOAD_SUB_SHP")
+                #     self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+                #     self.send_log.emit("restart    sub_classification_code: " + sub_classification_code)
 
-        # point case
-        if sub_mapping_method == 'point':
-            # block button substrate
-            self.load_point_substrate.setDisabled(True)  # substrate
+            # constante case
+            if sub_mapping_method == 'constant':
+                # block button substrate
+                self.load_constant_substrate.setDisabled(True)  # substrate
+                self.name_hdf5 = self.point_hname.text()
+
+                # filename = self.file_constant_label.text()
+                # sub_classification_code = self.sub_classification_code_constant_label.text()
+                # sub_classification_method = self.sub_classification_method_constant_label.text()
+                # sub_constant_values = self.valuesdata_constant_label.text()
+                # self.name_hdf5 = self.constant_hname.text()
+                # self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+                #
+                # constant_values_list = sub_constant_values.split(",")
+                # sub_array = [[] for i in range(len(constant_values_list))]
+                # for i, value in enumerate(constant_values_list):
+                #     sub_array[i] = int(value.strip())
+                #
+                # sub_description = dict(sub_mapping_method=sub_mapping_method,
+                #                               sub_classification_code=sub_classification_code,
+                #                               sub_classification_method=sub_classification_method,
+                #                               sub_filename_source=filename,
+                #                               sub_path_source=self.pathfile_constant,
+                #                               sub_default_values=sub_constant_values,
+                #                               sub_epsg_code="",
+                #                               sub_reach_number="1",
+                #                               sub_unit_number="1",
+                #                               sub_unit_list="0.0",
+                #                               sub_unit_type="unknown",
+                #                               path_prj=self.path_prj,
+                #                               name_hdf5=self.name_hdf5)
+
+                # data = dict(sub=[sub_array],
+                #             nb_unit=1,
+                #             nb_reach=1)
+                #
+                # sys.stdout = self.mystdout = StringIO()  # out to GUI
+                # self.q = Queue()
+                # self.q.put("const_sub")
+                #
+                # # save hdf5
+                # hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
+                # self.p = Process(target=hdf5.create_hdf5_sub,
+                #                  args=(sub_description, data))
+                # self.p.name = "Substrate data loading from constant values"
+                # self.p.start()
+                #
+                # self.send_err_log()
+                #
+                # # log info
+                # self.send_log.emit(self.tr('# Loading: Substrate data constant values ...'))
+                # self.send_log.emit("py    val_c=" + sub_constant_values)
+                # self.send_log.emit(
+                #     "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], [], [], 're_run_const_sub'"
+                #     ", True, 'SUBSTRATE') \n")
+                # self.send_log.emit("restart LOAD_SUB_CONST")
+                # self.send_log.emit("restart    val_c: " + sub_constant_values)
+                # # self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.sub'))
+                # # unblock button substrate
+                # self.load_constant_substrate.setDisabled(False)  # substrate
+                # self.p.join()
+
             # save path and name substrate
             self.save_xml(0)  # txt filename in xml
-            filename = self.file_point_label.text()
-            namebase, ext = os.path.splitext(filename)
-            path_im = self.find_path_im()
-            path_shp = self.find_path_input()
-            sub_classification_code = self.sub_classification_code_point_label.text()
-            sub_classification_method = self.sub_classification_method_point_label.text()
-            sub_epsg_code = self.epsg_point_label.text()
-            default_values = self.sub_default_values_point_label.text()
-            self.name_hdf5 = self.point_hname.text()
-            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
-            sub_description = dict(sub_mapping_method=sub_mapping_method,
-                                          sub_classification_code=sub_classification_code,
-                                          sub_classification_method=sub_classification_method,
-                                          sub_filename_source=filename,
-                                          sub_path_source=self.pathfile_point,
-                                          sub_default_values=default_values,
-                                          sub_epsg_code=sub_epsg_code,
-                                          sub_reach_number="1",
-                                          sub_unit_number="1",
-                                          sub_unit_list="0.0",
-                                          sub_unit_type="unknown",
-                                          path_prj=self.path_prj,
-                                          name_hdf5=self.name_hdf5)
+            # change hdf5_name
+            self.sub_description["name_hdf5"] = self.name_hdf5
 
-            # if ext == ".shp":
-            #     # check if we have all files
-            #     name1 = namebase + '.dbf'
-            #     name2 = namebase + '.shx'
-            #     name3 = namebase + '.prj'  # it is ok if it does not exists
-            #     pathname1 = os.path.join(self.pathfile_point, name1)
-            #     pathname2 = os.path.join(self.pathfile_point, name2)
-            #     pathname3 = os.path.join(self.pathfile_point, name3)
-            #     if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
-            #         self.send_log.emit(
-            #             'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
-            #             ' a .dbf file.')
-            #         self.load_point_substrate.setDisabled(False)
-            #         return
-            #
-            # sys.stdout = self.mystdout = StringIO()  # out to GUI
-            #
-            # # read points and make voronoi
-            # self.q = Queue()
-            # # sub_filename_voronoi_shp = substrate_mod.load_sub_txt(self.namefile[0],
-            # #                                                       self.pathfile[0],
-            # #                                                       sub_mapping_method,
-            # #                                                       sub_classification_code,
-            # #                                                       sub_classification_method,
-            # #                                                       sub_epsg_code,
-            # #                                                       path_shp)
-            # self.p_voronoi = Process(target=substrate_mod.load_sub_txt,
-            #                  args=(self.namefile[0],
-            #                       self.pathfile[0],
-            #                       sub_mapping_method,
-            #                       sub_classification_code,
-            #                       sub_classification_method,
-            #                       sub_epsg_code,
-            #                       path_shp,
-            #                       self.q))
-            # self.p_voronoi.name = "load_sub_txt (Voronoi from txt and shp)"
-            # self.p_voronoi.start()
-            # self.p_voronoi.join()
-            # sub_filename_voronoi_shp = self.q.get()
-            # # error case
-            # if type(sub_filename_voronoi_shp) == list:
-            #     for warning in sub_filename_voronoi_shp:
-            #         self.send_log.emit(warning)
-            #
-            # # if shp ok
-            # if type(sub_filename_voronoi_shp) == str:
-            #     # load substrate shp (and triangulation)
-            #     self.q = Queue()
-            #     self.p = Process(target=substrate_mod.load_sub_shp,
-            #                      args=(sub_filename_voronoi_shp,
-            #                            path_shp,
-            #                            self.path_prj,
-            #                            self.path_prj + "/hdf5",
-            #                            self.name_prj,
-            #                            self.name_hdf5,
-            #                            sub_mapping_method,
-            #                            sub_classification_code,
-            #                            sub_epsg_code,
-            #                            default_values,
-            #                            self.q))
-            #     self.p.name = "Substrate data loading from points"
-            #     self.p.start()
-            #
-            #     sys.stdout = sys.__stdout__  # reset to console
-            #     self.send_err_log()
-            #
-            #     # copy
-            #     if ext == ".shp":
-            #         # copy_shapefiles
-            #         path_input = self.find_path_input()
-            #         self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_point,
-            #                                                                                    filename), path_input))
-            #     else:  # .txt
-            #         path_input = self.find_path_input()
-            #         self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-            #
-            #     self.p2.start()
-            #
-            #     # log info
-            #     self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
-            #     self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-            #     self.send_log.emit("py    path1=r'" + path_input + "'")
-            #     self.send_log.emit("py    type='" + sub_classification_code + "'")
-            #     self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
-            #                        "(file1, path1, type)\n")
-            #     self.send_log.emit("restart LOAD_SUB_SHP")
-            #     self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-            #     self.send_log.emit("restart    sub_classification_code: " + sub_classification_code)
+            # load substrate shp (and triangulation)
+            self.q = Queue()
+            self.progress_value = Value("i", 0)
+            self.p = Process(target=substrate_mod.load_sub,
+                             args=(self.sub_description,
+                                   self.progress_value,
+                                   self.q,
+                                   False,
+                                   self.project_preferences))
+            self.p.name = "Substrate data loading from shapefile"
+            self.p.start()
 
-        # constante case
-        if sub_mapping_method == 'constant':
-            # block button substrate
-            self.load_constant_substrate.setDisabled(True)  # substrate
-            # save path and name substrate
-            self.save_xml(0)  # txt filename in xml
-            filename = self.file_constant_label.text()
-            sub_classification_code = self.sub_classification_code_constant_label.text()
-            sub_classification_method = self.sub_classification_method_constant_label.text()
-            sub_constant_values = self.valuesdata_constant_label.text()
-            self.name_hdf5 = self.constant_hname.text()
-            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+            sys.stdout = sys.__stdout__  # reset to console
+            self.send_err_log()
 
-            constant_values_list = sub_constant_values.split(",")
-            sub_array = [[] for i in range(len(constant_values_list))]
-            for i, value in enumerate(constant_values_list):
-                sub_array[i] = int(value.strip())
+            # copy_shapefiles
+            path_input = self.find_path_input()
+            # self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_polygon,
+            #                                                                            filename), path_input))
+            # self.p2.start()
 
-            sub_description = dict(sub_mapping_method=sub_mapping_method,
-                                          sub_classification_code=sub_classification_code,
-                                          sub_classification_method=sub_classification_method,
-                                          sub_filename_source=filename,
-                                          sub_path_source=self.pathfile_constant,
-                                          sub_default_values=sub_constant_values,
-                                          sub_epsg_code="",
-                                          sub_reach_number="1",
-                                          sub_unit_number="1",
-                                          sub_unit_list="0.0",
-                                          sub_unit_type="unknown",
-                                          path_prj=self.path_prj,
-                                          name_hdf5=self.name_hdf5)
-
-            # data = dict(sub=[sub_array],
-            #             nb_unit=1,
-            #             nb_reach=1)
-            #
-            # sys.stdout = self.mystdout = StringIO()  # out to GUI
-            # self.q = Queue()
-            # self.q.put("const_sub")
-            #
-            # # save hdf5
-            # hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
-            # self.p = Process(target=hdf5.create_hdf5_sub,
-            #                  args=(sub_description, data))
-            # self.p.name = "Substrate data loading from constant values"
-            # self.p.start()
-            #
-            # self.send_err_log()
-            #
-            # # log info
-            # self.send_log.emit(self.tr('# Loading: Substrate data constant values ...'))
-            # self.send_log.emit("py    val_c=" + sub_constant_values)
-            # self.send_log.emit(
-            #     "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], [], [], 're_run_const_sub'"
-            #     ", True, 'SUBSTRATE') \n")
-            # self.send_log.emit("restart LOAD_SUB_CONST")
-            # self.send_log.emit("restart    val_c: " + sub_constant_values)
-            # # self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.sub'))
-            # # unblock button substrate
-            # self.load_constant_substrate.setDisabled(False)  # substrate
-            # self.p.join()
-
-
-        # load substrate shp (and triangulation)
-        self.q = Queue()
-        self.progress_value = Value("i", 0)
-        self.p = Process(target=substrate_mod.load_sub,
-                         args=(sub_description,
-                               self.progress_value,
-                               self.q,
-                               False,
-                               self.project_preferences))
-        self.p.name = "Substrate data loading from shapefile"
-        self.p.start()
-
-        sys.stdout = sys.__stdout__  # reset to console
-        self.send_err_log()
-
-        # copy_shapefiles
-        path_input = self.find_path_input()
-        # self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_polygon,
-        #                                                                            filename), path_input))
-        # self.p2.start()
-
-        # log info
-        self.send_log.emit(self.tr('# Loading: Substrate data ...'))
-        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-        self.send_log.emit("py    path1=r'" + path_input + "'")
-        self.send_log.emit("py    type='" + sub_classification_code + "'")
-        self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
-                           "(file1, path1, type)\n")
-        self.send_log.emit("restart LOAD_SUB_SHP")
-        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-        self.send_log.emit("restart    sub_classification_code: " + sub_classification_code)
+            # log info
+            self.send_log.emit(self.tr('# Loading: Substrate data ...'))
+            self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+            self.send_log.emit("py    path1=r'" + path_input + "'")
+            self.send_log.emit("py    type='" + self.sub_description["sub_classification_code"] + "'")
+            self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
+                               "(file1, path1, type)\n")
+            self.send_log.emit("restart LOAD_SUB_SHP")
+            self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+            self.send_log.emit("restart    sub_classification_code: " + self.sub_description["sub_classification_code"])
 
     def recreate_image_sub(self, save_fig=False):
         """
@@ -6465,13 +6476,10 @@ class SubstrateW(SubHydroW):
         self.q = Queue()
         self.progress_value = Value("i", 0)
         self.p = Process(target=mesh_management_mod.merge_grid_and_save,
-                         args=(name_hdf5merge,
-                               hdf5_name_hyd,
+                         args=(hdf5_name_hyd,
                                hdf5_name_sub,
-                               path_hdf5,
-                               self.name_prj,
+                               name_hdf5merge,
                                self.path_prj,
-                               self.model_type,
                                self.progress_value,
                                self.q,
                                False,

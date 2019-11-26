@@ -267,7 +267,7 @@ def create_default_project_preferences(all_export_enabled=False):
     return project_preferences
 
 
-def create_project_structure(path_prj, logon, version, username_prj, descri_prj, path_bio_default=None, mode="GUI"):
+def create_project_structure(path_prj, logon, version, username_prj, descri_prj, mode="GUI"):
     # check if folder exist
     if not os.path.exists(path_prj):
         os.makedirs(path_prj)
@@ -316,7 +316,7 @@ def create_project_structure(path_prj, logon, version, username_prj, descri_prj,
 
     # path bio
     pathbio_child = ET.SubElement(path_element, "Path_Bio")
-    pathbio_child.text = path_bio_default
+    pathbio_child.text = os.path.join("biology", "models")
 
     # path input
     path_input = os.path.join(path_prj, 'input')

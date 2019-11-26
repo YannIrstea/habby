@@ -15,14 +15,15 @@ https://github.com/YannIrstea/habby
 
 """
 import os
+
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from osgeo.ogr import GetDriverByName
 from osgeo.osr import SpatialReference
 
 from src import ascii_mod
 from src import hec_ras2D_mod
-from src import telemac_mod
 from src import rubar1d2d_mod
+from src import telemac_mod
 from src.tools_mod import polygon_type_values, point_type_values
 
 
@@ -60,8 +61,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
     # indexHYDRAU.txt absence
     if not os.path.isfile(filename_path_index):
         if model_type != "ASCII":
-            warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod", "indexHYDRAU.txt doesn't exist. It will be created in the 'input' directory after the creation "
-                  "of the .hyd file. The latter will be filled in according to your choices."))
+            warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod",
+                                                              "indexHYDRAU.txt doesn't exist. It will be created in the 'input' directory after the creation "
+                                                              "of the .hyd file. The latter will be filled in according to your choices."))
 
         # more_than_one_file_selected_by_user
         if more_than_one_file_selected_by_user:
@@ -80,23 +82,23 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
                 # multi description
                 hydrau_description_multiple.append(dict(path_prj=path_prj,
-                                                         name_prj=name_prj,
-                                                         hydrau_case=hydrau_case,
-                                                         filename_source=file,
-                                                         path_filename_source=folder_path,
-                                                         hdf5_name=name_hdf5,
-                                                         model_type=model_type,
-                                                         model_dimension=str(nb_dim),
-                                                         unit_list=unit_name_from_file,
-                                                         unit_list_full=unit_name_from_file,
-                                                         unit_list_tf=unit_index_from_file,
-                                                         unit_number=str(nbtimes),
-                                                         unit_type="time [s]",
-                                                         reach_list="unknown",
-                                                         reach_number=str(1),
-                                                         reach_type="river",
-                                                         epsg_code="unknown",
-                                                         flow_type="unknown"))  # continuous flow
+                                                        name_prj=name_prj,
+                                                        hydrau_case=hydrau_case,
+                                                        filename_source=file,
+                                                        path_filename_source=folder_path,
+                                                        hdf5_name=name_hdf5,
+                                                        model_type=model_type,
+                                                        model_dimension=str(nb_dim),
+                                                        unit_list=unit_name_from_file,
+                                                        unit_list_full=unit_name_from_file,
+                                                        unit_list_tf=unit_index_from_file,
+                                                        unit_number=str(nbtimes),
+                                                        unit_type="time [s]",
+                                                        reach_list="unknown",
+                                                        reach_number=str(1),
+                                                        reach_type="river",
+                                                        epsg_code="unknown",
+                                                        flow_type="unknown"))  # continuous flow
 
             # set actual hydrau_description
             hydrau_description = hydrau_description_multiple
@@ -106,7 +108,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # get units name from file
             if model_type == 'ASCII':
                 ascii_description = ascii_mod.get_ascii_model_description(filename_path)
-                if type(ascii_description)==str:
+                if type(ascii_description) == str:
                     return ascii_description, None
                 else:
                     epsg_code = ascii_description["epsg_code"]
@@ -117,9 +119,10 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                     reach_list = ascii_description["reach_list"]
                     sub = ascii_description["sub"]
                     if sub:
-                        warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod", "Substrate data present in the ascii input file. "
-                                            "Data loading will create .hab directly instead of .hyd "
-                                            "(loading button label changed)"))
+                        warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod",
+                                                                          "Substrate data present in the ascii input file. "
+                                                                          "Data loading will create .hab directly instead of .hyd "
+                                                                          "(loading button label changed)"))
                     nbtimes = len(unit_list[0])
             else:
                 epsg_code = "unknown"
@@ -239,7 +242,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if data_index_file[headers[time_index]][0] != "all":
                 hydrau_case = "4.b"
 
-        #print("hydrau_case", hydrau_case)
+        # print("hydrau_case", hydrau_case)
 
         """ ALL CASE """
         # hdf5 name and source filenames
@@ -264,14 +267,14 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
         # hydrau_description
         hydrau_description = dict(path_prj=path_prj,
-                                   name_prj=name_prj,
-                                   hydrau_case=hydrau_case,
-                                   filename_source=namefile,
-                                   path_filename_source=folder_path,
-                                   hdf5_name=name_hdf5,
-                                   model_type=model_type,
-                                   model_dimension=str(nb_dim),
-                                   epsg_code=epsg_code)
+                                  name_prj=name_prj,
+                                  hydrau_case=hydrau_case,
+                                  filename_source=namefile,
+                                  path_filename_source=folder_path,
+                                  hdf5_name=name_hdf5,
+                                  model_type=model_type,
+                                  model_dimension=str(nb_dim),
+                                  epsg_code=epsg_code)
 
         """ CASE 1.a """
         if hydrau_case == "1.a":
@@ -361,7 +364,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
                 pass
-                #return "Error: selected files are different from indexHYDRAU files", None
+                # return "Error: selected files are different from indexHYDRAU files", None
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -471,8 +474,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                         from_unit_index = unit_name_from_file.index(from_unit)
                         to_unit_index = unit_name_from_file.index(to_unit)
                         unit_name_from_index_file2 = unit_name_from_index_file2 + \
-                                                            unit_name_from_file[
-                                                            from_unit_index:to_unit_index + 1]
+                                                     unit_name_from_file[
+                                                     from_unit_index:to_unit_index + 1]
                     except ValueError:
                         return "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
                                data_index_file[headers[0]][0], None
@@ -531,23 +534,23 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                     reach_name = "unknown"
                 # multi description
                 hydrau_description_multiple.append(dict(path_prj=path_prj,
-                                                         name_prj=name_prj,
-                                                         hydrau_case=hydrau_case,
-                                                         filename_source=file,
-                                                         path_filename_source=folder_path,
-                                                         hdf5_name=name_hdf5,
-                                                         model_type=model_type,
-                                                         model_dimension=str(nb_dim),
-                                                         epsg_code=epsg_code,
-                                                         unit_list=unit_name_from_file,
-                                                         unit_list_full=unit_name_from_file,
-                                                         unit_list_tf=unit_index_from_file,
-                                                         unit_number=str(nbtimes),
-                                                         unit_type="time [" + time_unit + "]",
-                                                         reach_list=reach_name,
-                                                         reach_number=str(1),
-                                                         reach_type="river",
-                                                         flow_type="transient flow"))  # continuous flow
+                                                        name_prj=name_prj,
+                                                        hydrau_case=hydrau_case,
+                                                        filename_source=file,
+                                                        path_filename_source=folder_path,
+                                                        hdf5_name=name_hdf5,
+                                                        model_type=model_type,
+                                                        model_dimension=str(nb_dim),
+                                                        epsg_code=epsg_code,
+                                                        unit_list=unit_name_from_file,
+                                                        unit_list_full=unit_name_from_file,
+                                                        unit_list_tf=unit_index_from_file,
+                                                        unit_number=str(nbtimes),
+                                                        unit_type="time [" + time_unit + "]",
+                                                        reach_list=reach_name,
+                                                        reach_number=str(1),
+                                                        reach_type="river",
+                                                        flow_type="transient flow"))  # continuous flow
 
             # set actual hydrau_description
             hydrau_description = hydrau_description_multiple
@@ -576,8 +579,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                             from_unit_index = unit_name_from_file.index(from_unit)
                             to_unit_index = unit_name_from_file.index(to_unit)
                             unit_name_from_index_file2 = unit_name_from_index_file2 + \
-                                                                unit_name_from_file[
-                                                                from_unit_index:to_unit_index + 1]
+                                                         unit_name_from_file[
+                                                         from_unit_index:to_unit_index + 1]
                         except ValueError:
 
                             return "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
@@ -602,39 +605,41 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                     reach_name = "unknown"
                 # multi description
                 hydrau_description_multiple.append(dict(path_prj=path_prj,
-                                                         name_prj=name_prj,
-                                                         hydrau_case=hydrau_case,
-                                                         filename_source=file,
-                                                         path_filename_source=folder_path,
-                                                         hdf5_name=name_hdf5,
-                                                         model_type=model_type,
-                                                         model_dimension=str(nb_dim),
-                                                         epsg_code=epsg_code,
-                                                         unit_list=unit_name_from_index_file2,
-                                                         unit_list_full=unit_name_from_file,
-                                                         unit_list_tf=unit_index_from_file,
-                                                         unit_number=str(len(unit_name_from_index_file2)),
-                                                         unit_type="time [" + time_unit + "]",
-                                                         reach_list=reach_name,
-                                                         reach_number=str(1),
-                                                         reach_type="river",
-                                                         flow_type="transient flow"))  # continuous flow
+                                                        name_prj=name_prj,
+                                                        hydrau_case=hydrau_case,
+                                                        filename_source=file,
+                                                        path_filename_source=folder_path,
+                                                        hdf5_name=name_hdf5,
+                                                        model_type=model_type,
+                                                        model_dimension=str(nb_dim),
+                                                        epsg_code=epsg_code,
+                                                        unit_list=unit_name_from_index_file2,
+                                                        unit_list_full=unit_name_from_file,
+                                                        unit_list_tf=unit_index_from_file,
+                                                        unit_number=str(len(unit_name_from_index_file2)),
+                                                        unit_type="time [" + time_unit + "]",
+                                                        reach_list=reach_name,
+                                                        reach_number=str(1),
+                                                        reach_type="river",
+                                                        flow_type="transient flow"))  # continuous flow
 
             # set actual hydrau_description
             hydrau_description = hydrau_description_multiple
 
-    #print("hydrau_case, " + hydrau_case)
+    # print("hydrau_case, " + hydrau_case)
     return hydrau_description, warning_list
 
 
-def get_sub_description_from_source(filename_path, substrate_mapping_method):
+def get_sub_description_from_source(filename_path, substrate_mapping_method, path_prj):
     warning_list = []  # text warning output
+    name_prj = os.path.splitext(os.path.basename(path_prj))[0]
     substrate_classification_code = None
     substrate_classification_method = None
     substrate_default_values = None
+    epsg_code = None
     substrate_classification_codes = ['Cemagref', 'Sandre']
     substrate_classification_methods = ['coarser-dominant', 'percentage']
-    
+
     dirname = os.path.dirname(filename_path)
     filename = os.path.basename(filename_path)
     blob, ext = os.path.splitext(filename)
@@ -643,9 +648,10 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
     if substrate_mapping_method == "polygon":
         # check classification code in .txt (polygon or point shp)
         if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-            warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The selected shapefile is not accompanied by its habby .txt file."))
-            return
-    
+            warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                            "The selected shapefile is not accompanied by its habby .txt file."))
+            return False, warning_list
+
         if ext == ".shp":
             # get type shapefile
             driver = GetDriverByName('ESRI Shapefile')  # Shapefile
@@ -654,19 +660,20 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
             # get type shapefile
             driver = GetDriverByName('GPKG')  # GPKG
             ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
-    
+
         # get layer
         layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
-    
+
         # get geom type
         if layer.GetGeomType() not in polygon_type_values:
             # get the first feature
             feature = layer.GetNextFeature()
             geom_type = feature.GetGeometryRef().GetGeometryName()
             warning_list.append(
-                "Error : " + qt_tr.translate("hydro_input_file_mod", "Selected shapefile is not polygon type. Type : " + geom_type))
-            return
-    
+                "Error : " + qt_tr.translate("hydro_input_file_mod",
+                                             "Selected shapefile is not polygon type. Type : " + geom_type))
+            return False, warning_list
+
         if os.path.isfile(os.path.join(dirname, blob + ".txt")):
             with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                 dataraw = f.read()
@@ -676,24 +683,28 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                 substrate_classification_code = \
                     substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
                 if substrate_classification_code not in substrate_classification_codes:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
-                                       + substrate_classification_code)
-                    return
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                    "The classification code in .txt file is not recognized : ")
+                                        + substrate_classification_code)
+                    return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
-                                                       " .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The name 'substrate_classification_code=' is not found in"
+                                                                " .txt file."))
+                return False, warning_list
             if "substrate_classification_method=" in substrate_classification_method_raw:
                 substrate_classification_method = \
                     substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
                 if substrate_classification_method not in substrate_classification_methods:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification method in .txt file is not recognized : ")
-                                       + substrate_classification_method)
-                    return
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                    "The classification method in .txt file is not recognized : ")
+                                        + substrate_classification_method)
+                    return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
-                                                       " .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The name 'substrate_classification_method=' is not found in"
+                                                                " .txt file."))
+                return False, warning_list
             if "default_values=" in substrate_default_values_raw:
                 substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
                 constant_values_list = substrate_default_values.split(",")
@@ -701,14 +712,16 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                     try:
                         int(value.strip())
                     except:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "Default values can't be converted to integer : ")
-                                           + substrate_default_values)
-                        return
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                        "Default values can't be converted to integer : ")
+                                            + substrate_default_values)
+                        return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
-                                                       " .txt file."))
-                return
-    
+                warning_list.append(
+                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
+                                                                        " .txt file."))
+                return False, warning_list
+
         # check EPSG code in .prj
         if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
             warning_list.append(
@@ -720,7 +733,7 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
             res = sr.AutoIdentifyEPSG()
             epsg_code_str = sr.GetAuthorityCode(None)
             if epsg_code_str:
-                epsg_code = int(epsg_code_str)
+                epsg_code = epsg_code_str
             else:
                 epsg_code = "unknown"
 
@@ -729,45 +742,52 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
         # txt case
         if ext == ".txt":
             if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The selected file don't exist."))
-                return
+                warning_list.append(
+                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The selected file don't exist."))
+                return False, warning_list
             with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                 dataraw = f.read()
             if len(dataraw.split("\n")[:4]) < 4:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "This text file is not a valid point substrate."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "This text file is not a valid point substrate."))
+                return False, warning_list
             epsg_raw, substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
                 "\n")[:4]
             # check EPSG in .txt (polygon or point shp)
             if "EPSG=" in epsg_raw:
                 epsg_code = epsg_raw.split("EPSG=")[1].strip()
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'EPSG=' is not found in .txt file."))
-                return
+                warning_list.append(
+                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'EPSG=' is not found in .txt file."))
+                return False, warning_list
             # check classification code in .txt ()
             if "substrate_classification_code=" in substrate_classification_code_raw:
                 substrate_classification_code = \
                     substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
                 if substrate_classification_code not in substrate_classification_codes:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
-                                       + substrate_classification_code)
-                    return
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                    "The classification code in .txt file is not recognized : ")
+                                        + substrate_classification_code)
+                    return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
-                                                       " .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The name 'substrate_classification_code=' is not found in"
+                                                                " .txt file."))
+                return False, warning_list
             if "substrate_classification_method=" in substrate_classification_method_raw:
                 substrate_classification_method = \
                     substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
                 if substrate_classification_method not in substrate_classification_methods:
                     warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The classification method in .txt file is not recognized : ")
+                        "Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                    "The classification method in .txt file is not recognized : ")
                         + substrate_classification_method)
-                    return
+                    return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
-                                                       " .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The name 'substrate_classification_method=' is not found in"
+                                                                " .txt file."))
+                return False, warning_list
             if "default_values=" in substrate_default_values_raw:
                 substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
                 constant_values_list = substrate_default_values.split(",")
@@ -775,20 +795,22 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                     try:
                         int(value.strip())
                     except:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "Default values can't be converted to integer : ")
-                                           + substrate_default_values)
-                        return
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                        "Default values can't be converted to integer : ")
+                                            + substrate_default_values)
+                        return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
-                                                       " .txt file."))
-                return
+                warning_list.append(
+                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
+                                                                        " .txt file."))
+                return False, warning_list
 
         if ext == ".shp" or ext == ".gpkg":
             # check classification code in .txt (polygon or point shp)
             if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", 
-                    "The selected shapefile is not accompanied by its habby .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The selected shapefile is not accompanied by its habby .txt file."))
+                return False, warning_list
 
             if ext == ".shp":
                 # get type shapefile
@@ -807,8 +829,9 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                 feature = layer.GetNextFeature()
                 geom_type = feature.GetGeometryRef().GetGeometryName()
                 warning_list.append(
-                    "Error : " + qt_tr.translate("hydro_input_file_mod", "Selected shapefile is not point type. Type : " + geom_type))
-                return
+                    "Error : " + qt_tr.translate("hydro_input_file_mod",
+                                                 "Selected shapefile is not point type. Type : " + geom_type))
+                return False, warning_list
 
             else:
                 with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
@@ -820,28 +843,31 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                         substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
                     if substrate_classification_code not in substrate_classification_codes:
                         warning_list.append(
-                            "Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
+                            "Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                        "The classification code in .txt file is not recognized : ")
                             + substrate_classification_code)
-                        return
+                        return False, warning_list
                 else:
                     warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
-                                            " .txt file."))
-                    return
+                        "Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                    "The name 'substrate_classification_code=' is not found in"
+                                                    " .txt file."))
+                    return False, warning_list
                 if "substrate_classification_method=" in substrate_classification_method_raw:
                     substrate_classification_method = \
                         substrate_classification_method_raw.split("substrate_classification_method=")[
                             1].strip()
                     if substrate_classification_method not in substrate_classification_methods:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", 
-                            "The classification method in .txt file is not recognized : ")
-                                           + substrate_classification_method)
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                        "The classification method in .txt file is not recognized : ")
+                                            + substrate_classification_method)
                         return
                 else:
                     warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
-                                            " .txt file."))
-                    return
+                        "Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                    "The name 'substrate_classification_method=' is not found in"
+                                                    " .txt file."))
+                    return False, warning_list
                 if "default_values=" in substrate_default_values_raw:
                     substrate_default_values = substrate_default_values_raw.split("default_values=")[
                         1].strip()
@@ -851,13 +877,15 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                             int(value.strip())
                         except:
                             warning_list.append(
-                                "Error: " + qt_tr.translate("hydro_input_file_mod", "Default values can't be converted to integer : ")
+                                "Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                            "Default values can't be converted to integer : ")
                                 + substrate_default_values)
-                            return
+                            return False, warning_list
                 else:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
-                                                           " .txt file."))
-                    return
+                    warning_list.append(
+                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
+                                                                            " .txt file."))
+                    return False, warning_list
 
             # check EPSG code in .prj
             if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
@@ -870,17 +898,18 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                 res = sr.AutoIdentifyEPSG()
                 epsg_code_str = sr.GetAuthorityCode(None)
                 if epsg_code_str:
-                    epsg_code = int(epsg_code_str)
+                    epsg_code = epsg_code_str
                 else:
                     epsg_code = "unknown"
 
     # CONSTANT
     if substrate_mapping_method == "constant":
-        epsg_code = None
+        epsg_code = "unknown"
         # txt
         if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-            warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The selected text file don't exist."))
-            return
+            warning_list.append(
+                "Error: " + qt_tr.translate("hydro_input_file_mod", "The selected text file don't exist."))
+            return False, warning_list
         if os.path.isfile(os.path.join(dirname, blob + ".txt")):
             with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                 dataraw = f.read()
@@ -891,25 +920,29 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                 substrate_classification_code = \
                     substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
                 if substrate_classification_code not in substrate_classification_codes:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The classification code in .txt file is not recognized : ")
-                                       + substrate_classification_code)
-                    return
+                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                    "The classification code in .txt file is not recognized : ")
+                                        + substrate_classification_code)
+                    return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_code=' is not found in"
-                                                       " .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The name 'substrate_classification_code=' is not found in"
+                                                                " .txt file."))
+                return False, warning_list
             if "substrate_classification_method=" in substrate_classification_method_raw:
                 substrate_classification_method = \
                     substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
                 if substrate_classification_method not in substrate_classification_methods:
                     warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The classification method in .txt file is not recognized : ")
+                        "Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                    "The classification method in .txt file is not recognized : ")
                         + substrate_classification_method)
-                    return
+                    return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'substrate_classification_method=' is not found in"
-                                                       " .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The name 'substrate_classification_method=' is not found in"
+                                                                " .txt file."))
+                return False, warning_list
             # constant values
             if "constant_values=" in constant_values_raw:
                 substrate_default_values = constant_values_raw.split("constant_values=")[1].strip()
@@ -918,18 +951,31 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method):
                     try:
                         int(value.strip())
                     except:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "Constant values can't be converted to integer : ")
-                                           + substrate_default_values)
-                        return
+                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                        "Constant values can't be converted to integer : ")
+                                            + substrate_default_values)
+                        return False, warning_list
             else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'constant_values=' is not found in .txt file."))
-                return
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "The name 'constant_values=' is not found in .txt file."))
+                return False, warning_list
 
     # create dict
-    sub_description = dict(substrate_classification_code=substrate_classification_code,
-                           substrate_classification_method=substrate_classification_method,
-                           substrate_default_values=substrate_default_values,
-                           epsg_code=epsg_code)
+    sub_description = dict(sub_mapping_method=substrate_mapping_method,
+                            sub_classification_code=substrate_classification_code,
+                           sub_classification_method=substrate_classification_method,
+                           sub_default_values=substrate_default_values,
+                           sub_epsg_code=epsg_code,
+                           sub_filename_source=filename,
+                           sub_path_source=dirname,
+                           sub_reach_number="1",
+                           sub_reach_list="unknown",
+                           sub_unit_number="1",
+                           sub_unit_list="0.0",
+                           sub_unit_type="unknown",
+                           name_prj=name_prj,
+                           path_prj=path_prj
+                           )
 
     return sub_description, warning_list
 

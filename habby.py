@@ -152,34 +152,17 @@ def main():
 
         from src import func_for_cmd_mod
 
-        # index to remove
-        path_prj_index = None
-        name_prj_index = None
-        path_bio_index = None
-
         # get path_prj and name_prj
+        path_prj = None
         for id, opt in enumerate(sys.argv):
             if len(opt) > 8:
                 if opt[:8] == 'path_prj':
                     path_prj = opt[9:]
-                    path_prj_index = id
-                if opt[:8] == 'name_prj':
-                    name_prj = opt[9:]
-                    name_prj_index = id
+                    name_prj = os.path.basename(path_prj)
 
-        # remove if arg
-        if path_prj_index and name_prj_index:
-            sys.argv = [v for i, v in enumerate(sys.argv) if i not in [path_prj_index, name_prj_index, path_bio_index]]
-        elif path_prj_index and name_prj_index:
-            sys.argv = [v for i, v in enumerate(sys.argv) if i not in [path_prj_index, name_prj_index]]
-        elif path_prj_index and not name_prj_index:
-            del sys.argv[path_prj_index]
-        elif not path_prj_index and name_prj_index:
-            del sys.argv[name_prj_index]
-        elif not path_prj_index and not name_prj_index:
-            del sys.argv[path_bio_index]
-        else:
-            pass
+        if not path_prj:
+            print("Error : Project path argument not found.")
+            return
 
         # check if enough argument
         if len(sys.argv) == 0 or len(sys.argv) == 1:
@@ -187,12 +170,14 @@ def main():
                     At least one argument should be given")
             return
 
+        # RESTART MODE
         elif sys.argv[1] == 'RESTART':
             if len(sys.argv) != 3:
                 print('Error: the RESTART command needs the name of \
                       the restart file as input.')
                 return
             func_for_cmd_mod.habby_restart(sys.argv[2], name_prj, path_prj)
+        # ALL
         elif sys.argv[1] == 'ALL':
             if len(sys.argv) < 2:
                 print('Error: the ALL command needs at least one argument.')

@@ -27,20 +27,18 @@ from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_pe
 from src.tools_mod import get_translator
 
 
-def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_names, name_fish_sh, run_choice, path_bio,
-                        path_txt, progress_value, q=[], print_cmd=False, project_preferences={},
-                        aquatic_animal_type=[], xmlfiles=[]):
+def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cmd=False, project_preferences={}):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
     is done on the main thread as we want to show it to the user on the GUI. This function is called by calc_hab_GUI.py
     on a second thread to minimize the freezing on the GUI.
 
-    :param hdf5_file: the name of the hdf5 with the results
+    :param hab_filename: the name of the hdf5 with the results
     :param path_hdf5: the path to the merged file
-    :param pref_list: the name of the xml biological data
-    :param stages_chosen: the stage chosen (youngs, adults, etc.). List with the same length as bio_names.
-    :param fish_names: the name of the chosen fish
+    :param pref_file_list: the name of the xml biological data
+    :param stage_list: the stage chosen (youngs, adults, etc.). List with the same length as bio_names.
+    :param code_alternative_list: the name of the chosen fish
     :param name_fish_sh: In a shapefile, max 8 character for the column name. Hence, a modified name_fish is needed.
     :param run_choice: dict with two lists : one for hyd opt and second for sub opt
     :param path_bio: The path to the biological folder (with all files given in bio_names)
@@ -69,12 +67,20 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
+    # get data from dict
+    run_choice["code_alternative_list"] = []
+    run_choice["aquatic_animal_type_list"] = []
+    for fish_num in range(len(run_choice["pref_file_list"])):
+        information_model_dict = bio_info_mod.get_biomodels_informations_for_database(run_choice["pref_file_list"][fish_num])
+        run_choice["code_alternative_list"].append(information_model_dict["CdBiologicalModel"])
+        run_choice["aquatic_animal_type_list"].append(information_model_dict["aquatic_animal_type"])
+
     # load data and get variable to compute
-    hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(path_hdf5), hdf5_file)
+    hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5")), hab_filename)
     hdf5.load_hdf5_hab()
     variable_mesh = ["area", "height", "velocity"]
     HEM_computation = False
-    if "invertebrate" in aquatic_animal_type:
+    if "invertebrate" in run_choice["aquatic_animal_type_list"]:
         HEM_computation = True
         if int(hdf5.data_description["hyd_model_dimension"]) == 1:
             print("Error: To compute shearstress for invertebrates, the dimension of the hydraulic model "
@@ -89,14 +95,13 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
         variable_mesh = variable_mesh + ["shear_stress"]
     else:
         # invertebrate indice
-        invertebrate_indice = [x for x in range(len(aquatic_animal_type)) if aquatic_animal_type[x] == "invertebrate"]
+        invertebrate_indice = [x for x in range(len(run_choice["aquatic_animal_type_list"])) if run_choice["aquatic_animal_type_list"][x] == "invertebrate"]
         # remove invertebrate models
         for i in reversed(invertebrate_indice):
-            aquatic_animal_type.pop(i)
-            fish_names.pop(i)
-            name_fish_sh.pop(i)
-            pref_list.pop(i)
-            stages_chosen.pop(i)
+            run_choice["aquatic_animal_type_list"].pop(i)
+            run_choice["code_alternative_list"].pop(i)
+            run_choice["pref_file_list"].pop(i)
+            run_choice["stage_list"].pop(i)
             run_choice["hyd_opt"].pop(i)
             run_choice["sub_opt"].pop(i)
 
@@ -114,18 +119,13 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     [vh_all_t_sp, spu_all, area_c_all] = \
         calc_hab(hdf5.data_2d,
                  hdf5.data_description,
-                 hdf5_file,
-                 path_hdf5,
-                 pref_list,
-                 stages_chosen,
                  run_choice,
-                 aquatic_animal_type,
                  progress_value,
                  qt_tr)
 
     # valid ?
     if vh_all_t_sp == [-99]:
-        if q:
+        if q and not print_cmd:
             sys.stdout = sys.__stdout__
             q.put(mystdout)
             return
@@ -133,22 +133,23 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
             return
 
     # name fish with stage
-    for fish_ind, fish_name in enumerate(fish_names):
-        stage_i = stages_chosen[fish_ind]
+    for fish_ind, fish_name in enumerate(run_choice["code_alternative_list"]):
+        stage_i = run_choice["stage_list"][fish_ind]
         hyd_opt_i = run_choice["hyd_opt"][fish_ind]
         sub_opt_i = run_choice["sub_opt"][fish_ind]
-        fish_names[fish_ind] = fish_name + "_" + stage_i + "_" + hyd_opt_i + "_" + sub_opt_i
+        run_choice["code_alternative_list"][fish_ind] = fish_name + "_" + stage_i + "_" + hyd_opt_i + "_" + sub_opt_i
 
     # progress
     progress_value.value = 90
 
     # saving hdf5 data of the habitat value
-    hdf5.add_fish_hab(vh_all_t_sp, area_c_all, spu_all, fish_names, pref_list, stages_chosen,
-                      name_fish_sh, project_preferences, aquatic_animal_type)
+    hdf5.add_fish_hab(vh_all_t_sp, area_c_all, spu_all, run_choice["code_alternative_list"],
+                      run_choice["pref_file_list"], run_choice["stage_list"],
+                      run_choice["aquatic_animal_type_list"], project_preferences)
 
     # copy xml curves to input project folder
-    names = [os.path.basename(pref_list[i]) for i in range(len(pref_list))]
-    paths = [os.path.join(os.getcwd(), os.path.dirname(pref_list[i])) for i in range(len(pref_list))]
+    names = [os.path.basename(run_choice["pref_file_list"][i]) for i in range(len(run_choice["pref_file_list"]))]
+    paths = [os.path.join(os.getcwd(), os.path.dirname(run_choice["pref_file_list"][i])) for i in range(len(run_choice["pref_file_list"]))]
     hdf5_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input"))
 
     # progress
@@ -156,14 +157,14 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q:
+    if q and not print_cmd:
         q.put(mystdout)
         return
     else:
         return
 
 
-def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages, run_choice, aquatic_animal_type, progress_value, qt_tr):
+def calc_hab(data_2d, data_description, run_choice, progress_value, qt_tr):
     """
     This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
@@ -184,23 +185,24 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
     area_c_all_t = []  # area by cell for each reach each time step
     found_stage = 0
 
-    if len(xmlfile) != len(stages):
+    if len(run_choice["pref_file_list"]) != len(run_choice["stage_list"]):
         print('Error: ' + qt_tr.translate("calcul_hab_mod", 'Number of stage and species is not coherent.'))
         return failload
 
-    if len(xmlfile) == 0:
+    if len(run_choice["pref_file_list"]) == 0:
         print('Error: ' + qt_tr.translate("calcul_hab_mod", 'No fish species chosen.'))
         return failload
 
     # progress
-    delta = (90 - progress_value.value) / len(xmlfile)
+    delta = (90 - progress_value.value) / len(run_choice["pref_file_list"])
 
     # for each suitability curve
-    for idx, bio_name in enumerate(xmlfile):
-        aquatic_animal_type_select = aquatic_animal_type[idx]
+    for idx, bio_name in enumerate(run_choice["pref_file_list"]):
+        aquatic_animal_type_select = run_choice["aquatic_animal_type_list"][idx]
         # load bio data
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(bio_name)
-        [pref_height, pref_vel, pref_sub, sub_code, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name, aquatic_animal_type_select)
+        pref_height, pref_vel, pref_sub, sub_code, code_fish, name_fish, stade_bios = bio_info_mod.read_pref(bio_name,
+                                                                                                               aquatic_animal_type_select)
         # hyd opt
         hyd_opt = run_choice["hyd_opt"][idx]
         # sub opt
@@ -211,7 +213,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages,
 
         # for each stage
         for idx2, stade_bio in enumerate(stade_bios):
-            if stages[idx] == stade_bio:
+            if run_choice["stage_list"][idx] == stade_bio:
                 found_stage += 1
                 # fish case
                 if aquatic_animal_type_select == "fish":
