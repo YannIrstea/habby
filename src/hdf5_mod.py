@@ -95,7 +95,7 @@ class Hdf5Management:
         if self.extension == ".sub":
             self.type_for_xml = "hdf5_substrate"  # for save xml
             self.hdf5_type = "substrate"
-            self.variables = self.sub_variables
+            self.variables = ["mesh"] + self.sub_variables
         if self.extension == ".hab":
             self.type_for_xml = "hdf5_habitat"  # for save xml
             self.hdf5_type = "habitat"
