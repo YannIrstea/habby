@@ -1329,6 +1329,7 @@ def cli_load_telemac(arguments, project_preferences):
     if outputfilename:
         hydrau_description["hdf5_name"] = outputfilename
     else:
+        # change suffix
         if not project_preferences["CutMeshPartialyDry"]:
             namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]

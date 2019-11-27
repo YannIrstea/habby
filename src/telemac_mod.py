@@ -249,10 +249,6 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
             hyd_description["hyd_unit_z_equal"] = True
 
         del data_2d_whole_profile['unit_correspondence']
-        # if not project_preferences["CutMeshPartialyDry"]:
-        #     namehdf5_old = os.path.splitext(hydrau_description[hyd_file]["hdf5_name"])[0]
-        #     exthdf5_old = os.path.splitext(hydrau_description[hyd_file]["hdf5_name"])[1]
-        #     hydrau_description[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
         # remove unused keys
         del data_2d_whole_profile["mesh"]["xy_center"]
@@ -696,7 +692,7 @@ def get_time_step(namefilet, pathfilet):
     :param pathfilet: the path to this file (string)
     :return: timestep
     """
-    faiload = [-99], [-99], [-99], [-99], [-99], [-99]
+    faiload = False, False
 
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
