@@ -113,7 +113,7 @@ def main():
         """
         GUI
         """
-        print("GUI")
+        #print("GUI")
         from src_GUI import main_window_GUI
         # create app
         app = QApplication(sys.argv)
@@ -148,21 +148,27 @@ def main():
         """
         CLI
         """
-        print("CLI")
+        #print("CLI")
 
         from src import func_for_cmd_mod
 
         # get path_prj and name_prj
         path_prj = None
+        name_prj = None
+        path_prj_index = None
         for id, opt in enumerate(sys.argv):
             if len(opt) > 8:
                 if opt[:8] == 'path_prj':
                     path_prj = opt[9:]
                     name_prj = os.path.basename(path_prj)
+                    path_prj_index = id
 
         if not path_prj:
             print("Error : Project path argument not found.")
             return
+        else:
+            # remove path_prj arg
+            sys.argv.pop(path_prj_index)
 
         # check if enough argument
         if len(sys.argv) == 0 or len(sys.argv) == 1:

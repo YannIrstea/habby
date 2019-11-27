@@ -88,11 +88,10 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     file_prof = os.path.join(path_prj, name_prj + '.habby')
     # create project
     if not os.path.isdir(path_prj) or not os.path.isfile(file_prof):
-        print("Warning: Specified project_path don't exist, the latter is created.")
-        create_project_structure(path_prj, False, HABBY_VERSION, "CLI", "CLI-mode", mode="CLI")
-        project_preferences = create_default_project_preferences(all_export_enabled=False)
-        save_project_preferences(path_prj, name_prj, project_preferences)
-        set_project_type(True, True, path_prj, name_prj)
+        if not all_arg[0] == 'CREATE_PROJECT':
+            cli_create_project(path_prj, name_prj, False, HABBY_VERSION)
+            project_preferences = load_project_preferences(path_prj, name_prj)
+            print("Warning: Specified project_path does not exist, the latter is created.")
     # load project preferences
     else:
         project_preferences = load_project_preferences(path_prj, name_prj)
@@ -131,25 +130,12 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
               "If not specify, dominant_case as 1 or -1")
         print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
-
-        # Input: the name of the hydrological'
-        #       ' hdf5, the name of the substrate hdf5, the default data for the substrate (in cemagref code),'
-        #       ' (output name)')
-        print('LOAD_SUB_SHP: load the substrate from a shapefile in hdf5')
+        print('LOAD_SUB: load the substrate (polygon, point or constant) from a shp, gpkg or txt in .sub')
         print("\tinputfile: input file (shapefile absolute path with extension).")
         print("\tcode_type: type of substrate (Cemagref or Sandre).")
         print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
               "If not specify, dominant_case as 1 or -1")
         print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
-        print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the texte file,'
-              'code_type as Cemagref or Sandre')
-        print('LOAD_SUB_CONST: Create and hdf5 with a constant substrate. Code_type Cemagref Input: value of the '
-              'substrate between 1 and 8.  (output name with path). The value 0 results in all possible substrate '
-              'value to be loaded')
-        print('LOAD_SUB_HDF5: load the substrate data in an hdf5 form. Input: the name of the hdf5 file (with path)')
-        print('CREATE_RAND_SUB: create a random substrate shapefile. Will be created  in the cemagref code in the '
-              'type coarser?dominant/... Input: the name of the hydrological hdf5 file (with path), (output name)')
-
         print('\n')
         print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub'
               '- all data in float')
@@ -161,20 +147,10 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
               'the xml biological files by a comma without a space between the command and the filenames. '
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
               ' run_choice.')
-        print('HYDRO_CHRONIC: hydrological chronicle. Create a new merge file for the chosen output discharge. The'
-              'output discharges should be in the range of the input discharge. Input: list of the names of the merge '
-              'file without path , list of input discharge, list of output discharge, minimum water height')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
               "(the river type, 0 by default, 1, or 2 for tropical rivers).")
-        print("ADD_HYDRO_HDF5: Add hdf5 filas with hydraulic data together in one hydraulic hdf5. The number of time"
-              " step should be the same in all files. No substrate data. Input: the name of the first hdf5 (with path),"
-              " the name of the second hdf5 file, (name of other hdf5 files as needed)")
-        print("ADD_MERGE_HDF5: Add hdf5 failes with merge data together in one merge hdf5. Substrate data available. "
-              "The number of time step should be the same in both file. Input: the name of the first hdf5 (with path),"
-              " the name of the second hdf5 file, (name of other hdf5 files as needed)")
-
         print('\n')
         print("RESTART: Relauch HABBY based on a list of command in a text file (restart file) Input: the name of file"
               " (with the path).")
@@ -190,77 +166,16 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
               'name_prj= name of the project, (3) path_bio: the path to the biological files')
 
     # ----------------------------------------------------------------------------------
+    elif all_arg[0] == 'CREATE_PROJECT':
+        # cli_create_project
+        cli_create_project(path_prj, name_prj, False, HABBY_VERSION)
+
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_TELEMAC':
         # remove the first arg LOAD_TELEMAC
         all_arg = all_arg[1:]
 
-        # # check
-        # if not 0 < len(all_arg) < 4:
-        #     print('The function LOAD_TELEMAC needs one or two inputs, the .res file name and the output name.')
-        #     return
-
-        # optionnal args
-        units_string = None
-        outputfilename = None
-
-        # get args
-        for arg in all_arg:
-            # inputfile
-            if arg[:10] == 'inputfile=':
-                filename = arg[10:]
-                if not "[" in filename:
-                    filename = [filename]
-            # units
-            if arg[:6] == 'units=':
-                units_string = arg[6:]
-            # outputfilename
-            if arg[:15] == 'outputfilename=':
-                outputfilename = arg[15:]
-
-        # inputfile (telemac file absolute path with extension)
-        if not input_file:
-            pathfilet = os.path.dirname(filename[0])
-        else:
-            pathfilet = path_input
-        namefilet = os.path.basename(filename[0])
-
-        # units
-        if units_string:
-            if units_string == "all":
-                units = None
-            else:
-                units = list(map(int, units_string))
-        else:
-            units = None
-
-
-
-        # get_hydrau_description_from_source
-        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename,
-                                                                                      path_prj,
-                                                                                       "TELEMAC",
-                                                                                      2)
-
-        # outputfilename
-        if outputfilename:
-            hydrau_description["hdf5_name"] = outputfilename
-
-        # warnings
-        if warning_list:
-            for warn in warning_list:
-                print(warn)
-
-        # run process
-        progress_value = Value("i", 0)
-        q = Queue()
-        p = Process(target=telemac_mod.load_telemac_and_cut_grid,
-                    args=(hydrau_description,
-                          progress_value,
-                          q,
-                          True,
-                          project_preferences),
-                    name="LOAD_TELEMAC")
-        cli_start_process_and_print_progress(p, progress_value)
+        cli_load_telemac(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_1D':
@@ -843,205 +758,21 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # remove the first arg LOAD_SUB
         all_arg = all_arg[1:]
 
-        # check
-        # if not 1 < len(all_arg) < 5:
-        #     print('LOAD_SUB_SHP needs between two and three inputs. See LIST_COMMAND for more information.')
-        #     return
-
-        # optionnal args
-        outputfilename = None
-
-        # get args
-        for arg in all_arg:
-            # inputfile
-            if arg[:10] == 'inputfile=':
-                filename = os.path.basename(arg[10:])
-                if not path_input:
-                    path = os.path.dirname(arg[10:])
-                else:
-                    path = path_input
-                abs_path_file = arg[10:]
-            # substrate_mapping_method
-            if arg[:25] == "substrate_mapping_method=":
-                substrate_mapping_method = arg[25:]
-            # outputfilename
-            if arg[:15] == 'outputfilename=':
-                outputfilename = arg[15:]
-
-        if outputfilename:
-            name_hdf5 = outputfilename
-        else:
-            name_hdf5 = os.path.splitext(filename)[0] + ".sub"
-
-        # get_sub_description_from_source
-        sub_description, warning_list = hydro_input_file_mod.get_sub_description_from_source(abs_path_file,
-                                                                               substrate_mapping_method,
-                                                                                             path_prj)
-
-        # error
-        if not sub_description:
-            for warn in warning_list:
-                print(warn)
-
-        # ok
-        if sub_description:
-            # outputfilename
-            if outputfilename:
-                sub_description["hdf5_name"] = outputfilename
-
-            # but warnings
-            if warning_list:
-                for warn in warning_list:
-                    print(warn)
-
-            # change hdf5_name
-            sub_description["name_hdf5"] = name_hdf5
-
-            # if shape data valid : load and save
-            q = Queue()
-            progress_value = Value("i", 0)
-            p = Process(target=substrate_mod.load_sub,
-                             args=(sub_description,
-                                   progress_value,
-                                   q,
-                                   True,
-                                   project_preferences),
-                    name="LOAD_SUB")
-            cli_start_process_and_print_progress(p, progress_value)
+        cli_load_sub(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'MERGE_GRID_SUB':
         # remove the first arg MERGE_GRID_SUB
         all_arg = all_arg[1:]
 
-        if not 2 < len(all_arg) < 6:
-            print('MERGE_GRID_SUB needs between three and four inputs. See LIST_COMMAND for more information.')
-            return
-
-        # optionnal args
-        outputfilename = None
-
-        # get args
-        for arg in all_arg:
-            # hdf5_name_hyd
-            if arg[:4] == 'hyd=':
-                hdf5_name_hyd = os.path.basename(arg[4:])
-            # hdf5_name_sub
-            if arg[:4] == 'sub=':
-                hdf5_name_sub = arg[4:]
-            # outputfilename
-            if arg[:15] == 'outputfilename=':
-                outputfilename = arg[15:]
-
-        if not outputfilename:
-            outputfilename = os.path.splitext(hdf5_name_hyd)[0] + "_" + os.path.splitext(hdf5_name_sub)[0] + ".hab"
-
-        # run the function
-        q = Queue()
-        progress_value = Value("i", 0)
-        p = Process(target=mesh_management_mod.merge_grid_and_save,
-                    args=(hdf5_name_hyd,
-                          hdf5_name_sub,
-                          outputfilename,
-                          path_prj,
-                          progress_value,
-                          q,
-                          True,
-                          project_preferences),
-                    name="MERGE_GRID_SUB")
-        cli_start_process_and_print_progress(p, progress_value)
+        cli_merge(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HABITAT':
         # remove the first arg MERGE_GRID_SUB
         all_arg = all_arg[1:]
 
-        # if len(all_arg) != 4:
-        #     print('RUN_HABITAT needs between four and five inputs. See LIST_COMMAND for more information.')
-        #     return
-
-        run_choice = dict()
-
-        # get args
-        for arg in all_arg:
-            # hab
-            if arg[:4] == 'hab=':
-                hab_filename = arg[4:]
-            # pref_file_list
-            if arg[:15] == 'pref_file_list=':
-                run_choice["pref_file_list"] = arg[15:].split(",")
-            # stage_list
-            if arg[:11] == 'stage_list=':
-                run_choice["stage_list"] = arg[11:].split(",")
-            # hyd_opt
-            if arg[:8] == 'hyd_opt=':
-                run_choice["hyd_opt"] = arg[8:].split(",")
-            # sub_opt
-            if arg[:8] == 'sub_opt=':
-                run_choice["sub_opt"] = arg[8:].split(",")
-
-        if hab_filename:
-            # run calculation
-            progress_value = Value("i", 0)
-            q = Queue()
-            p = Process(target=calcul_hab_mod.calc_hab_and_output,
-                        args=(hab_filename,
-                              run_choice,
-                              progress_value,
-                              q,
-                              True,
-                              project_preferences),
-                        name="RUN_HABITAT")
-            cli_start_process_and_print_progress(p, progress_value)
-
-    # ----------------------------------------------------------------------------------
-    elif all_arg[0] == 'CREATE_RAND_SUB':
-
-        if not 2 < len(all_arg) < 5:
-            print('CREATE_RAND_SUB needs one or two inputs. See LIST_COMMAND for more information.')
-            return
-        pathname_h5 = all_arg[2]
-        h5name = os.path.basename(pathname_h5)
-        path_h5 = os.path.dirname(pathname_h5)
-
-        if len(all_arg) == 4:
-            new_name = all_arg[3]
-        else:
-            new_name = 'rand_sub_' + h5name[:-3]
-
-        substrate_mod.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 300, path_prj)
-
-    # ----------------------------------------------------------------------------------
-    elif all_arg[0] == 'HYDRO_CHRONIC':
-        if not len(all_arg) == 6:
-            print('HYDRO_CHRONIC needs four inputs. See LIST_COMMAND for more information.')
-            return
-
-        merge_files = all_arg[2]
-        merge_files = merge_files.split(',')
-
-        path_merges = []
-        for m in merge_files:
-            path_merges.append(path_prj)
-
-        discharge_in_str = all_arg[3].split(',')
-        try:
-            discharge_in = list(map(float, discharge_in_str))
-        except ValueError:
-            print('Error: Discharge input should be a list of float separated by a comma.')
-            return
-        discharge_out_str = all_arg[4].split(',')
-        try:
-            discharge_out = list(map(float, discharge_out_str))
-        except ValueError:
-            print('Error: Discharge output should be a list of float separated by a comma.')
-            return
-
-        try:
-            minh = float(all_arg[5])
-        except ValueError:
-            print('Error: Minimum water height should be a float')
-            return
+        cli_calc_hab(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_HYDRO_HDF5':
@@ -1544,12 +1275,241 @@ def load_fstress_text(path_fstress):
     return riv_name, qhw, qrange
 
 
+""" PROJECT """
+
+
+def cli_create_project(path_prj, name_prj, all_export_enabled, HABBY_VERSION):
+    if not os.path.exists(path_prj):
+        create_project_structure(path_prj, False, HABBY_VERSION, "CLI", "CLI-mode", mode="CLI")
+        project_preferences = create_default_project_preferences(all_export_enabled=all_export_enabled)
+        save_project_preferences(path_prj, name_prj, project_preferences)
+        set_project_type(True, True, path_prj, name_prj)
+        print("# CREATE_PROJECT finished")
+    else:
+        print("Warning: The project " + name_prj + " already exists.")
+        print("# CREATE_PROJECT finished")
+
+
+""" HYD """
+
+
+def cli_load_telemac(arguments, project_preferences):
+    # # check
+    # if not 0 < len(all_arg) < 4:
+    #     print('The function LOAD_TELEMAC needs one or two inputs, the .res file name and the output name.')
+    #     return
+
+    # optionnal args
+    units_string = None
+    outputfilename = None
+
+    # get args
+    for arg in arguments:
+        # inputfile
+        inputfile_arg_name = 'inputfile='
+        if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
+            filename = arg[len(inputfile_arg_name):]
+        # outputfilename
+        outputfilename_arg_name = 'outputfilename='
+        if arg[:len(outputfilename_arg_name)] == outputfilename_arg_name:
+            outputfilename = arg[len(outputfilename_arg_name):]
+        # cut
+        cut_arg_name = 'cut='
+        if arg[:len(cut_arg_name)] == cut_arg_name:
+            cut = eval(arg[len(cut_arg_name):])
+            project_preferences['CutMeshPartialyDry'] = cut
+
+    # get_hydrau_description_from_source
+    hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source([filename],
+                                                                                               project_preferences["path_prj"],
+                                                                                               "TELEMAC",
+                                                                                               2)
+
+    # outputfilename
+    if outputfilename:
+        hydrau_description["hdf5_name"] = outputfilename
+    else:
+        if not project_preferences["CutMeshPartialyDry"]:
+            namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+            exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+            hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
+    # warnings
+    if warning_list:
+        for warn in warning_list:
+            print(warn)
+
+    # run process
+    progress_value = Value("i", 0)
+    q = Queue()
+    p = Process(target=telemac_mod.load_telemac_and_cut_grid,
+                args=(hydrau_description,
+                      progress_value,
+                      q,
+                      True,
+                      project_preferences),
+                name="LOAD_TELEMAC")
+    cli_start_process_and_print_progress(p, progress_value)
+
+
+""" SUB """
+
+
+def cli_load_sub(arguments, project_preferences):
+    # check
+    # if not 1 < len(all_arg) < 5:
+    #     print('LOAD_SUB_SHP needs between two and three inputs. See LIST_COMMAND for more information.')
+    #     return
+
+    # optionnal args
+    outputfilename = None
+
+    # get args
+    for arg in arguments:
+        # inputfile
+        if arg[:10] == 'inputfile=':
+            filename = os.path.basename(arg[10:])
+            abs_path_file = arg[10:]
+        # substrate_mapping_method
+        if arg[:25] == "substrate_mapping_method=":
+            substrate_mapping_method = arg[25:]
+        # outputfilename
+        if arg[:15] == 'outputfilename=':
+            outputfilename = arg[15:]
+
+    if outputfilename:
+        name_hdf5 = outputfilename
+    else:
+        name_hdf5 = os.path.splitext(filename)[0] + ".sub"
+
+    # get_sub_description_from_source
+    sub_description, warning_list = hydro_input_file_mod.get_sub_description_from_source(abs_path_file,
+                                                                                         substrate_mapping_method,
+                                                                                         project_preferences["path_prj"])
+
+    # error
+    if not sub_description:
+        for warn in warning_list:
+            print(warn)
+
+    # ok
+    if sub_description:
+        # outputfilename
+        if outputfilename:
+            sub_description["hdf5_name"] = outputfilename
+
+        # but warnings
+        if warning_list:
+            for warn in warning_list:
+                print(warn)
+
+        # change hdf5_name
+        sub_description["name_hdf5"] = name_hdf5
+
+        # if shape data valid : load and save
+        q = Queue()
+        progress_value = Value("i", 0)
+        p = Process(target=substrate_mod.load_sub,
+                    args=(sub_description,
+                          progress_value,
+                          q,
+                          True,
+                          project_preferences),
+                    name="LOAD_SUB")
+        cli_start_process_and_print_progress(p, progress_value)
+
+
+def cli_merge(arguments, project_preferences):
+    if not 1 < len(arguments) < 6:
+        print('MERGE_GRID_SUB needs between three and four inputs. See LIST_COMMAND for more information.')
+        return
+
+    # optionnal args
+    outputfilename = None
+
+    # get args
+    for arg in arguments:
+        # hdf5_name_hyd
+        if arg[:4] == 'hyd=':
+            hdf5_name_hyd = os.path.basename(arg[4:])
+        # hdf5_name_sub
+        if arg[:4] == 'sub=':
+            hdf5_name_sub = arg[4:]
+        # outputfilename
+        if arg[:15] == 'outputfilename=':
+            outputfilename = arg[15:]
+
+    if not outputfilename:
+        outputfilename = os.path.splitext(hdf5_name_hyd)[0] + "_" + os.path.splitext(hdf5_name_sub)[0] + ".hab"
+
+    # run the function
+    q = Queue()
+    progress_value = Value("i", 0)
+    p = Process(target=mesh_management_mod.merge_grid_and_save,
+                args=(hdf5_name_hyd,
+                      hdf5_name_sub,
+                      outputfilename,
+                      project_preferences["path_prj"],
+                      progress_value,
+                      q,
+                      True,
+                      project_preferences),
+                name="MERGE_GRID_SUB")
+    cli_start_process_and_print_progress(p, progress_value)
+
+
+""" HAB """
+
+
+def cli_calc_hab(arguments, project_preferences):
+    # if len(all_arg) != 4:
+    #     print('RUN_HABITAT needs between four and five inputs. See LIST_COMMAND for more information.')
+    #     return
+
+    run_choice = dict()
+
+    # get args
+    for arg in arguments:
+        # hab
+        if arg[:4] == 'hab=':
+            hab_filename = arg[4:]
+        # pref_file_list
+        if arg[:15] == 'pref_file_list=':
+            run_choice["pref_file_list"] = arg[15:].split(",")
+        # stage_list
+        if arg[:11] == 'stage_list=':
+            run_choice["stage_list"] = arg[11:].split(",")
+        # hyd_opt
+        if arg[:8] == 'hyd_opt=':
+            run_choice["hyd_opt"] = arg[8:].split(",")
+        # sub_opt
+        if arg[:8] == 'sub_opt=':
+            run_choice["sub_opt"] = arg[8:].split(",")
+
+    if hab_filename:
+        # run calculation
+        progress_value = Value("i", 0)
+        q = Queue()
+        p = Process(target=calcul_hab_mod.calc_hab_and_output,
+                    args=(hab_filename,
+                          run_choice,
+                          progress_value,
+                          q,
+                          True,
+                          project_preferences),
+                    name="RUN_HABITAT")
+        cli_start_process_and_print_progress(p, progress_value)
+
+
+""" PROCESS """
+
+
 def cli_start_process_and_print_progress(process, progress_value):
     process.start()
     while process.is_alive():
         print("Progress : " + str(progress_value.value) + "%\r", end="")
     process.join()
     if progress_value.value == 100:
-        print("# " + process.name + " finished !")
+        print("# " + process.name + " finished")
     else:
-        print("# " + process.name + " not finished !!!!!!!!!!!!!")
+        print("# " + process.name + " crash !!!!!!!!!!!!!!!")
