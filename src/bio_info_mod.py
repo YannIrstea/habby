@@ -15,22 +15,13 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import re
 import sqlite3
-import time
 from datetime import datetime
-from multiprocessing import Value
-
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
+from lxml import etree as ET
 
 from src import hdf5_mod
-from src import plot_mod
-from src_GUI import preferences_GUI
-
-from lxml import etree as ET
 
 
 def get_biomodels_informations_for_database(path_xml):

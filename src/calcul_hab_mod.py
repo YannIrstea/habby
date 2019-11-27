@@ -20,6 +20,7 @@ import sys
 from io import StringIO
 from scipy.interpolate import interp1d, griddata
 
+import src.tools_mod
 from src import hdf5_mod
 from src import bio_info_mod
 from src.project_manag_mod import load_project_preferences
@@ -58,14 +59,32 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
     by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
     If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
     """
+    # print output
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
     # progress
     progress_value.value = 10
 
-    # print output
-    if not print_cmd:
-        sys.stdout = mystdout = StringIO()
+    # if exists
+    if not os.path.exists(os.path.join(project_preferences['path_prj'], "hdf5", hab_filename)):
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", "The specified file : " + hab_filename + " don't exist."))
+        if q and not print_cmd:
+            q.put(mystdout)
+            return
+        else:
+            return
+
+    # if run_choice are valid (len)
+    choice_len_list = []
+    for run_choice_key in run_choice.keys():
+        choice_len_list.append(len(run_choice[run_choice_key]))
+    if not choice_len_list.count(choice_len_list[0]) == len(choice_len_list):
+        print('Error: ' + qt_tr.translate("calcul_hab_mod", "Specified arg are not valid (pref_file_list, stage_list, hyd_opt or sub_opt)"))
+
+    # TODO: check validity arguments
 
     # get data from dict
     run_choice["code_alternative_list"] = []
@@ -142,6 +161,15 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
     # progress
     progress_value.value = 90
 
+    # add name and stage of fish
+    if len(vh_all_t_sp) != len(run_choice["code_alternative_list"]):
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'Length of the list of fish name is not coherent'))
+        if q and not print_cmd:
+            q.put(mystdout)
+            return
+        else:
+            return
+
     # saving hdf5 data of the habitat value
     hdf5.add_fish_hab(vh_all_t_sp, area_c_all, spu_all, run_choice["code_alternative_list"],
                       run_choice["pref_file_list"], run_choice["stage_list"],
@@ -150,7 +178,7 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
     # copy xml curves to input project folder
     names = [os.path.basename(run_choice["pref_file_list"][i]) for i in range(len(run_choice["pref_file_list"]))]
     paths = [os.path.join(os.getcwd(), os.path.dirname(run_choice["pref_file_list"][i])) for i in range(len(run_choice["pref_file_list"]))]
-    hdf5_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input"))
+    src.tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input"))
 
     # progress
     progress_value.value = 100

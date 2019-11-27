@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt
 import sys
 import os
 from io import StringIO
+
+import src.tools_mod
 from src_GUI import estimhab_GUI
 from src import fstress_mod
 from src import hdf5_mod
@@ -461,7 +463,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         paths = [self.path_fstress] * len(all_files)
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        hdf5_mod.copy_files(all_files, paths, new_dir)
+        src.tools_mod.copy_files(all_files, paths, new_dir)
 
         # show the data for the selected river
         self.show_data_one_river()

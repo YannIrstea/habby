@@ -23,7 +23,7 @@ import numpy as np
 import triangle
 import matplotlib.pyplot as plt
 from src import hdf5_mod
-from src import manage_grid_mod
+from src.tools_mod import get_translator
 
 
 def quadrangles_to_triangles(ikle4,xy,z,h,v):
@@ -109,7 +109,7 @@ def quadrangles_to_triangles(ikle4,xy,z,h,v):
     return ikle3,xy[nbnodes0-nbnodes:,:],z[nbnodes0-nbnodes:],h[nbnodes0-nbnodes:],v[nbnodes0-nbnodes:]
 
 
-def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False, project_preferences=[]):
+def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False, project_preferences={}):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
@@ -134,6 +134,22 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
 
     # progress
     progress_value.value = 10
+
+    # get_translator
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
+    # if exists
+    if not os.path.exists(os.path.join(path_prj, "hdf5", hdf5_name_hyd)):
+        print('Error: ' + qt_tr.translate("mesh_management_mod", "The specified file : " + hdf5_name_hyd + " don't exist."))
+        if q and not print_cmd:
+            q.put(mystdout)
+        return
+
+    if not os.path.exists(os.path.join(path_prj, "hdf5", hdf5_name_sub)):
+        print('Error: ' + qt_tr.translate("mesh_management_mod", "The specified file : " + hdf5_name_sub + " don't exist."))
+        if q and not print_cmd:
+            q.put(mystdout)
+        return
 
     # merge the grid
     data_2d_merge, data_2d_whole_profile, data_description = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,

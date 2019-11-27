@@ -15,6 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
+import shutil
 import sys
 import urllib
 from copy import deepcopy
@@ -22,7 +23,7 @@ from locale import localeconv
 from time import sleep
 
 import numpy as np
-from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread
+from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread, QCoreApplication as qt_tr
 from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
 
 from src.project_manag_mod import load_project_preferences
@@ -580,6 +581,41 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
 """ OTHERS TOOLS """
 
 
+def copy_files(names, paths, path_input):
+    """
+    This function copied the input files to the project file. The input files are usually contains in the input
+    project file. It is ususally done on a second thread as it might be long.
+
+    For the moment this function cannot send warning and error to the GUI. As input should have been cheked before
+    by HABBY, this should not be a problem.
+
+    :param names: the name of the files to be copied (list of string)
+    :param paths: the path to these files (list of string)
+    :param path_input: the path where to send the input (string)
+    """
+
+    if not os.path.isdir(path_input):
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'Folder not found to copy inputs \n'))
+        return
+
+    if len(names) != len(paths):
+        print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of file to be copied is not equal to the number of paths'))
+        return
+
+    for i in range(0, len(names)):
+        if names[i] != 'unknown file':
+            src = os.path.join(paths[i], names[i])
+            # if the file is too big, the GUI is freezed
+            # if os.path.getsize(src) > 200 * 1024 * 1024:
+            #     print('Warning: One input file was larger than 200MB and therefore was not copied to the project'
+            #           ' folder. It is necessary to copy this file manually to the input folder if one wants to use the '
+            #           'restart file or the log file to load this data auomatically again. \n')
+            # else:
+            if os.path.isfile(src):
+                dst = os.path.join(path_input, names[i])
+                shutil.copy(src, dst)
+
+
 def create_empty_data_2_dict(reach_number, mesh_variables=[], node_variables=[]):
     # create empty dict
     data_2d = dict()
@@ -964,3 +1000,4 @@ class DoubleClicOutputGroup(QObject):
         else:
             # standard event processing
             return QObject.eventFilter(self, obj, event)
+

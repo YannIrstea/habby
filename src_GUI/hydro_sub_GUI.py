@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
     QHBoxLayout
 from lxml import etree as ET
 
+import src.tools_mod
 from src import ascii_mod
 from src import hdf5_mod
 from src import hec_ras1D_mod
@@ -1536,7 +1537,7 @@ class HEC_RAS1D(SubHydroW):
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -2234,10 +2235,10 @@ class Rubar2D(SubHydroW):
         files_list = self.namefile[0].split(", ")
         path_file_list = [self.pathfile[0]] * nb_files
         if nb_files > 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(files_list, path_file_list, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
             self.p2.start()
         if nb_files == 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
             self.p2.start()
 
         # log info
@@ -2465,7 +2466,7 @@ class Mascaret(SubHydroW):
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -2804,7 +2805,7 @@ class River2D(SubHydroW):
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log
@@ -3018,7 +3019,7 @@ class Rubar1D(SubHydroW):
 
         # path input
         path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -3527,10 +3528,10 @@ class HEC_RAS2D(SubHydroW):
         files_list = self.namefile[0].split(", ")
         path_file_list = [self.pathfile[0]] * nb_files
         if nb_files > 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(files_list, path_file_list, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
             self.p2.start()
         if nb_files == 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
             self.p2.start()
 
         # log info
@@ -4014,10 +4015,10 @@ class TELEMAC(SubHydroW):  # QGroupBox
         files_list = self.namefile[0].split(", ")
         path_file_list = [self.pathfile[0]] * nb_files
         if nb_files > 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(files_list, path_file_list, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
             self.p2.start()
         if nb_files == 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
             self.p2.start()
 
         # log info
@@ -4498,10 +4499,10 @@ class ASCII(SubHydroW):  # QGroupBox
         files_list = self.namefile[0].split(", ")
         path_file_list = [self.pathfile[0]] * nb_files
         if nb_files > 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(files_list, path_file_list, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
             self.p2.start()
         if nb_files == 1:
-            self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
             self.p2.start()
 
         # log info
@@ -4709,7 +4710,7 @@ class LAMMI(SubHydroW):
 
         # path input
         path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -5004,7 +5005,7 @@ class SW2D(SubHydroW):
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -5226,7 +5227,7 @@ class IBER2D(SubHydroW):
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=hdf5_mod.copy_files,
+        self.p2 = Process(target=src.tools_mod.copy_files,
                           args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 

@@ -24,6 +24,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
 from PyQt5.QtGui import QFont
 import sys
 import copy
+
+import src.tools_mod
 from src import stathab_mod
 from src import hdf5_mod
 from src_GUI import estimhab_GUI
@@ -564,7 +566,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         paths = [self.dir_name] * len(all_files)
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        hdf5_mod.copy_files(all_files, paths, new_dir)
+        src.tools_mod.copy_files(all_files, paths, new_dir)
 
         # log info
         if not self.mystathab.load_ok:

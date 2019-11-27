@@ -14,18 +14,20 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-import numpy as np
+import filecmp
+import glob
 import os
 import time
-import glob
-import difflib
-import matplotlib
-import filecmp
 from copy import deepcopy
+
+import matplotlib
+import numpy as np
 
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue
+from shutil import copyfile
+
 from src import telemac_mod
 from src import mascaret_mod
 from src import hec_ras1D_mod
@@ -34,14 +36,12 @@ from src import sw2d_mod
 from src import iber2d_mod
 from src import river2d_mod
 from src import hdf5_mod
-from shutil import copyfile
 from src import hec_ras2D_mod
 from src import estimhab_mod
 from src import stathab_mod
 from src import substrate_mod
 from src import fstress_mod
 from src import calcul_hab_mod
-from src import bio_info_mod
 from src import mesh_management_mod
 from src import lammi_mod
 from src import hydro_input_file_mod
@@ -253,17 +253,14 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # run process
         progress_value = Value("i", 0)
         q = Queue()
-        p = Process(target=telemac_mod.load_telemac_and_cut_grid, args=(hydrau_description,
-                                                                        progress_value,
-                                                                        q,
-                                                                        True,
-                                                                        project_preferences))
-
-        p.start()
-        while p.is_alive():
-            print("Progress : " + str(progress_value.value) + "%\r", end="")
-        p.join()
-        print("--- LOAD_TELEMAC finished ! ---")
+        p = Process(target=telemac_mod.load_telemac_and_cut_grid,
+                    args=(hydrau_description,
+                          progress_value,
+                          q,
+                          True,
+                          project_preferences),
+                    name="LOAD_TELEMAC")
+        cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_1D':
@@ -908,20 +905,16 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                                    progress_value,
                                    q,
                                    True,
-                                   project_preferences))
-            p.name = "Substrate data loading from shapefile"
-            p.start()
-            while p.is_alive():
-                print("Progress : " + str(progress_value.value) + "%\r", end="")
-            p.join()
-            print("--- LOAD_SUB finished ! ---")
+                                   project_preferences),
+                    name="LOAD_SUB")
+            cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'MERGE_GRID_SUB':
         # remove the first arg MERGE_GRID_SUB
         all_arg = all_arg[1:]
 
-        if not 3 < len(all_arg) < 5:
+        if not 2 < len(all_arg) < 6:
             print('MERGE_GRID_SUB needs between three and four inputs. See LIST_COMMAND for more information.')
             return
 
@@ -947,20 +940,16 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         q = Queue()
         progress_value = Value("i", 0)
         p = Process(target=mesh_management_mod.merge_grid_and_save,
-                         args=(hdf5_name_hyd,
-                               hdf5_name_sub,
-                               outputfilename,
-                               path_prj,
-                               progress_value,
-                               q,
-                               True,
-                               project_preferences))
-        p.name = "Hydraulic and substrate data merging"
-        p.start()
-        while p.is_alive():
-            print('Progress %d%%\r' % progress_value.value, end="")
-        p.join()
-        print("--- MERGE_GRID_SUB finished ! ---")
+                    args=(hdf5_name_hyd,
+                          hdf5_name_sub,
+                          outputfilename,
+                          path_prj,
+                          progress_value,
+                          q,
+                          True,
+                          project_preferences),
+                    name="MERGE_GRID_SUB")
+        cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HABITAT':
@@ -980,32 +969,30 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 hab_filename = arg[4:]
             # pref_file_list
             if arg[:15] == 'pref_file_list=':
-                run_choice["pref_file_list"] = eval(arg[15:])
+                run_choice["pref_file_list"] = arg[15:].split(",")
             # stage_list
             if arg[:11] == 'stage_list=':
-                run_choice["stage_list"] = eval(arg[11:])
+                run_choice["stage_list"] = arg[11:].split(",")
             # hyd_opt
             if arg[:8] == 'hyd_opt=':
-                run_choice["hyd_opt"] = eval(arg[8:])
+                run_choice["hyd_opt"] = arg[8:].split(",")
             # sub_opt
             if arg[:8] == 'sub_opt=':
-                run_choice["sub_opt"] = eval(arg[8:])
+                run_choice["sub_opt"] = arg[8:].split(",")
 
         if hab_filename:
             # run calculation
             progress_value = Value("i", 0)
             q = Queue()
-            p = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hab_filename,
-                                                                         run_choice,
-                                                                         progress_value,
-                                                                         q,
-                                                                         True,
-                                                                         project_preferences))
-            p.start()
-            while p.is_alive():
-                print('Progress %d%%\r' % progress_value.value, end="")
-            p.join()
-            print("--- RUN_HABITAT finished ! ---")
+            p = Process(target=calcul_hab_mod.calc_hab_and_output,
+                        args=(hab_filename,
+                              run_choice,
+                              progress_value,
+                              q,
+                              True,
+                              project_preferences),
+                        name="RUN_HABITAT")
+            cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_RAND_SUB':
@@ -1555,3 +1542,14 @@ def load_fstress_text(path_fstress):
             return [-99], [-99], [-99]
 
     return riv_name, qhw, qrange
+
+
+def cli_start_process_and_print_progress(process, progress_value):
+    process.start()
+    while process.is_alive():
+        print("Progress : " + str(progress_value.value) + "%\r", end="")
+    process.join()
+    if progress_value.value == 100:
+        print("# " + process.name + " finished !")
+    else:
+        print("# " + process.name + " not finished !!!!!!!!!!!!!")
