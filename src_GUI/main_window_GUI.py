@@ -134,18 +134,6 @@ class MainWindows(QMainWindow):
         language_set = self.user_preferences.data["language"]
         self.actual_theme = self.user_preferences.data["theme"]
 
-        # # to erase setting of older version
-        # # add here the number of older version whose setting must be erased because they are not compatible
-        # # it should be managed by innosetup, but do not work always
-        # self.oldversion = [0.24]
-        # for v in self.oldversion:
-        #     if v != self.version:
-        #         self.oldsettings = QSettings('irstea', 'HABBY' + str(v))
-        #     self.oldsettings.clear()
-
-        # # recent project: list of string
-        # recent_projects_set = self.settings.value('recent_project_name')
-        # recent_projects_path_set = self.settings.value('recent_project_path')
         recent_projects_set = self.user_preferences.data["recent_project_name"]
         recent_projects_path_set = self.user_preferences.data["recent_project_path"]
         if recent_projects_set:
@@ -1167,12 +1155,13 @@ class MainWindows(QMainWindow):
 
         # if new projet or project move
         if not os.path.isfile(fname):
-            path_last_file_loaded_child = project_manag_mod.create_project_structure(self.path_prj,
+            project_manag_mod.create_project_structure(self.path_prj,
                                                        self.central_widget.logon,
                                                        self.version,
                                                        self.username_prj,
                                                        self.descri_prj,
-                                                       self.path_bio_default)
+                                                       "GUI")
+            path_last_file_loaded = None
             project_manag_mod.set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
 
         # project exist
@@ -1180,58 +1169,59 @@ class MainWindows(QMainWindow):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(fname, parser)
             root = doc.getroot()
-            child = root.find(".//Project_Name")
-            path_child = root.find(".//Path_Project")
-            path_last_file_loaded_child = root.find(".//Path_last_file_loaded")
-            user_child = root.find(".//User_Name")
-            des_child = root.find(".//Description")
-            pathbio_child = root.find(".//Path_Bio")
-            pathin_child = root.find(".//Path_Input")
-            pathdf5_child = root.find(".//Path_Hdf5")
-            pathim_child = root.find(".//Path_Figure")
-            pathtxt_child = root.find(".//Path_Text")
-            pathshapefile_child = root.find(".//Path_Shape")
-            pathpara_child = root.find(".//Path_Visualisation")
+            child = root.find(".//name_prj")
+            path_child = root.find(".//path_prj")
+            path_last_file_loaded_child = root.find(".//path_last_file_loaded")
+            path_last_file_loaded = path_last_file_loaded_child.text
+            user_child = root.find(".//user_name")
+            des_child = root.find(".//description")
+            path_bio_child = root.find(".//path_bio")
+            path_input_child = root.find(".//path_input")
+            path_hdf5_child = root.find(".//path_hdf5")
+            path_figure_child = root.find(".//path_figure")
+            path_text_child = root.find(".//path_text")
+            path_gis_child = root.find(".//path_gis")
+            path_3d_child = root.find(".//path_3d")
 
             # path input
-            if pathin_child is None:
+            if path_input_child is None:
                 pathin_text = 'input'
             else:
-                pathin_text = pathin_child.text
+                pathin_text = path_input_child.text
 
             # path hdf5
-            if pathdf5_child is None:
+            if path_hdf5_child is None:
                 pathhdf5_text = 'hdf5'
             else:
-                pathhdf5_text = pathdf5_child.text
+                pathhdf5_text = path_hdf5_child.text
 
             # path figures
-            if pathim_child is None:
+            if path_figure_child is None:
                 pathim_text = os.path.join("output", "figures")
             else:
-                pathim_text = pathim_child.text
+                pathim_text = path_figure_child.text
 
             # path text output
-            if pathtxt_child is None:
+            if path_text_child is None:
                 pathtxt_text = os.path.join("output", "text")
             else:
-                pathtxt_text = pathtxt_child.text
+                pathtxt_text = path_text_child.text
 
             # path shapefile
-            if pathshapefile_child is None:
+            if path_gis_child is None:
                 pathshapefile_text = os.path.join("output", "GIS")
             else:
-                pathshapefile_text = pathin_child.text
+                pathshapefile_text = path_input_child.text
 
             # path visualisation
-            if pathpara_child is None:
+            if path_3d_child is None:
                 pathpara_text = os.path.join("output", "3D")
             else:
-                pathpara_text = pathin_child.text
+                pathpara_text = path_input_child.text
 
             child.text = self.name_prj
             path_child.text = self.path_prj
-            pathbio_child.text = self.path_bio_default
+            path_bio_child.text = self.path_bio_default
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -1267,7 +1257,7 @@ class MainWindows(QMainWindow):
         # update central widget
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
-        self.central_widget.path_last_file_loaded_c = path_last_file_loaded_child.text
+        self.central_widget.path_last_file_loaded = path_last_file_loaded
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
 
@@ -1296,7 +1286,7 @@ class MainWindows(QMainWindow):
         project_manag_mod.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.set_pref_gui_from_dict(default=True)
-        self.preferences_dialog.save_preferences()
+        #self.preferences_dialog.save_preferences()
         self.preferences_dialog.send_log.connect(self.central_widget.write_log)
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
@@ -1364,9 +1354,9 @@ class MainWindows(QMainWindow):
 
         # get the project name and path. Write it in the QWiddet.
         # the text in the Qwidget will be used to save the project
-        self.name_prj = root2.find(".//Project_Name").text
-        self.path_prj = root2.find(".//Path_Project").text
-        self.central_widget.path_last_file_loaded_c = root2.find(".//Path_last_file_loaded").text
+        self.name_prj = root2.find(".//name_prj").text
+        self.path_prj = root2.find(".//path_prj").text
+        self.central_widget.path_last_file_loaded = root2.find(".//path_last_file_loaded").text
 
         if self.name_prj is None or self.path_prj is None:
             self.central_widget.write_log('Error: ' + self.tr('.habby project file is not understood \n'))
@@ -1389,8 +1379,8 @@ class MainWindows(QMainWindow):
                                           'change. If you have any other instance of HABBY open, please close it.'))
             self.end_concurrency()
         stathab_info = root2.find(".//hdf5Stathab")
-        self.username_prj = root2.find(".//User_Name").text
-        self.descri_prj = root2.find(".//Description").text
+        self.username_prj = root2.find(".//user_name").text
+        self.descri_prj = root2.find(".//description").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
@@ -1495,8 +1485,8 @@ class MainWindows(QMainWindow):
         # the text in the Qwidget will be used to save the project
         self.name_prj = root.find(".//Project_Name").text
         self.path_prj = root.find(".//Path_Project").text
-        self.username_prj = root.find(".//User_Name").text
-        self.descri_prj = root.find(".//Description").text
+        self.username_prj = root.find(".//user_name").text
+        self.descri_prj = root.find(".//description").text
         stathab_info = root.find(".//hdf5Stathab")
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
@@ -1632,21 +1622,6 @@ class MainWindows(QMainWindow):
             self.central_widget.welcome_tab.e4.setText('')
             self.createnew.close()
             self.save_project()
-
-        # change the path_im
-        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        self.path_im = os.path.join(self.path_prj, 'figures')
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(fname, parser)
-        root = doc.getroot()
-        # geo data
-        child1 = root.find('.//Path_Figure')
-        if child1 is None:
-            child1 = ET.SubElement(root, 'Path_Figure')
-            child1.text = os.path.join("output", "figures")
-        else:
-            child1.text = os.path.join("output", "figures")
-        doc.write(fname, pretty_print=True)
 
         # reconnect method to button
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
@@ -1880,7 +1855,7 @@ class MainWindows(QMainWindow):
         parser = ET.XMLParser(remove_blank_text=True)
         doc = ET.parse(fname, parser)
         root = doc.getroot()
-        savelog_child = root.find(".//Save_Log")
+        savelog_child = root.find(".//save_Log")
         try:
             savelog_child.text = str(self.central_widget.logon)
             doc.write(fname, pretty_print=True)
@@ -2200,10 +2175,10 @@ class CentralW(QWidget):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(fname, parser)
             root = doc.getroot()
-            logon_child = root.find(".//Save_Log")
+            logon_child = root.find(".//save_Log")
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
-            self.path_last_file_loaded_c = root.find(".//Path_last_file_loaded").text
+            self.path_last_file_loaded = root.find(".//path_last_file_loaded").text
             self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Project opened. <br>'))
 
         # add the widgets to the list of tab if a project exists
@@ -2400,7 +2375,7 @@ class CentralW(QWidget):
             doc = ET.parse(fname, parser)
             root = doc.getroot()
             # python-based log
-            child_logfile = root.find(".//File_Log")
+            child_logfile = root.find(".//file_log")
             if child_logfile is not None:
                 pathname_logfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
@@ -2408,7 +2383,7 @@ class CentralW(QWidget):
                                                                         "log file is not indicated in the xml file. No log written. </br> <br>")
                 return
             # restart log
-            child_logfile = root.find(".//File_Restart")
+            child_logfile = root.find(".//file_restart")
             if child_logfile is not None:
                 pathname_restartfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
@@ -2546,8 +2521,8 @@ class CentralW(QWidget):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(fname, parser)
             root = doc.getroot()
-            user_child = root.find(".//User_Name")
-            des_child = root.find(".//Description")
+            user_child = root.find(".//user_name")
+            des_child = root.find(".//description")
             if user_child is not None:
                 user_child.text = self.username_prj
             else:

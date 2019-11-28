@@ -784,8 +784,8 @@ class SubHydroW(QWidget):
                     self.name_hdf5 = filename2 + ".hyd"
 
             self.hname.setText(self.name_hdf5)
-            # self.nativeParentWidget().central_widget.path_last_file_loaded_c = os.path.dirname(filename_path)
-            # print("hydrau : ", self.nativeParentWidget().central_widget.path_last_file_loaded_c)
+            # self.nativeParentWidget().central_widget.path_last_file_loaded = os.path.dirname(filename_path)
+            # print("hydrau : ", self.nativeParentWidget().central_widget.path_last_file_loaded)
 
     def dis_enable_nb_profile(self):
         """
@@ -835,7 +835,7 @@ class SubHydroW(QWidget):
 
             # save last file path
             if os.path.isdir(filename_path_file):
-                last_child = root.find(".//Path_last_file_loaded")
+                last_child = root.find(".//path_last_file_loaded")
                 last_child.text = filename_path_file
 
             child1 = root.find(".//" + self.model_type)
@@ -1748,8 +1748,8 @@ class Rubar2D(SubHydroW):
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
-            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
 
@@ -3077,8 +3077,8 @@ class HEC_RAS2D(SubHydroW):
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
-            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
 
@@ -3507,8 +3507,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
-            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
 
@@ -3548,7 +3548,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
             if type(telemac_description) == dict:
                 self.hydrau_case = telemac_description["hydrau_case"]
                 # change suffix
-                if not self.project_preferences["CutMeshPartialyDry"]:
+                if not self.project_preferences["cut_mesh_partialy_dry"]:
                     namehdf5_old = os.path.splitext(telemac_description["hdf5_name"])[0]
                     exthdf5_old = os.path.splitext(telemac_description["hdf5_name"])[1]
                     telemac_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
@@ -3585,7 +3585,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
             if type(telemac_description) == list:
                 self.hydrau_case = telemac_description[0]["hydrau_case"]
                 # change suffix
-                if not self.project_preferences["CutMeshPartialyDry"]:
+                if not self.project_preferences["cut_mesh_partialy_dry"]:
                     for telemac_description_num in range(len(telemac_description)):
                         namehdf5_old = os.path.splitext(telemac_description[telemac_description_num]["hdf5_name"])[0]
                         exthdf5_old = os.path.splitext(telemac_description[telemac_description_num]["hdf5_name"])[1]
@@ -4001,8 +4001,8 @@ class ASCII(SubHydroW):  # QGroupBox
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
-            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
 
@@ -4666,8 +4666,8 @@ class SW2D(SubHydroW):
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
-            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
 
@@ -5734,8 +5734,8 @@ class SubstrateW(SubHydroW):
         if self.read_attribute_xml("substrate_path") != self.path_prj and self.read_attribute_xml(
                 "substrate_path") != "no_data":
             substrate_path = self.read_attribute_xml("substrate_path")  # path spe
-        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
-            substrate_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+            substrate_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             substrate_path = self.path_prj  # path proj
 

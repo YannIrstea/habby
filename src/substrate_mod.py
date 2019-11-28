@@ -19,7 +19,7 @@ import sys
 from io import StringIO
 from glob import glob
 from shutil import copy as sh_copy
-
+from shutil import rmtree
 import numpy as np
 import triangle as tr
 from osgeo import ogr
@@ -27,7 +27,7 @@ from osgeo import osr
 from scipy.spatial import Voronoi
 
 from src import hdf5_mod
-from src.tools_mod import polygon_type_values, point_type_values
+from src.tools_mod import polygon_type_values, point_type_values, copy_shapefiles
 
 
 def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -48,6 +48,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
 
     # security if point case
     sub_path_source = sub_description["sub_path_source"]
+    sub_filename_source = sub_description["sub_filename_source"]
 
     # set extension if not done
     if os.path.splitext(sub_description["name_hdf5"])[-1] != ".sub":
@@ -73,7 +74,8 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         progress_value.value = 95
 
         # copy input files to input project folder
-        copy_shapefiles(os.path.join(sub_path_source, sub_description["sub_filename_source"]),
+        copy_shapefiles(os.path.join(sub_path_source, sub_filename_source),
+                        sub_description["name_hdf5"],
                         os.path.join(sub_description["path_prj"], "input"))
 
         # prog
@@ -109,7 +111,7 @@ def load_sub_txt(sub_description, progress_value):
     sub_classification_code = sub_description["sub_classification_code"]
     sub_classification_method = sub_description["sub_classification_method"]
     path_prj = sub_description["path_prj"]
-    path_shp = os.path.join(path_prj, "input")
+    path_shp = os.path.join(path_prj, "output", "GIS")
     sub_epsg_code = sub_description["sub_epsg_code"]
 
     file = os.path.join(path, filename)
@@ -478,7 +480,7 @@ def load_sub_shp(sub_description, progress_value):
 
             # open shape file (think about zero or one to start! )
             driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-            ds = driver.Open(os.path.join(path_prj, "input", filename), 0)  # 0 means read-only. 1 means writeable.
+            ds = driver.Open(os.path.join(path_prj, "output", "GIS", filename), 0)  # 0 means read-only. 1 means writeable.
             layer = ds.GetLayer(0)  # one layer in shapefile
             layer_defn = layer.GetLayerDefn()
 
@@ -509,18 +511,6 @@ def load_sub_shp(sub_description, progress_value):
             data_2d["nb_unit"] = 1
             data_2d["nb_reach"] = 1
 
-    #         # save hdf5
-    #     #         hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5)
-    #     #         hdf5.create_hdf5_sub(sub_description_system, data_2d)
-    #     #
-    #     #         # prog (triangulation done)
-    #     #         progress_value.value = 100
-    #     #
-    #     # if q and not print_cmd:
-    #     #     q.put(mystdout)
-    #     #     return
-    #     # else:
-    #     #     return
     return data_2d
 
 
@@ -698,7 +688,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
         # write triangulate shapefile
         out_shp_basename = os.path.splitext(filename)[0]
         out_shp_filename = out_shp_basename + "_triangulated.shp"
-        out_shp_path = os.path.join(path_prj, "input")
+        out_shp_path = os.path.join(path_prj, "output", "GIS")
         out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
         driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
         ds = driver.CreateDataSource(out_shp_abs_path)
@@ -1188,12 +1178,3 @@ def pref_substrate_coarser_from_percentage_description(prefsub, c1):
     return prefsub[np.amax((c1 != 0) * codsub, axis=1) - 1]
 
 
-def copy_shapefiles(input_shapefile_abspath, dest_folder_path):
-    """
-    get all file with same prefix of input_shapefile_abspath and copy them to dest_folder_path.
-    """
-    # copy input file to input files folder with suffix triangulated
-    all_input_files_abspath_list = glob(input_shapefile_abspath[:-4] + "*")
-    all_input_files_files_list = [os.path.basename(file_path) for file_path in all_input_files_abspath_list]
-    for i in range(len(all_input_files_files_list)):
-        sh_copy(all_input_files_abspath_list[i], os.path.join(dest_folder_path, all_input_files_files_list[i]))

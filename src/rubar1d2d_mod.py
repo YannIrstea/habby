@@ -30,7 +30,7 @@ from src import hdf5_mod
 from src import hec_ras2D_mod
 from src import manage_grid_mod
 from src.tools_mod import create_empty_data_2_dict
-from src.project_manag_mod import load_project_preferences, create_default_project_preferences
+from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict
 from src.user_preferences_mod import user_preferences
 
 
@@ -638,7 +638,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
     """
 
     if not project_preferences:
-        project_preferences = create_default_project_preferences()
+        project_preferences = create_default_project_preferences_dict()
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -768,7 +768,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
 
     # minimum water height
     if not project_preferences:
-        project_preferences = create_default_project_preferences()
+        project_preferences = create_default_project_preferences_dict()
     minwh = project_preferences['min_height_hyd']
 
     # progress
@@ -825,7 +825,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                     data_2d_from_rubar2d["node"]["data"]["v"][reach_num][unit_num],
                     progress_value,
                     delta,
-                    project_preferences["CutMeshPartialyDry"],
+                    project_preferences["cut_mesh_partialy_dry"],
                     minwh)
 
                 if not isinstance(tin_data, np.ndarray):  # error or warning
@@ -878,7 +878,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     hyd_description["hyd_unit_list"] = description_from_rubar2d["unit_list"]
     hyd_description["hyd_unit_number"] = description_from_rubar2d["unit_number"]
     hyd_description["hyd_unit_type"] = description_from_rubar2d["unit_type"]
-    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["CutMeshPartialyDry"])
+    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["cut_mesh_partialy_dry"])
 
     hyd_description["hyd_varying_mesh"] = False
     if hyd_description["hyd_varying_mesh"]:

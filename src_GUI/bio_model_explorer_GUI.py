@@ -736,7 +736,7 @@ class BioModelInfoSelection(QScrollArea):
             return
 
         # get the description from xml
-        data = root.findall('.//Description')
+        data = root.findall('.//description')
         if len(data) > 0:
             found = False
             for d in data:

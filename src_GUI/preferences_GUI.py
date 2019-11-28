@@ -23,7 +23,7 @@ import numpy as np
 import os
 
 from src.tools_mod import DoubleClicOutputGroup, QHLine
-from src.project_manag_mod import load_project_preferences, create_default_project_preferences, save_project_preferences
+from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict
 
 
 class PreferenceWindow(QDialog):
@@ -308,7 +308,7 @@ class PreferenceWindow(QDialog):
 
     def set_pref_gui_from_dict(self, default=False):
         if default:
-            project_preferences = create_default_project_preferences()
+            project_preferences = create_default_project_preferences_dict()
         else:
             # read actual figure option
             project_preferences = load_project_preferences(self.path_prj, self.name_prj)
@@ -317,7 +317,7 @@ class PreferenceWindow(QDialog):
         self.min_height_lineedit.setText(str(project_preferences['min_height_hyd']))
 
         # CutMeshPartialyDry
-        if project_preferences['CutMeshPartialyDry']:  # is a string not a boolean
+        if project_preferences['cut_mesh_partialy_dry']:  # is a string not a boolean
             self.cut_2d_grid_checkbox.setChecked(True)
         else:
             self.cut_2d_grid_checkbox.setChecked(False)
@@ -366,7 +366,12 @@ class PreferenceWindow(QDialog):
             self.grid_checkbox.setChecked(False)
 
         # format
-        self.fig_format_combobox.setCurrentIndex(int(project_preferences['format']))
+        if project_preferences['format'] == ".png":
+            self.fig_format_combobox.setCurrentIndex(0)
+        elif project_preferences['format'] == ".pdf":
+            self.fig_format_combobox.setCurrentIndex(1)
+        else:
+            self.fig_format_combobox.setCurrentIndex(2)
 
         # resolution
         self.resolution_lineedit.setText(str(project_preferences['resolution']))
@@ -501,9 +506,9 @@ class PreferenceWindow(QDialog):
             project_preferences['erase_id'] = False
         # CutMeshPartialyDry
         if self.cut_2d_grid_checkbox.isChecked():
-            project_preferences['CutMeshPartialyDry'] = True
+            project_preferences['cut_mesh_partialy_dry'] = True
         else:
-            project_preferences['CutMeshPartialyDry'] = False
+            project_preferences['cut_mesh_partialy_dry'] = False
 
         return project_preferences
 

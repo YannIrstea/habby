@@ -23,7 +23,7 @@ import sys
 from io import StringIO
 from src import manage_grid_mod
 from src import hdf5_mod
-from src.project_manag_mod import create_default_project_preferences
+from src.project_manag_mod import create_default_project_preferences_dict
 
 
 def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -59,7 +59,7 @@ def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_va
 
     # minimum water height
     if not project_preferences:
-        project_preferences = create_default_project_preferences()
+        project_preferences = create_default_project_preferences_dict()
     minwh = project_preferences['min_height_hyd']
 
     # progress

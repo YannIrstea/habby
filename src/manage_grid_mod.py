@@ -27,7 +27,7 @@ import scipy.spatial.qhull as qhull
 import triangle
 from scipy.interpolate import griddata
 
-from src.project_manag_mod import create_default_project_preferences
+from src.project_manag_mod import create_default_project_preferences_dict
 from src_GUI import preferences_GUI
 from src import tools_mod
 
@@ -2372,7 +2372,7 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
     """
     # print(mesh, velocity, height, time_step)
     if not project_preferences:
-        project_preferences = create_default_project_preferences()
+        project_preferences = create_default_project_preferences_dict()
 
     # plot the grid, the velcoity and the water height
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']

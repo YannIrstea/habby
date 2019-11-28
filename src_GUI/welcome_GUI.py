@@ -132,8 +132,8 @@ class WelcomeW(QScrollArea):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(fname, parser)
             root = doc.getroot()
-            user_child = root.find(".//User_Name")
-            des_child = root.find(".//Description")
+            user_child = root.find(".//user_name")
+            des_child = root.find(".//description")
             self.e4.setText(user_child.text)
             self.e3.setText(des_child.text)
 

@@ -46,7 +46,7 @@ from src import mesh_management_mod
 from src import lammi_mod
 from src import hydro_input_file_mod
 from src.project_manag_mod import create_project_structure, save_project_preferences, \
-    create_default_project_preferences, load_project_preferences, set_project_type
+    create_default_project_preferences_dict, load_project_preferences, set_project_type
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -684,7 +684,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         if riv_int == 0:
             [mystathab.fish_chosen, coeff_all] = stathab_mod.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
-            project_preferences = create_default_project_preferences()
+            project_preferences = create_default_project_preferences_dict()
             project_preferences['erase_id'] = True
             mystathab.project_preferences = project_preferences
             mystathab.savetxt_stathab()
@@ -1281,7 +1281,7 @@ def load_fstress_text(path_fstress):
 def cli_create_project(path_prj, name_prj, all_export_enabled, HABBY_VERSION):
     if not os.path.exists(path_prj):
         create_project_structure(path_prj, False, HABBY_VERSION, "CLI", "CLI-mode", mode="CLI")
-        project_preferences = create_default_project_preferences(all_export_enabled=all_export_enabled)
+        project_preferences = create_default_project_preferences_dict(all_export_enabled=all_export_enabled)
         save_project_preferences(path_prj, name_prj, project_preferences)
         set_project_type(True, True, path_prj, name_prj)
         print("# CREATE_PROJECT finished")
@@ -1317,7 +1317,7 @@ def cli_load_telemac(arguments, project_preferences):
         cut_arg_name = 'cut='
         if arg[:len(cut_arg_name)] == cut_arg_name:
             cut = eval(arg[len(cut_arg_name):])
-            project_preferences['CutMeshPartialyDry'] = cut
+            project_preferences['cut_mesh_partialy_dry'] = cut
 
     # get_hydrau_description_from_source
     hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source([filename],
@@ -1330,7 +1330,7 @@ def cli_load_telemac(arguments, project_preferences):
         hydrau_description["hdf5_name"] = outputfilename
     else:
         # change suffix
-        if not project_preferences["CutMeshPartialyDry"]:
+        if not project_preferences["cut_mesh_partialy_dry"]:
             namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
             hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old

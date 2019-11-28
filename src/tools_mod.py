@@ -15,10 +15,12 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import shutil
+from shutil import rmtree
+from shutil import copy as sh_copy
 import sys
 import urllib
 from copy import deepcopy
+from glob import glob
 from locale import localeconv
 from time import sleep
 
@@ -579,6 +581,59 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
 
 
 """ OTHERS TOOLS """
+
+
+def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path):
+    """
+    get all file with same prefix of input_shapefile_abspath and copy them to dest_folder_path.
+    """
+    # create folder with hdf5 name in input project folder
+    input_hdf5name_folder_path = os.path.join(dest_folder_path, os.path.splitext(hdf5_name)[0])
+    if os.path.exists(input_hdf5name_folder_path):
+        try:
+            rmtree(input_hdf5name_folder_path)
+        except PermissionError:
+            print("Error: Hydraulic input file can be copied to input project folder"
+                  " as it is open in another program.")
+            try:
+                os.mkdir(input_hdf5name_folder_path)
+            except PermissionError:
+                print("Error: Can't create folder in input project folder.")
+    else:
+        os.mkdir(input_hdf5name_folder_path)
+
+    # copy input file to input files folder with suffix triangulated
+    all_input_files_abspath_list = glob(input_shapefile_abspath[:-4] + "*")
+    all_input_files_files_list = [os.path.basename(file_path) for file_path in all_input_files_abspath_list]
+    for i in range(len(all_input_files_files_list)):
+        sh_copy(all_input_files_abspath_list[i], os.path.join(input_hdf5name_folder_path, all_input_files_files_list[i]))
+
+
+def copy_hydrau_input_files(input_file_abspath, hdf5_name, dest_folder_path):
+    """
+    copy input hydraulic files with indexHYDRAU.txt to input project folder in a folder as input
+    (if severeral hydraulic with indexHYDRAU.txt, it will not be erased).
+    """
+    # create folder with hdf5 name in input project folder
+    input_hdf5name_folder_path = os.path.join(dest_folder_path, os.path.splitext(hdf5_name)[0])
+    if os.path.exists(input_hdf5name_folder_path):
+        try:
+            rmtree(input_hdf5name_folder_path)
+        except PermissionError:
+            print("Error: Hydraulic input file can be copied to input project folder"
+                  " as it is open in another program.")
+            try:
+                os.mkdir(input_hdf5name_folder_path)
+            except PermissionError:
+                print("Error: Can't create folder in input project folder.")
+    else:
+        os.mkdir(input_hdf5name_folder_path)
+
+    # get input files and copy them
+    input_folder_path = os.path.dirname(input_file_abspath)
+    sh_copy(input_file_abspath, input_hdf5name_folder_path)
+    if os.path.exists(os.path.join(input_folder_path, "indexHYDRAU.txt")):
+        sh_copy(os.path.join(input_folder_path, "indexHYDRAU.txt"), input_hdf5name_folder_path)
 
 
 def copy_files(names, paths, path_input):

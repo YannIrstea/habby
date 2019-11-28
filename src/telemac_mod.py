@@ -24,9 +24,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src import hdf5_mod
-from src.tools_mod import create_empty_data_2_dict
+from src.tools_mod import create_empty_data_2_dict, copy_hydrau_input_files
 from src import manage_grid_mod
-from src.project_manag_mod import create_default_project_preferences
+from src.project_manag_mod import create_default_project_preferences_dict
 
 
 def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -54,7 +54,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
     # minimum water height
     if not project_preferences:
-        project_preferences = create_default_project_preferences()
+        project_preferences = create_default_project_preferences_dict()
     minwh = project_preferences['min_height_hyd']
 
     # progress
@@ -196,7 +196,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                                                                                         progress_value,
                                                                                         delta,
                                                                                         project_preferences[
-                                                                                            "CutMeshPartialyDry"],
+                                                                                            "cut_mesh_partialy_dry"],
                                                                                         minwh)
 
             if not isinstance(tin_data, np.ndarray):  # error or warning
@@ -240,7 +240,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         hyd_description["hyd_unit_number"] = hydrau_description[hyd_file]["unit_number"]
         hyd_description["hyd_unit_type"] = hydrau_description[hyd_file]["unit_type"]
         hyd_description["hyd_varying_mesh"] = data_2d_whole_profile["unit_correspondence"]
-        hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["CutMeshPartialyDry"]
+        hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["cut_mesh_partialy_dry"]
 
         if hyd_description["hyd_varying_mesh"]:
             hyd_description["hyd_unit_z_equal"] = False
@@ -258,7 +258,15 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                                        hydrau_description[hyd_file]["hdf5_name"])
         hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
 
-        # progress
+        # prog
+        progress_value.value = 95
+
+        # copy input files to input project folder
+        copy_hydrau_input_files(os.path.join(hydrau_description[hyd_file]["path_filename_source"], file),
+                                hydrau_description[hyd_file]["hdf5_name"],
+                        os.path.join(project_preferences["path_prj"], "input"))
+
+        # prog
         progress_value.value = 100
 
     if not print_cmd:
