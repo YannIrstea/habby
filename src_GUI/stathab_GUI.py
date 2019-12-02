@@ -139,7 +139,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_prj, parser)
             root = doc.getroot()
-            child = root.find(".//" + 'Path_Figure')
+            child = root.find(".//" + 'path_figure')
             if child is not None:
                 self.path_im = os.path.join(self.path_prj, child.text)
             # river type

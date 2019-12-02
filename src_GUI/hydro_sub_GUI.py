@@ -869,7 +869,7 @@ class SubHydroW(QWidget):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Figure")
+            child = root.find(".//path_figure")
             if child is None:
                 path_im = os.path.join(self.path_prj, r'/figures')
             else:
@@ -900,7 +900,7 @@ class SubHydroW(QWidget):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Hdf5")
+            child = root.find(".//path_hdf5")
             if child is None:
                 path_hdf5 = os.path.join(self.path_prj, r'/hdf5')
             else:
@@ -923,7 +923,7 @@ class SubHydroW(QWidget):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Input")
+            child = root.find(".//path_input")
             if child is None:
                 path_input = os.path.join(self.path_prj, r'/input')
             else:

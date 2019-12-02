@@ -1268,7 +1268,7 @@ class Stathab:
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Hdf5")
+            child = root.find(".//path_hdf5")
             if child is None:
                 path_hdf5 = os.path.join(self.path_prj, "hdf5")
             else:

@@ -37,13 +37,14 @@ def create_project_structure(path_prj, file_log, version_habby, user_name, descr
     project_preferences["version_habby"] = version_habby
     project_preferences["user_name"] = user_name
     project_preferences["description"] = description
-    project_preferences["mode"] = mode
     project_preferences["path_input"] = os.path.join(path_prj, project_preferences['path_input'])  # path input
     project_preferences["path_hdf5"] = os.path.join(path_prj, project_preferences['path_hdf5'])  # path hdf5
     project_preferences["path_figure"] = os.path.join(path_prj, project_preferences['path_figure'])  # path figures
     project_preferences["path_text"] = os.path.join(path_prj, project_preferences['path_text'])  # path text output
     project_preferences["path_gis"] = os.path.join(path_prj, project_preferences['path_gis'])  # path_gis
     project_preferences["path_3d"] = os.path.join(path_prj, project_preferences['path_3d'])  # path_3d
+    project_preferences["mode"] = mode
+
 
     # create .habby project file
     create_or_update_project_preferences_file(path_prj, project_preferences)
@@ -104,11 +105,12 @@ def create_default_project_preferences_dict(all_export_enabled=False):
     project_preferences['path_3d'] = os.path.join('output', '3D')
     project_preferences['physic_tabs'] = False
     project_preferences['stat_tabs'] = False
-    project_preferences['language'] = 0  # 0 english, 1 french
-    project_preferences['copy_input_files'] = True
-    project_preferences['cut_mesh_partialy_dry'] = True  # cut of not mesh partialy wet
     project_preferences['min_height_hyd'] = 0.001  # node mesh minimum water height consider like dry
+    project_preferences['cut_mesh_partialy_dry'] = True  # cut of not mesh partialy wet
     project_preferences['erase_id'] = True  # erase file (hdf5, outputs) if exist. if not set date/hour in filename
+    project_preferences['copy_input_files'] = True
+    project_preferences['mode'] = ""  # GUI or CLI
+    project_preferences['language'] = 0  # 0 english, 1 french
 
     # output (first element list == for .hyd and second element list == for .hab)
     project_preferences['mesh_whole_profile'] = [all_export_enabled, all_export_enabled]  # shapefile mesh whole profile
@@ -131,7 +133,7 @@ def create_default_project_preferences_dict(all_export_enabled=False):
     project_preferences['font_size'] = 12
     project_preferences['line_width'] = 1
     project_preferences['grid'] = False  # grid on plot
-    project_preferences['format'] = ".png"  # png, pdf, jpg
+    project_preferences['format'] = ".png"  # png, pdf
     project_preferences['resolution'] = 300  # dpi
     project_preferences['fish_name_type'] = 0  # latin_name, french, english, code_alternative
     project_preferences['marker'] = True  # Add point to line plot
@@ -182,6 +184,10 @@ def create_or_update_project_preferences_file(path_prj, project_preferences):
     path_gis_child.text = project_preferences['path_gis']
     path_3d_child = ET.SubElement(path_element, "path_3d")
     path_3d_child.text = project_preferences['path_3d']
+    physic_tabs_child = ET.SubElement(general_element, "physic_tabs")
+    physic_tabs_child.text = str(project_preferences['physic_tabs'])
+    stat_tabs_child = ET.SubElement(general_element, "stat_tabs")
+    stat_tabs_child.text = str(project_preferences['stat_tabs'])
     min_height_hyd_child = ET.SubElement(general_element, "min_height_hyd")  # min_height
     min_height_hyd_child.text = str(project_preferences['min_height_hyd'])
     cut_mesh_partialy_dry_child = ET.SubElement(general_element, "cut_mesh_partialy_dry")  # cut_mesh_partialy_dry
@@ -190,10 +196,10 @@ def create_or_update_project_preferences_file(path_prj, project_preferences):
     erase_id_child.text = str(project_preferences['erase_id'])
     copy_input_files_child = ET.SubElement(general_element, "copy_input_files")  # copy_input_files
     copy_input_files_child.text = str(project_preferences['copy_input_files'])
-    copy_input_files_child = ET.SubElement(general_element, "mode")  # mode
-    copy_input_files_child.text = str(project_preferences['mode'])
-    langfig1 = ET.SubElement(general_element, "language")  # LangFig
-    langfig1.text = str(project_preferences['language'])
+    mode_child = ET.SubElement(general_element, "mode")  # mode
+    mode_child.text = str(project_preferences['mode'])
+    langfig_child = ET.SubElement(general_element, "language")  # LangFig
+    langfig_child.text = str(project_preferences['language'])
 
     # export
     export_list = ['point_units', 'detailled_text', 'fish_information', 'point_whole_profile', 'mesh_units', 'mesh_whole_profile',
@@ -203,10 +209,13 @@ def create_or_update_project_preferences_file(path_prj, project_preferences):
         locals()[checkbox_name] = ET.SubElement(export_element, checkbox_name)  # checkbox_name
     for checkbox_name in export_list:
         locals()[checkbox_name].text = str(project_preferences[checkbox_name])
-    vertical_exaggeration1 = ET.SubElement(export_element, "vertical_exaggeration")  # vertical_exaggeration
-    vertical_exaggeration1.text = str(project_preferences["vertical_exaggeration"])
-    pvd_variable_z = ET.SubElement(export_element, "pvd_variable_z")  # pvd_variable_z
-    pvd_variable_z.text = str(project_preferences["pvd_variable_z"])
+    project_preferences['habitat_text'] = [False, True]  # .txt with detail values by mesh
+    habitat_text_child = ET.SubElement(export_element, "habitat_text")  # vertical_exaggeration
+    habitat_text_child.text = str(project_preferences["habitat_text"])
+    vertical_exaggeration_child = ET.SubElement(export_element, "vertical_exaggeration")  # vertical_exaggeration
+    vertical_exaggeration_child.text = str(project_preferences["vertical_exaggeration"])
+    pvd_variable_z_child = ET.SubElement(export_element, "pvd_variable_z")  # pvd_variable_z
+    pvd_variable_z_child.text = str(project_preferences["pvd_variable_z"])
 
     # FIGURE
     figure_element = ET.SubElement(root_element, "figure")
@@ -225,7 +234,7 @@ def create_or_update_project_preferences_file(path_prj, project_preferences):
     grid1 = ET.SubElement(figure_element, 'grid')  # Grid
     grid1.text = str(project_preferences['grid'])
     format1 = ET.SubElement(figure_element, "format")  # Format
-    format1.text = str(project_preferences['format'])
+    format1.text = project_preferences['format']
     reso1 = ET.SubElement(figure_element, "resolution")  # Resolution
     reso1.text = str(project_preferences['resolution'])
     fish1 = ET.SubElement(figure_element, "fish_name_type")  # FishNameType
@@ -257,7 +266,6 @@ def load_project_preferences(path_prj, name_prj):
     project_preferences["name_prj"] = name_prj
     project_preferences["path_prj"] = path_prj
 
-
     fname = os.path.join(path_prj, name_prj + '.habby')
     if not os.path.isfile(fname) and name_prj != '':  # no project exists
         pass
@@ -287,11 +295,12 @@ def load_project_preferences(path_prj, name_prj):
         project_preferences['path_3d'] = root.find(".//path_3d").text
         project_preferences['physic_tabs'] = eval(root.find(".//physic_tabs").text)
         project_preferences['stat_tabs'] = eval(root.find(".//stat_tabs").text)
-        project_preferences['language'] = int(root.find(".//language").text)
-        project_preferences['copy_input_files'] = eval(root.find(".//copy_input_files").text)
-        project_preferences['cut_mesh_partialy_dry'] = eval(root.find(".//cut_mesh_partialy_dry").text)
         project_preferences['min_height_hyd'] = float(root.find(".//min_height_hyd").text)
+        project_preferences['cut_mesh_partialy_dry'] = eval(root.find(".//cut_mesh_partialy_dry").text)
         project_preferences['erase_id'] = eval(root.find(".//erase_id").text)
+        project_preferences['copy_input_files'] = eval(root.find(".//copy_input_files").text)
+        project_preferences['mode'] = root.find(".//mode").text
+        project_preferences['language'] = int(root.find(".//language").text)
 
         # output (first element list == for .hyd and second element list == for .hab)
         project_preferences['mesh_whole_profile'] = eval(root.find(".//mesh_whole_profile").text)
@@ -300,7 +309,7 @@ def load_project_preferences(path_prj, name_prj):
         project_preferences['point_units'] = eval(root.find(".//point_units").text)
         project_preferences['elevation_whole_profile'] = eval(root.find(".//elevation_whole_profile").text)
         project_preferences['variables_units'] = eval(root.find(".//variables_units").text)
-        #project_preferences['habitat_text'] = eval(root.find(".//habitat_text").text)  # always True
+        project_preferences['habitat_text'] = eval(root.find(".//habitat_text").text)  # always True
         project_preferences['detailled_text'] = eval(root.find(".//detailled_text").text)
         project_preferences['fish_information'] = eval(root.find(".//fish_information").text)
         project_preferences['vertical_exaggeration'] = int(root.find(".//vertical_exaggeration").text)
@@ -344,9 +353,9 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
         root = doc.getroot()
         child1 = root.find(".//general")
         if child1 is not None:  # modify existing option
-            langfig1 = root.find(".//lauguage")
+            langfig1 = root.find(".//language")
             if langfig1 is None:
-                langfig1 = ET.SubElement(child1, "lauguage")
+                langfig1 = ET.SubElement(child1, "language")
             langfig1.text = str(nb_lang)
             doc.write(fname, pretty_print=True)
 

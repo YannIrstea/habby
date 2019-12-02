@@ -23,7 +23,7 @@ from copy import deepcopy
 from glob import glob
 from locale import localeconv
 from time import sleep
-
+import shutil
 import numpy as np
 from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread, QCoreApplication as qt_tr
 from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
@@ -703,7 +703,7 @@ def get_prj_from_epsg_web(epsg_code):
     return output
 
 
-def remove_image(name, path, format1):
+def remove_image(name, path, ext):
     """
     This is a small function used to erase images if erase_id is True. We have a function because different format
     czan be used and because it is done often in the functions above.
@@ -713,16 +713,8 @@ def remove_image(name, path, format1):
     :param format1: the type of format
     :return:
     """
-    if format1 == 0:
-        ext = ['.png', '.pdf']
-    elif format1 == 1:
-        ext = ['.png']
-    elif format1 == 2:
-        ext = ['jpg']
-    elif format1 == 3:
-        ext = ['.pdf']
-    else:
-        return True
+    ext = [ext]
+
     for e in ext:
         if os.path.isfile(os.path.join(path, name + e)):
             try:

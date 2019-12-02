@@ -137,7 +137,7 @@ class StatModUseful(QScrollArea):
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
             # get the selected fish
-            child = root.find(".//Habitat/Fish_Selected")
+            child = root.find(".//Habitat/fish_selected")
             if child is not None:
                 fish_selected_b = child.text
                 if fish_selected_b is not None:
@@ -168,7 +168,7 @@ class StatModUseful(QScrollArea):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Figure")
+            child = root.find(".//path_figure")
             if child is None:
                 path_test = os.path.join(self.path_prj, r'/figures')
                 if os.path.isdir(path_test):
@@ -195,7 +195,7 @@ class StatModUseful(QScrollArea):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Hdf5")
+            child = root.find(".//path_hdf5")
             if child is None:
                 path_hdf5 = os.path.join(self.path_prj, 'hdf5')
             else:
@@ -218,7 +218,7 @@ class StatModUseful(QScrollArea):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Text")
+            child = root.find(".//path_text")
             if child is None:
                 path_text = os.path.join(self.path_prj, r'/output/text')
             else:
@@ -269,7 +269,7 @@ class StatModUseful(QScrollArea):
             parser = ET.XMLParser(remove_blank_text=True)
             doc = ET.parse(filename_path_pro, parser)
             root = doc.getroot()
-            child = root.find(".//Path_Input")
+            child = root.find(".//path_input")
             if child is None:
                 path_input = os.path.join(self.path_prj, r'/input')
             else:

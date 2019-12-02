@@ -92,7 +92,7 @@ class BioModelExplorerWindow(QDialog):
         doc = ET.parse(fname, parser)
         root = doc.getroot()
         # geo data
-        child1 = root.find('.//Bio_model_explorer_selection')
+        child1 = root.find('.//bio_model_explorer_selection')
         if user_preferences.modified:
             self.send_log.emit("Warning: " + self.tr("Biological models database has been modified. \n") + user_preferences.diff_list)
         if child1 is None or user_preferences.modified:
@@ -940,9 +940,9 @@ class BioModelInfoSelection(QScrollArea):
         doc = ET.parse(fname, parser)
         root = doc.getroot()
         # geo data
-        child1 = root.find('.//Bio_model_explorer_selection')
+        child1 = root.find('.//bio_model_explorer_selection')
         if child1 is None:
-            child1 = ET.SubElement(root, 'Bio_model_explorer_selection')
+            child1 = ET.SubElement(root, 'bio_model_explorer_selection')
             child1.text = str(dicoselect)
         else:
             child1.text = str(dicoselect)

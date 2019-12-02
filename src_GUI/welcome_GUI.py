@@ -206,7 +206,7 @@ class WelcomeW(QScrollArea):
                 parser = ET.XMLParser(remove_blank_text=True)
                 doc = ET.parse(fname_old, parser)
                 root = doc.getroot()
-                path_child = root.find(".//Path_Project")
+                path_child = root.find(".//path_prj")
                 path_child.text = self.path_prj  # new name
                 fname = os.path.join(self.path_prj, self.name_prj + '.habby')
                 try:

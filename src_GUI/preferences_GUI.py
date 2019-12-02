@@ -18,12 +18,12 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QSizePolicy, QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QComboBox, QMessageBox, QFormLayout, QCheckBox, QHBoxLayout
-from lxml import etree as ET
 import numpy as np
 import os
 
 from src.tools_mod import DoubleClicOutputGroup, QHLine
-from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict
+from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict, \
+    create_or_update_project_preferences_file
 
 
 class PreferenceWindow(QDialog):
@@ -160,7 +160,7 @@ class PreferenceWindow(QDialog):
         # fig_forma
         fig_format_label = QLabel(self.tr('Figure Format'))
         self.fig_format_combobox = QComboBox()
-        self.fig_format_combobox.addItems(['pdf', 'png', 'jpg'])
+        self.fig_format_combobox.addItems(['png', 'pdf'])
 
         # resolution
         resolution_label = QLabel(self.tr('Resolution [dpi]'))
@@ -448,7 +448,7 @@ class PreferenceWindow(QDialog):
         else:
             project_preferences['grid'] = False
         # format
-        project_preferences['format'] = str(self.fig_format_combobox.currentIndex())
+        project_preferences['format'] = "." + self.fig_format_combobox.currentText()
         # resolution
         try:
             project_preferences['resolution'] = int(self.resolution_lineedit.text())
@@ -537,7 +537,7 @@ class PreferenceWindow(QDialog):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
-            save_project_preferences(self.path_prj, self.name_prj, project_preferences)
+            create_or_update_project_preferences_file(self.path_prj, project_preferences)
 
         self.send_log.emit(self.tr('# Preferences saved.'))
         self.close()
