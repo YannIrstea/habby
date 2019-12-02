@@ -228,7 +228,7 @@ class DataExplorerFrame(QFrame):
             self.plot_group.plot_result_QCheckBox.hide()
             self.dataexporter_group.change_layout(0)
             self.plot_group.show()
-            self.dataexporter_group.show()
+            self.dataexporter_group.hide()
             self.habitatvalueremover_group.hide()
             self.file_information_group.show()
             if names:
@@ -403,7 +403,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.process_list = MyProcessList("plot")
         self.process_list.progress_signal.connect(self.show_prog)
         self.variables_to_remove = ["mesh", "points_elevation", "height", "velocity",
-                                    "sub_coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress",
+                                    "sub_coarser", "sub_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress",
                                     "conveyance", "Froude", "hydraulic_head", "water_level"]
         self.nb_plot = 0
         self.init_ui()
@@ -773,13 +773,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     variables_mesh = variables.copy()
                     variables_node = variables.copy()
                     # remove useless variables names for mesh
-                    variables_useless = ['mesh', 'sub_coarser_dominant', 'points_elevation', "height", "velocity", "water_level", "Froude",
+                    variables_useless = ['mesh', 'sub_coarser', 'sub_dominant', 'points_elevation', "height", "velocity", "water_level", "Froude",
                                          "hydraulic_head", "conveyance"]
                     for variables_useless in variables_useless:
                         if variables_useless in variables_mesh:
                             variables_mesh.remove(variables_useless)
                     # remove useless variables names for node
-                    variables_useless = ['mesh', 'sub_coarser_dominant', 'points_elevation', "height", "velocity", 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
+                    variables_useless = ['mesh',  'sub_coarser', 'sub_dominant', 'points_elevation', "height", "velocity", 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
                     for variables_useless in variables_useless:
                         if variables_useless in variables_node:
                             variables_node.remove(variables_useless)
@@ -899,19 +899,35 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      units[unit_num]),
                                                                name="plot_map_velocity")
                                     self.process_list.append([velocity_process, state])
-                                if "sub_coarser_dominant" in variables and not self.plot_production_stoped:  # coarser_dominant
+                                if "sub_coarser" in variables and not self.plot_production_stoped:  # coarser_dominant
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate,
                                                                args=(state,
                                                                      hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                      hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                      hdf5.data_2d["mesh"]["data"]["sub"][reach_num][unit_num],
+                                                                     "sub_coarser",
                                                                      data_description,
                                                                      path_im,
                                                                      project_preferences,
                                                                      reach_name,
                                                                      units[unit_num]),
-                                                               name="plot_map_substrate")
+                                                               name="plot_sub_coarser")
+                                    self.process_list.append([susbtrat_process, state])
+                                if "sub_dominant" in variables and not self.plot_production_stoped:  # coarser_dominant
+                                    state = Value("i", 0)
+                                    susbtrat_process = Process(target=plot_mod.plot_map_substrate,
+                                                               args=(state,
+                                                                     hdf5.data_2d["node"]["xy"][reach_num][unit_num],
+                                                                     hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                                     hdf5.data_2d["mesh"]["data"]["sub"][reach_num][unit_num],
+                                                                     "sub_dominant",
+                                                                     data_description,
+                                                                     path_im,
+                                                                     project_preferences,
+                                                                     reach_name,
+                                                                     units[unit_num]),
+                                                               name="plot_sub_dominant")
                                     self.process_list.append([susbtrat_process, state])
                                 if "max_slope_bottom" in variables and not self.plot_production_stoped:  # height
                                     state = Value("i", 0)
@@ -1269,24 +1285,28 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.setLayout(self.data_exporter_layout)
 
     def change_layout(self, type):
+        # nothing
         if type == 0:
             self.empty_export_widget.show()
             self.hyd_export_widget.hide()
             self.hab_export_widget.hide()
             self.checkbox_list = []
             self.current_type = 0
+        # hyd
         if type == 1:
             self.empty_export_widget.hide()
             self.hyd_export_widget.show()
             self.hab_export_widget.hide()
             self.checkbox_list = self.hyd_checkbox_list
             self.current_type = 1
+        # sub
         if type == 2:
             self.empty_export_widget.show()
             self.hyd_export_widget.hide()
             self.hab_export_widget.hide()
             self.checkbox_list = []
             self.current_type = 2
+        # hab
         if type == 3:
             self.empty_export_widget.hide()
             self.hyd_export_widget.hide()
@@ -1608,7 +1628,7 @@ class FileInformation(QGroupBoxCollapsible):
         self.setTitle(title)
         self.plot_process_list = MyProcessList("plot")
         self.variables_to_remove = ["mesh", "points elevation", "height", "velocity",
-                                    "sub_coarser_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress"]
+                                    "sub_coarser", "sub_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress"]
         self.init_ui()
 
     def init_ui(self):

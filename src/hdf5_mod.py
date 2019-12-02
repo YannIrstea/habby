@@ -65,7 +65,7 @@ class Hdf5Management:
                                "Froude", "hydraulic_head", "conveyance",
                               "max_slope_bottom", "max_slope_energy", "shear_stress"]
         self.hyd_variables_computed_node = ["water_level", "Froude", "hydraulic_head", "conveyance"]
-        self.sub_variables = ["sub_coarser_dominant"]
+        self.sub_variables = ["sub_coarser", "sub_dominant"]
         # dict
         self.data_2d = None
         self.data_2d_whole = None
@@ -2634,16 +2634,8 @@ class Hdf5Management:
                 # day
                 plt.figtext(0.8, 0.95, 'HABBY - ' + time.strftime("%d %b %Y"))
 
-                # extension  (0 pdf, 1 png, 2 jpg)
-                if int(self.project_preferences["format"]) == 0:
-                    extension_choosen = ".pdf"
-                if int(self.project_preferences["format"]) == 1:
-                    extension_choosen = ".png"
-                if int(self.project_preferences["format"]) == 2:
-                    extension_choosen = ".jpg"
-
                 # filename
-                filename = os.path.join(path_out, 'report_' + information_model_dict["CdBiologicalModel"] + extension_choosen)
+                filename = os.path.join(path_out, 'report_' + information_model_dict["CdBiologicalModel"] + self.project_preferences["format"])
 
                 # save
                 try:
@@ -3350,7 +3342,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         root = doc.getroot()
 
         # get the path to hdf5
-        pathhdf5 = root.find(".//Path_Hdf5")
+        pathhdf5 = root.find(".//path_hdf5")
         if pathhdf5 is None:
             print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the hdf5 file is not found (1) \n'))
             return

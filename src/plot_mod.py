@@ -28,7 +28,6 @@ import mplcursors
 from src import tools_mod
 from src.project_manag_mod import create_default_project_preferences_dict
 from src.tools_mod import get_translator
-from src_GUI import preferences_GUI
 
 
 # other
@@ -57,6 +56,9 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
             plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
     plt.rcParams['axes.grid'] = project_preferences['grid']
@@ -64,10 +66,10 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         mar = 'o'
     else:
         mar = None
-    if project_preferences['language'] == 0:
-        title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
-    else:
-        title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
+
+    # title and filename
+    title_plot = qt_tr.translate("plot_mod",
+                            'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
 
     if len(stade) > 1:  # if you take this out, the command
         # axarr[x,x] does not work as axarr is only 1D
@@ -81,30 +83,19 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         plt.suptitle(title_plot)
         for s in range(0, len(stade)):
             axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
-            if project_preferences['language'] == 0:
-                axarr[s, 0].set_xlabel('Water height [m]')
-            else:
-                axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
+            axarr[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
             axarr[s, 0].set_ylabel('Coeff. pref.\n' + stade[s])
             axarr[s, 0].set_ylim([-0.1, 1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
-            if project_preferences['language'] == 0:
-                axarr[s, 1].set_xlabel('Velocity [m/sec]')
-            else:
-                axarr[s, 1].set_xlabel('Vitesse [m/sec]')
-            #axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
+            axarr[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
             axarr[s, 1].set_ylim([-0.1, 1.1])
 
             if len(sub[0][0]) > 2:  # if substrate is accounted,
                 # it is accounted for all stages
                 axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
                                 align='center')
-                if project_preferences['language'] == 0:
-                    axarr[s, 2].set_xlabel('Substrate ' + sub_type[s] + ' [' + sub_code[s] +']')
-                else:
-                    axarr[s, 2].set_xlabel('Substrat ' + sub_type[s] + ' [' + sub_code[s] +']')
-                #axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
+                axarr[s, 2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[s] + ' [' + sub_code[s] + ']')
                 axarr[s, 2].set_ylim([-0.1, 1.1])
                 axarr[s, 2].set_xlim([0.4, 8.6])
 
@@ -118,27 +109,18 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         f.canvas.set_window_title(title_plot)
         plt.suptitle(title_plot)
         axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
-        if project_preferences['language'] == 0:
-            axarr[0].set_xlabel('Water height [m]')
-        else:
-            axarr[0].set_xlabel("Hauteur d'eau [m]")
+        axarr[0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
         axarr[0].set_ylabel('Coeff. pref. ')
         axarr[0].set_ylim([-0.1, 1.1])
         axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
-        if project_preferences['language'] == 0:
-            axarr[1].set_xlabel('Velocity [m/sec]')
-        else:
-            axarr[1].set_xlabel('Vitesse [m/sec]')
+        axarr[1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
         axarr[1].set_ylabel('Coeff. pref. ')
         axarr[1].set_ylim([-0.1, 1.1])
 
         # if sub
         if len(sub[0][0]) > 2:
             axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
-            if project_preferences['language'] == 0:
-                axarr[2].set_xlabel('Substrate ' + sub_type[0] + ' [' + sub_code[0] +']')
-            else:
-                axarr[2].set_xlabel('Substrat ' + sub_type[0] + ' [' + sub_code[0] +']')
+            axarr[2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[0] + ' [' + sub_code[0] + ']')
             axarr[2].set_ylabel('Coeff. pref. ')
             axarr[2].set_ylim([-0.1, 1.1])
             axarr[2].set_xlim([0.4, 8.6])
@@ -180,6 +162,9 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
             plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
     plt.rcParams['axes.grid'] = project_preferences['grid']
@@ -187,10 +172,10 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         mar = 'o'
     else:
         mar = None
-    if project_preferences['language'] == 0:
-        title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
-    else:
-        title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
+
+    # title and filename
+    title_plot = qt_tr.translate("plot_mod",
+                            'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
 
     f, axarr = plt.subplots(1, 1, sharey='row')
     f.canvas.set_window_title(title_plot)
@@ -209,13 +194,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
                list(map(str, [0] + shear_stress_all[0])),
                rotation=45)
 
-    #axarr.set_xticklabels(list(map(str, hem_all[0])))
-    if project_preferences['language'] == 0:
-        axarr.set_xlabel('HEM [HFST] / shear stress [N/m²]')
-        axarr.set_ylabel('Coeff. pref. ')
-    else:
-        axarr.set_xlabel("HEM [HFST] / force tractrice [N/m²]")
-        axarr.set_ylabel('Coeff. pref. ')
+    axarr.set_xlabel(qt_tr.translate("plot_mod", 'HEM [HFST] / shear stress [N/m²]'))
+    axarr.set_ylabel('Coeff. pref.')
     axarr.set_ylim([-0.1, 1.1])
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
@@ -254,6 +234,9 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         plt.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
             plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
     plt.rcParams['axes.grid'] = project_preferences['grid']
@@ -261,10 +244,10 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         mar = 'o'
     else:
         mar = None
-    if project_preferences['language'] == 0:
-        title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
-    else:
-        title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
+
+    # title and filename
+    title_plot = qt_tr.translate("plot_mod",
+                            'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
 
     if len(stade) > 1:  # if you take this out, the command
         # axarr[x,x] does not work as axarr is only 1D
@@ -273,34 +256,14 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         plt.suptitle(title_plot)
         for s in range(0, len(stade)):
             axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
-            if project_preferences['language'] == 0:
-                axarr[s, 0].set_xlabel('Water height [m]')
-                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
-            else:
-                axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
-                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
+            axarr[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
+            axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 0].set_ylim([-0.1, 1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
-            if project_preferences['language'] == 0:
-                axarr[s, 1].set_xlabel('Velocity [m/sec]')
-            else:
-                axarr[s, 1].set_xlabel('Vitesse [m/sec]')
+            axarr[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
             axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 1].set_ylim([-0.1, 1.1])
-
-            # if len(sub[0][0]) > 2:  # if substrate is accounted,
-            #     # it is accounted for all stages
-            #     axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
-            #                     align='center')
-            # if project_preferences['language'] == 0:
-            #     axarr[s, 2].set_xlabel('Substrate []')
-            # else:
-            #     axarr[s, 2].set_xlabel('Substrat []')
-            # axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
-            # axarr[s, 2].set_ylim([0, 1.1])
-            # axarr[s, 2].set_xlim([0.4, 8.6])
-
     else:
         # prep data
         X, Y = np.meshgrid(vel[0], height[0])
@@ -310,13 +273,8 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         f.canvas.set_window_title(title_plot)
         plt.suptitle(title_plot)
         meshcolor = axarr.pcolormesh(X, Y, Z)
-
-        if project_preferences['language'] == 0:
-            axarr.set_ylabel('Water height [m]')
-            axarr.set_xlabel('Water velocity [m/s]')
-        else:
-            axarr.set_ylabel("Hauteur d'eau [m]")
-            axarr.set_xlabel("Vitesse de l'eau [m/s]")
+        axarr.set_ylabel(qt_tr.translate("plot_mod", 'Water height [m]'))
+        axarr.set_xlabel(qt_tr.translate("plot_mod", 'Water velocity [m/s]'))
         axarr.set_ylim([-0.1, 1.1])
         cbar = plt.colorbar(meshcolor)
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -337,11 +295,12 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     mpl.rcParams['pdf.fonttype'] = 42
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
-    if project_preferences['language'] == 0:
-        title_plot = 'Measurement conditions \n' + fishname
-    else:
-        title_plot = 'Hydrosignature \n' + fishname
+    # title and filename
+    title_plot = qt_tr.translate("plot_mod",
+                            'Measurement conditions') + "\n" + fishname
 
     plt.figure(title_plot)
     # cmap should be coherent with text color
@@ -388,11 +347,10 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     :param name_hdf5: a string on which to base the name of the files
     :param unit_name: the name of the time steps if not 0,1,2,3
     """
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     default_size = plt.rcParams['figure.figsize']
@@ -402,7 +360,6 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     if project_preferences['marker']:
@@ -490,16 +447,12 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0]) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0])
-                test = tools_mod.remove_image(name, path_im, format1)
+                test = tools_mod.remove_image(name, path_im, project_preferences['format'])
                 if not test:
                     return
-
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, name + project_preferences['format']),
+                        dpi=project_preferences['resolution'],
+                        transparent=True)
 
     # many time step - lines
     if len(area_all) > 1:
@@ -592,15 +545,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name
-                test = tools_mod.remove_image(name, path_im, format1)
+                test = tools_mod.remove_image(name, path_im, project_preferences['format'])
                 if not test:
                     return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, name + project_preferences['format']),
+                        dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -808,7 +757,6 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     if project_preferences['font_size'] > 7:
         plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
@@ -917,19 +865,16 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
     plt.subplots_adjust(right=0.73)
 
     # name with date and time
-    if format1 == 0:
-        name_pict = "Estimhab" + ".pdf"
-    if format1 == 1:
-        name_pict = "Estimhab" + ".png"
-    if format1 == 2:
-        name_pict = "Estimhab" + ".jpg"
+    name_pict = "Estimhab" + project_preferences['format']
 
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
             name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
     # save image
-    plt.savefig(os.path.join(path_im, name_pict), dpi=project_preferences['resolution'], transparent=True)
+    plt.savefig(os.path.join(path_im, name_pict),
+                dpi=project_preferences['resolution'],
+                transparent=True)
 
     # get data with mouse
     mplcursors.cursor()
@@ -942,9 +887,11 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
 
 # map node
-def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, ):
+def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -953,9 +900,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
@@ -964,12 +909,10 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Elevation - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'elevation') + "_" + reach_name + '_' + unit_name
 
     # plot
     plt.figure(filename)
@@ -991,7 +934,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
         bounds = np.linspace(min_value, max_value, bounds_nb)
     # plot
     sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_z,
-                         cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+                         cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
     # normal case
     if len(bounds) > 2:
@@ -1002,32 +945,22 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
         plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant elevation",
                  fontsize=14, horizontalalignment='center', verticalalignment='center')
 
-
     plt.ticklabel_format(useOffset=False)
 
     # save figures
     plt.tight_layout()  # remove margin out of plot
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+            plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
                             dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=project_preferences['resolution'], transparent=True)
+
         else:
-            test = tools_mod.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
+            test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+            if not test:
                 return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                        dpi=project_preferences['resolution'],
+                        transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -1042,13 +975,14 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
 def plot_map_height(state, data_xy, data_tin, project_preferences, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
@@ -1059,12 +993,10 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : hauteur d'eau - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_profondeur_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : water depth - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_depth_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Water depth - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'depth') + "_" + reach_name + '_' + unit_name
 
     # plot the height
     if len(data_h) > 0:  # 0
@@ -1086,52 +1018,32 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
             bounds = np.linspace(min_value, max_value, bounds_nb)
         # plot
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h,
-                             cmap=cm, vmin=0, vmax=max_value, levels=bounds, extend='both')
+                             cmap=cm, vmin=0, vmax=max_value, levels=bounds)
 
         # normal case
         if len(bounds) > 2:
             cbar = plt.colorbar(sc)
-            if project_preferences['language'] == 0:
-                cbar.ax.set_ylabel('Water depth [m]')
-            elif project_preferences['language'] == 1:
-                cbar.ax.set_ylabel("Hauteur d'eau [m]")
-            else:
-                cbar.ax.set_ylabel('Water depth [m]')
+            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Water depth [m]'))
         # constant case
         else:
             plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant height",
                      fontsize=14, horizontalalignment='center', verticalalignment='center')
 
-
         # save figure
         plt.tight_layout()  # remove margin out of plot
+
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                            dpi=project_preferences['resolution'],
+                            transparent=True)
             else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, project_preferences['format'])
+                if not test:
                     return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
+                plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                            dpi=project_preferences['resolution'],
+                            transparent=True)
 
         # output for plot_GUI
         state.value = 1  # process finished
@@ -1146,13 +1058,14 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
 def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
@@ -1163,12 +1076,10 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : vitesse - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_vitesse_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : velocity - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_velocity_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Velocity - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'velocity') + "_" + reach_name + '_' + unit_name
 
     # plot
     if len(data_v) > 0:  # 0
@@ -1189,17 +1100,12 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
             bounds = np.linspace(min_value, max_value, bounds_nb)
         # plot
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_v,
-                             cmap=cm, vmin=0, vmax=max_value, levels=bounds, extend='both')
+                             cmap=cm, vmin=0, vmax=max_value, levels=bounds)
 
         # normal case
         if len(bounds) > 2:
             cbar = plt.colorbar(sc)
-            if project_preferences['language'] == 0:
-                cbar.ax.set_ylabel('Velocity [m/sec]')
-            elif project_preferences['language'] == 1:
-                cbar.ax.set_ylabel('Vitesse [m/sec]')
-            else:
-                cbar.ax.set_ylabel('Velocity [m/sec]')
+            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
         # constant case
         else:
             plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant velocity",
@@ -1211,31 +1117,18 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                            dpi=project_preferences['resolution'], transparent=True)
+
             else:
-                test = tools_mod.remove_image(filename, path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+                if not test:
                     return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
+                plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                            dpi=project_preferences['resolution'],
+                            transparent=True)
+
         # output for plot_GUI
         state.value = 1  # process finished
         if types_plot == "interactive" or types_plot == "both":
@@ -1249,13 +1142,14 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
 def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_description, data_conveyance=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
@@ -1266,12 +1160,10 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : débitance - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_debitance_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : conveyance - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_conveyance_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Conveyance - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'conveyance') + "_" + reach_name + '_' + unit_name
 
     # plot the height
     if len(data_conveyance) > 0:  # 0
@@ -1293,17 +1185,12 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
             bounds = np.linspace(min_value, max_value, bounds_nb)
         # plot
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_conveyance,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
         # normal case
         if len(bounds) > 2:
             cbar = plt.colorbar(sc)
-            if project_preferences['language'] == 0:
-                cbar.ax.set_ylabel('Conveyance [m²/s]')
-            elif project_preferences['language'] == 1:
-                cbar.ax.set_ylabel("Débitance [m²/s]")
-            else:
-                cbar.ax.set_ylabel('Conveyance [m²/s]')
+            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Conveyance [m²/s]'))
         # constant case
         else:
             plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant conveyance",
@@ -1313,31 +1200,17 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                            dpi=project_preferences['resolution'], transparent=True)
+
             else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, project_preferences['format'])
+                if not test:
                     return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
+                plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                            dpi=project_preferences['resolution'],
+                            transparent=True)
 
         # output for plot_GUI
         state.value = 1  # process finished
@@ -1352,15 +1225,15 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
 def plot_map_froude(state, data_xy, data_tin, project_preferences, data_description, data_froude=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
@@ -1369,12 +1242,10 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Nombre de Froude - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_froude_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : Froude number - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_froude_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Froude number - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'froude') + "_" + reach_name + '_' + unit_name
 
     # plot the height
     if len(data_froude) > 0:  # 0
@@ -1396,17 +1267,12 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
             bounds = np.linspace(min_value, max_value, bounds_nb)
         # plot
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_froude,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
         # normal case
         if len(bounds) > 2:
             cbar = plt.colorbar(sc)
-            if project_preferences['language'] == 0:
-                cbar.ax.set_ylabel('Froude number []')
-            elif project_preferences['language'] == 1:
-                cbar.ax.set_ylabel("Nombre de Froude []")
-            else:
-                cbar.ax.set_ylabel('Froude number []')
+            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Froude number []'))
         # constant case
         else:
             plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant Froude",
@@ -1416,31 +1282,17 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                            dpi=project_preferences['resolution'], transparent=True)
+
             else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, project_preferences['format'])
+                if not test:
                     return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
+                plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                            dpi=project_preferences['resolution'],
+                            transparent=True)
 
         # output for plot_GUI
         state.value = 1  # process finished
@@ -1455,15 +1307,15 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
 def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_description, data_hydraulic_head=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
@@ -1472,12 +1324,10 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Charge hydraulique - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_charge_hydraulique_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : Hydraulic head - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_hydraulic_head_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Hydraulic head - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'hydraulic_head') + "_" + reach_name + '_' + unit_name
 
     # plot the height
     if len(data_hydraulic_head) > 0:  # 0
@@ -1499,17 +1349,12 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
             bounds = np.linspace(min_value, max_value, bounds_nb)
         # plot
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_hydraulic_head,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
         # normal case
         if len(bounds) > 2:
             cbar = plt.colorbar(sc)
-            if project_preferences['language'] == 0:
-                cbar.ax.set_ylabel('Hydraulic head [m]')
-            elif project_preferences['language'] == 1:
-                cbar.ax.set_ylabel("Charge hydraulique [m]")
-            else:
-                cbar.ax.set_ylabel('Hydraulic head [m]')
+            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Hydraulic head [m]'))
         # constant case
         else:
             plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant hydraulic head",
@@ -1519,31 +1364,16 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                            dpi=project_preferences['resolution'], transparent=True)
+
             else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, project_preferences['format'])
+                if not test:
                     return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
+                plt.savefig(os.path.join(path_im, filename + project_preferences['format']), dpi=project_preferences['resolution'],
+                            transparent=True)
 
         # output for plot_GUI
         state.value = 1  # process finished
@@ -1558,15 +1388,15 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
 def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_description, data_water_level=[], path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
@@ -1575,12 +1405,10 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Niveau d'eau - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_niveau_eau_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : Water level - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_water_level_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Water level - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'water_level') + "_" + reach_name + '_' + unit_name
 
     # plot the height
     if len(data_water_level) > 0:  # 0
@@ -1602,17 +1430,12 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
             bounds = np.linspace(min_value, max_value, bounds_nb)
         # plot
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_water_level,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds, extend='both')
+                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
         # normal case
         if len(bounds) > 2:
             cbar = plt.colorbar(sc)
-            if project_preferences['language'] == 0:
-                cbar.ax.set_ylabel('Water level [m]')
-            elif project_preferences['language'] == 1:
-                cbar.ax.set_ylabel("Niveau d'eau [m]")
-            else:
-                cbar.ax.set_ylabel('Water level [m]')
+            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Water level [m]'))
         # constant case
         else:
             plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant water level",
@@ -1622,31 +1445,16 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=project_preferences['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=project_preferences['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                            dpi=project_preferences['resolution'], transparent=True)
             else:
-                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
-                if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                test = tools_mod.remove_image(name_hdf5[:-4] + "_height", path_im, project_preferences['format'])
+                if not test:
                     return
-                if format1 == 0:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                                transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                                transparent=True)
+                plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                            dpi=project_preferences['resolution'],
+                            transparent=True)
 
         # output for plot_GUI
         state.value = 1  # process finished
@@ -1662,6 +1470,8 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
 def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_description, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1671,9 +1481,7 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
@@ -1681,20 +1489,18 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
     unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : maillage et point - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_maillage_points_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : mesh and points - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_mesh_points_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Mesh and points - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'mesh_points') + "_" + reach_name + '_' + unit_name
 
     # plot
-    plt.figure(filename)
+    _ = plt.figure(filename)
+    ax = plt.axes()
     # the grid
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title)
-    plt.axis('equal')
 
     # prepare the grid
     if data_tin is not None:  # case empty grid
@@ -1728,32 +1534,31 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
         #     plt.annotate(str(inter_h_all[r][idx]),c)
 
     # plot
-    plt.scatter(x=data_xy[:, 0], y=data_xy[:, 1], s=5, color='black')
+    ax.scatter(x=data_xy[:, 0], y=data_xy[:, 1], s=5, color='black')
     plt.ticklabel_format(useOffset=False)
+    plt.axis('equal')
+
+    plt.tight_layout()  # remove margin out of plot
+
+    plt.margins(x=0)
+    plt.margins(y=0)
+
+    # set frame position as other plot
+    ax.set_position((0.12240277777777779, 0.09039682539682536,  # x0, y0
+                     0.6876777777777778, 0.8505555555555557))  # width, height
 
     # save figures
-    plt.tight_layout()  # remove margin out of plot
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                        dpi=project_preferences['resolution'], transparent=True)
         else:
-            test = tools_mod.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
+            test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+            if not test:
                 return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                        dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -1768,12 +1573,14 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
 def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
@@ -1784,19 +1591,16 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Pente maximale du fond - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_pente_fond_max_{reach_name}_{unit_name}"
-
-    else:
-        title = f"{name_hdf5[:-4]} : Maximum slope bottom - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_max_slope_bottom_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Maximum slope bottom - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'max_slope_bottom') + "_" + reach_name + '_' + unit_name
 
     # create mask
     masked_array = np.ma.array(slope_data, mask=np.isnan(slope_data))
 
     # preplot
-    fig = plt.figure(filename)
+    _ = plt.figure(filename)
     ax = plt.axes()
 
     # plot the habitat value
@@ -1817,52 +1621,33 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
     collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
     collection.set_array(masked_array)
     ax.add_collection(collection)
-    ax.autoscale_view()
     ax.ticklabel_format(useOffset=False)
 
+    # colorbar
+    cb1 = plt.colorbar(collection)
+    cb1.set_label(qt_tr.translate("plot_mod", 'Maximum slope bottom []'))
+    plt.margins(x=0)
+    plt.margins(y=0)
     plt.axis('equal')
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title)
-    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-
-    # colorbar
-    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-    if project_preferences['language'] == 0:
-        cb1.set_label('Maximum slope bottom []')
-    elif project_preferences['language'] == 1:
-        cb1.set_label('Pente maximale du fond []')
-    else:
-        cb1.set_label('slope []')
+    plt.tight_layout()
 
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + time.strftime(
+                "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                        dpi=project_preferences['resolution'], transparent=True)
+
         else:
-            test = tools_mod.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+            test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+            if not test:
                 return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                            transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                        dpi=project_preferences['resolution'],
+                        transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -1877,12 +1662,14 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
 def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
@@ -1893,19 +1680,16 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Pente maximale d'énergie - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_pente_energie_{reach_name}_{unit_name}"
-
-    else:
-        title = f"{name_hdf5[:-4]} : Maximum slope energy - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_max_slope_energy_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Maximum slope energy - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'max_slope_energy') + "_" + reach_name + '_' + unit_name
 
     # create mask
     masked_array = np.ma.array(slope_data, mask=np.isnan(slope_data))
 
     # preplot
-    fig = plt.figure(filename)
+    _ = plt.figure(filename)
     ax = plt.axes()
 
     # plot the habitat value
@@ -1926,52 +1710,33 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
     collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
     collection.set_array(masked_array)
     ax.add_collection(collection)
-    ax.autoscale_view()
     ax.ticklabel_format(useOffset=False)
 
+    # colorbar
+    cb1 = plt.colorbar(collection)
+    cb1.set_label(qt_tr.translate("plot_mod", 'Maximum slope energy []'))
+
+    plt.margins(x=0)
+    plt.margins(y=0)
     plt.axis('equal')
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title)
-    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-
-    # colorbar
-    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-    if project_preferences['language'] == 0:
-        cb1.set_label('Maximum slope energy []')
-    elif project_preferences['language'] == 1:
-        cb1.set_label("Pente maximale d'énergie []")
-    else:
-        cb1.set_label('slope []')
+    plt.tight_layout()
 
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + time.strftime(
+                "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                        dpi=project_preferences['resolution'], transparent=True)
         else:
-            test = tools_mod.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+            test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+            if not test:
                 return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                            transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                        dpi=project_preferences['resolution'],
+                        transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -1986,12 +1751,14 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
 def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
@@ -2002,19 +1769,16 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : Contrainte de cisaillement - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_contrainte_cisaillement_{reach_name}_{unit_name}"
-
-    else:
-        title = f"{name_hdf5[:-4]} : Shear stress - {reach_name} - {unit_name} {unit_type}"
-        filename = f"{name_hdf5[:-4]}_shear_stress_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'Shear stress - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'shear_stress') + "_" + reach_name + '_' + unit_name
 
     # create mask
     masked_array = np.ma.array(shear_stress, mask=np.isnan(shear_stress))
 
     # preplot
-    fig = plt.figure(filename)
+    _ = plt.figure(filename)
     ax = plt.axes()
 
     # plot the habitat value
@@ -2035,52 +1799,33 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
     collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
     collection.set_array(masked_array)
     ax.add_collection(collection)
-    ax.autoscale_view()
     ax.ticklabel_format(useOffset=False)
 
+    # colorbar
+    cb1 = plt.colorbar(collection)
+    cb1.set_label(qt_tr.translate("plot_mod", 'Shear stress []'))
+    plt.margins(x=0)
+    plt.margins(y=0)
     plt.axis('equal')
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title)
-    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-
-    # colorbar
-    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-    if project_preferences['language'] == 0:
-        cb1.set_label('Shear stress []')
-    elif project_preferences['language'] == 1:
-        cb1.set_label("Contraite de cisaillement []")
-    else:
-        cb1.set_label('Shear stress []')
+    plt.tight_layout()
 
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + time.strftime(
+                "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                        dpi=project_preferences['resolution'], transparent=True)
+
         else:
-            test = tools_mod.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+            test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+            if not test:
                 return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                            transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                        dpi=project_preferences['resolution'],
+                        transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -2092,7 +1837,7 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
         plt.close()
 
 
-def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_im, project_preferences={}, reach_name="", unit_name=0.0):
+def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_description, path_im, project_preferences={}, reach_name="", unit_name=0.0):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -2110,12 +1855,14 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     """
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     types_plot = project_preferences['type_plot']
@@ -2126,19 +1873,24 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title_pg = f"Substrat - Plus Gros - {reach_name} - {unit_name} [{unit_type}]"
-        title_dom = f"Substrat - Dominant - {reach_name} - {unit_name} [{unit_type}]"
-        filename_pg_dm = f"{name_hdf5[:-4]}_substrat_{reach_name}_{unit_name}"
+    if sub_type == "sub_coarser":
+        title = qt_tr.translate("plot_mod",
+                                'Substrate coarser - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+        filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                          'substrate_coarser') + "_" + reach_name + '_' + unit_name
+
     else:
-        title_pg = f"Substrate - Coarser - {reach_name} - {unit_name} [{unit_type}]"
-        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} [{unit_type}]"
-        filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
+        title = qt_tr.translate("plot_mod",
+                                'Substrate dominant - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+        filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                          'substrate_dominant') + "_" + reach_name + '_' + unit_name
 
     # prepare data
     unziped = list(zip(*sub_array))
-    sub_pg = unziped[0]
-    sub_dom = unziped[1]
+    if sub_type == "sub_coarser":
+        sub_data = unziped[0]
+    else:
+        sub_data = unziped[1]
 
     # prepare grid (to optimize)
     xlist = []
@@ -2163,26 +1915,24 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
         ylist.append(None)
 
     # general
-    fig = plt.figure(name_hdf5[:-4])
-    subs = fig.subplots(nrows=2, sharex=True, sharey=True)  #
-    plt.setp(subs.flat, aspect='equal')
-    sub1, sub2 = subs
+    _ = plt.figure(filename)
+    ax = plt.axes()
     cmap = plt.get_cmap(project_preferences['color_map2'])
     if data_description["sub_classification_code"] == "Cemagref":
         max_class = 8
-        listcathegories = list(range(0, max_class + 2))
+        listcathegories = list(range(1, max_class + 2))
         norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
         # norm = mpl.colors.Normalize(vmin=1, vmax=8)
     if data_description["sub_classification_code"] == "Sandre":
         max_class = 12
-        listcathegories = list(range(0, max_class + 2))
+        listcathegories = list(range(1, max_class + 2))
         norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
         # norm = mpl.colors.Normalize(vmin=1, vmax=12)
 
     # sub1 substrate coarser
     patches = []
-    colors_val = np.array(sub_pg, np.int)  # convert nfloors to colors that we can use later (cemagref)
-    n = len(sub_pg)
+    colors_val = np.array(sub_data, np.int)  # convert nfloors to colors that we can use later (cemagref)
+    n = len(sub_data)
     for i in range(0, n):
         verts = []
         for j in range(0, len(ikle[i])):
@@ -2191,68 +1941,39 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
         polygon = Polygon(verts, closed=True, edgecolor='w')
         patches.append(polygon)
     collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
-    sub1.add_collection(collection)
+    ax.add_collection(collection)
     collection.set_array(colors_val)
-    sub1.autoscale_view()
-    sub1.set_ylabel('y coord []')
-    sub1.set_title(title_pg)
-
-    # sub2 substrate dominant
-    patches = []
-    colors_val = np.array(sub_dom, np.int)  # convert nfloors to colors that we can use later
-    n = len(sub_dom)
-    for i in range(0, n):
-        verts = []
-        for j in range(0, len(ikle[i])):
-            verts_j = coord_p[int(ikle[i][j]), :]
-            verts.append(verts_j)
-        polygon = Polygon(verts, closed=True, edgecolor='w')
-        patches.append(polygon)
-    collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
-    sub2.add_collection(collection)
-    collection.set_array(colors_val)
-    sub1.autoscale_view()
-    sub2.set_ylabel('y coord []')
-    sub2.set_title(title_dom)
-    sub2.set_xlabel('x coord []')
-    sub2.xaxis.set_tick_params(rotation=15)
+    ax.set_ylabel('y coord []')
+    ax.set_title(title)
+    ax.set_xlabel('x coord []')
 
     # colorbar
-    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-    listcathegories_stick = [x + 0.5 for x in range(0, max_class + 1)]
+    listcathegories_stick = [x + 0.5 for x in range(1, max_class + 1)]
     listcathegories_stick_label = [x for x in range(1, max_class + 1)]
-    cb1 = mpl.colorbar.ColorbarBase(ax1,
-                                    cmap=cmap,
-                                    norm=norm,
-                                    boundaries=listcathegories_stick_label + [max_class + 1],
-                                    orientation='vertical')
+    cb1 = plt.colorbar(collection)
     cb1.set_ticks(listcathegories_stick)
     cb1.set_ticklabels(listcathegories_stick_label)
     cb1.set_label(data_description["sub_classification_code"])
-    #plt.tight_layout()
+
+    plt.margins(x=0)
+    plt.margins(y=0)
+    plt.axis('equal')
+    plt.tight_layout()
 
     # save the figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format == 0:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                         '.pdf'), dpi=project_preferences['resolution'], transparent=True)
-            if format == 1:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                         '.png'), dpi=project_preferences['resolution'], transparent=True)
-            if format == 2:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                         '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                     project_preferences['format']),
+                        dpi=project_preferences['resolution'],
+                        transparent=True)
         else:
-            test = tools_mod.remove_image("substrate_coars_dom", path_im, format)
+            test = tools_mod.remove_image("substrate_coars_dom", path_im, project_preferences['format'])
             if not test:
                 return
-            if format == 0 or format == 1:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + ".png"), dpi=project_preferences['resolution'], transparent=True)
-            if format == 0 or format == 3:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
-            if format == 2:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                        dpi=project_preferences['resolution'],
+                        transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -2267,18 +1988,18 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
 def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format1 = int(project_preferences['format'])
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
     erase1 = project_preferences['erase_id']
-
-
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
@@ -2286,29 +2007,26 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
     fish_short_name = data_description["hab_fish_shortname_list"].split(", ")[fish_index]
 
     # title and filename
-    if project_preferences['language'] == 1:
-        title = f"{name_hdf5[:-4]} : valeur d'habitat\n{fish_name} - {reach_name} - {unit_name} {unit_type}\n" \
-            f"surface inconnue : {percent_unknown:3.2f} %"
-        filename = f"{name_hdf5[:-4]}_VH_{fish_short_name}_{reach_name}_{unit_name}"
-    else:
-        title = f"{name_hdf5[:-4]} : habitat value\n{fish_name} - {reach_name} - {unit_name} {unit_type}\n" \
-            f"unknwon area : {percent_unknown:3.2f} %"
-        filename = f"{name_hdf5[:-4]}_HSI_{fish_short_name}_{reach_name}_{unit_name}"
+    title = qt_tr.translate("plot_mod",
+                            'HV : ') + fish_name + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "] - " + \
+            qt_tr.translate("plot_mod",
+                            'unknwon area = ') + '{0:3.2f}'.format(percent_unknown) + " %"
+    filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
+                                                      'HV') + "_" + fish_short_name + "_" + reach_name + '_' + unit_name
 
     # prep data
     masked_array = np.ma.array(vh, mask=np.isnan(vh))  # create mask
 
     # preplot
-    fig = plt.figure(filename)
+    _ = plt.figure(filename)
     ax = plt.axes()
-    # fig, ax = plt.subplots(1)  # new figure
-    norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
     # plot the habitat value
     cmap = plt.get_cmap(project_preferences['color_map2'])
     cmap.set_bad(color='black', alpha=1.0)
 
     n = len(vh)
+    norm = mpl.colors.Normalize(vmin=0, vmax=1)
     patches = []
     for i in range(0, n):
         verts = []
@@ -2319,54 +2037,34 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
         patches.append(polygon)
 
     collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    # collection.set_color(colors) too slow
     collection.set_array(masked_array)
     ax.add_collection(collection)
-    ax.autoscale_view()
     ax.ticklabel_format(useOffset=False)
+
+    # colorbar
+    cb1 = plt.colorbar(collection)
+    cb1.set_label(qt_tr.translate("plot_mod", 'HV []'))
+    plt.margins(x=0)
+    plt.margins(y=0)
     plt.axis('equal')
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title)
-    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-
-    # colorbar
-    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-    if project_preferences['language'] == 0:
-        cb1.set_label('HV []')
-    elif project_preferences['language'] == 1:
-        cb1.set_label('VH []')
-    else:
-        cb1.set_label('HV []')
+    plt.tight_layout()
 
     # save figure
     if types_plot == "image export" or types_plot == "both":
         if not erase1:
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=project_preferences['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + time.strftime(
+                "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                        dpi=project_preferences['resolution'], transparent=True)
+
         else:
-            test = tools_mod.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+            test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+            if not test:
                 return
-            if format1 == 0:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
-                            transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
-                            transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']), dpi=project_preferences['resolution'],
+                        transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
