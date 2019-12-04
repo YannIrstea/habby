@@ -144,6 +144,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     # hyd description
     hyd_description = dict()
     hyd_description["hyd_filename_source"] = data_description["filename_source"]
+    hyd_description["hyd_path_filename_source"] = data_description["path_filename_source"]
     hyd_description["hyd_model_type"] = data_description["model_type"]
     hyd_description["hyd_2D_numerical_method"] = data_description["2D_numerical_method"]
     hyd_description["hyd_model_dimension"] = data_description["model_dimension"]
@@ -171,6 +172,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
 
     # change extension of hdf5 to create .hab
     if sub_presence:
+        hyd_description["sub_filename_source"] = data_description["filename_source"]  # same hyd
         hyd_description["sub_classification_method"] = data_description["sub_classification_method"]
         hyd_description["sub_classification_code"] = data_description["sub_classification_code"]
         hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]

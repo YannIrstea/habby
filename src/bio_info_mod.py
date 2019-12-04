@@ -431,7 +431,7 @@ def get_hydrosignature(xmlfile):
 
     :param xmlfile: the path and name of the xmlfile
     """
-
+    error_list = False, False, False
     # open the file
     try:
         try:
@@ -439,10 +439,10 @@ def get_hydrosignature(xmlfile):
             root = docxml.getroot()
         except IOError:
             print("Warning: the xml file does not exist \n")
-            return
+            return error_list
     except ET.ParseError:
         print("Warning: the xml file is not well-formed.\n")
-        return
+        return error_list
 
     # get the hydro signature data
     hs = root.find('HydrosignatureOfTheSamplingData')
@@ -466,24 +466,24 @@ def get_hydrosignature(xmlfile):
                         except ValueError:
                             print('Warning: hydrosignature data could not be\
                                 transformed to float')
-                            return
+                            return error_list
                     else:
                         print('Warning: no hydrosignature found in\
                             the xml file (1). \n')
-                        return
+                        return error_list
                 else:
                     print('Warning: no hydrosignature found in\
                         the xml file (2). \n')
-                    return
+                    return error_list
             except KeyError:
                 print('Warning: Unit no found in the hydrosignature \n')
-                return
+                return error_list
         else:
             print('Warning: no hydrosignature found in the xml file (3). \n')
-            return
+            return error_list
     else:
         print('Warning: no hydrosignature found in the xml file (4). \n')
-        return
+        return error_list
 
     # if data found, plot the image
 
@@ -494,7 +494,7 @@ def get_hydrosignature(xmlfile):
     if len(data) != (len(vclass) - 1) * (len(hclass) - 1):
         print('Warning: the data for hydrosignature is not\
             of the right length.\n')
-        return
+        return error_list
 
     data = data.reshape((len(vclass) - 1, len(hclass) - 1))
     return data, vclass, hclass

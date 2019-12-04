@@ -31,7 +31,7 @@ from lxml import etree as ET
 
 from src import bio_info_mod
 from src import plot_mod
-from src.project_manag_mod import load_project_preferences
+from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences
 from src.user_preferences_mod import user_preferences
 from src_GUI.data_explorer_GUI import MyProcessList
 from src.bio_info_mod import get_name_stage_codebio_fromstr
@@ -86,22 +86,18 @@ class BioModelExplorerWindow(QDialog):
         # source
         self.source_str = source_str
 
-        # load dicoselect in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(fname, parser)
-        root = doc.getroot()
-        # geo data
-        child1 = root.find('.//bio_model_explorer_selection')
+        bio_model_explorer_selection_dict = load_specific_preferences(self.path_prj,
+                                                                      ["bio_model_explorer_selection"])[0]
+
         if user_preferences.modified:
             self.send_log.emit("Warning: " + self.tr("Biological models database has been modified. \n") + user_preferences.diff_list)
-        if child1 is None or user_preferences.modified:
+        if not bio_model_explorer_selection_dict or user_preferences.modified:
             self.bio_model_filter_tab.create_dico_select()
-            self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
+            self.bio_model_infoselection_tab.bio_model_explorer_selection_dict = self.bio_model_filter_tab.bio_model_explorer_selection_dict
         else:
-            self.bio_model_filter_tab.dicoselect = eval(child1.text)
-            self.bio_model_filter_tab.dicoselect["selected"] = np.array(self.bio_model_filter_tab.dicoselect["selected"])
-            self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
+            self.bio_model_filter_tab.bio_model_explorer_selection_dict = bio_model_explorer_selection_dict
+            self.bio_model_filter_tab.bio_model_explorer_selection_dict["selected"] = np.array(self.bio_model_filter_tab.bio_model_explorer_selection_dict["selected"])
+            self.bio_model_infoselection_tab.bio_model_explorer_selection_dict = self.bio_model_filter_tab.bio_model_explorer_selection_dict
 
         # mainwindow
         mainwindow_center = self.nativeParentWidget().geometry().center()
@@ -116,9 +112,9 @@ class BioModelExplorerWindow(QDialog):
 
     def load_model_selected_to_available(self):
         if self.tab_widget.currentIndex() == 1:  # model selected tab
-            dicoselect = self.bio_model_filter_tab.dicoselect
+            bio_model_explorer_selection_dict = self.bio_model_filter_tab.bio_model_explorer_selection_dict
             biological_models_dict_gui = self.bio_model_filter_tab.biological_models_dict_gui
-            self.bio_model_infoselection_tab.dicoselect = dicoselect
+            self.bio_model_infoselection_tab.bio_model_explorer_selection_dict = bio_model_explorer_selection_dict
             self.bio_model_infoselection_tab.biological_models_dict_gui = biological_models_dict_gui
             self.bio_model_infoselection_tab.fill_available_aquatic_animal()
 
@@ -260,7 +256,7 @@ class BioModelFilterTab(QScrollArea):
 
     def create_dico_select(self):
         print("create_dico_select")
-        self.dicoselect = dict()
+        self.bio_model_explorer_selection_dict = dict()
         for i, ky in enumerate(self.biological_models_dict_gui['orderedKeys']):
             # print(ky)
             if self.biological_models_dict_gui['orderedKeysmultilist'][i]:
@@ -268,8 +264,8 @@ class BioModelFilterTab(QScrollArea):
             else:
                 s1 = sorted(set(self.biological_models_dict_gui[ky]))
             s2 = [True] * len(s1)
-            self.dicoselect[ky] = [s1, s2, True]
-        self.dicoselect[self.biological_models_dict_gui['orderedKeys'][0]][2] = True
+            self.bio_model_explorer_selection_dict[ky] = [s1, s2, True]
+        self.bio_model_explorer_selection_dict[self.biological_models_dict_gui['orderedKeys'][0]][2] = True
         # dispatching 'code_alternative' into 'fish_code_alternative' and 'inv_code_alternative'
         lkyf, lkyi = [], []
         for i, item in enumerate(self.biological_models_dict_gui['code_alternative']):
@@ -279,13 +275,13 @@ class BioModelFilterTab(QScrollArea):
                 lkyi.append(item)
         skyf = sorted({x for l in lkyf for x in l})
         skyi = sorted({x for l in lkyi for x in l})
-        self.dicoselect['fish_code_alternative'] = [skyf, [True] * len(skyf), True]
-        self.dicoselect['inv_code_alternative'] = [skyi, [True] * len(skyi), True]
-        self.dicoselect['selected'] = np.ones((len(self.biological_models_dict_gui['country']),), dtype=bool)
+        self.bio_model_explorer_selection_dict['fish_code_alternative'] = [skyf, [True] * len(skyf), True]
+        self.bio_model_explorer_selection_dict['inv_code_alternative'] = [skyi, [True] * len(skyi), True]
+        self.bio_model_explorer_selection_dict['selected'] = np.ones((len(self.biological_models_dict_gui['country']),), dtype=bool)
 
     def fill_first_time(self):
         """
-        this function build or rebuild the view of the biological models selected from the dicoselect  and
+        this function build or rebuild the view of the biological models selected from the bio_model_explorer_selection_dict  and
         biological_models_dict_gui dictionnaries
         """
         # clean
@@ -293,21 +289,21 @@ class BioModelFilterTab(QScrollArea):
         self.clear_filter_dispatch(True)
 
         # fill
-        bio_models_selected = np.ones((len(self.dicoselect['selected']),), dtype=bool)
+        bio_models_selected = np.ones((len(self.bio_model_explorer_selection_dict['selected']),), dtype=bool)
         for i, ky in enumerate(self.biological_models_dict_gui['orderedKeys']):
-            if not self.dicoselect[ky][2]:
+            if not self.bio_model_explorer_selection_dict[ky][2]:
                 return
             listwidget = eval("self." + ky + "_listwidget")
             listwidget.blockSignals(True)
             if ky == 'country':
-                for itemx in self.dicoselect[ky][0]:
+                for itemx in self.bio_model_explorer_selection_dict[ky][0]:
                     listwidget.addItem(itemx)
             lky = set()
             for index in range(listwidget.count()):
-                ii = self.dicoselect[ky][0].index(listwidget.item(index).text())
-                if self.dicoselect[ky][1][ii]:
+                ii = self.bio_model_explorer_selection_dict[ky][0].index(listwidget.item(index).text())
+                if self.bio_model_explorer_selection_dict[ky][1][ii]:
                     listwidget.item(index).setSelected(True)
-                    lky.add(self.dicoselect[ky][0][ii])
+                    lky.add(self.bio_model_explorer_selection_dict[ky][0][ii])
             listwidget.blockSignals(False)
             if self.biological_models_dict_gui['orderedKeysmultilist'][i]:  # if multi
                 sky = [len(lky & set(x)) != 0 for x in self.biological_models_dict_gui[ky]]
@@ -323,7 +319,7 @@ class BioModelFilterTab(QScrollArea):
                     sp = set(sp)
                 listwidget = eval("self." + kynext + "_listwidget")
                 listwidget.blockSignals(True)
-                for item in self.dicoselect[kynext][0]:
+                for item in self.bio_model_explorer_selection_dict[kynext][0]:
                     if item in sp:
                         listwidget.addItem(item)
                 listwidget.blockSignals(False)
@@ -332,15 +328,15 @@ class BioModelFilterTab(QScrollArea):
         sp = {x for y in sp for x in y}
 
         for kyi in ['fish_code_alternative', 'inv_code_alternative']:
-            if self.dicoselect[kyi][2]:
+            if self.bio_model_explorer_selection_dict[kyi][2]:
                 listwidget = eval("self." + kyi + "_listwidget")
                 listwidget.blockSignals(True)
                 inditem = -1
-                for ind, item in enumerate(self.dicoselect[kyi][0]):
+                for ind, item in enumerate(self.bio_model_explorer_selection_dict[kyi][0]):
                     if item in sp:
                         listwidget.addItem(item)
                         inditem += 1
-                        if self.dicoselect[kyi][1][ind]:
+                        if self.bio_model_explorer_selection_dict[kyi][1][ind]:
                             listwidget.item(inditem).setSelected(True)
                 listwidget.blockSignals(False)
         return
@@ -352,7 +348,7 @@ class BioModelFilterTab(QScrollArea):
         for kyi in self.biological_models_dict_gui['orderedKeys']:
             listwidget = eval("self." + kyi + "_listwidget")
             if not first_time:
-                self.dicoselect[kyi][2] = False  # all subkeys are off
+                self.bio_model_explorer_selection_dict[kyi][2] = False  # all subkeys are off
             if listwidget.count() != 0:
                 listwidget.blockSignals(True)
                 listwidget.clear()
@@ -374,26 +370,26 @@ class BioModelFilterTab(QScrollArea):
         if selection:
             # selected_values_list
             lky = {selection_item.text() for selection_item in selection}
-            self.dicoselect[ky][1] = [x in lky for x in self.dicoselect[ky][0]]
+            self.bio_model_explorer_selection_dict[ky][1] = [x in lky for x in self.bio_model_explorer_selection_dict[ky][0]]
         else:
-            self.dicoselect[ky][1] = [False]*len(self.dicoselect[ky][1])
-        self.dicoselect['selected'] = np.ones((len(self.dicoselect['selected']),),
-                                                              dtype=bool)
+            self.bio_model_explorer_selection_dict[ky][1] = [False] * len(self.bio_model_explorer_selection_dict[ky][1])
+        self.bio_model_explorer_selection_dict['selected'] = np.ones((len(self.bio_model_explorer_selection_dict['selected']),),
+                                                                     dtype=bool)
         for iky in range(next_key_ind):
             kyi = self.biological_models_dict_gui['orderedKeys'][iky]
-            lky = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
+            lky = {x for x, y in zip(self.bio_model_explorer_selection_dict[kyi][0], self.bio_model_explorer_selection_dict[kyi][1]) if y}
             if self.biological_models_dict_gui['orderedKeysmultilist'][iky]:  # if multi
                 sky = [len(lky & set(x)) != 0 for x in self.biological_models_dict_gui[kyi]]
             else:  # if solo
                 sky = [x in lky for x in self.biological_models_dict_gui[kyi]]
-            self.dicoselect['selected'] = np.logical_and(self.dicoselect['selected'],
-                                                                         np.array(sky))
-            self.dicoselect[kyi][2] = True
+            self.bio_model_explorer_selection_dict['selected'] = np.logical_and(self.bio_model_explorer_selection_dict['selected'],
+                                                                                np.array(sky))
+            self.bio_model_explorer_selection_dict[kyi][2] = True
         if next_key_ind != len(self.biological_models_dict_gui['orderedKeys']):
             for indice in range(next_key_ind, len(self.biological_models_dict_gui['orderedKeys'])):
                 # print("loop key", self.biological_models_dict_gui['orderedKeys'][indice])
                 listwidget = eval("self." + self.biological_models_dict_gui['orderedKeys'][indice] + "_listwidget")
-                self.dicoselect[self.biological_models_dict_gui['orderedKeys'][indice]][
+                self.bio_model_explorer_selection_dict[self.biological_models_dict_gui['orderedKeys'][indice]][
                     2] = False  # all subkeys are off
                 if listwidget.count() != 0:
                     listwidget.blockSignals(True)
@@ -410,17 +406,17 @@ class BioModelFilterTab(QScrollArea):
             else:
                 self.clear_filter_dispatch()
         if ky == "country" and not selection:
-            self.dicoselect['selected'] = np.zeros((len(self.dicoselect['selected']),),
-                                                                   dtype=bool)
+            self.bio_model_explorer_selection_dict['selected'] = np.zeros((len(self.bio_model_explorer_selection_dict['selected']),),
+                                                                          dtype=bool)
 
     def result_to_selected(self, ky):
         """
         building the view selection of biological models
         after selection adding items in the following key
-        :param ky: a dictionnary key belonging both to biological_models_dict_gui and dicoselect dictionnaries and used to name listwidget associated
+        :param ky: a dictionnary key belonging both to biological_models_dict_gui and bio_model_explorer_selection_dict dictionnaries and used to name listwidget associated
         """
         # print("result_to_selected", ky)
-        sp = [x for x, y in zip(self.biological_models_dict_gui[ky], list(self.dicoselect['selected']))
+        sp = [x for x, y in zip(self.biological_models_dict_gui[ky], list(self.bio_model_explorer_selection_dict['selected']))
               if y]
         if self.biological_models_dict_gui['orderedKeysmultilist'][
             self.biological_models_dict_gui['orderedKeys'].index(ky)]:
@@ -428,14 +424,14 @@ class BioModelFilterTab(QScrollArea):
         else:
             sp = set(sp)
         # print(sp)
-        self.dicoselect[ky][1] = [x in sp for x in self.dicoselect[ky][0]]
-        self.dicoselect[ky][2] = False  # the key is off
+        self.bio_model_explorer_selection_dict[ky][1] = [x in sp for x in self.bio_model_explorer_selection_dict[ky][0]]
+        self.bio_model_explorer_selection_dict[ky][2] = False  # the key is off
         # print(self.DicoSelect)
         # display
         listwidget = eval("self." + ky + "_listwidget")
-        for ind, bo in enumerate(self.dicoselect[ky][1]):
+        for ind, bo in enumerate(self.bio_model_explorer_selection_dict[ky][1]):
             if bo:
-                listwidget.addItem(self.dicoselect[ky][0][ind])
+                listwidget.addItem(self.bio_model_explorer_selection_dict[ky][0][ind])
         listwidget.selectAll()
 
     def clear_filter_dispatch(self, first_time=False):
@@ -445,7 +441,7 @@ class BioModelFilterTab(QScrollArea):
         for kyi in ['fish_code_alternative', 'inv_code_alternative']:
             listwidget = eval("self." + kyi + "_listwidget")
             if not first_time:
-                self.dicoselect[kyi][2] = False  # all subkeys are off
+                self.bio_model_explorer_selection_dict[kyi][2] = False  # all subkeys are off
             if listwidget.count() != 0:
                 listwidget.blockSignals(True)
                 listwidget.clear()
@@ -460,28 +456,28 @@ class BioModelFilterTab(QScrollArea):
         ky = self.sender().objectName()  # 'fish_code_alternative' or 'inv_code_alternative']:
         listwidget = self.sender()
         selection = listwidget.selectedItems()
-        self.dicoselect['selected'] = np.ones((len(self.dicoselect['selected']),),
-                                                              dtype=bool)
+        self.bio_model_explorer_selection_dict['selected'] = np.ones((len(self.bio_model_explorer_selection_dict['selected']),),
+                                                                     dtype=bool)
         for iky in range(len(self.biological_models_dict_gui['orderedKeys'])):
             kyi = self.biological_models_dict_gui['orderedKeys'][iky]
-            lky = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
+            lky = {x for x, y in zip(self.bio_model_explorer_selection_dict[kyi][0], self.bio_model_explorer_selection_dict[kyi][1]) if y}
             if self.biological_models_dict_gui['orderedKeysmultilist'][iky]:  # if multi
                 sky = [len(lky & set(x)) != 0 for x in self.biological_models_dict_gui[kyi]]
             else:  # if solo
                 sky = [x in lky for x in self.biological_models_dict_gui[kyi]]
-            self.dicoselect['selected'] = np.logical_and(self.dicoselect['selected'],
-                                                                         np.array(sky))
-            self.dicoselect[kyi][2] = True
+            self.bio_model_explorer_selection_dict['selected'] = np.logical_and(self.bio_model_explorer_selection_dict['selected'],
+                                                                                np.array(sky))
+            self.bio_model_explorer_selection_dict[kyi][2] = True
         for kyi in ['fish_code_alternative', 'inv_code_alternative']:
             if kyi != ky:
-                lkyi = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
+                lkyi = {x for x, y in zip(self.bio_model_explorer_selection_dict[kyi][0], self.bio_model_explorer_selection_dict[kyi][1]) if y}
                 skyi = [len(lkyi & set(x)) != 0 for x in self.biological_models_dict_gui['code_alternative']]
         lkyj = {selection_item.text() for selection_item in selection}
-        self.dicoselect[ky][1] = [x in lkyj for x in self.dicoselect[ky][0]]
+        self.bio_model_explorer_selection_dict[ky][1] = [x in lkyj for x in self.bio_model_explorer_selection_dict[ky][0]]
         skyj = [len(lkyj & set(x)) != 0 for x in self.biological_models_dict_gui['code_alternative']]
         askyj = np.logical_or(np.array(skyi), np.array(skyj))
-        self.dicoselect['selected'] = np.logical_and(self.dicoselect['selected'], askyj)
-        self.dicoselect[ky][2] = True
+        self.bio_model_explorer_selection_dict['selected'] = np.logical_and(self.bio_model_explorer_selection_dict['selected'], askyj)
+        self.bio_model_explorer_selection_dict[ky][2] = True
 
     def result_to_selected_dispatch(self):
         """
@@ -490,16 +486,16 @@ class BioModelFilterTab(QScrollArea):
         :return:
         """
         sp = [x for x, y in zip(self.biological_models_dict_gui['code_alternative'],
-                                list(self.dicoselect['selected']))
+                                list(self.bio_model_explorer_selection_dict['selected']))
               if y]
         sp = {x for y in sp for x in y}
         for kyi in ['fish_code_alternative', 'inv_code_alternative']:
-            self.dicoselect[kyi][1] = [x in sp for x in self.dicoselect[kyi][0]]
-            self.dicoselect[kyi][2] = False  # the key is off
+            self.bio_model_explorer_selection_dict[kyi][1] = [x in sp for x in self.bio_model_explorer_selection_dict[kyi][0]]
+            self.bio_model_explorer_selection_dict[kyi][2] = False  # the key is off
             listwidget = eval("self." + kyi + "_listwidget")
-            for ind, bo in enumerate(self.dicoselect[kyi][1]):
+            for ind, bo in enumerate(self.bio_model_explorer_selection_dict[kyi][1]):
                 if bo:
-                    listwidget.addItem(self.dicoselect[kyi][0][ind])
+                    listwidget.addItem(self.bio_model_explorer_selection_dict[kyi][0][ind])
             listwidget.selectAll()
 
 
@@ -645,14 +641,14 @@ class BioModelInfoSelection(QScrollArea):
         #self.selected_aquatic_animal_listwidget.clear()
         # line name
         item_list = []
-        for selected_xml_ind, selected_xml_tf in enumerate(self.dicoselect["selected"]):
+        for selected_xml_ind, selected_xml_tf in enumerate(self.bio_model_explorer_selection_dict["selected"]):
             if selected_xml_tf:
-                for selected_stage_ind, selected_stage_tf in enumerate(self.dicoselect["stage_and_size"][1]):
+                for selected_stage_ind, selected_stage_tf in enumerate(self.bio_model_explorer_selection_dict["stage_and_size"][1]):
                     if selected_stage_tf:
-                        stage_wish = self.dicoselect["stage_and_size"][0][selected_stage_ind]
+                        stage_wish = self.bio_model_explorer_selection_dict["stage_and_size"][0][selected_stage_ind]
                         if stage_wish in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
                             item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + " - " +
-                                             self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " +
+                                             self.bio_model_explorer_selection_dict["stage_and_size"][0][selected_stage_ind] + " - " +
                                              self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
         self.available_aquatic_animal_listwidget.model().blockSignals(True)
@@ -795,7 +791,7 @@ class BioModelInfoSelection(QScrollArea):
 
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
         # plot the pref
-        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj)
         # do the plot
         if not hasattr(self, 'process_list'):
             self.process_list = MyProcessList("plot")
@@ -874,8 +870,7 @@ class BioModelInfoSelection(QScrollArea):
             # do the plot
             if not hasattr(self, 'process_list'):
                 self.process_list = MyProcessList("plot")
-            project_preferences = load_project_preferences(self.path_prj,
-                                                               self.name_prj)
+            project_preferences = load_project_preferences(self.path_prj)
             state = Value("i", 0)
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                              args=(state,
@@ -931,22 +926,14 @@ class BioModelInfoSelection(QScrollArea):
 
     def quit_biological_model_explorer(self):
         # convert one key
-        dicoselect = self.dicoselect.copy()
-        dicoselect["selected"] = self.dicoselect["selected"].tolist()
+        bio_model_explorer_selection_dict = self.bio_model_explorer_selection_dict.copy()
+        bio_model_explorer_selection_dict["selected"] = self.bio_model_explorer_selection_dict["selected"].tolist()
 
-        # save dicoselect in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(fname, parser)
-        root = doc.getroot()
-        # geo data
-        child1 = root.find('.//bio_model_explorer_selection')
-        if child1 is None:
-            child1 = ET.SubElement(root, 'bio_model_explorer_selection')
-            child1.text = str(dicoselect)
-        else:
-            child1.text = str(dicoselect)
-        doc.write(fname, pretty_print=True)
+        # save bio_model_explorer_selection_dict in xml project
+        change_specific_preferences(self.path_prj,
+                                    preference_names=["bio_model_explorer_selection"],
+                                    preference_values=[bio_model_explorer_selection_dict])
+
         self.parent().parent().parent().close()
 
 

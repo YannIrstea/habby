@@ -129,7 +129,7 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
 
     # fig options
     if not project_preferences:
-        project_preferences = load_project_preferences(hdf5.path_prj, hdf5.name_prj)
+        project_preferences = load_project_preferences(hdf5.path_prj)
 
     # progress
     progress_value.value = 20

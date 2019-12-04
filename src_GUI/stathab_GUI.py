@@ -116,49 +116,50 @@ class StathabW(estimhab_GUI.StatModUseful):
         # if both are there, reload as the last time
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_prj):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_prj, parser)
-            root = doc.getroot()
-            child = root.find(".//Stathab")
-            if child is not None:
-                dirxml = root.find(".//DirStathab")
-                if dirxml is not None:
-                    self.dir_name = dirxml.text
-                hdf5xml = root.find(".//hdf5Stathab")
-                if hdf5xml is not None:
-                    self.hdf5_name = hdf5xml.text
-                typeloadxml = root.find(".//TypeloadStathab")
-                if typeloadxml is not None:
-                    self.typeload = typeloadxml.text
+            aa = 1
+            # parser = ET.XMLParser(remove_blank_text=True)
+            # doc = ET.parse(filename_prj, parser)
+            # root = doc.getroot()
+            # child = root.find(".//Stathab")
+            # if child is not None:
+            #     dirxml = root.find(".//DirStathab")
+            #     if dirxml is not None:
+            #         self.dir_name = dirxml.text
+            #     hdf5xml = root.find(".//hdf5Stathab")
+            #     if hdf5xml is not None:
+            #         self.hdf5_name = hdf5xml.text
+            #     typeloadxml = root.find(".//TypeloadStathab")
+            #     if typeloadxml is not None:
+            #         self.typeload = typeloadxml.text
         else:
             self.send_log.emit('Warning: Project was not saved. Save the project in the general tab \n')
 
         # check if there is a path where to save the figures
         # and if there is a type of river selected
-        if os.path.isfile(filename_prj):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_prj, parser)
-            root = doc.getroot()
-            child = root.find(".//" + 'path_figure')
-            if child is not None:
-                self.path_im = os.path.join(self.path_prj, child.text)
-            # river type
-            child = root.find(".//hdf5Stathab")
-            if child is not None:
-                try:
-                    try:
-                        rivintstr = child.attrib['riverint']
-                    except KeyError:
-                        self.send_log.emit('Warning: River type not recongnized')
-                        rivintstr = '0'
-                    self.riverint = int(rivintstr)
-                    if self.riverint > 2:
-                        self.riverint = 0
-                except ValueError:
-                    self.send_log.emit('Warning: River type not recongnized')
-                    self.riverint = 0
-        if not os.path.exists(self.path_im):
-            os.makedirs(self.path_im)
+        # if os.path.isfile(filename_prj):
+        #     parser = ET.XMLParser(remove_blank_text=True)
+        #     doc = ET.parse(filename_prj, parser)
+        #     root = doc.getroot()
+        #     child = root.find(".//" + 'path_figure')
+        #     if child is not None:
+        #         self.path_im = os.path.join(self.path_prj, child.text)
+        #     # river type
+        #     child = root.find(".//hdf5Stathab")
+        #     if child is not None:
+        #         try:
+        #             try:
+        #                 rivintstr = child.attrib['riverint']
+        #             except KeyError:
+        #                 self.send_log.emit('Warning: River type not recongnized')
+        #                 rivintstr = '0'
+        #             self.riverint = int(rivintstr)
+        #             if self.riverint > 2:
+        #                 self.riverint = 0
+        #         except ValueError:
+        #             self.send_log.emit('Warning: River type not recongnized')
+        #             self.riverint = 0
+        # if not os.path.exists(self.path_im):
+        #     os.makedirs(self.path_im)
 
         # prepare QLabel
         self.l1 = QLabel(self.tr('Stathab Input Files (.txt)'))

@@ -205,7 +205,7 @@ class DataExplorerFrame(QFrame):
             self.file_information_group.hide()
         # hydraulic
         if index == 1:
-            names = hdf5_mod.get_filename_by_type("hydraulic", os.path.join(self.path_prj, "hdf5"))
+            names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
             self.plot_group.plot_result_QCheckBox.hide()
@@ -222,7 +222,7 @@ class DataExplorerFrame(QFrame):
                     self.names_hdf5_QListWidget.selectAll()
         # substrate
         if index == 2:
-            names = hdf5_mod.get_filename_by_type("substrate", os.path.join(self.path_prj, "hdf5"))
+            names = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
             self.plot_group.plot_result_QCheckBox.hide()
@@ -239,7 +239,7 @@ class DataExplorerFrame(QFrame):
                     self.names_hdf5_QListWidget.selectAll()
         # merge hab
         if index == 3:
-            names = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj, "hdf5"))
+            names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
             self.plot_group.variable_QListWidget.clear()
             self.plot_group.plot_result_QCheckBox.show()
@@ -742,8 +742,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.plot_production_stoped = False
 
             # figure option
-            project_preferences = load_project_preferences(self.path_prj,
-                                                               self.name_prj)
+            project_preferences = load_project_preferences(self.path_prj)
             project_preferences['type_plot'] = export_type  # "interactive", "image export", "both
 
             # init
@@ -1410,8 +1409,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.export_production_stoped = False
 
             # figure option
-            project_preferences = load_project_preferences(self.path_prj,
-                                                           self.name_prj)
+            project_preferences = load_project_preferences(self.path_prj)
 
             # export_production_stoped
             self.process_list.process_list = []

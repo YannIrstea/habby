@@ -190,24 +190,26 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.send_log.emit("The project is not saved. Save the project in the Start tab before saving FStress data.")
             return
 
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(fnamep, parser)
-        root = doc.getroot()
-        tree = ET.ElementTree(root)
-        child = root.find(".//FStress_data")
-        # if we do not have already a FStress a model
-        if child is None:
-            return
-        # if not, get the hdf5 name
-        else:
-            hdf5_infoname = child.text
-        # the name is an absolute path, take it. Otherwise, assume that the file in it the path_hdf5
-        if os.path.isabs(hdf5_infoname):
-            hdf5_path = os.path.dirname(hdf5_infoname)
-            hdf5_name = os.path.basename(hdf5_infoname)
-        else:
-            hdf5_path = self.find_path_hdf5_est()
-            hdf5_name = hdf5_infoname
+        # parser = ET.XMLParser(remove_blank_text=True)
+        # doc = ET.parse(fnamep, parser)
+        # root = doc.getroot()
+        # tree = ET.ElementTree(root)
+        # child = root.find(".//FStress_data")
+        # # if we do not have already a FStress a model
+        # if child is None:
+        #     return
+        # # if not, get the hdf5 name
+        # else:
+        #     hdf5_infoname = child.text
+        # # the name is an absolute path, take it. Otherwise, assume that the file in it the path_hdf5
+        # if os.path.isabs(hdf5_infoname):
+        #     hdf5_path = os.path.dirname(hdf5_infoname)
+        #     hdf5_name = os.path.basename(hdf5_infoname)
+        # else:
+        #     hdf5_path = self.find_path_hdf5_est()
+        #     hdf5_name = hdf5_infoname
+        hdf5_path = ""
+        hdf5_name = ""
 
         # if exists, loads the hdf5
         if os.path.isfile(os.path.join(hdf5_path, hdf5_name)):
@@ -793,7 +795,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # figures
         self.path_im = self.find_path_im_est()
-        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj)
         fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, project_preferences)
         plt.show()
         #self.show_fig.emit()

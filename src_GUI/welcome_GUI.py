@@ -27,6 +27,8 @@ from PyQt5.QtGui import QPixmap, QFont
 import matplotlib as mpl
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
+from src import project_manag_mod
+
 
 class WelcomeW(QScrollArea):
     """
@@ -129,13 +131,15 @@ class WelcomeW(QScrollArea):
             pass
         # otherwise, fill it
         else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(fname, parser)
-            root = doc.getroot()
-            user_child = root.find(".//user_name")
-            des_child = root.find(".//description")
-            self.e4.setText(user_child.text)
-            self.e3.setText(des_child.text)
+            # parser = ET.XMLParser(remove_blank_text=True)
+            # doc = ET.parse(fname, parser)
+            # root = doc.getroot()
+            # user_child = root.find(".//user_name")
+            # des_child = root.find(".//description")
+            preference_names = project_manag_mod.load_specific_preferences(self.path_prj,
+                                                        preference_names=["user_name", "description"])
+            self.e4.setText(preference_names[0])
+            self.e3.setText(preference_names[1])
 
         # empty frame scrolable
         content_widget = QFrame()

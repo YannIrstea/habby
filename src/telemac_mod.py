@@ -227,6 +227,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         # hyd description
         hyd_description = dict()
         hyd_description["hyd_filename_source"] = hydrau_description[hyd_file]["filename_source"]
+        hyd_description["hyd_path_filename_source"] = hydrau_description[hyd_file]["path_filename_source"]
         hyd_description["hyd_model_type"] = hydrau_description[hyd_file]["model_type"]
         hyd_description["hyd_2D_numerical_method"] = "FiniteElementMethod"
         hyd_description["hyd_model_dimension"] = hydrau_description[hyd_file]["model_dimension"]

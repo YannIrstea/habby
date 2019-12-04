@@ -753,7 +753,7 @@ def get_translator(path_prj, name_prj):
     :return: application with translate method.
     """
     # get language from project_preferences['language']
-    project_preferences = load_project_preferences(path_prj, name_prj)
+    project_preferences = load_project_preferences(path_prj)
     language = project_preferences['language']
 
     # translator

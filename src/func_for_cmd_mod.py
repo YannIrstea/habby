@@ -46,7 +46,7 @@ from src import mesh_management_mod
 from src import lammi_mod
 from src import hydro_input_file_mod
 from src.project_manag_mod import create_project_structure, save_project_preferences, \
-    create_default_project_preferences_dict, load_project_preferences, set_project_type
+    create_default_project_preferences_dict, load_project_preferences
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -90,11 +90,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     if not os.path.isdir(path_prj) or not os.path.isfile(file_prof):
         if not all_arg[0] == 'CREATE_PROJECT':
             cli_create_project(path_prj, name_prj, False, HABBY_VERSION)
-            project_preferences = load_project_preferences(path_prj, name_prj)
+            project_preferences = load_project_preferences(path_prj)
             print("Warning: Specified project_path does not exist, the latter is created.")
     # load project preferences
     else:
-        project_preferences = load_project_preferences(path_prj, name_prj)
+        project_preferences = load_project_preferences(path_prj)
 
     # ----------------------------------------------------------------------------------
     if all_arg[0] == 'LIST_COMMAND':

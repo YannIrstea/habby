@@ -49,7 +49,7 @@ from src import rubar1d2d_mod
 from src import substrate_mod
 from src import sw2d_mod
 from src import telemac_mod
-from src.project_manag_mod import load_project_preferences
+from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences, save_project_preferences
 from src.tools_mod import QGroupBoxCollapsible
 from src.user_preferences_mod import user_preferences
 
@@ -117,9 +117,9 @@ class Hydro2W(QScrollArea):
         self.tab_name = "hydraulic"
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET",
-                           "RIVER2D", "RUBAR BE", "RUBAR 20",
-                           "SW2D", "IBER2D", "TELEMAC", "TXT", "HABBY HDF5"]  # "MAGE"
+        self.name_model = ["", "HEC-RAS_1D", "HEC-RAS_2D", "LAMMI", "MASCARET",
+                           "RIVER2D", "RUBAR_BE", "RUBAR_20",
+                           "SW2D", "IBER2D", "TELEMAC", "TXT", "HABBY_HDF5"]  # "MAGE"
         self.name_model.sort()
         self.mod_act = 0
         self.msgi = QMessageBox()
@@ -516,7 +516,7 @@ class Hydro2W(QScrollArea):
         name_hdf5 = self.drop_hyd.currentText()
         path_hdf5 = self.rubar1d.find_path_hdf5()
         #path_slf = self.rubar1d.find_path_output('Path_Visualisation')
-        path_slf = os.path.join(self.path_prj, "output")
+        path_slf = os.path.join(self.path_prj, "output", "GIS")
 
         if not name_hdf5:
             self.send_log.emit(self.tr('Error: No hydraulic file found. \n'))
@@ -609,7 +609,7 @@ class SubHydroW(QWidget):
 
         # get the last file created
         self.last_hydraulic_file_label = QLabel(QCoreApplication.translate("SubHydroW", 'Last file created'))
-        self.last_hydraulic_file_name_label = QLabel(QCoreApplication.translate("SubHydroW", 'no file'))
+        self.last_hydraulic_file_name_label = QLabel()
         self.last_path_input_data = None
 
     def was_model_loaded_before(self, i=0, many_file=False):
@@ -642,31 +642,32 @@ class SubHydroW(QWidget):
         """
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//" + self.attributexml[i])
-            # if there is data in the project file about the model
-            if child is not None:
-                geo_name_path = child.text
-                if os.path.isfile(geo_name_path) and not many_file:
-                    self.namefile[i] = os.path.basename(geo_name_path)
-                    self.pathfile[i] = os.path.dirname(geo_name_path)
-                # load many file at once
-                elif many_file:
-                    list_all_name = geo_name_path.split(',\n')
-                    for j in range(0, len(list_all_name)):
-                        if os.path.isfile(list_all_name[j]):
-                            self.namefile.append(os.path.basename(list_all_name[j]))
-                            self.pathfile.append(os.path.dirname(list_all_name[j]))
-                        else:
-                            self.msg2.setIcon(QMessageBox.Warning)
-                            self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Previously Loaded File"))
-                            self.msg2.setText(QCoreApplication.translate("SubHydroW", "One of the file given in the project file does not exist."))
-                            self.msg2.setStandardButtons(QMessageBox.Ok)
-                            self.msg2.show()
-                elif os.path.basename(geo_name_path) != 'unknown file':
-                    pass
+            # parser = ET.XMLParser(remove_blank_text=True)
+            # doc = ET.parse(filename_path_pro, parser)
+            # root = doc.getroot()
+            # child = root.find(".//" + self.attributexml[i])
+            # # if there is data in the project file about the model
+            # if child is not None:
+            #     geo_name_path = child.text
+            project_preferences = load_project_preferences(self.path_prj)
+                # if os.path.isfile(geo_name_path) and not many_file:
+                #     self.namefile[i] = os.path.basename(geo_name_path)
+                #     self.pathfile[i] = os.path.dirname(geo_name_path)
+                # # load many file at once
+                # elif many_file:
+                #     list_all_name = geo_name_path.split(',\n')
+                #     for j in range(0, len(list_all_name)):
+                #         if os.path.isfile(list_all_name[j]):
+                #             self.namefile.append(os.path.basename(list_all_name[j]))
+                #             self.pathfile.append(os.path.dirname(list_all_name[j]))
+                #         else:
+                #             self.msg2.setIcon(QMessageBox.Warning)
+                #             self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Previously Loaded File"))
+                #             self.msg2.setText(QCoreApplication.translate("SubHydroW", "One of the file given in the project file does not exist."))
+                #             self.msg2.setStandardButtons(QMessageBox.Ok)
+                #             self.msg2.show()
+                # elif os.path.basename(geo_name_path) != 'unknown file':
+                #     pass
 
     def gethdf5_name_gui(self):
         """
@@ -685,7 +686,7 @@ class SubHydroW(QWidget):
         sys.stdout = sys.__stdout__  # reset to console
         self.send_err_log()
 
-        if pathname_hdf5 is not None:
+        if pathname_hdf5:
             self.name_hdf5 = os.path.basename(pathname_hdf5)
         else:
             return
@@ -829,30 +830,11 @@ class SubHydroW(QWidget):
             self.end_log.emit('Error: The project is not saved. '
                               'Save the project in the General tab before saving hydrological data. \n')
         else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-
-            # save last file path
-            if os.path.isdir(filename_path_file):
-                last_child = root.find(".//path_last_file_loaded")
-                last_child.text = filename_path_file
-
-            child1 = root.find(".//" + self.model_type)
-            if child1 is None:
-                child1 = ET.SubElement(root, self.model_type)
-
-            child = root.find(".//" + self.attributexml[i])
-            if child is None:
-                child = ET.SubElement(child1, self.attributexml[i])
-                child.text = filename_path_file
-            else:
-                if append_name:
-                    child.text += ",\n"
-                    child.text += filename_path_file
-                else:
-                    child.text = filename_path_file
-            doc.write(filename_path_pro, method="xml", pretty_print=True)
+            # change path_last_file_loaded, model_type (path)
+            project_preferences = load_project_preferences(self.path_prj)  # load_project_preferences
+            project_preferences["path_last_file_loaded"] = filename_path_file  # change value
+            project_preferences[self.model_type]["path"] = filename_path_file  # change value
+            save_project_preferences(self.path_prj, project_preferences)  # save_project_preferences
 
     def find_path_im(self):
         """
@@ -893,18 +875,19 @@ class SubHydroW(QWidget):
         A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
         path_hdf5 is in the project folder in the folder 'hdf5'.
         """
-        path_hdf5 = 'no_path'
+        path_hdf5 = ''
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//path_hdf5")
-            if child is None:
-                path_hdf5 = os.path.join(self.path_prj, r'/hdf5')
-            else:
-                path_hdf5 = os.path.join(self.path_prj, child.text)
+            # parser = ET.XMLParser(remove_blank_text=True)
+            # doc = ET.parse(filename_path_pro, parser)
+            # root = doc.getroot()
+            # child = root.find(".//path_hdf5")
+            # if child is None:
+            #     path_hdf5 = os.path.join(self.path_prj, r'/hdf5')
+            # else:
+            #     path_hdf5 = os.path.join(self.path_prj, child.text)
+            path_hdf5 = load_specific_preferences(self.path_prj, preference_names=["path_hdf5"])[0]
         else:
             self.send_log.emit("Error: " + QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab "
                                "before calling hdf5 files. \n"))
@@ -920,14 +903,7 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//path_input")
-            if child is None:
-                path_input = os.path.join(self.path_prj, r'/input')
-            else:
-                path_input = os.path.join(self.path_prj, child.text)
+            path_input = load_specific_preferences(self.path_prj, preference_names=["path_input"])[0]
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the copied inputs"))
@@ -938,58 +914,20 @@ class SubHydroW(QWidget):
 
         return path_input
 
-    def find_path_output(self, att):
-        """
-        A function to find the path where to save the shapefile, paraview files and other future format. Here, we gave
-        the xml attribute as argument so this functin can be used to find all path needed. However, it is less practical
-        to use as the function above as one should remember the xml tribute to call this function. However, it can be
-        practical to use to add new folder. Careful a similar function is in estimhab_GUI.py.
-
-        :param att: the xml attribute (from the xml project file) linked to the path needed, without the .//
-
-        """
-        path_out = 'no_path'
-
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//" + att)
-            if child is None:
-                return self.path_prj
-            else:
-                path_out = os.path.join(self.path_prj, child.text)
-        else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the fichier text"))
-            self.msg2.setText(
-                QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-
-        return path_out
-
     def read_attribute_xml(self, att_here):
         """
         A function to read the text of an attribute in the xml project file.
 
         :param att_here: the attribute name (string).
         """
-        data = 'no_data'
+        data = ''
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.findall('.//' + att_here)
-            if child is not None:
-                for i in range(0, len(child)):
-                    if i == 0:
-                        data = child[i].text
-                    else:
-                        data += ',' + child[i].text
+            if att_here == "path_last_file_loaded":
+                data = load_project_preferences(self.path_prj)[att_here]
+            else:
+                data = load_project_preferences(self.path_prj)[att_here]["path"]
         else:
             pass
 
@@ -1168,7 +1106,7 @@ class SubHydroW(QWidget):
                             round(self.running_time)) + " s).")
                     self.drop_merge.emit()
                     # update last name
-                    self.name_last_hdf5("hdf5_mergedata")
+                    self.name_last_hdf5("HABITAT")
                     # unblock button merge
                     self.load_b2.setDisabled(False)  # merge
                 # SUBSTRATE
@@ -1179,7 +1117,7 @@ class SubHydroW(QWidget):
                     # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
                     self.update_sub_hdf5_name()
                     # update last name
-                    self.name_last_hdf5("hdf5_substrate")
+                    self.name_last_hdf5("SUBSTRATE")
                     # unblock button substrate
                     self.load_polygon_substrate.setDisabled(False)  # substrate
                     self.load_point_substrate.setDisabled(False)  # substrate
@@ -1303,39 +1241,22 @@ class SubHydroW(QWidget):
         to create this merge file. If there is no file found, this function do nothing.
         """
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
+        name = QCoreApplication.translate("SubHydroW", 'no file')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
             self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The project is not saved. '
                                'Save the project in the General tab before saving hydraulic data. \n'))
         else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            # geo data
-            if type == "hdf5_substrate": # substrate hdf5
-                child1 = root.findall(f".//SUBSTRATE/{type}")
-            elif type == "hdf5_mergedata":  # hab hdf5
-                child1 = root.findall(f".//Habitat/")
+            project_preferences = load_project_preferences(self.path_prj)
+            if project_preferences[type]["hdf5"]:
+                name = project_preferences[type]["hdf5"][-1]
+
+            if type == "SUBSTRATE":  # substrate
+                self.last_sub_file_name_label.setText(name)
+            if type == "HABITAT":  # merge
+                self.last_merge_file_name_label.setText(name)
             else:
-                child1 = root.findall(f".//{type}/hdf5_hydrodata")  # hydraulic hdf5
-
-            if child1 is not None:
-                if len(child1) > 0:
-                    if type not in ("hdf5_substrate", "hdf5_mergedata"):  # hydraulic
-                        name = child1[-1].text
-                        self.last_hydraulic_file_name_label.setText(name)
-                    if type == "hdf5_substrate":  # substrate
-                        name = root.findall('.//hdf5_substrate')[0].text
-                        self.last_sub_file_name_label.setText(name)
-                    if type == "hdf5_mergedata":  # merge
-                        name = root.findall('.//hdf5_habitat')[0].text
-                        self.last_merge_file_name_label.setText(name)
-
-                    # # QToolTip
-                    # [sub_ini, hydro_ini] = load_hdf5.get_initial_files(path_hdf5, mergename)
-                    # hydro_ini = os.path.basename(hydro_ini)
-                    # textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate :' + sub_ini
-                    # self.lm2.setToolTip(textini)
+                self.last_hydraulic_file_name_label.setText(name)
 
 
 class HEC_RAS1D(SubHydroW):
@@ -1385,8 +1306,8 @@ class HEC_RAS1D(SubHydroW):
         self.nb_dim = 1.5
 
         # if there is the project file with hecras geo info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
+        #self.was_model_loaded_before(0)
+        #self.was_model_loaded_before(1)
 
         # label with the file name
         self.geo_t2 = QLabel(self.namefile[0])
@@ -1508,7 +1429,7 @@ class HEC_RAS1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -1685,7 +1606,7 @@ class Rubar2D(SubHydroW):
         #     self.butfig.setDisabled(True)
 
         # last hdf5 created
-        self.name_last_hdf5(type="RUBAR20")  # find the name of the last merge file and add it to self.lm2
+        self.name_last_hdf5(self.model_type)
 
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
         self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
@@ -1748,7 +1669,8 @@ class Rubar2D(SubHydroW):
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml(
+                "path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
@@ -2003,7 +1925,7 @@ class Rubar2D(SubHydroW):
                     self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -2231,7 +2153,7 @@ class Mascaret(SubHydroW):
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -2592,7 +2514,7 @@ class River2D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
 
         for i in range(0, len(self.namefile)):
             # save each name in the project file, empty list on i == 0
@@ -2787,7 +2709,7 @@ class Rubar1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
         show_all_fig = True
         if path_im != 'no_path':
             self.save_fig = True
@@ -2966,7 +2888,7 @@ class HEC_RAS2D(SubHydroW):
         #     self.butfig.setDisabled(True)
 
         # last hdf5 created
-        self.name_last_hdf5(type="HECRAS2D")  # find the name of the last merge file and add it to self.lm2
+        self.name_last_hdf5(self.model_type)
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -3077,7 +2999,8 @@ class HEC_RAS2D(SubHydroW):
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml(
+                "path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
@@ -3294,7 +3217,7 @@ class HEC_RAS2D(SubHydroW):
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3369,7 +3292,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
         # update the attibutes
-        self.attributexml = ['telemac_path']
         self.model_type = 'TELEMAC'
         self.data_type = "HYDRAULIC"
         self.extension = [['.res', '.slf', '.srf', '.txt']]
@@ -3441,10 +3363,11 @@ class TELEMAC(SubHydroW):  # QGroupBox
         #     self.butfig.setDisabled(True)
 
         # last hdf5 created
-        self.name_last_hdf5(type="TELEMAC")  # find the name of the last merge file and add it to self.lm2
 
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
-        self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
+        self.last_hydraulic_file_name_label = QLabel()
+
+        self.name_last_hdf5(self.model_type)
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -3491,7 +3414,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
             pass
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
 
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
@@ -3504,10 +3427,10 @@ class TELEMAC(SubHydroW):  # QGroupBox
             filter2 = ''
 
         # get last path
-        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
-                self.attributexml[0]) != "no_data":
-            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
+                self.model_type) != "":
+            model_path = self.read_attribute_xml(self.model_type)  # path spe
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
@@ -3795,7 +3718,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3941,7 +3864,7 @@ class ASCII(SubHydroW):  # QGroupBox
         #     self.butfig.setDisabled(True)
 
         # last hdf5 created
-        self.name_last_hdf5(type="TELEMAC")  # find the name of the last merge file and add it to self.lm2
+        self.name_last_hdf5(self.model_type)
 
         # layout
         self.layout_ascii = QGridLayout()
@@ -3998,10 +3921,11 @@ class ASCII(SubHydroW):  # QGroupBox
             filter2 = ''
 
         # get last path
-        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
-                self.attributexml[0]) != "no_data":
-            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
+                self.model_type) != "":
+            model_path = self.read_attribute_xml(self.model_type)  # path spe
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml(
+                "path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
@@ -4278,7 +4202,7 @@ class ASCII(SubHydroW):  # QGroupBox
                         self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -4516,7 +4440,7 @@ class LAMMI(SubHydroW):
         self.name_hdf5 = self.hname.text()
         # get the image and load option
         path_im = self.find_path_im()
-        self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        self.project_preferences = load_project_preferences(self.path_prj)
         show_all_fig = True
         if not os.path.isdir(self.pathfile[2]):
             self.pathfile[2] = []
@@ -4666,7 +4590,8 @@ class SW2D(SubHydroW):
         if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
                 self.attributexml[0]) != "no_data":
             model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml(
+                "path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
@@ -5371,7 +5296,7 @@ class HabbyHdf5(SubHydroW):
                 return
 
             # join the two files
-            self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+            self.project_preferences = load_project_preferences(self.path_prj)
             if self.project_preferences['erase_id']:
                 erase_id = True
             else:
@@ -5525,7 +5450,7 @@ class SubstrateW(SubHydroW):
         # COMMON
         last_sub_file_title_label = QLabel(self.tr('Last file created'))
         self.last_sub_file_name_label = QLabel(self.tr('no file'))
-        self.name_last_hdf5(type="hdf5_substrate")  # find the name of the last merge file and add it to self.lm2
+        self.name_last_hdf5("SUBSTRATE")
 
         # MERGE
         l9 = QLabel(self.tr("Hydraulic data (.hyd)"))
@@ -5546,7 +5471,7 @@ class SubstrateW(SubHydroW):
         # get the last file created
         lm1 = QLabel(self.tr('Last file created'))
         self.last_merge_file_name_label = QLabel(self.tr('no file'))
-        self.name_last_hdf5(type="hdf5_mergedata")  # find the name of the last merge file and add it to self.lm2
+        self.name_last_hdf5("HABITAT")  # find the name of the last merge file and add it to self.lm2
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -5731,10 +5656,11 @@ class SubstrateW(SubHydroW):
         filter += ')' + ";; All File (*.*)"
 
         # get last path
-        if self.read_attribute_xml("substrate_path") != self.path_prj and self.read_attribute_xml(
-                "substrate_path") != "no_data":
-            substrate_path = self.read_attribute_xml("substrate_path")  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj:
+        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
+                self.model_type) != "":
+            substrate_path = self.read_attribute_xml(self.model_type)  # path spe
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml(
+                "path_last_file_loaded") != "":
             substrate_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             substrate_path = self.path_prj  # path proj
@@ -5896,211 +5822,18 @@ class SubstrateW(SubHydroW):
                 # block button substrate
                 self.load_polygon_substrate.setDisabled(True)  # substrate
                 self.name_hdf5 = self.polygon_hname.text()
-                # filename = self.file_polygon_label.text()
-                # namebase, ext = os.path.splitext(filename)
-                # path_im = self.find_path_im()
-                # sub_classification_code = self.sub_classification_code_polygon_label.text()
-                # sub_classification_method = self.sub_classification_method_polygon_label.text()
-                # sub_epsg_code = self.epsg_polygon_label.text()
-                # default_values = self.sub_default_values_polygon_label.text()
-                # self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
-                #
-                # sys.stdout = self.mystdout = StringIO()  # out to GUI
-                #
-                # sub_description = dict(sub_mapping_method=sub_mapping_method,
-                #                               sub_classification_code=sub_classification_code,
-                #                               sub_classification_method=sub_classification_method,
-                #                               sub_filename_source=filename,
-                #                               sub_path_source=self.pathfile_polygon,
-                #                               sub_default_values=default_values,
-                #                               sub_epsg_code=sub_epsg_code,
-                #                               sub_reach_number="1",
-                #                               sub_unit_number="1",
-                #                               sub_unit_list="0.0",
-                #                               sub_unit_type="unknown",
-                #                               path_prj=self.path_prj,
-                #                               name_hdf5=self.name_hdf5)
 
             # point case
             if sub_mapping_method == 'point':
                 # block button substrate
                 self.load_point_substrate.setDisabled(True)  # substrate
                 self.name_hdf5 = self.point_hname.text()
-                # filename = self.file_point_label.text()
-                # namebase, ext = os.path.splitext(filename)
-                # path_im = self.find_path_im()
-                # path_shp = self.find_path_input()
-                # sub_classification_code = self.sub_classification_code_point_label.text()
-                # sub_classification_method = self.sub_classification_method_point_label.text()
-                # sub_epsg_code = self.epsg_point_label.text()
-                # default_values = self.sub_default_values_point_label.text()
-                # self.name_hdf5 = self.point_hname.text()
-                # self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
-                #
-                # sub_description = dict(sub_mapping_method=sub_mapping_method,
-                #                               sub_classification_code=sub_classification_code,
-                #                               sub_classification_method=sub_classification_method,
-                #                               sub_filename_source=filename,
-                #                               sub_path_source=self.pathfile_point,
-                #                               sub_default_values=default_values,
-                #                               sub_epsg_code=sub_epsg_code,
-                #                               sub_reach_number="1",
-                #                               sub_unit_number="1",
-                #                               sub_unit_list="0.0",
-                #                               sub_unit_type="unknown",
-                #                               path_prj=self.path_prj,
-                #                               name_hdf5=self.name_hdf5)
-
-                # if ext == ".shp":
-                #     # check if we have all files
-                #     name1 = namebase + '.dbf'
-                #     name2 = namebase + '.shx'
-                #     name3 = namebase + '.prj'  # it is ok if it does not exists
-                #     pathname1 = os.path.join(self.pathfile_point, name1)
-                #     pathname2 = os.path.join(self.pathfile_point, name2)
-                #     pathname3 = os.path.join(self.pathfile_point, name3)
-                #     if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
-                #         self.send_log.emit(
-                #             'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
-                #             ' a .dbf file.')
-                #         self.load_point_substrate.setDisabled(False)
-                #         return
-                #
-                # sys.stdout = self.mystdout = StringIO()  # out to GUI
-                #
-                # # read points and make voronoi
-                # self.q = Queue()
-                # # sub_filename_voronoi_shp = substrate_mod.load_sub_txt(self.namefile[0],
-                # #                                                       self.pathfile[0],
-                # #                                                       sub_mapping_method,
-                # #                                                       sub_classification_code,
-                # #                                                       sub_classification_method,
-                # #                                                       sub_epsg_code,
-                # #                                                       path_shp)
-                # self.p_voronoi = Process(target=substrate_mod.load_sub_txt,
-                #                  args=(self.namefile[0],
-                #                       self.pathfile[0],
-                #                       sub_mapping_method,
-                #                       sub_classification_code,
-                #                       sub_classification_method,
-                #                       sub_epsg_code,
-                #                       path_shp,
-                #                       self.q))
-                # self.p_voronoi.name = "load_sub_txt (Voronoi from txt and shp)"
-                # self.p_voronoi.start()
-                # self.p_voronoi.join()
-                # sub_filename_voronoi_shp = self.q.get()
-                # # error case
-                # if type(sub_filename_voronoi_shp) == list:
-                #     for warning in sub_filename_voronoi_shp:
-                #         self.send_log.emit(warning)
-                #
-                # # if shp ok
-                # if type(sub_filename_voronoi_shp) == str:
-                #     # load substrate shp (and triangulation)
-                #     self.q = Queue()
-                #     self.p = Process(target=substrate_mod.load_sub_shp,
-                #                      args=(sub_filename_voronoi_shp,
-                #                            path_shp,
-                #                            self.path_prj,
-                #                            self.path_prj + "/hdf5",
-                #                            self.name_prj,
-                #                            self.name_hdf5,
-                #                            sub_mapping_method,
-                #                            sub_classification_code,
-                #                            sub_epsg_code,
-                #                            default_values,
-                #                            self.q))
-                #     self.p.name = "Substrate data loading from points"
-                #     self.p.start()
-                #
-                #     sys.stdout = sys.__stdout__  # reset to console
-                #     self.send_err_log()
-                #
-                #     # copy
-                #     if ext == ".shp":
-                #         # copy_shapefiles
-                #         path_input = self.find_path_input()
-                #         self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_point,
-                #                                                                                    filename), path_input))
-                #     else:  # .txt
-                #         path_input = self.find_path_input()
-                #         self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-                #
-                #     self.p2.start()
-                #
-                #     # log info
-                #     self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
-                #     self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-                #     self.send_log.emit("py    path1=r'" + path_input + "'")
-                #     self.send_log.emit("py    type='" + sub_classification_code + "'")
-                #     self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
-                #                        "(file1, path1, type)\n")
-                #     self.send_log.emit("restart LOAD_SUB_SHP")
-                #     self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-                #     self.send_log.emit("restart    sub_classification_code: " + sub_classification_code)
 
             # constante case
             if sub_mapping_method == 'constant':
                 # block button substrate
                 self.load_constant_substrate.setDisabled(True)  # substrate
-                self.name_hdf5 = self.point_hname.text()
-
-                # filename = self.file_constant_label.text()
-                # sub_classification_code = self.sub_classification_code_constant_label.text()
-                # sub_classification_method = self.sub_classification_method_constant_label.text()
-                # sub_constant_values = self.valuesdata_constant_label.text()
-                # self.name_hdf5 = self.constant_hname.text()
-                # self.project_preferences = load_project_preferences(self.path_prj, self.name_prj)
-                #
-                # constant_values_list = sub_constant_values.split(",")
-                # sub_array = [[] for i in range(len(constant_values_list))]
-                # for i, value in enumerate(constant_values_list):
-                #     sub_array[i] = int(value.strip())
-                #
-                # sub_description = dict(sub_mapping_method=sub_mapping_method,
-                #                               sub_classification_code=sub_classification_code,
-                #                               sub_classification_method=sub_classification_method,
-                #                               sub_filename_source=filename,
-                #                               sub_path_source=self.pathfile_constant,
-                #                               sub_default_values=sub_constant_values,
-                #                               sub_epsg_code="",
-                #                               sub_reach_number="1",
-                #                               sub_unit_number="1",
-                #                               sub_unit_list="0.0",
-                #                               sub_unit_type="unknown",
-                #                               path_prj=self.path_prj,
-                #                               name_hdf5=self.name_hdf5)
-
-                # data = dict(sub=[sub_array],
-                #             nb_unit=1,
-                #             nb_reach=1)
-                #
-                # sys.stdout = self.mystdout = StringIO()  # out to GUI
-                # self.q = Queue()
-                # self.q.put("const_sub")
-                #
-                # # save hdf5
-                # hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
-                # self.p = Process(target=hdf5.create_hdf5_sub,
-                #                  args=(sub_description, data))
-                # self.p.name = "Substrate data loading from constant values"
-                # self.p.start()
-                #
-                # self.send_err_log()
-                #
-                # # log info
-                # self.send_log.emit(self.tr('# Loading: Substrate data constant values ...'))
-                # self.send_log.emit("py    val_c=" + sub_constant_values)
-                # self.send_log.emit(
-                #     "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], [], [], 're_run_const_sub'"
-                #     ", True, 'SUBSTRATE') \n")
-                # self.send_log.emit("restart LOAD_SUB_CONST")
-                # self.send_log.emit("restart    val_c: " + sub_constant_values)
-                # # self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.sub'))
-                # # unblock button substrate
-                # self.load_constant_substrate.setDisabled(False)  # substrate
-                # self.p.join()
+                self.name_hdf5 = self.constant_hname.text()
 
             # save path and name substrate
             self.save_xml(0)  # txt filename in xml
@@ -6125,9 +5858,6 @@ class SubstrateW(SubHydroW):
 
             # copy_shapefiles
             path_input = self.find_path_input()
-            # self.p2 = Process(target=substrate_mod.copy_shapefiles, args=(os.path.join(self.pathfile_polygon,
-            #                                                                            filename), path_input))
-            # self.p2.start()
 
             # log info
             self.send_log.emit(self.tr('# Loading: Substrate data ...'))
@@ -6172,23 +5902,28 @@ class SubstrateW(SubHydroW):
         for hydrology is in Main_Windows_1.py as it is more practical to have it there to collect all the signals.
         """
         path_hdf5 = self.find_path_hdf5()
-        self.sub_name = self.read_attribute_xml('hdf5_substrate')
-        self.sub_name = list(reversed(self.sub_name.split(',')))
-        sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
-        for i in range(0, len(self.sub_name)):
-            if os.path.isfile(self.sub_name[i]):
-                sub_name2.append(self.sub_name[i])
-            if os.path.isfile(os.path.join(path_hdf5, self.sub_name[i])):
-                sub_name2.append(self.sub_name[i])
-        self.sub_name = sub_name2
+        # self.sub_name = self.read_attribute_xml('hdf5_substrate')
+        # self.sub_name = list(reversed(self.sub_name.split(',')))
+        # sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
+        # for i in range(0, len(self.sub_name)):
+        #     if os.path.isfile(self.sub_name[i]):
+        #         sub_name2.append(self.sub_name[i])
+        #     if os.path.isfile(os.path.join(path_hdf5, self.sub_name[i])):
+        #         sub_name2.append(self.sub_name[i])
+        # self.sub_name = sub_name2
+        # self.drop_sub.clear()
+        # for i in range(0, len(self.sub_name)):
+        #     # if i == 0 and len(self.sub_name) > 1:
+        #     #     self.drop_sub.addItem(' ')
+        #     if len(self.sub_name[i]) > self.max_lengthshow:
+        #         self.drop_sub.addItem(os.path.basename(self.sub_name[i][:self.max_lengthshow]))
+        #     else:
+        #         self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+        names = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
+
         self.drop_sub.clear()
-        for i in range(0, len(self.sub_name)):
-            # if i == 0 and len(self.sub_name) > 1:
-            #     self.drop_sub.addItem(' ')
-            if len(self.sub_name[i]) > self.max_lengthshow:
-                self.drop_sub.addItem(os.path.basename(self.sub_name[i][:self.max_lengthshow]))
-            else:
-                self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+        self.drop_sub.addItems(names)
+
         self.drop_sub.setCurrentIndex(0)
 
     def create_hdf5_merge_name(self):
@@ -6272,9 +6007,7 @@ class SubstrateW(SubHydroW):
             return
         else:
             hdf5_name_hyd = self.hyd_name[0]
-        if len(self.sub_name) == 0:
-            self.send_log.emit('Error: ' + self.tr('No substrate file available \n'))
-            return
+
         hdf5_name_sub = self.drop_sub.currentText()
 
         # hdf5 output file
@@ -6286,7 +6019,7 @@ class SubstrateW(SubHydroW):
             name_hdf5merge = self.hdf5_merge_lineedit.text() + "_" + str(nb)
 
         # get the figure options and the type of output to be created
-        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj)
 
         # block button merge
         self.load_b2.setDisabled(True)  # merge
@@ -6310,15 +6043,15 @@ class SubstrateW(SubHydroW):
         self.p.start()
 
         # log
-        self.send_log.emit("py    file_hyd=r'" + self.hyd_name[self.drop_hyd.currentIndex() - 1] + "'")
-        self.send_log.emit("py    name_sub=r'" + self.sub_name[self.drop_sub.currentIndex()] + "'")
+        self.send_log.emit("py    file_hyd=r'" + self.drop_hyd.currentText() + "'")
+        self.send_log.emit("py    name_sub=r'" + self.drop_sub.currentText() + "'")
         self.send_log.emit("py    path_sub=r'" + path_hdf5 + "'")
         self.send_log.emit("py    mesh_grid2.merge_grid_and_save(file_hyd,name_sub, path_sub, defval, name_prj, "
                            "path_prj, 'SUBSTRATE', [], True) \n")
         self.send_log.emit("restart MERGE_GRID_SUB")
-        self.send_log.emit("restart    file_hyd: r" + self.hyd_name[self.drop_hyd.currentIndex() - 1])
+        self.send_log.emit("restart    file_hyd: r" + self.drop_hyd.currentText())
         self.send_log.emit("restart    file_sub: r" + os.path.join(path_hdf5,
-                                                                   self.sub_name[self.drop_sub.currentIndex()]))
+                                                                   self.drop_sub.currentText()))
 
 
 if __name__ == '__main__':

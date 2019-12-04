@@ -192,14 +192,15 @@ class StatModUseful(QScrollArea):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//path_hdf5")
-            if child is None:
-                path_hdf5 = os.path.join(self.path_prj, 'hdf5')
-            else:
-                path_hdf5 = os.path.join(self.path_prj, child.text)
+            path_hdf5 = load_project_preferences(self.path_prj)["path_hdf5"]
+            # parser = ET.XMLParser(remove_blank_text=True)
+            # doc = ET.parse(filename_path_pro, parser)
+            # root = doc.getroot()
+            # child = root.find(".//path_hdf5")
+            # if child is None:
+            #     path_hdf5 = os.path.join(self.path_prj, 'hdf5')
+            # else:
+            #     path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
             self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
@@ -643,47 +644,48 @@ class EstimhabW(StatModUseful):
 
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(fname):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(fname, parser)
-            root = doc.getroot()
-            child = root.find(".//ESTIMHAB_data")
-            if child is not None:  # if there is data for ESTIHAB
-                fname_h5 = child.text
-                path_hdf5 = self.find_path_hdf5_est()
-                fname_h5 = os.path.join(path_hdf5, fname_h5)
-                if os.path.isfile(fname_h5):
-                    # create hdf5
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                                   fname_h5)
-                    hdf5.load_hdf5_estimhab()
+            aa = 1
+            # parser = ET.XMLParser(remove_blank_text=True)
+            # doc = ET.parse(fname, parser)
+            # root = doc.getroot()
+            # child = root.find(".//ESTIMHAB_data")
+            # if child is not None:  # if there is data for ESTIHAB
+            #     fname_h5 = child.text
+            #     path_hdf5 = self.find_path_hdf5_est()
+            #     fname_h5 = os.path.join(path_hdf5, fname_h5)
+            #     if os.path.isfile(fname_h5):
+            #         # create hdf5
+            #         hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+            #                                        fname_h5)
+            #         hdf5.load_hdf5_estimhab()
+            #
+            #         # chosen fish
+            #         for i in range(0, len(hdf5.estimhab_dict["fish_list"])):
+            #             item = QListWidgetItem(hdf5.estimhab_dict["fish_list"][i])
+            #             item.setData(1, hdf5.estimhab_dict["xml_list"][i])
+            #             self.selected_aquatic_animal_qtablewidget.addItem(item)
+            #
+            #         # input data
+            #         self.eq1.setText(str(hdf5.estimhab_dict["q"][0]))
+            #         self.eq2.setText(str(hdf5.estimhab_dict["q"][1]))
+            #         self.eh1.setText(str(hdf5.estimhab_dict["h"][0]))
+            #         self.eh2.setText(str(hdf5.estimhab_dict["h"][1]))
+            #         self.ew1.setText(str(hdf5.estimhab_dict["w"][0]))
+            #         self.ew2.setText(str(hdf5.estimhab_dict["w"][1]))
+            #         self.eq50.setText(str(hdf5.estimhab_dict["q50"]))
+            #         self.eqmin.setText(str(hdf5.estimhab_dict["qrange"][0]))
+            #         self.eqmax.setText(str(hdf5.estimhab_dict["qrange"][1]))
+            #         self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
+            #         # qtarg
+            #         if len(hdf5.estimhab_dict["targ_q_all"]) > 0:
+            #             self.eqtarget.setText(str(hdf5.estimhab_dict["targ_q_all"][0]))
+            #             while self.total_lineedit_number != len(hdf5.estimhab_dict["targ_q_all"]):
+            #                 self.add_new_qtarget()
+            #             for qtarg_num, qtarg_value in enumerate(hdf5.estimhab_dict["targ_q_all"][1:]):
+            #                 getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
 
-                    # chosen fish
-                    for i in range(0, len(hdf5.estimhab_dict["fish_list"])):
-                        item = QListWidgetItem(hdf5.estimhab_dict["fish_list"][i])
-                        item.setData(1, hdf5.estimhab_dict["xml_list"][i])
-                        self.selected_aquatic_animal_qtablewidget.addItem(item)
-
-                    # input data
-                    self.eq1.setText(str(hdf5.estimhab_dict["q"][0]))
-                    self.eq2.setText(str(hdf5.estimhab_dict["q"][1]))
-                    self.eh1.setText(str(hdf5.estimhab_dict["h"][0]))
-                    self.eh2.setText(str(hdf5.estimhab_dict["h"][1]))
-                    self.ew1.setText(str(hdf5.estimhab_dict["w"][0]))
-                    self.ew2.setText(str(hdf5.estimhab_dict["w"][1]))
-                    self.eq50.setText(str(hdf5.estimhab_dict["q50"]))
-                    self.eqmin.setText(str(hdf5.estimhab_dict["qrange"][0]))
-                    self.eqmax.setText(str(hdf5.estimhab_dict["qrange"][1]))
-                    self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
-                    # qtarg
-                    if len(hdf5.estimhab_dict["targ_q_all"]) > 0:
-                        self.eqtarget.setText(str(hdf5.estimhab_dict["targ_q_all"][0]))
-                        while self.total_lineedit_number != len(hdf5.estimhab_dict["targ_q_all"]):
-                            self.add_new_qtarget()
-                        for qtarg_num, qtarg_value in enumerate(hdf5.estimhab_dict["targ_q_all"][1:]):
-                            getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
-
-                else:
-                    self.send_log.emit('Error: ' + self.tr('The hdf5 file related to ESTIMHAB does not exist.'))
+        else:
+            self.send_log.emit('Error: ' + self.tr('The hdf5 file related to ESTIMHAB does not exist.'))
 
     def change_folder(self):
         """
@@ -788,7 +790,7 @@ class EstimhabW(StatModUseful):
         self.check_all_q()
 
         # run and save
-        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj)
         sys.stdout = mystdout = StringIO()
 
         estimhab_dict = dict(q=q,

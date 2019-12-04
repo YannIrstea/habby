@@ -71,7 +71,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    project_preferences = load_project_preferences(path_prj, name_prj)
+    project_preferences = load_project_preferences(path_prj)
     [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0], namefile[1], pathfile[0], pathfile[1],
                                                              path_im,
                                                              show_fig_1D, project_preferences)
@@ -866,6 +866,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     # hyd description
     hyd_description = dict()
     hyd_description["hyd_filename_source"] = description_from_rubar2d["filename_source"]
+    hyd_description["hyd_path_filename_source"] = description_from_rubar2d["path_filename_source"]
     hyd_description["hyd_model_type"] = description_from_rubar2d["model_type"]
     hyd_description["hyd_2D_numerical_method"] = "FiniteVolumeMethod"
     hyd_description["hyd_model_dimension"] = description_from_rubar2d["model_dimension"]

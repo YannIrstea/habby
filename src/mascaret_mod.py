@@ -81,7 +81,7 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, mode
 
     # image if necessary
     if show_fig_1D:
-        project_preferences = load_project_preferences(path_prj, name_prj)
+        project_preferences = load_project_preferences(path_prj)
         pro = [0, 1, 2]
         reach = [0]
         if project_preferences['time_step'][0] == -99:

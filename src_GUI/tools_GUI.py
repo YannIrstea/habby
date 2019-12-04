@@ -83,7 +83,7 @@ class ToolsTab(QScrollArea):
 
     def refresh_hab_filenames(self):
         # get list of file name by type
-        names = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj, "hdf5"))
+        names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
         current_index = self.interpolation_group.hab_filenames_qcombobox.currentIndex()
         self.interpolation_group.hab_filenames_qcombobox.blockSignals(True)
         self.interpolation_group.hab_filenames_qcombobox.clear()
@@ -507,8 +507,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
             # load figure option
-            project_preferences = load_project_preferences(self.path_prj,
-                                                               self.name_prj)
+            project_preferences = load_project_preferences(self.path_prj)
 
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
@@ -577,8 +576,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
             # load figure option
-            project_preferences = load_project_preferences(self.path_prj,
-                                                                self.name_prj)
+            project_preferences = load_project_preferences(self.path_prj)
 
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)

@@ -34,7 +34,7 @@ from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
-from src.project_manag_mod import load_project_preferences
+from src.project_manag_mod import load_project_preferences, save_project_preferences
 from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_values, \
     c_mesh_max_slope_bottom, c_mesh_max_slope_energy, c_mesh_shear_stress, c_mesh_froude, c_mesh_hydraulic_head, \
     c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level,\
@@ -87,23 +87,19 @@ class Hdf5Management:
         self.extension = hdf5_filename[-4:]  # extension of filename
         self.file_object = None  # file object
         if self.extension == ".hyd":
-            self.type_for_xml = "hdf5_hydrodata"  # for save xml
             self.hdf5_type = "hydraulic"
             self.variables = ["mesh"] + self.hyd_variables
             self.variables_computed_mesh = self.hyd_variables_computed_mesh
             self.variables_computed_node = self.hyd_variables_computed_node
         if self.extension == ".sub":
-            self.type_for_xml = "hdf5_substrate"  # for save xml
             self.hdf5_type = "substrate"
             self.variables = ["mesh"] + self.sub_variables
         if self.extension == ".hab":
-            self.type_for_xml = "hdf5_habitat"  # for save xml
             self.hdf5_type = "habitat"
             self.variables = ["mesh"] + self.sub_variables + self.hyd_variables
             self.variables_computed_mesh = self.hyd_variables_computed_mesh
             self.variables_computed_node = self.hyd_variables_computed_node
             if "ESTIMHAB" in self.filename:
-                self.type_for_xml = "ESTIMHAB"  # for save xml
                 self.hdf5_type = "ESTIMHAB"
 
     def open_hdf5_file(self, new=False):
@@ -156,45 +152,27 @@ class Hdf5Management:
             print('Error: ' + qt_tr.translate("hdf5_mod", 'the hdf5 file could not be loaded.'))
             self.file_object = None
 
-    def save_xml(self, model_type):
+    def save_xml(self, model_type, input_file_path):
+        """
+        Save in project file : path (replace existing) and hdf5 name (append list)
+        :param model_type: TELEMAC, HECRAS2D, ..., SUBSTRATE, HABITAT
+        :param input_file_path: input file path
+        """
         if not os.path.isfile(self.absolute_path_prj_xml):
             print('Error: ' + qt_tr.translate("hdf5_mod", 'No project saved. Please create a project first in the General tab.'))
             return
         else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(self.absolute_path_prj_xml, parser)
-            root = doc.getroot()
-            child = root.find(".//" + model_type)
-            # if the xml attribute do not exist yet, xml name should be saved
-            if child is None:
-                here_element = ET.SubElement(root, model_type)
-                hdf5file = ET.SubElement(here_element, self.type_for_xml)
-                hdf5file.text = self.filename
-            else:
-                child2s = root.findall(".//" + model_type + "/" + self.type_for_xml)
-                if child2s is not None:
-                    found_att_text = False
-                    for i, c in enumerate(child2s):
-                        if c.text == self.filename:  # if same : remove/recreate at the end
-                            # (for the last file create labels)
-                            found_att_text = True
-                            index_origin = i
-                    if found_att_text:
-                        # existing element
-                        element = child2s[index_origin]
-                        # remove existing
-                        child.remove(element)
-                        # add existing to the end
-                        hdf5file = ET.SubElement(child, self.type_for_xml)
-                        hdf5file.text = self.filename
-                    if not found_att_text:
-                        hdf5file = ET.SubElement(child, self.type_for_xml)
-                        hdf5file.text = self.filename
-                else:
-                    hdf5file = ET.SubElement(child, self.type_for_xml)
-                    hdf5file.text = self.filename
-            # write xml
-            doc.write(self.absolute_path_prj_xml, pretty_print=True)
+            # load_project_preferences
+            project_preferences = load_project_preferences(self.path_prj)
+
+            # change values
+            if self.filename in project_preferences[model_type]["hdf5"]:
+                project_preferences[model_type]["hdf5"].remove(self.filename)
+            project_preferences[model_type]["hdf5"].append(self.filename)
+            project_preferences[model_type]["path"] = input_file_path
+
+            # save_project_preferences
+            save_project_preferences(self.path_prj, project_preferences)
 
     # GET HDF5 INFORMATIONS
     def get_hdf5_attributes(self):
@@ -474,7 +452,7 @@ class Hdf5Management:
         self.file_object.close()
 
         # save XML
-        self.save_xml(hyd_description["hyd_model_type"])
+        self.save_xml(hyd_description["hyd_model_type"], hyd_description["hyd_path_filename_source"])
 
         # reload to export data or not
         for key in self.available_export_list:
@@ -710,7 +688,7 @@ class Hdf5Management:
         self.file_object.close()
 
         # save XML
-        self.save_xml("SUBSTRATE")
+        self.save_xml("SUBSTRATE", sub_description_system["sub_path_source"])
 
     def load_hdf5_sub(self, convert_to_coarser_dom=False):
         # open an hdf5
@@ -922,7 +900,7 @@ class Hdf5Management:
         self.file_object.close()
 
         # save XML
-        self.save_xml("Habitat")  # uppercase for xml
+        self.save_xml("HABITAT", "")  # uppercase for xml
 
         # reload to export data or not
         for key in self.available_export_list:
@@ -1773,7 +1751,7 @@ class Hdf5Management:
                         layer.CreateField(ogr.FieldDefn('max_slope_energy', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('shear_stress', ogr.OFTReal))
                         defn = layer.GetLayerDefn()
-                        if self.type_for_xml == "hdf5_habitat":
+                        if self.hdf5_type == "habitat":
                             layer.CreateField(ogr.FieldDefn('area', ogr.OFTReal))
                             # sub
                             if self.data_description["sub_classification_method"] == 'coarser-dominant':
@@ -1805,7 +1783,7 @@ class Hdf5Management:
                             p3 = list(self.data_2d["node"]["xy"][reach_num][unit_num][node3].tolist() + [
                                 self.data_2d["node"]["z"][reach_num][unit_num][node3]])
                             # data attrbiutes
-                            if self.type_for_xml == "hdf5_habitat":
+                            if self.hdf5_type == "habitat":
                                 area = self.data_2d["mesh"]["data"]["area"][reach_num][unit_num][mesh_num]
                                 sub = self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][mesh_num].tolist()
                                 if fish_names:
@@ -1843,7 +1821,7 @@ class Hdf5Management:
                             feat.SetField('max_slope_bottom', max_slope_bottom)
                             feat.SetField('max_slope_energy', max_slope_energy)
                             feat.SetField('shear_stress', shear_stress)
-                            if self.type_for_xml == "hdf5_habitat":
+                            if self.hdf5_type == "habitat":
                                 # area
                                 feat.SetField("area", area)
                                 # sub
@@ -2295,7 +2273,7 @@ class Hdf5Management:
             if not os.path.exists(path_txt):
                 print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
-            if self.type_for_xml == "hdf5_habitat":
+            if self.hdf5_type == "habitat":
 
                 fish_names = self.data_description["hab_fish_list"].split(", ")
                 if fish_names != ['']:
@@ -2334,7 +2312,7 @@ class Hdf5Management:
                     else:
                         header = 'troncon\tsurface\tvitesse\thauteur\tnoeud1\tnoeud2\tnoeud3'
 
-                    if self.type_for_xml == "hdf5_habitat":
+                    if self.hdf5_type == "habitat":
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
                             header += '\tsub_coarser\tsub_dominant'
@@ -2355,7 +2333,7 @@ class Hdf5Management:
                     f.write(header)
                     # header 2
                     header = '[]\t[m2]\t[m/s]\t[m]\t[]\t[]\t[]'
-                    if self.type_for_xml == "hdf5_habitat" and fish_names:
+                    if self.hdf5_type == "habitat" and fish_names:
                         header += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
                                           range(sub_class_number))
                         header += "".join(['\t[' + fish + ']' for fish in fish_names])
@@ -2383,7 +2361,7 @@ class Hdf5Management:
                             data_here += '\n'
                             data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{water_level_str}\t{froude_str}\t{hydraulic_head_str}\t{conveyance_str}\t{max_slope_bottom_str}\t{max_slope_energy_str}\t{shear_stress_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
 
-                            if self.type_for_xml == "hdf5_habitat":
+                            if self.hdf5_type == "habitat":
                                 sub = self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][mesh_num]
                                 data_here += "\t" + "\t".join(str(e) for e in sub.tolist())
                                 if fish_names:
@@ -2883,7 +2861,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # to know if we have to save a new hdf5
     if save_option is None:
-        save_opt = load_project_preferences(path_prj, name_prj)
+        save_opt = load_project_preferences(path_prj)
         if save_opt['erase_id']:  # xml is all in string
             erase_idem = True
         else:
@@ -3293,7 +3271,26 @@ def get_all_filename(dirname, ext):
     return filenames
 
 
-def get_filename_by_type(type, path):
+def get_filename_by_type_stat(type, path):
+    """
+    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
+    from one hydraulic model.
+
+    :param dirname: the path to the directory (string)
+    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
+    :return: a list with the filename (filename no dir) for each extension
+    """
+    filenames = []
+    for file in os.listdir(path):
+        if file.endswith(".hab"):
+            # check if not statistic
+            if type in file:  # physic
+                filenames.append(file)
+    filenames.sort()
+    return filenames
+
+
+def get_filename_by_type_physic(type, path):
     """
     This function gets the name of all file with a particular extension in a folder. Useful to get all the output
     from one hydraulic model.
@@ -3329,63 +3326,12 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     :param path_prj: the path to the project
     :return: the name of the hdf5 file
     """
-    if model_name == 'MERGE':
-        model_name2 = 'SUBSTRATE'  # merge data is in the subtrate tag in the xml files
-    else:
-        model_name2 = model_name
-
     # open the xml project file
     filename_path_pro = os.path.join(path_prj, name_prj + '.habby')
     if os.path.isfile(filename_path_pro):
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(filename_path_pro, parser)
-        root = doc.getroot()
-
-        # get the path to hdf5
-        pathhdf5 = root.find(".//path_hdf5")
-        if pathhdf5 is None:
-            print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the hdf5 file is not found (1) \n'))
-            return
-        if pathhdf5.text is None:
-            print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the hdf5 file is not found (2) \n'))
-            return
-        pathhdf5 = os.path.join(path_prj, pathhdf5.text)
-        if not os.path.isdir(pathhdf5):
-            print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the hdf5 file is not correct \n'))
-            return
-
-        # get the hdf5 name
-        child = root.find(".//" + model_name2)
-        if child is not None:
-            if model_name == 'MERGE' or model_name == 'LAMMI':
-                child = root.findall(".//" + model_name2 + '/hdf5_mergedata')
-            elif model_name == 'SUBSTRATE':
-                child = root.findall(".//" + model_name2 + '/hdf5_substrate')
-            else:
-                child = root.findall(".//" + model_name + '/hdf5_hydrodata')
-            if len(child) > 0:
-                # get the newest files
-                files = []
-                for c in child:
-                    if c.text is not None and os.path.isfile(os.path.join(pathhdf5, c.text)):
-                        files.append(os.path.join(pathhdf5, c.text))
-                if len(files) == 0:
-                    return
-                name_hdf5 = max(files, key=os.path.getmtime)
-                if len(name_hdf5) > 3:
-                    if model_name == 'MERGE':
-                        extensionhdf5 = '.hab'  # merge data is in the subtrate tag in the xml files
-                    else:
-                        extensionhdf5 = '.hyd'
-                    if name_hdf5[:-4] == extensionhdf5:
-                        name_hdf5 = name_hdf5[:-4]
-                return name_hdf5
-            else:
-                print('Warning: ' + qt_tr.translate("hdf5_mod", 'The hdf5 name for the model ') + model_name + qt_tr.translate("hdf5_mod", ' was not found (1)'))
-                return 'default_name'
-        else:
-            print('Warning: ' + qt_tr.translate("hdf5_mod", 'The data for the model ') + model_name + qt_tr.translate("hdf5_mod", ' was not found (2)'))
-            return ''
+        project_preferences = load_project_preferences(path_prj)
+        name_hdf5_list = project_preferences[model_name]["hdf5"]
+        return name_hdf5_list
     else:
         print('Error: ' + qt_tr.translate("hdf5_mod", 'No project found by load_hdf5'))
         return ''
@@ -3406,11 +3352,11 @@ def get_initial_files(path_hdf5, hdf5_name):
 
     # get the name
     try:
-        sub_ini = file.attrs['sub_ini_name']
+        sub_ini = file.attrs['sub_filename']
     except KeyError:
         sub_ini = ''
     try:
-        hydro_ini = file.attrs['hydro_ini_name']
+        hydro_ini = file.attrs['hyd_filename']
     except KeyError:
         hydro_ini = ''
     file.close()

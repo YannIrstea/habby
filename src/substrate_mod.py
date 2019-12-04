@@ -66,6 +66,10 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
 
     # save hdf5
     if data_2d:
+        # security if point case
+        sub_description["sub_path_source"] = sub_path_source
+        sub_description["sub_filename_source"] = sub_filename_source
+
         hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"],
                                        sub_description["name_hdf5"])
         hdf5.create_hdf5_sub(sub_description, data_2d)

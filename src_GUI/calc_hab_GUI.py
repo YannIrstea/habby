@@ -27,7 +27,7 @@ from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import calcul_hab_mod
 from src import hdf5_mod
-from src.project_manag_mod import load_project_preferences
+from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences, save_project_preferences
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
@@ -54,20 +54,21 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.imfish = ''
         self.current_hab_informations_dict = None
         # find the path bio
-        try:
-            try:
-                docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.habby'))
-                root = docxml.getroot()
-            except IOError:
-                self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
-                return
-        except ET.ParseError:
-            self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed."))
-            return
-        pathbio_child = root.find(".//Path_Bio")
-        if pathbio_child is not None:
-            if os.path.isdir(pathbio_child.text):
-                self.path_bio = pathbio_child.text
+        # try:
+        #     try:
+        #         docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.habby'))
+        #         root = docxml.getroot()
+        #     except IOError:
+        #         self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
+        #         return
+        # except ET.ParseError:
+        #     self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed."))
+        #     return
+        # pathbio_child = root.find(".//path_bio")
+        # if pathbio_child is not None:
+        #     if os.path.isdir(pathbio_child.text):
+        #         self.path_bio = pathbio_child.text
+        self.path_bio = load_specific_preferences(self.path_prj, ["path_bio"])[0]
         self.path_im_bio = self.path_bio
         # self.path_bio is defined in StatModUseful.
         self.data_fish = []  # all data concerning the fish
@@ -291,15 +292,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
 
     def load_selected_aquatic_animal_dict(self):
-        # load selected_aquatic_animal_dict in xml project
-        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(fname, parser)
-        root = doc.getroot()
-        # geo data
-        child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
-        if child1 is not None:
-            self.selected_aquatic_animal_dict = eval(child1.text)
+        self.selected_aquatic_animal_dict = load_specific_preferences(self.path_prj, ["selected_aquatic_animal_list"])[0]
+
+        if len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]) > 1:
             self.general_option_hyd_combobox_index = self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][0]
             self.general_option_sub_combobox_index = self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][1]
             # remove key
@@ -748,25 +743,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 substrate_mode_list.append(combobox_sub.currentIndex())
 
             # cnvert to dict
-            selected_aquatic_animal_list_calc_hab = dict(selected_aquatic_animal_list=self.selected_aquatic_animal_dict["selected_aquatic_animal_list"],
+            selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=self.selected_aquatic_animal_dict["selected_aquatic_animal_list"],
                                                          hydraulic_mode_list=hydraulic_mode_list,
                                                          substrate_mode_list=substrate_mode_list,
                                                          general_hyd_sub_combobox_index=[self.general_option_hyd_combobox.currentIndex(),
                                                                                          self.general_option_sub_combobox.currentIndex()])
 
-            # save in xml project
-            fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(fname, parser)
-            root = doc.getroot()
-            # geo data
-            child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
-            if child1 is None:
-                child1 = ET.SubElement(root, 'selected_aquatic_animal_list_calc_hab')
-                child1.text = str(selected_aquatic_animal_list_calc_hab)
-            else:
-                child1.text = str(selected_aquatic_animal_list_calc_hab)
-            doc.write(fname, pretty_print=True)
+            # save
+            change_specific_preferences(self.path_prj,
+                                        preference_names=["selected_aquatic_animal_list"],
+                                        preference_values=[selected_aquatic_animal_dict])
 
     def update_merge_list(self):
         """
@@ -775,13 +761,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         We add a "tooltip" which indicates the orginal hydraulic and substrate files.
         """
-
-        xmlfile = os.path.join(self.path_prj, self.name_prj + '.habby')
         # open the file
         try:
             try:
-                docxml = ET.parse(xmlfile)
-                root = docxml.getroot()
+                # load
+                project_preferences = load_project_preferences(self.path_prj)
+                files = project_preferences["HABITAT"]["hdf5"]
             except IOError:
                 self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
                 return
@@ -795,29 +780,30 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hdf5_merge = []
 
         # get filename
-        files = root.findall('.//hdf5_habitat')
-        files = reversed(files)  # get the newest first
-
         path_hdf5 = self.find_path_hdf5_est()
 
         # add it to the list
         if files is not None:
             for idx, f in enumerate(files):
-                if os.path.isfile(os.path.join(path_hdf5, f.text)):
-                    [sub_ini, hydro_ini] = hdf5_mod.get_initial_files(path_hdf5, f.text)
+                if os.path.isfile(os.path.join(path_hdf5, f)):
+                    [sub_ini, hydro_ini] = hdf5_mod.get_initial_files(path_hdf5, f)
                     hydro_ini = os.path.basename(hydro_ini)
-                    textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate :' + sub_ini
-                    self.m_all.addItem(f.text)
+                    textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate: ' + sub_ini
+                    self.m_all.addItem(f)
                     self.m_all.setItemData(idx, textini, Qt.ToolTipRole)
                     self.tooltip.append(textini)
-                    name = f.text
+                    name = f
                     self.hdf5_merge.append(name)
                 else:
-                    self.send_log.emit("Warning: " + f.text + self.tr(", this .hab file has been deleted by the user."))
-                    # TODO : It will be deleted from the .xml file.
+                    self.send_log.emit("Warning: " + f + self.tr(", this .hab file has been deleted by the user."))
+                    # remove
+                    project_preferences["HABITAT"]["hdf5"].remove(f)
+
+        # save
+        save_project_preferences(self.path_prj, project_preferences)
+
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
-
         self.m_all.blockSignals(False)
 
         # check_uncheck_allmodels_presence
@@ -836,7 +822,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
         # get the figure options and the type of output to be created
-        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj)
 
         # remove duplicate
         self.remove_duplicates()
