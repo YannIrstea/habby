@@ -1914,7 +1914,8 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_descripti
     cb1 = plt.colorbar(collection)
     cb1.set_ticks(listcathegories_stick)
     cb1.set_ticklabels(listcathegories_stick_label)
-    cb1.set_label(data_description["sub_classification_code"])
+    cb1.set_label(qt_tr.translate("plot_mod",
+                    'Substrate classification code [') + data_description["sub_classification_code"] + "]")
 
     plt.margins(x=0)
     plt.margins(y=0)
