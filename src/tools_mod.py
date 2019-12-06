@@ -592,13 +592,16 @@ def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path):
     if os.path.exists(input_hdf5name_folder_path):
         try:
             rmtree(input_hdf5name_folder_path)
+            os.mkdir(input_hdf5name_folder_path)
         except PermissionError:
             print("Error: Hydraulic input file can be copied to input project folder"
                   " as it is open in another program.")
             try:
+                rmtree(input_hdf5name_folder_path)
                 os.mkdir(input_hdf5name_folder_path)
             except PermissionError:
                 print("Error: Can't create folder in input project folder.")
+                return
     else:
         os.mkdir(input_hdf5name_folder_path)
 
@@ -619,10 +622,12 @@ def copy_hydrau_input_files(input_file_abspath, hdf5_name, dest_folder_path):
     if os.path.exists(input_hdf5name_folder_path):
         try:
             rmtree(input_hdf5name_folder_path)
+            os.mkdir(input_hdf5name_folder_path)
         except PermissionError:
             print("Error: Hydraulic input file can be copied to input project folder"
                   " as it is open in another program.")
             try:
+                rmtree(input_hdf5name_folder_path)
                 os.mkdir(input_hdf5name_folder_path)
             except PermissionError:
                 print("Error: Can't create folder in input project folder.")
