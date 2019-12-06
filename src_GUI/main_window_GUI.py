@@ -214,7 +214,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_existing_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
-        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
 
         # right click
         self.create_menu_right_clic()
@@ -410,7 +409,7 @@ class MainWindows(QMainWindow):
         # path
         path_prj = os.path.join(path_folder_prj, name_prj)
 
-        # check if there is not another project with the same path_name
+        # if exist : remove and create_project
         if os.path.isdir(path_prj):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("An folder with name " + name_prj + " already exists."))
@@ -438,7 +437,8 @@ class MainWindows(QMainWindow):
                     self.msg2.show()
                     return
 
-                # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by create_project)
+                # pass the info from the extra Windows to the HABBY MainWindows
+                # (check on user input done by create_project)
                 self.central_widget.welcome_tab.e1.setText(name_prj)
                 self.central_widget.welcome_tab.e2.setText(path_prj)
                 self.central_widget.welcome_tab.e3.setText('')
@@ -447,7 +447,7 @@ class MainWindows(QMainWindow):
                 self.save_project()
                 self.central_widget.write_log('Warning: ' + self.tr('Old project and its files are deleted.'))
 
-        # save project if unique name in the selected folder
+        # if not exist : create_project
         else:
             # add a new folder
             try:
@@ -472,7 +472,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_existing_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
-        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         change_specific_preferences(self.path_prj,
@@ -554,7 +553,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_existing_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
-        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         change_specific_preferences(self.path_prj,
@@ -659,7 +657,7 @@ class MainWindows(QMainWindow):
 
         self.my_menu_bar()
 
-        # if new projet or project move
+        # create structure project
         if not os.path.isfile(fname):
             create_project_structure(self.path_prj,
                                                        self.central_widget.logon,
@@ -667,107 +665,13 @@ class MainWindows(QMainWindow):
                                                        self.username_prj,
                                                        self.descri_prj,
                                                        "GUI")
-            path_last_file_loaded = None
-            #set_project_type(self.physic_tabs, self.stat_tabs, self.path_prj, self.name_prj)
             change_specific_preferences(self.path_prj,
                                         preference_names=["physic_tabs", "stat_tabs"],
                                         preference_values=[self.physic_tabs, self.stat_tabs])
-        # project exist
-        else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(fname, parser)
-            root = doc.getroot()
-            child = root.find(".//name_prj")
-            path_child = root.find(".//path_prj")
-            path_last_file_loaded_child = root.find(".//path_last_file_loaded")
-            path_last_file_loaded = path_last_file_loaded_child.text
-            user_child = root.find(".//user_name")
-            des_child = root.find(".//description")
-            path_bio_child = root.find(".//path_bio")
-            path_input_child = root.find(".//path_input")
-            path_hdf5_child = root.find(".//path_hdf5")
-            path_figure_child = root.find(".//path_figure")
-            path_text_child = root.find(".//path_text")
-            path_gis_child = root.find(".//path_gis")
-            path_3d_child = root.find(".//path_3d")
-
-            # path input
-            if path_input_child is None:
-                pathin_text = 'input'
-            else:
-                pathin_text = path_input_child.text
-
-            # path hdf5
-            if path_hdf5_child is None:
-                pathhdf5_text = 'hdf5'
-            else:
-                pathhdf5_text = path_hdf5_child.text
-
-            # path figures
-            if path_figure_child is None:
-                pathim_text = os.path.join("output", "figures")
-            else:
-                pathim_text = path_figure_child.text
-
-            # path text output
-            if path_text_child is None:
-                pathtxt_text = os.path.join("output", "text")
-            else:
-                pathtxt_text = path_text_child.text
-
-            # path shapefile
-            if path_gis_child is None:
-                pathshapefile_text = os.path.join("output", "GIS")
-            else:
-                pathshapefile_text = path_input_child.text
-
-            # path visualisation
-            if path_3d_child is None:
-                pathpara_text = os.path.join("output", "3D")
-            else:
-                pathpara_text = path_input_child.text
-
-            child.text = self.name_prj
-            path_child.text = self.path_prj
-            path_bio_child.text = self.path_bio_default
-            user_child.text = self.username_prj
-            des_child.text = self.descri_prj
-            fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-            doc.write(fname, pretty_print=True)
-            change_specific_preferences(self.path_prj,
-                                        preference_names=["physic_tabs", "stat_tabs"],
-                                        preference_values=[self.physic_tabs, self.stat_tabs])
-
-            # create needed folder if not there yet
-            pathin_text = os.path.join(self.path_prj, pathin_text)
-            path_h5 = os.path.join(self.path_prj, pathhdf5_text)
-            path_im = os.path.join(self.path_prj, pathim_text)
-            path_text = os.path.join(self.path_prj, pathtxt_text)
-            path_shapefile_text = os.path.join(self.path_prj, pathshapefile_text)
-            path_para_text = os.path.join(self.path_prj, pathpara_text)
-            try:
-                if not os.path.exists(pathin_text):
-                    os.makedirs(pathin_text)
-                if not os.path.exists(path_h5):
-                    os.makedirs(path_h5)
-                if not os.path.exists(os.path.join(self.path_prj, 'output')):
-                    os.makedirs(os.path.join(self.path_prj, 'output'))
-                if not os.path.exists(path_im):
-                    os.makedirs(path_im)
-                if not os.path.exists(path_text):
-                    os.makedirs(path_text)
-                if not os.path.exists(path_shapefile_text):
-                    os.makedirs(path_shapefile_text)
-                if not os.path.exists(path_para_text):
-                    os.makedirs(path_para_text)
-            except PermissionError:
-                self.central_widget.write_log('Error: ' + self.tr('Could not create directory, Permission Error \n'))
-                return
 
         # update central widget
         self.central_widget.name_prj = self.name_prj
         self.central_widget.path_prj = self.path_prj
-        self.central_widget.path_last_file_loaded = path_last_file_loaded
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
 
@@ -873,111 +777,16 @@ class MainWindows(QMainWindow):
                 'Error: ' + self.tr('Old project and its files are opened by another programme.\n'
                                     'Close them and try again.'))
 
-    def change_name_project(self):
-        """
-        This function is used to change the name of the current project. To do this, it copies the xml
-        project with a new name and copy the file for the log with a new name
-        """
-        fname_old = os.path.join(self.path_prj, self.name_prj + '.habby')
-        old_path_prj = self.path_prj
-
-        # get new name from the user
-        text, ok = QInputDialog.getText(self, self.tr('Change Project name'),
-                                        self.tr('Enter the new project name:'))
-        if ok:
-            name_prj_here = str(text)
-            # check if file already exist
-            fname = os.path.join(self.path_prj, name_prj_here + '.habby')
-            new_path_prj = os.path.join(os.path.dirname(self.path_prj), name_prj_here)
-            if os.path.isfile(fname) or os.path.isdir(new_path_prj):
-                self.msg2.setIcon(QMessageBox.Warning)
-                self.msg2.setWindowTitle(self.tr("Erase old project?"))
-                self.msg2.setText(
-                    self.tr("A project with an identical name exists. Choose another name."))
-                self.msg2.setDefaultButton(QMessageBox.Ok)
-                self.msg2.show()
-                return
-            # change label name
-            self.central_widget.welcome_tab.e1.setText(name_prj_here)
-            # copy the xml
-            try:
-                shutil.copyfile(fname_old, fname)
-            except FileNotFoundError:
-                self.central_widget.write_log("Error: " + self.tr("the old project file does not exist (1)\n."))
-                return
-            # write the new name in the copied xml
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(fname, parser)
-            root = doc.getroot()
-            name_child = root.find(".//name_prj")
-            # change project path
-            path_child = root.find(".//path_prj")
-            path_prj_old = path_child.text
-            path_child.text = os.path.join(os.path.dirname(path_child.text), name_prj_here)
-            new_path_prj = os.path.join(os.path.dirname(path_child.text), name_prj_here)
-            # update log name in the new xml
-            child_logfile1 = root.find(".//file_log")
-            log1_old = child_logfile1.text
-            child_logfile1.text = os.path.join(new_path_prj, name_prj_here + '.log')
-            child_logfile2 = root.find(".//file_restart")
-            log2_old = child_logfile2.text
-            child_logfile2.text = os.path.join(new_path_prj, 'restart_' + name_prj_here + '.log')
-
-            # copy the xml
-            try:
-                os.rename(os.path.join(old_path_prj, log1_old), os.path.join(old_path_prj, name_prj_here + '.log'))
-                os.rename(os.path.join(old_path_prj, log2_old), os.path.join(old_path_prj,
-                                                                             'restart_' + name_prj_here + '.log'))
-            except FileNotFoundError:
-                self.central_widget.write_log("Error: " + self.tr("the old log files do not exist (2)\n."))
-                return
-            doc.write(fname, pretty_print=True)
-            # # erase old xml
-            os.remove(fname_old)
-            # rename directory
-            try:
-                os.rename(path_prj_old, new_path_prj)
-            except FileExistsError:
-                self.central_widget.write_log(
-                    "Warning: " + self.tr("A project with the same name exist. Conflict arised. \n"))
-            # change path_prj
-            self.path_prj = new_path_prj
-            self.central_widget.welcome_tab.e2.setText(new_path_prj)
-            # save project, just in case
-            self.save_project()
-
     def empty_project(self):
         """
         This function opens a new empty project
         """
-
-        # # load the xml file
-        # filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.habby'))
-        #
-        # try:
-        #     try:
-        #         # docxml2 = ET.parse(filename_empty)
-        #         # root2 = docxml2.getroot()
-        #
-        #     except IOError:
-        #         self.central_widget.write_log("Error: " + self.tr("no empty project. \n"))
-        #         return
-        # except ET.ParseError:
-        #     self.central_widget.write_log('Error: ' + self.tr('the .habby is not well-formed.\n'))
-        #     return
-        #
-        # # get the project name and path. Write it in the QWiddet.
-        # # the text in the Qwidget will be used to save the project
-        # self.name_prj = root2.find(".//name_prj").text
-        # self.path_prj = root2.find(".//path_prj").text
         self.central_widget.welcome_tab.e1.setText("")
         self.central_widget.welcome_tab.e2.setText("")
         self.central_widget.welcome_tab.e4.setText('')
         self.central_widget.welcome_tab.e3.setText('')
 
         self.setWindowTitle(self.tr('HABBY ') + str(self.version))
-        # save the project
-        # self.create_project()
 
     def check_concurrency(self):
         """
