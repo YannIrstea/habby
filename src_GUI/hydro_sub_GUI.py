@@ -848,14 +848,7 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//path_figure")
-            if child is None:
-                path_im = os.path.join(self.path_prj, r'/figures')
-            else:
-                path_im = os.path.join(self.path_prj, child.text)
+            path_im = load_specific_preferences(self.path_prj, ["path_figure"])[0]
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the figures"))
@@ -879,14 +872,6 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            # parser = ET.XMLParser(remove_blank_text=True)
-            # doc = ET.parse(filename_path_pro, parser)
-            # root = doc.getroot()
-            # child = root.find(".//path_hdf5")
-            # if child is None:
-            #     path_hdf5 = os.path.join(self.path_prj, r'/hdf5')
-            # else:
-            #     path_hdf5 = os.path.join(self.path_prj, child.text)
             path_hdf5 = load_specific_preferences(self.path_prj, preference_names=["path_hdf5"])[0]
         else:
             self.send_log.emit("Error: " + QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab "

@@ -53,21 +53,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.name_prj = name_prj
         self.imfish = ''
         self.current_hab_informations_dict = None
-        # find the path bio
-        # try:
-        #     try:
-        #         docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.habby'))
-        #         root = docxml.getroot()
-        #     except IOError:
-        #         self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
-        #         return
-        # except ET.ParseError:
-        #     self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed."))
-        #     return
-        # pathbio_child = root.find(".//path_bio")
-        # if pathbio_child is not None:
-        #     if os.path.isdir(pathbio_child.text):
-        #         self.path_bio = pathbio_child.text
         self.path_bio = load_specific_preferences(self.path_prj, ["path_bio"])[0]
         self.path_im_bio = self.path_bio
         # self.path_bio is defined in StatModUseful.
@@ -770,7 +755,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             except IOError:
                 self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
                 return
-        except ET.ParseError:
+        except:
             self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed."))
             return
 

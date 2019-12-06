@@ -15,12 +15,9 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import shutil
-
-from lxml import etree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QWidget, QPushButton, QGroupBox,\
-    QLabel, QGridLayout, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
+    QLabel, QGridLayout, QLineEdit, QTextEdit, QSpacerItem, \
     QMessageBox, QScrollArea, \
     QFrame
 from PyQt5.QtGui import QPixmap, QFont
@@ -131,11 +128,6 @@ class WelcomeW(QScrollArea):
             pass
         # otherwise, fill it
         else:
-            # parser = ET.XMLParser(remove_blank_text=True)
-            # doc = ET.parse(fname, parser)
-            # root = doc.getroot()
-            # user_child = root.find(".//user_name")
-            # des_child = root.find(".//description")
             preference_names = project_manag_mod.load_specific_preferences(self.path_prj,
                                                         preference_names=["user_name", "description"])
             self.e4.setText(preference_names[0])
@@ -182,59 +174,6 @@ class WelcomeW(QScrollArea):
         AS IT IS COMPLICATED TO INSTALL A EXAMPLE PROJECT. WINDOWS SAVED PROGRAM IN FOLDER WITHOUT WRITE PERMISSIONS.
         """
         self.send_log.emit('Warning: ' + self.tr('No example prepared yet.'))
-
-    def setfolder2(self):
-        """
-        This function is used by the user to select the folder where the xml project file will be located.
-        This is used in the case where the project exist already. A similar function is in the class CreateNewProjectDialog()
-        for the case where the project is new.
-        """
-        # check for invalid null parameter on Linuxgit
-        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
-        if dir_name != '':  # cancel case
-            self.e2.setText(dir_name)
-            self.send_log.emit(self.tr('New folder selected for the project.'))
-        else:
-            return
-
-        # if the project exist and the project name has not changed
-        # ,change the project path in the xml file and copy the xml at the chosen location
-        # if a project directory exist copy it as long as no project directory exist at the end location
-        path_old = self.path_prj
-        fname_old = os.path.join(path_old, self.name_prj + '.habby')
-        new_path = os.path.join(dir_name, self.name_prj)
-        if os.path.isfile(fname_old) and self.e1.text() == self.name_prj:
-            # write new project path
-            if not os.path.exists(new_path):
-                self.path_prj = new_path
-                parser = ET.XMLParser(remove_blank_text=True)
-                doc = ET.parse(fname_old, parser)
-                root = doc.getroot()
-                path_child = root.find(".//path_prj")
-                path_child.text = self.path_prj  # new name
-                fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-                try:
-                    shutil.copytree(path_old, self.path_prj)
-                except shutil.Error:
-                    self.send_log.emit(self.tr('Could not copy the project. Permission Error?'))
-                    return
-                self.send_log.emit(self.tr('The files in the project folder have been copied to the new location.'))
-                try:
-                    shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.habby'))
-                except shutil.Error:
-                    self.send_log.emit(self.tr('Could not copy the project. Permission Error?'))
-                    return
-                doc.write(fname, pretty_print=True)
-                self.e2.setText(self.path_prj)
-                self.save_signal.emit()  # if not project folder, will create one
-            else:
-                self.send_log.emit('Error: ' + self.tr('A project with the same name exists at the new location. '
-                                   'Project not saved.'))
-                self.e2.setText(path_old)
-                return
-        # if the project do not exist or has a different name than before, save a new project
-        else:
-            self.save_signal.emit()
 
 
 class MyFilter(QObject):
