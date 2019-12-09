@@ -37,7 +37,7 @@ class AppDataFolders:
     def __init__(self):
         #print("__init__AppDataFolders")
         # folders Irstea/HABBY
-        appauthor = "Irstea"
+        appauthor = "INRAE_EDF_OFB"
         appname = "HABBY"
         self.user_preferences_habby_path = AppDirs(appname, appauthor).user_config_dir
         self.user_preferences_habby_file_path = os.path.join(self.user_preferences_habby_path, "user_preferences.json")
@@ -47,6 +47,8 @@ class AppDataFolders:
         self.user_preferences_temp_path = os.path.join(self.user_preferences_habby_path, "temp")
         self.user_preferences_log_path = os.path.join(self.user_preferences_habby_path, "log")
         self.user_preferences_crashlog_file = os.path.join(self.user_preferences_habby_path, "log", "habby_crash.log")
+        # save
+        self.user_preferences_biology_models_save = AppDirs("saves", appauthor).user_config_dir
 
     # preferences
     def create_appdata_folders(self):
@@ -62,6 +64,9 @@ class AppDataFolders:
         # user_preferences_log_path
         if not os.path.isdir(self.user_preferences_log_path):
             os.mkdir(self.user_preferences_log_path)
+        # user_preferences_biology_models_save
+        if not os.path.isdir(self.user_preferences_biology_models_save):
+            os.makedirs(self.user_preferences_biology_models_save)
 
     def crash_management_output(self, error_type, error_value, error_traceback):
         """
@@ -143,7 +148,7 @@ def main():
         # close
         sys.exit(app.exec_())
 
-    # command line
+    # CLI
     else:
         """
         CLI

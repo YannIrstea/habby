@@ -55,3 +55,6 @@ Root: HKCR; Subkey: "{#MyAppName}\shell\open\command";  ValueData: """{app}\{#My
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{localappdata}\INRAE_EDF_OFB\HABBY"

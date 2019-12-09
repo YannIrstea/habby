@@ -14,9 +14,10 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from lxml import etree as ET
 import json
 import os
+from shutil import copy as sh_copy
+from time import strftime
 
 from habby import AppDataFolders
 from src import bio_info_mod
@@ -34,7 +35,6 @@ class UserPreferences(AppDataFolders):
         self.modified = False
         # biological models allowed by HABBY dict
         self.biological_models_requirements_dict = dict(ModelType=["univariate suitability index curves"],
-                                                        #
                                                         UnitVariable=[
                                                             ["PreferenceHeightOfWater", "HeightOfWaterClasses"],
                                                             ["PreferenceVelocity", "VelocityClasses"]],
@@ -47,7 +47,6 @@ class UserPreferences(AppDataFolders):
                          path_prj="",
                          recent_project_path=[],
                          recent_project_name=[],
-                         #selected_tabs=(True, True, False),  # physic, statistic, research
                          theme="classic",  # classic, dark
                          wind_position=(50, 75, 950, 720))  # X position, Y position, height, width
         # biological models
@@ -87,7 +86,7 @@ class UserPreferences(AppDataFolders):
 
     def save_user_preferences_json(self):
         with open(self.user_preferences_habby_file_path, "wt") as write_file:
-            json.dump(self.data, write_file)
+            json.dump(self.data, write_file, indent=4)
 
     def load_user_preferences_json(self):
         with open(self.user_preferences_habby_file_path, "r") as read_file:
@@ -186,7 +185,7 @@ class UserPreferences(AppDataFolders):
     def create_biology_models_json(self):
         # save database
         with open(self.user_preferences_biology_models_db_file, "wt") as write_file:
-            json.dump(self.biological_models_dict, write_file)
+            json.dump(self.biological_models_dict, write_file, indent=4)
 
     def format_biology_models_dict_togui(self):
         # orderedKeys that MUST ! correspond to listwidgets filtersnames
@@ -204,13 +203,13 @@ class UserPreferences(AppDataFolders):
                 self.biological_models_dict["orderedKeysmultilist"].append(False)
 
     def check_need_update_biology_models_json(self):
-        # create_biology_models_dict
+        # create_biology_models_dict (new)
         self.create_biology_models_dict()
 
-        # load existing json
+        # load json (existing)
         biological_models_dict_from_json = self.load_biology_models_json()
 
-        # check all
+        # check diff all
         if biological_models_dict_from_json != self.biological_models_dict:
             self.modified = True
 
@@ -224,6 +223,24 @@ class UserPreferences(AppDataFolders):
                 set_diff = set_new - set_old
                 if set_diff:
                     self.diff_list += str(set_diff) + ", "
+
+            if "xml" in self.diff_list and "user" in self.diff_list:  # new xml curve (from AppData user)
+                existing_path_xml_list = list(map(str, biological_models_dict_from_json["path_xml"]))
+                new_path_xml_list = list(map(str, self.biological_models_dict["path_xml"]))
+                new_xml_list = list(set(existing_path_xml_list) ^ set(new_path_xml_list))
+                if new_xml_list:
+                    new_biology_models_save_folder = os.path.join(self.user_preferences_biology_models_save,
+                                                                  strftime("%d_%m_%Y_at_%H_%M_%S"))
+                    if not os.path.isdir(new_biology_models_save_folder):
+                        os.mkdir(new_biology_models_save_folder)
+                    for new_xml_element in new_xml_list:
+                        # xml
+                        sh_copy(new_xml_element, new_biology_models_save_folder)
+                        # png
+                        name_png = os.path.splitext(os.path.basename(new_xml_element))[0] + ".png"
+                        sh_copy(os.path.join(os.path.dirname(new_xml_element), name_png),
+                                new_biology_models_save_folder)
+
             self.create_biology_models_json()
 
     def load_biology_models_json(self):
