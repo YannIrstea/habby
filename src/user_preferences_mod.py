@@ -53,6 +53,8 @@ class UserPreferences(AppDataFolders):
         self.path_bio = os.path.join("biology", "models")  # path to biological
         # biological_models_dict
         self.biological_models_dict = dict()
+        # differences between old database and new database
+        self.diff_list = ""
 
     # GENERAL
     def create_user_preferences_structure(self):
@@ -112,9 +114,11 @@ class UserPreferences(AppDataFolders):
             self.create_biology_models_dict()
             self.create_biology_models_json()
             self.format_biology_models_dict_togui()
+            self.modified = True
+            self.diff_list = "First creation."
 
         # if exist
-        elif os.path.isfile(self.user_preferences_biology_models_db_file):
+        else:
             self.check_need_update_biology_models_json()
             self.format_biology_models_dict_togui()
 
@@ -216,15 +220,16 @@ class UserPreferences(AppDataFolders):
         # check condition
         if self.modified:  # update json
             # get differences
-            self.diff_list = ""
+            diff_key_list = ""
             for key in biological_models_dict_from_json:
                 set_old = set(list(map(str, biological_models_dict_from_json[key])))
                 set_new = set(list(map(str, self.biological_models_dict[key])))
                 set_diff = set_new - set_old
                 if set_diff:
-                    self.diff_list += str(set_diff) + ", "
+                    diff_key_list += str(set_diff) + ", "
 
-            if "xml" in self.diff_list and "user" in self.diff_list:  # new xml curve (from AppData user)
+            if "xml" in diff_key_list and "user" in diff_key_list:  # new xml curve (from AppData user)
+                diff_list = []
                 existing_path_xml_list = list(map(str, biological_models_dict_from_json["path_xml"]))
                 new_path_xml_list = list(map(str, self.biological_models_dict["path_xml"]))
                 new_xml_list = list(set(existing_path_xml_list) ^ set(new_path_xml_list))
@@ -240,6 +245,10 @@ class UserPreferences(AppDataFolders):
                         name_png = os.path.splitext(os.path.basename(new_xml_element))[0] + ".png"
                         sh_copy(os.path.join(os.path.dirname(new_xml_element), name_png),
                                 new_biology_models_save_folder)
+                        diff_list.append(os.path.basename(new_xml_element))
+                    self.diff_list = ", ".join(diff_list) + " added by user."
+            else:
+                self.diff_list = diff_key_list
 
             self.create_biology_models_json()
 

@@ -195,6 +195,16 @@ class MainWindows(QMainWindow):
         else:
             self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.') + '</br><br>')
 
+        # bio_model_explorer_dialog
+        if hasattr(self.central_widget, "data_explorer_tab"):
+            self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
+            self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
+            self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
+            self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+            self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
+            self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(self.rename_hdf5_file)
+
         # open window
         self.show()
 
@@ -242,16 +252,6 @@ class MainWindows(QMainWindow):
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
-        # bio_model_explorer_dialog
-        if hasattr(self.central_widget, "data_explorer_tab"):
-            self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
-            self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
-            self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
-            self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
-            self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
-            self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(self.rename_hdf5_file)
-
         # set theme
         if self.actual_theme == "classic":
             self.setthemeclassic()
@@ -262,9 +262,6 @@ class MainWindows(QMainWindow):
 
         # run_as_beta_version
         self.run_as_beta_version()
-        last_path_prj = self.user_preferences.data["path_prj"]
-        if not last_path_prj:
-            self.show()
 
     def closeEvent(self, event):
         """

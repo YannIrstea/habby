@@ -90,8 +90,10 @@ class BioModelExplorerWindow(QDialog):
                                                                       ["bio_model_explorer_selection"])[0]
 
         if user_preferences.modified:
-            self.send_log.emit("Warning: " + self.tr("Biological models database has been modified. \n") + user_preferences.diff_list)
-        if not bio_model_explorer_selection_dict or user_preferences.modified:
+            self.send_log.emit("Warning: " + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
+            self.bio_model_filter_tab.create_dico_select()
+            self.bio_model_infoselection_tab.bio_model_explorer_selection_dict = self.bio_model_filter_tab.bio_model_explorer_selection_dict
+        elif not user_preferences.modified and not bio_model_explorer_selection_dict:
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.bio_model_explorer_selection_dict = self.bio_model_filter_tab.bio_model_explorer_selection_dict
         else:
@@ -255,7 +257,7 @@ class BioModelFilterTab(QScrollArea):
         tools_frame.setLayout(global_layout)
 
     def create_dico_select(self):
-        print("create_dico_select")
+        #print("create_dico_select")
         self.bio_model_explorer_selection_dict = dict()
         for i, ky in enumerate(self.biological_models_dict_gui['orderedKeys']):
             # print(ky)
