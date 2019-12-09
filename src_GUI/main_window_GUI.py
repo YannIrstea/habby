@@ -185,10 +185,18 @@ class MainWindows(QMainWindow):
         # open_project
         last_path_prj = self.user_preferences.data["path_prj"]
         last_name_prj = self.user_preferences.data["name_prj"]
-        if last_path_prj:
-            filename_path = os.path.join(last_path_prj, last_name_prj + ".habby")
+        filename_path = os.path.join(last_path_prj, last_name_prj + ".habby")
+
+        # direct open (with habby.exe + arg path)
+        if name_path:
+            filename_path = name_path
+        if os.path.exists(filename_path):
             self.open_project(filename_path)
-            self.show()
+        else:
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.') + '</br><br>')
+
+        # open window
+        self.show()
 
     def init_ui(self):
         """ Used by __init__() to create an instance of the class MainWindows """
@@ -952,7 +960,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_existing_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
-        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
         self.central_widget.welcome_tab.save_info_signal.connect(self.central_widget.save_info_projet)
 
         # re-connect signals for the other tabs
@@ -1906,18 +1913,6 @@ class CentralW(QWidget):
 
         # fill the QComboBox on the substrate and hydro tab
         self.update_combobox_filenames()
-
-        # get the log option (should we take log or not)
-        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if not os.path.isdir(self.path_prj) \
-                or not os.path.isfile(fname):
-            self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.' + '</br><br>'))
-
-        else:
-
-            self.logon = load_specific_preferences(self.path_prj, ["save_log"])[0]
-            self.path_last_file_loaded = load_specific_preferences(self.path_prj, ["path_last_file_loaded"])[0]
-            self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Project opened. <br>'))
 
         # add the widgets to the list of tab if a project exists
         self.add_all_tab()
