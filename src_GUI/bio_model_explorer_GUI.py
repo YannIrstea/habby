@@ -831,8 +831,8 @@ class BioModelInfoSelection(QScrollArea):
                                               code_fish,
                                               name_fish,
                                               stages,
-                                              False,
-                                              project_preferences))
+                                              project_preferences,
+                                              False))
         else:  # bivariate
             # open the pref
             [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
@@ -845,8 +845,8 @@ class BioModelInfoSelection(QScrollArea):
                                               code_fish,
                                               name_fish,
                                               stages,
-                                              False,
-                                              project_preferences))
+                                              project_preferences,
+                                              False))
         # append
         self.process_list.append((curve_process, state))
         self.process_list.start()

@@ -50,7 +50,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     hdf5.export_estimhab()
 
     # plot
-    plot_mod.plot_estimhab(state, estimhab_dict, project_preferences, path_prj)
+    plot_mod.plot_estimhab(state, estimhab_dict, project_preferences)
 
 
 def estimhab(estimhab_dict, qt_tr):

@@ -581,6 +581,8 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
 
 
 """ OTHERS TOOLS """
+def myfmt(x, pos):
+    return '{0:.2f}'.format(x)
 
 
 def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path):

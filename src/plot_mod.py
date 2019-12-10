@@ -23,10 +23,13 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from matplotlib.legend_handler import HandlerLine2D
+import matplotlib.ticker as ticker
+from matplotlib import colors
 import mplcursors
+from PIL import Image
 
 from src import tools_mod
-from src.tools_mod import get_translator
+from src.tools_mod import get_translator, myfmt
 
 
 # other
@@ -134,7 +137,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         plt.show()
 
 
-def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
+def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, project_preferences, get_fig=False):
     """
     This function is used to plot the preference curves.
 
@@ -204,7 +207,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         plt.show()
 
 
-def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
+def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish, name_fish, stade, project_preferences, get_fig=False):
     """
     This function is used to plot the preference curves.
 
@@ -322,7 +325,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     plt.show()
 
 
-def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_hdf5, project_preferences={}):
+def plot_fish_hv_wua(state, data_description, reach_num, name_fish, name_hdf5, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -353,6 +356,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     else:
         mar = None
     mar2 = "2"
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     # colors
@@ -728,10 +732,10 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     plt.show()
 
 
-def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
+def plot_estimhab(state, estimhab_dict, project_preferences):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+    path_prj = project_preferences['path_prj']
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
                                                      "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -869,7 +873,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences, path_prj):
 
 
 # map node
-def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0):
+def plot_map_elevation(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -882,6 +886,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
@@ -892,67 +897,62 @@ def plot_map_elevation(state, data_xy, data_tin, data_z, project_preferences, da
     title = qt_tr.translate("plot_mod",
                             'Elevation - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
     filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
-                                                      'elevation') + "_" + reach_name + '_' + unit_name
+                                                      'points_elevation') + "_" + reach_name + '_' + unit_name
 
     # plot
-    plt.figure(filename)
-    # the grid
-    plt.xlabel('x coord []')
-    plt.ylabel('y coord []')
-    plt.title(title)
-    plt.axis('equal')
-
-    # plot
-    # color map (the same for al reach)
-    cm = plt.cm.get_cmap(project_preferences['color_map2'])
-    min_value = data_z.min()
-    max_value = data_z.max()
-    bounds_nb = 50
-    bounds = np.linspace(min_value, max_value, bounds_nb)
-    while not np.all(np.diff(bounds) > 0):
-        bounds_nb += - 1
+    if len(data_plot) > 0:  # 0
+        plt.figure(filename)
+        plt.ticklabel_format(useOffset=False)
+        plt.axis('equal')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title(title)
+        # get colormap limit
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
+        min_value = 0.0
+        max_value = data_plot.max()
+        bounds_nb = 50
         bounds = np.linspace(min_value, max_value, bounds_nb)
-    # plot
-    sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_z,
-                         cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
+        while not np.all(np.diff(bounds) > 0):
+            bounds_nb += - 1
+            bounds = np.linspace(min_value, max_value, bounds_nb)
 
-    # normal case
-    if len(bounds) > 2:
-        cbar = plt.colorbar(sc)
-        cbar.set_label("[m]")
-    # constant case
-    else:
-        plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant elevation",
-                 fontsize=14, horizontalalignment='center', verticalalignment='center')
-
-    plt.ticklabel_format(useOffset=False)
-
-    # save figures
-    plt.tight_layout()  # remove margin out of plot
-    if types_plot == "image export" or types_plot == "both":
-        if not erase1:
-            plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
+        # all values are null
+        if min_value == max_value and bounds_nb == 1:
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot, colors=colors.rgb2hex(cm(0)),
+                                 vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+        # normal case
         else:
-            test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
-            if not test:
-                return
-            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                 cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if types_plot == "interactive" or types_plot == "both":
-        # fm = plt.get_current_fig_manager()
-        # fm.window.showMinimized()
-        plt.show()
-    if types_plot == "image export":
-        plt.close()
+        cbar = plt.colorbar(sc, format=ticker.FuncFormatter(myfmt))
+        cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Elevation [m]'))
+        plt.tight_layout()  # remove margin out of plot
+        if types_plot == "image export" or types_plot == "both":
+            if not erase1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                                dpi=project_preferences['resolution'], transparent=True)
+
+            else:
+                test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+                if not test:
+                    return
+                plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
+                            dpi=project_preferences['resolution'],
+                            transparent=True)
+
+        # output for plot_GUI
+        state.value = 1  # process finished
+        if types_plot == "interactive" or types_plot == "both":
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
+            plt.show()
+        if types_plot == "image export":
+            plt.close()
 
 
-def plot_map_height(state, data_xy, data_tin, project_preferences, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
+def plot_map_height(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -964,6 +964,7 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
     plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
@@ -974,40 +975,37 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
     title = qt_tr.translate("plot_mod",
                             'Water depth - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
     filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
-                                                      'depth') + "_" + reach_name + '_' + unit_name
+                                                      'height') + "_" + reach_name + '_' + unit_name
 
     # plot the height
-    if len(data_h) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+    if len(data_plot) > 0:  # 0
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
         plt.axis('equal')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title(title)
-        # color map (the same for al reach)
+        # get colormap limit
         cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        min_value = 0
-        max_value = data_h.max()
+        min_value = 0.0
+        max_value = data_plot.max()
         bounds_nb = 50
         bounds = np.linspace(min_value, max_value, bounds_nb)
         while not np.all(np.diff(bounds) > 0):
             bounds_nb += - 1
             bounds = np.linspace(min_value, max_value, bounds_nb)
-        # plot
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h,
-                             cmap=cm, vmin=0, vmax=max_value, levels=bounds)
 
+        # all values are null
+        if min_value == max_value and bounds_nb == 1:
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot, colors=colors.rgb2hex(cm(0)),
+                                 vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
         # normal case
-        if len(bounds) > 2:
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Water depth [m]'))
-        # constant case
         else:
-            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant height",
-                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                 cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
-        # save figure
+        cbar = plt.colorbar(sc, format=ticker.FuncFormatter(myfmt))
+        cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Height [m]'))
         plt.tight_layout()  # remove margin out of plot
 
         if types_plot == "image export" or types_plot == "both":
@@ -1033,7 +1031,7 @@ def plot_map_height(state, data_xy, data_tin, project_preferences, data_descript
             plt.close()
 
 
-def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
+def plot_map_velocity(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1045,6 +1043,7 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
     plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
@@ -1058,7 +1057,7 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
                                                       'velocity') + "_" + reach_name + '_' + unit_name
 
     # plot
-    if len(data_v) > 0:  # 0
+    if len(data_plot) > 0:  # 0
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
         plt.axis('equal')
@@ -1067,34 +1066,29 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
         plt.title(title)
         # get colormap limit
         cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        min_value = 0
-        max_value = data_v.max()
+        min_value = 0.0
+        max_value = data_plot.max()
         bounds_nb = 50
         bounds = np.linspace(min_value, max_value, bounds_nb)
         while not np.all(np.diff(bounds) > 0):
             bounds_nb += - 1
             bounds = np.linspace(min_value, max_value, bounds_nb)
-        # plot
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_v,
-                             cmap=cm, vmin=0, vmax=max_value, levels=bounds)
 
+        # all values are null
+        if min_value == max_value and bounds_nb == 1:
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot, colors=colors.rgb2hex(cm(0)),
+                                 vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
         # normal case
-        if len(bounds) > 2:
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
-        # constant case
         else:
-            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant velocity",
-                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                 cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
-
-
-        # save figure
+        cbar = plt.colorbar(sc, format=ticker.FuncFormatter(myfmt))
+        cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime(
-                    "%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
                             dpi=project_preferences['resolution'], transparent=True)
 
             else:
@@ -1115,7 +1109,7 @@ def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_descri
             plt.close()
 
 
-def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_description, data_conveyance=[], path_im=[], reach_name="", unit_name=0):
+def plot_map_conveyance(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1127,6 +1121,7 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
     plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
@@ -1140,37 +1135,34 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
                                                       'conveyance') + "_" + reach_name + '_' + unit_name
 
     # plot the height
-    if len(data_conveyance) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+    if len(data_plot) > 0:  # 0
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
         plt.axis('equal')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title(title)
-        # color map (the same for al reach)
+        # get colormap limit
         cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        min_value = data_conveyance.min()
-        max_value = data_conveyance.max()
+        min_value = 0.0
+        max_value = data_plot.max()
         bounds_nb = 50
         bounds = np.linspace(min_value, max_value, bounds_nb)
         while not np.all(np.diff(bounds) > 0):
             bounds_nb += - 1
             bounds = np.linspace(min_value, max_value, bounds_nb)
-        # plot
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_conveyance,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
+        # all values are null
+        if min_value == max_value and bounds_nb == 1:
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot, colors=colors.rgb2hex(cm(0)),
+                                 vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
         # normal case
-        if len(bounds) > 2:
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Conveyance [m²/s]'))
-        # constant case
         else:
-            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant conveyance",
-                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                 cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
-        # save figure
+        cbar = plt.colorbar(sc, format=ticker.FuncFormatter(myfmt))
+        cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Conveyance [m²/s]'))
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
@@ -1196,7 +1188,7 @@ def plot_map_conveyance(state, data_xy, data_tin, project_preferences, data_desc
             plt.close()
 
 
-def plot_map_froude(state, data_xy, data_tin, project_preferences, data_description, data_froude=[], path_im=[], reach_name="", unit_name=0):
+def plot_map_froude(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1208,6 +1200,7 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = project_preferences['erase_id']
+    path_im = project_preferences['path_figure']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
@@ -1217,40 +1210,37 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
     title = qt_tr.translate("plot_mod",
                             'Froude number - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
     filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
-                                                      'froude') + "_" + reach_name + '_' + unit_name
+                                                      'Froude') + "_" + reach_name + '_' + unit_name
 
     # plot the height
-    if len(data_froude) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+    if len(data_plot) > 0:  # 0
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
         plt.axis('equal')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title(title)
-        # color map (the same for al reach)
+        # get colormap limit
         cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        min_value = 0
-        max_value = data_froude.max()
+        min_value = 0.0
+        max_value = data_plot.max()
         bounds_nb = 50
         bounds = np.linspace(min_value, max_value, bounds_nb)
         while not np.all(np.diff(bounds) > 0):
             bounds_nb += - 1
             bounds = np.linspace(min_value, max_value, bounds_nb)
-        # plot
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_froude,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
+        # all values are null
+        if min_value == max_value and bounds_nb == 1:
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot, colors=colors.rgb2hex(cm(0)),
+                                 vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
         # normal case
-        if len(bounds) > 2:
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Froude number []'))
-        # constant case
         else:
-            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant Froude",
-                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                 cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
-        # save figure
+        cbar = plt.colorbar(sc, format=ticker.FuncFormatter(myfmt))
+        cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Froude number []'))
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
@@ -1276,7 +1266,7 @@ def plot_map_froude(state, data_xy, data_tin, project_preferences, data_descript
             plt.close()
 
 
-def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_description, data_hydraulic_head=[], path_im=[], reach_name="", unit_name=0):
+def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1287,6 +1277,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
@@ -1300,37 +1291,34 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
                                                       'hydraulic_head') + "_" + reach_name + '_' + unit_name
 
     # plot the height
-    if len(data_hydraulic_head) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+    if len(data_plot) > 0:  # 0
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
         plt.axis('equal')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title(title)
-        # color map (the same for al reach)
+        # get colormap limit
         cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        min_value = data_hydraulic_head.min()
-        max_value = data_hydraulic_head.max()
+        min_value = 0.0
+        max_value = data_plot.max()
         bounds_nb = 50
         bounds = np.linspace(min_value, max_value, bounds_nb)
         while not np.all(np.diff(bounds) > 0):
             bounds_nb += - 1
             bounds = np.linspace(min_value, max_value, bounds_nb)
-        # plot
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_hydraulic_head,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
+        # all values are null
+        if min_value == max_value and bounds_nb == 1:
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot, colors=colors.rgb2hex(cm(0)),
+                                 vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
         # normal case
-        if len(bounds) > 2:
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Hydraulic head [m]'))
-        # constant case
         else:
-            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant hydraulic head",
-                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                 cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
-        # save figure
+        cbar = plt.colorbar(sc, format=ticker.FuncFormatter(myfmt))
+        cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Hydraulic head [m]'))
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
@@ -1355,7 +1343,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, project_preferences, data_
             plt.close()
 
 
-def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_description, data_water_level=[], path_im=[], reach_name="", unit_name=0):
+def plot_map_water_level(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1366,6 +1354,7 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
@@ -1379,37 +1368,34 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
                                                       'water_level') + "_" + reach_name + '_' + unit_name
 
     # plot the height
-    if len(data_water_level) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+    if len(data_plot) > 0:  # 0
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
         plt.axis('equal')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title(title)
-        # color map (the same for al reach)
+        # get colormap limit
         cm = plt.cm.get_cmap(project_preferences['color_map2'])
-        min_value = data_water_level.min()
-        max_value = data_water_level.max()
+        min_value = 0.0
+        max_value = data_plot.max()
         bounds_nb = 50
         bounds = np.linspace(min_value, max_value, bounds_nb)
         while not np.all(np.diff(bounds) > 0):
             bounds_nb += - 1
             bounds = np.linspace(min_value, max_value, bounds_nb)
-        # plot
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_water_level,
-                             cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
+        # all values are null
+        if min_value == max_value and bounds_nb == 1:
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot, colors=colors.rgb2hex(cm(0)),
+                                 vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
         # normal case
-        if len(bounds) > 2:
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Water level [m]'))
-        # constant case
         else:
-            plt.text(data_xy[:, 0].mean(), data_xy[:, 1].mean(), "Constant water level",
-                     fontsize=14, horizontalalignment='center', verticalalignment='center')
+            sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                 cmap=cm, vmin=min_value, vmax=max_value, levels=bounds)
 
-        # save figure
+        cbar = plt.colorbar(sc, format=ticker.FuncFormatter(myfmt))
+        cbar.ax.set_ylabel(qt_tr.translate("plot_mod", 'Water level [m]'))
         plt.tight_layout()  # remove margin out of plot
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
@@ -1435,7 +1421,7 @@ def plot_map_water_level(state, data_xy, data_tin, project_preferences, data_des
 
 
 # map mesh
-def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_description, path_im=[], reach_name="", unit_name=0):
+def plot_map_mesh(state, data_xy, data_tin, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1449,6 +1435,7 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
@@ -1458,7 +1445,7 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
     title = qt_tr.translate("plot_mod",
                             'Mesh and points - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
     filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
-                                                      'mesh_points') + "_" + reach_name + '_' + unit_name
+                                                      'mesh') + "_" + reach_name + '_' + unit_name
 
     # plot
     _ = plt.figure(filename)
@@ -1536,7 +1523,7 @@ def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_descriptio
         plt.close()
 
 
-def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1548,6 +1535,7 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
 
     name_hdf5 = data_description["name_hdf5"]
@@ -1561,7 +1549,7 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
                                                       'max_slope_bottom') + "_" + reach_name + '_' + unit_name
 
     # create mask
-    masked_array = np.ma.array(slope_data, mask=np.isnan(slope_data))
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))
 
     # preplot
     _ = plt.figure(filename)
@@ -1571,13 +1559,13 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
     cmap = plt.get_cmap(project_preferences['color_map2'])
     cmap.set_bad(color='black', alpha=1.0)
 
-    n = len(slope_data)
-    norm = mpl.colors.Normalize(vmin=0, vmax=max(slope_data))
+    n = len(data_plot)
+    norm = mpl.colors.Normalize(vmin=0, vmax=max(data_plot))
     patches = []
     for i in range(0, n):
         verts = []
         for j in range(0, 3):
-            verts_j = coord_p[int(ikle[i][j]), :]
+            verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)  # , edgecolor='w'
         patches.append(polygon)
@@ -1588,7 +1576,7 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
     ax.ticklabel_format(useOffset=False)
 
     # colorbar
-    cb1 = plt.colorbar(collection)
+    cb1 = plt.colorbar(collection, format=ticker.FuncFormatter(myfmt))
     cb1.set_label(qt_tr.translate("plot_mod", 'Maximum slope bottom []'))
     plt.margins(x=0)
     plt.margins(y=0)
@@ -1623,7 +1611,7 @@ def plot_map_slope_bottom(state, coord_p, ikle, slope_data, data_description, pr
         plt.close()
 
 
-def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+def plot_map_slope_energy(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1635,6 +1623,7 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
 
     name_hdf5 = data_description["name_hdf5"]
@@ -1648,7 +1637,7 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
                                                       'max_slope_energy') + "_" + reach_name + '_' + unit_name
 
     # create mask
-    masked_array = np.ma.array(slope_data, mask=np.isnan(slope_data))
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))
 
     # preplot
     _ = plt.figure(filename)
@@ -1658,13 +1647,13 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
     cmap = plt.get_cmap(project_preferences['color_map2'])
     cmap.set_bad(color='black', alpha=1.0)
 
-    n = len(slope_data)
-    norm = mpl.colors.Normalize(vmin=0, vmax=max(slope_data))
+    n = len(data_plot)
+    norm = mpl.colors.Normalize(vmin=0, vmax=max(data_plot))
     patches = []
     for i in range(0, n):
         verts = []
         for j in range(0, 3):
-            verts_j = coord_p[int(ikle[i][j]), :]
+            verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)  # , edgecolor='w'
         patches.append(polygon)
@@ -1675,7 +1664,7 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
     ax.ticklabel_format(useOffset=False)
 
     # colorbar
-    cb1 = plt.colorbar(collection)
+    cb1 = plt.colorbar(collection, format=ticker.FuncFormatter(myfmt))
     cb1.set_label(qt_tr.translate("plot_mod", 'Maximum slope energy []'))
 
     plt.margins(x=0)
@@ -1710,7 +1699,7 @@ def plot_map_slope_energy(state, coord_p, ikle, slope_data, data_description, pr
         plt.close()
 
 
-def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+def plot_map_shear_stress(state, data_xy, data_tin, data_plot, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1722,6 +1711,7 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
 
     name_hdf5 = data_description["name_hdf5"]
@@ -1732,10 +1722,10 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
     title = qt_tr.translate("plot_mod",
                             'Shear stress - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
     filename = name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod",
-                                                      'shear_stress') + "_" + reach_name + '_' + unit_name
+                                                      'data_plot') + "_" + reach_name + '_' + unit_name
 
     # create mask
-    masked_array = np.ma.array(shear_stress, mask=np.isnan(shear_stress))
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))
 
     # preplot
     _ = plt.figure(filename)
@@ -1745,13 +1735,13 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
     cmap = plt.get_cmap(project_preferences['color_map2'])
     cmap.set_bad(color='black', alpha=1.0)
 
-    n = len(shear_stress)
-    norm = mpl.colors.Normalize(vmin=0, vmax=max(shear_stress))
+    n = len(data_plot)
+    norm = mpl.colors.Normalize(vmin=0, vmax=max(data_plot))
     patches = []
     for i in range(0, n):
         verts = []
         for j in range(0, 3):
-            verts_j = coord_p[int(ikle[i][j]), :]
+            verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)  # , edgecolor='w'
         patches.append(polygon)
@@ -1762,7 +1752,7 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
     ax.ticklabel_format(useOffset=False)
 
     # colorbar
-    cb1 = plt.colorbar(collection)
+    cb1 = plt.colorbar(collection, format=ticker.FuncFormatter(myfmt))
     cb1.set_label(qt_tr.translate("plot_mod", 'Shear stress []'))
     plt.margins(x=0)
     plt.margins(y=0)
@@ -1797,13 +1787,13 @@ def plot_map_shear_stress(state, coord_p, ikle, shear_stress, data_description, 
         plt.close()
 
 
-def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_description, path_im, project_preferences={}, reach_name="", unit_name=0.0):
+def plot_map_substrate(state, data_xy, data_tin, sub_array, sub_type, data_description, project_preferences, reach_name, unit_name):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
 
-    :param coord_p: the coordinate of the point
-    :param ikle: the connectivity table
+    :param data_xy: the coordinate of the point
+    :param data_tin: the connectivity table
     :param sub_pg: the information on subtrate by element for the "coarser part"
     :param sub_dom: the information on subtrate by element for the "dominant part"
     :param project_preferences: the figure option as a doctionnary
@@ -1824,6 +1814,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_descripti
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     types_plot = project_preferences['type_plot']
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
 
     name_hdf5 = data_description["name_hdf5"]
@@ -1853,23 +1844,23 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_descripti
     # prepare grid (to optimize)
     xlist = []
     ylist = []
-    coord_p = np.array(coord_p)
-    for i in range(0, len(ikle)):
+    data_xy = np.array(data_xy)
+    for i in range(0, len(data_tin)):
         pi = 0
-        while pi < len(ikle[i]) - 1:  # we have all sort of xells, max eight sides
-            p = int(ikle[i][pi])  # we start at 0 in python, careful about -1 or not
-            p2 = int(ikle[i][pi + 1])
-            xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+        while pi < len(data_tin[i]) - 1:  # we have all sort of xells, max eight sides
+            p = int(data_tin[i][pi])  # we start at 0 in python, careful about -1 or not
+            p2 = int(data_tin[i][pi + 1])
+            xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
             xlist.append(None)
-            ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+            ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
             ylist.append(None)
             pi += 1
 
-        p = int(ikle[i][pi])
-        p2 = int(ikle[i][0])
-        xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+        p = int(data_tin[i][pi])
+        p2 = int(data_tin[i][0])
+        xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
         xlist.append(None)
-        ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+        ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
         ylist.append(None)
 
     # general
@@ -1893,8 +1884,8 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_descripti
     n = len(sub_data)
     for i in range(0, n):
         verts = []
-        for j in range(0, len(ikle[i])):
-            verts_j = coord_p[int(ikle[i][j]), :]
+        for j in range(0, len(data_tin[i])):
+            verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True, edgecolor='w')
         patches.append(polygon)
@@ -1908,7 +1899,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_descripti
     # colorbar
     listcathegories_stick = [x + 0.5 for x in range(1, max_class + 1)]
     listcathegories_stick_label = [x for x in range(1, max_class + 1)]
-    cb1 = plt.colorbar(collection)
+    cb1 = plt.colorbar(collection, format=ticker.FuncFormatter(myfmt))
     cb1.set_ticks(listcathegories_stick)
     cb1.set_ticklabels(listcathegories_stick_label)
     cb1.set_label(qt_tr.translate("plot_mod",
@@ -1944,7 +1935,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_type, data_descripti
         plt.close()
 
 
-def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+def plot_map_fish_habitat(state, data_xy, data_tin, fish_name, vh, percent_unknown, data_description, project_preferences, reach_name, unit_name):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -1956,6 +1947,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
     plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = project_preferences['type_plot']
+    path_im = project_preferences['path_figure']
     erase1 = project_preferences['erase_id']
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
@@ -1988,7 +1980,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
     for i in range(0, n):
         verts = []
         for j in range(0, 3):
-            verts_j = coord_p[int(ikle[i][j]), :]
+            verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
@@ -1999,7 +1991,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
     ax.ticklabel_format(useOffset=False)
 
     # colorbar
-    cb1 = plt.colorbar(collection)
+    cb1 = plt.colorbar(collection, format=ticker.FuncFormatter(myfmt))
     cb1.set_label(qt_tr.translate("plot_mod", 'HV []'))
     plt.margins(x=0)
     plt.margins(y=0)
@@ -2034,6 +2026,22 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, percent_unknown, 
 
 
 # plot tool
+def create_gif_from_files(state, variables, reach_name, unit_names, data_description, project_preferences):
+    # get translation
+    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
+    name_hdf5 = data_description["name_hdf5"]
+    path_im = project_preferences['path_figure']
+
+    for variable in variables:
+        img, *imgs = [Image.open(os.path.join(path_im, name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod", variable) + "_" + reach_name + '_' + unit_name + project_preferences['format'])) for unit_name in unit_names]
+        img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + qt_tr.translate("plot_mod", variable) + "_" + reach_name + ".gif"), format='GIF', append_images=imgs,
+                 save_all=True, duration=200, loop=0)
+
+    # prog
+    state.value = 1  # process finished
+
+
 def get_colors_styles_line_from_nb_input(input_nb):
     """
     Get color_list and style_list for a given number of input.

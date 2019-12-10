@@ -45,8 +45,8 @@ from src import calcul_hab_mod
 from src import mesh_management_mod
 from src import lammi_mod
 from src import hydro_input_file_mod
-from src.project_manag_mod import create_project_structure, save_project_preferences, \
-    create_default_project_preferences_dict, load_project_preferences
+from src.project_manag_mod import create_project_structure, enable_disable_all_exports, \
+    create_default_project_preferences_dict, load_project_preferences, change_specific_preferences
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -1280,10 +1280,16 @@ def load_fstress_text(path_fstress):
 
 def cli_create_project(path_prj, name_prj, all_export_enabled, HABBY_VERSION):
     if not os.path.exists(path_prj):
-        create_project_structure(path_prj, False, HABBY_VERSION, "CLI", "CLI-mode", mode="CLI")
-        project_preferences = create_default_project_preferences_dict(all_export_enabled=all_export_enabled)
-        save_project_preferences(path_prj, name_prj, project_preferences)
-        set_project_type(True, True, path_prj, name_prj)
+        create_project_structure(path_prj,
+                                 save_log=False,
+                                 version_habby=HABBY_VERSION,
+                                 user_name="CLI",
+                                 description="CLI-mode",
+                                 mode="CLI")
+        change_specific_preferences(path_prj,
+                                    preference_names=["physic_tabs", "stat_tabs"],
+                                    preference_values=[True, True])
+        enable_disable_all_exports(path_prj, enabled=all_export_enabled)
         print("# CREATE_PROJECT finished")
     else:
         print("Warning: The project " + name_prj + " already exists.")

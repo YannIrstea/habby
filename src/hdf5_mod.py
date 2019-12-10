@@ -2536,7 +2536,7 @@ class Hdf5Management:
                         [f, axarr] = plot_mod.plot_suitability_curve_invertebrate(fake_value,
                                                                                   shear_stress_all, hem_all, hv_all,
                                                                                   code_fish, name_fish,
-                                                                                  stages, True, self.project_preferences)
+                                                                                  stages, self.project_preferences, True)
                 else:
                     # open the pref
                     [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
@@ -2548,8 +2548,8 @@ class Hdf5Management:
                                                   code_fish,
                                                   name_fish,
                                                   stages,
-                                                  True,
-                                                  self.project_preferences)
+                                                  self.project_preferences,
+                                                  True)
                 # modification of the orginal preference fig
                 # (0,0) is bottom left - 1 is the end of the page in x and y direction
                 plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])

@@ -405,6 +405,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.variables_to_remove = ["mesh", "points_elevation", "height", "velocity",
                                     "sub_coarser", "sub_dominant", "max_slope_bottom", "max_slope_energy", "shear_stress",
                                     "conveyance", "Froude", "hydraulic_head", "water_level"]
+        self.gif_export = False
         self.nb_plot = 0
         self.init_ui()
 
@@ -447,6 +448,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.export_type_QLabel = QLabel(self.tr('View or export ?'))
         self.export_type_QComboBox = QComboBox()
         self.export_type_QComboBox.addItems(["interactive", "image export", "both"])
+        self.export_type_QComboBox.currentIndexChanged.connect(self.count_plot)
         self.export_type_layout = QVBoxLayout()
         self.export_type_layout.setAlignment(Qt.AlignTop)
         self.export_type_layout.addWidget(self.export_type_QLabel)
@@ -521,6 +523,14 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # is fish ?
             fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
             variables_other = [variable for variable in variables if variable not in fish_names]
+            # for GIF
+            map_condition = plot_type == ["map"] or plot_type == ["map", "result"]  # map_condition
+            export_type_condition = export_type == "image export"  # export_type_condition
+            all_unit_condition = self.units_QListWidget.count() == len(units)  # all_unit_condition
+            if map_condition and export_type_condition and all_unit_condition:
+                self.gif_export = True
+            else:
+                self.gif_export = False
 
             # no fish
             if len(fish_names) == 0:
@@ -528,8 +538,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     self.nb_plot = 0
                 if plot_type == ["map"]:
                     self.nb_plot = len(names_hdf5) * len(variables) * len(reach) * len(units)
+                    if self.gif_export:
+                        self.nb_plot = self.nb_plot + len(variables) * len(reach)
                 if plot_type == ["map", "result"]:
                     self.nb_plot = len(names_hdf5) * len(variables) * len(reach) * len(units)
+                    if self.gif_export:
+                        self.nb_plot = self.nb_plot + len(variables) * len(reach)
 
             # one fish
             if len(fish_names) == 1:
@@ -705,7 +719,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         :param variables: list of string representing variables to be ploted, depend on type of hdf5 selected ("height", "velocity", "mesh")
         :param units: list of string representing units names (timestep value or discharge)
         :param units_index: list of integer representing the position of units in hdf5 file
-        :param export_type: string representing plot types production ("display", "export", "both")
+        :param export_type: string representing export types ("display", "export", "both")
+        :param plot_type: string representing plot types ["map", "result"]
         """
         if not types_hdf5:
             self.send_log.emit('Error: ' + self.tr('No hdf5 type selected.'))
@@ -733,6 +748,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                       "\n\nNB : There is no limit for exports."), qm.Yes | qm.No)
             if ret == qm.No:  # pas de plot
                 return
+
         # Go plot
         if types_hdf5 and names_hdf5 and variables and reach and units and plot_type:
             # disable
@@ -849,9 +865,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                            args=(state,
                                                                  hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                  hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                 project_preferences,
                                                                  data_description,
-                                                                 path_im,
+                                                                 project_preferences,
                                                                  reach_name,
                                                                  units[unit_num]),
                                                                name="plot_map_mesh_and_point")
@@ -863,9 +878,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                  hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                                  hdf5.data_2d["node"]["z"][reach_num][unit_num],
-                                                                 project_preferences,
                                                                  data_description,
-                                                                 path_im,
+                                                                 project_preferences,
                                                                  reach_name,
                                                                  units[unit_num]),
                                                                name="plot_map_elevation")
@@ -876,10 +890,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                              args=(state,
                                                                    hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                   project_preferences,
-                                                                   data_description,
                                                                    hdf5.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                                   path_im,
+                                                                   data_description,
+                                                                   project_preferences,
                                                                    reach_name,
                                                                    units[unit_num]),
                                                                name="plot_map_height")
@@ -890,10 +903,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                args=(state,
                                                                      hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                      hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                     project_preferences,
-                                                                     data_description,
                                                                      hdf5.data_2d["node"]["data"]["v"][reach_num][unit_num],
-                                                                     path_im,
+                                                                     data_description,
+                                                                     project_preferences,
                                                                      reach_name,
                                                                      units[unit_num]),
                                                                name="plot_map_velocity")
@@ -907,7 +919,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      hdf5.data_2d["mesh"]["data"]["sub"][reach_num][unit_num],
                                                                      "sub_coarser",
                                                                      data_description,
-                                                                     path_im,
                                                                      project_preferences,
                                                                      reach_name,
                                                                      units[unit_num]),
@@ -922,7 +933,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      hdf5.data_2d["mesh"]["data"]["sub"][reach_num][unit_num],
                                                                      "sub_dominant",
                                                                      data_description,
-                                                                     path_im,
                                                                      project_preferences,
                                                                      reach_name,
                                                                      units[unit_num]),
@@ -937,7 +947,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                          hdf5.data_2d["mesh"]["data"]["max_slope_bottom"][reach_num][unit_num],
                                                                          data_description,
                                                                          project_preferences,
-                                                                         path_im,
                                                                          reach_name,
                                                                          units[unit_num]),
                                                                name="plot_map_slope_bottom")
@@ -951,7 +960,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                          hdf5.data_2d["mesh"]["data"]["max_slope_energy"][reach_num][unit_num],
                                                                          data_description,
                                                                          project_preferences,
-                                                                         path_im,
                                                                          reach_name,
                                                                          units[unit_num]),
                                                                name="plot_map_slope_energy")
@@ -965,7 +973,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                          hdf5.data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num],
                                                                          data_description,
                                                                          project_preferences,
-                                                                         path_im,
                                                                          reach_name,
                                                                          units[unit_num]),
                                                                name="plot_map_shear_stress")
@@ -976,10 +983,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                              args=(state,
                                                                    hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                   project_preferences,
-                                                                   data_description,
                                                                    hdf5.data_2d["node"]["data"]["conveyance"][reach_num][unit_num],
-                                                                   path_im,
+                                                                   data_description,
+                                                                   project_preferences,
                                                                    reach_name,
                                                                    units[unit_num]),
                                                              name="plot_map_conveyance")
@@ -990,10 +996,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  args=(state,
                                                                        hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                       project_preferences,
-                                                                       data_description,
                                                                        hdf5.data_2d["node"]["data"]["Froude"][reach_num][unit_num],
-                                                                       path_im,
+                                                                       data_description,
+                                                                       project_preferences,
                                                                        reach_name,
                                                                        units[unit_num]),
                                                                  name="plot_map_froude")
@@ -1004,10 +1009,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  args=(state,
                                                                        hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                       project_preferences,
-                                                                       data_description,
                                                                        hdf5.data_2d["node"]["data"]["hydraulic_head"][reach_num][unit_num],
-                                                                       path_im,
+                                                                       data_description,
+                                                                       project_preferences,
                                                                        reach_name,
                                                                        units[unit_num]),
                                                                  name="plot_map_hydraulic_head")
@@ -1018,10 +1022,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                  args=(state,
                                                                        hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                       project_preferences,
-                                                                       data_description,
                                                                        hdf5.data_2d["node"]["data"]["water_level"][reach_num][unit_num],
-                                                                       path_im,
+                                                                       data_description,
+                                                                       project_preferences,
                                                                        reach_name,
                                                                        units[unit_num]),
                                                                  name="plot_map_water_level")
@@ -1033,18 +1036,31 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                         state = Value("i", 0)
                                         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                                       args=(state,
-                                                                            fish_name,
                                                                             hdf5.data_2d["node"]["xy"][reach_num][unit_num],
                                                                             hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                                            fish_name,
                                                                             hdf5.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num],
                                                                             data_description["percent_area_unknown"][fish_name][reach_num][unit_num],
                                                                             data_description,
                                                                             project_preferences,
-                                                                            path_im,
                                                                             reach_name,
                                                                             units[unit_num]),
                                                                name="plot_map_fish_habitat")
                                         self.process_list.append([habitat_map_process, state])
+
+                            # GIF
+                            if self.gif_export:
+                                # plot map
+                                state = Value("i", 0)
+                                gif_map_process = Process(target=plot_mod.create_gif_from_files,
+                                                              args=(state,
+                                                                    variables,
+                                                                    reach_name,
+                                                                    units,
+                                                                    data_description,
+                                                                    project_preferences),
+                                                              name="plot_gif")
+                                self.process_list.append([gif_map_process, state])
 
             # ajust total plot if add_plots
             self.nb_plot = len(self.process_list.process_list)
