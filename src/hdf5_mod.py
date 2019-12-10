@@ -2480,11 +2480,14 @@ class Hdf5Management:
         if self.project_preferences['fish_information'][index]:
             # get data
             xmlfiles = self.data_description["hab_fish_pref_list"].split(", ")
-            stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
+            #stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
+            hab_aquatic_animal_type_list = self.data_description["hab_aquatic_animal_type_list"].split(", ")
+            # remove duplicates xml
+            prov_list = list(set(list(zip(xmlfiles, hab_aquatic_animal_type_list))))
+            xmlfiles, hab_aquatic_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
+
             # path_im_bio = path_bio
             path_out = os.path.join(self.path_prj, "output", "figures")
-            # hab_aquatic_animal_type_list
-            hab_aquatic_animal_type_list = self.data_description["hab_aquatic_animal_type_list"].split(", ")
 
             plt.close()
             plt.rcParams['figure.figsize'] = 21, 29.7  # a4
@@ -2549,7 +2552,7 @@ class Hdf5Management:
                                                   self.project_preferences)
                 # modification of the orginal preference fig
                 # (0,0) is bottom left - 1 is the end of the page in x and y direction
-                plt.tight_layout(rect=[0.05, 0.05, 0.95, 0.53])
+                plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
                 # position for the image
 
                 # add a fish image
@@ -2557,20 +2560,20 @@ class Hdf5Management:
                     fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
                     if os.path.isfile(fish_im_name):
                         im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
-                        newax = f.add_axes([0.1, 0.4, 0.25, 0.25], anchor='NE',
+                        newax = f.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
                                            zorder=-1)
                         newax.imshow(im)
                         newax.axis('off')
 
                 # move suptitle
                 if self.project_preferences['language'] == 0:
-                    f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
+                    f.suptitle('Suitability curve', x=0.5, y=0.54, fontsize=32,
                                weight='bold')
                 elif self.project_preferences['language'] == 1:
-                    f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32,
+                    f.suptitle('Courbe de préférence', x=0.5, y=0.54, fontsize=32,
                                weight='bold')
                 else:
-                    f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
+                    f.suptitle('Suitability curve', x=0.5, y=0.54, fontsize=32,
                                weight='bold')
                 # general info
                 if self.project_preferences['language'] == 0:
@@ -2598,11 +2601,12 @@ class Hdf5Management:
                 # bbox={'facecolor':'grey', 'alpha':0.07, 'pad':50}
 
                 # descirption
-                if len(data[0][-1]) > 250:
-                    plt.figtext(0.4, 0.61, data[0][-1][:250] + '...', wrap=True,
-                                fontsize=32)
+                alignment = {'horizontalalignment': 'left', 'verticalalignment': 'top'}
+                if len(data[0][-1]) > 350:
+                    plt.figtext(0.4, 0.71, data[0][-1][:350] + '...', wrap=True,
+                                fontsize=32, **alignment)
                 else:
-                    plt.figtext(0.4, 0.61, data[0][-1], wrap=True, fontsize=32)
+                    plt.figtext(0.4, 0.71, data[0][-1], wrap=True, fontsize=32, **alignment)
 
                 # title of the page
                 plt.figtext(0.1, 0.9, "REPORT - " + name_fish, fontsize=55,
