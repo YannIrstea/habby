@@ -176,9 +176,19 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
                       run_choice["aquatic_animal_type_list"], project_preferences)
 
     # copy xml curves to input project folder
-    names = [os.path.basename(run_choice["pref_file_list"][i]) for i in range(len(run_choice["pref_file_list"]))]
-    paths = [os.path.join(os.getcwd(), os.path.dirname(run_choice["pref_file_list"][i])) for i in range(len(run_choice["pref_file_list"]))]
-    src.tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input"))
+    names = []
+    paths = []
+    for i in range(len(run_choice["pref_file_list"])):
+        if "INRAE_EDF_OFB" in os.path.dirname(run_choice["pref_file_list"][i]):  # user case
+            name_xml = os.path.basename(run_choice["pref_file_list"][i])
+            name_png = os.path.splitext(os.path.basename(run_choice["pref_file_list"][i]))[0] + ".png"
+            names.append(name_xml)
+            names.append(name_png)
+            path = os.path.dirname(run_choice["pref_file_list"][i])
+            paths.append(path)
+            paths.append(path)
+    if names:
+        src.tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input", "user_models"))
 
     # progress
     progress_value.value = 100
