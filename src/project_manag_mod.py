@@ -107,6 +107,16 @@ def create_default_project_preferences_dict(all_export_enabled=False):
 
 
 def create_project_structure(path_prj, save_log, version_habby, user_name, description, mode="GUI"):
+    """
+    create_project_structure
+    :param path_prj:
+    :param save_log:
+    :param version_habby:
+    :param user_name:
+    :param description:
+    :param mode:
+    :return:
+    """
     # create_default_project_preferences_dict
     project_preferences = create_default_project_preferences_dict()
 
@@ -147,6 +157,8 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     # create a default directory for the figures and the hdf5
     if not os.path.exists(project_preferences["path_input"]):
         os.makedirs(project_preferences["path_input"])
+    if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
+        os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
     if not os.path.exists(project_preferences["path_hdf5"]):
         os.makedirs(project_preferences["path_hdf5"])
     if not os.path.exists(os.path.join(path_prj, 'output')):
@@ -250,4 +262,25 @@ def load_specific_preferences(path_prj, preference_names):
         preference_value.append(project_preferences[preference_name])
 
     return preference_value
+
+
+def enable_disable_all_exports(path_prj, enabled=False):
+    available_export_list = ["mesh_whole_profile",  # GPKG
+                             "point_whole_profile",  # GPKG
+                             "mesh_units",  # GPKG
+                             "point_units",  # GPKG
+                             "elevation_whole_profile",  # stl
+                             "variables_units",  # PVD
+                             "detailled_text",  # txt
+                             "fish_information"]
+
+    # load_project_preferences
+    project_preferences = load_project_preferences(path_prj)
+
+    # change value
+    for preference_name in available_export_list:
+        project_preferences[preference_name] = [enabled, enabled]
+
+    # save_project_preferences
+    save_project_preferences(path_prj, project_preferences)
 
