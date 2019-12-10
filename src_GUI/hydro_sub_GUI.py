@@ -3743,12 +3743,12 @@ class TELEMAC(SubHydroW):  # QGroupBox
         nb_files = len(self.namefile[0].split(", "))
         files_list = self.namefile[0].split(", ")
         path_file_list = [self.pathfile[0]] * nb_files
-        if nb_files > 1:
-            self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
-            self.p2.start()
-        if nb_files == 1:
-            self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-            self.p2.start()
+        # if nb_files > 1:
+        #     self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
+        #     self.p2.start()
+        # if nb_files == 1:
+        #     self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        #     self.p2.start()
 
         # log info
         self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
