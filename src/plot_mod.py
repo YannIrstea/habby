@@ -251,12 +251,10 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
             axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
             axarr[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
             axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 0].set_ylim([-0.1, 1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
             axarr[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
             axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 1].set_ylim([-0.1, 1.1])
     else:
         # prep data
         X, Y = np.meshgrid(vel[0], height[0])
@@ -268,7 +266,6 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         meshcolor = axarr.pcolormesh(X, Y, Z)
         axarr.set_ylabel(qt_tr.translate("plot_mod", 'Water height [m]'))
         axarr.set_xlabel(qt_tr.translate("plot_mod", 'Water velocity [m/s]'))
-        axarr.set_ylim([-0.1, 1.1])
         cbar = plt.colorbar(meshcolor)
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
