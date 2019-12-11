@@ -255,8 +255,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             merge_description["hab_epsg_code"] = epsg_hyd
 
         # check if extent match
-        extent_hyd = list(map(float, hdf5_hydro.data_description["hyd_extent"].split(", ")))
-        extent_sub = list(map(float, hdf5_sub.data_description["sub_extent"].split(", ")))
+        extent_hyd = list(map(float, hdf5_hydro.data_description["extent"].split(", ")))
+        extent_sub = list(map(float, hdf5_sub.data_description["extent"].split(", ")))
         if (extent_hyd[2] < extent_sub[0] or extent_hyd[0] > extent_sub[2] or
                 extent_hyd[3] < extent_sub[1] or extent_hyd[1] > extent_sub[3]):
             print("Warning : No intersection found between hydraulic and substrate data (from extent intersection).")

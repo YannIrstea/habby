@@ -58,7 +58,7 @@ class Hdf5Management:
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
         # variables
-        self.hyd_variables = ["points_elevation", "height", "velocity", "water_level",
+        self.hyd_variables = ["elevation", "height", "velocity", "water_level",
                                "Froude", "hydraulic_head", "conveyance",
                               "max_slope_bottom", "max_slope_energy", "shear_stress"]
         self.hyd_variables_computed_mesh = ["area", "h", "v", "water_level",
@@ -251,7 +251,7 @@ class Hdf5Management:
             elif self.hdf5_type == "substrate":
                 self.input_type = "SUBSTRATE"
             else:
-                self.input_type = "Habitat"
+                self.input_type = "HABITAT"
 
             """ get_hdf5_units_name """
             # to attributes
@@ -408,7 +408,7 @@ class Hdf5Management:
             yMin = str(min(yMin))
             yMax = str(max(yMax))
             extent = [xMin, yMin, xMax, yMax]
-            self.file_object.attrs["hyd_extent"] = ", ".join(extent)
+            self.file_object.attrs["extent"] = ", ".join(extent)
 
             # data_2D
             data_group = self.file_object.create_group('data_2D')
@@ -666,7 +666,7 @@ class Hdf5Management:
             yMin = str(min(yMin))
             yMax = str(max(yMax))
             extent = [xMin, yMin, xMax, yMax]
-            self.file_object.attrs["sub_extent"] = ", ".join(extent)
+            self.file_object.attrs["extent"] = ", ".join(extent)
 
         # CONSTANT
         if sub_description_system["sub_mapping_method"] == "constant":
