@@ -575,11 +575,16 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
     crs = layer.GetSpatialRef()
 
     # check if all polygon are triangle yet
-    point_nb_list = []
-    for feature_ind, feature in enumerate(layer):
-        shape_geom = feature.geometry()
-        new_points = shape_geom.GetGeometryRef(0).GetPoints()
-        point_nb_list.append(len(new_points))
+    try:
+        point_nb_list = []
+        for feature_ind, feature in enumerate(layer):
+            shape_geom = feature.geometry()
+            new_points = shape_geom.GetGeometryRef(0).GetPoints()
+            point_nb_list.append(len(new_points))
+    except:
+        print("Error: Input selected shapefile polygon geometry does not seems to be valid. "
+              "Use a geometry validity checker in your GIS software.")
+        return False
 
     # all_polygon_triangle_tf
     if list(set(point_nb_list)) == [4]:
@@ -682,6 +687,8 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
                 shape_geom = feature.geometry()
                 geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
                 point_list = geom_part.GetPoints()[:-1]
+                if len(point_list[0]) > 2:  # Zvalue of Mvalue removed
+                    point_list = [(el[0], el[1]) for el in (tuple(x) for x in point_list)]
                 if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
                     triangle_records_list[i] = records[j]
                     break
