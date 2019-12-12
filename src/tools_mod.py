@@ -816,8 +816,9 @@ def frange(start, stop, step):
 #     wkbMultiLineString25D=0x80000005, wkbMultiPolygon25D=0x80000006, wkbGeometryCollection25D=0x80000007
 # )
 
-polygon_type_values = (3, 2003, 3003, 0x80000003)  # wkbPolygon wkbPolygonM, wkbPolygonZM, wkbPolygon25D,
-point_type_values = (1, 2001, 3001, 0x80000001)  # wkbPoint, wkbPointM, wkbPointZM, wkbPoint25D
+# https://gdal.org/doxygen/ogr__core_8h.html
+polygon_type_values = (3, 2003, 3003, 0x80000003, -2147483645)  # wkbPolygon, wkbPolygonM, wkbPolygonZM, wkbPolygon25D, wkbPolygon25D
+point_type_values = (1, 2001, 3001, 0x80000001, -2147483647)  # wkbPoint, wkbPointM, wkbPointZM, wkbPoint25D, wkbPoint25D
 
 
 """ GUI """
