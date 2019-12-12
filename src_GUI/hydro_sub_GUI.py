@@ -276,7 +276,7 @@ class Hydro2W(QScrollArea):
             self.ascii.hide()
             self.habbyhdf5.hide()
 
-        if self.mod.currentText() == "HEC-RAS 1D":
+        if self.mod.currentText() == "HEC-RAS_1D":
             self.free.hide()
             self.hecras1D.show()
             self.hecras2D.hide()
@@ -291,7 +291,7 @@ class Hydro2W(QScrollArea):
             self.ascii.hide()
             self.habbyhdf5.hide()
 
-        if self.mod.currentText() == "HEC-RAS 2D":
+        if self.mod.currentText() == "HEC-RAS_2D":
             self.free.hide()
             self.hecras1D.hide()
             self.hecras2D.show()
@@ -351,7 +351,7 @@ class Hydro2W(QScrollArea):
             self.ascii.hide()
             self.habbyhdf5.hide()
 
-        if self.mod.currentText() == "RUBAR BE":
+        if self.mod.currentText() == "RUBAR_BE":
             self.free.hide()
             self.hecras1D.hide()
             self.hecras2D.hide()
@@ -366,7 +366,7 @@ class Hydro2W(QScrollArea):
             self.ascii.hide()
             self.habbyhdf5.hide()
 
-        if self.mod.currentText() == "RUBAR 20":
+        if self.mod.currentText() == "RUBAR_20":
             self.free.hide()
             self.hecras1D.hide()
             self.hecras2D.hide()
@@ -441,7 +441,7 @@ class Hydro2W(QScrollArea):
             self.ascii.show()
             self.habbyhdf5.hide()
             
-        if self.mod.currentText() == "HABBY HDF5":
+        if self.mod.currentText() == "HABBY_HDF5":
             self.free.hide()
             self.hecras1D.hide()
             self.hecras2D.hide()
@@ -2981,11 +2981,10 @@ class HEC_RAS2D(SubHydroW):
             filter2 = ''
 
         # get last path
-        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
-                self.attributexml[0]) != "no_data":
-            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml(
-                "path_last_file_loaded") != "":
+        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
+                self.model_type) != "":
+            model_path = self.read_attribute_xml(self.model_type)  # path spe
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
