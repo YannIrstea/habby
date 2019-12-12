@@ -559,7 +559,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     # one map by fish by unit
                     nb_map = len(names_hdf5) * len(fish_names) * len(reach) * len(units)
                     if self.gif_export:
-                        nb_map = nb_map + len(fish_names) * len(reach)
+                        nb_map = nb_map + len(fish_names) * len(reach) + len(variables_other) * len(reach)
                 if len(units) == 1:
                     if plot_type == ["map"]:
                         nb_wua_hv = 0
