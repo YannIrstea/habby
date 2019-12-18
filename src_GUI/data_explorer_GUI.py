@@ -887,8 +887,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                      data_description,
                                                                      reach_num,
                                                                      fish_names,
-                                                                     path_im,
-                                                                     name_hdf5,
                                                                      project_preferences),
                                                                name="plot_fish_hv_wua")
                             self.process_list.append([plot_hab_fig_spu_process, state])
@@ -1140,6 +1138,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                           hdf5.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num],
                                                                           reach_unit_dict,
                                                                           fish_name,
+                                                                          data_description["total_HV_area"][fish_name][reach_num][unit_num],
                                                                           data_description["percent_area_unknown"][fish_name][reach_num][unit_num],
                                                                           data_description,
                                                                           project_preferences

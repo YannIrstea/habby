@@ -23,8 +23,10 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from matplotlib.legend_handler import HandlerLine2D
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.ticker as ticker
 from matplotlib import colors
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import mplcursors
 from PIL import Image
 
@@ -52,16 +54,16 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
-        plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-        plt.rcParams['font.size'] = project_preferences['font_size']
+        mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+        mpl.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+            mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['legend.loc'] = 'best'
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
     if project_preferences['marker']:
         mar = 'o'
     else:
@@ -156,16 +158,16 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
-        plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-        plt.rcParams['font.size'] = project_preferences['font_size']
+        mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+        mpl.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+            mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['legend.loc'] = 'best'
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
     if project_preferences['marker']:
         mar = 'o'
     else:
@@ -226,16 +228,16 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
-        plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-        plt.rcParams['font.size'] = project_preferences['font_size']
+        mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+        mpl.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+            mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['legend.loc'] = 'best'
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
     if project_preferences['marker']:
         mar = 'o'
     else:
@@ -325,7 +327,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     plt.show()
 
 
-def plot_fish_hv_wua(state, data_description, reach_num, name_fish, name_hdf5, project_preferences):
+def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -343,13 +345,13 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, name_hdf5, p
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     default_size = plt.rcParams['figure.figsize']
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+    mpl.rcParams['font.size'] = project_preferences['font_size']
     if project_preferences['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+        mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    mpl.rcParams['legend.loc'] = 'best'
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     if project_preferences['marker']:
         mar = '.'
@@ -363,7 +365,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, name_hdf5, p
     color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
 
     # prep data
-    name_hdf5 = name_hdf5[:-4]
+    name_hdf5 = os.path.splitext(data_description["name_hdf5"])[0]
     area_all = list(map(float, data_description["total_wet_area"][reach_num]))
     unit_name = []
     if len(area_all) == 1:
@@ -382,6 +384,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, name_hdf5, p
     else:
         plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type
         plot_window_title = plot_window_title[:80] + "..."
+    filename = name_hdf5 + "_" + qt_tr.translate("plot_mod", "WUA") + "_" + reach_name
 
     # fig = plt.figure(plot_window_title)
     fig, ax = plt.subplots(3, 1, sharex=True)
@@ -532,9 +535,9 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, name_hdf5, p
 
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                name = filename + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name
+                name = filename
                 test = tools_mod.remove_image(name, path_im, project_preferences['format'])
                 if not test:
                     return
@@ -568,13 +571,13 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+    mpl.rcParams['font.size'] = project_preferences['font_size']
     if project_preferences['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+        mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    mpl.rcParams['legend.loc'] = 'best'
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     if project_preferences['marker']:
         mar = 'o'
@@ -739,14 +742,13 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
                                                      "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    # default_size = plt.rcParams['figure.figsize']
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+    mpl.rcParams['font.size'] = project_preferences['font_size']
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
     if project_preferences['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    plt.rcParams['legend.loc'] = 'best'
+        mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    mpl.rcParams['legend.loc'] = 'best'
     erase1 = project_preferences['erase_id']
     path_im = os.path.join(path_prj, "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
@@ -881,90 +883,61 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, reach_unit_dict, dat
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
     # get informations
-    unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    unit_type = data_description["unit_type"][
+                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
     reach_name = reach_unit_dict["reach_name_plot"]
     unit_name = reach_unit_dict["unit_name_plot"]
 
     # title and filename
     title = qt_tr.translate("plot_mod", 'Elevation') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Elevation [m]')
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'elevation [m]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", "elevation") + "_" + reach_name + '_' + unit_name
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap limit
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
-    min_value = data_plot.min()  # get min data value
-    max_value = data_plot.max()  # get max data value
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(min_value, max_value, bounds_nb)  # create sequence list of bounds
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
     while not np.all(np.diff(bounds) > 0):  # check if constant or null
         bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(min_value, max_value, bounds_nb)  # recreate sequence list of bounds
-
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
     # all values are null
-    if min_value == max_value and bounds_nb == 1:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
     # normal case
     else:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=min_value, vmax=max_value, levels=bounds)
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
-    # colorbar
-    cbar = fig.colorbar(sc, format=ticker.FuncFormatter(myfmt))  # create colorbar from plotted data
-    cbar.ax.set_ylabel(ylabel)  # set ylabel to colorbar
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    # export ?
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'],
-                                     filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'],
-                                     filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # process finished
-    state.value = 1
-
-    # show or close plot ?
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_height(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -975,7 +948,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -990,72 +963,47 @@ def plot_map_height(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     # title and filename
     title = qt_tr.translate("plot_mod",
                             'Water height - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Height [m]')
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'water height [m]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'height') + "_" + reach_name + '_' + unit_name
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap limit
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
-    min_value = data_plot.min()  # get min data value
-    max_value = data_plot.max()  # get max data value
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(min_value, max_value, bounds_nb)  # create sequence list of bounds
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
     while not np.all(np.diff(bounds) > 0):  # check if constant or null
         bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(min_value, max_value, bounds_nb)  # recreate sequence list of bounds
-
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
     # all values are null
-    if min_value == max_value and bounds_nb == 1:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
     # normal case
     else:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=min_value, vmax=max_value, levels=bounds)
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
-    # colorbar
-    cbar = fig.colorbar(sc, format=ticker.FuncFormatter(myfmt))  # create colorbar from plotted data
-    cbar.ax.set_ylabel(ylabel)  # set ylabel to colorbar
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_velocity(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1066,7 +1014,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, reach_unit_dict, data
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1081,72 +1029,47 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, reach_unit_dict, data
     # title and filename
     title = qt_tr.translate("plot_mod",
                             'Velocity - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Velocity [m/s]')
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'water velocity [m/s]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                           qt_tr.translate("plot_mod", 'velocity') + "_" + reach_name + '_' + unit_name
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap limit
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
-    min_value = data_plot.min()  # get min data value
-    max_value = data_plot.max()  # get max data value
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(min_value, max_value, bounds_nb)  # create sequence list of bounds
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
     while not np.all(np.diff(bounds) > 0):  # check if constant or null
         bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(min_value, max_value, bounds_nb)  # recreate sequence list of bounds
-
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
     # all values are null
-    if min_value == max_value and bounds_nb == 1:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
     # normal case
     else:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=min_value, vmax=max_value, levels=bounds)
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
-    # colorbar
-    cbar = fig.colorbar(sc, format=ticker.FuncFormatter(myfmt))  # create colorbar from plotted data
-    cbar.ax.set_ylabel(ylabel)  # set ylabel to colorbar
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_conveyance(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1157,7 +1080,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, reach_unit_dict, da
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1172,72 +1095,47 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, reach_unit_dict, da
     # title and filename
     title = qt_tr.translate("plot_mod",
                             'Conveyance - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Conveyance [m²/s]')
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'conveyance [m²/s]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'conveyance') + "_" + reach_name + '_' + unit_name
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap limit
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
-    min_value = data_plot.min()  # get min data value
-    max_value = data_plot.max()  # get max data value
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(min_value, max_value, bounds_nb)  # create sequence list of bounds
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
     while not np.all(np.diff(bounds) > 0):  # check if constant or null
         bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(min_value, max_value, bounds_nb)  # recreate sequence list of bounds
-
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
     # all values are null
-    if min_value == max_value and bounds_nb == 1:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
     # normal case
     else:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=min_value, vmax=max_value, levels=bounds)
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
-    # colorbar
-    cbar = fig.colorbar(sc, format=ticker.FuncFormatter(myfmt))  # create colorbar from plotted data
-    cbar.ax.set_ylabel(ylabel)  # set ylabel to colorbar
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_froude(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1248,7 +1146,7 @@ def plot_map_froude(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1263,72 +1161,47 @@ def plot_map_froude(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     # title and filename
     title = qt_tr.translate("plot_mod",
                             'Froude number - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Froude number []')
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'Froude number []')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'Froude') + "_" + reach_name + '_' + unit_name
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap limit
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
-    min_value = data_plot.min()  # get min data value
-    max_value = data_plot.max()  # get max data value
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(min_value, max_value, bounds_nb)  # create sequence list of bounds
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
     while not np.all(np.diff(bounds) > 0):  # check if constant or null
         bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(min_value, max_value, bounds_nb)  # recreate sequence list of bounds
-
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
     # all values are null
-    if min_value == max_value and bounds_nb == 1:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
     # normal case
     else:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=min_value, vmax=max_value, levels=bounds)
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
-    # colorbar
-    cbar = fig.colorbar(sc, format=ticker.FuncFormatter(myfmt))  # create colorbar from plotted data
-    cbar.ax.set_ylabel(ylabel)  # set ylabel to colorbar
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1339,7 +1212,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, reach_unit_dict
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1354,72 +1227,47 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, reach_unit_dict
     # title and filename
     title = qt_tr.translate("plot_mod",
                             'Hydraulic head - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Hydraulic head [m]')
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'hydraulic head [m]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'hydraulic_head') + "_" + reach_name + '_' + unit_name
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap limit
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
-    min_value = data_plot.min()  # get min data value
-    max_value = data_plot.max()  # get max data value
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(min_value, max_value, bounds_nb)  # create sequence list of bounds
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
     while not np.all(np.diff(bounds) > 0):  # check if constant or null
         bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(min_value, max_value, bounds_nb)  # recreate sequence list of bounds
-
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
     # all values are null
-    if min_value == max_value and bounds_nb == 1:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
     # normal case
     else:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=min_value, vmax=max_value, levels=bounds)
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
-    # colorbar
-    cbar = fig.colorbar(sc, format=ticker.FuncFormatter(myfmt))  # create colorbar from plotted data
-    cbar.ax.set_ylabel(ylabel)  # set ylabel to colorbar
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_water_level(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1430,7 +1278,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, reach_unit_dict, d
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1445,72 +1293,47 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, reach_unit_dict, d
     # title and filename
     title = qt_tr.translate("plot_mod",
                             'Water level - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Water level [m]')
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'water level [m]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'water_level') + "_" + reach_name + '_' + unit_name
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap limit
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
-    min_value = data_plot.min()  # get min data value
-    max_value = data_plot.max()  # get max data value
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(min_value, max_value, bounds_nb)  # create sequence list of bounds
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
     while not np.all(np.diff(bounds) > 0):  # check if constant or null
         bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(min_value, max_value, bounds_nb)  # recreate sequence list of bounds
-
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
     # all values are null
-    if min_value == max_value and bounds_nb == 1:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=min_value, vmax=0.1, levels=np.array([0.0, 0.1]))
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
     # normal case
     else:
-        sc = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=min_value, vmax=max_value, levels=bounds)
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
-    # colorbar
-    cbar = fig.colorbar(sc, format=ticker.FuncFormatter(myfmt))  # create colorbar from plotted data
-    cbar.ax.set_ylabel(ylabel)  # set ylabel to colorbar
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 # map mesh
@@ -1522,7 +1345,7 @@ def plot_map_mesh(state, data_xy, data_tin, reach_unit_dict, data_description, p
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1536,82 +1359,54 @@ def plot_map_mesh(state, data_xy, data_tin, reach_unit_dict, data_description, p
 
     # title and filename
     title = qt_tr.translate("plot_mod",
-                            'Mesh and points - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+                            'Mesh - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'mesh')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'mesh') + "_" + reach_name + '_' + unit_name
 
+    # data
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap.set_bad(color='black', alpha=1.0)
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
     # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
-
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # prepare the grid
-    if data_tin is not None:  # case empty grid
-        xlist = []
-        ylist = []
-        for i in range(0, len(data_tin)):
-            pi = 0
-            tin_i = data_tin[i]
-            if len(tin_i) == 3:
-                while pi < 2:  # we have all sort of xells, max eight sides
-                    # The conditions should be tested in this order to avoid to go out of the array
-                    p = tin_i[pi]  # we start at 0 in python, careful about -1 or not
-                    p2 = tin_i[pi + 1]
-                    xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
-                    xlist.append(None)
-                    ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
-                    ylist.append(None)
-                    pi += 1
-
-                p = tin_i[pi]
-                p2 = tin_i[0]
+    xlist = []
+    ylist = []
+    for i in range(0, len(data_tin)):
+        pi = 0
+        tin_i = data_tin[i]
+        if len(tin_i) == 3:
+            while pi < 2:  # we have all sort of xells, max eight sides
+                # The conditions should be tested in this order to avoid to go out of the array
+                p = tin_i[pi]  # we start at 0 in python, careful about -1 or not
+                p2 = tin_i[pi + 1]
                 xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
                 xlist.append(None)
                 ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
                 ylist.append(None)
+                pi += 1
 
-        ax_map.plot(xlist, ylist, '-b', linewidth=0.1, color='blue')
+            p = tin_i[pi]
+            p2 = tin_i[0]
+            xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
+            xlist.append(None)
+            ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
+            ylist.append(None)
+    ax_map.plot(xlist, ylist, '-b', linewidth=0.1, color='blue')
+    #ax_map.scatter(x=data_xy[:, 0], y=data_xy[:, 1], s=5, color='black')
 
-    # plot
-    ax_map.scatter(x=data_xy[:, 0], y=data_xy[:, 1], s=5, color='black')
+    # color_bar
+    ax_legend.remove()
 
-    # set frame position as other plot
-    ax_map.set_position((0.12240277777777779, 0.09039682539682536,
-                     0.6876777777777778, 0.8505555555555557))  # x0, y0, width, height
-
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1622,7 +1417,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1636,77 +1431,48 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, reach_unit_dict, 
 
     # title and filename
     title = qt_tr.translate("plot_mod",
-                            'Maximum slope bottom - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Maximum slope bottom []')
+                            'max slope bottom') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'max slope bottom [m/m]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'max_slope_bottom') + "_" + reach_name + '_' + unit_name
 
-    # create mask
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))
-
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
-
-    # set extent
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get color map
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=0, vmax=max(data_plot))
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
     patches = []
     for i in range(0, n):
         verts = []
         for j in range(0, 3):
             verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)  # , edgecolor='w'
+        polygon = Polygon(verts, closed=True)
         patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
 
-    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    collection.set_array(masked_array)
-    ax_map.add_collection(collection)
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # colorbar
-    cb1 = fig.colorbar(collection, format=ticker.FuncFormatter(myfmt))
-    cb1.set_label(ylabel)
-
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_slope_energy(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1717,7 +1483,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1731,77 +1497,48 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, reach_unit_dict, 
 
     # title and filename
     title = qt_tr.translate("plot_mod",
-                            'Maximum slope energy - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Maximum slope energy []')
+                            'max slope energy') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'max slope energy [m/m]')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'max_slope_energy') + "_" + reach_name + '_' + unit_name
 
-    # create mask
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))
-
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
-
-    # set extent
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get color map
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=0, vmax=max(data_plot))
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
     patches = []
     for i in range(0, n):
         verts = []
         for j in range(0, 3):
             verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)  # , edgecolor='w'
+        polygon = Polygon(verts, closed=True)
         patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
 
-    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    collection.set_array(masked_array)
-    ax_map.add_collection(collection)
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # colorbar
-    cb1 = fig.colorbar(collection, format=ticker.FuncFormatter(myfmt))
-    cb1.set_label(ylabel)
-
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_shear_stress(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
@@ -1812,7 +1549,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1826,77 +1563,48 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, reach_unit_dict, 
 
     # title and filename
     title = qt_tr.translate("plot_mod",
-                            'Shear stress - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    ylabel = qt_tr.translate("plot_mod", 'Shear stress []')
+                            'shear stress') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'shear stress []')
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                qt_tr.translate("plot_mod", 'shear_stress') + "_" + reach_name + '_' + unit_name
 
-    # create mask
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))
-
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
-
-    # set extent
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 0
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get color map
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get colormap from project preferences
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=0, vmax=max(data_plot))
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
     patches = []
     for i in range(0, n):
         verts = []
         for j in range(0, 3):
             verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)  # , edgecolor='w'
+        polygon = Polygon(verts, closed=True)
         patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
 
-    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    collection.set_array(masked_array)
-    ax_map.add_collection(collection)
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # colorbar
-    cb1 = fig.colorbar(collection, format=ticker.FuncFormatter(myfmt))
-    cb1.set_label(ylabel)
-
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub_type, data_description, project_preferences):
@@ -1922,7 +1630,7 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -1938,123 +1646,73 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub
     if sub_type == "sub_coarser":
         title = qt_tr.translate("plot_mod",
                                 'Substrate coarser - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+        variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod",
+                                                                                           'substrate coarser') + ' [' + data_description["sub_classification_code"] + "]"
+        reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+        unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
         filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-                    qt_tr.translate("plot_mod", 'substrate_coarser') + "_" + reach_name + '_' + unit_name
+                    qt_tr.translate("plot_mod", 'sub_coarser') + "_" + reach_name + '_' + unit_name
 
     else:
         title = qt_tr.translate("plot_mod",
                                 'Substrate dominant - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+        variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod",
+                                                                                           'substrate dominant') + ' [' + data_description["sub_classification_code"] + "]"
+        reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+        unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
         filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-                   qt_tr.translate("plot_mod", 'substrate_dominant') + "_" + reach_name + '_' + unit_name
-    ylabel = qt_tr.translate("plot_mod",
-                    'Substrate classification code [') + data_description["sub_classification_code"] + "]"
+                   qt_tr.translate("plot_mod", 'sub_dominant') + "_" + reach_name + '_' + unit_name
 
     # prepare data
     unziped = list(zip(*data_plot))
     if sub_type == "sub_coarser":
-        sub_data = unziped[0]
+        data_plot = unziped[0]
     else:
-        sub_data = unziped[1]
+        data_plot = unziped[1]
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    decimal_nb = 0
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # prepare grid (to optimize)
-    xlist = []
-    ylist = []
-    data_xy = np.array(data_xy)
-    for i in range(0, len(data_tin)):
-        pi = 0
-        while pi < len(data_tin[i]) - 1:  # we have all sort of xells, max eight sides
-            p = int(data_tin[i][pi])  # we start at 0 in python, careful about -1 or not
-            p2 = int(data_tin[i][pi + 1])
-            xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
-            xlist.append(None)
-            ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
-            ylist.append(None)
-            pi += 1
-
-        p = int(data_tin[i][pi])
-        p2 = int(data_tin[i][0])
-        xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
-        xlist.append(None)
-        ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
-        ylist.append(None)
-
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
-
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get colormap
+    # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map2'])
     if data_description["sub_classification_code"] == "Cemagref":
         max_class = 8
         listcathegories = list(range(1, max_class + 2))
-        norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
-        # norm = mpl.colors.Normalize(vmin=1, vmax=8)
     if data_description["sub_classification_code"] == "Sandre":
         max_class = 12
         listcathegories = list(range(1, max_class + 2))
-        norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
-        # norm = mpl.colors.Normalize(vmin=1, vmax=12)
 
-    # sub1 substrate coarser
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
+    n = len(data_plot)
+    norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
     patches = []
-    colors_val = np.array(sub_data, np.int)  # convert nfloors to colors that we can use later (cemagref)
-    n = len(sub_data)
     for i in range(0, n):
         verts = []
-        for j in range(0, len(data_tin[i])):
+        for j in range(0, 3):
             verts_j = data_xy[int(data_tin[i][j]), :]
             verts.append(verts_j)
-        polygon = Polygon(verts, closed=True, edgecolor='w')
+        polygon = Polygon(verts, closed=True)
         patches.append(polygon)
-    collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
-    collection.set_array(colors_val)
-    ax_map.add_collection(collection)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
 
-    # colorbar
-    listcathegories_stick = [x + 0.5 for x in range(1, max_class + 1)]
-    listcathegories_stick_label = [x for x in range(1, max_class + 1)]
-    cb1 = fig.colorbar(collection, format=ticker.FuncFormatter(myfmt))
-    cb1.set_ticks(listcathegories_stick)
-    cb1.set_ticklabels(listcathegories_stick_label)
-    cb1.set_label(ylabel)
+    # color_bar
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    listcathegories_stick = [x + 0.5 for x in range(1, color_bar.vmax)]
+    listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
+    color_bar.set_ticks(listcathegories_stick)
+    color_bar.set_ticklabels(listcathegories_stick_label)
 
-    # axe extent
-    ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
-
-    # clean plot
-    fig.tight_layout()
-
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                            dpi=project_preferences['resolution'], transparent=True)
-
-        else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
-            if not test:
-                return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
-                        transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
-        plt.show()
-    if project_preferences['type_plot'] == "image export":
-        plt.close()
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, fish_name, percent_unknown, data_description, project_preferences):
+def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, fish_name, total_hv, percent_unknown, data_description, project_preferences):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -2062,7 +1720,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -2075,32 +1733,34 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     unit_name = reach_unit_dict["unit_name_plot"]
 
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'HV : ') + fish_name + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "] - " + \
+    title = fish_name + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "] - " + \
             qt_tr.translate("plot_mod",
-                            'unknwon area = ') + '{0:3.2f}'.format(percent_unknown) + " %"
-    ylabel = qt_tr.translate("plot_mod", 'HV []')
+                            'unknown area = ') + '{0:3.2f}'.format(percent_unknown) + " %"
+    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + fish_name + " (" + \
+                     qt_tr.translate("plot_mod", 'HV') + " = " + '{0:3.2f}'.format(total_hv) + " / " + \
+                     qt_tr.translate("plot_mod", 'UA') + " = " + '{0:3.2f}'.format(percent_unknown) + " %" + ")"
+    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
     filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
                fish_name + "_" + reach_name + '_' + unit_name
 
-    # prep data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create mask
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = 0
+    data_max = 1
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
-    # plot
-    fig, ax_map = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
-
-    # title and axe labels
-    ax_map.set_title(title)  # plot title
-    ax_map.set_xlabel('x coord []')  # xlabel
-    ax_map.set_ylabel('y coord []')  # ylabel
-
-    # get color map
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
     n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=0, vmax=1)
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
     patches = []
     for i in range(0, n):
         verts = []
@@ -2109,27 +1769,106 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, 
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
-    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    collection.set_array(masked_array)
-    ax_map.add_collection(collection)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
 
-    # colorbar
-    cb1 = fig.colorbar(collection, format=ticker.FuncFormatter(myfmt))
-    cb1.set_label(ylabel)
+    # color_bar
+    fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
 
-    # axe extent
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+# plot tool
+banner_position = (0.00, 0.90, 0.90, 0.10)  # x0, y0, width, height
+north_position = (0.90, 0.90, 0.10, 0.10)  # x0, y0, width, height
+legend_position = (0.90, 0.10, 0.10, 0.80)  # x0, y0, width, height
+scale_position = (0.90, 0.00, 0.10, 0.10)  # x0, y0, width, height
+map_position = (0.00, 0.00, 0.90, 0.90)  # x0, y0, width, height
+
+
+def pre_plot_map(title, variable_title, reach_title, unit_title):
+    # plot
+    fig, ax_border = plt.subplots(1, 1)  # plot creation
+    fig.canvas.set_window_title(title)  # set windows title
+
+    # ax_border
+    ax_border.name = "border"
+    ax_border.set_position((0.0, 0.0, 1.0, 1.0))  # add axe
+    rect = plt.Rectangle(
+        (0.0, 0.0),
+        1.0, 1.0,
+        transform=ax_border.transAxes,
+        color="black",
+        lw=1.5,
+        fill=None
+    )
+    fig.patches.append(rect)
+
+    # ax_banner
+    ax_banner = fig.add_axes(banner_position)  # add axe
+    ax_banner.name = "banner"
+    ax_banner.xaxis.set_ticks([])  # remove ticks
+    ax_banner.yaxis.set_ticks([])  # remove ticks
+    ax_banner.text(0.01, 0.7, variable_title)  # variable_str
+    ax_banner.text(0.01, 0.4, reach_title)  # reach
+    ax_banner.text(0.01, 0.1, unit_title)  # unit
+
+    # ax_north
+    ax_north = fig.add_axes(north_position, frameon=False)
+    ax_north.name = "north"
+    ax_north.xaxis.set_ticks([])  # remove ticks
+    ax_north.yaxis.set_ticks([])  # remove ticks
+    north_im = plt.imread(os.path.join(os.getcwd(), "translation", "icon", "north.png"))
+    ax_north.imshow(north_im)
+
+    # ax_legend_border
+    ax_legend_border = fig.add_axes(legend_position)
+    ax_legend_border.name = "legend_border"
+    ax_legend_border.xaxis.set_ticks([])  # remove ticks
+    ax_legend_border.yaxis.set_ticks([])  # remove ticks
+    ax_legend = inset_axes(ax_legend_border, width="20%", height="95%", loc=6)
+    ax_legend.name = "legend"
+
+    # ax_map
+    ax_map = fig.add_axes(map_position, frameon=False)
+    ax_map.name = "map"
+    ax_map.xaxis.set_ticks([])  # remove ticks
+    ax_map.yaxis.set_ticks([])  # remove ticks
+
+    return fig, ax_map, ax_legend
+
+
+def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state):
+    # ax_map
     ax_map.axis("scaled")  # x and y axes have same proportions
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-    ax_map.set_xlim((extent_list[0], extent_list[2]))  # set x extent
-    ax_map.set_ylim((extent_list[1], extent_list[3]))  # set y extent
-    ax_map.margins(x=0, y=0)  # remove margins inside ax_map
+    ax_map.set_xlim((extent_list[0] - 10, extent_list[2] + 10))  # set x extent +- margin
+    ax_map.set_ylim((extent_list[1] - 10, extent_list[3] + 10))  # set y extent
+    ax_map.callbacks.connect('xlim_changed', update_scalebar)  # auto update size
 
-    # clean plot
-    fig.tight_layout()
+    # ax_scale
+    ax_scale = fig.add_axes(scale_position)
+    ax_scale.name = "scale"
+    ax_scale.xaxis.set_ticks([])  # remove ticks
+    ax_scale.yaxis.set_ticks([])  # remove ticks
+    scale_computed_int, scale_computed_str = compute_scale_value(fig, ax_map)  # compute_scale_value
+    scale_computed_vertivcal_int = int(scale_computed_int / 10)  # scale_computed_vertivcal_int
+    scalebar = AnchoredSizeBar(transform=ax_map.transData,
+                               size=scale_computed_int,
+                               label=str(scale_computed_int) + ' m',
+                               loc=10,
+                               sep=4,
+                               frameon=False,
+                               size_vertical=scale_computed_vertivcal_int,
+                               fill_bar=False)  # AnchoredSizeBar
+    ax_scale.add_artist(scalebar)
 
+    # export
     if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
         if not project_preferences['erase_id']:
-            fig.savefig(os.path.join(project_preferences['path_figure'],
+            plt.savefig(os.path.join(project_preferences['path_figure'],
                                      filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
                         dpi=project_preferences['resolution'], transparent=True)
 
@@ -2137,7 +1876,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, 
             test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
             if not test:
                 return
-            fig.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
+            plt.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
                         dpi=project_preferences['resolution'],
                         transparent=True)
 
@@ -2149,7 +1888,48 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, 
         plt.close()
 
 
-# plot tool
+def update_scalebar(event):
+    scale_computed_int, scale_computed_str = compute_scale_value(event.figure, event)  # compute_scale_value
+    scale_computed_vertivcal_int = int(scale_computed_int / 10)  # scale_computed_vertivcal_int
+    # ax_list
+    ax_list = event.figure.get_axes()
+    # get axe names
+    ax_names_list = [ax.name for ax in ax_list]
+    # get ax_scale
+    ax_scale = ax_list[ax_names_list.index("scale")]
+    # remove scalebar_old
+    scalebar_old = ax_scale.artists[0].remove()
+    # get ax_map
+    ax_map = ax_list[ax_names_list.index("map")]
+    # AnchoredSizeBar
+    scalebar = AnchoredSizeBar(transform=ax_map.transData,
+                               size=scale_computed_int,
+                               label=str(scale_computed_int) + ' m',
+                               loc=10,
+                               sep=4,
+                               frameon=False,
+                               size_vertical=scale_computed_vertivcal_int,
+                               fill_bar=False)
+    ax_scale.add_artist(scalebar)
+
+
+def compute_scale_value(fig, ax):
+    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    # measured
+    x_length_measured_m, y_length_measured_m = bbox.width * 2.54, bbox.height * 2.54
+
+    # display
+    x_length_display_m = ax.viewLim.bounds[2]
+
+    # compute scale int
+    scale_computed_int = int(round(x_length_display_m / x_length_measured_m))
+
+    # compute scale str
+    scale_computed_str = "1:" + str(scale_computed_int)
+
+    return scale_computed_int, scale_computed_str
+
+
 def create_gif_from_files(state, variable, reach_name, unit_names, data_description, project_preferences):
     name_hdf5 = data_description["name_hdf5"]
     path_im = project_preferences['path_figure']
