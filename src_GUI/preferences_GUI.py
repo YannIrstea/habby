@@ -134,6 +134,8 @@ class PreferenceWindow(QDialog):
         # fig_size
         fig_size_label = QLabel(self.tr('Figure Size [cm]'), self)
         self.fig_size_lineedit = QLineEdit("")
+        self.fig_size_lineedit.setToolTip(self.tr("width, height"))
+        fig_size_label.setToolTip(self.tr("width, height"))
 
         # color_map
         color_map_label = QLabel(self.tr('Color Map 1'), self)
