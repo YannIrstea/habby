@@ -26,7 +26,6 @@ from osgeo import ogr
 from osgeo import osr
 from stl import mesh
 
-from lxml import etree as ET
 from multiprocessing import Value
 from locale import localeconv
 from src import bio_info_mod
@@ -351,11 +350,6 @@ class Hdf5Management:
 
             # whole_profile
             data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
-            # get extent
-            xMin = []
-            xMax = []
-            yMin = []
-            yMax = []
             # REACH GROUP
             for reach_num in range(int(hyd_description["hyd_reach_number"])):
                 reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
@@ -376,10 +370,6 @@ class Hdf5Management:
                                                      len(data_2d_whole_profile["mesh"]["tin"][reach_num][unit_num][0])],
                                               data=data_2d_whole_profile["mesh"]["tin"][reach_num][unit_num])
                     # NODE GROUP
-                    xMin.append(min(data_2d_whole_profile["node"]["xy"][reach_num][unit_num][:, 0]))
-                    xMax.append(max(data_2d_whole_profile["node"]["xy"][reach_num][unit_num][:, 0]))
-                    yMin.append(min(data_2d_whole_profile["node"]["xy"][reach_num][unit_num][:, 1]))
-                    yMax.append(max(data_2d_whole_profile["node"]["xy"][reach_num][unit_num][:, 1]))
                     node_group = unit_group.create_group('node')
                     node_group.create_dataset(name="xy",
                                               shape=[len(data_2d_whole_profile["node"]["xy"][reach_num][unit_num]),
@@ -402,13 +392,12 @@ class Hdf5Management:
                             node_group.create_dataset(name="z",
                                                       shape=[len(data_2d_whole_profile["node"]["z"][reach_num][unit_num]), 1],
                                                       data=data_2d_whole_profile["node"]["z"][reach_num][unit_num])
+
             # get extent
-            xMin = str(min(xMin))
-            xMax = str(max(xMax))
-            yMin = str(min(yMin))
-            yMax = str(max(yMax))
-            extent = [xMin, yMin, xMax, yMax]
-            self.file_object.attrs["extent"] = ", ".join(extent)
+            xMin = []
+            xMax = []
+            yMin = []
+            yMax = []
 
             # data_2D
             data_group = self.file_object.create_group('data_2D')
@@ -417,6 +406,12 @@ class Hdf5Management:
                 reach_group = data_group.create_group('reach_' + str(reach_num))
                 # UNIT GROUP
                 for unit_num in range(int(hyd_description["hyd_unit_number"])):
+                    # extent
+                    xMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
+                    xMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
+                    yMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
+                    yMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
+
                     unit_group = reach_group.create_group('unit_' + str(unit_num))
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
@@ -447,6 +442,14 @@ class Hdf5Management:
                                                        shape=data_2d["node"]["data"][node_variable][reach_num][
                                                            unit_num].shape,
                                                        data=data_2d["node"]["data"][node_variable][reach_num][unit_num])
+
+        # get extent
+        xMin = str(min(xMin))
+        xMax = str(max(xMax))
+        yMin = str(min(yMin))
+        yMax = str(max(yMax))
+        extent = [xMin, yMin, xMax, yMax]
+        self.file_object.attrs["extent"] = ", ".join(extent)
 
         # close file
         self.file_object.close()
@@ -853,6 +856,12 @@ class Hdf5Management:
                                                  1],
                                           data=data_2d_whole_profile["node"]["z"][reach_num][unit_num])
 
+        # get extent
+        xMin = []
+        xMax = []
+        yMin = []
+        yMax = []
+
         # data_2D
         data_group = self.file_object.create_group('data_2D')
         # REACH GROUP
@@ -860,6 +869,12 @@ class Hdf5Management:
             reach_group = data_group.create_group('reach_' + str(reach_num))
             # UNIT GROUP
             for unit_num in range(int(merge_description["hyd_unit_number"])):
+                # extent
+                xMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
+                xMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
+                yMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
+                yMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
+
                 unit_group = reach_group.create_group('unit_' + str(unit_num))
                 unit_group.attrs['total_wet_area'] = data_2d["total_wet_area"][reach_num][unit_num]
                 # MESH GROUP
@@ -895,6 +910,13 @@ class Hdf5Management:
                     node_data_group.create_dataset(name=node_variable,
                                               shape=data_2d["node"]["data"][node_variable][reach_num][unit_num].shape,
                                               data=data_2d["node"]["data"][node_variable][reach_num][unit_num])
+        # get extent
+        xMin = str(min(xMin))
+        xMax = str(max(xMax))
+        yMin = str(min(yMin))
+        yMax = str(max(yMax))
+        extent = [xMin, yMin, xMax, yMax]
+        self.file_object.attrs["extent"] = ", ".join(extent)
 
         # close file
         self.file_object.close()
@@ -1011,11 +1033,13 @@ class Hdf5Management:
             fish_names_total_list = fish_names
         if fish_names_total_list:
             data_2d["mesh"]["hv_data"] = dict()
+            data_description["total_HV_area"] = dict()
             data_description["total_WUA_area"] = dict()
             data_description["percent_area_unknown"] = dict()
             data_description["total_wet_area"] = [[] for _ in range(int(data_description['hyd_reach_number']))]
             for fish_name in fish_names_total_list:
                 data_2d["mesh"]["hv_data"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
+                data_description["total_HV_area"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
                 data_description["total_WUA_area"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
                 data_description["percent_area_unknown"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
 
@@ -1055,6 +1079,7 @@ class Hdf5Management:
                     if fish_names_total_list:
                         for fish_name in fish_names_total_list:
                             data_2d["mesh"]["hv_data"][fish_name][reach_num].append(self.file_object[mesh_hv_data_group + "/" + fish_name][:].flatten())
+                            data_description["total_HV_area"][fish_name][reach_num].append(float(self.file_object[mesh_hv_data_group + "/" + fish_name].attrs["HV"]))
                             data_description["total_WUA_area"][fish_name][reach_num].append(self.file_object[mesh_hv_data_group + "/" + fish_name].attrs["WUA"])
                             data_description["percent_area_unknown"][fish_name][reach_num].append(float(self.file_object[mesh_hv_data_group + "/" + fish_name].attrs["percent_area_unknown [%m2]"]))
                     # node
