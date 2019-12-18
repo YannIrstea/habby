@@ -933,8 +933,12 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, reach_unit_dict, dat
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    colorbar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    if len('%.*f' % (decimal_nb, data_plot[0])) > 4:  # two before decimal
+        colorbar.ax.tick_params(labelsize=8)
+    elif len('%.*f' % (decimal_nb, data_plot[0])) > 6:  # two before decimal
+        colorbar.ax.tick_params(labelsize=6)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1329,8 +1333,12 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, reach_unit_dict, d
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    colorbar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    if len('%.*f' % (decimal_nb, data_plot[0])) > 4:  # two before decimal
+        colorbar.ax.tick_params(labelsize=8)
+    elif len('%.*f' % (decimal_nb, data_plot[0])) > 6:  # two before decimal
+        colorbar.ax.tick_params(labelsize=6)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
