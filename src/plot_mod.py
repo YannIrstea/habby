@@ -31,7 +31,7 @@ import mplcursors
 from PIL import Image
 
 from src import tools_mod
-from src.tools_mod import get_translator, myfmt
+from src.tools_mod import get_translator
 
 
 # other
@@ -875,10 +875,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
 
 
 # map node
-def plot_map_elevation(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -889,19 +886,12 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, reach_unit_dict, dat
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod", 'Elevation') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'elevation [m]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", "elevation") + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -935,19 +925,18 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, reach_unit_dict, dat
     # color_bar
     colorbar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    if len('%.*f' % (decimal_nb, data_plot[0])) > 4:  # two before decimal
-        colorbar.ax.tick_params(labelsize=8)
-    elif len('%.*f' % (decimal_nb, data_plot[0])) > 6:  # two before decimal
+    data_min_str = len(str(data_min).split(".")[0])
+    data_max_str = len(str(data_max).split(".")[0])
+    if data_min_str > 2 or data_max_str > 2:  # two before decimal
         colorbar.ax.tick_params(labelsize=6)
+    elif data_min_str > 1 or data_max_str > 1:  # two before decimal
+        colorbar.ax.tick_params(labelsize=8)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_height(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -958,20 +947,12 @@ def plot_map_height(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'Water height - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'water height [m]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'height') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1010,10 +991,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_velocity(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1024,20 +1002,12 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, reach_unit_dict, data
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'Velocity - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'water velocity [m/s]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-                          qt_tr.translate("plot_mod", 'velocity') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1076,10 +1046,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, reach_unit_dict, data
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_conveyance(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1090,20 +1057,12 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, reach_unit_dict, da
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'Conveyance - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'conveyance [m²/s]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'conveyance') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1142,10 +1101,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, reach_unit_dict, da
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_froude(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1156,20 +1112,12 @@ def plot_map_froude(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'Froude number - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'Froude number []')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'Froude') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1208,10 +1156,7 @@ def plot_map_froude(state, data_xy, data_tin, data_plot, reach_unit_dict, data_d
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1222,20 +1167,12 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, reach_unit_dict
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'Hydraulic head - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'hydraulic head [m]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'hydraulic_head') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1274,10 +1211,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, reach_unit_dict
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_water_level(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1288,20 +1222,12 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, reach_unit_dict, d
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'Water level - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'water level [m]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'water_level') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1335,20 +1261,19 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, reach_unit_dict, d
     # color_bar
     colorbar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    if len('%.*f' % (decimal_nb, data_plot[0])) > 4:  # two before decimal
-        colorbar.ax.tick_params(labelsize=8)
-    elif len('%.*f' % (decimal_nb, data_plot[0])) > 6:  # two before decimal
+    data_min_str = len(str(data_min).split(".")[0])
+    data_max_str = len(str(data_max).split(".")[0])
+    if data_min_str > 2 or data_max_str > 2:  # two before decimal
         colorbar.ax.tick_params(labelsize=6)
+    elif data_min_str > 1 or data_max_str > 1:  # two before decimal
+        colorbar.ax.tick_params(labelsize=8)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 # map mesh
-def plot_map_mesh(state, data_xy, data_tin, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1359,20 +1284,12 @@ def plot_map_mesh(state, data_xy, data_tin, reach_unit_dict, data_description, p
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'Mesh - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'mesh')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'mesh') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
@@ -1417,10 +1334,7 @@ def plot_map_mesh(state, data_xy, data_tin, reach_unit_dict, data_description, p
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1431,20 +1345,12 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'max slope bottom') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'max slope bottom [m/m]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'max_slope_bottom') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1483,10 +1389,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_slope_energy(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1497,20 +1400,12 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'max slope energy') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'max slope energy [m/m]')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'max_slope_energy') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1549,10 +1444,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_shear_stress(state, data_xy, data_tin, data_plot, reach_unit_dict, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1563,20 +1455,12 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
     # title and filename
-    title = qt_tr.translate("plot_mod",
-                            'shear stress') + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod", 'shear stress []')
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               qt_tr.translate("plot_mod", 'shear_stress') + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1610,6 +1494,164 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     # color_bar
     fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+    """
+    The function to plot the substrate data, which was loaded before. This function will only work if the substrate
+    data is given using the cemagref code.
+
+    :param data_xy: the coordinate of the point
+    :param data_tin: the connectivity table
+    :param sub_pg: the information on subtrate by element for the "coarser part"
+    :param sub_dom: the information on subtrate by element for the "dominant part"
+    :param project_preferences: the figure option as a doctionnary
+    :param xtxt: if the data was given in txt form, the orignal x data
+    :param ytxt: if the data was given in txt form, the orignal y data
+    :param subtxt: if the data was given in txt form, the orignal sub data
+    :param path_im: the path where to save the figure
+    :param reach_num: If we plot more than one reach, this is the reach number
+    """
+    # set mpl parameters
+    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+    mpl.rcParams['font.size'] = project_preferences['font_size']
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42
+
+    # title and filename
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
+
+    # prepare data
+    unziped = list(zip(*data_plot))
+    data_plot = unziped[0]  # substrate_coarser
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    decimal_nb = 0
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])
+    if data_description["sub_classification_code"] == "Cemagref":
+        max_class = 8
+        listcathegories = list(range(1, max_class + 2))
+    if data_description["sub_classification_code"] == "Sandre":
+        max_class = 12
+        listcathegories = list(range(1, max_class + 2))
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
+    n = len(data_plot)
+    norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = data_xy[int(data_tin[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)
+        patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
+
+    # color_bar
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    listcathegories_stick = [x + 0.5 for x in range(1, color_bar.vmax)]
+    listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
+    color_bar.set_ticks(listcathegories_stick)
+    color_bar.set_ticklabels(listcathegories_stick_label)
+
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+    """
+    The function to plot the substrate data, which was loaded before. This function will only work if the substrate
+    data is given using the cemagref code.
+
+    :param data_xy: the coordinate of the point
+    :param data_tin: the connectivity table
+    :param sub_pg: the information on subtrate by element for the "coarser part"
+    :param sub_dom: the information on subtrate by element for the "dominant part"
+    :param project_preferences: the figure option as a doctionnary
+    :param xtxt: if the data was given in txt form, the orignal x data
+    :param ytxt: if the data was given in txt form, the orignal y data
+    :param subtxt: if the data was given in txt form, the orignal sub data
+    :param path_im: the path where to save the figure
+    :param reach_num: If we plot more than one reach, this is the reach number
+    """
+    # set mpl parameters
+    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+    mpl.rcParams['font.size'] = project_preferences['font_size']
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42
+
+    # title and filename
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
+
+    # prepare data
+    unziped = list(zip(*data_plot))
+    data_plot = unziped[1]  # substrate_dominant
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    decimal_nb = 0
+    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])
+    if data_description["sub_classification_code"] == "Cemagref":
+        max_class = 8
+        listcathegories = list(range(1, max_class + 2))
+    if data_description["sub_classification_code"] == "Sandre":
+        max_class = 12
+        listcathegories = list(range(1, max_class + 2))
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
+    n = len(data_plot)
+    norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = data_xy[int(data_tin[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)
+        patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
+
+    # color_bar
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    listcathegories_stick = [x + 0.5 for x in range(1, color_bar.vmax)]
+    listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
+    color_bar.set_ticks(listcathegories_stick)
+    color_bar.set_ticklabels(listcathegories_stick_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1651,7 +1693,7 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub
     unit_name = reach_unit_dict["unit_name_plot"]
 
     # title and filename
-    if sub_type == "sub_coarser":
+    if sub_type == "substrate_coarser":
         title = qt_tr.translate("plot_mod",
                                 'Substrate coarser - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
         variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod",
@@ -1659,7 +1701,7 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub
         reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
         unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
         filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-                    qt_tr.translate("plot_mod", 'sub_coarser') + "_" + reach_name + '_' + unit_name
+                    qt_tr.translate("plot_mod", 'substrate_coarser') + "_" + reach_name + '_' + unit_name
 
     else:
         title = qt_tr.translate("plot_mod",
@@ -1669,11 +1711,11 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub
         reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
         unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
         filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-                   qt_tr.translate("plot_mod", 'sub_dominant') + "_" + reach_name + '_' + unit_name
+                   qt_tr.translate("plot_mod", 'substrate_dominant') + "_" + reach_name + '_' + unit_name
 
     # prepare data
     unziped = list(zip(*data_plot))
-    if sub_type == "sub_coarser":
+    if sub_type == "substrate_coarser":
         data_plot = unziped[0]
     else:
         data_plot = unziped[1]
@@ -1720,10 +1762,7 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, fish_name, total_hv, percent_unknown, data_description, project_preferences):
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     # set mpl parameters
     mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
@@ -1734,23 +1773,30 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, reach_unit_dict, 
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
+    # # get informations
+    # unit_type = data_description["unit_type"][
+    #             data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    # reach_name = reach_unit_dict["reach_name_plot"]
+    # unit_name = reach_unit_dict["unit_name_plot"]
+    #
+    # # title and filename
+    # title = fish_name + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "] - " + \
+    #         qt_tr.translate("plot_mod",
+    #                         'unknown area = ') + '{0:3.2f}'.format(percent_unknown) + " %"
+    # variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + fish_name + " (" + \
+    #                  qt_tr.translate("plot_mod", 'HV') + " = " + '{0:3.2f}'.format(total_hv) + " / " + \
+    #                  qt_tr.translate("plot_mod", 'UA') + " = " + '{0:3.2f}'.format(percent_unknown) + " %" + ")"
+    # reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+    # unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
+    # filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
+    #            fish_name + "_" + reach_name + '_' + unit_name
 
     # title and filename
-    title = fish_name + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "] - " + \
-            qt_tr.translate("plot_mod",
-                            'unknown area = ') + '{0:3.2f}'.format(percent_unknown) + " %"
-    variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + fish_name + " (" + \
-                     qt_tr.translate("plot_mod", 'HV') + " = " + '{0:3.2f}'.format(total_hv) + " / " + \
-                     qt_tr.translate("plot_mod", 'UA') + " = " + '{0:3.2f}'.format(percent_unknown) + " %" + ")"
-    reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-               fish_name + "_" + reach_name + '_' + unit_name
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1852,8 +1898,10 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
 def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state):
     # ax_map
     ax_map.axis("scaled")  # x and y axes have same proportions
-    ax_map.set_xlim((extent_list[0] - 10, extent_list[2] + 10))  # set x extent +- margin
-    ax_map.set_ylim((extent_list[1] - 10, extent_list[3] + 10))  # set y extent
+    delta_x = (extent_list[2] - extent_list[0]) * 0.01
+    delta_y = (extent_list[3] - extent_list[1]) * 0.01
+    ax_map.set_xlim((extent_list[0] - delta_x, extent_list[2] + delta_x))  # set x extent +- margin
+    ax_map.set_ylim((extent_list[1] - delta_y, extent_list[3] + delta_y))  # set y extent
     ax_map.callbacks.connect('xlim_changed', update_scalebar)  # auto update size
 
     # ax_scale
@@ -1955,7 +2003,7 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
                     pass
 
     img, *imgs = [Image.open(os.path.join(path_im, name_hdf5[:-4] + "_" + variable + "_" + reach_name + '_' + unit_name + project_preferences['format'])) for unit_name in unit_names]
-    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + variable + "_" + reach_name + ".gif"), format='GIF', append_images=imgs,
+    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + variable.replace(" ", "_") + "_" + reach_name + ".gif"), format='GIF', append_images=imgs,
              save_all=True, duration=800, loop=0)
 
     # prog
@@ -1990,3 +2038,11 @@ def update_prop(handle, orig):
     handle.update_from(orig)
     x,y = handle.get_data()
     handle.set_data([np.mean(x)]*2, [0, 2*y[0]])
+
+
+def main():
+    print("aaa")
+
+
+if __name__ == '__main__':
+    main()

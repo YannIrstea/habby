@@ -97,7 +97,7 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
     # load data and get variable to compute
     hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5")), hab_filename)
     hdf5.load_hdf5_hab()
-    variable_mesh = ["area", "height", "velocity"]
+    variable_mesh = ["area", "water_height", "water_velocity"]
     HEM_computation = False
     if "invertebrate" in run_choice["aquatic_animal_type_list"]:
         HEM_computation = True

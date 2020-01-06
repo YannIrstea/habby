@@ -1179,7 +1179,7 @@ class SubHydroW(QWidget):
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
         names_hdf5 = [name_hdf5]
-        variables = ["height", "velocity", "mesh"]
+        variables = ["water_height", "water_velocity", "mesh"]
         if len(units_raw) > 1:  # several timestep
             units = [units_raw[0], units_raw[-1]]  # the first and the last timesteo
             units_index = [0, len(units_raw) - 1]
@@ -1207,7 +1207,7 @@ class SubHydroW(QWidget):
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
         names_hdf5 = [name_hdf5]
-        variables = ["height", "velocity", "mesh"]
+        variables = ["water_height", "water_velocity", "mesh"]
         if len(units_raw) > 1:  # several timestep
             units = [units_raw[0], units_raw[-1]]  # the first and the last timesteo
             units_index = [0, len(units_raw)]
@@ -3249,14 +3249,14 @@ class HEC_RAS2D(SubHydroW):
             self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
+        self.send_log.emit(self.tr('# Loading: HEC-RAS_2D data...'))
         self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
         self.send_log.emit(
             "py    selafin_habby1.load_hec_ras2d_and_cut_grid('hydro_hec_ras2d_log', file1, path1, name_prj, "
             "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
-        self.send_log.emit("restart LOAD_TELEMAC")
+        self.send_log.emit("restart LOAD_HEC-RAS_2D")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
 

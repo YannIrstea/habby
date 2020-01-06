@@ -25,6 +25,8 @@ from PyQt5.QtCore import QCoreApplication as qt_tr
 from osgeo import ogr
 from osgeo import osr
 from stl import mesh
+import matplotlib.ticker as ticker
+from matplotlib import colors
 
 from multiprocessing import Value
 from locale import localeconv
@@ -57,14 +59,14 @@ class Hdf5Management:
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
         # variables
-        self.hyd_variables = ["elevation", "height", "velocity", "water_level",
-                               "Froude", "hydraulic_head", "conveyance",
+        self.hyd_variables = ["elevation", "water_height", "water_velocity", "water_level",
+                               "froude_number", "hydraulic_head", "conveyance",
                               "max_slope_bottom", "max_slope_energy", "shear_stress"]
         self.hyd_variables_computed_mesh = ["area", "h", "v", "water_level",
-                               "Froude", "hydraulic_head", "conveyance",
+                               "froude_number", "hydraulic_head", "conveyance",
                               "max_slope_bottom", "max_slope_energy", "shear_stress"]
-        self.hyd_variables_computed_node = ["water_level", "Froude", "hydraulic_head", "conveyance"]
-        self.sub_variables = ["sub_coarser", "sub_dominant"]
+        self.hyd_variables_computed_node = ["water_level", "froude_number", "hydraulic_head", "conveyance"]
+        self.sub_variables = ["substrate_coarser", "substrate_dominant"]
         # dict
         self.data_2d = None
         self.data_2d_whole = None
@@ -127,6 +129,8 @@ class Hdf5Management:
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
                 if self.hdf5_type != "ESTIMHAB":
+                    self.project_preferences = load_project_preferences(self.path_prj)
+
                     self.get_hdf5_attributes()
 
                     # create basename_output_reach_unit for output files
@@ -1344,10 +1348,10 @@ class Hdf5Management:
         if variables_mesh:
             #print("compute_variables_mesh", variables_mesh)
             # replace height by h, same for velocity
-            if "height" in variables_mesh:
-                variables_mesh[variables_mesh.index("height")] = "h"
-            if "velocity" in variables_mesh:
-                variables_mesh[variables_mesh.index("velocity")] = "v"
+            if "water_height" in variables_mesh:
+                variables_mesh[variables_mesh.index("water_height")] = "h"
+            if "water_velocity" in variables_mesh:
+                variables_mesh[variables_mesh.index("water_velocity")] = "v"
 
             # create keys and empty list
             for variable in variables_mesh:
@@ -1388,8 +1392,8 @@ class Hdf5Management:
                                                            self.data_2d["node"]["data"]["h"][reach_num][unit_num])
                             self.data_2d["mesh"]["data"][variable][reach_num].append(water_level)
 
-                        # compute Froude
-                        if variable == "Froude":
+                        # compute froude
+                        if variable == "froude_number":
                             froude = c_mesh_froude(self.data_2d["mesh"]["tin"][reach_num][unit_num],
                                                    self.data_2d["node"]["data"]["h"][reach_num][unit_num],
                                                    self.data_2d["node"]["data"]["v"][reach_num][unit_num])
@@ -1438,10 +1442,10 @@ class Hdf5Management:
         if variables_node:
             #print("compute_variables_node", variables_node)
             # replace height by h, same for velocity
-            if "height" in variables_node:
-                variables_node[variables_node.index("height")] = "h"
-            if "velocity" in variables_node:
-                variables_node[variables_node.index("velocity")] = "v"
+            if "water_height" in variables_node:
+                variables_node[variables_node.index("water_height")] = "h"
+            if "water_velocity" in variables_node:
+                variables_node[variables_node.index("water_velocity")] = "v"
 
             # create keys and empty list
             for variable in variables_node:
@@ -1463,11 +1467,11 @@ class Hdf5Management:
                                                              self.data_2d["node"]["data"]["h"][reach_num][unit_num])
                             self.data_2d["node"]["data"][variable][reach_num].append(water_level)
 
-                        # compute Froude
-                        if variable == "Froude":
-                            Froude = c_node_froude(self.data_2d["node"]["data"]["h"][reach_num][unit_num],
+                        # compute froude
+                        if variable == "froude_number":
+                            froude_number = c_node_froude(self.data_2d["node"]["data"]["h"][reach_num][unit_num],
                                                    self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["node"]["data"][variable][reach_num].append(Froude)
+                            self.data_2d["node"]["data"][variable][reach_num].append(froude_number)
 
                         # compute hydraulic_head
                         if variable == "hydraulic_head":
@@ -1769,7 +1773,7 @@ class Hdf5Management:
                         layer.CreateField(ogr.FieldDefn('velocity', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('height', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('water_level', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('Froude', ogr.OFTReal))
+                        layer.CreateField(ogr.FieldDefn('froude_number', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('hydraulic_head', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('conveyance', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('max_slope_bottom', ogr.OFTReal))
@@ -1819,7 +1823,7 @@ class Hdf5Management:
                             height = self.data_2d["mesh"]["data"]["h"][reach_num][unit_num][mesh_num]
                             velocity = self.data_2d["mesh"]["data"]["v"][reach_num][unit_num][mesh_num]
                             water_level = self.data_2d["mesh"]["data"]["water_level"][reach_num][unit_num][mesh_num]
-                            Froude = self.data_2d["mesh"]["data"]["Froude"][reach_num][unit_num][mesh_num]
+                            froude_number = self.data_2d["mesh"]["data"]["froude_number"][reach_num][unit_num][mesh_num]
                             hydraulic_head = self.data_2d["mesh"]["data"]["hydraulic_head"][reach_num][unit_num][mesh_num]
                             conveyance = self.data_2d["mesh"]["data"]["conveyance"][reach_num][unit_num][mesh_num]
                             max_slope_bottom = self.data_2d["mesh"]["data"]["max_slope_bottom"][reach_num][unit_num][mesh_num]
@@ -1837,10 +1841,10 @@ class Hdf5Management:
                             poly.AddGeometry(ring)
                             # Create a new feature
                             feat = ogr.Feature(defn)
-                            feat.SetField('height', height)
-                            feat.SetField('velocity', velocity)
+                            feat.SetField('water_height', height)
+                            feat.SetField('water_velocity', velocity)
                             feat.SetField('water_level', water_level)
-                            feat.SetField('Froude', Froude)
+                            feat.SetField('froude_number', froude_number)
                             feat.SetField('hydraulic_head', hydraulic_head)
                             feat.SetField('conveyance', conveyance)
                             feat.SetField('max_slope_bottom', max_slope_bottom)
@@ -1935,10 +1939,10 @@ class Hdf5Management:
 
                         # create fields (no width no precision to be specified with GPKG)
                         layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('height', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('velocity', ogr.OFTReal))  # Add one attribute
+                        layer.CreateField(ogr.FieldDefn('water_height', ogr.OFTReal))  # Add one attribute
+                        layer.CreateField(ogr.FieldDefn('water_velocity', ogr.OFTReal))  # Add one attribute
                         layer.CreateField(ogr.FieldDefn('water_level', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('Froude', ogr.OFTReal))  # Add one attribute
+                        layer.CreateField(ogr.FieldDefn('froude_number', ogr.OFTReal))  # Add one attribute
                         layer.CreateField(ogr.FieldDefn('hydraulic_head', ogr.OFTReal))  # Add one attribute
                         layer.CreateField(ogr.FieldDefn('conveyance', ogr.OFTReal))  # Add one attribute
 
@@ -1954,7 +1958,7 @@ class Hdf5Management:
                             h = self.data_2d["node"]["data"]["h"][reach_num][unit_num][point_num]
                             v = self.data_2d["node"]["data"]["v"][reach_num][unit_num][point_num]
                             water_level = self.data_2d["node"]["data"]["water_level"][reach_num][unit_num][point_num]
-                            Froude = self.data_2d["node"]["data"]["Froude"][reach_num][unit_num][point_num]
+                            froude_number = self.data_2d["node"]["data"]["froude_number"][reach_num][unit_num][point_num]
                             hydraulic_head = self.data_2d["node"]["data"]["hydraulic_head"][reach_num][unit_num][point_num]
                             conveyance = self.data_2d["node"]["data"]["conveyance"][reach_num][unit_num][point_num]
 
@@ -1963,11 +1967,11 @@ class Hdf5Management:
                             point.AddPoint(x, y, z)
                             # Create a new feature
                             feat = ogr.Feature(defn)
-                            feat.SetField('height', h)
-                            feat.SetField('velocity', v)
+                            feat.SetField('water_height', h)
+                            feat.SetField('water_velocity', v)
                             feat.SetField('elevation', z)
                             feat.SetField('water_level', water_level)
-                            feat.SetField('Froude', Froude)
+                            feat.SetField('froude_number', froude_number)
                             feat.SetField('hydraulic_head', hydraulic_head)
                             feat.SetField('conveyance', conveyance)
                             # set geometry
@@ -2061,11 +2065,11 @@ class Hdf5Management:
                             z = np.ascontiguousarray(self.data_2d["node"]["z"][reach_num][unit_num] *
                                                      self.project_preferences["vertical_exaggeration"])
 
-                        elif self.project_preferences['pvd_variable_z'] == "height":
+                        elif self.project_preferences['pvd_variable_z'] == "water_height":
                             z = np.ascontiguousarray(self.data_2d["node"]["data"]["h"][reach_num][unit_num] *
                                                      self.project_preferences["vertical_exaggeration"])
 
-                        elif self.project_preferences['pvd_variable_z'] == "velocity":
+                        elif self.project_preferences['pvd_variable_z'] == "water_velocity":
                             z = np.ascontiguousarray(self.data_2d["node"]["data"]["v"][reach_num][unit_num] *
                                                      self.project_preferences["vertical_exaggeration"])
 
@@ -2081,8 +2085,8 @@ class Hdf5Management:
                             z = np.ascontiguousarray(self.data_2d["node"]["data"]["conveyance"][reach_num][unit_num] *
                                                      self.project_preferences["vertical_exaggeration"])
 
-                        elif self.project_preferences['pvd_variable_z'] == "Froude":
-                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["Froude"][reach_num][unit_num] *
+                        elif self.project_preferences['pvd_variable_z'] == "froude_number":
+                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["froude_number"][reach_num][unit_num] *
                                                      self.project_preferences["vertical_exaggeration"])
 
                     except Warning:
@@ -2105,9 +2109,9 @@ class Hdf5Management:
                                 cellData[newkey] = self.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num]
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            cellData["sub_coarser"] = np.ascontiguousarray(
+                            cellData["substrate_coarser"] = np.ascontiguousarray(
                                 self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][:, 0])
-                            cellData["sub_dominant"] = np.ascontiguousarray(
+                            cellData["substrate_dominant"] = np.ascontiguousarray(
                                 self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][:, 1])
 
                         if self.data_description["sub_classification_method"] == 'percentage':
@@ -2123,7 +2127,7 @@ class Hdf5Management:
                     cellData['height'] = self.data_2d["mesh"]["data"]["h"][reach_num][unit_num]
                     cellData['velocity'] = self.data_2d["mesh"]["data"]["v"][reach_num][unit_num]
                     cellData['water_level'] = self.data_2d["mesh"]["data"]["water_level"][reach_num][unit_num]
-                    cellData['Froude'] = self.data_2d["mesh"]["data"]["Froude"][reach_num][unit_num]
+                    cellData['froude_number'] = self.data_2d["mesh"]["data"]["froude_number"][reach_num][unit_num]
                     cellData['hydraulic_head'] = self.data_2d["mesh"]["data"]["hydraulic_head"][reach_num][unit_num]
                     cellData['conveyance'] = self.data_2d["mesh"]["data"]["conveyance"][reach_num][unit_num]
                     cellData['max_slope_bottom'] = self.data_2d["mesh"]["data"]["max_slope_bottom"][reach_num][unit_num]
@@ -2340,7 +2344,7 @@ class Hdf5Management:
                     if self.hdf5_type == "habitat":
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            header += '\tsub_coarser\tsub_dominant'
+                            header += '\tsubstrate_coarser\tsubstrate_dominant'
                             sub_class_number = 2
                         if self.data_description["sub_classification_method"] == 'percentage':
                             if self.data_description["sub_classification_code"] == "Cemagref":
@@ -2376,7 +2380,7 @@ class Hdf5Management:
                             velocity_str = str(self.data_2d["mesh"]["data"]["v"][reach_num][unit_num][mesh_num])
                             height_str = str(self.data_2d["mesh"]["data"]["h"][reach_num][unit_num][mesh_num])
                             water_level_str = str(self.data_2d["mesh"]["data"]["water_level"][reach_num][unit_num][mesh_num])
-                            froude_str = str(self.data_2d["mesh"]["data"]["Froude"][reach_num][unit_num][mesh_num])
+                            froude_number_str = str(self.data_2d["mesh"]["data"]["froude_number"][reach_num][unit_num][mesh_num])
                             hydraulic_head_str = str(self.data_2d["mesh"]["data"]["hydraulic_head"][reach_num][unit_num][mesh_num])
                             conveyance_str = str(self.data_2d["mesh"]["data"]["conveyance"][reach_num][unit_num][mesh_num])
                             max_slope_bottom_str = str(self.data_2d["mesh"]["data"]["max_slope_bottom"][reach_num][unit_num][mesh_num])
@@ -2384,7 +2388,7 @@ class Hdf5Management:
                             shear_stress_str = str(self.data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num][mesh_num])
 
                             data_here += '\n'
-                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{water_level_str}\t{froude_str}\t{hydraulic_head_str}\t{conveyance_str}\t{max_slope_bottom_str}\t{max_slope_energy_str}\t{shear_stress_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
+                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{water_level_str}\t{froude_number_str}\t{hydraulic_head_str}\t{conveyance_str}\t{max_slope_bottom_str}\t{max_slope_energy_str}\t{shear_stress_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
 
                             if self.hdf5_type == "habitat":
                                 sub = self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][mesh_num]
@@ -2466,12 +2470,12 @@ class Hdf5Management:
                             v = str(self.data_2d["node"]["data"]["v"][reach_num][unit_num][point_num])
 
                             water_level = str(self.data_2d["node"]["data"]["water_level"][reach_num][unit_num][point_num])
-                            Froude = str(self.data_2d["node"]["data"]["Froude"][reach_num][unit_num][point_num])
+                            froude_number = str(self.data_2d["node"]["data"]["froude_number"][reach_num][unit_num][point_num])
                             hydraulic_head = str(self.data_2d["node"]["data"]["hydraulic_head"][reach_num][unit_num][point_num])
                             conveyance = str(self.data_2d["node"]["data"]["conveyance"][reach_num][unit_num][point_num])
 
                             data_here += '\n'
-                            data_here += f"{str(reach_num)}\t{x}\t{y}\t{z}\t{v}\t{h}\t{water_level}\t{Froude}\t{hydraulic_head}\t{conveyance}"
+                            data_here += f"{str(reach_num)}\t{x}\t{y}\t{z}\t{v}\t{h}\t{water_level}\t{froude_number}\t{hydraulic_head}\t{conveyance}"
 
                     # change decimal point
                     if localeconv()['decimal_point'] == ",":
@@ -2753,6 +2757,86 @@ class Hdf5Management:
                 f.write(txtin)
         if localeconv()['decimal_point'] == ",":
             txt_file_convert_dot_to_comma(os.path.join(path_txt, intput_filename + '.txt'))
+
+    # PLOT
+    def plot_map_height(self, state, reach_unit_dict):
+        # get translation
+        #qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+
+        # set mpl parameters
+        mpl.rcParams["savefig.directory"] = self.project_preferences['path_figure']  # change default path to save
+        mpl.rcParams["savefig.dpi"] = self.project_preferences["resolution"]  # change default resolution to save
+        mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
+        mpl.rcParams['figure.figsize'] = self.project_preferences['width'] / 2.54, self.project_preferences['height'] / 2.54
+        mpl.rcParams['font.size'] = self.project_preferences['font_size']
+        mpl.rcParams['lines.linewidth'] = self.project_preferences['line_width']
+        mpl.rcParams['axes.grid'] = self.project_preferences['grid']
+        mpl.rcParams['pdf.fonttype'] = 42
+
+        # get informations
+        unit_type = self.data_description["hyd_unit_type"][
+                    self.data_description["hyd_unit_type"].find('[') + len('['):self.data_description["hyd_unit_type"].find(']')]
+        reach_name = reach_unit_dict["reach_name_plot"]
+        reach_num = 0
+        unit_name = reach_unit_dict["unit_name_plot"]
+        unit_num = self.data_description["hyd_unit_list"][reach_num].index(float(unit_name))
+        print(unit_name, unit_num)
+
+        data_xy = self.data_2d["node"]["xy"][reach_num][unit_num]
+        data_tin = self.data_2d["mesh"]["tin"][reach_num][unit_num]
+        data_plot = self.data_2d["node"]["data"]["h"][reach_num][unit_num]
+
+        # title and filename
+        title = qt_tr.translate("plot_mod",
+                                'Water height - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
+        variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod",
+                                                                                           'water height [m]')
+        reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
+        unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
+        filename = self.basename + "_" + \
+                   qt_tr.translate("plot_mod", 'height') + "_" + reach_name + '_' + unit_name
+
+        self.project_preferences['type_plot'] = reach_unit_dict["type_plot"]
+
+        # data
+        masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+        data_min = masked_array.min()
+        data_max = masked_array.max()
+        decimal_nb = 2
+        extent_list = list(map(float, self.data_description["extent"].split(", ")))  # get extent
+
+        # colors
+        cmap = mpl.cm.get_cmap(self.project_preferences['color_map2'])  # get color map
+        cmap.set_bad(color='black', alpha=1.0)
+
+        # pre_plot_map
+        fig, ax_map, ax_legend = plot_mod.pre_plot_map(title, variable_title, reach_title, unit_title)
+
+        # ax_map plot
+        bounds_nb = 50  # number of bound (color level)
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
+        while not np.all(np.diff(bounds) > 0):  # check if constant or null
+            bounds_nb += - 1  # remove one bound
+            bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
+        # all values are null
+        if data_min == data_max and bounds_nb == 1:
+            data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                             colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                             levels=np.array([0.0, 0.1]))
+        # normal case
+        else:
+            data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                             cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+
+        # color_bar
+        fig.colorbar(data_ploted, cax=ax_legend,
+                     format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+
+        # post_plot_map
+        plot_mod.post_plot_map(fig, ax_map, extent_list, filename, self.project_preferences, state)
+
+        return True
+
 
 #################################################################
 

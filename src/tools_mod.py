@@ -27,6 +27,7 @@ import shutil
 import numpy as np
 from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread, QCoreApplication as qt_tr
 from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
+import multiprocessing
 
 from src.project_manag_mod import load_project_preferences
 
@@ -169,14 +170,14 @@ def c_mesh_shear_stress(tin, xy, z, h, v):
 
 def c_mesh_froude(tin, h, v):
     """
-    Compute mesh Froude (mean Froude of 3 points)
+    Compute mesh froude (mean froude of 3 points)
     :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
     :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
-    :return: mesh_froude: numpy.ndarray representing all the Froude mesh values. Shape : (N_mesh, ).
+    :return: mesh_froude: numpy.ndarray representing all the froude mesh values. Shape : (N_mesh, ).
     """
 
-    # compute Froude at nodes
+    # compute froude at nodes
     node_froude = c_node_froude(h, v)
 
     # compute mesh mean
@@ -207,11 +208,11 @@ def c_mesh_hydraulic_head(tin, z, h, v):
 
 def c_mesh_conveyance(tin, h, v):
     """
-    Compute mesh Froude (mean Froude of 3 points)
+    Compute mesh froude (mean froude of 3 points)
     :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
     :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
-    :return: mesh_froude: numpy.ndarray representing all the Froude mesh values. Shape : (N_mesh, ).
+    :return: mesh_froude: numpy.ndarray representing all the froude mesh values. Shape : (N_mesh, ).
     """
 
     # compute hydraulic_head at nodes
@@ -225,7 +226,7 @@ def c_mesh_conveyance(tin, h, v):
 
 def c_mesh_water_level(tin, z, h):
     """
-    Compute mesh Froude (mean Froude of 3 points)
+    Compute mesh froude (mean froude of 3 points)
     :param tin: numpy.ndarray representing the triangular mesh. Shape : (N_mesh, 3_points).
     :param z: numpy.ndarray representing all the z values. Shape : (N_points, ).
     :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
@@ -259,9 +260,9 @@ def c_node_froude(h, v):
     """
     :param h: numpy.ndarray representing all the h values. Shape : (N_points, ).
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
-    :return: node_froude: numpy.ndarray representing all the Froude nodes values. Shape : (N_points, ).
+    :return: node_froude: numpy.ndarray representing all the froude nodes values. Shape : (N_points, ).
     """
-    # compute Froude
+    # compute froude
     null_values = h == 0
     h[null_values] = 100000
     node_froude = v / np.sqrt(GRAVITY * h)
@@ -581,8 +582,19 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
 
 
 """ OTHERS TOOLS """
-def myfmt(x, pos):
-    return '{0:.2f}'.format(x)
+
+
+def create_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, tr, variable_info=""):
+    # plot_string_dict
+    plot_string_dict = dict(reach_name=reach_name,
+                            unit_name=unit_name,
+                            title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
+                            variable_title="variable : " + variable + ' [' + variable_unit + ']' + " " + variable_info,
+                            reach_title=tr('reach') + " : " + reach_name,
+                            unit_title=tr('unit') + " : " + unit_name + " [" + unit_type + "]",
+                            filename=os.path.splitext(name_hdf5)[0] + "_" + variable.replace(" ", "_") + "_" + reach_name + '_' + unit_name
+                            )
+    return plot_string_dict
 
 
 def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path):
@@ -759,6 +771,7 @@ def get_translator(path_prj, name_prj):
     :param language: 0:EN, 1:FR, 2:ES
     :return: application with translate method.
     """
+    print("get_translator")
     # get language from project_preferences['language']
     project_preferences = load_project_preferences(path_prj)
     language = project_preferences['language']
@@ -892,13 +905,27 @@ class MyProcessList(QThread):
         self.plot_production_stoped = False
         self.nb_plot_total = len(self.process_list)
         if self.process_type == "plot":
+            # Process mod
             for i in range(len(self.process_list)):
                 if not self.plot_production_stoped:
                     if self.process_list[i][1].value == 0:
                         self.process_list[i][0].start()
-            #print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
+                        #print("start", i)
+            print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
             self.check_all_plot_produced()
 
+            # # Pool map mod
+            # data_list = []
+            # for i in range(len(self.process_list)):
+            #     data_list.append(self.process_list[i])
+            # p = multiprocessing.Pool()
+            # result = p.map(mp_worker, data_list)
+            # print("result", result)
+            # #self.check_all_plot_produced_map()
+            # print("before2")
+            # p.close()
+            # print("before3")
+            # self.progress_signal.emit(len(data_list))
         if self.process_type == "export":
             self.all_process_runned = False
             for i in range(len(self.process_list)):
@@ -959,7 +986,7 @@ class MyProcessList(QThread):
             if state == 1:
                 self.nb_finished = self.nb_finished + 1
                 self.progress_signal.emit(self.nb_finished)
-                #print("emit")
+                #print("emit 1")
             if state == 0:
                 if i == self.nb_plot_total - 1:  # last of all plot
                     while 0 in state_list:
@@ -969,7 +996,7 @@ class MyProcessList(QThread):
                             if state == 1:
                                 self.nb_finished = self.nb_finished + 1
                                 self.progress_signal.emit(self.nb_finished)
-                                #print("emit")
+                                #print("emit 2")
                         if self.plot_production_stoped:
                             sleep(1)
                             for j in [k for k, l in enumerate(state_list) if l == 0]:
@@ -978,7 +1005,7 @@ class MyProcessList(QThread):
                                 if state == 1:
                                     self.nb_finished = self.nb_finished + 1
                                     self.progress_signal.emit(self.nb_finished)
-                                    #print("emit")
+                                    #print("emit 3")
                             break
 
     # def check_all_export_produced(self):
@@ -1036,6 +1063,14 @@ class MyProcessList(QThread):
                 #print(self.process_list[i][0].name, "removed from list")
                 self.process_list.pop(i)
         self.nb_plot_total = len(self.process_list)
+
+
+def mp_worker(data_list):
+    print(data_list[0])
+    state = multiprocessing.Value("i", 0)
+    done = data_list[0](state, *data_list[1:])
+    print("done,", state)
+    return state
 
 
 class QHLine(QFrame):
