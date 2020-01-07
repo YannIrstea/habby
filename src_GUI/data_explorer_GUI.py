@@ -928,7 +928,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("water height"),
+                                                                               self.tr("water_height"),
                                                                                "m",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -951,7 +951,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("water velocity"),
+                                                                               self.tr("water_velocity"),
                                                                                "m/s",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -998,7 +998,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("froude number"),
+                                                                               self.tr("froude_number"),
                                                                                "",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1022,7 +1022,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("hydraulic head"),
+                                                                               self.tr("hydraulic_head"),
                                                                                "m",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1048,7 +1048,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("water level"),
+                                                                               self.tr("water_level"),
                                                                                "m",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1094,7 +1094,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("max slope bottom"),
+                                                                               self.tr("max_slope_bottom"),
                                                                                "m/m",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1118,7 +1118,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("max slope energy"),
+                                                                               self.tr("max_slope_energy"),
                                                                                "m/m",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1143,7 +1143,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("shear stress"),
+                                                                               self.tr("shear_stress"),
                                                                                "",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1168,7 +1168,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("substrate coarser"),
+                                                                               self.tr("substrate_coarser"),
                                                                                "",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1192,7 +1192,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                reach_name,
                                                                                units[unit_num],
                                                                                unit_type,
-                                                                               self.tr("substrate dominant"),
+                                                                               self.tr("substrate_dominant"),
                                                                                "",
                                                                                string_tr)
                                     state = Value("i", 0)
@@ -1243,7 +1243,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                     state = Value("i", 0)
                                     gif_map_process = Process(target=plot_mod.create_gif_from_files,
                                                               args=(state,
-                                                                    variable,
+                                                                    self.tr(variable),
                                                                     reach_name,
                                                                     units,
                                                                     data_description,

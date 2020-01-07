@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="2.0" language="en_US" sourcelanguage="">
 <context>
-    <name>@default</name>
-    <message>
-        <location filename="../src/tools_mod.py" line="591"/>
-        <source>reach</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/tools_mod.py" line="591"/>
-        <source>unit</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ASCII</name>
     <message>
         <location filename="../src_GUI/hydro_sub_GUI.py" line="3813"/>
@@ -593,87 +580,87 @@ defined by either volume or area percentages on a depth and current velocity cro
 <context>
     <name>DataExporterGroup</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1369"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1371"/>
         <source>run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1374"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1376"/>
         <source>stop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1442"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1444"/>
         <source>Mesh whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1397"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1399"/>
         <source>Point whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1446"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1448"/>
         <source>Mesh units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1436"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1438"/>
         <source>Point units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1452"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1454"/>
         <source>Global habitat values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1456"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1458"/>
         <source>Detailled habitat values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1462"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1464"/>
         <source>Fish informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1421"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1423"/>
         <source>Detailled mesh and points</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1461"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1463"/>
         <source>Report (figure extension)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1604"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1606"/>
         <source> No hdf5 type selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1606"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1608"/>
         <source> No hdf5 file selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1608"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1610"/>
         <source> No export choosen.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1599"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1601"/>
         <source>Export(s) done.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1740"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1742"/>
         <source>No habitat data in this .hab file to export Fish informations report.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1762"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1764"/>
         <source>Export(s) stoped by user.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -973,78 +960,93 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1273"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1275"/>
         <source>Figure(s) production stoped by user.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="901"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="903"/>
         <source>elevation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="925"/>
-        <source>water height</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="948"/>
-        <source>water velocity</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="971"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="973"/>
         <source>conveyance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="995"/>
-        <source>froude number</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1019"/>
-        <source>hydraulic head</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1045"/>
-        <source>water level</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1069"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1071"/>
         <source>mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1091"/>
-        <source>max slope bottom</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1115"/>
-        <source>max slope energy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1140"/>
-        <source>shear stress</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1165"/>
-        <source>substrate coarser</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1189"/>
-        <source>substrate dominant</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1215"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1217"/>
         <source>UA</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="900"/>
+        <source>reach</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="900"/>
+        <source>unit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1217"/>
+        <source>HV = </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="927"/>
+        <source>water_height</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="950"/>
+        <source>water_velocity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="997"/>
+        <source>froude_number</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1021"/>
+        <source>hydraulic_head</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1047"/>
+        <source>water_level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1093"/>
+        <source>max_slope_bottom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1117"/>
+        <source>max_slope_energy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1142"/>
+        <source>shear_stress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1167"/>
+        <source>substrate_coarser</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1191"/>
+        <source>substrate_dominant</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1496,17 +1498,17 @@ NB : There is no limit for exports.</source>
 <context>
     <name>HabitatValueRemover</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1780"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1782"/>
         <source>Existing aquatic animal habitat values :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1785"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1787"/>
         <source>remove selected animals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1806"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1808"/>
         <source>No file selected.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3994,46 +3996,46 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2425"/>
+        <location filename="../src/hdf5_mod.py" line="2424"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2441"/>
+        <location filename="../src/hdf5_mod.py" line="2440"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2661"/>
+        <location filename="../src/hdf5_mod.py" line="2659"/>
         <source>Close .pdf to update fish information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2865"/>
+        <location filename="../src/hdf5_mod.py" line="2863"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2870"/>
+        <location filename="../src/hdf5_mod.py" line="2868"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2896"/>
+        <location filename="../src/hdf5_mod.py" line="2894"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2899"/>
+        <location filename="../src/hdf5_mod.py" line="2897"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2982"/>
+        <location filename="../src/hdf5_mod.py" line="2980"/>
         <source>No project found by load_hdf5</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4064,87 +4066,82 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2448"/>
-        <source>reach</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="2331"/>
+        <location filename="../src/hdf5_mod.py" line="2330"/>
         <source>area</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2452"/>
+        <location filename="../src/hdf5_mod.py" line="2450"/>
         <source>water_height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2453"/>
+        <location filename="../src/hdf5_mod.py" line="2451"/>
         <source>water_velocity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2454"/>
+        <location filename="../src/hdf5_mod.py" line="2452"/>
         <source>water_level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2455"/>
+        <location filename="../src/hdf5_mod.py" line="2453"/>
         <source>froude_number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2456"/>
+        <location filename="../src/hdf5_mod.py" line="2454"/>
         <source>hydraulic_head</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2457"/>
+        <location filename="../src/hdf5_mod.py" line="2455"/>
         <source>conveyance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2338"/>
+        <location filename="../src/hdf5_mod.py" line="2337"/>
         <source>max_slope_bottom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2339"/>
+        <location filename="../src/hdf5_mod.py" line="2338"/>
         <source>max_slope_energy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2340"/>
+        <location filename="../src/hdf5_mod.py" line="2339"/>
         <source>shear_stress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2341"/>
+        <location filename="../src/hdf5_mod.py" line="2340"/>
         <source>node1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2342"/>
+        <location filename="../src/hdf5_mod.py" line="2341"/>
         <source>node2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2343"/>
+        <location filename="../src/hdf5_mod.py" line="2342"/>
         <source>node3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2449"/>
+        <location filename="../src/hdf5_mod.py" line="2447"/>
         <source>x</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2450"/>
+        <location filename="../src/hdf5_mod.py" line="2448"/>
         <source>y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2451"/>
+        <location filename="../src/hdf5_mod.py" line="2449"/>
         <source>z</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4154,7 +4151,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2435"/>
+        <location filename="../src/hdf5_mod.py" line="2434"/>
         <source>detailled_point</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4380,11 +4377,6 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="508"/>
-        <source>Unknown area [%]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src/plot_mod.py" line="509"/>
         <source>Unknown area</source>
         <translation type="unfinished"></translation>
@@ -4420,7 +4412,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2796"/>
+        <location filename="../src/hdf5_mod.py" line="2794"/>
         <source>Water height - </source>
         <translation type="unfinished"></translation>
     </message>
@@ -4430,7 +4422,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2798"/>
+        <location filename="../src/hdf5_mod.py" line="2796"/>
         <source>water height [m]</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4445,7 +4437,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2803"/>
+        <location filename="../src/hdf5_mod.py" line="2801"/>
         <source>height</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4462,6 +4454,11 @@ Close them and try again.</source>
     <message>
         <location filename="../src/plot_mod.py" line="1715"/>
         <source>substrate dominant</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="508"/>
+        <source>UA [%]</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -4578,14 +4575,6 @@ Close them and try again.</source>
     <message>
         <location filename="../src/rubar1d2d_mod.py" line="1521"/>
         <source>. They will be removed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>self.self</name>
-    <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1215"/>
-        <source>HV</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

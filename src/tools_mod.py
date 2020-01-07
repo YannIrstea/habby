@@ -589,7 +589,7 @@ def create_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variabl
     plot_string_dict = dict(reach_name=reach_name,
                             unit_name=unit_name,
                             title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
-                            variable_title="variable : " + variable + ' [' + variable_unit + ']' + " " + variable_info,
+                            variable_title="variable : " + variable.replace("_", " ") + ' [' + variable_unit + ']' + " " + variable_info,
                             reach_title=string_tr[0] + " : " + reach_name,
                             unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type + "]",
                             filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_")

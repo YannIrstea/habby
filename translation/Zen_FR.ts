@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="fr" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="fr">
 <context>
     <name>@default</name>
     <message>
         <location filename="../src/tools_mod.py" line="591"/>
         <source>reach</source>
-        <translation>tronçon</translation>
+        <translation type="obsolete">tronçon</translation>
     </message>
     <message>
         <location filename="../src/tools_mod.py" line="591"/>
         <source>unit</source>
-        <translation>unité</translation>
+        <translation type="obsolete">unité</translation>
     </message>
 </context>
 <context>
@@ -1038,32 +1039,32 @@ défini par des pourcentages de volume ou de surface sur une grille croisée de 
 <context>
     <name>DataExporterGroup</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1369"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1371"/>
         <source>run</source>
         <translation>lancer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1374"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1376"/>
         <source>stop</source>
         <translation>arrêter</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1442"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1444"/>
         <source>Mesh whole profile</source>
         <translation>Maillage du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1397"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1399"/>
         <source>Point whole profile</source>
         <translation>Point du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1446"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1448"/>
         <source>Mesh units</source>
         <translation>Maillage par unités</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1436"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1438"/>
         <source>Point units</source>
         <translation>Points par unités</translation>
     </message>
@@ -1073,42 +1074,42 @@ défini par des pourcentages de volume ou de surface sur une grille croisée de 
         <translation type="obsolete">Maillage détaillé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1452"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1454"/>
         <source>Global habitat values</source>
         <translation>Valeur global d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1456"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1458"/>
         <source>Detailled habitat values</source>
         <translation>Valeur détaillée d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1462"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1464"/>
         <source>Fish informations</source>
         <translation>Information des modèles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1421"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1423"/>
         <source>Detailled mesh and points</source>
         <translation>Maillage et points détaillés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1461"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1463"/>
         <source>Report (figure extension)</source>
         <translation>Rapport (extension de figure)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1604"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1606"/>
         <source> No hdf5 type selected.</source>
         <translation> Type d&apos;hdf5 non sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1606"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1608"/>
         <source> No hdf5 file selected.</source>
         <translation> Fichier hdf5 non sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1608"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1610"/>
         <source> No export choosen.</source>
         <translation> Pas d&apos;export sélectionné.</translation>
     </message>
@@ -1118,17 +1119,17 @@ défini par des pourcentages de volume ou de surface sur une grille croisée de 
         <translation type="obsolete">Pas de modèle calculé dans ce .hab.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1599"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1601"/>
         <source>Export(s) done.</source>
         <translation>Export(s) effectués.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1740"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1742"/>
         <source>No habitat data in this .hab file to export Fish informations report.</source>
         <translation>Aucune donnée d&apos;habitat dans ce fichier .hab pour exporter les informations d&apos;habitat.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1762"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1764"/>
         <source>Export(s) stoped by user.</source>
         <translation>Export(s) arrêté(s) par l&apos;utilisateur.</translation>
     </message>
@@ -1583,79 +1584,144 @@ NB : There is no limit for exports.</source>
 NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1273"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1275"/>
         <source>Figure(s) production stoped by user.</source>
         <translation>Production de figure(s) arrêtée par l&apos;utilisateur.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="901"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="903"/>
         <source>elevation</source>
         <translation>élévation</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="925"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="927"/>
         <source>water height</source>
-        <translation>heuteur d&apos;eau</translation>
+        <translation type="obsolete">hauteur d&apos;eau</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="948"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="950"/>
         <source>water velocity</source>
-        <translation>vitesse</translation>
+        <translation type="obsolete">vitesse</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="971"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="973"/>
         <source>conveyance</source>
         <translation>debitance</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="995"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="997"/>
         <source>froude number</source>
-        <translation>nombre de Froude</translation>
+        <translation type="obsolete">nombre de Froude</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1019"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1021"/>
         <source>hydraulic head</source>
-        <translation>charge hydraulique</translation>
+        <translation type="obsolete">charge hydraulique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1045"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1047"/>
         <source>water level</source>
-        <translation>niveau d&apos;eau</translation>
+        <translation type="obsolete">niveau d&apos;eau</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1069"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1071"/>
         <source>mesh</source>
         <translation>maillage</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1091"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1093"/>
         <source>max slope bottom</source>
-        <translation>pente maximale du fond</translation>
+        <translation type="obsolete">pente maximale du fond</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1115"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1117"/>
         <source>max slope energy</source>
-        <translation>pente maximale d&apos;énergie</translation>
+        <translation type="obsolete">pente maximale d&apos;énergie</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1140"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1142"/>
         <source>shear stress</source>
-        <translation>contrainte de cisaillement</translation>
+        <translation type="obsolete">contrainte de cisaillement</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1165"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1167"/>
         <source>substrate coarser</source>
-        <translation>substrat plus gros</translation>
+        <translation type="obsolete">substrat plus gros</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1189"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1191"/>
         <source>substrate dominant</source>
-        <translation>substrat dominant</translation>
+        <translation type="obsolete">substrat dominant</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1215"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1217"/>
         <source>UA</source>
         <translation>SI</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="900"/>
+        <source>reach</source>
+        <translation>tronçon</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="900"/>
+        <source>unit</source>
+        <translation>unité</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1217"/>
+        <source>HV = </source>
+        <translation>VH = </translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="927"/>
+        <source>water_height</source>
+        <translation>hauteur_d&apos;eau</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="950"/>
+        <source>water_velocity</source>
+        <translation>vitesse</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="997"/>
+        <source>froude_number</source>
+        <translation>nombre_de_Froude</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1021"/>
+        <source>hydraulic_head</source>
+        <translation>charge_hydraulique</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1047"/>
+        <source>water_level</source>
+        <translation>niveau_d&apos;eau</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1093"/>
+        <source>max_slope_bottom</source>
+        <translation>pente_max_fond</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1117"/>
+        <source>max_slope_energy</source>
+        <translation>pente_max_energie</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1142"/>
+        <source>shear_stress</source>
+        <translation>contrainte_cisaillement</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1167"/>
+        <source>substrate_coarser</source>
+        <translation>substrat_plusgros</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1191"/>
+        <source>substrate_dominant</source>
+        <translation>substrat_dominant</translation>
     </message>
 </context>
 <context>
@@ -2269,17 +2335,17 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
 <context>
     <name>HabitatValueRemover</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1780"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1782"/>
         <source>Existing aquatic animal habitat values :</source>
         <translation>Valeurs d&apos;habitat présentes dans le .hab:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1785"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1787"/>
         <source>remove selected animals</source>
         <translation>supprimer la sélection</translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1806"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1808"/>
         <source>No file selected.</source>
         <translation>Aucun fichier sélectionné.</translation>
     </message>
@@ -6235,17 +6301,17 @@ Fermez-les et réessayez.</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="462"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0;</source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n°</source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante en fonction de l&apos;hydraulique de l&apos;unité n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source> of reach n&#xb0;</source>
+        <source> of reach n°</source>
         <translation type="obsolete"> du tronçon n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source>, the shear stress data present unknown values in unit n&#xb0;</source>
+        <source>, the shear stress data present unknown values in unit n°</source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n°</translation>
     </message>
     <message>
@@ -6255,17 +6321,17 @@ Fermez-les et réessayez.</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="456"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0; </source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n° </source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique de l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source>, the shear stress data present unknown values in unit n&#xb0; </source>
+        <source>, the shear stress data present unknown values in unit n° </source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source> of reach n&#xb0; </source>
+        <source> of reach n° </source>
         <translation type="obsolete"> du tronçon n° </translation>
     </message>
     <message>
@@ -6374,43 +6440,43 @@ Fermez-les et réessayez.</translation>
         <translation>zut alors !</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2425"/>
+        <location filename="../src/hdf5_mod.py" line="2424"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation>Le chemin d&apos;accès au fichier texte n&apos;est pas trouvé. Fichiers texte non créés 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2441"/>
+        <location filename="../src/hdf5_mod.py" line="2440"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation>Impossible de modifier le fichier texte car il est ouvert dans un autre programme. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2661"/>
+        <location filename="../src/hdf5_mod.py" line="2659"/>
         <source>Close .pdf to update fish information</source>
         <translation>Fermer le ou les .pdf pour mettre à jour les informations sur les poissons</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2865"/>
+        <location filename="../src/hdf5_mod.py" line="2863"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation>Le fichier doit être de type hdf5 (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2870"/>
+        <location filename="../src/hdf5_mod.py" line="2868"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation>Le fichier hdf5 n&apos;a pas pu être chargé.
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2896"/>
+        <location filename="../src/hdf5_mod.py" line="2894"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation>Aucun chemin vers le projet n&apos;a été donné, bien qu&apos;un chemin relatif ait été fourni</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2899"/>
+        <location filename="../src/hdf5_mod.py" line="2897"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation>hdf5 n&apos;a pas pu être ouvert. 
@@ -6651,7 +6717,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete"> n&apos;ont pas été trouvé (2)</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2982"/>
+        <location filename="../src/hdf5_mod.py" line="2980"/>
         <source>No project found by load_hdf5</source>
         <translation>Aucun projet trouvé par load_hdf5</translation>
     </message>
@@ -6704,85 +6770,85 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/hdf5_mod.py" line="2448"/>
         <source>reach</source>
-        <translation>tronçon</translation>
+        <translation type="obsolete">tronçon</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2331"/>
+        <location filename="../src/hdf5_mod.py" line="2330"/>
         <source>area</source>
         <translation>surface</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2452"/>
+        <location filename="../src/hdf5_mod.py" line="2450"/>
         <source>water_height</source>
         <translation>hauteur_d&apos;eau</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2453"/>
+        <location filename="../src/hdf5_mod.py" line="2451"/>
         <source>water_velocity</source>
         <translation>vitesse</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2454"/>
+        <location filename="../src/hdf5_mod.py" line="2452"/>
         <source>water_level</source>
         <translation>niveau_d&apos;eau</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2455"/>
+        <location filename="../src/hdf5_mod.py" line="2453"/>
         <source>froude_number</source>
         <translation>nombre_de_Froude</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2456"/>
+        <location filename="../src/hdf5_mod.py" line="2454"/>
         <source>hydraulic_head</source>
         <translation>charge_hydraulique</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2457"/>
+        <location filename="../src/hdf5_mod.py" line="2455"/>
         <source>conveyance</source>
         <translation>debitance</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2338"/>
+        <location filename="../src/hdf5_mod.py" line="2337"/>
         <source>max_slope_bottom</source>
         <translation>pente_max_fond</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2339"/>
+        <location filename="../src/hdf5_mod.py" line="2338"/>
         <source>max_slope_energy</source>
         <translation>pente_max_energie</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2340"/>
+        <location filename="../src/hdf5_mod.py" line="2339"/>
         <source>shear_stress</source>
         <translation>contrainte_cisaillement</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2341"/>
+        <location filename="../src/hdf5_mod.py" line="2340"/>
         <source>node1</source>
         <translation>noeud1</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2342"/>
+        <location filename="../src/hdf5_mod.py" line="2341"/>
         <source>node2</source>
         <translation>noeud2</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2343"/>
+        <location filename="../src/hdf5_mod.py" line="2342"/>
         <source>node3</source>
         <translation>noeud3</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2449"/>
+        <location filename="../src/hdf5_mod.py" line="2447"/>
         <source>x</source>
         <translation>x</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2450"/>
+        <location filename="../src/hdf5_mod.py" line="2448"/>
         <source>y</source>
         <translation>y</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2451"/>
+        <location filename="../src/hdf5_mod.py" line="2449"/>
         <source>z</source>
         <translation>z</translation>
     </message>
@@ -6792,7 +6858,7 @@ Fermez-les et réessayez.</translation>
         <translation>maillage_detaille</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2435"/>
+        <location filename="../src/hdf5_mod.py" line="2434"/>
         <source>detailled_point</source>
         <translation>point_detaille</translation>
     </message>
@@ -6987,7 +7053,7 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/plot_mod.py" line="1859"/>
         <source>WUA by 100 m
-[m&#xb2;]</source>
+[m²]</source>
         <translation type="obsolete">SPU pour 100 m
 [m²]</translation>
     </message>
@@ -7055,7 +7121,7 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/plot_mod.py" line="508"/>
         <source>Unknown area [%]</source>
-        <translation>Surface inconnue [%]</translation>
+        <translation type="obsolete">Surface inconnue [%]</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="509"/>
@@ -7254,16 +7320,16 @@ Fermez-les et réessayez.</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="197"/>
-        <source>HEM [HFST] / shear stress [N/m&#xb2;]</source>
+        <source>HEM [HFST] / shear stress [N/m²]</source>
         <translation type="obsolete">HEM [HFST] / force tractrice [N/m²]</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="1193"/>
-        <source>Conveyance [m&#xb2;/s]</source>
+        <source>Conveyance [m²/s]</source>
         <translation type="obsolete">Débitance [m²/s]</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2796"/>
+        <location filename="../src/hdf5_mod.py" line="2794"/>
         <source>Water height - </source>
         <translation>Hauteur d&apos;eau - </translation>
     </message>
@@ -7273,7 +7339,7 @@ Fermez-les et réessayez.</translation>
         <translation>variable</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2798"/>
+        <location filename="../src/hdf5_mod.py" line="2796"/>
         <source>water height [m]</source>
         <translation>hauteur d&apos;eau [m]</translation>
     </message>
@@ -7288,7 +7354,7 @@ Fermez-les et réessayez.</translation>
         <translation>unité</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2803"/>
+        <location filename="../src/hdf5_mod.py" line="2801"/>
         <source>height</source>
         <translation>hauteur</translation>
     </message>
@@ -7307,16 +7373,10 @@ Fermez-les et réessayez.</translation>
         <source>substrate dominant</source>
         <translation>substrat dominant</translation>
     </message>
-    <message encoding="UTF-8">
-        <location filename="../src/plot_mod.py" line="197"/>
-        <source>HEM [HFST] / shear stress [N/m²]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message encoding="UTF-8">
-        <location filename="../src/plot_mod.py" line="794"/>
-        <source>WUA by 100 m
-[m²]</source>
-        <translation type="unfinished"></translation>
+    <message>
+        <location filename="../src/plot_mod.py" line="508"/>
+        <source>UA [%]</source>
+        <translation>SI [%]</translation>
     </message>
 </context>
 <context>
@@ -7453,7 +7513,12 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="1215"/>
         <source>HV</source>
-        <translation>VH</translation>
+        <translation type="obsolete">VH</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1215"/>
+        <source>HV = </source>
+        <translation type="obsolete">VH = </translation>
     </message>
 </context>
 <context>
