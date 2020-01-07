@@ -2153,7 +2153,7 @@ class Hdf5Management:
                                                  cellData)
 
             # create the "grouping" file to read all time step together
-            name_here = self.basename + "_allreachs_allunits_" + self.project_preferences['pvd_variable_z'] + ".pvd"
+            name_here = self.basename + "_" + self.reach_name[reach_num] + "_" + self.project_preferences['pvd_variable_z'] + ".pvd"
             file_names_all = list(map(os.path.basename, file_names_all))
             if self.project_preferences['erase_id']:  # erase file if exist ?
                 if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
@@ -2161,12 +2161,12 @@ class Hdf5Management:
                         os.remove(os.path.join(self.path_visualisation, name_here))
                     except PermissionError:
                         print(
-                            'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                            'Error: The file .pvd is currently open in an other program. Could not be re-written \n')
                         return
             else:
                 if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
-                    name_here = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + '.shp'
+                    name_here = self.basename + "_" + self.reach_name[reach_num] + "_" + self.project_preferences['pvd_variable_z'] + "_" + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + '.pvd'
             paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
                                   part_timestep_indice)
 

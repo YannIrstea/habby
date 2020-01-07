@@ -896,6 +896,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                         # for each desired units ==> maps
                         if plot_type != ["result"]:
                             for unit_num, t in enumerate(units_index):
+                                # string_tr
+                                string_tr = [self.tr("reach"), self.tr("unit")]
                                 # elevation
                                 if "elevation" in variables and not self.plot_production_stoped:
                                     plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
@@ -904,7 +906,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("elevation"),
                                                                                "m",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     # plot_map_elevation
                                     elevation_process = Process(target=plot_mod.plot_map_elevation,
@@ -928,7 +930,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("water height"),
                                                                                "m",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     height_process = Process(target=plot_mod.plot_map_height,
                                                              args=(
@@ -951,7 +953,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("water velocity"),
                                                                                "m/s",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     velocity_process = Process(target=plot_mod.plot_map_velocity,
                                                                args=(
@@ -974,7 +976,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("conveyance"),
                                                                                "m²/s",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     conveyance_process = Process(target=plot_mod.plot_map_conveyance,
                                                                  args=(
@@ -998,7 +1000,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("froude number"),
                                                                                "",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     froude_process = Process(target=plot_mod.plot_map_froude_number,
                                                              args=(
@@ -1022,7 +1024,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("hydraulic head"),
                                                                                "m",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     hydraulic_head_process = Process(target=plot_mod.plot_map_hydraulic_head,
                                                                      args=(
@@ -1048,7 +1050,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("water level"),
                                                                                "m",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     water_level_process = Process(target=plot_mod.plot_map_water_level,
                                                                   args=(
@@ -1072,7 +1074,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("mesh"),
                                                                                "",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_mesh,
                                                            args=(
@@ -1094,7 +1096,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("max slope bottom"),
                                                                                "m/m",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_slope_bottom,
                                                                    args=(
@@ -1118,7 +1120,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("max slope energy"),
                                                                                "m/m",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_slope_energy,
                                                                    args=(
@@ -1143,7 +1145,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("shear stress"),
                                                                                "",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_shear_stress,
                                                                    args=(
@@ -1168,7 +1170,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("substrate coarser"),
                                                                                "",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate_coarser,
                                                                args=(
@@ -1192,7 +1194,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                unit_type,
                                                                                self.tr("substrate dominant"),
                                                                                "",
-                                                                               self.tr)
+                                                                               string_tr)
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate_dominant,
                                                                args=(
@@ -1218,8 +1220,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                    unit_type,
                                                                                    fish_name,
                                                                                    "",
-                                                                                   self.tr,
-                                                                                   " (" + self.tr('HV') + " = " + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('UA') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %" + ")")
+                                                                                   string_tr,
+                                                                                   " (" + self.tr('HV = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('UA') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %" + ")")
                                         state = Value("i", 0)
                                         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                                       args=(

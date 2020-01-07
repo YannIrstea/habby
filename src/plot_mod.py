@@ -427,7 +427,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         ax[2].set_xticks(y_pos)
         ax[2].set_xticklabels(name_fish, horizontalalignment="right")
         ax[2].xaxis.set_tick_params(rotation=15)
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
         ax[2].set_title(
             qt_tr.translate("plot_mod", "Unknown area"))
 
@@ -505,7 +505,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
                        marker=mar)
 
         ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'Unknown area [%]'))
+        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
         ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
         # label
         if len(unit_name) < 25:
@@ -1990,7 +1990,7 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
     name_hdf5 = data_description["name_hdf5"]
     path_im = project_preferences['path_figure']
 
-    list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + variable + "_" + reach_name + '_' + unit_name + project_preferences['format']) for unit_name in unit_names]
+    list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + '_' + unit_name.replace(".", "_") + "_" + variable.replace(" ", "_") + project_preferences['format']) for unit_name in unit_names]
     list_of_exist_tf = [False] * len(list_of_file_path)
 
     while not all(list_of_exist_tf):
@@ -2002,8 +2002,8 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
                 except OSError:
                     pass
 
-    img, *imgs = [Image.open(os.path.join(path_im, name_hdf5[:-4] + "_" + variable + "_" + reach_name + '_' + unit_name + project_preferences['format'])) for unit_name in unit_names]
-    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + variable.replace(" ", "_") + "_" + reach_name + ".gif"), format='GIF', append_images=imgs,
+    img, *imgs = [Image.open(file_path) for file_path in list_of_file_path]
+    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + "_" + variable.replace(" ", "_") + ".gif"), format='GIF', append_images=imgs,
              save_all=True, duration=800, loop=0)
 
     # prog
