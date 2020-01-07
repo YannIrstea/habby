@@ -139,14 +139,12 @@ class Hdf5Management:
                         for reach_num, reach_name in enumerate(self.reach_name):
                             self.basename_output_reach_unit.append([])
                             for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name)
-                                self.basename_output_reach_unit[reach_num].append(
-                                    self.basename + "_" + reach_name + "_" + str(unit_name2))
+                                self.basename_output_reach_unit[reach_num].append(self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
                         self.units_name_output = []
                         for reach_num, reach_name in enumerate(self.reach_name):
                             self.units_name_output.append([])
                             for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                unit_name2 = str(unit_name).replace(".", "_") + "_" + \
+                                unit_name2 = unit_name.replace(".", "_") + "_" + \
                                              self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
                                                                                                                 "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
                                 self.units_name_output[reach_num].append(unit_name2)
@@ -1770,8 +1768,8 @@ class Hdf5Management:
                             layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon)
 
                         # create fields (no width no precision to be specified with GPKG)
-                        layer.CreateField(ogr.FieldDefn('velocity', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('height', ogr.OFTReal))
+                        layer.CreateField(ogr.FieldDefn('water_velocity', ogr.OFTReal))
+                        layer.CreateField(ogr.FieldDefn('water_height', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('water_level', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('froude_number', ogr.OFTReal))
                         layer.CreateField(ogr.FieldDefn('hydraulic_head', ogr.OFTReal))
@@ -2124,8 +2122,8 @@ class Hdf5Management:
                                     self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][:, i])
 
                     # mesh variables
-                    cellData['height'] = self.data_2d["mesh"]["data"]["h"][reach_num][unit_num]
-                    cellData['velocity'] = self.data_2d["mesh"]["data"]["v"][reach_num][unit_num]
+                    cellData['water_height'] = self.data_2d["mesh"]["data"]["h"][reach_num][unit_num]
+                    cellData['water_velocity'] = self.data_2d["mesh"]["data"]["v"][reach_num][unit_num]
                     cellData['water_level'] = self.data_2d["mesh"]["data"]["water_level"][reach_num][unit_num]
                     cellData['froude_number'] = self.data_2d["mesh"]["data"]["froude_number"][reach_num][unit_num]
                     cellData['hydraulic_head'] = self.data_2d["mesh"]["data"]["hydraulic_head"][reach_num][unit_num]
@@ -2303,82 +2301,85 @@ class Hdf5Management:
                 print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
             if self.hdf5_type == "habitat":
-
                 fish_names = self.data_description["hab_fish_list"].split(", ")
                 if fish_names != ['']:
                     fish_names = self.data_description["hab_fish_list"].split(", ")
                 else:
                     fish_names = []
 
-            # for each unit
-            for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                if self.project_preferences['language'] == 0:
-                    name = self.basename + "_detailledmesh_unit" + str(unit_num) + ".txt"
-                else:
-                    name = self.basename + "_mailledetaillee_unit" + str(unit_num) + ".txt"
-                if os.path.isfile(os.path.join(path_txt, name)):
-                    if not self.project_preferences['erase_id']:
-                        if self.project_preferences['language'] == 0:
-                            name = self.basename + "_detailledmesh_unit" + str(unit_num) + "_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+            # for each reach
+            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                # for each unit
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate("hdf5_mod", "detailled_mesh") + ".txt"
+                    if os.path.isfile(os.path.join(path_txt, name)):
+                        if not self.project_preferences['erase_id']:
+                            name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate(
+                                "hdf5_mod", "detailled_mesh") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                         else:
-                            name = self.basename + "_mailledetaillee_unit" + str(unit_num) + "_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                    else:
-                        try:
-                            os.remove(os.path.join(path_txt, name))
-                        except PermissionError:
-                            print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not modify text file as it is open in another program. \n'))
-                            return
+                            try:
+                                os.remove(os.path.join(path_txt, name))
+                            except PermissionError:
+                                print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not modify text file as it is open in another program. \n'))
+                                return
+                    name = os.path.join(path_txt, name)
 
-                name = os.path.join(path_txt, name)
+                    # open text to write
+                    with open(name, 'wt', encoding='utf-8') as f:
+                        # header 1
+                        text_to_write_str_list = [qt_tr.translate("hdf5_mod", "area"),
+                                       qt_tr.translate("hdf5_mod", "water_height"),
+                                       qt_tr.translate("hdf5_mod", "water_velocity"),
+                                       qt_tr.translate("hdf5_mod", "water_level"),
+                                       qt_tr.translate("hdf5_mod", "froude_number"),
+                                       qt_tr.translate("hdf5_mod", "hydraulic_head"),
+                                       qt_tr.translate("hdf5_mod", "conveyance"),
+                                       qt_tr.translate("hdf5_mod", "max_slope_bottom"),
+                                       qt_tr.translate("hdf5_mod", "max_slope_energy"),
+                                       qt_tr.translate("hdf5_mod", "shear_stress"),
+                                       qt_tr.translate("hdf5_mod", "node1"),
+                                       qt_tr.translate("hdf5_mod", "node2"),
+                                       qt_tr.translate("hdf5_mod", "node3")]
+                        text_to_write_str = "\t".join(text_to_write_str_list)
 
-                # open text to write
-                with open(name, 'wt', encoding='utf-8') as f:
-                    # header 1
-                    if self.project_preferences['language'] == 0:
-                        header = 'reach\tarea\tvelocity\theight\tnode1\tnode2\tnode3'
-                    else:
-                        header = 'troncon\tsurface\tvitesse\thauteur\tnoeud1\tnoeud2\tnoeud3'
+                        if self.hdf5_type == "habitat":
+                            # sub
+                            if self.data_description["sub_classification_method"] == 'coarser-dominant':
+                                text_to_write_str += '\tsubstrate_coarser\tsubstrate_dominant'
+                                sub_class_number = 2
+                            if self.data_description["sub_classification_method"] == 'percentage':
+                                if self.data_description["sub_classification_code"] == "Cemagref":
+                                    sub_class_number = 8
+                                if self.data_description["sub_classification_code"] == "Sandre":
+                                    sub_class_number = 12
+                                for i in range(sub_class_number):
+                                    text_to_write_str += '\tsub_S' + str(i + 1)
 
-                    if self.hdf5_type == "habitat":
-                        # sub
-                        if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            header += '\tsubstrate_coarser\tsubstrate_dominant'
-                            sub_class_number = 2
-                        if self.data_description["sub_classification_method"] == 'percentage':
-                            if self.data_description["sub_classification_code"] == "Cemagref":
-                                sub_class_number = 8
-                            if self.data_description["sub_classification_code"] == "Sandre":
-                                sub_class_number = 12
-                            for i in range(sub_class_number):
-                                header += '\tsub_S' + str(i + 1)
+                            if self.project_preferences['language'] == 0:
+                                text_to_write_str += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                            else:
+                                text_to_write_str += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                        text_to_write_str += '\n'
+                        f.write(text_to_write_str)
 
-                        if self.project_preferences['language'] == 0:
-                            header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
-                        else:
-                            header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
-                    header += '\n'
-                    f.write(header)
-                    # header 2
-                    header = '[]\t[m2]\t[m/s]\t[m]\t[]\t[]\t[]'
-                    if self.hdf5_type == "habitat" and fish_names:
-                        header += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
-                                          range(sub_class_number))
-                        header += "".join(['\t[' + fish + ']' for fish in fish_names])
-                    f.write(header)
+                        # header 2
+                        text_to_write_str = '[m2]\t[m]\t[m/s]\t[m]\t[]\t[m]\t[m²/s]\t[m/m]\t[m/m]\t[]\t[]\t[]\t[]'
+                        if self.hdf5_type == "habitat" and fish_names:
+                            text_to_write_str += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
+                                              range(sub_class_number))
+                            text_to_write_str += "".join(['\t[' + fish + ']' for fish in fish_names])
+                        f.write(text_to_write_str)
 
-                    # for each reach
-                    data_here = ""
-                    for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                        # data
+                        text_to_write_str = ""
                         # for each mesh
                         for mesh_num in range(0, len(self.data_2d["mesh"]["tin"][reach_num][unit_num])):
                             node1 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][0]  # node num
                             node2 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][1]
                             node3 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][2]
                             area_str = str(self.data_2d["mesh"]["data"]["area"][reach_num][unit_num][mesh_num])
-                            velocity_str = str(self.data_2d["mesh"]["data"]["v"][reach_num][unit_num][mesh_num])
                             height_str = str(self.data_2d["mesh"]["data"]["h"][reach_num][unit_num][mesh_num])
+                            velocity_str = str(self.data_2d["mesh"]["data"]["v"][reach_num][unit_num][mesh_num])
                             water_level_str = str(self.data_2d["mesh"]["data"]["water_level"][reach_num][unit_num][mesh_num])
                             froude_number_str = str(self.data_2d["mesh"]["data"]["froude_number"][reach_num][unit_num][mesh_num])
                             hydraulic_head_str = str(self.data_2d["mesh"]["data"]["hydraulic_head"][reach_num][unit_num][mesh_num])
@@ -2387,21 +2388,22 @@ class Hdf5Management:
                             max_slope_energy_str = str(self.data_2d["mesh"]["data"]["max_slope_energy"][reach_num][unit_num][mesh_num])
                             shear_stress_str = str(self.data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num][mesh_num])
 
-                            data_here += '\n'
-                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{water_level_str}\t{froude_number_str}\t{hydraulic_head_str}\t{conveyance_str}\t{max_slope_bottom_str}\t{max_slope_energy_str}\t{shear_stress_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
+                            text_to_write_str += '\n'
+                            text_to_write_str += f"{area_str}\t{height_str}\t{velocity_str}\t{water_level_str}\t{froude_number_str}\t{hydraulic_head_str}\t{conveyance_str}\t{max_slope_bottom_str}\t{max_slope_energy_str}\t{shear_stress_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
 
                             if self.hdf5_type == "habitat":
                                 sub = self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][mesh_num]
-                                data_here += "\t" + "\t".join(str(e) for e in sub.tolist())
+                                text_to_write_str += "\t" + "\t".join(str(e) for e in sub.tolist())
                                 if fish_names:
                                     for fish_name in fish_names:
-                                        data_here += f"\t{str(self.data_2d['mesh']['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
-                    # change decimal point
-                    if localeconv()['decimal_point'] == ",":
-                        data_here = data_here.replace('.', ',')
+                                        text_to_write_str += f"\t{str(self.data_2d['mesh']['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
 
-                    # write file
-                    f.write(data_here)
+                        # change decimal point
+                        if localeconv()['decimal_point'] == ",":
+                            text_to_write_str = text_to_write_str.replace('.', ',')
+
+                        # write file
+                        f.write(text_to_write_str)
 
             if state:
                 state.value = 1  # process finished
@@ -2420,46 +2422,46 @@ class Hdf5Management:
             if not os.path.exists(path_txt):
                 print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
-            # for each unit
-            for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                if self.project_preferences['language'] == 0:
-                    name = self.basename + "_detailledpoint_unit" + str(unit_num) + ".txt"
-                else:
-                    name = self.basename + "_pointdetaille_unit" + str(unit_num) + ".txt"
-                if os.path.isfile(os.path.join(path_txt, name)):
-                    if not self.project_preferences['erase_id']:
-                        if self.project_preferences['language'] == 0:
-                            name = self.basename + "_detailledpoint_unit" + str(unit_num) + "_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+            # for each reach
+            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                # for each unit
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate("hdf5_mod",
+                                                                                                        "detailled_point") + ".txt"
+                    if os.path.isfile(os.path.join(path_txt, name)):
+                        if not self.project_preferences['erase_id']:
+                            name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate(
+                                "hdf5_mod", "detailled_point") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                         else:
-                            name = self.basename + "_pointdetaille_unit" + str(unit_num) + "_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                    else:
-                        try:
-                            os.remove(os.path.join(path_txt, name))
-                        except PermissionError:
-                            print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not modify text file as it is open in another program. \n'))
-                            return
+                            try:
+                                os.remove(os.path.join(path_txt, name))
+                            except PermissionError:
+                                print('Error: ' + qt_tr.translate("hdf5_mod", 'Could not modify text file as it is open in another program. \n'))
+                                return
+                    name = os.path.join(path_txt, name)
 
-                name = os.path.join(path_txt, name)
+                    # open text to write
+                    with open(name, 'wt', encoding='utf-8') as f:
+                        # header 1
+                        text_to_write_str_list = [qt_tr.translate("hdf5_mod", "x"),
+                                       qt_tr.translate("hdf5_mod", "y"),
+                                       qt_tr.translate("hdf5_mod", "z"),
+                                       qt_tr.translate("hdf5_mod", "water_height"),
+                                       qt_tr.translate("hdf5_mod", "water_velocity"),
+                                       qt_tr.translate("hdf5_mod", "water_level"),
+                                       qt_tr.translate("hdf5_mod", "froude_number"),
+                                       qt_tr.translate("hdf5_mod", "hydraulic_head"),
+                                       qt_tr.translate("hdf5_mod", "conveyance")]
+                        text_to_write_str = "\t".join(text_to_write_str_list)
+                        text_to_write_str += '\n'
+                        f.write(text_to_write_str)
 
-                # open text to write
-                with open(name, 'wt', encoding='utf-8') as f:
-                    # header 1
-                    if self.project_preferences['language'] == 0:
-                        header = 'reach\tx\ty\tz\tvelocity\theight'
-                    else:
-                        header = 'troncon\tx\ty\tz\tvitesse\thauteur'
+                        # header 2 2
+                        text_to_write_str = '[m]\t[m]\t[m]\t[m]\t[m/s]\t[m]\t[]\t[m]\t[m²/s]'
+                        f.write(text_to_write_str)
 
-                    header += '\n'
-                    f.write(header)
-                    # header 2
-                    header = '[]\t[m]\t[m]\t[m]\t[m/s]\t[m]'
-                    f.write(header)
-
-                    # for each reach
-                    data_here = ""
-                    for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                        # data
+                        text_to_write_str = ""
                         # for each point
                         for point_num in range(0, len(self.data_2d["node"]["xy"][reach_num][unit_num])):
                             # data geom (get the triangle coordinates)
@@ -2468,20 +2470,20 @@ class Hdf5Management:
                             z = str(self.data_2d["node"]["z"][reach_num][unit_num][point_num])
                             h = str(self.data_2d["node"]["data"]["h"][reach_num][unit_num][point_num])
                             v = str(self.data_2d["node"]["data"]["v"][reach_num][unit_num][point_num])
-
                             water_level = str(self.data_2d["node"]["data"]["water_level"][reach_num][unit_num][point_num])
                             froude_number = str(self.data_2d["node"]["data"]["froude_number"][reach_num][unit_num][point_num])
                             hydraulic_head = str(self.data_2d["node"]["data"]["hydraulic_head"][reach_num][unit_num][point_num])
                             conveyance = str(self.data_2d["node"]["data"]["conveyance"][reach_num][unit_num][point_num])
 
-                            data_here += '\n'
-                            data_here += f"{str(reach_num)}\t{x}\t{y}\t{z}\t{v}\t{h}\t{water_level}\t{froude_number}\t{hydraulic_head}\t{conveyance}"
+                            text_to_write_str += '\n'
+                            text_to_write_str += f"{x}\t{y}\t{z}\t{h}\t{v}\t{water_level}\t{froude_number}\t{hydraulic_head}\t{conveyance}"
 
-                    # change decimal point
-                    if localeconv()['decimal_point'] == ",":
-                        data_here = data_here.replace('.', ',')
-                    # write file
-                    f.write(data_here)
+                        # change decimal point
+                        if localeconv()['decimal_point'] == ",":
+                            text_to_write_str = text_to_write_str.replace('.', ',')
+
+                        # write file
+                        f.write(text_to_write_str)
 
             if state:
                 state.value = 1  # process finished

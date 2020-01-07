@@ -930,7 +930,7 @@ class MyProcessList(QThread):
             self.all_process_runned = False
             for i in range(len(self.process_list)):
                 self.process_list[i][0].start()
-            #print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
+            print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
             self.all_process_runned = True
             self.check_all_export_produced()
 
@@ -958,7 +958,7 @@ class MyProcessList(QThread):
         if self.thread_started:
             self.export_production_stoped = True
             while not self.all_process_runned:
-                #print("waiting", self.all_process_runned)
+                print("waiting", self.all_process_runned)
                 pass
 
             for i in range(len(self.process_list)):

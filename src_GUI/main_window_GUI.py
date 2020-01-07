@@ -417,7 +417,7 @@ class MainWindows(QMainWindow):
         # if exist : remove and create_project
         if os.path.isdir(path_prj):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("An folder with name " + name_prj + " already exists."))
+            self.msg2.setWindowTitle(self.tr("Another folder with name " + name_prj + " already exists."))
             self.msg2.setText(self.tr("Do you want to overwrite it and all its files ?"))
             self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             res = self.msg2.exec_()
