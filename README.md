@@ -9,7 +9,7 @@ One of its main functionality is to predict fish microhabitat use at various dis
 River Discharge Time Series can be provided to Habby in order to build habitat chronicles within the ranges of simulated discharges and validated biological models.
 
 <p align="center">
-  <img src="./translation/hsi.png" width="800"/>
+  <img src="./translation/a1_a9_sub_durance_PolygonCemagrefCoarser-dom_Durance_BAF01_adult_HV_Dominant.gif" width="800"/>
 </p>
 <p align="center">
    <b>Habitat Suitability Index for adult barbel computed by HABBY</b> 
@@ -26,7 +26,7 @@ When using the **Habby** GUI, scripts are automatically generated which allows u
 A 64 bit Windows executable is also provided that includes all the requirements to run the program in a GUI mode.
 
 <p align="center">
-  <img src="./translation/a1_a9_sub_durance_PolygonCemagrefCoarser-dom_Durance_BAF01_adult_HV_Dominant.gif" width="800"/>
+  <img src="./translation/hydraulic.png" width="800"/>
 </p>
 <p align="center">
    <b>Habby software (Windows version)</b> 
