@@ -21,28 +21,29 @@ When using the **Habby** GUI, scripts are automatically generated which allows u
 
 
 # Installation 
-**Habby** can be directly used from the Python sources. It requires Python 3 with PyQt5 and some additional modules to be installed like h5py, triangle or pyshp.
+**Habby** can be directly used from the Python sources. It requires Python 3 with PyQt5 and some additional modules to be installed like h5py, triangle or gdal.
 
 A 64 bit Windows executable is also provided that includes all the requirements to run the program in a GUI mode.
 
 <p align="center">
-  <img src="./translation/hydraulic.png" width="800"/>
+  <img src="./translation/a1_a9_sub_durance_PolygonCemagrefCoarser-dom_Durance_BAF01_adult_HV_Dominant.gif" width="800"/>
 </p>
 <p align="center">
    <b>Habby software (Windows version)</b> 
 </p>
 
-# References
+# Requirements
 
+
+# References
 * (1)	Bovee K.D., “Development and evaluation of habitat suitability criteria for use in the Instream Flow Incremental Methodology”, United States Fish and Wildlife Service, Biological Report, Instream Flow Information Paper 21, (1986), 235 pp.
 * (2)	Le Coarer Y., "Hydraulic signatures for ecological modelling at different scales”, Aquatic Ecology, Vol. 41, (2007), pp 451-459.
 * (3)	Lamouroux N, Capra H. 2002., “Simple predictions of instream habitat model outputs for target fish populations”, Freshwater Biology, 47(8):1543-1556.
 
 # License
-[CeCILL](http://www.cecill.info/index.en.html) v2.1
+[CeCILL](https://cecill.info/licences/Licence_CeCILL_V2.1-en.html) v2.1
 
 # Contributors
-
 Contributions are always welcome ;-)
 
 When contributing to **Habby** please consider discussing the changes you wish to make via issue or e-mail to the maintainer.
