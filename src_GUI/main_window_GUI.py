@@ -30,7 +30,7 @@ from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, Qt, pyqtRemov
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, \
-    QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
+    QFileDialog, QMessageBox, QActionGroup, QMenu, QToolBar, QProgressBar
 from lxml import etree as ET
 
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
@@ -202,8 +202,9 @@ class MainWindows(QMainWindow):
             self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
-            self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(self.remove_hdf5_files)
-            self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(self.rename_hdf5_file)
+
+        # create the menu bar
+        self.my_menu_bar()
 
         # open window
         self.show()
@@ -219,9 +220,6 @@ class MainWindows(QMainWindow):
         wind_position_x, wind_position_y, wind_position_w, wind_position_h = self.user_preferences.data["wind_position"]
         self.setGeometry(wind_position_x, wind_position_y, wind_position_w, wind_position_h)
 
-        # create the menu bar
-        self.my_menu_bar()
-
         # create a vertical toolbar
         self.toolbar = QToolBar()
         self.addToolBar(Qt.LeftToolBarArea, self.toolbar)
@@ -234,7 +232,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
 
         # right click
-        self.create_menu_right_clic()
+        # self.create_menu_right_clic()
         self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.central_widget.customContextMenuRequested.connect(self.show_menu_right_clic)
 
@@ -301,8 +299,10 @@ class MainWindows(QMainWindow):
         if hasattr(self.central_widget, "bioinfo_tab"):
             self.central_widget.bioinfo_tab.save_selected_aquatic_animal_list_calc_hab()
 
-        # save settings
-        if not self.isMaximized():
+        # save wind_position if not fullscreen or not maximazed
+        if self.isMaximized() or self.isFullScreen():
+            pass
+        else:
             self.user_preferences.data["wind_position"] = (self.geometry().x(),
                                                            self.geometry().y(),
                                                            self.geometry().width(),
@@ -756,7 +756,6 @@ class MainWindows(QMainWindow):
         """
         This function close the current project without opening a new project
         """
-
         self.end_concurrency()
 
         # open an empty project (so it close the old one)
@@ -769,6 +768,9 @@ class MainWindows(QMainWindow):
         # add the welcome Widget
         self.central_widget.tab_widget.addTab(self.central_widget.welcome_tab, self.tr("Project"))
         self.central_widget.welcome_tab.lowpart.setEnabled(False)
+
+        # create the menu bar
+        self.my_menu_bar()
 
         # clear log
         self.clear_log()
@@ -786,6 +788,8 @@ class MainWindows(QMainWindow):
         """
         This function opens a new empty project
         """
+        self.path_prj = ""
+        self.name_prj = ""
         self.central_widget.welcome_tab.e1.setText("")
         self.central_widget.welcome_tab.e2.setText("")
         self.central_widget.welcome_tab.e4.setText('')
@@ -881,7 +885,7 @@ class MainWindows(QMainWindow):
         *   n for any additional language
 
         """
-
+        #print("setlangue", self.sender())
         # set the language
         self.lang = int(nb_lang)
         # get the old tab
@@ -998,7 +1002,7 @@ class MainWindows(QMainWindow):
         :param right_menu: If call with True, we create a menu for the right click and not for the menu part on the top
                of the screen.
         """
-
+        #"my_menu_bar", self.sender())
         if right_menu:  # right clic
             self.menu_right = QMenu()
             self.menu_right.clear()
@@ -1006,11 +1010,36 @@ class MainWindows(QMainWindow):
             self.menubar = self.menuBar()
             self.menubar.clear()
 
+        if self.path_prj:
+            project_preferences = load_project_preferences(self.path_prj)
+            self.physic_tabs = project_preferences["physic_tabs"]
+            self.stat_tabs = project_preferences["stat_tabs"]
+
+        # add all first level menu
+        if right_menu:
+            self.menu_right = QMenu()
+            project_menu = self.menu_right.addMenu(self.tr('Project'))
+            settings_menu = self.menu_right.addMenu(self.tr('Settings'))
+            view_menu = self.menu_right.addMenu(self.tr('View'))
+            help_menu = self.menu_right.addMenu(self.tr('Help'))
+        else:
+            self.menubar = self.menuBar()
+            project_menu = self.menubar.addMenu(self.tr('Project'))
+            settings_menu = self.menubar.addMenu(self.tr('Settings'))
+            view_menu = self.menubar.addMenu(self.tr('View'))
+            help_menu = self.menubar.addMenu(self.tr('Help'))
+
         # Menu to open and close file
-        exitAction = QAction(self.tr('Exit'), self)
+        exitAction = QAction(self.tr('Exit HABBY'), self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip(self.tr('Exit application'))
         exitAction.triggered.connect(self.closeEvent)
+
+        # project actions
+        newprj = QAction(self.tr('New'), self)
+        newprj.setShortcut('Ctrl+N')
+        newprj.setStatusTip(self.tr('Create a new project'))
+        newprj.triggered.connect(self.open_new_project_dialog)
         openprj = QAction(self.tr('Open'), self)
         openprj.setShortcut('Ctrl+O')
         openprj.setStatusTip(self.tr('Open an exisiting project'))
@@ -1030,19 +1059,19 @@ class MainWindows(QMainWindow):
                 recent_proj_menu[3].triggered.connect(lambda: self.open_recent_project(3))
             elif j == 4:
                 recent_proj_menu[4].triggered.connect(lambda: self.open_recent_project(4))
-        newprj = QAction(self.tr('New'), self)
-        newprj.setShortcut('Ctrl+N')
-        newprj.setStatusTip(self.tr('Create a new project'))
-        newprj.triggered.connect(self.open_new_project_dialog)
-        closeprj = QAction(self.tr('Close'), self)
-        closeprj.setShortcut('Ctrl+W')
-        closeprj.setStatusTip(self.tr('Close the current project without opening a new one'))
-        closeprj.triggered.connect(self.close_project)
-
-        # Menu to open menu research
+        self.preferences_action = QAction(self.tr('Preferences'), self)
+        self.preferences_action.triggered.connect(self.open_preferences)
+        self.preferences_action.setShortcut('Ctrl+P')
+        tabs_menu = QMenu(project_menu)
+        tabs_menu.setTitle(self.tr('Tabs'))
+        self.physicalmodelaction = QAction(self.tr('Physical tabs'), self, checkable=True)
+        self.physicalmodelaction.triggered.connect(self.open_close_physic)
+        self.statisticmodelaction = QAction(self.tr('Statistical tabs'), self, checkable=True)
+        self.statisticmodelaction.triggered.connect(self.open_close_stat)
+        log_menu = QMenu(project_menu)
+        log_menu.setTitle(self.tr('Log'))
         logc = QAction(self.tr("Clear log"), self)
-        logc.setStatusTip(
-            self.tr('Empty the log windows at the bottom of the main window. Do not erase the .log file.'))
+        logc.setStatusTip(self.tr('Empty the log windows at the bottom of the main window. Do not erase the .log file.'))
         logc.setShortcut('Ctrl+L')
         logc.triggered.connect(self.clear_log)
         logn = QAction(self.tr("Do not save log"), self)
@@ -1051,6 +1080,8 @@ class MainWindows(QMainWindow):
         logy = QAction(self.tr("Save log"), self)
         logy.setStatusTip(self.tr('Events will be written to the .log file.'))
         logy.triggered.connect(lambda: self.do_log(1))
+        figure_menu = QMenu(project_menu)
+        figure_menu.setTitle(self.tr('Figure management'))
         savi = QAction(self.tr("Delete all figure files"), self)
         savi.setStatusTip(self.tr('Figures files of current project will be deleted'))
         savi.triggered.connect(self.remove_all_figure_files)
@@ -1058,8 +1089,12 @@ class MainWindows(QMainWindow):
         closeim.setStatusTip(self.tr('Close all open figure windows'))
         closeim.triggered.connect(self.central_widget.closefig)
         closeim.setShortcut('Ctrl+B')
+        closeprj = QAction(self.tr('Close'), self)
+        closeprj.setShortcut('Ctrl+W')
+        closeprj.setStatusTip(self.tr('Close the current project without opening a new one'))
+        closeprj.triggered.connect(self.close_project)
 
-        # Menu to choose the language
+        # settings actions
         self.english_action = QAction(self.tr('&English'), self, checkable=True)
         self.english_action.setStatusTip(self.tr('click here for English'))
         self.english_action.triggered.connect(lambda: self.setlangue(0))  # lambda because of the argument
@@ -1069,42 +1104,6 @@ class MainWindows(QMainWindow):
         self.spanish_action = QAction(self.tr('&Spanish'), self, checkable=True)
         self.spanish_action.setStatusTip(self.tr('click here for Spanish'))
         self.spanish_action.triggered.connect(lambda: self.setlangue(2))
-
-        # Menu to obtain help and program version
-        helpm = QAction(self.tr('Developper Help'), self)
-        helpm.setStatusTip(self.tr('Get help to use the programme'))
-        helpm.triggered.connect(self.open_help)
-
-        # Menu to obtain help and program version
-        aboutm = QAction(self.tr('About'), self)
-        aboutm.setStatusTip(self.tr('Get information software'))
-        aboutm.triggered.connect(self.get_information_soft)
-
-        # preferences
-        preferences_action = QAction(self.tr('Preferences'), self)
-        preferences_action.triggered.connect(self.open_preferences)
-
-        # physical
-        self.physicalmodelaction = QAction(self.tr('Physical tabs'), self, checkable=True)
-        self.physicalmodelaction.triggered.connect(self.open_close_physic)
-
-        # statistic
-        self.statisticmodelaction = QAction(self.tr('Statistical tabs'), self, checkable=True)
-        self.statisticmodelaction.triggered.connect(self.open_close_stat)
-
-        # reasearch
-        self.researchmodelaction = QAction(self.tr("Research tabs"), self, checkable=True)
-        self.researchmodelaction.triggered.connect(self.open_close_rech)
-
-        # classic them
-        self.classicthemeaction = QAction(self.tr('classic'), self, checkable=True)
-        self.classicthemeaction.triggered.connect(self.setthemeclassic)
-
-        # dark them
-        self.darkthemeaction = QAction(self.tr('dark'), self, checkable=True)
-        self.darkthemeaction.triggered.connect(self.setthemedark)
-
-        # language
         if self.lang == 0:
             self.english_action.setChecked(True)
             self.french_action.setChecked(False)
@@ -1118,64 +1117,89 @@ class MainWindows(QMainWindow):
             self.french_action.setChecked(False)
             self.spanish_action.setChecked(True)
 
-        # theme
+        # view actions
+        self.classicthemeaction = QAction(self.tr('classic'), self, checkable=True)
+        self.classicthemeaction.triggered.connect(self.setthemeclassic)
+        self.darkthemeaction = QAction(self.tr('dark'), self, checkable=True)
+        self.darkthemeaction.triggered.connect(self.setthemedark)
         if self.actual_theme == "classic":
             self.classicthemeaction.setChecked(True)
             self.darkthemeaction.setChecked(False)
         if self.actual_theme == "dark":
             self.classicthemeaction.setChecked(False)
             self.darkthemeaction.setChecked(True)
+        self.fullscreen_action = QAction(self.tr('Toggle full screen mode'), self, checkable=True)
+        self.fullscreen_action.triggered.connect(self.set_unset_fullscreen)
+        self.researchmodelaction = QAction(self.tr("Research tabs"), self, checkable=True)  # hidded
+        self.researchmodelaction.setShortcut('Ctrl+R')  # hidded
+        self.researchmodelaction.triggered.connect(self.open_close_rech)  # hidded
+        self.researchmodelaction.setChecked(self.research_tabs)  # hidded
 
-        # tabs
-        self.physicalmodelaction.setChecked(self.physic_tabs)
-        self.statisticmodelaction.setChecked(self.stat_tabs)
-        self.researchmodelaction.setChecked(self.research_tabs)
+        # help actions
+        helpm = QAction(self.tr('Developper Help'), self)
+        helpm.setStatusTip(self.tr('Get help to use the programme'))
+        helpm.triggered.connect(self.open_help)
+        aboutm = QAction(self.tr('About'), self)
+        aboutm.setStatusTip(self.tr('Get information software'))
+        aboutm.triggered.connect(self.get_information_soft)
 
-        # add all first level menu
-        if right_menu:
-            self.menu_right = QMenu()
-            fileMenu_project = self.menu_right.addMenu(self.tr('Project'))
-            fileMenu_settings = self.menu_right.addMenu(self.tr('Settings'))
-            fileMenu_language = self.menu_right.addMenu(self.tr('Language'))
-            fileMenu_view = self.menu_right.addMenu(self.tr('View'))
-            self.fileMenu_tabs = self.menu_right.addMenu(self.tr('Tabs'))
-            fileMenu_help = self.menu_right.addMenu(self.tr('Help'))
-        else:
-            self.menubar = self.menuBar()
-            fileMenu_project = self.menubar.addMenu(self.tr('Project'))
-            fileMenu_settings = self.menubar.addMenu(self.tr('Settings'))
-            fileMenu_language = self.menubar.addMenu(self.tr('Language'))
-            fileMenu_view = self.menubar.addMenu(self.tr('View'))
-            self.fileMenu_tabs = self.menubar.addMenu(self.tr('Tabs'))
-            fileMenu_help = self.menubar.addMenu(self.tr('Help'))
-
-        # add all the rest
-        fileMenu_project.addAction(newprj)
-        fileMenu_project.addAction(openprj)
-        recentpMenu = fileMenu_project.addMenu(self.tr('Open recent'))
+        # project menu
+        project_menu.addAction(newprj)
+        project_menu.addAction(openprj)
+        recentpMenu = project_menu.addMenu(self.tr('Open recent'))
         for j in range(0, len(recent_proj_menu)):
             recentpMenu.addAction(recent_proj_menu[j])
-        fileMenu_project.addAction(closeprj)
-        fileMenu_project.addAction(exitAction)
-        log_all = fileMenu_settings.addMenu(self.tr('Log'))
-        log_all.addAction(logc)
-        log_all.addAction(logn)
-        log_all.addAction(logy)
-        im_all = fileMenu_settings.addMenu(self.tr('Figure options'))
-        im_all.addAction(savi)
-        im_all.addAction(closeim)
-        theme_all = fileMenu_view.addMenu(self.tr("Themes"))
-        theme_all.addAction(self.classicthemeaction)
-        theme_all.addAction(self.darkthemeaction)
-        self.fileMenu_tabs.addAction(self.physicalmodelaction)
-        self.fileMenu_tabs.addAction(self.statisticmodelaction)
-        self.fileMenu_tabs.addAction(self.researchmodelaction)
-        fileMenu_settings.addAction(preferences_action)
-        fileMenu_language.addAction(self.english_action)
-        fileMenu_language.addAction(self.french_action)
-        fileMenu_language.addAction(self.spanish_action)
-        fileMenu_help.addAction(helpm)
-        fileMenu_help.addAction(aboutm)
+        project_menu.addSeparator()
+        project_menu.addAction(self.preferences_action)
+        project_menu.addMenu(tabs_menu)
+        tabs_menu.addAction(self.physicalmodelaction)
+        tabs_menu.addAction(self.statisticmodelaction)
+        #print(self.physic_tabs, self.stat_tabs)
+        self.physicalmodelaction.setChecked(self.physic_tabs)
+        self.statisticmodelaction.setChecked(self.stat_tabs)
+        log_menu.addAction(logc)
+        log_menu.addAction(logn)
+        log_menu.addAction(logy)
+        project_menu.addMenu(figure_menu)
+        figure_menu.addAction(savi)
+        figure_menu.addAction(closeim)
+        project_menu.addAction(closeprj)
+        project_menu.addSeparator()
+        project_menu.addAction(exitAction)
+
+        # settings menu
+        language_menu = settings_menu.addMenu(self.tr('Language'))
+        language_menu.addAction(self.english_action)
+        language_menu.addAction(self.french_action)
+        language_menu.addAction(self.spanish_action)
+
+        # view menu
+        theme_menu = view_menu.addMenu(self.tr('Themes'))
+        theme_menu.addAction(self.classicthemeaction)
+        theme_menu.addAction(self.darkthemeaction)
+        view_menu.addAction(self.fullscreen_action)
+        view_menu.addAction(self.researchmodelaction)  # hidded
+        view_menu.actions()[2].setVisible(False)  # hidded
+
+        # help menu
+        help_menu.addAction(helpm)
+        help_menu.addAction(aboutm)
+
+        # disable specific actions and menus
+        if not self.path_prj:
+            #print("disable menu project", self.path_prj)
+            self.preferences_action.setEnabled(False)
+            tabs_menu.setEnabled(False)
+            log_menu.setEnabled(False)
+            figure_menu.setEnabled(False)
+            closeprj.setEnabled(False)
+        else:
+            #print("enable menu project", self.path_prj)
+            self.preferences_action.setEnabled(True)
+            tabs_menu.setEnabled(True)
+            log_menu.setEnabled(True)
+            figure_menu.setEnabled(True)
+            closeprj.setEnabled(True)
 
         if not right_menu:
             # add the status and progress bar
@@ -1186,26 +1210,24 @@ class MainWindows(QMainWindow):
             self.progress_bar.setVisible(False)
 
             # add the title of the windows
-            # let it here as it should be changes if language changes
             if self.name_prj:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
             else:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
-            # in case we need a tool bar
-            # self.toolbar = self.addToolBar('')
-
     def setthemeclassic(self):
+        #print("setthemeclassic", self.sender())
         self.app.setStyleSheet("")
         #self.app.setStyle("Fusion")
         self.actual_theme = "classic"
-        self.my_menu_bar()
-        self.my_menu_bar(True)
+        # self.my_menu_bar()
+        # self.my_menu_bar(True)
         if self.user_preferences.data["theme"] != self.actual_theme:
             self.user_preferences.data["theme"] = self.actual_theme
             self.user_preferences.save_user_preferences_json()
 
     def setthemedark(self):
+        #print("setthemedark", self.sender())
         #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         #self.app.setStyle("fusion")
@@ -1225,7 +1247,7 @@ class MainWindows(QMainWindow):
         """
         This function create the menu for right click
         """
-
+        #print("create_menu_right_clic", self.sender())
         self.my_menu_bar(True)
 
     def show_menu_right_clic(self, point):
@@ -1235,14 +1257,17 @@ class MainWindows(QMainWindow):
 
         :param point: Not understood, link with the position of the menu.
         """
-        # if self.central_widget.bioinfo_tab.selected_aquatic_animal_qtablewidget.underMouse():
-        #     self.central_widget.bioinfo_tab.show_info_fish(True)
-        if self.central_widget.bioinfo_tab.list_f.underMouse():
-            self.central_widget.bioinfo_tab.show_info_fish(False)
+        #print("show_menu_right_clic", self.sender())
+        if self.path_prj:
+            if self.central_widget.bioinfo_tab.list_f.underMouse():
+                self.central_widget.bioinfo_tab.show_info_fish(False)
+            else:
+                self.menu_right.exec_(self.central_widget.mapToGlobal(point))
         else:
             self.menu_right.exec_(self.central_widget.mapToGlobal(point))
 
     def my_toolbar(self):
+        #print("my_toolbar", self.sender())
 
         self.toolbar.clear()
 
@@ -1306,13 +1331,20 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(self.kill_process)
 
     def open_preferences(self):
+        # # read actual figure option
+        # if not self.path_prj:
+        #     self.central_widget.write_log('Error: ' + self.tr(
+        #         "No project found. Can't change project preferences. Please create or open an HABBY project.\n"))
+        # else:
         # show the pref
+        #"open_preferences", self.sender())
         self.preferences_dialog.open_preferences()
         # # witdh_for_checkbox_alignement
         witdh_for_checkbox_alignement = self.preferences_dialog.cut_2d_grid_label.size().width()
         self.preferences_dialog.erase_data_label.setMinimumWidth(witdh_for_checkbox_alignement)
 
     def recreate_tabs_attributes(self):
+        #print("recreate_tabs_attributes", self.sender())
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             if hasattr(self.central_widget, "welcome_tab"):
@@ -1433,6 +1465,7 @@ class MainWindows(QMainWindow):
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
 
     def open_close_physic(self):
+        #print("open_close_physic", self.sender())
         phisical_tabs_list = ["hydraulic", "substrate", "calc hab", "data explorer", "tools"]
         if self.physic_tabs:
             if self.name_prj:
@@ -1455,6 +1488,7 @@ class MainWindows(QMainWindow):
                                         preference_values=[self.physic_tabs, self.stat_tabs])
 
     def open_close_stat(self):
+        #print("open_close_stat", self.sender())
         stat_tabs_list = ["estimhab", "stathab", "fstress"]
         if self.stat_tabs:
             if self.name_prj:
@@ -1486,6 +1520,7 @@ class MainWindows(QMainWindow):
         The plan is that these options are less tested than other mainstream options. It is not clear yet what
         will be added to these options, but the tabs are already there when it will be needed.
         """
+        #print("open_close_rech", self.sender())
         research_tabs_list = ["research"]
         if self.research_tabs:
             if self.name_prj:
@@ -1499,6 +1534,15 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
             self.research_tabs = True
 
+    def set_unset_fullscreen(self):
+        #print("set_unset_fullscreen", self.sender())
+        if not self.fullscreen_action.isChecked():
+            self.fullscreen_action.setChecked(True)
+            self.showFullScreen()
+        elif self.fullscreen_action.isChecked():
+            self.fullscreen_action.setChecked(False)
+            self.showNormal()
+
     def open_help(self):
         """
         This function open the html which form the help from HABBY. For the moment, it is the full documentation
@@ -1511,6 +1555,7 @@ class MainWindows(QMainWindow):
     # DATA
 
     def remove_hdf5_files(self):
+        #print("remove_hdf5_files")
         # get list of files
         hdf5_files_list = self.central_widget.data_explorer_tab.data_explorer_frame.file_to_remove_list
 
@@ -1519,8 +1564,8 @@ class MainWindows(QMainWindow):
             # open hdf5 to read type_mode attribute
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_to_remove)
             hdf5.open_hdf5_file()
-            hdf5.file_object.close()
             input_type = hdf5.input_type
+            hdf5.file_object.close()
 
             # remove files
             try:
@@ -1541,11 +1586,14 @@ class MainWindows(QMainWindow):
                     # save
                     save_project_preferences(self.path_prj, project_preferences)
 
-            # update_combobox_filenames
-            self.central_widget.update_combobox_filenames()
+        # empty list
+        self.central_widget.data_explorer_tab.data_explorer_frame.file_to_remove_list = []
 
-            # log
-            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File(s) deleted. <br>'))
+        # update_combobox_filenames
+        self.central_widget.update_combobox_filenames()
+
+        # log
+        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File(s) deleted. <br>'))
 
     def rename_hdf5_file(self):
         # get names
@@ -1788,12 +1836,14 @@ class CreateNewProjectDialog(QWidget):
         self.button3.setStyleSheet("background-color: #47B5E6; color: black")
         project_type_title_label = QLabel(self.tr("Project type"))
         self.project_type_combobox = QComboBox()
-        self.model_type_list = [self.tr("Physical"), self.tr("Statistical")]
+        self.model_type_list = [self.tr("Physical"), self.tr("Statistical"), self.tr("both")]
         self.project_type_combobox.addItems(self.model_type_list)
         if self.physic_tabs and not self.stat_tabs:
             self.project_type_combobox.setCurrentIndex(0)
         elif self.stat_tabs and not self.physic_tabs:
             self.project_type_combobox.setCurrentIndex(1)
+        elif self.physic_tabs and self.stat_tabs:
+            self.project_type_combobox.setCurrentIndex(2)
 
         layoutl = QGridLayout()
         layoutl.addWidget(lg, 0, 0)
@@ -1967,6 +2017,7 @@ class CentralW(QWidget):
         position of the Option tab, you should also modify the variable self.opttab in init
         """
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
+        #print("add_all_tab", self.path_prj)
         # load project pref
         if os.path.isfile(fname) and self.name_prj != '':
             project_preferences = load_project_preferences(self.path_prj)

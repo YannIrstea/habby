@@ -286,7 +286,7 @@ class PreferenceWindow(QDialog):
         layout.addWidget(self.save_pref_button, 3, 1)  # , 1, 1
         layout.addWidget(self.close_pref_button, 3, 2)  # , 1, 1
 
-        self.setWindowTitle(self.tr("Preferences"))
+        self.setWindowTitle(self.tr("Project preferences"))
         self.setWindowIcon(QIcon(self.name_icon))
 
     def connect_modifications_signal(self):
@@ -391,6 +391,7 @@ class PreferenceWindow(QDialog):
         self.set_pref_gui_from_dict()
         self.connect_modifications_signal()
         self.check_modifications_presence()
+        self.setModal(True)
         self.show()
 
     def check_modifications_presence(self):

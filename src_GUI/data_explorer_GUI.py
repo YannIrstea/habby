@@ -107,6 +107,7 @@ class DataExplorerFrame(QFrame):
         self.types_hdf5_QComboBox.currentIndexChanged.connect(self.types_hdf5_change)
         self.names_hdf5_QLabel = QLabel(self.tr('filenames'))
         self.names_hdf5_QListWidget = QListWidget()
+        self.names_hdf5_QListWidget.setObjectName("names_hdf5_QListWidget")
         self.names_hdf5_QListWidget.setMaximumHeight(100)
         self.names_hdf5_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.names_hdf5_QListWidget.itemSelectionChanged.connect(self.names_hdf5_change)
@@ -258,8 +259,8 @@ class DataExplorerFrame(QFrame):
                 if len(names) == 1:
                     self.names_hdf5_QListWidget.selectAll()
 
-        # update progress bar
-        self.plot_group.count_plot()
+        # # update progress bar
+        # self.plot_group.count_plot()
 
     def names_hdf5_change(self):
         """
@@ -418,6 +419,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # existing_animal_QListWidget
         self.variable_hdf5_QLabel = QLabel(self.tr('variables'))
         self.variable_QListWidget = QListWidget()
+        self.variable_QListWidget.setObjectName("variable_QListWidget")
         self.variable_QListWidget.setMinimumWidth(130)
         self.variable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.variable_QListWidget.itemSelectionChanged.connect(self.count_plot)
@@ -429,10 +431,11 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # reach_QListWidget
         self.reach_hdf5_QLabel = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget = QListWidget()
+        self.reach_QListWidget.setObjectName("reach_QListWidget")
         self.reach_QListWidget.setMinimumWidth(110)
         self.reach_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.reach_QListWidget.itemSelectionChanged.connect(self.reach_hdf5_change)
-        self.reach_QListWidget.itemSelectionChanged.connect(self.count_plot)
+        #self.reach_QListWidget.itemSelectionChanged.connect(self.count_plot)
         self.reach_hdf5_layout = QVBoxLayout()
         self.reach_hdf5_layout.setAlignment(Qt.AlignTop)
         self.reach_hdf5_layout.addWidget(self.reach_hdf5_QLabel)
@@ -441,6 +444,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # units_QListWidget
         self.units_QLabel = QLabel(self.tr('unit(s)'))
         self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setObjectName("units_QListWidget")
         self.units_QListWidget.setMinimumWidth(50)
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.units_QListWidget.itemSelectionChanged.connect(self.count_plot)
@@ -607,7 +611,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def show_prog(self, value):
-        #print("show_prog", value)
         self.plot_progressbar.setValue(value)
         self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_plot))
         QCoreApplication.processEvents()
@@ -682,7 +685,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
     def reach_hdf5_change(self):
         """
          Ajust item list according to hdf5 filename selected by user
-         """
+        """
         selection_file = self.parent().names_hdf5_QListWidget.selectedItems()
         selection_reach = self.reach_QListWidget.selectedItems()
         self.units_QListWidget.clear()
@@ -696,14 +699,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file(False)
 
-            # add
-            # self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
+            # add units
             for item_text in hdf5.units_name[self.reach_QListWidget.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget.addItem(item)
 
-                # more than one file selected
+        # more than one file selected
         elif len(selection_reach) > 1:
             # clear attributes hdf5_attributes_qtableview
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection_file[0].text())
@@ -1588,7 +1590,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def show_prog(self, value):
-        # print("show_prog", value)
         self.data_exporter_progressbar.setValue(value)
         self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_export))
 
@@ -1781,6 +1782,7 @@ class HabitatValueRemover(QGroupBoxCollapsible):
         """ widgets """
         existing_animal_title_QLabel = QLabel(self.tr('Existing aquatic animal habitat values :'))
         self.existing_animal_QListWidget = QListWidget()
+        self.existing_animal_QListWidget.setObjectName("existing_animal_QListWidget")
         self.existing_animal_QListWidget.setMinimumWidth(130)
         self.existing_animal_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 

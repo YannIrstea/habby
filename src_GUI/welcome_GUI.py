@@ -148,7 +148,7 @@ class WelcomeW(QScrollArea):
         layouth.addItem(spacer2, 5, 2)
         highpart.setLayout(layouth)
 
-        self.lowpart = QGroupBox(self.tr("Current project"))
+        self.lowpart = QFrame()
         layoutl = QGridLayout(self.lowpart)
         layoutl.addWidget(l1, 1, 0)
         layoutl.addWidget(self.e1, 1, 1)

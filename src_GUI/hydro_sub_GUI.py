@@ -1640,6 +1640,9 @@ class Rubar2D(SubHydroW):
         except:
             pass
 
+        # get minimum water height as we might neglect very low water height
+        self.project_preferences = load_project_preferences(self.path_prj)
+
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
             filter2 = "File ("
@@ -1651,11 +1654,10 @@ class Rubar2D(SubHydroW):
             filter2 = ''
 
         # get last path
-        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(
-                self.attributexml[0]) != "no_data":
-            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml(
-                "path_last_file_loaded") != "":
+        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
+                self.model_type) != "":
+            model_path = self.read_attribute_xml(self.model_type)  # path spe
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
@@ -1694,6 +1696,11 @@ class Rubar2D(SubHydroW):
 
             # one hdf5
             if type(rubar20_description) == dict:
+                # change suffix
+                if not self.project_preferences["cut_mesh_partialy_dry"]:
+                    namehdf5_old = os.path.splitext(rubar20_description["hdf5_name"])[0]
+                    exthdf5_old = os.path.splitext(rubar20_description["hdf5_name"])[1]
+                    rubar20_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
                 self.hydrau_case = rubar20_description["hydrau_case"]
                 # multi
                 self.multi_hdf5 = False
