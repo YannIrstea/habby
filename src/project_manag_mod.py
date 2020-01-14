@@ -200,9 +200,6 @@ def load_project_preferences(path_prj):
     name_prj = os.path.basename(path_prj)
     project_file_abs_path = os.path.join(path_prj, name_prj + '.habby')
 
-    # init
-    project_preferences = dict()
-
     if not os.path.isfile(project_file_abs_path) and name_prj != '':  # no project exists
         pass
     elif name_prj == '':

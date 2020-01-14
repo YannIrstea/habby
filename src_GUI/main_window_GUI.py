@@ -251,10 +251,11 @@ class MainWindows(QMainWindow):
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
         # set theme
-        if self.actual_theme == "classic":
-            self.setthemeclassic()
-        else:
-            self.setthemedark()
+        # if self.actual_theme == "classic":
+        #     self.setthemeclassic()
+        # else:
+        #     self.setthemedark()
+        self.change_theme()
 
         self.check_concurrency()
 
@@ -404,11 +405,14 @@ class MainWindows(QMainWindow):
         name_prj = self.createnew.e1.text()
         path_folder_prj = self.createnew.e2.text()
         project_type = self.createnew.project_type_combobox.currentText()
-        if project_type == self.tr("Physical"):
+        if project_type == self.tr("physical"):
             self.physic_tabs = True
             self.stat_tabs = False
-        if project_type == self.tr("Statistical"):
+        elif project_type == self.tr("statistical"):
             self.physic_tabs = False
+            self.stat_tabs = True
+        elif project_type == self.tr("both"):
+            self.physic_tabs = True
             self.stat_tabs = True
 
         # path
@@ -660,8 +664,6 @@ class MainWindows(QMainWindow):
         self.user_preferences.data["recent_project_path"] = self.recent_project_path
         self.user_preferences.save_user_preferences_json()
 
-        self.my_menu_bar()
-
         # create structure project
         if not os.path.isfile(fname):
             create_project_structure(self.path_prj,
@@ -673,6 +675,9 @@ class MainWindows(QMainWindow):
             change_specific_preferences(self.path_prj,
                                         preference_names=["physic_tabs", "stat_tabs"],
                                         preference_values=[self.physic_tabs, self.stat_tabs])
+
+        self.my_menu_bar()
+
 
         # update central widget
         self.central_widget.name_prj = self.name_prj
@@ -1068,6 +1073,9 @@ class MainWindows(QMainWindow):
         self.physicalmodelaction.triggered.connect(self.open_close_physic)
         self.statisticmodelaction = QAction(self.tr('Statistical tabs'), self, checkable=True)
         self.statisticmodelaction.triggered.connect(self.open_close_stat)
+        self.researchmodelaction = QAction(self.tr("Research tabs"), self, checkable=True)  # hidded
+        self.researchmodelaction.triggered.connect(self.open_close_rech)  # hidded
+        self.researchmodelaction.setShortcut('Ctrl+R')  # hidded
         log_menu = QMenu(project_menu)
         log_menu.setTitle(self.tr('Log'))
         logc = QAction(self.tr("Clear log"), self)
@@ -1116,26 +1124,13 @@ class MainWindows(QMainWindow):
             self.english_action.setChecked(False)
             self.french_action.setChecked(False)
             self.spanish_action.setChecked(True)
-
-        # view actions
-        self.classicthemeaction = QAction(self.tr('classic'), self, checkable=True)
-        self.classicthemeaction.triggered.connect(self.setthemeclassic)
-        self.darkthemeaction = QAction(self.tr('dark'), self, checkable=True)
-        self.darkthemeaction.triggered.connect(self.setthemedark)
-        if self.actual_theme == "classic":
-            self.classicthemeaction.setChecked(True)
-            self.darkthemeaction.setChecked(False)
-        if self.actual_theme == "dark":
-            self.classicthemeaction.setChecked(False)
-            self.darkthemeaction.setChecked(True)
         self.fullscreen_action = QAction(self.tr('Toggle full screen mode'), self, checkable=True)
         self.fullscreen_action.triggered.connect(self.set_unset_fullscreen)
         self.fullscreen_action.setShortcut('F11')
         self.fullscreen_action.setChecked(False)
-        self.researchmodelaction = QAction(self.tr("Research tabs"), self, checkable=True)  # hidded
-        self.researchmodelaction.setShortcut('Ctrl+R')  # hidded
-        self.researchmodelaction.triggered.connect(self.open_close_rech)  # hidded
-        self.researchmodelaction.setChecked(self.research_tabs)  # hidded
+        self.change_theme_action = QAction(self.tr('Change theme'), self)
+        self.change_theme_action.triggered.connect(self.change_theme)
+        self.change_theme_action.setShortcut('F12')
 
         # help actions
         helpm = QAction(self.tr('Developper Help'), self)
@@ -1156,9 +1151,11 @@ class MainWindows(QMainWindow):
         project_menu.addMenu(tabs_menu)
         tabs_menu.addAction(self.physicalmodelaction)
         tabs_menu.addAction(self.statisticmodelaction)
-        #print(self.physic_tabs, self.stat_tabs)
+        tabs_menu.addAction(self.researchmodelaction)  # hidded
         self.physicalmodelaction.setChecked(self.physic_tabs)
         self.statisticmodelaction.setChecked(self.stat_tabs)
+        self.researchmodelaction.setChecked(self.research_tabs)  # hidded
+        tabs_menu.actions()[2].setVisible(False)  # hidded
         log_menu.addAction(logc)
         log_menu.addAction(logn)
         log_menu.addAction(logy)
@@ -1176,12 +1173,8 @@ class MainWindows(QMainWindow):
         language_menu.addAction(self.spanish_action)
 
         # view menu
-        theme_menu = view_menu.addMenu(self.tr('Themes'))
-        theme_menu.addAction(self.classicthemeaction)
-        theme_menu.addAction(self.darkthemeaction)
         view_menu.addAction(self.fullscreen_action)
-        view_menu.addAction(self.researchmodelaction)  # hidded
-        view_menu.actions()[2].setVisible(False)  # hidded
+        view_menu.addAction(self.change_theme_action)
 
         # help menu
         help_menu.addAction(helpm)
@@ -1217,33 +1210,33 @@ class MainWindows(QMainWindow):
             else:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
-    def setthemeclassic(self):
-        #print("setthemeclassic", self.sender())
-        self.app.setStyleSheet("")
-        #self.app.setStyle("Fusion")
-        self.actual_theme = "classic"
-        # self.my_menu_bar()
-        # self.my_menu_bar(True)
+    def change_theme(self):
+        #print("change_theme", self.sender(), self.change_theme_action.isChecked())
+        if self.actual_theme == "dark":
+            self.app.setStyleSheet("")
+            self.actual_theme = "classic"
+            # self.app.setStyle("Fusion")
+        else:
+            self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+            # self.app.setStyle("fusion")
+            # self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
+            # self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
+            self.central_widget.welcome_tab.pic.setPixmap(
+                QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
+            self.my_menu_bar()
+            self.my_menu_bar(True)
+            self.actual_theme = "dark"
+
         if self.user_preferences.data["theme"] != self.actual_theme:
             self.user_preferences.data["theme"] = self.actual_theme
             self.user_preferences.save_user_preferences_json()
 
-    def setthemedark(self):
-        #print("setthemedark", self.sender())
-        #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
-        self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        #self.app.setStyle("fusion")
-        self.actual_theme = "dark"
-        # other
-        self.central_widget.welcome_tab.pic.setPixmap(
-            QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
-        self.my_menu_bar()
-        self.my_menu_bar(True)
-        if self.user_preferences.data["theme"] != self.actual_theme:
-            self.user_preferences.data["theme"] = self.actual_theme
-            self.user_preferences.save_user_preferences_json()
-        #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
-        #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
+    def set_unset_fullscreen(self):
+        #print("set_unset_fullscreen", self.sender(), self.fullscreen_action.isChecked())
+        if self.fullscreen_action.isChecked():
+            self.showFullScreen()
+        else:
+            self.showNormal()
 
     def create_menu_right_clic(self):
         """
@@ -1522,7 +1515,7 @@ class MainWindows(QMainWindow):
         The plan is that these options are less tested than other mainstream options. It is not clear yet what
         will be added to these options, but the tabs are already there when it will be needed.
         """
-        #print("open_close_rech", self.sender())
+        print("open_close_rech", self.sender())
         research_tabs_list = ["research"]
         if self.research_tabs:
             if self.name_prj:
@@ -1535,15 +1528,6 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.addTab(self.central_widget.other_tab, self.tr("Research 1"))
                 self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
             self.research_tabs = True
-
-    def set_unset_fullscreen(self):
-        #print("set_unset_fullscreen", self.sender(), self.fullscreen_action.isChecked())
-        if self.fullscreen_action.isChecked():
-            self.fullscreen_action.setChecked(True)
-            self.showFullScreen()
-        else:
-            self.fullscreen_action.setChecked(False)
-            self.showNormal()
 
     def open_help(self):
         """
@@ -1838,7 +1822,7 @@ class CreateNewProjectDialog(QWidget):
         self.button3.setStyleSheet("background-color: #47B5E6; color: black")
         project_type_title_label = QLabel(self.tr("Project type"))
         self.project_type_combobox = QComboBox()
-        self.model_type_list = [self.tr("Physical"), self.tr("Statistical"), self.tr("both")]
+        self.model_type_list = [self.tr("physical"), self.tr("statistical"), self.tr("both")]
         self.project_type_combobox.addItems(self.model_type_list)
         if self.physic_tabs and not self.stat_tabs:
             self.project_type_combobox.setCurrentIndex(0)

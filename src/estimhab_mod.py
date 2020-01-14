@@ -82,7 +82,7 @@ def estimhab(estimhab_dict, qt_tr):
     all discharge. The calculation is based on the width and height of the river measured at two discharges (given by the
     user).
 
-    Next, we get other parameters which are used in the preference curves such as the Froude number of
+    Next, we get other parameters which are used in the preference curves such as the froude_number number of
     the mean discharge or the Reynolds number.
 
     Next, we load the fish data contains in the xml files in the biology folder. Careful, this is not the xml project

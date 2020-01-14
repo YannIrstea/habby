@@ -12,7 +12,7 @@ River Discharge Time Series can be provided to Habby in order to build habitat c
   <img src="./translation/a1_a9_sub_durance_PolygonCemagrefCoarser-dom_Durance_BAF01_adult_HV_Dominant.gif" width="800"/>
 </p>
 <p align="center">
-   <b>Habitat Suitability Index for adult barbel computed by HABBY</b> 
+   <b>Habitat Value for adult barbel computed by HABBY</b> 
 </p>
 
 In addition three statistical models can be used. They provide fast results that are close to the classical instream habitat models. They only requires the average hydraulic characteristics of stream reaches at different discharge rates, such as **Estimhab** (3) which needs the mean depth and the mean width. To be operational these models requires several results of classical studies to define the statistical equations for usable fish species/guild/stages.
