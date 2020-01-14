@@ -1151,6 +1151,7 @@ class MainWindows(QMainWindow):
         self.statisticmodelaction.setChecked(self.stat_tabs)
         self.researchmodelaction.setChecked(self.research_tabs)  # hidded
         tabs_menu.actions()[2].setVisible(False)  # hidded
+        project_menu.addMenu(log_menu)
         log_menu.addAction(logc)
         log_menu.addAction(logn)
         log_menu.addAction(logy)
