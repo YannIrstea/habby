@@ -534,7 +534,7 @@ class PreferenceWindow(QDialog):
         # save the name and the path in the xml .prj file
         if not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Properties unsaved"))
+            self.msg2.setWindowTitle(self.tr("Project properties unsaved"))
             self.msg2.setText(
                 self.tr("Create or open an HABBY project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
@@ -542,7 +542,7 @@ class PreferenceWindow(QDialog):
         else:
             save_project_preferences(self.path_prj, project_preferences)
 
-        self.send_log.emit(self.tr('# Properties saved.'))
+        self.send_log.emit(self.tr('# Project properties saved.'))
         self.close()
 
     def close_preferences(self):

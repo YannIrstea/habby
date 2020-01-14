@@ -876,15 +876,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
 
 # map node
 def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -937,15 +929,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
 
 
 def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -992,15 +976,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
 
 
 def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1047,15 +1023,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
 
 
 def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1102,15 +1070,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
 
 
 def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1157,15 +1117,7 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
 
 
 def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1212,15 +1164,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
 
 
 def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1274,15 +1218,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
 
 # map mesh
 def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1335,15 +1271,7 @@ def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, 
 
 
 def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1390,15 +1318,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
 
 
 def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1445,15 +1365,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
 
 
 def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1515,15 +1427,7 @@ def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_
     :param path_im: the path where to save the figure
     :param reach_num: If we plot more than one reach, this is the reach number
     """
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1594,15 +1498,7 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     :param path_im: the path where to save the figure
     :param reach_num: If we plot more than one reach, this is the reach number
     """
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1657,139 +1553,8 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_substrate(state, data_xy, data_tin, data_plot, reach_unit_dict, sub_type, data_description, project_preferences):
-    """
-    The function to plot the substrate data, which was loaded before. This function will only work if the substrate
-    data is given using the cemagref code.
-
-    :param data_xy: the coordinate of the point
-    :param data_tin: the connectivity table
-    :param sub_pg: the information on subtrate by element for the "coarser part"
-    :param sub_dom: the information on subtrate by element for the "dominant part"
-    :param project_preferences: the figure option as a doctionnary
-    :param xtxt: if the data was given in txt form, the orignal x data
-    :param ytxt: if the data was given in txt form, the orignal y data
-    :param subtxt: if the data was given in txt form, the orignal sub data
-    :param path_im: the path where to save the figure
-    :param reach_num: If we plot more than one reach, this is the reach number
-    """
-    # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
-
-    # get informations
-    unit_type = data_description["unit_type"][
-                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    reach_name = reach_unit_dict["reach_name_plot"]
-    unit_name = reach_unit_dict["unit_name_plot"]
-
-    # title and filename
-    if sub_type == "substrate_coarser":
-        title = qt_tr.translate("plot_mod",
-                                'Substrate coarser - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-        variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod",
-                                                                                           'substrate coarser') + ' [' + data_description["sub_classification_code"] + "]"
-        reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-        unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-        filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-                    qt_tr.translate("plot_mod", 'substrate_coarser') + "_" + reach_name + '_' + unit_name
-
-    else:
-        title = qt_tr.translate("plot_mod",
-                                'Substrate dominant - ') + reach_name + ' - ' + unit_name + " [" + unit_type + "]"
-        variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + qt_tr.translate("plot_mod",
-                                                                                           'substrate dominant') + ' [' + data_description["sub_classification_code"] + "]"
-        reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-        unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-        filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-                   qt_tr.translate("plot_mod", 'substrate_dominant') + "_" + reach_name + '_' + unit_name
-
-    # prepare data
-    unziped = list(zip(*data_plot))
-    if sub_type == "substrate_coarser":
-        data_plot = unziped[0]
-    else:
-        data_plot = unziped[1]
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    decimal_nb = 0
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
-
-    # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])
-    if data_description["sub_classification_code"] == "Cemagref":
-        max_class = 8
-        listcathegories = list(range(1, max_class + 2))
-    if data_description["sub_classification_code"] == "Sandre":
-        max_class = 12
-        listcathegories = list(range(1, max_class + 2))
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    n = len(data_plot)
-    norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
-    patches = []
-    for i in range(0, n):
-        verts = []
-        for j in range(0, 3):
-            verts_j = data_xy[int(data_tin[i][j]), :]
-            verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)
-        patches.append(polygon)
-    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    data_ploted.set_array(masked_array)
-    ax_map.add_collection(data_ploted)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    listcathegories_stick = [x + 0.5 for x in range(1, color_bar.vmax)]
-    listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
-    color_bar.set_ticks(listcathegories_stick)
-    color_bar.set_ticklabels(listcathegories_stick_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
 def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
-
-    # # get informations
-    # unit_type = data_description["unit_type"][
-    #             data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
-    # reach_name = reach_unit_dict["reach_name_plot"]
-    # unit_name = reach_unit_dict["unit_name_plot"]
-    #
-    # # title and filename
-    # title = fish_name + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "] - " + \
-    #         qt_tr.translate("plot_mod",
-    #                         'unknown area = ') + '{0:3.2f}'.format(percent_unknown) + " %"
-    # variable_title = qt_tr.translate("plot_mod", 'variable') + " : " + fish_name + " (" + \
-    #                  qt_tr.translate("plot_mod", 'HV') + " = " + '{0:3.2f}'.format(total_hv) + " / " + \
-    #                  qt_tr.translate("plot_mod", 'UA') + " = " + '{0:3.2f}'.format(percent_unknown) + " %" + ")"
-    # reach_title = qt_tr.translate("plot_mod", 'reach') + " : " + reach_name
-    # unit_title = qt_tr.translate("plot_mod", 'unit') + " : " + unit_name + " [" + unit_type + "]"
-    # filename = os.path.splitext(data_description["name_hdf5"])[0] + "_" + \
-    #            fish_name + "_" + reach_name + '_' + unit_name
+    mpl_map_change_parameters(project_preferences)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1841,6 +1606,20 @@ north_position = (0.90, 0.90, 0.10, 0.10)  # x0, y0, width, height
 legend_position = (0.90, 0.10, 0.10, 0.80)  # x0, y0, width, height
 scale_position = (0.90, 0.00, 0.10, 0.10)  # x0, y0, width, height
 map_position = (0.00, 0.00, 0.90, 0.90)  # x0, y0, width, height
+lwd_rect = 1.0
+
+
+def mpl_map_change_parameters(project_preferences):
+    # set mpl parameters
+    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
+    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+    mpl.rcParams['font.size'] = project_preferences['font_size']
+    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
+    mpl.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['axes.linewidth'] = 0.5  # set the value globally
 
 
 def pre_plot_map(title, variable_title, reach_title, unit_title):
@@ -1856,7 +1635,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
         1.0, 1.0,
         transform=ax_border.transAxes,
         color="black",
-        lw=1.5,
+        # lw=lwd_rect,
         fill=None
     )
     fig.patches.append(rect)
