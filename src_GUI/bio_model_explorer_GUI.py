@@ -110,6 +110,7 @@ class BioModelExplorerWindow(QDialog):
         self.move(rect_geom.topLeft())
         # fill_first_time
         self.bio_model_filter_tab.fill_first_time()
+        self.setModal(True)
         self.show()
 
     def load_model_selected_to_available(self):

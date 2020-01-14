@@ -1131,6 +1131,7 @@ class MainWindows(QMainWindow):
         helpm = QAction(self.tr('Developper Help'), self)
         helpm.setStatusTip(self.tr('Get help to use the programme'))
         helpm.triggered.connect(self.open_help)
+        helpm.setShortcut('F1')
         aboutm = QAction(self.tr('About'), self)
         aboutm.setStatusTip(self.tr('Get information software'))
         aboutm.triggered.connect(self.get_information_soft)
@@ -1151,13 +1152,13 @@ class MainWindows(QMainWindow):
         self.statisticmodelaction.setChecked(self.stat_tabs)
         self.researchmodelaction.setChecked(self.research_tabs)  # hidded
         tabs_menu.actions()[2].setVisible(False)  # hidded
+        project_menu.addMenu(figure_menu)
+        figure_menu.addAction(savi)
+        figure_menu.addAction(closeim)
         project_menu.addMenu(log_menu)
         log_menu.addAction(logc)
         log_menu.addAction(logn)
         log_menu.addAction(logy)
-        project_menu.addMenu(figure_menu)
-        figure_menu.addAction(savi)
-        figure_menu.addAction(closeim)
         project_menu.addAction(closeprj)
         project_menu.addSeparator()
         project_menu.addAction(exitAction)
@@ -1780,7 +1781,7 @@ class MainWindows(QMainWindow):
             self.msg2.show()
 
 
-class CreateNewProjectDialog(QWidget):
+class CreateNewProjectDialog(QDialog):
     """
     A class which is used to help the user to create a new project
     """
@@ -1848,6 +1849,7 @@ class CreateNewProjectDialog(QWidget):
         name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
         self.setWindowIcon(QIcon(name_icon))
         self.setGeometry(300, 300, 650, 100)
+        self.setModal(True)
 
     def setfolder(self):
         """
@@ -2427,6 +2429,7 @@ class SoftInformationDialog(QDialog):
         #layout.setAlignment(Qt.AlignRight)
         self.setWindowTitle(self.tr("About"))
         self.setWindowIcon(QIcon(self.name_icon))
+        self.setModal(True)
 
     def get_last_version_number_from_github(self):
         last_version_str = "unknown"
