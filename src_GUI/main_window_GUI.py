@@ -1130,6 +1130,8 @@ class MainWindows(QMainWindow):
             self.darkthemeaction.setChecked(True)
         self.fullscreen_action = QAction(self.tr('Toggle full screen mode'), self, checkable=True)
         self.fullscreen_action.triggered.connect(self.set_unset_fullscreen)
+        self.fullscreen_action.setShortcut('F11')
+        self.fullscreen_action.setChecked(False)
         self.researchmodelaction = QAction(self.tr("Research tabs"), self, checkable=True)  # hidded
         self.researchmodelaction.setShortcut('Ctrl+R')  # hidded
         self.researchmodelaction.triggered.connect(self.open_close_rech)  # hidded
@@ -1535,11 +1537,11 @@ class MainWindows(QMainWindow):
             self.research_tabs = True
 
     def set_unset_fullscreen(self):
-        #print("set_unset_fullscreen", self.sender())
-        if not self.fullscreen_action.isChecked():
+        #print("set_unset_fullscreen", self.sender(), self.fullscreen_action.isChecked())
+        if self.fullscreen_action.isChecked():
             self.fullscreen_action.setChecked(True)
             self.showFullScreen()
-        elif self.fullscreen_action.isChecked():
+        else:
             self.fullscreen_action.setChecked(False)
             self.showNormal()
 
