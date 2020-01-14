@@ -239,7 +239,6 @@ class MainWindows(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
-        self.preferences_dialog.send_log.connect(self.central_widget.write_log)
 
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
@@ -708,8 +707,6 @@ class MainWindows(QMainWindow):
 
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.set_pref_gui_from_dict(default=True)
-        # self.preferences_dialog.save_preferences()
-        self.preferences_dialog.send_log.connect(self.central_widget.write_log)
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
         # write log
@@ -1059,7 +1056,7 @@ class MainWindows(QMainWindow):
                 recent_proj_menu[3].triggered.connect(lambda: self.open_recent_project(3))
             elif j == 4:
                 recent_proj_menu[4].triggered.connect(lambda: self.open_recent_project(4))
-        self.preferences_action = QAction(self.tr('Preferences'), self)
+        self.preferences_action = QAction(self.tr('Properties'), self)
         self.preferences_action.triggered.connect(self.open_preferences)
         self.preferences_action.setShortcut('Ctrl+P')
         tabs_menu = QMenu(project_menu)
@@ -1327,13 +1324,8 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(self.kill_process)
 
     def open_preferences(self):
-        # # read actual figure option
-        # if not self.path_prj:
-        #     self.central_widget.write_log('Error: ' + self.tr(
-        #         "No project found. Can't change project preferences. Please create or open an HABBY project.\n"))
-        # else:
-        # show the pref
         #"open_preferences", self.sender())
+        self.preferences_dialog.send_log.connect(self.central_widget.write_log)
         self.preferences_dialog.open_preferences()
         # # witdh_for_checkbox_alignement
         witdh_for_checkbox_alignement = self.preferences_dialog.cut_2d_grid_label.size().width()
