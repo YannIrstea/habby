@@ -16,10 +16,9 @@ https://github.com/YannIrstea/habby
 """
 import os
 from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
-from PyQt5.QtWidgets import QWidget, QPushButton, QGroupBox,\
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGroupBox,\
     QLabel, QGridLayout, QLineEdit, QTextEdit, QSpacerItem, \
-    QMessageBox, QScrollArea, \
-    QFrame
+    QMessageBox, QScrollArea, QSizePolicy, QFrame
 from PyQt5.QtGui import QPixmap, QFont
 import matplotlib as mpl
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
@@ -62,7 +61,8 @@ class WelcomeW(QScrollArea):
 
         super().__init__()
         self.tab_name = "welcome"
-        self.imname = os.path.join('translation', 'banner.jpg')  # image should be in the translation folder
+        self.imname = os.path.join('translation', 'banner.png')  # image should be in the translation folder
+        self.image_background_path = os.path.join(os.getcwd(), self.imname)
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
@@ -73,51 +73,41 @@ class WelcomeW(QScrollArea):
         """
         Used in the initialization of a new instance of the class WelcomeW()
         """
-
         # Welcome windows
-        l0 = QLabel('<b>HABitat suitaBilitY</b>')
-        l0.setAlignment(Qt.AlignCenter)
+        self.habby_title_label = QLabel('<b>HABitat suitaBilitY</b>')
+        self.habby_title_label.setAlignment(Qt.AlignCenter)
         font = QFont()
         font.setPointSize(20)
-        l0.setFont(font)
-        buttono = QPushButton(self.tr('Open existing project'), self)
-        buttono.clicked.connect(self.open_proj.emit)
-        buttons = QPushButton(self.tr('New project'), self)
-        buttons.clicked.connect(self.new_proj_signal.emit)
-        spacerleft = QSpacerItem(200, 1)
-        spacerright = QSpacerItem(120, 1)
-        spacer2 = QSpacerItem(1, 70)
-        highpart = QWidget()  # used to regroup all QWidgt in the first part of the Windows
-
-        # general into to put in the xml .prj file
-        l1 = QLabel(self.tr('Project name: '))
-        self.e1 = QLabel(self.name_prj)
-        l2 = QLabel(self.tr('Main folder: '))
-        self.e2 = QLabel(self.path_prj)
-        # button2 = QPushButton(self.tr('Set folder'), self)
-        # button2.clicked.connect(self.setfolder2)
-        # button2.setToolTip(self.tr('Move the project to a new location. '
-        #                            'The data might be long to copy if the project folder is large.'))
-        l3 = QLabel(self.tr('Description: '))
-        self.e3 = QTextEdit()
-        # this is used to save the data if the QLineEdit is going out of Focus
-        self.e3.installEventFilter(self.outfocus_filter)
-        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
-        l4 = QLabel(self.tr('User name: '))
-        self.e4 = QLineEdit()
-        # this is used to save the data if the QLineEdit is going out of Focus
-        self.e4.installEventFilter(self.outfocus_filter)
-        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
+        self.habby_title_label.setFont(font)
+        self.habby_title_label.setStyleSheet("QLabel {background-color:None; color : rgb(71, 181, 230, 255); }")
 
         # background image
-        self.pic = QLabel()
-        self.pic.setMaximumSize(1000, 200)
-        # use full ABSOLUTE path to the image, not relative
-        self.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(500, 500))  # 800 500
-        # animal_picture_label.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
+        self.background_image_label = QLabel()
+        self.background_image_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)  # Qt.AlignCenter
+        self.background_image_label.setContentsMargins(0, 0, 0, 0)
+        self.background_image_label.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.background_image_label.setMaximumHeight(150)
+        self.background_image_pixmap = QPixmap(self.image_background_path).scaled(500, 500, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # ,
+        self.background_image_label.setPixmap(self.background_image_pixmap)
+        self.background_image_label.setScaledContents(True)
+
+        # general into to put in the xml .prj file
+        name_prj_title_label = QLabel(self.tr('Name:'))
+        self.name_prj_label = QLabel(self.name_prj)
+        path_prj_title_label = QLabel(self.tr('Path:'))
+        self.path_prj_label = QLabel(self.path_prj)
+        user_name_title_label = QLabel(self.tr('User name:'))
+        self.user_name_lineedit = QLineEdit()
+        # this is used to save the data if the QLineEdit is going out of Focus
+        self.user_name_lineedit.installEventFilter(self.outfocus_filter)
+        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
+        description_prj_title_label = QLabel(self.tr('Description:'))
+        self.description_prj_textedit = QTextEdit()
+        # this is used to save the data if the QLineEdit is going out of Focus
+        self.description_prj_textedit.installEventFilter(self.outfocus_filter)
+        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
 
         # insist on white background color (for linux, mac)
-        self.setAutoFillBackground(True)
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
@@ -130,43 +120,32 @@ class WelcomeW(QScrollArea):
         else:
             preference_names = project_manag_mod.load_specific_preferences(self.path_prj,
                                                         preference_names=["user_name", "description"])
-            self.e4.setText(preference_names[0])
-            self.e3.setText(preference_names[1])
+            self.user_name_lineedit.setText(preference_names[0])
+            self.description_prj_textedit.setText(preference_names[1])
+
+        # current_prj_groupbox
+        self.current_prj_groupbox = QGroupBox(self.tr("Current project"))
+        current_prj_layout = QGridLayout(self.current_prj_groupbox)
+        current_prj_layout.addWidget(name_prj_title_label, 1, 0)
+        current_prj_layout.addWidget(self.name_prj_label, 1, 1)
+        current_prj_layout.addWidget(path_prj_title_label, 2, 0)
+        current_prj_layout.addWidget(self.path_prj_label, 2, 1)
+        current_prj_layout.addWidget(user_name_title_label, 3, 0)
+        current_prj_layout.addWidget(self.user_name_lineedit, 3, 1)
+        current_prj_layout.addWidget(description_prj_title_label, 4, 0)
+        current_prj_layout.addWidget(self.description_prj_textedit, 4, 1)
 
         # empty frame scrolable
-        content_widget = QFrame()
+        general_frame = QFrame()
+        self.general_layout = QGridLayout(general_frame)
+        self.general_layout.addWidget(self.current_prj_groupbox, 1, 0)
+        self.general_layout.addWidget(self.background_image_label, 0, 0)
+        self.general_layout.addWidget(self.habby_title_label, 0, 0)
 
-        # layout (in two parts)
-        layout2 = QGridLayout(content_widget)
-        layouth = QGridLayout()
-
-        layouth.addItem(spacerleft, 1, 0)
-        layouth.addItem(spacerright, 1, 5)
-        layouth.addWidget(l0, 0, 1)
-        layouth.addWidget(buttons, 2, 1)
-        layouth.addWidget(buttono, 3, 1)
-        layouth.addItem(spacer2, 5, 2)
-        highpart.setLayout(layouth)
-
-        self.lowpart = QFrame()
-        layoutl = QGridLayout(self.lowpart)
-        layoutl.addWidget(l1, 1, 0)
-        layoutl.addWidget(self.e1, 1, 1)
-        layoutl.addWidget(l2, 2, 0)
-        layoutl.addWidget(self.e2, 2, 1)
-        layoutl.addWidget(l4, 3, 0)
-        layoutl.addWidget(self.e4, 3, 1)
-        layoutl.addWidget(l3, 4, 0)
-        layoutl.addWidget(self.e3, 4, 1)
-
-        layout2.addWidget(self.pic, 0, 0)
-        layout2.addWidget(highpart, 0, 0)
-        layout2.addWidget(self.lowpart, 1, 0)
-
-        # self.setLayout(layout2)
+        # self.setLayout(self.general_layout)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
-        self.setWidget(content_widget)
+        self.setWidget(general_frame)
 
     def open_example(self):
         """

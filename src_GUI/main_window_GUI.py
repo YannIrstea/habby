@@ -27,7 +27,7 @@ import matplotlib as mpl
 import numpy as np
 import qdarkstyle
 from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, Qt, pyqtRemoveInputHook
-from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
+from PyQt5.QtGui import QPixmap, QIcon, QTextCursor, QFont
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, \
     QFileDialog, QMessageBox, QActionGroup, QMenu, QToolBar, QProgressBar
@@ -442,10 +442,10 @@ class MainWindows(QMainWindow):
 
                 # pass the info from the extra Windows to the HABBY MainWindows
                 # (check on user input done by create_project)
-                self.central_widget.welcome_tab.e1.setText(name_prj)
-                self.central_widget.welcome_tab.e2.setText(path_prj)
-                self.central_widget.welcome_tab.e3.setText('')
-                self.central_widget.welcome_tab.e4.setText('')
+                self.central_widget.welcome_tab.name_prj_label.setText(name_prj)
+                self.central_widget.welcome_tab.path_prj_label.setText(path_prj)
+                self.central_widget.welcome_tab.description_prj_textedit.setText('')
+                self.central_widget.welcome_tab.user_name_lineedit.setText('')
                 self.createnew.close()
                 self.save_project()
                 self.central_widget.write_log('Warning: ' + self.tr('Old project and its files are deleted.'))
@@ -464,10 +464,10 @@ class MainWindows(QMainWindow):
                 self.msg2.show()
 
             # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by create_project)
-            self.central_widget.welcome_tab.e1.setText(name_prj)
-            self.central_widget.welcome_tab.e2.setText(path_prj)
-            self.central_widget.welcome_tab.e3.setText('')
-            self.central_widget.welcome_tab.e4.setText('')
+            self.central_widget.welcome_tab.name_prj_label.setText(name_prj)
+            self.central_widget.welcome_tab.path_prj_label.setText(path_prj)
+            self.central_widget.welcome_tab.description_prj_textedit.setText('')
+            self.central_widget.welcome_tab.user_name_lineedit.setText('')
             self.createnew.close()
             self.save_project()
 
@@ -512,10 +512,10 @@ class MainWindows(QMainWindow):
 
         self.username_prj = project_preferences["user_name"]
         self.descri_prj = project_preferences["description"]
-        self.central_widget.welcome_tab.e1.setText(self.name_prj)
-        self.central_widget.welcome_tab.e2.setText(self.path_prj)
-        self.central_widget.welcome_tab.e4.setText(self.username_prj)
-        self.central_widget.welcome_tab.e3.setText(self.descri_prj)
+        self.central_widget.welcome_tab.name_prj_label.setText(self.name_prj)
+        self.central_widget.welcome_tab.path_prj_label.setText(self.path_prj)
+        self.central_widget.welcome_tab.user_name_lineedit.setText(self.username_prj)
+        self.central_widget.welcome_tab.description_prj_textedit.setText(self.descri_prj)
 
         # save the project
         self.central_widget.path_prj = self.path_prj
@@ -614,7 +614,7 @@ class MainWindows(QMainWindow):
         Finally the log is written (see “log and HABBY in the command line).
         """
         # saved path
-        path_prj = os.path.normpath(self.central_widget.welcome_tab.e2.text())
+        path_prj = os.path.normpath(self.central_widget.welcome_tab.path_prj_label.text())
         if not os.path.isdir(path_prj):  # if the directoy do not exist
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Path to project"))
@@ -628,13 +628,13 @@ class MainWindows(QMainWindow):
             path_prj_before = self.path_prj
             self.path_prj = path_prj
         # name
-        e1here = self.central_widget.welcome_tab.e1
+        e1here = self.central_widget.welcome_tab.name_prj_label
         self.name_prj = e1here.text()
 
         # username and description
-        e4here = self.central_widget.welcome_tab.e4
+        e4here = self.central_widget.welcome_tab.user_name_lineedit
         self.username_prj = e4here.text()
-        e3here = self.central_widget.welcome_tab.e3
+        e3here = self.central_widget.welcome_tab.description_prj_textedit
         self.descri_prj = e3here.toPlainText()
 
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -723,7 +723,7 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log("restart    version habby: " + str(self.version))
 
         # enabled lowest part
-        self.central_widget.welcome_tab.lowpart.setEnabled(True)
+        self.central_widget.welcome_tab.current_prj_groupbox.setEnabled(True)
 
     def open_recent_project(self, j):
         """
@@ -764,7 +764,7 @@ class MainWindows(QMainWindow):
 
         # add the welcome Widget
         self.central_widget.tab_widget.addTab(self.central_widget.welcome_tab, self.tr("Project"))
-        self.central_widget.welcome_tab.lowpart.setEnabled(False)
+        self.central_widget.welcome_tab.current_prj_groupbox.setEnabled(False)
 
         # create the menu bar
         self.my_menu_bar()
@@ -787,10 +787,10 @@ class MainWindows(QMainWindow):
         """
         self.path_prj = ""
         self.name_prj = ""
-        self.central_widget.welcome_tab.e1.setText("")
-        self.central_widget.welcome_tab.e2.setText("")
-        self.central_widget.welcome_tab.e4.setText('')
-        self.central_widget.welcome_tab.e3.setText('')
+        self.central_widget.welcome_tab.name_prj_label.setText("")
+        self.central_widget.welcome_tab.path_prj_label.setText("")
+        self.central_widget.welcome_tab.user_name_lineedit.setText('')
+        self.central_widget.welcome_tab.description_prj_textedit.setText('')
 
         self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
@@ -937,7 +937,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.bioinfo_tab.lang = 'English'
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        change_specific_preferences(self.path_prj,
+        if self.path_prj:
+            change_specific_preferences(self.path_prj,
                                     preference_names=["language"],
                                     preference_values=[self.lang])
 
@@ -1209,16 +1210,8 @@ class MainWindows(QMainWindow):
         if self.actual_theme == "dark":
             self.app.setStyleSheet("")
             self.actual_theme = "classic"
-            # self.app.setStyle("Fusion")
         else:
             self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-            # self.app.setStyle("fusion")
-            # self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
-            # self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
-            self.central_widget.welcome_tab.pic.setPixmap(
-                QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
-            # self.my_menu_bar()
-            # self.my_menu_bar(True)
             self.actual_theme = "dark"
 
         if self.user_preferences.data["theme"] != self.actual_theme:
@@ -2020,11 +2013,11 @@ class CentralW(QWidget):
             if go_research:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 9
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 10
-            self.welcome_tab.lowpart.setEnabled(True)
+            self.welcome_tab.current_prj_groupbox.setEnabled(True)
         # if the project do not exist, do not add new tab
         else:
             self.tab_widget.addTab(self.welcome_tab, self.tr("Project"))
-            self.welcome_tab.lowpart.setEnabled(False)
+            self.welcome_tab.current_prj_groupbox.setEnabled(False)
 
         #self.tab_widget.setStyleSheet("QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
 
@@ -2263,9 +2256,9 @@ class CentralW(QWidget):
         """
 
         # username and description
-        e4here = self.welcome_tab.e4
+        e4here = self.welcome_tab.user_name_lineedit
         self.username_prj = e4here.text()
-        e3here = self.welcome_tab.e3
+        e3here = self.welcome_tab.description_prj_textedit
         self.descri_prj = e3here.toPlainText()
 
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')

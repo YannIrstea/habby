@@ -584,7 +584,7 @@ class BioModelInfoSelection(QScrollArea):
         self.description_textedit.setReadOnly(True)
         # image fish
         self.animal_picture_label = ClickLabel()
-        self.animal_picture_label.setStyleSheet("QLabel { background-color : white; color : black; }");
+        self.animal_picture_label.setStyleSheet("QLabel { background-color : white; color : black; }")
         # self.animal_picture_label.setFrameShape(QFrame.Panel)
         self.animal_picture_label.setAlignment(Qt.AlignCenter)
         self.animal_picture_label.clicked.connect(self.open_explorer_on_picture_path)

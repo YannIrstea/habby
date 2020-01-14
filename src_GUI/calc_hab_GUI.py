@@ -90,7 +90,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.general_option_hyd_combobox_index = 0
         self.general_option_sub_combobox_index = 0
 
-        self.default_color = "#A6C313"  # #A6C313 (green Irstea)  # #0DB39F (green INRAE)
+        self.default_color = "#A6C313"  # #A6C313 (green Irstea)  # #0DB39F (green INRAE)  blue Irstea (71, 181, 230, 255)
         self.user_color = "black"
         # "QComboBox:!editable {background: " + self.default_color + "}"  # OK en black edition mais bizar en classic
         # "background: " + self.default_color # colorize all background
