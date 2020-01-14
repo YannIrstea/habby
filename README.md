@@ -26,7 +26,7 @@ When using the **Habby** GUI, scripts are automatically generated which allows u
 A 64 bit Windows executable is also provided that includes all the requirements to run the program in a GUI mode.
 
 <p align="center">
-  <img src="./translation/hydraulic.png" width="800"/>
+  <img src="./translation/hydraulic.png" width="793"/>
 </p>
 <p align="center">
    <b>Habby software (Windows version)</b> 
