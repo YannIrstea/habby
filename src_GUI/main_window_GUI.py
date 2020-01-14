@@ -1450,10 +1450,13 @@ class MainWindows(QMainWindow):
         phisical_tabs_list = ["hydraulic", "substrate", "calc hab", "data explorer", "tools"]
         if self.physic_tabs:
             if self.name_prj:
-                for i in range(self.central_widget.tab_widget.count() - 1, 0, -1):
-                    if self.central_widget.tab_widget.widget(i).tab_name in phisical_tabs_list:
-                        self.central_widget.tab_widget.removeTab(i)
-            self.physic_tabs = False
+                if not self.stat_tabs:
+                    self.physicalmodelaction.setChecked(True)
+                else:
+                    for i in range(self.central_widget.tab_widget.count() - 1, 0, -1):
+                        if self.central_widget.tab_widget.widget(i).tab_name in phisical_tabs_list:
+                            self.central_widget.tab_widget.removeTab(i)
+                    self.physic_tabs = False
         elif not self.physic_tabs:
             if self.name_prj:
                 self.central_widget.tab_widget.insertTab(1, self.central_widget.hydro_tab, self.tr("Hydraulic"))  # 1
@@ -1473,10 +1476,13 @@ class MainWindows(QMainWindow):
         stat_tabs_list = ["estimhab", "stathab", "fstress"]
         if self.stat_tabs:
             if self.name_prj:
-                for i in range(self.central_widget.tab_widget.count() - 1, 0, -1):
-                    if self.central_widget.tab_widget.widget(i).tab_name in stat_tabs_list:
-                        self.central_widget.tab_widget.removeTab(i)
-            self.stat_tabs = False
+                if not self.physic_tabs:
+                    self.statisticmodelaction.setChecked(True)
+                else:
+                    for i in range(self.central_widget.tab_widget.count() - 1, 0, -1):
+                        if self.central_widget.tab_widget.widget(i).tab_name in stat_tabs_list:
+                            self.central_widget.tab_widget.removeTab(i)
+                    self.stat_tabs = False
         elif not self.stat_tabs:
             if self.physic_tabs:
                 start_index = 6
