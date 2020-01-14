@@ -232,17 +232,11 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
 
         # right click
-        # self.create_menu_right_clic()
+        self.create_menu_right_clic()
         self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.central_widget.customContextMenuRequested.connect(self.show_menu_right_clic)
 
         self.setCentralWidget(self.central_widget)
-
-        # # preferences
-        # if self.path_prj:
-        #     change_specific_preferences(self.path_prj,
-        #                                 preference_names=["language"],
-        #                                 preference_values=[self.lang])
 
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.send_log.connect(self.central_widget.write_log)
@@ -250,11 +244,12 @@ class MainWindows(QMainWindow):
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
-        # set theme
-        # if self.actual_theme == "classic":
-        #     self.setthemeclassic()
-        # else:
-        #     self.setthemedark()
+        # inverse before changing theme
+        if self.actual_theme == "classic":
+            self.actual_theme = "dark"
+        else:
+            self.actual_theme = "classic"
+
         self.change_theme()
 
         self.check_concurrency()
@@ -1223,8 +1218,8 @@ class MainWindows(QMainWindow):
             # self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
             self.central_widget.welcome_tab.pic.setPixmap(
                 QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
-            self.my_menu_bar()
-            self.my_menu_bar(True)
+            # self.my_menu_bar()
+            # self.my_menu_bar(True)
             self.actual_theme = "dark"
 
         if self.user_preferences.data["theme"] != self.actual_theme:
@@ -1232,11 +1227,15 @@ class MainWindows(QMainWindow):
             self.user_preferences.save_user_preferences_json()
 
     def set_unset_fullscreen(self):
-        #print("set_unset_fullscreen", self.sender(), self.fullscreen_action.isChecked())
+        #print("set_unset_fullscreen", self.sender())
         if self.fullscreen_action.isChecked():
+            print("self.showFullScreen()")
             self.showFullScreen()
+            self.fullscreen_action.setChecked(True)
         else:
+            print("showNormal")
             self.showNormal()
+            self.fullscreen_action.setChecked(False)
 
     def create_menu_right_clic(self):
         """
