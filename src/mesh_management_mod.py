@@ -1423,6 +1423,7 @@ def RepresentsInt(s):
     except ValueError:
         return False
 
+
 def main():
     """
     Used to test this module.
