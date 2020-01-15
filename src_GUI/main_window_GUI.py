@@ -205,7 +205,6 @@ class MainWindows(QMainWindow):
 
         # create the menu bar
         self.my_menu_bar()
-
         # open window
         self.show()
 
@@ -230,11 +229,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_existing_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
-
-        # right click
-        self.create_menu_right_clic()
-        self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.central_widget.customContextMenuRequested.connect(self.show_menu_right_clic)
 
         self.setCentralWidget(self.central_widget)
 
@@ -983,30 +977,16 @@ class MainWindows(QMainWindow):
             self.user_preferences.data["language"] = language
             self.user_preferences.save_user_preferences_json()
 
-        #  right click
-        self.create_menu_right_clic()
-        self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.central_widget.customContextMenuRequested.connect(self.show_menu_right_clic)
-
         # open at the old tab
         self.central_widget.tab_widget.setCurrentIndex(ind_tab)
 
-    def my_menu_bar(self, right_menu=False):
+    def my_menu_bar(self):
         """
-        This function creates the menu bar of HABBY when call without argument or with the argument right_menu is False.
-        if right menu is True, it creates a very similar menu but we use a QMenu() instead of a QMenuBar() as it
-        is the menu open when the user right click
-
-        :param right_menu: If call with True, we create a menu for the right click and not for the menu part on the top
-               of the screen.
+        This function creates the top menu bar of HABBY.
         """
         #"my_menu_bar", self.sender())
-        if right_menu:  # right clic
-            self.menu_right = QMenu()
-            self.menu_right.clear()
-        else:
-            self.menubar = self.menuBar()
-            self.menubar.clear()
+        self.menubar = self.menuBar()
+        self.menubar.clear()
 
         if self.path_prj:
             project_preferences = load_project_preferences(self.path_prj)
@@ -1014,18 +994,11 @@ class MainWindows(QMainWindow):
             self.stat_tabs = project_preferences["stat_tabs"]
 
         # add all first level menu
-        if right_menu:
-            self.menu_right = QMenu()
-            project_menu = self.menu_right.addMenu(self.tr('Project'))
-            settings_menu = self.menu_right.addMenu(self.tr('Settings'))
-            view_menu = self.menu_right.addMenu(self.tr('View'))
-            help_menu = self.menu_right.addMenu(self.tr('Help'))
-        else:
-            self.menubar = self.menuBar()
-            project_menu = self.menubar.addMenu(self.tr('Project'))
-            settings_menu = self.menubar.addMenu(self.tr('Settings'))
-            view_menu = self.menubar.addMenu(self.tr('View'))
-            help_menu = self.menubar.addMenu(self.tr('Help'))
+        self.menubar = self.menuBar()
+        project_menu = self.menubar.addMenu(self.tr('Project'))
+        settings_menu = self.menubar.addMenu(self.tr('Settings'))
+        view_menu = self.menubar.addMenu(self.tr('View'))
+        help_menu = self.menubar.addMenu(self.tr('Help'))
 
         # Menu to open and close file
         exitAction = QAction(self.tr('Exit HABBY'), self)
@@ -1191,19 +1164,18 @@ class MainWindows(QMainWindow):
             figure_menu.setEnabled(True)
             closeprj.setEnabled(True)
 
-        if not right_menu:
-            # add the status and progress bar
-            self.statusBar()
-            self.progress_bar = QProgressBar()
-            self.progress_bar.setValue(0)
-            self.statusBar().addPermanentWidget(self.progress_bar)
-            self.progress_bar.setVisible(False)
+        # add the status and progress bar
+        self.statusBar()
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
+        self.statusBar().addPermanentWidget(self.progress_bar)
+        self.progress_bar.setVisible(False)
 
-            # add the title of the windows
-            if self.name_prj:
-                self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
-            else:
-                self.setWindowTitle(self.tr('HABBY ') + str(self.version))
+        # add the title of the windows
+        if self.name_prj:
+            self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
+        else:
+            self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
     def change_theme(self):
         #print("change_theme", self.sender(), self.change_theme_action.isChecked())
@@ -1219,38 +1191,13 @@ class MainWindows(QMainWindow):
             self.user_preferences.save_user_preferences_json()
 
     def set_unset_fullscreen(self):
-        #print("set_unset_fullscreen", self.sender())
+        print("set_unset_fullscreen", self.sender())
         if self.fullscreen_action.isChecked():
-            print("self.showFullScreen()")
             self.showFullScreen()
             self.fullscreen_action.setChecked(True)
         else:
-            print("showNormal")
             self.showNormal()
             self.fullscreen_action.setChecked(False)
-
-    def create_menu_right_clic(self):
-        """
-        This function create the menu for right click
-        """
-        #print("create_menu_right_clic", self.sender())
-        self.my_menu_bar(True)
-
-    def show_menu_right_clic(self, point):
-        """
-        This function is used to show the menu on right click. If we are on the Habitat Tab and that the focus is on
-        the QListWidget, it shows the information concerning the fish
-
-        :param point: Not understood, link with the position of the menu.
-        """
-        #print("show_menu_right_clic", self.sender())
-        if self.path_prj:
-            if self.central_widget.bioinfo_tab.list_f.underMouse():
-                self.central_widget.bioinfo_tab.show_info_fish(False)
-            else:
-                self.menu_right.exec_(self.central_widget.mapToGlobal(point))
-        else:
-            self.menu_right.exec_(self.central_widget.mapToGlobal(point))
 
     def my_toolbar(self):
         #print("my_toolbar", self.sender())
@@ -1840,6 +1787,7 @@ class CreateNewProjectDialog(QDialog):
         name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
         self.setWindowIcon(QIcon(name_icon))
         self.setGeometry(300, 300, 650, 100)
+        self.button3.setFocus()
         self.setModal(True)
 
     def setfolder(self):
