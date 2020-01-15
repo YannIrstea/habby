@@ -48,7 +48,7 @@ class AppDataFolders:
         self.user_preferences_log_path = os.path.join(self.user_preferences_habby_path, "log")
         self.user_preferences_crashlog_file = os.path.join(self.user_preferences_habby_path, "log", "habby_crash.log")
         # save
-        self.user_preferences_biology_models_save = AppDirs("saves", appauthor).user_config_dir
+        self.user_preferences_biology_models_save = AppDirs("HABBY_saves", appauthor).user_config_dir
 
     # preferences
     def create_appdata_folders(self):
