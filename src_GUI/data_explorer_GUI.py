@@ -327,6 +327,9 @@ class DataExplorerFrame(QFrame):
             self.file_information_group.hdf5_attributes_qtableview.verticalHeader().setDefaultSectionSize(
                 self.file_information_group.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
 
+            # resize qtableview
+            height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(hdf5.hdf5_attributes_name_text) + 1)
+            self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
         else:
             self.file_information_group.hdf5_attributes_qtableview.setModel(None)
 
@@ -1837,17 +1840,13 @@ class FileInformation(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.setTitle(title)
-        self.plot_process_list = MyProcessList("plot")
-        self.variables_to_remove = ["mesh", "points elevation", "water_height", "water_velocity",
-                                    "substrate_coarser", "substrate_dominant", "max_slope_bottom", "max_slope_energy",
-                                    "shear_stress"]
         self.init_ui()
 
     def init_ui(self):
         # attributes hdf5
         self.hdf5_attributes_qtableview = QTableView(self)
         self.hdf5_attributes_qtableview.setFrameShape(QFrame.NoFrame)
-        self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.hdf5_attributes_qtableview.verticalHeader().setVisible(False)
         self.hdf5_attributes_qtableview.horizontalHeader().setVisible(False)
 
