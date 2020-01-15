@@ -680,7 +680,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         Get selected values by user and plot them
         """
         types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
-        self.plot(types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type)
+        self.plot_figure(types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type)
 
     def reach_hdf5_change(self):
         """
@@ -737,7 +737,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # count plot
         self.count_plot()
 
-    def plot(self, types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type):
+    def plot_figure(self, types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type):
         """
         Plot
         :param types_hdf5: string representing the type of hdf5 ("hydraulic", "substrat", "habitat")
@@ -828,7 +828,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                             variables_node.remove(variables_useless)
                     # load hydraulic data
                     if types_hdf5 == "hydraulic":
-                        hdf5.load_hdf5_hyd()  # units_index=units_index
+                        hdf5.load_hdf5_hyd(units_index=units_index)  #
                         # compute variables
                         hdf5.compute_variables(variables_mesh=variables_mesh,
                                                variables_node=variables_node)
@@ -933,6 +933,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                self.tr("water_height"),
                                                                                "m",
                                                                                string_tr)
+
                                     state = Value("i", 0)
                                     height_process = Process(target=plot_mod.plot_map_height,
                                                              args=(
