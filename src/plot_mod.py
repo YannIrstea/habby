@@ -1608,9 +1608,9 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
 right_limit_position = 0.90
 top_limit_position = 0.90
 banner_position = (0.00, top_limit_position,  # x0, y0
-                   right_limit_position, 0.10)  # width, height
+                   right_limit_position, 1.00 - top_limit_position)  # width, height
 north_position = (right_limit_position, top_limit_position,  # x0, y0
-                  0.10, 0.10)  # width, height
+                  1.00 - right_limit_position, 1.00 - top_limit_position)  # width, height
 legend_position = (right_limit_position, 1.00 - top_limit_position,  # x0, y0
                    1.00 - right_limit_position, 1.00 - (1.00 - top_limit_position) * 2)  # width, height
 scale_position = (right_limit_position, 0.00,  # x0, y0
@@ -1647,7 +1647,6 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
         1.0, 1.0,
         transform=ax_border.transAxes,
         color="black",
-        # lw=lwd_rect,
         fill=None
     )
     fig.patches.append(rect)

@@ -1095,11 +1095,10 @@ class MainWindows(QMainWindow):
         project_menu.addMenu(tabs_menu)
         tabs_menu.addAction(self.physicalmodelaction)
         tabs_menu.addAction(self.statisticmodelaction)
-        tabs_menu.addAction(self.researchmodelaction)  # hidded
+        self.addAction(self.researchmodelaction)  # hidded
         self.physicalmodelaction.setChecked(self.physic_tabs)
         self.statisticmodelaction.setChecked(self.stat_tabs)
         self.researchmodelaction.setChecked(self.research_tabs)  # hidded
-        tabs_menu.actions()[2].setVisible(False)  # hidded
         project_menu.addMenu(figure_menu)
         figure_menu.addAction(savi)
         figure_menu.addAction(closeim)
@@ -1431,7 +1430,6 @@ class MainWindows(QMainWindow):
         The plan is that these options are less tested than other mainstream options. It is not clear yet what
         will be added to these options, but the tabs are already there when it will be needed.
         """
-        print("open_close_rech", self.sender())
         research_tabs_list = ["research"]
         if self.research_tabs:
             if self.name_prj:
