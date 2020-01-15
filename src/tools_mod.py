@@ -766,12 +766,12 @@ def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
     return dict_to_sort
 
 
-def get_translator(path_prj, name_prj):
+def get_translator(path_prj):
     """
     :param language: 0:EN, 1:FR, 2:ES
     :return: application with translate method.
     """
-    print("get_translator")
+    #print("get_translator")
     # get language from project_preferences['language']
     project_preferences = load_project_preferences(path_prj)
     language = project_preferences['language']

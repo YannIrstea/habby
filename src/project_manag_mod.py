@@ -65,8 +65,7 @@ def create_default_project_preferences_dict(all_export_enabled=False):
     # figures
     project_preferences['height'] = 11.2  # cm
     project_preferences['width'] = 16  # cm
-    project_preferences['color_map1'] = 'coolwarm'
-    project_preferences['color_map2'] = 'jet'
+    project_preferences['color_map'] = 'jet'
     project_preferences["font_family"] = "Arial"
     project_preferences['font_size'] = 8
     project_preferences['line_width'] = 1

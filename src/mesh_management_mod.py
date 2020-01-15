@@ -136,7 +136,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     progress_value.value = 10
 
     # get_translator
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
 
     # if exists
     if not os.path.exists(os.path.join(path_prj, "hdf5", hdf5_name_hyd)):

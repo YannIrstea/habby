@@ -390,67 +390,67 @@ defined by either volume or area percentages on a depth and current velocity cro
 <context>
     <name>CentralW</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1951"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1901"/>
         <source>HABBY says:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2014"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1964"/>
         <source>Hydraulic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2015"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1965"/>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2016"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1966"/>
         <source>Habitat Calc.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2017"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1967"/>
         <source>Data explorer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2018"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1968"/>
         <source>Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2020"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1970"/>
         <source>ESTIMHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2021"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1971"/>
         <source>STATHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2022"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1972"/>
         <source>FStress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2024"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1974"/>
         <source>Research 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2025"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1975"/>
         <source>Research 2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2029"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1979"/>
         <source>Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2277"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2227"/>
         <source>The project file is not found. 
 </source>
         <translation type="unfinished"></translation>
@@ -459,57 +459,57 @@ defined by either volume or area percentages on a depth and current velocity cro
 <context>
     <name>CreateNewProjectDialog</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1807"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1757"/>
         <source> &lt;b&gt; Create a new project &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1808"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1758"/>
         <source>Project name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1810"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1760"/>
         <source>Projects folder: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1812"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1762"/>
         <source>Change folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1814"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1764"/>
         <source>Create project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1842"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1792"/>
         <source>HABBY- New Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1818"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1768"/>
         <source>Project type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1853"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1803"/>
         <source>Select directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1820"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1770"/>
         <source>physical</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1820"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1770"/>
         <source>statistical</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1820"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1770"/>
         <source>both</source>
         <translation type="unfinished"></translation>
     </message>
@@ -585,87 +585,87 @@ defined by either volume or area percentages on a depth and current velocity cro
 <context>
     <name>DataExporterGroup</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1373"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1374"/>
         <source>run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1378"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1379"/>
         <source>stop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1446"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1447"/>
         <source>Mesh whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1401"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1402"/>
         <source>Point whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1450"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1451"/>
         <source>Mesh units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1440"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1441"/>
         <source>Point units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1456"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1457"/>
         <source>Global habitat values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1460"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1461"/>
         <source>Detailled habitat values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1466"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1467"/>
         <source>Fish informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1425"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1426"/>
         <source>Detailled mesh and points</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1465"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1466"/>
         <source>Report (figure extension)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1607"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1608"/>
         <source> No hdf5 type selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1609"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1610"/>
         <source> No hdf5 file selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1611"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1612"/>
         <source> No export choosen.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1602"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1603"/>
         <source>Export(s) done.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1743"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1744"/>
         <source>No habitat data in this .hab file to export Fish informations report.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1765"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1766"/>
         <source>Export(s) stoped by user.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -673,7 +673,7 @@ defined by either volume or area percentages on a depth and current velocity cro
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2340"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2290"/>
         <source>I am a button</source>
         <translation type="unfinished"></translation>
     </message>
@@ -965,7 +965,7 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1277"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1278"/>
         <source>Figure(s) production stoped by user.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -975,17 +975,17 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="975"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="976"/>
         <source>conveyance</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1073"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1074"/>
         <source>mesh</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1219"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1220"/>
         <source>UA</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1000,7 +1000,7 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1219"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1220"/>
         <source>HV = </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1010,47 +1010,47 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="952"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="953"/>
         <source>water_velocity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="999"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1000"/>
         <source>froude_number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1023"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1024"/>
         <source>hydraulic_head</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1049"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1050"/>
         <source>water_level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1095"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1096"/>
         <source>max_slope_bottom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1119"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1120"/>
         <source>max_slope_energy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1144"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1145"/>
         <source>shear_stress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1169"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1170"/>
         <source>substrate_coarser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1193"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1194"/>
         <source>substrate_dominant</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1503,17 +1503,17 @@ NB : There is no limit for exports.</source>
 <context>
     <name>HabitatValueRemover</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1783"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1784"/>
         <source>Existing aquatic animal habitat values :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1789"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1790"/>
         <source>remove selected animals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1810"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1811"/>
         <source>No file selected.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1906,518 +1906,518 @@ NB : There is no limit for exports.</source>
 <context>
     <name>MainWindows</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="272"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="268"/>
         <source>, </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="272"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="268"/>
         <source>Do you really want to leave HABBY ?
 All alive processes and figure windows will be closed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="977"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="972"/>
         <source>Habby says:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1037"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1011"/>
         <source>Exit application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1045"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1019"/>
         <source>Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1047"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1021"/>
         <source>Open an exisiting project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1041"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1015"/>
         <source>New</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1289"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1239"/>
         <source>Create a new project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1097"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1071"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1099"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1073"/>
         <source>Close the current project without opening a new one</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1078"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1052"/>
         <source>Clear log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1079"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1053"/>
         <source>Empty the log windows at the bottom of the main window. Do not erase the .log file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1082"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1056"/>
         <source>Do not save log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1083"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1057"/>
         <source>The .log file will not be updated further.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1085"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1059"/>
         <source>Save log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1086"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1060"/>
         <source>Events will be written to the .log file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1090"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1064"/>
         <source>Delete all figure files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1091"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1065"/>
         <source>Figures files of current project will be deleted</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1093"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1067"/>
         <source>Close all figure windows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1301"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1251"/>
         <source>Close all open figure windows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1103"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1077"/>
         <source>&amp;English</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1104"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1078"/>
         <source>click here for English</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1106"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1080"/>
         <source>&amp;French</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1107"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1081"/>
         <source>click here for French</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1109"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1083"/>
         <source>&amp;Spanish</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1110"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1084"/>
         <source>click here for Spanish</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1133"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1107"/>
         <source>Developper Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1134"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1108"/>
         <source>Get help to use the programme</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1069"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1043"/>
         <source>Physical tabs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1071"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1045"/>
         <source>Statistical tabs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1073"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1047"/>
         <source>Research tabs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1029"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1003"/>
         <source>Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1030"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1004"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1169"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1143"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1031"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1005"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1068"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1042"/>
         <source>Tabs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1032"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1006"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1144"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1118"/>
         <source>Open recent</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1077"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1051"/>
         <source>Log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1210"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1183"/>
         <source>HABBY </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1284"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1234"/>
         <source>Open project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1285"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1235"/>
         <source>Open an existing project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1288"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1238"/>
         <source>New project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1300"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1250"/>
         <source>Close figure windows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1304"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1254"/>
         <source>Stop current process</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="621"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="617"/>
         <source>Path to project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="622"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="618"/>
         <source>The directory indicated in the project path does not exists. Project not saved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="461"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="457"/>
         <source>Permission Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="462"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="458"/>
         <source>You do not have the permission to write in this folder. Choose another folder. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1464"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1414"/>
         <source>Hydraulic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1465"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1415"/>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1466"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1416"/>
         <source>Habitat Calc.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1467"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1417"/>
         <source>Data explorer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1468"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1418"/>
         <source>Tools</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1494"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1444"/>
         <source>ESTIMHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1495"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1445"/>
         <source>STATHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1496"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1446"/>
         <source>FStress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1522"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1472"/>
         <source>Research 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1523"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1473"/>
         <source>Research 2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1753"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1703"/>
         <source>This log will not be saved anymore in the .log file. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1753"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1703"/>
         <source>This log will not be saved anymore in the restart file. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1759"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1709"/>
         <source>This log will be saved in the .log file.&lt;br&gt; This log will be saved in the restart file. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1771"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1721"/>
         <source>Log Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1772"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1722"/>
         <source>Information related to the .log file are incomplete. Please check.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1632"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1582"/>
         <source>Save Hydrological Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1633"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1583"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1640"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1590"/>
         <source>Delete figure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1641"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1591"/>
         <source>Are you sure that you want to delete all file in the folder: 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1656"/>
-        <source>Images deleted. &lt;br&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1137"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1111"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1138"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1112"/>
         <source>Get information software</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="815"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="810"/>
         <source>Could not check if the project was open by another instance of HABBY (1) 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="827"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="822"/>
         <source>Could not check if the project was open by another instance of HABBY (2) 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="832"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="827"/>
         <source>The same project is open in another instance of HABBY. This could results in fatal and unexpected error. It is strongly adivsed to close the other instance of HABBY.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="836"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="831"/>
         <source>This message could also appear if HABBY was not closed properly. In this case, please close and re-open HABBY.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="854"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="849"/>
         <source>Could not check if the project was open by another instance of HABBY (3) 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="626"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="622"/>
         <source>Project not saved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="387"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="383"/>
         <source>File should be of type .habby
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="502"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="498"/>
         <source>the selected project file does not exist.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="426"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="422"/>
         <source>Project not created. Choose another project name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="782"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="777"/>
         <source>Old project and its files are opened by another programme.
 Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1722"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1672"/>
         <source> process has been stopped by the user. The files produced by this process can be damaged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="776"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="771"/>
         <source>Create or open a project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="452"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="448"/>
         <source>Old project and its files are deleted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="485"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="481"/>
         <source>Project created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="579"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="575"/>
         <source>Project opened.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1295"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1245"/>
         <source>clic = See current HABBY project files / CTRL+clic == See user HABBY AppData files / SHIFT+clic = See HABBY installation files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1576"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1526"/>
         <source>File(s) deleted. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1613"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1563"/>
         <source>File renamed. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="420"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="416"/>
         <source>Do you want to overwrite it and all its files ?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="750"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="746"/>
         <source> project not found. It must have been moved or removed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1554"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1504"/>
         <source>Warning: Could not remove </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="419"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="415"/>
         <source>Another folder with name </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="403"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="399"/>
         <source>physical</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="406"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="402"/>
         <source>statistical</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="409"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="405"/>
         <source>both</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1035"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1009"/>
         <source>Exit HABBY</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1064"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1038"/>
         <source>Properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1089"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1063"/>
         <source>Figure management</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1124"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1098"/>
         <source>Toggle full screen mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1128"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1102"/>
         <source>Change theme</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="1606"/>
+        <source>All figures are deleted.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2543,42 +2543,42 @@ Close them and try again.</source>
 <context>
     <name>PreferenceWindow</name>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="164"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="159"/>
         <source>Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="173"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="168"/>
         <source>Resolution [dpi]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="177"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="172"/>
         <source>Type of fish name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="179"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="174"/>
         <source>Latin Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="179"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="174"/>
         <source>French Common Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="179"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="174"/>
         <source>English Common Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="179"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="174"/>
         <source>Code ONEMA</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="183"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="178"/>
         <source>Markers for habitat figures</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2598,118 +2598,118 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="201"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="196"/>
         <source>General</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="210"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="205"/>
         <source>Default exports</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="243"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="238"/>
         <source>Mesh whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="227"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="222"/>
         <source>Point whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="248"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="243"/>
         <source>Mesh units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="236"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="231"/>
         <source>Point units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="261"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="256"/>
         <source>Detailled txt file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="266"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="261"/>
         <source>Fish informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="271"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="266"/>
         <source>Figures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="551"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="540"/>
         <source>Create or open an HABBY project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="187"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="182"/>
         <source>Reset by default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="191"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="186"/>
         <source>OK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="195"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="190"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="432"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="424"/>
         <source>The size of the figure should be in the format: num1,num2.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="446"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="435"/>
         <source>Font size should be an integer. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="460"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="449"/>
         <source>Line width should be an integer. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="472"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="461"/>
         <source>The resolution should be an integer. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="474"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="463"/>
         <source>The resolution should be higher than zero 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="477"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="466"/>
         <source>The resolution is higher than 2000 dpi. Figures might be very large.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="504"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="493"/>
         <source>Vertical exaggeration value must be superior than 1. Value set to 1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="508"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="497"/>
         <source>Vertical exaggeration value is not integer. Value set to 1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="518"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="507"/>
         <source>Minimum Height should be a number</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2729,59 +2729,54 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="141"/>
-        <source>Color map 1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/preferences_GUI.py" line="146"/>
-        <source>Color map 2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="151"/>
         <source>Font size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="155"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="150"/>
         <source>Font family</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="160"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="155"/>
         <source>Line width</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="168"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="163"/>
         <source>Figure format</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="295"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="289"/>
         <source>Project properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="453"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="442"/>
         <source>Font family not recognized. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="550"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="539"/>
         <source>Project properties unsaved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="558"/>
+        <location filename="../src_GUI/preferences_GUI.py" line="547"/>
         <source># Project properties saved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src_GUI/preferences_GUI.py" line="135"/>
         <source>Figure size (w,h) [cm]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/preferences_GUI.py" line="141"/>
+        <source>Color map</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3165,27 +3160,27 @@ Close them and try again.</source>
 <context>
     <name>SoftInformationDialog</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2400"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2350"/>
         <source>Actual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2403"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2353"/>
         <source>Last</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2406"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2356"/>
         <source>Ok</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2413"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2363"/>
         <source>HABBY version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2425"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2375"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>

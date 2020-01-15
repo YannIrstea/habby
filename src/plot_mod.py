@@ -59,7 +59,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         if project_preferences['font_size'] > 7:
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -163,7 +163,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         if project_preferences['font_size'] > 7:
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -233,7 +233,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         if project_preferences['font_size'] > 7:
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -290,7 +290,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.family'] = project_preferences['font_family']
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
 
     # title and filename
     title_plot = qt_tr.translate("plot_mod",
@@ -342,7 +342,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
     :param unit_name: the name of the time steps if not 0,1,2,3
     """
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     default_size = plt.rcParams['figure.figsize']
@@ -570,7 +570,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     :param sim_name: the name of the time steps if not 0,1,2,3
     """
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
@@ -740,7 +740,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
 
 def plot_estimhab(state, estimhab_dict, project_preferences):
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
     path_prj = project_preferences['path_prj']
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
                                                      "figures")  # change default path to save
@@ -897,7 +897,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -950,7 +950,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -997,7 +997,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1044,7 +1044,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1091,7 +1091,7 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1138,7 +1138,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1185,7 +1185,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1235,7 +1235,7 @@ def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, 
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1292,7 +1292,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1339,7 +1339,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1386,7 +1386,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1448,7 +1448,7 @@ def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])
     if data_description["sub_classification_code"] == "Cemagref":
         max_class = 8
         listcathegories = list(range(1, max_class + 2))
@@ -1519,7 +1519,7 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])
     if data_description["sub_classification_code"] == "Cemagref":
         max_class = 8
         listcathegories = list(range(1, max_class + 2))
@@ -1575,7 +1575,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map2'])  # get color map
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1605,11 +1605,18 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
 
 
 # plot tool
-banner_position = (0.00, 0.90, 0.90, 0.10)  # x0, y0, width, height
-north_position = (0.90, 0.90, 0.10, 0.10)  # x0, y0, width, height
-legend_position = (0.90, 0.10, 0.10, 0.80)  # x0, y0, width, height
-scale_position = (0.90, 0.00, 0.10, 0.10)  # x0, y0, width, height
-map_position = (0.00, 0.00, 0.90, 0.90)  # x0, y0, width, height
+right_limit_position = 0.90
+top_limit_position = 0.90
+banner_position = (0.00, top_limit_position,  # x0, y0
+                   right_limit_position, 0.10)  # width, height
+north_position = (right_limit_position, top_limit_position,  # x0, y0
+                  0.10, 0.10)  # width, height
+legend_position = (right_limit_position, 1.00 - top_limit_position,  # x0, y0
+                   1.00 - right_limit_position, 1.00 - (1.00 - top_limit_position) * 2)  # width, height
+scale_position = (right_limit_position, 0.00,  # x0, y0
+                  1.00 - right_limit_position, 1.00 - top_limit_position)  # width, height
+map_position = (0.00, 0.00,  # x0, y0
+                right_limit_position, top_limit_position)  # width, height
 lwd_rect = 1.0
 
 

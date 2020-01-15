@@ -23,7 +23,7 @@ from src.tools_mod import get_translator
 
 
 def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
 
     # compute
     q_all, h_all, w_all, vel_all, VH, SPU, qtarg_dict = estimhab(estimhab_dict, qt_tr)

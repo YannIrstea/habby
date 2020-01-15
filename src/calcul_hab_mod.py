@@ -64,7 +64,7 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
         sys.stdout = mystdout = StringIO()
 
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
+    qt_tr = get_translator(project_preferences['path_prj'])
     # progress
     progress_value.value = 10
 

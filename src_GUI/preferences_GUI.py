@@ -138,14 +138,9 @@ class PreferenceWindow(QDialog):
         fig_size_label.setToolTip(self.tr("width, height"))
 
         # color_map
-        color_map_label = QLabel(self.tr('Color map 1'), self)
+        color_map_label = QLabel(self.tr('Color map'), self)
         self.color_map_combobox = QComboBox()
         self.color_map_combobox.addItems(self.namecmap)
-
-        # color_map2
-        color_map2_label = QLabel(self.tr('Color map 2'), self)
-        self.color_map2_combobox = QComboBox()
-        self.color_map2_combobox.addItems(self.namecmap)
 
         # font_size
         font_size_label = QLabel(self.tr('Font size'), self)
@@ -273,7 +268,6 @@ class PreferenceWindow(QDialog):
         figures_group.setLayout(layout_figures)
         layout_figures.addRow(fig_size_label, self.fig_size_lineedit)
         layout_figures.addRow(color_map_label, self.color_map_combobox)
-        layout_figures.addRow(color_map2_label, self.color_map2_combobox)
         layout_figures.addRow(font_size_label, self.font_size_lineedit)
         layout_figures.addRow(font_family_label, self.font_family_combobox)
         layout_figures.addRow(line_width_label, self.line_width_lineedit)
@@ -305,7 +299,6 @@ class PreferenceWindow(QDialog):
             checkbox.stateChanged.connect(self.set_modification_presence)
         self.fig_size_lineedit.textChanged.connect(self.set_modification_presence)
         self.color_map_combobox.currentIndexChanged.connect(self.set_modification_presence)
-        self.color_map2_combobox.currentIndexChanged.connect(self.set_modification_presence)
         self.font_size_lineedit.textChanged.connect(self.set_modification_presence)
         self.line_width_lineedit.textChanged.connect(self.set_modification_presence)
         self.grid_checkbox.stateChanged.connect(self.set_modification_presence)
@@ -355,8 +348,7 @@ class PreferenceWindow(QDialog):
             checkbox.setChecked(project_preferences[checkbox.objectName()[:-4]][index])
 
         # color_map
-        self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(project_preferences['color_map1']))
-        self.color_map2_combobox.setCurrentIndex(self.color_map_combobox.findText(project_preferences['color_map2']))
+        self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(project_preferences['color_map']))
 
         # fig_size
         self.fig_size_lineedit.setText(str(project_preferences['width']) + ',' + str(project_preferences['height']))
@@ -433,10 +425,7 @@ class PreferenceWindow(QDialog):
         # color map
         c1 = str(self.color_map_combobox.currentText())
         if c1:
-            project_preferences['color_map1'] = c1
-        c2 = str(self.color_map2_combobox.currentText())
-        if c2:
-            project_preferences['color_map2'] = c2
+            project_preferences['color_map'] = c1
         # font size
         font_size = self.font_size_lineedit.text()
         if font_size:

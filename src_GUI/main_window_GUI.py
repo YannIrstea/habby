@@ -225,7 +225,6 @@ class MainWindows(QMainWindow):
         self.my_toolbar()
 
         # connect the signals of the welcome tab with the different functions (careful if changes this copy 3 times
-        # in set_langue and create_project
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_existing_project_dialog)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
@@ -881,10 +880,6 @@ class MainWindows(QMainWindow):
         self.lang = int(nb_lang)
         # get the old tab
         ind_tab = self.central_widget.tab_widget.currentIndex()
-        # get hydraulic type open
-        ind_hydrau_tab = 0
-        if self.central_widget.tab_widget.count() != 1:
-            ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
         # if plot process are open, close them
         if hasattr(self.central_widget, "data_explorer_tab"):
             if hasattr(self.central_widget.data_explorer_tab.data_explorer_frame, 'process_list'):
@@ -900,35 +895,17 @@ class MainWindows(QMainWindow):
         self.recreate_tabs_attributes()
         if self.central_widget.tab_widget.count() == 1:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
-        # else:
-        #     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
-        #     #if self.physic_tabs:
-        #     self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
-        #     if ind_hydrau_tab != 0:
-        #         self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
-        #     self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
-        #     self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
-        #     self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
-        #     self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
-        #     #if self.stat_tabs:
-        #     self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-        #     self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-        #     self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-
 
         # pass the info to the bio info tab
-        # to be modified if a new language is added !
         if nb_lang == 0:
             if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'English'
         elif nb_lang == 1:
             if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'French'
-        # elif nb_lang == 2:  # to be added if the xml preference files are also in spanish
-        #     self.central_widget.bioinfo_tab.lang = 'Spanish'
         else:
             if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'English'
+                self.central_widget.bioinfo_tab.lang = 'Spanish'
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         if self.path_prj:
@@ -1597,7 +1574,7 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.drop_sub.clear()
         # log
         t = self.central_widget.tracking_journal_QTextEdit.toPlainText()
-        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Images deleted. <br>'))
+        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('All figures are deleted.'))
 
     def see_file(self):
         """

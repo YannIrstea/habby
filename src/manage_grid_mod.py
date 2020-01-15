@@ -2489,7 +2489,7 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
             plt.ticklabel_format(useOffset=False)
             # plt.subplot(2, 1, 1)
             # get colormap limit
-            cm = plt.cm.get_cmap(project_preferences['color_map1'])
+            cm = plt.cm.get_cmap(project_preferences['color_map'])
             mvc = 0.001
             for r in range(0, len(inter_vel_all)):
                 inter_vel = inter_vel_all[r]
@@ -2575,7 +2575,7 @@ def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, 
             plt.ticklabel_format(useOffset=False)
             # color map (the same for al reach)
             mvc = 0.001
-            cm = plt.cm.get_cmap(project_preferences['color_map2'])
+            cm = plt.cm.get_cmap(project_preferences['color_map'])
             for r in range(0, len(inter_h_all)):
                 inter_h = inter_h_all[r]
                 if len(inter_h) > 0:
