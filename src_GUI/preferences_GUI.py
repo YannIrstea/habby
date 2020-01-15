@@ -132,27 +132,32 @@ class PreferenceWindow(QDialog):
 
         """ figure widgets """
         # fig_size
-        fig_size_label = QLabel(self.tr('Figure Size [cm]'), self)
+        fig_size_label = QLabel(self.tr('Figure size (w,h) [cm]'), self)
         self.fig_size_lineedit = QLineEdit("")
         self.fig_size_lineedit.setToolTip(self.tr("width, height"))
         fig_size_label.setToolTip(self.tr("width, height"))
 
         # color_map
-        color_map_label = QLabel(self.tr('Color Map 1'), self)
+        color_map_label = QLabel(self.tr('Color map 1'), self)
         self.color_map_combobox = QComboBox()
         self.color_map_combobox.addItems(self.namecmap)
 
         # color_map2
-        color_map2_label = QLabel(self.tr('Color Map 2'), self)
+        color_map2_label = QLabel(self.tr('Color map 2'), self)
         self.color_map2_combobox = QComboBox()
         self.color_map2_combobox.addItems(self.namecmap)
 
         # font_size
-        font_size_label = QLabel(self.tr('Font Size'), self)
+        font_size_label = QLabel(self.tr('Font size'), self)
         self.font_size_lineedit = QLineEdit("")
 
+        # font_family
+        font_family_label = QLabel(self.tr('Font family'), self)
+        self.font_family_combobox = QComboBox()
+        self.font_family_combobox.addItems(["Arial", "Calibri", "Times New Roman", "Tahoma", "DejaVu Sans"])
+
         # line_width
-        line_width_label = QLabel(self.tr('Line Width'), self)
+        line_width_label = QLabel(self.tr('Line width'), self)
         self.line_width_lineedit = QLineEdit("")
 
         # grid
@@ -160,9 +165,9 @@ class PreferenceWindow(QDialog):
         self.grid_checkbox = QCheckBox("", self)
 
         # fig_forma
-        fig_format_label = QLabel(self.tr('Figure Format'))
+        fig_format_label = QLabel(self.tr('Figure format'))
         self.fig_format_combobox = QComboBox()
-        self.fig_format_combobox.addItems(['png', 'pdf'])
+        self.fig_format_combobox.addItems(['.png', '.pdf'])
 
         # resolution
         resolution_label = QLabel(self.tr('Resolution [dpi]'))
@@ -270,6 +275,7 @@ class PreferenceWindow(QDialog):
         layout_figures.addRow(color_map_label, self.color_map_combobox)
         layout_figures.addRow(color_map2_label, self.color_map2_combobox)
         layout_figures.addRow(font_size_label, self.font_size_lineedit)
+        layout_figures.addRow(font_family_label, self.font_family_combobox)
         layout_figures.addRow(line_width_label, self.line_width_lineedit)
         layout_figures.addRow(grid_label, self.grid_checkbox)
         layout_figures.addRow(fig_format_label, self.fig_format_combobox)
@@ -358,6 +364,10 @@ class PreferenceWindow(QDialog):
         # font size
         self.font_size_lineedit.setText(str(project_preferences['font_size']))
 
+        # font_family
+        font_family_list = [self.font_family_combobox.itemText(i) for i in range(self.font_family_combobox.count())]
+        self.font_family_combobox.setCurrentIndex(font_family_list.index(project_preferences['font_family']))
+
         # line_width
         self.line_width_lineedit.setText(str(project_preferences['line_width']))
 
@@ -368,12 +378,8 @@ class PreferenceWindow(QDialog):
             self.grid_checkbox.setChecked(False)
 
         # format
-        if project_preferences['format'] == ".png":
-            self.fig_format_combobox.setCurrentIndex(0)
-        elif project_preferences['format'] == ".pdf":
-            self.fig_format_combobox.setCurrentIndex(1)
-        else:
-            self.fig_format_combobox.setCurrentIndex(2)
+        fig_format_list = [self.fig_format_combobox.itemText(i) for i in range(self.fig_format_combobox.count())]
+        self.fig_format_combobox.setCurrentIndex(fig_format_list.index(project_preferences['format']))
 
         # resolution
         self.resolution_lineedit.setText(str(project_preferences['resolution']))
@@ -438,6 +444,13 @@ class PreferenceWindow(QDialog):
                 project_preferences['font_size'] = int(font_size)
             except ValueError:
                 self.send_log.emit('Error: ' + self.tr('Font size should be an integer. \n'))
+        # font_family
+        font_family = self.font_family_combobox.currentText()
+        if font_family:
+            try:
+                project_preferences['font_family'] = font_family
+            except ValueError:
+                self.send_log.emit('Error: ' + self.tr('Font family not recognized. \n'))
         # line width
         line_width = self.line_width_lineedit.text()
         if line_width:
@@ -451,7 +464,7 @@ class PreferenceWindow(QDialog):
         else:
             project_preferences['grid'] = False
         # format
-        project_preferences['format'] = "." + self.fig_format_combobox.currentText()
+        project_preferences['format'] = self.fig_format_combobox.currentText()
         # resolution
         try:
             project_preferences['resolution'] = int(self.resolution_lineedit.text())

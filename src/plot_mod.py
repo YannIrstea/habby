@@ -60,7 +60,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -164,7 +164,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -234,7 +234,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
-
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -288,6 +288,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'], project_preferences['name_prj'])
 
@@ -349,6 +350,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
     mpl.rcParams['font.size'] = project_preferences['font_size']
     if project_preferences['font_size'] > 7:
         mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -575,6 +577,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     mpl.rcParams['font.size'] = project_preferences['font_size']
     if project_preferences['font_size'] > 7:
         mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
@@ -748,6 +751,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     if project_preferences['font_size'] > 7:
         mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     erase1 = project_preferences['erase_id']
     path_im = os.path.join(path_prj, "output", "figures")
@@ -1616,6 +1620,7 @@ def mpl_map_change_parameters(project_preferences):
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
+    mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
