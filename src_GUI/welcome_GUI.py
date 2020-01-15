@@ -79,7 +79,7 @@ class WelcomeW(QScrollArea):
         font = QFont()
         font.setPointSize(20)
         self.habby_title_label.setFont(font)
-        self.habby_title_label.setStyleSheet("QLabel {background-color:None; color : rgb(71, 181, 230, 255); }")
+        self.habby_title_label.setStyleSheet("QLabel {background-color:None; color : rgb(71, 181, 230); }")
 
         # background image
         self.background_image_label = QLabel()
