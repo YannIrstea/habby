@@ -177,6 +177,8 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                                                                               hyd_file]["path_filename_source"])
 
         for i, unit_num in enumerate(unit_index_list):
+            # unit unit_name
+            unit_name = hydrau_description[hyd_file]["unit_list"][unit_num]
             if len(file_list) > 1:
                 data_2d_telemac, description_from_telemac_file = load_telemac(file_list[i],
                                                                               hydrau_description[
@@ -189,7 +191,6 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
             [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(data_2d_telemac["mesh"]["tin"][0],
                                                                                         xy,
-                                                                                        # with z value (facilitate)
                                                                                         data_2d_telemac["node"]["data"]["h"][0][
                                                                                             unit_num],
                                                                                         data_2d_telemac["node"]["data"]["v"][0][
@@ -198,6 +199,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                                                                                         delta,
                                                                                         project_preferences[
                                                                                             "cut_mesh_partialy_dry"],
+                                                                                        unit_name,
                                                                                         minwh)
 
             if not isinstance(tin_data, np.ndarray):  # error or warning
@@ -208,8 +210,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                     return
                 elif tin_data:  # entierly dry
                     hydrau_description["unit_list_tf"][0][unit_num] = False
-                    print("Warning: " + qt_tr.translate("telemac_mod", "The mesh of timestep ") + description_from_telemac_file["unit_list"][0][unit_num] + qt_tr.translate("telemac_mod", " is entirely dry."))
-
+                    # print("Warning: " + qt_tr.translate("telemac_mod", "The mesh of timestep ") + description_from_telemac_file["unit_list"][0][unit_num] + qt_tr.translate("telemac_mod", " is entirely dry."))
                     continue  # Continue to next iteration.
             else:
                 # save data in dict

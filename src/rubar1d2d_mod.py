@@ -810,6 +810,8 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
         for unit_num in range(len(description_from_rubar2d["unit_list"][reach_num])):
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
+                # unit unit_name
+                unit_name = description_from_rubar2d["unit_list"][reach_num][unit_num]
 
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_rubar2d["node"]["xy"][reach_num],
@@ -826,16 +828,18 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                     progress_value,
                     delta,
                     project_preferences["cut_mesh_partialy_dry"],
-                    minwh)
+                    unit_name,
+                    minwh
+                    )
 
                 if not isinstance(tin_data, np.ndarray):  # error or warning
                     if not tin_data:  # error
                         print("Error: " + qt_tr.translate("rubar1d2d_mod", "cut_2d_grid"))
                         q.put(mystdout)
                         return
-                    elif tin_data:   # entierly dry
+                    elif tin_data:   # warning
                         hydrau_description["unit_list_tf"][reach_num][unit_num] = False
-                        print("Warning: " + qt_tr.translate("rubar1d2d_mod", "The mesh of timestep ") + description_from_rubar2d["unit_list"][reach_num][unit_num] + qt_tr.translate("rubar1d2d_mod", " is entirely dry."))
+                        # print("Warning: " + qt_tr.translate("rubar1d2d_mod", "The mesh of timestep ") + unit_name + qt_tr.translate("rubar1d2d_mod", " is entirely dry."))
                         continue  # Continue to next iteration.
                 else:
                     # get original data

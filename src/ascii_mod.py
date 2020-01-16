@@ -79,7 +79,8 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         for unit_num in range(len(data_description["unit_list"][reach_num])):
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
-
+                # unit unit_name
+                unit_name = data_description["unit_list"][reach_num][unit_num]
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_ascii["node"]["xy"][reach_num][unit_num],
                                2,
@@ -95,6 +96,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     progress_value,
                     delta,
                     project_preferences["cut_mesh_partialy_dry"],
+                    unit_name,
                     minwh)
 
                 if not isinstance(tin_data, np.ndarray):  # error or warning
@@ -104,8 +106,6 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                         return
                     elif tin_data:  # entierly dry
                         hydrau_description["unit_list_tf"][reach_num][unit_num] = False
-                        print("Warning: " + "The mesh of timestep " + str(
-                            data_description["unit_list"][reach_num][unit_num]) + " is entirely dry.")
                         continue  # Continue to next iteration.
 
                 # get substrate after cuting mesh

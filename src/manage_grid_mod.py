@@ -1056,7 +1056,8 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
 
 
 #@profileit
-def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, min_height=0.001):
+def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, unit_name,
+                min_height=0.001):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
     with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
@@ -1088,20 +1089,20 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     bhw = (water_height > 0).astype(np.int)
     ikle_bit = bhw[ikle]
     ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
-    mikle_keep = ikle_type ==3
+    mikle_keep = ikle_type == 3
     mikle_keep2 = ikle_type != 0
     ipt_all_ok_wetdry = []
     # all meshes are entirely wet
     if all(mikle_keep):
-        print('Warning: All meshes are entirely wet on one of the timestep.')
-        iklekeep=ikle
-        point_all_ok=point_all
-        water_height_ok=water_height
-        velocity_ok=velocity
+        print("Warning: The mesh of timestep " + unit_name + " is entirely wet.")
+        iklekeep = ikle
+        point_all_ok = point_all
+        water_height_ok = water_height
+        velocity_ok = velocity
         ind_whole = ind_whole  # TODO: full whole profile
     # all meshes are entirely dry
     elif not True in mikle_keep2:
-        #print('Error: all meshes are entirely dry')
+        print("Warning: The mesh of timestep " + unit_name + " is entirely dry.")
         return True, True, True, True, True
     # only the dry meshes are cut (but not the partially ones)
     elif not CutMeshPartialyDry:
@@ -1177,11 +1178,13 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
                             ipt_all_ok_wetdry.append(ib)
                             ind_whole2.append(i)
                     else:
-                        print("impossible case during cut_2d_grid")
+                        print(
+                            "Error: Impossible case during the cutting of mesh partially wet on the timestep " + str(unit_name) + ".")
                         return failload
                     jpn += 2
 
-        iklekeep = ikle[mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
+        iklekeep = ikle[
+            mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
         ind_whole = ind_whole[mikle_keep, ...]
         ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
 
@@ -1205,13 +1208,13 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
         iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
         point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
+        # check if duplicates presence TODO: remove duplicates (if resolved : remove the return)
         u, c = np.unique(point_all_ok, return_counts=True, axis=0)
         dup = u[c > 1]
         if len(dup) != 0:
-            # TODO: remove created duplicate with cut2d
-            print("duplciate apres append", dup)
-            print("u", u)
-            print("c", c)
+            print("Warning: The mesh of timestep " + unit_name + " create " + str(len(dup)) +
+                  " duplicate(s) point(s) with the cutting of mesh partially wet : " + str(dup) + ".")
+            return True, True, True, True, True
         water_height_ok = np.append(water_height_ok, np.zeros(len(point_new_single), dtype=water_height.dtype), axis=0)
         velocity_ok = np.append(velocity_ok, np.zeros(len(point_new_single), dtype=velocity.dtype), axis=0)
 
