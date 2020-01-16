@@ -961,7 +961,6 @@ class MainWindows(QMainWindow):
         """
         This function creates the top menu bar of HABBY.
         """
-        #"my_menu_bar", self.sender())
         self.menubar = self.menuBar()
         self.menubar.clear()
 
@@ -1007,16 +1006,16 @@ class MainWindows(QMainWindow):
                 recent_proj_menu[3].triggered.connect(lambda: self.open_recent_project(3))
             elif j == 4:
                 recent_proj_menu[4].triggered.connect(lambda: self.open_recent_project(4))
-        self.preferences_action = QAction(self.tr('Properties'), self)
+        self.preferences_action = QAction(self.tr('Properties'))
         self.preferences_action.triggered.connect(self.open_preferences)
         self.preferences_action.setShortcut('Ctrl+P')
         tabs_menu = QMenu(project_menu)
         tabs_menu.setTitle(self.tr('Tabs'))
-        self.physicalmodelaction = QAction(self.tr('Physical tabs'), self, checkable=True)
+        self.physicalmodelaction = QAction(self.tr('Physical tabs'), checkable=True)
         self.physicalmodelaction.triggered.connect(self.open_close_physic)
-        self.statisticmodelaction = QAction(self.tr('Statistical tabs'), self, checkable=True)
+        self.statisticmodelaction = QAction(self.tr('Statistical tabs'), checkable=True)
         self.statisticmodelaction.triggered.connect(self.open_close_stat)
-        self.researchmodelaction = QAction(self.tr("Research tabs"), self, checkable=True)  # hidded
+        self.researchmodelaction = QAction(self.tr("Research tabs"), checkable=True)  # hidded
         self.researchmodelaction.triggered.connect(self.open_close_rech)  # hidded
         self.researchmodelaction.setShortcut('Ctrl+R')  # hidded
         log_menu = QMenu(project_menu)
