@@ -204,67 +204,35 @@ class DataExplorerFrame(QFrame):
         # nothing
         if index == 0:
             self.names_hdf5_QListWidget.clear()
-            self.plot_group.variable_QListWidget.clear()
-            self.plot_group.units_QListWidget.clear()
-            self.plot_group.hide()
-            self.dataexporter_group.change_layout(0)
-            self.dataexporter_group.hide()
-            self.habitatvalueremover_group.hide()
-            self.file_information_group.hide()
+
         # hydraulic
         if index == 1:
             names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
             self.names_hdf5_QListWidget.clear()
-            self.plot_group.variable_QListWidget.clear()
-            self.plot_group.plot_result_QCheckBox.hide()
-            self.dataexporter_group.change_layout(0)
-            self.plot_group.show()
-            self.dataexporter_group.show()
-            self.habitatvalueremover_group.hide()
-            self.file_information_group.show()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
-                self.dataexporter_group.change_layout(1)
-                if len(names) == 1:
-                    self.names_hdf5_QListWidget.selectAll()
-        # substrate
-        if index == 2:
-            names = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
-            self.names_hdf5_QListWidget.clear()
-            self.plot_group.variable_QListWidget.clear()
-            self.plot_group.plot_result_QCheckBox.hide()
-            self.dataexporter_group.change_layout(0)
-            self.plot_group.show()
-            self.dataexporter_group.hide()
-            self.habitatvalueremover_group.hide()
-            self.file_information_group.show()
-            if names:
-                # change list widget
-                self.names_hdf5_QListWidget.addItems(names)
-                self.dataexporter_group.change_layout(2)
-                if len(names) == 1:
-                    self.names_hdf5_QListWidget.selectAll()
-        # merge hab
-        if index == 3:
-            names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
-            self.names_hdf5_QListWidget.clear()
-            self.plot_group.variable_QListWidget.clear()
-            self.plot_group.plot_result_QCheckBox.show()
-            self.dataexporter_group.change_layout(0)
-            self.plot_group.show()
-            self.dataexporter_group.show()
-            self.habitatvalueremover_group.show()
-            self.file_information_group.show()
-            if names:
-                # change list widget
-                self.names_hdf5_QListWidget.addItems(names)
-                self.dataexporter_group.change_layout(3)
                 if len(names) == 1:
                     self.names_hdf5_QListWidget.selectAll()
 
-        # # update progress bar
-        # self.plot_group.count_plot()
+        # substrate
+        if index == 2:
+            names = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
+            if names:
+                # change list widget
+                self.names_hdf5_QListWidget.addItems(names)
+                if len(names) == 1:
+                    self.names_hdf5_QListWidget.selectAll()
+
+        # habitat
+        if index == 3:
+            names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
+            self.names_hdf5_QListWidget.clear()
+            if names:
+                # change list widget
+                self.names_hdf5_QListWidget.addItems(names)
+                if len(names) == 1:
+                    self.names_hdf5_QListWidget.selectAll()
 
     def names_hdf5_change(self):
         """
@@ -292,6 +260,7 @@ class DataExplorerFrame(QFrame):
 
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
+                self.set_hydraulic_layout()
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
                 if hdf5.reach_name:
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
@@ -302,6 +271,7 @@ class DataExplorerFrame(QFrame):
 
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
+                self.set_substrate_layout()
                 if hdf5.variables:  # if not False (from constant substrate) add items else nothing
                     self.plot_group.variable_QListWidget.addItems(hdf5.variables)
                     if hdf5.reach_name:
@@ -311,8 +281,9 @@ class DataExplorerFrame(QFrame):
                             if hdf5.nb_unit == 1:
                                 self.plot_group.units_QListWidget.selectAll()
 
-            # hab
+            # habitat
             if self.types_hdf5_QComboBox.currentIndex() == 3:
+                self.set_habitat_layout()
                 self.plot_group.variable_QListWidget.addItems(hdf5.variables)
                 if hdf5.reach_name:
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
@@ -336,14 +307,48 @@ class DataExplorerFrame(QFrame):
             self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
             self.file_information_group.toggle_group(self.file_information_group.isChecked())
         else:
-            self.file_information_group.hdf5_attributes_qtableview.setModel(None)
-            self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(30)
-            self.file_information_group.toggle_group(self.file_information_group.isChecked())
+            self.set_empty_layout()
 
         # count plot
         self.plot_group.count_plot()
         # count exports
         self.dataexporter_group.count_export()
+
+    def set_empty_layout(self):
+        self.plot_group.variable_QListWidget.clear()
+        self.plot_group.units_QListWidget.clear()
+        self.plot_group.hide()
+        self.dataexporter_group.change_export_layout(0)
+        self.dataexporter_group.hide()
+        self.habitatvalueremover_group.hide()
+        self.file_information_group.hide()
+
+    def set_hydraulic_layout(self):
+        self.plot_group.variable_QListWidget.clear()
+        self.plot_group.plot_result_QCheckBox.hide()
+        self.dataexporter_group.change_export_layout(1)
+        self.plot_group.show()
+        self.dataexporter_group.show()
+        self.habitatvalueremover_group.hide()
+        self.file_information_group.show()
+
+    def set_substrate_layout(self):
+        self.plot_group.variable_QListWidget.clear()
+        self.plot_group.plot_result_QCheckBox.hide()
+        self.dataexporter_group.change_export_layout(2)
+        self.plot_group.show()
+        self.dataexporter_group.hide()
+        self.habitatvalueremover_group.hide()
+        self.file_information_group.show()
+
+    def set_habitat_layout(self):
+        self.plot_group.variable_QListWidget.clear()
+        self.plot_group.plot_result_QCheckBox.show()
+        self.dataexporter_group.change_export_layout(3)
+        self.plot_group.show()
+        self.dataexporter_group.show()
+        self.habitatvalueremover_group.show()
+        self.file_information_group.show()
 
     def show_menu_hdf5_remover(self, point):
         selection = self.names_hdf5_QListWidget.selectedItems()
@@ -533,6 +538,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         """
         count number of graphic to produce and ajust progress bar range
         """
+        print("count_plot")
         types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
         plot_type = []
         if self.plot_map_QCheckBox.isChecked():
@@ -1505,7 +1511,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.data_exporter_layout.addLayout(progress_layout, 1, 0, 1, 2)
         self.setLayout(self.data_exporter_layout)
 
-    def change_layout(self, type):
+    def change_export_layout(self, type):
         # nothing
         if type == 0:
             self.empty_export_widget.show()
