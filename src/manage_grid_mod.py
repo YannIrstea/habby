@@ -1199,13 +1199,19 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ipt_old_new[point_index] = i
     iklekeep2 = ipt_old_new[ikle]
     iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
-    if ipt_all_ok_wetdry: # in case no partially wet/dry meshes
+    if ipt_all_ok_wetdry:  # in case no partially wet/dry meshes
         # delete dupplicate of the new point set
         point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
         ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
         iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
-
         point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
+        u, c = np.unique(point_all_ok, return_counts=True, axis=0)
+        dup = u[c > 1]
+        if len(dup) != 0:
+            # TODO: remove created duplicate with cut2d
+            print("duplciate apres append", dup)
+            print("u", u)
+            print("c", c)
         water_height_ok = np.append(water_height_ok, np.zeros(len(point_new_single), dtype=water_height.dtype), axis=0)
         velocity_ok = np.append(velocity_ok, np.zeros(len(point_new_single), dtype=velocity.dtype), axis=0)
 
