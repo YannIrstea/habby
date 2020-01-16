@@ -67,6 +67,9 @@ class DataExplorerTab(QScrollArea):
         if index:
             self.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(0)
             self.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(index)
+            if self.data_explorer_frame.names_hdf5_index:
+                self.data_explorer_frame.reselect_hdf5_name_after_rename()
+                self.data_explorer_frame.names_hdf5_index = None
 
     def refresh_filename(self):
         item = self.data_explorer_frame.names_hdf5_QListWidget.selectedItems()
@@ -88,6 +91,7 @@ class DataExplorerFrame(QFrame):
         self.name_prj = name_prj
         self.send_log = send_log
         self.nb_plot = 0
+        self.names_hdf5_index = None
         self.file_to_remove_list = []
         self.init_ui()
         self.plot_production_stoped = False
@@ -330,8 +334,11 @@ class DataExplorerFrame(QFrame):
             # resize qtableview
             height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(hdf5.hdf5_attributes_name_text) + 1)
             self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
+            self.file_information_group.toggle_group(self.file_information_group.isChecked())
         else:
             self.file_information_group.hdf5_attributes_qtableview.setModel(None)
+            self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(30)
+            self.file_information_group.toggle_group(self.file_information_group.isChecked())
 
         # count plot
         self.plot_group.count_plot()
@@ -381,19 +388,23 @@ class DataExplorerFrame(QFrame):
 
     def get_hdf5_name_to_rename_and_emit(self, selection):
         self.file_renamed = selection.text()  # get name after modification
+        self.names_hdf5_index = self.names_hdf5_QListWidget.currentIndex()
         # check if ext is not removed by user
         ext_before = os.path.splitext(self.file_to_rename)[1]
         ext_after = os.path.splitext(self.file_renamed)[1]
         if ext_after != ext_before:
             self.file_renamed = os.path.splitext(self.file_renamed)[0] + ext_before
 
-        # disconnect, set item non editable and reconnect
-        self.names_hdf5_QListWidget.disconnect()  # disconnect all function
+        # disconnect, set item non editable and reconnect (in mainwindow)
+        self.names_hdf5_QListWidget.blockSignals(True)
         selection.setFlags(~Qt.ItemIsEditable | Qt.ItemIsEnabled)  # set item not editable
-        self.names_hdf5_QListWidget.customContextMenuRequested.connect(self.show_menu_hdf5_remover)  # reconnect
 
         # emit signal
         self.send_rename.emit("")
+
+    def reselect_hdf5_name_after_rename(self):
+        self.names_hdf5_QListWidget.setCurrentIndex(self.names_hdf5_index)
+        QCoreApplication.processEvents()
 
 
 class FigureProducerGroup(QGroupBoxCollapsible):

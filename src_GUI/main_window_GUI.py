@@ -1512,7 +1512,7 @@ class MainWindows(QMainWindow):
         input_type = hdf5.input_type
         hdf5.file_object.close()
 
-        # refresh .xml project
+        # refresh .habby project
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             # load
@@ -1525,6 +1525,9 @@ class MainWindows(QMainWindow):
 
                 # save
                 save_project_preferences(self.path_prj, project_preferences)
+
+        # reconnect
+        self.central_widget.data_explorer_tab.data_explorer_frame.names_hdf5_QListWidget.blockSignals(False)
 
         # update_combobox_filenames
         self.central_widget.update_combobox_filenames()
