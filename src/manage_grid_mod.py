@@ -1056,7 +1056,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
 
 
 #@profileit
-def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, unit_name,
+def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, unit_num,
                 min_height=0.001):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
@@ -1073,6 +1073,12 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     :return: the update connectivity table, the coordinates of the point, the height of the water and the
              velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
     """
+    if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
+                                                xy_array=point_all,
+                                                unit_num=unit_num,
+                                                case="before the deletion of dry mesh"):
+        return True, True, True, True, True
+
     typeikle = ikle.dtype
     typepoint = point_all.dtype
     failload = False, False, False, False, False
@@ -1094,7 +1100,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     ipt_all_ok_wetdry = []
     # all meshes are entirely wet
     if all(mikle_keep):
-        print("Warning: The mesh of timestep " + unit_name + " is entirely wet.")
+        #print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
         iklekeep = ikle
         point_all_ok = point_all
         water_height_ok = water_height
@@ -1102,7 +1108,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ind_whole = ind_whole  # TODO: full whole profile
     # all meshes are entirely dry
     elif not True in mikle_keep2:
-        print("Warning: The mesh of timestep " + unit_name + " is entirely dry.")
+        print("Warning: The mesh of unit " + unit_num + " is entirely dry.")
         return True, True, True, True, True
     # only the dry meshes are cut (but not the partially ones)
     elif not CutMeshPartialyDry:
@@ -1179,7 +1185,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
                             ind_whole2.append(i)
                     else:
                         print(
-                            "Error: Impossible case during the cutting of mesh partially wet on the timestep " + str(unit_name) + ".")
+                            "Error: Impossible case during the cutting of mesh partially wet on the timestep " + str(unit_num) + ".")
                         return failload
                     jpn += 2
 
@@ -1208,17 +1214,46 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
         iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
         point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
-        # check if duplicates presence TODO: remove duplicates (if resolved : remove the return)
-        u, c = np.unique(point_all_ok, return_counts=True, axis=0)
-        dup = u[c > 1]
-        if len(dup) != 0:
-            print("Warning: The mesh of timestep " + unit_name + " create " + str(len(dup)) +
-                  " duplicate(s) point(s) with the cutting of mesh partially wet : " + str(dup) + ".")
+        if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
+                                                    xy_array=point_all_ok,
+                                                    unit_num=unit_num,
+                                                    case="after the cutting of mesh partially wet"):
             return True, True, True, True, True
+
         water_height_ok = np.append(water_height_ok, np.zeros(len(point_new_single), dtype=water_height.dtype), axis=0)
         velocity_ok = np.append(velocity_ok, np.zeros(len(point_new_single), dtype=velocity.dtype), axis=0)
 
     return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
+
+
+def is_duplicates_mesh_and_point_on_one_unit(tin_array, xy_array, unit_num, case):
+    # init
+    tin_duplicate_tf = False
+    xy_duplicate_tf = False
+
+    # check if mesh duplicates presence TODO: remove duplicates (if resolved : remove the return)
+    u, c = np.unique(tin_array, return_counts=True, axis=0)
+    dup = u[c > 1]
+    if len(dup) != 0:
+        tin_duplicate_tf = True
+        print("Warning: The mesh of unit " + str(unit_num) + " has " + str(len(dup)) +
+              " duplicate(s) mesh(s) " + case + " : " +
+              ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
+
+    # check if points duplicates presence TODO: remove duplicates (if resolved : remove the return)
+    u, c = np.unique(xy_array, return_counts=True, axis=0)
+    dup = u[c > 1]
+    if len(dup) != 0:
+        xy_duplicate_tf = True
+        print("Warning: The mesh of unit " + str(unit_num) + " has " + str(len(dup)) +
+              " duplicate(s) point(s) " + case + " : " +
+              ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
+
+    # return
+    if tin_duplicate_tf or xy_duplicate_tf:
+        return True
+    else:
+        return False
 
 
 def linear_z_cross(p1, p2, h1, h2):

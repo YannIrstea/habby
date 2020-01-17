@@ -1166,7 +1166,7 @@ class MainWindows(QMainWindow):
             self.user_preferences.save_user_preferences_json()
 
     def set_unset_fullscreen(self):
-        print("set_unset_fullscreen", self.sender())
+        #print("set_unset_fullscreen", self.sender())
         if self.fullscreen_action.isChecked():
             self.showFullScreen()
             self.fullscreen_action.setChecked(True)

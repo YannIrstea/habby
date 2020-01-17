@@ -80,7 +80,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
                 # unit unit_name
-                unit_name = data_description["unit_list"][reach_num][unit_num]
+                unit_name = hydrau_description["unit_list"][reach_num][unit_num]
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_ascii["node"]["xy"][reach_num][unit_num],
                                2,
@@ -96,7 +96,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     progress_value,
                     delta,
                     project_preferences["cut_mesh_partialy_dry"],
-                    unit_name,
+                    unit_num,
                     minwh)
 
                 if not isinstance(tin_data, np.ndarray):  # error or warning
@@ -104,7 +104,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                         print("Error: " + "cut_2d_grid")
                         q.put(mystdout)
                         return
-                    elif tin_data:  # entierly dry
+                    elif tin_data:  # warning
                         hydrau_description["unit_list_tf"][reach_num][unit_num] = False
                         continue  # Continue to next iteration.
 
@@ -135,11 +135,15 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
             data_2d_whole_profile["node"]["xy"][reach_num].pop(index)
             data_2d_whole_profile["node"]["z"][reach_num].pop(index)
 
+    # refresh unit (if warning)
+    for reach_num in reversed(range(int(data_description["reach_number"]))):  # for each reach
+        for unit_num in reversed(range(len(data_description["unit_list"][reach_num]))):
+            if not hydrau_description["unit_list_tf"][reach_num][unit_num]:
+                data_description["unit_list"][reach_num].pop(unit_num)
+    data_description["unit_number"] = str(len(data_description["unit_list"][0]))
+
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
-
-    # change unit from according to user selection
-    hydrau_description["unit_number"] = str(len(hydrau_description["unit_list"][0]))  # same unit len for each reach
 
     # hyd description
     hyd_description = dict()
@@ -154,8 +158,8 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_reach_list"] = data_description["reach_list"]
     hyd_description["hyd_reach_number"] = data_description["reach_number"]
     hyd_description["hyd_reach_type"] = data_description["reach_type"]
-    hyd_description["hyd_unit_list"] = hydrau_description["unit_list"]
-    hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
+    hyd_description["hyd_unit_list"] = data_description["unit_list"]
+    hyd_description["hyd_unit_number"] = data_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["cut_mesh_partialy_dry"])
 
@@ -178,6 +182,12 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]
         hyd_description["hab_epsg_code"] = data_description["epsg_code"]
         data_description["hdf5_name"] = hydrau_description["hdf5_name"]
+
+    # check if there is no units clean (all units have warning of cut2dgrid)
+    if hyd_description["hyd_unit_number"] == "0":
+        print("Error: All units have trouble.")
+        q.put(mystdout)
+        return
 
     # create hdf5
     hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
@@ -594,6 +604,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                     data_2d["node"]["data"]["v"][reach_num].append(vnodes2[:, unit_num])
             else:
                 ikle, nodes, sub = reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub)
+
                 for unit_num in range(nbunit):
                     data_2d["mesh"]["tin"][reach_num].append(ikle)
                     data_2d["mesh"]["i_whole_profile"][reach_num].append(ikle)
@@ -671,7 +682,6 @@ def reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub):
     :param sub: a numpy array of at least 2 information for the coarser and dominant substrate classes
     :return:
     """
-
     ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
     ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
     if bsub:
@@ -681,16 +691,20 @@ def reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub):
 
     if len(ikle4):  # partitionning each 4angles in 4 triangles
         for unit_num in range(nbunit):
+            manage_grid_mod.is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle4,
+                                                                     xy_array=nodes[:, 0:2],
+                                                                     unit_num=unit_num,
+                                                                     case="before reduce quadrangles to triangles")
             # always obtain the sames ikle3new,xynew,znew only hnew,vnew are differents
-            ikle3new, xynew, znew, hnew, vnew = mesh_management_mod.quadrangles_to_triangles(ikle4, nodes[:, 0:2],
-                                                                                             nodes[:, 2], nodes[:,
-                                                                                                          2 + unit_num * 2 + 1],
-                                                                                             nodes[:,
-                                                                                             2 + unit_num * 2 + 2])
+            ikle3new, xynew, znew, hnew, vnew = \
+                mesh_management_mod.quadrangles_to_triangles(ikle4, nodes[:, 0:2],
+                                                             nodes[:, 2], nodes[:, 2 + unit_num * 2 + 1],
+                                                             nodes[:, 2 + unit_num * 2 + 2])
             if unit_num == 0:
                 newnodes = np.concatenate((xynew, znew, hnew, vnew), axis=1)
             else:
                 newnodes = np.concatenate((newnodes, hnew, vnew), axis=1)
+
         ikle = np.append(ikle, ikle3new, axis=0)
         nodes = np.append(nodes, newnodes, axis=0)
         if bsub:

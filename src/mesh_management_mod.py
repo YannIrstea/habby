@@ -26,7 +26,7 @@ from src import hdf5_mod
 from src.tools_mod import get_translator
 
 
-def quadrangles_to_triangles(ikle4,xy,z,h,v):
+def quadrangles_to_triangles(ikle4, xy, z, h, v):
     """
     this fucntion call the quadrangles hydraulic description and transforme it into a triangular description
     a new node is added in the center of each quadrangle, and we take care for the partially wet quadrangle
@@ -40,31 +40,31 @@ def quadrangles_to_triangles(ikle4,xy,z,h,v):
     :param v: the mean velocity of the nodes
     :return: ikle3 the connectivity table of the triangles, and the 'coordinates' of the additional nodes xy,z,h,v multilines numpy array
     """
-    #TODO verifier que len(ikle4)!=0
-    #TODO verifier que les elements des noeuds ont la même longueur len(xy)=len(v)=len(z)=len(h)
-    nbnodes0=len(xy)
-    nbnodes= nbnodes0
-    ikle3=np.empty(shape=[0, 3], dtype=int)
+    # TODO verifier que len(ikle4)!=0
+    # TODO verifier que les elements des noeuds ont la même longueur len(xy)=len(v)=len(z)=len(h)
+    nbnodes0 = len(xy)
+    nbnodes = nbnodes0
+    ikle3 = np.empty(shape=[0, 3], dtype=int)
     # transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
-    v=np.abs(v)
+    v = np.abs(v)
     hwneg = np.where(h < 0)
     h[hwneg] = 0
     hwnul = np.where(h == 0)
     v[hwnul] = 0
-    #essential for return value data in multiple lines
-    if z.ndim==1:
-        z = z.reshape(np.size(z),1)
-    if h.ndim==1:
-        h = h.reshape(np.size(h),1)
-    if v.ndim==1:
-        v = v.reshape(np.size(v),1)
+    # essential for return value data in multiple lines
+    if z.ndim == 1:
+        z = z.reshape(np.size(z), 1)
+    if h.ndim == 1:
+        h = h.reshape(np.size(h), 1)
+    if v.ndim == 1:
+        v = v.reshape(np.size(v), 1)
 
     for i in range(len(ikle4)):
         nbnodes += 1
-        q0,q1,q2,q3=ikle4[i][0], ikle4[i][1], ikle4[i][2], ikle4[i][3]
+        q0, q1, q2, q3 = ikle4[i][0], ikle4[i][1], ikle4[i][2], ikle4[i][3]
         ikle3 = np.append(ikle3, np.array([[q0, nbnodes - 1, q3], [q0, q1, nbnodes - 1],
-                                         [q1, q2, nbnodes - 1], [nbnodes - 1, q2, q3]]),
-                         axis=0)
+                                           [q1, q2, nbnodes - 1], [nbnodes - 1, q2, q3]]),
+                          axis=0)
         xyi = np.mean(xy[[q0, q1, q2, q3], :], axis=0)
         zi = np.mean(z[[q0, q1, q2, q3], :], axis=0)
         hi = np.mean(h[[q0, q1, q2, q3], :], axis=0)
@@ -104,9 +104,9 @@ def quadrangles_to_triangles(ikle4,xy,z,h,v):
                             hi += ha - (zb - za) / 2
                             vi += hi * va / ha
             # affecting the mean result from the 2 diagonals/ edges
-            h [nbnodes - 1]=hi/2
-            v [nbnodes - 1]= vi/ 2
-    return ikle3,xy[nbnodes0-nbnodes:,:],z[nbnodes0-nbnodes:],h[nbnodes0-nbnodes:],v[nbnodes0-nbnodes:]
+            h[nbnodes - 1] = hi / 2
+            v[nbnodes - 1] = vi / 2
+    return ikle3, xy[nbnodes0 - nbnodes:, :], z[nbnodes0 - nbnodes:], h[nbnodes0 - nbnodes:], v[nbnodes0 - nbnodes:]
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False, project_preferences={}):

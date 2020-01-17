@@ -828,7 +828,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                     progress_value,
                     delta,
                     project_preferences["cut_mesh_partialy_dry"],
-                    unit_name,
+                    unit_num,
                     minwh
                     )
 

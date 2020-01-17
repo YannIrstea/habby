@@ -538,7 +538,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         """
         count number of graphic to produce and ajust progress bar range
         """
-        print("count_plot")
         types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
         plot_type = []
         if self.plot_map_QCheckBox.isChecked():

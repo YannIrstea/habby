@@ -178,7 +178,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
         for i, unit_num in enumerate(unit_index_list):
             # unit unit_name
-            unit_name = hydrau_description[hyd_file]["unit_list"][unit_num]
+            unit_name = hydrau_description[hyd_file]["unit_list"][i]
             if len(file_list) > 1:
                 data_2d_telemac, description_from_telemac_file = load_telemac(file_list[i],
                                                                               hydrau_description[
@@ -199,7 +199,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                                                                                         delta,
                                                                                         project_preferences[
                                                                                             "cut_mesh_partialy_dry"],
-                                                                                        unit_name,
+                                                                                        unit_num,
                                                                                         minwh)
 
             if not isinstance(tin_data, np.ndarray):  # error or warning
@@ -222,6 +222,13 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                 data_2d["node"]["z"][0].append(xy_cuted[:, 2])
                 data_2d["node"]["data"]["h"][0].append(h_data)
                 data_2d["node"]["data"]["v"][0].append(v_data)
+
+        # # refresh unit (if warning)
+        # for reach_num in reversed(range(int(hydrau_description[hyd_file]["reach_number"]))):  # for each reach
+        #     for unit_num in reversed(range(len(hydrau_description[hyd_file]["unit_list"][reach_num]))):
+        #         if not hydrau_description[hyd_file]["unit_list_tf"][reach_num][unit_num]:
+        #             hydrau_description[hyd_file]["unit_list"][reach_num].pop(unit_num)
+        # hydrau_description["unit_number"] = str(len(hydrau_description[hyd_file]["unit_list"][0]))
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress
