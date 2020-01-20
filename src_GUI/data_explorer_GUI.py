@@ -201,14 +201,11 @@ class DataExplorerFrame(QFrame):
         Ajust item list according to hdf5 type selected by user
         """
         index = self.types_hdf5_QComboBox.currentIndex()
-        # nothing
-        if index == 0:
-            self.names_hdf5_QListWidget.clear()
+        self.names_hdf5_QListWidget.clear()
 
         # hydraulic
         if index == 1:
             names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
-            self.names_hdf5_QListWidget.clear()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -227,7 +224,6 @@ class DataExplorerFrame(QFrame):
         # habitat
         if index == 3:
             names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
-            self.names_hdf5_QListWidget.clear()
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
