@@ -810,9 +810,6 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
         for unit_num in range(len(description_from_rubar2d["unit_list"][reach_num])):
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
-                # unit unit_name
-                unit_name = description_from_rubar2d["unit_list"][reach_num][unit_num]
-
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_from_rubar2d["node"]["xy"][reach_num],
                                2,

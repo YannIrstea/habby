@@ -1100,7 +1100,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     ipt_all_ok_wetdry = []
     # all meshes are entirely wet
     if all(mikle_keep):
-        #print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
+        #print("Warning: The mesh of unit n°" + unit_name + " is entirely wet.")
         iklekeep = ikle
         point_all_ok = point_all
         water_height_ok = water_height
@@ -1108,7 +1108,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ind_whole = ind_whole  # TODO: full whole profile
     # all meshes are entirely dry
     elif not True in mikle_keep2:
-        print("Warning: The mesh of unit " + unit_num + " is entirely dry.")
+        print("Warning: The mesh of unit n°" + unit_num + " is entirely dry.")
         return True, True, True, True, True
     # only the dry meshes are cut (but not the partially ones)
     elif not CutMeshPartialyDry:
@@ -1236,7 +1236,7 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xy_array, unit_num, case
     dup = u[c > 1]
     if len(dup) != 0:
         tin_duplicate_tf = True
-        print("Warning: The mesh of unit " + str(unit_num) + " has " + str(len(dup)) +
+        print("Warning: The mesh of unit n° " + str(unit_num) + " has " + str(len(dup)) +
               " duplicate(s) mesh(s) " + case + " : " +
               ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
 
@@ -1245,7 +1245,7 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xy_array, unit_num, case
     dup = u[c > 1]
     if len(dup) != 0:
         xy_duplicate_tf = True
-        print("Warning: The mesh of unit " + str(unit_num) + " has " + str(len(dup)) +
+        print("Warning: The mesh of unit n°" + str(unit_num) + " has " + str(len(dup)) +
               " duplicate(s) point(s) " + case + " : " +
               ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
 
