@@ -261,4 +261,4 @@ class UserPreferences(AppDataFolders):
 
 user_preferences = UserPreferences()
 user_preferences.create_user_preferences_structure()
-print("create instance", user_preferences)
+#print("create instance", user_preferences)

@@ -2044,6 +2044,7 @@ class CentralW(QWidget):
         *   if text_log start with WARNING -> added it to self.tracking_journal_QTextEdit (QTextEdit) and the .log file
         *   if text_log start with ERROR -> added it to self.tracking_journal_QTextEdit (QTextEdit) and the .log file
         *   if text_log start with py -> added to the .log file (python command)
+        *   if text_log start with cmd -> added to the .log file (script command)
         *   if text_log starts with Process -> Text added to the StatusBar only
         *   if text_log == "clear status bar" -> the status bar is cleared
         *   if text_log start with nothing -> just print to the QTextEdit
@@ -2054,12 +2055,19 @@ class CentralW(QWidget):
         # read xml file to find the path to the log file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(fname):
+            # file_log
             logfile = load_specific_preferences(self.path_prj, ["file_log"])[0]
             if logfile:
                 pathname_logfile = logfile
             else:
                 self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
-                                                                        "log file is not indicated in the xml file. No log written. </br> <br>")
+                                                                        "log file is not indicated in the .habby file. No log written. </br> <br>")
+                return
+            # file_script
+            file_script = load_specific_preferences(self.path_prj, ["file_script"])[0]
+            if not file_script:
+                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
+                                                                        "script file is not indicated in the .habby file. No log written. </br> <br>")
                 return
             # restart log
             restart = load_specific_preferences(self.path_prj, ["file_restart"])[0]
@@ -2087,6 +2095,9 @@ class CentralW(QWidget):
         # add python code to the .log file
         elif text_log[:2] == 'py':
             self.write_log_file(text_log[2:], pathname_logfile)
+        # add script code to the .log file
+        elif text_log[:6] == 'script':
+            self.write_script_file(text_log[6:], file_script)
         # add restart command to the restart file
         elif text_log[:7] == 'restart':
             self.write_log_file(text_log[7:], pathname_restartfile)
@@ -2134,13 +2145,32 @@ class CentralW(QWidget):
                 shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
                             os.path.join(self.path_prj, 'restart_' + self.name_prj + '.log'))
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write("    name_project = " + self.name_prj + "'\n")
+                    myfile.write("    name_project = " + self.name_prj + "\n")
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write("    path_project = " + self.path_prj + "'\n")
+                    myfile.write("    path_project = " + self.path_prj + "\n")
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write('\n' + text_log)
 
         return
+
+    def write_script_file(self, text_log, pathname_scriptfile):
+        """
+        A function to write to the .log text. Called by write_log.
+
+        :param text_log: the text to be written (string)
+        :param pathname_scriptfile: the path+name where the log is
+        """
+        if self.logon:
+            if os.path.isfile(pathname_scriptfile):
+                with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
+                    myfile.write('\n' + text_log)
+            elif self.name_prj == '':
+                return
+            else:
+                self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                    "<FONT COLOR='#FF8C00'> WARNING: Script file not found. New script created. </br> <br>")
+                with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
+                    myfile.write('\n' + text_log)
 
     def update_combobox_filenames(self):
         """

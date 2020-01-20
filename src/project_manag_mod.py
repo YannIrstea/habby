@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import shutil
 import json
-
+import sys
 
 def create_default_project_preferences_dict(all_export_enabled=False):
     """
@@ -31,6 +31,7 @@ def create_default_project_preferences_dict(all_export_enabled=False):
     project_preferences['path_prj'] = ""
     project_preferences['path_last_file_loaded'] = ""
     project_preferences['file_log'] = ""
+    project_preferences['file_script'] = ""
     project_preferences['file_restart'] = ""
     project_preferences['save_log'] = True
     project_preferences['user_name'] = ""
@@ -132,6 +133,7 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     project_preferences["path_prj"] = path_prj
     project_preferences["save_log"] = save_log
     project_preferences["file_log"] = os.path.join(path_prj, name_prj + '.log')
+    project_preferences["file_script"] = os.path.join(path_prj, name_prj + '.script')
     project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
     project_preferences["version_habby"] = version_habby
     project_preferences["user_name"] = user_name
@@ -149,10 +151,16 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
 
     # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
     if name_prj != '':
+        # log
         shutil.copy(os.path.join('files_dep', 'log0.txt'), os.path.join(path_prj, name_prj + '.log'))
+        # restart
         shutil.copy(os.path.join('files_dep', 'restart_log0.txt'), os.path.join(path_prj,
                                                                               'restart_' + name_prj +
                                                                               '.log'))
+        # script
+        cmd_str = sys.executable + " " + sys.argv[0] + " CREATE_PROJECT path_prj=" + path_prj
+        with open(project_preferences["file_script"], "w", encoding='utf8') as myfile:
+            myfile.write(cmd_str + "\n")
 
     # create a default directory for the figures and the hdf5
     if not os.path.exists(project_preferences["path_input"]):
@@ -215,6 +223,7 @@ def load_project_preferences(path_prj):
         project_preferences["name_prj"] = name_prj
         project_preferences["path_prj"] = path_prj
         project_preferences["file_log"] = os.path.join(path_prj, name_prj + '.log')
+        project_preferences["file_script"] = os.path.join(path_prj, name_prj + '.script')
         project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
         project_preferences["path_input"] = os.path.join(path_prj, 'input')  # path input
         project_preferences["path_hdf5"] = os.path.join(path_prj, 'hdf5')  # path hdf5

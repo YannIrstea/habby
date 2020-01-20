@@ -89,9 +89,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     # create project
     if not os.path.isdir(path_prj) or not os.path.isfile(file_prof):
         if not all_arg[0] == 'CREATE_PROJECT':
-            cli_create_project(path_prj, name_prj, False, HABBY_VERSION)
-            project_preferences = load_project_preferences(path_prj)
-            print("Warning: Specified project_path does not exist, the latter is created.")
+            # print("Warning: Specified project_path does not exist, the latter is created.")
+            # cli_create_project(path_prj, name_prj, False, HABBY_VERSION)
+            # project_preferences = load_project_preferences(path_prj)
+            print("Error: Specified project_path does not exist. Project creation with CREATE_PROJECT argument.")
+            return
     # load project preferences
     else:
         project_preferences = load_project_preferences(path_prj)
@@ -1314,7 +1316,15 @@ def cli_load_telemac(arguments, project_preferences):
         # inputfile
         inputfile_arg_name = 'inputfile='
         if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
-            filename = arg[len(inputfile_arg_name):]
+            filename_path = arg[len(inputfile_arg_name):]
+            if ";" in filename_path:
+                path = os.path.dirname(filename_path)
+                filename = os.path.basename(filename_path)
+                filename_path = []
+                for filename in filename.split(";"):
+                    filename_path.append(os.path.join(path, filename))
+            else:
+                filename_path = [filename_path]
         # outputfilename
         outputfilename_arg_name = 'outputfilename='
         if arg[:len(outputfilename_arg_name)] == outputfilename_arg_name:
@@ -1326,7 +1336,7 @@ def cli_load_telemac(arguments, project_preferences):
             project_preferences['cut_mesh_partialy_dry'] = cut
 
     # get_hydrau_description_from_source
-    hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source([filename],
+    hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
                                                                                                project_preferences["path_prj"],
                                                                                                "TELEMAC",
                                                                                                2)

@@ -3285,6 +3285,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         # update the attibutes
         self.model_type = 'TELEMAC'
         self.data_type = "HYDRAULIC"
+        self.cli_function_name = "LOAD_TELEMAC"
         self.extension = [['.res', '.slf', '.srf', '.txt']]
         self.nb_dim = 2
         self.init_iu()
@@ -3695,9 +3696,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.nativeParentWidget().progress_bar.setValue(0)
         self.nativeParentWidget().progress_bar.setVisible(True)
 
-        # the path where to save the hdf5
-        path_hdf5 = self.find_path_hdf5()
-
         if not self.multi_hdf5:
             if not os.path.splitext(self.name_hdf5)[1]:
                 self.name_hdf5 = self.name_hdf5 + ".hyd"
@@ -3747,23 +3745,20 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         # copy input files
         nb_files = len(self.namefile[0].split(", "))
-        files_list = self.namefile[0].split(", ")
-        path_file_list = [self.pathfile[0]] * nb_files
-        # if nb_files > 1:
-        #     self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
-        #     self.p2.start()
-        # if nb_files == 1:
-        #     self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-        #     self.p2.start()
 
         # log info
         self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
         self.send_err_log()
+        # py
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
         self.send_log.emit(
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
             "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
+        # cmd
+        cmd_str = sys.executable + " " + sys.argv[0] + " " + self.cli_function_name + " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + " path_prj=" + self.path_prj
+        self.send_log.emit("script" + cmd_str)
+        # restart
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
