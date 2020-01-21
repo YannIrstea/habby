@@ -18,6 +18,10 @@ import os
 import shutil
 import json
 import sys
+from platform import system as operatingsystem
+
+operatingsystem_str = operatingsystem()
+
 
 def create_default_project_preferences_dict(all_export_enabled=False):
     """
@@ -133,7 +137,11 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     project_preferences["path_prj"] = path_prj
     project_preferences["save_log"] = save_log
     project_preferences["file_log"] = os.path.join(path_prj, name_prj + '.log')
-    project_preferences["file_script"] = os.path.join(path_prj, name_prj + '.script')
+    if operatingsystem_str == "Linux":
+        script_ext = ".sh"
+    elif operatingsystem_str == "Windows":
+        script_ext = ".bat"
+    project_preferences["file_script"] = os.path.join(path_prj, name_prj + script_ext)
     project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
     project_preferences["version_habby"] = version_habby
     project_preferences["user_name"] = user_name
@@ -227,7 +235,11 @@ def load_project_preferences(path_prj):
         project_preferences["name_prj"] = name_prj
         project_preferences["path_prj"] = path_prj
         project_preferences["file_log"] = os.path.join(path_prj, name_prj + '.log')
-        project_preferences["file_script"] = os.path.join(path_prj, name_prj + '.script')
+        if operatingsystem_str == "Linux":
+            script_ext = ".sh"
+        elif operatingsystem_str == "Windows":
+            script_ext = ".bat"
+        project_preferences["file_script"] = os.path.join(path_prj, name_prj + script_ext)
         project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
         project_preferences["path_input"] = os.path.join(path_prj, 'input')  # path input
         project_preferences["path_hdf5"] = os.path.join(path_prj, 'hdf5')  # path hdf5
