@@ -188,6 +188,8 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
             paths.append(path)
             paths.append(path)
     if names:
+        if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
+            os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
         src.tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input", "user_models"))
 
     # progress

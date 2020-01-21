@@ -169,8 +169,8 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     # create a default directory for the figures and the hdf5
     if not os.path.exists(project_preferences["path_input"]):
         os.makedirs(project_preferences["path_input"])
-    if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
-        os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
+    # if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
+    #     os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
     if not os.path.exists(project_preferences["path_hdf5"]):
         os.makedirs(project_preferences["path_hdf5"])
     if not os.path.exists(os.path.join(path_prj, 'output')):

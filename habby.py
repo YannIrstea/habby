@@ -55,9 +55,9 @@ class AppDataFolders:
         # user_preferences_habby_file_path
         if not os.path.isdir(self.user_preferences_habby_path):
             os.makedirs(self.user_preferences_habby_path)
-        # user_preferences_biology_models
-        if not os.path.isdir(self.user_preferences_biology_models):
-            os.makedirs(self.user_preferences_biology_models)
+        # # user_preferences_biology_models
+        # if not os.path.isdir(self.user_preferences_biology_models):
+        #     os.makedirs(self.user_preferences_biology_models)
         # user_preferences_temp_path
         if not os.path.isdir(self.user_preferences_temp_path):
             os.mkdir(self.user_preferences_temp_path)
