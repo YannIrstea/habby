@@ -1785,9 +1785,9 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
 
     while not all(list_of_exist_tf):
         for file_index, file_path in enumerate(list_of_file_path):
-            if os.path.isfile(file_path):
+            if os.path.isfile(file_path) and not list_of_exist_tf[file_index]:
                 try:
-                    os.rename(file_path, file_path)  # to wait the end of file creation
+                    Image.open(file_path)  # to wait the end of file creation
                     list_of_exist_tf[file_index] = True
                 except OSError:
                     pass
