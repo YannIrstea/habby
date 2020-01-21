@@ -75,14 +75,6 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         hdf5.create_hdf5_sub(sub_description, data_2d)
 
         # prog
-        progress_value.value = 95
-
-        # copy input files to input project folder
-        copy_shapefiles(os.path.join(sub_path_source, sub_filename_source),
-                        sub_description["name_hdf5"],
-                        os.path.join(sub_description["path_prj"], "input"))
-
-        # prog
         progress_value.value = 100
 
     if q and not print_cmd:

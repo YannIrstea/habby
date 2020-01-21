@@ -16,7 +16,6 @@ https://github.com/YannIrstea/habby
 """
 import os
 import time
-
 import h5py
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -25,21 +24,20 @@ from PyQt5.QtCore import QCoreApplication as qt_tr
 from osgeo import ogr
 from osgeo import osr
 from stl import mesh
-import matplotlib.ticker as ticker
-from matplotlib import colors
-
 from multiprocessing import Value
 from locale import localeconv
+
 from src import bio_info_mod
 from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
 from src.project_manag_mod import load_project_preferences, save_project_preferences
-from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_values, \
+from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_values, copy_hydrau_input_files,\
     c_mesh_max_slope_bottom, c_mesh_max_slope_energy, c_mesh_shear_stress, c_mesh_froude, c_mesh_hydraulic_head, \
     c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level,\
-    c_mesh_area, create_empty_data_2_dict
+    c_mesh_area, create_empty_data_2_dict, copy_shapefiles
+
 from habby import HABBY_VERSION
 
 
@@ -456,6 +454,11 @@ class Hdf5Management:
         # close file
         self.file_object.close()
 
+        # copy input files to input project folder
+        copy_hydrau_input_files(hyd_description["hyd_path_filename_source"],
+                                hyd_description["hyd_filename_source"],
+                                self.filename,
+                                os.path.join(project_preferences["path_prj"], "input"))
         # save XML
         self.save_xml(hyd_description["hyd_model_type"], hyd_description["hyd_path_filename_source"])
 
@@ -692,6 +695,11 @@ class Hdf5Management:
         # close file
         self.file_object.close()
 
+        # copy input files to input project folder
+        copy_shapefiles(os.path.join(sub_description_system["sub_path_source"], sub_description_system["sub_filename_source"]),
+                        sub_description_system["name_hdf5"],
+                        os.path.join(sub_description_system["path_prj"], "input"))
+
         # save XML
         self.save_xml("SUBSTRATE", sub_description_system["sub_path_source"])
 
@@ -882,7 +890,7 @@ class Hdf5Management:
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
                 mesh_data_group = mesh_group.create_group('data')
-                mesh_hv_data_group = mesh_group.create_group('hv_data')  # used when add_fish
+                _ = mesh_group.create_group('hv_data')  # used when add_fish
                 mesh_group.create_dataset(name="tin",
                                           shape=[len(data_2d["mesh"]["tin"][reach_num][unit_num]),
                                                  3],
@@ -922,6 +930,13 @@ class Hdf5Management:
 
         # close file
         self.file_object.close()
+
+        # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII)
+        if merge_description["hyd_filename_source"] == merge_description["sub_filename_source"]:
+            copy_hydrau_input_files(merge_description["hyd_path_filename_source"],
+                                    merge_description["hyd_filename_source"],
+                                    self.filename,
+                                    os.path.join(project_preferences["path_prj"], "input"))
 
         # save XML
         self.save_xml("HABITAT", "")  # uppercase for xml

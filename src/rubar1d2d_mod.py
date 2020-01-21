@@ -937,7 +937,7 @@ def load_rubar2d(filename, file_path, progress_value):
 
     # description telemac data dict
     description_from_file = dict()
-    description_from_file["filename_source"] = geofile + "; " + tpsfile
+    description_from_file["filename_source"] = geofile + ", " + tpsfile
     description_from_file["model_type"] = "RUBAR20"
     description_from_file["model_dimension"] = str(2)
     description_from_file["unit_list"] = ", ".join(list(map(str, timestep)))

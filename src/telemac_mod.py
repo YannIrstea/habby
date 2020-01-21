@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src import hdf5_mod
-from src.tools_mod import create_empty_data_2_dict, copy_hydrau_input_files
+from src.tools_mod import create_empty_data_2_dict
 from src import manage_grid_mod
 from src.project_manag_mod import create_default_project_preferences_dict
 from src import hydro_input_file_mod
@@ -270,11 +270,6 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
 
         # prog
         progress_value.value = 95
-
-        # copy input files to input project folder
-        copy_hydrau_input_files(os.path.join(hydrau_description[hyd_file]["path_filename_source"], file),
-                                hydrau_description[hyd_file]["hdf5_name"],
-                        os.path.join(project_preferences["path_prj"], "input"))
 
         # create_index_hydrau_text_file
         if not hydrau_description[hyd_file]["index_hydrau"]:

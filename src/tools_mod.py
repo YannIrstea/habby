@@ -626,7 +626,7 @@ def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path):
         sh_copy(all_input_files_abspath_list[i], os.path.join(input_hdf5name_folder_path, all_input_files_files_list[i]))
 
 
-def copy_hydrau_input_files(input_file_abspath, hdf5_name, dest_folder_path):
+def copy_hydrau_input_files(path_filename_source, filename_source_str, hdf5_name, dest_folder_path):
     """
     copy input hydraulic files with indexHYDRAU.txt to input project folder in a folder as input
     (if severeral hydraulic with indexHYDRAU.txt, it will not be erased).
@@ -649,10 +649,10 @@ def copy_hydrau_input_files(input_file_abspath, hdf5_name, dest_folder_path):
         os.mkdir(input_hdf5name_folder_path)
 
     # get input files and copy them
-    input_folder_path = os.path.dirname(input_file_abspath)
-    sh_copy(input_file_abspath, input_hdf5name_folder_path)
-    if os.path.exists(os.path.join(input_folder_path, "indexHYDRAU.txt")):
-        sh_copy(os.path.join(input_folder_path, "indexHYDRAU.txt"), input_hdf5name_folder_path)
+    for file in filename_source_str.split(", "):
+        sh_copy(os.path.join(path_filename_source, file), input_hdf5name_folder_path)
+    if os.path.exists(os.path.join(path_filename_source, "indexHYDRAU.txt")):
+        sh_copy(os.path.join(path_filename_source, "indexHYDRAU.txt"), input_hdf5name_folder_path)
 
 
 def copy_files(names, paths, path_input):

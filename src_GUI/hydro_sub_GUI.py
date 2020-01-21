@@ -1901,9 +1901,6 @@ class Rubar2D(SubHydroW):
         self.nativeParentWidget().progress_bar.setValue(0)
         self.nativeParentWidget().progress_bar.setVisible(True)
 
-        # the path where to save the hdf5
-        path_hdf5 = self.find_path_hdf5()
-
         # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
         if not self.multi_hdf5:
@@ -1952,17 +1949,6 @@ class Rubar2D(SubHydroW):
                                    self.project_preferences))
         self.p.name = "RUBAR20 data loading"
         self.p.start()
-
-        # copy input files
-        nb_files = len(self.namefile[0].split(", "))
-        files_list = self.namefile[0].split(", ")
-        path_file_list = [self.pathfile[0]] * nb_files
-        if nb_files > 1:
-            self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
-            self.p2.start()
-        if nb_files == 1:
-            self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-            self.p2.start()
 
         # log info
         self.send_log.emit(self.tr('# Loading: RUBAR20 data...'))
@@ -3681,7 +3667,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 return
             self.hydrau_description["epsg_code"] = self.epsg_label.text()
 
-
         # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
         if self.name_hdf5 == "":
@@ -3743,9 +3728,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.p.name = "TELEMAC data loading"
         self.p.start()
 
-        # copy input files
-        nb_files = len(self.namefile[0].split(", "))
-
         # log info
         self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
         self.send_err_log()
@@ -3755,16 +3737,16 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.send_log.emit(
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
             "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
-        # cmd
+        # get cmd
         if sys.argv[0][-3:] == ".py":
-            cmd_str = '"' + sys.executable + '" "' + sys.argv[0] + '" ' + self.cli_function_name + " inputfile=" + \
-                      os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + " cut=" + str(
-                self.project_preferences["cut_mesh_partialy_dry"]) + " path_prj=" + self.path_prj
+            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
         else:
-            cmd_str = '"' + sys.executable + '" ' + self.cli_function_name + " inputfile=" + \
-                      os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + " cut=" + str(
-                self.project_preferences["cut_mesh_partialy_dry"]) + " path_prj=" + self.path_prj
-
+            exe_cmd = '"' + sys.executable + '"'
+        cmd_str = exe_cmd + " " + self.cli_function_name + \
+                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + \
+                  " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
+                  " outputfilename=" + self.name_hdf5 + \
+                  " path_prj=" + self.path_prj
         self.send_log.emit("script" + cmd_str)
         # restart
         self.send_log.emit("restart LOAD_TELEMAC")
@@ -4174,9 +4156,6 @@ class ASCII(SubHydroW):  # QGroupBox
         self.nativeParentWidget().progress_bar.setValue(0)
         self.nativeParentWidget().progress_bar.setVisible(True)
 
-        # the path where to save the hdf5
-        path_hdf5 = self.find_path_hdf5()
-
         # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
         if not self.multi_hdf5:
@@ -4232,17 +4211,6 @@ class ASCII(SubHydroW):  # QGroupBox
                                    user_preferences.user_preferences_temp_path))
         self.p.name = "ASCII data loading"
         self.p.start()
-
-        # copy input files
-        nb_files = len(self.namefile[0].split(", "))
-        files_list = self.namefile[0].split(", ")
-        path_file_list = [self.pathfile[0]] * nb_files
-        if nb_files > 1:
-            self.p2 = Process(target=src.tools_mod.copy_files, args=(files_list, path_file_list, path_input))
-            self.p2.start()
-        if nb_files == 1:
-            self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-            self.p2.start()
 
         # log info
         self.send_log.emit(self.tr('# Loading: ASCII data...'))
