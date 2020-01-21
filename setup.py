@@ -13,11 +13,11 @@ setup(
     author_email="yann.lecoarer@irstea.fr, quentin.royer@irstea.fr, fabrice.zaoui@edf.fr",
     license='CeCILL v2.1',
     packages=find_packages(),
+    # do not set packages which versions are different between operatin systems
     install_requires=[
         "appdirs==1.4.3",
         "cycler==0.10.0",
         "Cython==0.29.13",
-        "gdal==2.4.1",
         "h5py==2.8.0rc1",
         "kiwisolver==1.1.0",
         "matplotlib==3.0.0",
@@ -32,7 +32,8 @@ setup(
         "QDarkStyle==2.6.5",
         "scipy==1.1.0",
         "six==1.12.0",
-        "triangle==20170429"
+        "triangle==20170429",
+        "Pillow==6.2.1"
     ],
     include_package_data=True,
     python_requires='>=3.6',
