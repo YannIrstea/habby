@@ -572,6 +572,11 @@ class SubHydroW(QWidget):
         self.attributexml = [' ', ' ']
         self.model_type = ' '
         self.nb_dim = 2
+        # get cmd
+        if sys.argv[0][-3:] == ".py":
+            self.exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+        else:
+            self.exe_cmd = '"' + sys.executable + '"'
         self.save_fig = False
         self.coord_pro = []
         self.vh_pro = []
@@ -1522,6 +1527,7 @@ class Rubar2D(SubHydroW):
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR20'
         self.data_type = "HYDRAULIC"
+        self.script_function_name = "LOAD_RUBAR_2D"
         self.extension = [['.dat', '.tps', '.txt']]
         self.nb_dim = 2
         self.init_iu()
@@ -1958,6 +1964,14 @@ class Rubar2D(SubHydroW):
         self.send_log.emit(
             "py    selafin_habby1.load_rubar20_and_cut_grid('hydro_rubar20_log', file1, path1, name_prj, "
             "path_prj, 'RUBAR20', 2, path_prj, [], True )\n")
+        # script
+        cmd_str = self.exe_cmd + " " + self.script_function_name + \
+                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + \
+                  " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
+                  " outputfilename=" + self.name_hdf5 + \
+                  " path_prj=" + self.path_prj
+        self.send_log.emit("script" + cmd_str)
+        # restart
         self.send_log.emit("restart LOAD_RUBAR20")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
@@ -3271,7 +3285,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         # update the attibutes
         self.model_type = 'TELEMAC'
         self.data_type = "HYDRAULIC"
-        self.cli_function_name = "LOAD_TELEMAC"
+        self.script_function_name = "LOAD_TELEMAC"
         self.extension = [['.res', '.slf', '.srf', '.txt']]
         self.nb_dim = 2
         self.init_iu()
@@ -3737,12 +3751,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.send_log.emit(
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
             "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
-        # get cmd
-        if sys.argv[0][-3:] == ".py":
-            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
-        else:
-            exe_cmd = '"' + sys.executable + '"'
-        cmd_str = exe_cmd + " " + self.cli_function_name + \
+        # script
+        cmd_str = self.exe_cmd + " " + self.script_function_name + \
                   " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + \
                   " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
                   " outputfilename=" + self.name_hdf5 + \
