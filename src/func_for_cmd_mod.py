@@ -1317,11 +1317,11 @@ def cli_load_telemac(arguments, project_preferences):
         inputfile_arg_name = 'inputfile='
         if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
             filename_path = arg[len(inputfile_arg_name):]
-            if ";" in filename_path:
+            if "," in filename_path:
                 path = os.path.dirname(filename_path)
                 filename = os.path.basename(filename_path)
                 filename_path = []
-                for filename in filename.split(";"):
+                for filename in filename.split(","):
                     filename_path.append(os.path.join(path, filename))
             else:
                 filename_path = [filename_path]

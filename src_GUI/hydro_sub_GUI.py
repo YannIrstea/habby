@@ -1966,7 +1966,7 @@ class Rubar2D(SubHydroW):
             "path_prj, 'RUBAR20', 2, path_prj, [], True )\n")
         # script
         cmd_str = self.exe_cmd + " " + self.script_function_name + \
-                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + \
+                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ",")) + \
                   " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
                   " outputfilename=" + self.name_hdf5 + \
                   " path_prj=" + self.path_prj
@@ -3753,7 +3753,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
             "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
         # script
         cmd_str = self.exe_cmd + " " + self.script_function_name + \
-                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ";")) + \
+                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ",")) + \
                   " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
                   " outputfilename=" + self.name_hdf5 + \
                   " path_prj=" + self.path_prj

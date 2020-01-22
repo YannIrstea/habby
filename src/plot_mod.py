@@ -19,6 +19,7 @@ import time
 from datetime import datetime as dt
 import numpy as np
 import matplotlib as mpl
+from matplotlib import rc
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
@@ -1627,7 +1628,7 @@ def mpl_map_change_parameters(project_preferences):
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+    rc('font', **{'family': 'sans-serif', 'sans-serif': [project_preferences['font_family']]})
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
