@@ -22,6 +22,8 @@ import urllib
 from copy import deepcopy
 from glob import glob
 from locale import localeconv
+from locale import localeconv, setlocale, LC_ALL
+setlocale(LC_ALL, "")
 from time import sleep
 import shutil
 import numpy as np

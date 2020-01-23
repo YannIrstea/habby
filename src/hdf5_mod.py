@@ -25,7 +25,8 @@ from osgeo import ogr
 from osgeo import osr
 from stl import mesh
 from multiprocessing import Value
-from locale import localeconv
+from locale import localeconv, setlocale, LC_ALL
+setlocale(LC_ALL, "")
 
 from src import bio_info_mod
 from src import substrate_mod
