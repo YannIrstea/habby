@@ -898,8 +898,9 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     progress_value.value = 100
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q:
+    if q and not print_cmd:
         q.put(mystdout)
+        return
     else:
         return
 

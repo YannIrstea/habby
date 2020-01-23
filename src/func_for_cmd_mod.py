@@ -169,15 +169,161 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_PROJECT':
-        # cli_create_project
-        cli_create_project(path_prj, name_prj, False, HABBY_VERSION)
+        all_export_enabled = False
+        if not os.path.exists(path_prj):
+            create_project_structure(path_prj,
+                                     save_log=False,
+                                     version_habby=HABBY_VERSION,
+                                     user_name="CLI",
+                                     description="CLI-mode",
+                                     mode="CLI")
+            change_specific_preferences(path_prj,
+                                        preference_names=["physic_tabs", "stat_tabs"],
+                                        preference_values=[True, True])
+            enable_disable_all_exports(path_prj, enabled=all_export_enabled)
+            print("# CREATE_PROJECT finished")
+        else:
+            print("Warning: The project " + name_prj + " already exists. The latter is not erased.")
+            print("# CREATE_PROJECT finished")
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_TELEMAC':
         # remove the first arg LOAD_TELEMAC
         all_arg = all_arg[1:]
 
-        cli_load_telemac(all_arg, project_preferences)
+        # optionnal args
+        units_string = None
+        outputfilename = None
+
+        # get args
+        for arg in all_arg:
+            # inputfile
+            inputfile_arg_name = 'inputfile='
+            if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
+                filename_path = arg[len(inputfile_arg_name):]
+                if "," in filename_path:
+                    path = os.path.dirname(filename_path)
+                    filename = os.path.basename(filename_path)
+                    filename_path = []
+                    for filename in filename.split(","):
+                        filename_path.append(os.path.join(path, filename))
+                else:
+                    filename_path = [filename_path]
+            # outputfilename
+            outputfilename_arg_name = 'outputfilename='
+            if arg[:len(outputfilename_arg_name)] == outputfilename_arg_name:
+                outputfilename = arg[len(outputfilename_arg_name):]
+            # cut
+            cut_arg_name = 'cut='
+            if arg[:len(cut_arg_name)] == cut_arg_name:
+                cut = eval(arg[len(cut_arg_name):])
+                project_preferences['cut_mesh_partialy_dry'] = cut
+
+        # get_hydrau_description_from_source
+        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                   project_preferences[
+                                                                                                       "path_prj"],
+                                                                                                   "TELEMAC",
+                                                                                                   2)
+
+        # outputfilename
+        if outputfilename:
+            hydrau_description["hdf5_name"] = outputfilename
+        else:
+            # change suffix
+            if not project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
+        # warnings
+        if warning_list:
+            for warn in warning_list:
+                print(warn)
+
+        # run process
+        progress_value = Value("i", 0)
+        q = Queue()
+        p = Process(target=telemac_mod.load_telemac_and_cut_grid,
+                    args=(hydrau_description,
+                          progress_value,
+                          q,
+                          True,
+                          project_preferences),
+                    name="LOAD_TELEMAC")
+        cli_start_process_and_print_progress(p, progress_value)
+
+    # ----------------------------------------------------------------------------------
+    elif all_arg[0] == 'LOAD_RUBAR_2D':
+        # remove the first arg LOAD_RUBAR_2D
+        all_arg = all_arg[1:]
+
+        # optionnal args
+        units_string = None
+        outputfilename = None
+
+        # get args
+        for arg in all_arg:
+            # inputfile
+            inputfile_arg_name = 'inputfile='
+            if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
+                filename_path = arg[len(inputfile_arg_name):]
+                if "," in filename_path:
+                    path = os.path.dirname(filename_path)
+                    filename = os.path.basename(filename_path)
+                    filename_path = []
+                    for filename in filename.split(","):
+                        filename_path.append(os.path.join(path, filename))
+                else:
+                    filename_path = [filename_path]
+            # outputfilename
+            outputfilename_arg_name = 'outputfilename='
+            if arg[:len(outputfilename_arg_name)] == outputfilename_arg_name:
+                outputfilename = arg[len(outputfilename_arg_name):]
+            # cut
+            cut_arg_name = 'cut='
+            if arg[:len(cut_arg_name)] == cut_arg_name:
+                cut = eval(arg[len(cut_arg_name):])
+                project_preferences['cut_mesh_partialy_dry'] = cut
+
+        # get_hydrau_description_from_source
+        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                   project_preferences[
+                                                                                                       "path_prj"],
+                                                                                                   "RUBAR20",
+                                                                                                   2)
+
+        # outputfilename
+        if outputfilename:
+            hydrau_description["hdf5_name"] = outputfilename
+        else:
+            # change suffix
+            if not project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
+        # warnings
+        if warning_list:
+            for warn in warning_list:
+                print(warn)
+
+        # create sublist for one reach
+        hydrau_description["unit_list"] = [hydrau_description["unit_list"]]
+        hydrau_description["unit_list_full"] = [hydrau_description["unit_list_full"]]
+        hydrau_description["unit_list_tf"] = [hydrau_description["unit_list_tf"]]
+
+        # run process
+        progress_value = Value("i", 0)
+        q = Queue()
+        p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid,
+                    args=(hydrau_description,
+                          progress_value,
+                          q,
+                          True,
+                          project_preferences),
+                    name="LOAD_RUBAR_2D")
+        cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_1D':
@@ -257,35 +403,6 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             path_hdf5 = path_prj
         hec_ras2D_mod.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
                                                    path_hdf5, [], True)
-
-    # ----------------------------------------------------------------------------------
-    elif all_arg[0] == 'LOAD_RUBAR_2D':
-        if not 3 < len(all_arg) < 6:
-            print('The function LOAD_RUBAR_2D needs two to three inputs. Call LIST_COMMAND for more '
-                  'information.')
-            return
-
-        filename_geo = all_arg[2]
-        filename_data = all_arg[3]
-        if not input_file:
-            pathgeo = os.path.dirname(filename_geo)
-            pathtps = os.path.dirname(filename_data)
-        else:
-            pathgeo = path_input
-            pathtps = path_input
-        geofile = os.path.basename(filename_geo)
-        tpsfile = os.path.basename(filename_data)
-
-        if len(all_arg) == 4:
-            name_hdf5 = 'Hydro_RUBAR2D_' + os.path.splitext(geofile[0])[0]
-            path_hdf5 = path_prj
-        if len(all_arg) == 5:
-            namepath_hdf5 = all_arg[4]
-            name_hdf5 = os.path.basename(namepath_hdf5)
-            path_hdf5 = os.path.dirname(namepath_hdf5)
-
-        rubar1d2d_mod.load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
-                                           'RUBAR2D', 2, path_hdf5, [], False)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_SW2D':
@@ -1275,98 +1392,6 @@ def load_fstress_text(path_fstress):
             return [-99], [-99], [-99]
 
     return riv_name, qhw, qrange
-
-
-""" PROJECT """
-
-
-def cli_create_project(path_prj, name_prj, all_export_enabled, HABBY_VERSION):
-    if not os.path.exists(path_prj):
-        create_project_structure(path_prj,
-                                 save_log=False,
-                                 version_habby=HABBY_VERSION,
-                                 user_name="CLI",
-                                 description="CLI-mode",
-                                 mode="CLI")
-        change_specific_preferences(path_prj,
-                                    preference_names=["physic_tabs", "stat_tabs"],
-                                    preference_values=[True, True])
-        enable_disable_all_exports(path_prj, enabled=all_export_enabled)
-        print("# CREATE_PROJECT finished")
-    else:
-        print("Warning: The project " + name_prj + " already exists.")
-        print("# CREATE_PROJECT finished")
-
-
-""" HYD """
-
-
-def cli_load_telemac(arguments, project_preferences):
-    # # check
-    # if not 0 < len(all_arg) < 4:
-    #     print('The function LOAD_TELEMAC needs one or two inputs, the .res file name and the output name.')
-    #     return
-
-    # optionnal args
-    units_string = None
-    outputfilename = None
-
-    # get args
-    for arg in arguments:
-        # inputfile
-        inputfile_arg_name = 'inputfile='
-        if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
-            filename_path = arg[len(inputfile_arg_name):]
-            if "," in filename_path:
-                path = os.path.dirname(filename_path)
-                filename = os.path.basename(filename_path)
-                filename_path = []
-                for filename in filename.split(","):
-                    filename_path.append(os.path.join(path, filename))
-            else:
-                filename_path = [filename_path]
-        # outputfilename
-        outputfilename_arg_name = 'outputfilename='
-        if arg[:len(outputfilename_arg_name)] == outputfilename_arg_name:
-            outputfilename = arg[len(outputfilename_arg_name):]
-        # cut
-        cut_arg_name = 'cut='
-        if arg[:len(cut_arg_name)] == cut_arg_name:
-            cut = eval(arg[len(cut_arg_name):])
-            project_preferences['cut_mesh_partialy_dry'] = cut
-
-    # get_hydrau_description_from_source
-    hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
-                                                                                               project_preferences["path_prj"],
-                                                                                               "TELEMAC",
-                                                                                               2)
-
-    # outputfilename
-    if outputfilename:
-        hydrau_description["hdf5_name"] = outputfilename
-    else:
-        # change suffix
-        if not project_preferences["cut_mesh_partialy_dry"]:
-            namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
-            exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
-            hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-
-    # warnings
-    if warning_list:
-        for warn in warning_list:
-            print(warn)
-
-    # run process
-    progress_value = Value("i", 0)
-    q = Queue()
-    p = Process(target=telemac_mod.load_telemac_and_cut_grid,
-                args=(hydrau_description,
-                      progress_value,
-                      q,
-                      True,
-                      project_preferences),
-                name="LOAD_TELEMAC")
-    cli_start_process_and_print_progress(p, progress_value)
 
 
 """ SUB """

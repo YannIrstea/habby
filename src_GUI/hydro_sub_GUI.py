@@ -1672,7 +1672,7 @@ class Rubar2D(SubHydroW):
         filename_list = QFileDialog.getOpenFileNames(self,
                                                      self.tr("Select file(s)"),
                                                      model_path,
-                                                     filter2)
+                                                     filter2)[0]
 
         # init
         self.hydrau_case = "unknown"
@@ -1680,16 +1680,15 @@ class Rubar2D(SubHydroW):
         self.index_hydrau_presence = False
 
         # if file has been selected
-        if filename_list[0]:
+        if filename_list:
             # clean GUI
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            rubar20_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+            rubar20_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list,
                                                                                                         self.path_prj,
                                                                                                         self.model_type,
                                                                                                         self.nb_dim)
-
             # warnings
             if warning_list:
                 for warn in warning_list:

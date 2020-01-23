@@ -41,13 +41,13 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
     warning_list = []  # text warning output
     hydrau_description = "Error"
     hydrau_case = "unknown"
-    more_than_one_file_selected_by_user = False  # one file to read
     if len(filename_list) == 1:  # one file selected
+        more_than_one_file_selected_by_user = False  # one file to read
         filename_path = os.path.normpath(filename_list[0])
         folder_path = os.path.dirname(filename_path)
         filename = os.path.basename(filename_path)
         blob, ext = os.path.splitext(filename)
-    if len(filename_list) > 1:  # more than one file selected
+    elif len(filename_list) > 1:  # more than one file selected
         more_than_one_file_selected_by_user = True  # several files to read
         filename_path = filename_list
         folder_path = os.path.dirname(filename_path[0])
@@ -67,45 +67,50 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
         # more_than_one_file_selected_by_user
         if more_than_one_file_selected_by_user:
-            # hydrau_description for several file
-            hydrau_description_multiple = []
+            if model_type == 'RUBAR20':  # change mode and remove one of them
+                more_than_one_file_selected_by_user = False
+                filename = filename[0]
+                filename_path = filename_path[0]
+            else:
+                # hydrau_description for several file
+                hydrau_description_multiple = []
 
-            for i, file in enumerate(filename):
-                # get units name from file
-                filename_path = os.path.join(folder_path, file)
-                nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
-                warning_list.extend(warning_list_timestep)
-                unit_index_from_file = [True] * nbtimes
-                # hdf5 filename
-                blob2, ext = os.path.splitext(file)
-                name_hdf5 = blob2 + ".hyd"
+                for i, file in enumerate(filename):
+                    # get units name from file
+                    filename_path = os.path.join(folder_path, file)
+                    nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
+                    warning_list.extend(warning_list_timestep)
+                    unit_index_from_file = [True] * nbtimes
+                    # hdf5 filename
+                    blob2, ext = os.path.splitext(file)
+                    name_hdf5 = blob2 + ".hyd"
 
-                # multi description
-                hydrau_description_multiple.append(dict(path_prj=path_prj,
-                                                        name_prj=name_prj,
-                                                        hydrau_case=hydrau_case,
-                                                        filename_source=file,
-                                                        path_filename_source=folder_path,
-                                                        hdf5_name=name_hdf5,
-                                                        model_type=model_type,
-                                                        model_dimension=str(nb_dim),
-                                                        unit_list=unit_name_from_file,
-                                                        unit_list_full=unit_name_from_file,
-                                                        unit_list_tf=unit_index_from_file,
-                                                        unit_number=str(nbtimes),
-                                                        unit_type="time [s]",
-                                                        reach_list="unknown",
-                                                        reach_number=str(1),
-                                                        reach_type="river",
-                                                        epsg_code="unknown",
-                                                        flow_type="unknown",
-                                                        index_hydrau="False"))  # continuous flow
+                    # multi description
+                    hydrau_description_multiple.append(dict(path_prj=path_prj,
+                                                            name_prj=name_prj,
+                                                            hydrau_case=hydrau_case,
+                                                            filename_source=file,
+                                                            path_filename_source=folder_path,
+                                                            hdf5_name=name_hdf5,
+                                                            model_type=model_type,
+                                                            model_dimension=str(nb_dim),
+                                                            unit_list=unit_name_from_file,
+                                                            unit_list_full=unit_name_from_file,
+                                                            unit_list_tf=unit_index_from_file,
+                                                            unit_number=str(nbtimes),
+                                                            unit_type="time [s]",
+                                                            reach_list="unknown",
+                                                            reach_number=str(1),
+                                                            reach_type="river",
+                                                            epsg_code="unknown",
+                                                            flow_type="unknown",
+                                                            index_hydrau="False"))  # continuous flow
 
-            # set actual hydrau_description
-            hydrau_description = hydrau_description_multiple
+                # set actual hydrau_description
+                hydrau_description = hydrau_description_multiple
 
         # one file selected_by_user
-        if not more_than_one_file_selected_by_user:
+        if not more_than_one_file_selected_by_user:  # don't set elif (because if rubar20 more_than_one_file_selected_by_user set to False)
             # get units name from file
             if model_type == 'ASCII':
                 ascii_description = ascii_mod.get_ascii_model_description(filename_path)
@@ -134,6 +139,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 nbtimes, unit_list, warning_list_timestep = get_time_step(filename_path, model_type)
                 warning_list.extend(warning_list_timestep)
                 unit_list_tf = list(map(bool, unit_list))
+                if model_type == 'RUBAR20':  # remove extension
+                    filename = filename.split(".")[0]
 
             hydrau_description = dict(path_prj=path_prj,
                                       name_prj=name_prj,
@@ -186,6 +193,11 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if model_type == 'RUBAR20':
             more_than_one_file_selected_by_user = False
             selectedfiles_textfiles_match = [True] * 2
+            if type(filename) == list:
+                filename = filename[0]
+                filename_path = filename_path[0]
+                ext = ext[0]
+
         elif ext != ".txt":  # from file
             # selectedfiles textfiles matching
             selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
@@ -261,6 +273,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if ext != ".txt":  # from file
                 namefile = filename  # source file name
                 name_hdf5 = filename.split('.')[0] + ".hyd"
+                if model_type == 'RUBAR20':
+                    namefile = namefile.split(".")[0]
             if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = data_index_file["filename"][0]  # source file name
                 name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0] + ".hyd"
