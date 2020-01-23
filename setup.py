@@ -33,7 +33,8 @@ setup(
         "scipy==1.1.0",
         "six==1.12.0",
         "triangle==20170429",
-        "Pillow==6.2.1"
+        "Pillow==6.2.1",
+        "lxml==4.4.1"
     ],
     include_package_data=True,
     python_requires='>=3.6',
