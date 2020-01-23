@@ -141,6 +141,9 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
         script_ext = ".sh"
     elif operatingsystem_str == "Windows":
         script_ext = ".bat"
+    else:
+        script_ext = ".sh"
+
     project_preferences["file_script"] = os.path.join(path_prj, name_prj + script_ext)
     project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
     project_preferences["version_habby"] = version_habby
@@ -239,6 +242,8 @@ def load_project_preferences(path_prj):
             script_ext = ".sh"
         elif operatingsystem_str == "Windows":
             script_ext = ".bat"
+        else:
+            script_ext = ".sh"
         project_preferences["file_script"] = os.path.join(path_prj, name_prj + script_ext)
         project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
         project_preferences["path_input"] = os.path.join(path_prj, 'input')  # path input
