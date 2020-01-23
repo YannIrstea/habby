@@ -1685,7 +1685,7 @@ class Rubar2D(SubHydroW):
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            rubar20_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list,
+            hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list,
                                                                                                         self.path_prj,
                                                                                                         self.model_type,
                                                                                                         self.nb_dim)
@@ -1695,27 +1695,27 @@ class Rubar2D(SubHydroW):
                     self.send_log.emit(warn)
 
             # error
-            if type(rubar20_description) == str:
+            if type(hydrau_description) == str:
                 self.clean_gui()
-                self.send_log.emit(rubar20_description)
+                self.send_log.emit(hydrau_description)
 
             # one hdf5
-            if type(rubar20_description) == dict:
+            if type(hydrau_description) == dict:
                 # change suffix
                 if not self.project_preferences["cut_mesh_partialy_dry"]:
-                    namehdf5_old = os.path.splitext(rubar20_description["hdf5_name"])[0]
-                    exthdf5_old = os.path.splitext(rubar20_description["hdf5_name"])[1]
-                    rubar20_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-                self.hydrau_case = rubar20_description["hydrau_case"]
+                    namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                    exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                    hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                self.hydrau_case = hydrau_description["hydrau_case"]
                 # multi
                 self.multi_hdf5 = False
                 # save last path
-                self.pathfile[0] = rubar20_description["path_filename_source"]  # source file path
-                self.namefile[0] = rubar20_description["filename_source"]  # source file name
-                self.name_hdf5 = rubar20_description["hdf5_name"]
+                self.pathfile[0] = hydrau_description["path_filename_source"]  # source file path
+                self.namefile[0] = hydrau_description["filename_source"]  # source file name
+                self.name_hdf5 = hydrau_description["hdf5_name"]
                 self.save_xml(0)  # path in xml
                 # set to attribute
-                self.hydrau_description = rubar20_description
+                self.hydrau_description = hydrau_description
                 # to GUI (decription)
                 self.h2d_t2.clear()
                 self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
@@ -1737,18 +1737,18 @@ class Rubar2D(SubHydroW):
                 self.unit_counter()
 
             # multi hdf5
-            if type(rubar20_description) == list:
-                self.hydrau_case = rubar20_description[0]["hydrau_case"]
+            if type(hydrau_description) == list:
+                self.hydrau_case = hydrau_description[0]["hydrau_case"]
                 # multi
                 self.multi_hdf5 = True
                 # save last path
-                self.pathfile[0] = rubar20_description[0]["path_filename_source"]  # source file path
-                self.namefile[0] = rubar20_description[0]["filename_source"]  # source file name
-                self.name_hdf5 = rubar20_description[0]["hdf5_name"]
+                self.pathfile[0] = hydrau_description[0]["path_filename_source"]  # source file path
+                self.namefile[0] = hydrau_description[0]["filename_source"]  # source file name
+                self.name_hdf5 = hydrau_description[0]["hdf5_name"]
                 self.save_xml(0)  # path in xml
                 # set to attribute
-                self.hydrau_description_multiple = rubar20_description
-                self.hydrau_description = rubar20_description[0]
+                self.hydrau_description_multiple = hydrau_description
+                self.hydrau_description = hydrau_description[0]
                 # get names
                 names = [description["filename_source"] for description in self.hydrau_description_multiple]
                 # to GUI (first decription)
@@ -1768,7 +1768,7 @@ class Rubar2D(SubHydroW):
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText(self.tr("Create ") + str(len(rubar20_description)) + self.tr(" .hyd files"))
+                self.load_b.setText(self.tr("Create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3443,9 +3443,9 @@ class TELEMAC(SubHydroW):  # QGroupBox
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            telemac_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+            hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
                                                                                                         self.path_prj,
-                                                                                                        self.model_type,
+                                                                                                         self.model_type,
                                                                                                         self.nb_dim)
 
             # warnings
@@ -3454,27 +3454,27 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.send_log.emit(warn)
 
             # error
-            if type(telemac_description) == str:
+            if type(hydrau_description) == str:
                 self.clean_gui()
-                self.send_log.emit(telemac_description)
+                self.send_log.emit(hydrau_description)
 
             # one hdf5
-            if type(telemac_description) == dict:
-                self.hydrau_case = telemac_description["hydrau_case"]
+            if type(hydrau_description) == dict:
+                self.hydrau_case = hydrau_description["hydrau_case"]
                 # change suffix
                 if not self.project_preferences["cut_mesh_partialy_dry"]:
-                    namehdf5_old = os.path.splitext(telemac_description["hdf5_name"])[0]
-                    exthdf5_old = os.path.splitext(telemac_description["hdf5_name"])[1]
-                    telemac_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                    namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                    exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                    hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
                 # multi
                 self.multi_hdf5 = False
                 # save last path
-                self.pathfile[0] = telemac_description["path_filename_source"]  # source file path
-                self.namefile[0] = telemac_description["filename_source"]  # source file name
-                self.name_hdf5 = telemac_description["hdf5_name"]
+                self.pathfile[0] = hydrau_description["path_filename_source"]  # source file path
+                self.namefile[0] = hydrau_description["filename_source"]  # source file name
+                self.name_hdf5 = hydrau_description["hdf5_name"]
                 self.save_xml(0)  # path in xml
                 # set to attribute
-                self.hydrau_description = telemac_description
+                self.hydrau_description = hydrau_description
                 # to GUI (decription)
                 self.h2d_t2.clear()
                 self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
@@ -3496,24 +3496,24 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.unit_counter()
 
             # multi hdf5
-            if type(telemac_description) == list:
-                self.hydrau_case = telemac_description[0]["hydrau_case"]
+            if type(hydrau_description) == list:
+                self.hydrau_case = hydrau_description[0]["hydrau_case"]
                 # change suffix
                 if not self.project_preferences["cut_mesh_partialy_dry"]:
-                    for telemac_description_num in range(len(telemac_description)):
-                        namehdf5_old = os.path.splitext(telemac_description[telemac_description_num]["hdf5_name"])[0]
-                        exthdf5_old = os.path.splitext(telemac_description[telemac_description_num]["hdf5_name"])[1]
-                        telemac_description[telemac_description_num]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                    for telemac_description_num in range(len(hydrau_description)):
+                        namehdf5_old = os.path.splitext(hydrau_description[telemac_description_num]["hdf5_name"])[0]
+                        exthdf5_old = os.path.splitext(hydrau_description[telemac_description_num]["hdf5_name"])[1]
+                        hydrau_description[telemac_description_num]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
                 # multi
                 self.multi_hdf5 = True
                 # save last path
-                self.pathfile[0] = telemac_description[0]["path_filename_source"]  # source file path
-                self.namefile[0] = telemac_description[0]["filename_source"]  # source file name
-                self.name_hdf5 = telemac_description[0]["hdf5_name"]
+                self.pathfile[0] = hydrau_description[0]["path_filename_source"]  # source file path
+                self.namefile[0] = hydrau_description[0]["filename_source"]  # source file name
+                self.name_hdf5 = hydrau_description[0]["hdf5_name"]
                 self.save_xml(0)  # path in xml
                 # set to attribute
-                self.hydrau_description_multiple = telemac_description
-                self.hydrau_description = telemac_description[0]
+                self.hydrau_description_multiple = hydrau_description
+                self.hydrau_description = hydrau_description[0]
                 # get names
                 names = [description["filename_source"] for description in self.hydrau_description_multiple]
                 # to GUI (first decription)
@@ -3533,7 +3533,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.epsg_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                self.load_b.setText(self.tr("Create ") + str(len(telemac_description)) + self.tr(" .hyd files"))
+                self.load_b.setText(self.tr("Create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3781,6 +3781,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.multi_reach = False
         self.attributexml = ['ascii_path']
         self.model_type = 'ASCII'
+        self.script_function_name = "LOAD_ASCII"
         self.data_type = "HYDRAULIC"
         self.extension = [['.txt']]
         self.nb_dim = 2
@@ -3932,7 +3933,7 @@ class ASCII(SubHydroW):  # QGroupBox
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            ascii_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(
+            hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(
                 filename_list[0],
                 self.path_prj,
                 self.model_type,
@@ -3943,26 +3944,26 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.send_log.emit(warn)
 
             # error
-            if type(ascii_description) == str:
+            if type(hydrau_description) == str:
                 self.clean_gui()
-                self.send_log.emit(ascii_description)
+                self.send_log.emit(hydrau_description)
 
             # one hdf5
-            if type(ascii_description) == dict:
+            if type(hydrau_description) == dict:
                 # multi
                 self.multi_hdf5 = False
                 # save last path
-                self.pathfile[0] = ascii_description["path_filename_source"]  # source file path
-                self.namefile[0] = ascii_description["filename_source"]  # source file name
-                self.name_hdf5 = ascii_description["hdf5_name"]
+                self.pathfile[0] = hydrau_description["path_filename_source"]  # source file path
+                self.namefile[0] = hydrau_description["filename_source"]  # source file name
+                self.name_hdf5 = hydrau_description["hdf5_name"]
                 self.save_xml(0)  # path in xml
                 # set to attribute
-                self.hydrau_description = ascii_description
+                self.hydrau_description = hydrau_description
                 # to GUI (decription)
                 self.h2d_t2.clear()
                 self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
                 # one reach
-                if len(ascii_description["unit_list"]) == 1:
+                if len(hydrau_description["unit_list"]) == 1:
                     self.multi_reach = False
                     self.swith_qlabel_qcombobox_reach_name("qlabel")
                     self.reach_name_label.setText(self.hydrau_description["reach_list"][0])
@@ -3978,15 +3979,15 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.units_QListWidget.setEnabled(True)
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                    if not ascii_description["sub"]:
+                    if not hydrau_description["sub"]:
                         self.load_b.setText(self.tr("Create .hyd file"))
-                    if ascii_description["sub"]:
+                    if hydrau_description["sub"]:
                         self.load_b.setText(self.tr("Create .hab file"))
                         new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
                         self.hname.setText(new_hdf5_name)  # hdf5 name
 
                 # multi reach  ==> change reach_name label by combobox
-                if len(ascii_description["unit_list"]) > 1:
+                if len(hydrau_description["unit_list"]) > 1:
                     self.multi_reach = True
                     self.swith_qlabel_qcombobox_reach_name("qcombobox")
                     self.reach_name_label.addItems(self.hydrau_description["reach_list"])
@@ -4003,9 +4004,9 @@ class ASCII(SubHydroW):  # QGroupBox
                     self.units_QListWidget.setEnabled(True)
                     self.epsg_label.setText(self.hydrau_description["epsg_code"])
                     self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                    if not ascii_description["sub"]:
+                    if not hydrau_description["sub"]:
                         self.load_b.setText(self.tr("Create .hyd file"))
-                    if ascii_description["sub"]:
+                    if hydrau_description["sub"]:
                         self.load_b.setText(self.tr("Create .hab file"))
                         new_hdf5_name = os.path.splitext(self.hydrau_description["hdf5_name"])[0] + ".hab"
                         self.hname.setText(new_hdf5_name)  # hdf5 name
@@ -4014,17 +4015,17 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.unit_counter()
 
             # multi hdf5
-            if type(ascii_description) == list:
+            if type(hydrau_description) == list:
                 # multi
                 self.multi_hdf5 = True
                 # save last path
-                self.pathfile[0] = ascii_description[0]["path_filename_source"]  # source file path
-                self.namefile[0] = ascii_description[0]["filename_source"]  # source file name
-                self.name_hdf5 = ascii_description[0]["hdf5_name"]
+                self.pathfile[0] = hydrau_description[0]["path_filename_source"]  # source file path
+                self.namefile[0] = hydrau_description[0]["filename_source"]  # source file name
+                self.name_hdf5 = hydrau_description[0]["hdf5_name"]
                 self.save_xml(0)  # path in xml
                 # set to attribute
-                self.hydrau_description_multiple = ascii_description
-                self.hydrau_description = ascii_description[0]
+                self.hydrau_description_multiple = hydrau_description
+                self.hydrau_description = hydrau_description[0]
                 # get names
                 names = [description["filename_source"] for description in self.hydrau_description_multiple]
                 # to GUI (first decription)
@@ -4044,10 +4045,10 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.epsg_telemac_label.setText(self.hydrau_description["epsg_code"])
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
                 self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                if not ascii_description["sub"]:
-                    self.load_b.setText(self.tr("Create ") + str(len(ascii_description)) + self.tr(" .hyd files"))
-                if ascii_description["sub"]:
-                    self.load_b.setText(self.tr("Create ") + str(len(ascii_description)) + self.tr(" .hab files"))
+                if not hydrau_description["sub"]:
+                    self.load_b.setText(self.tr("Create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
+                if hydrau_description["sub"]:
+                    self.load_b.setText(self.tr("Create ") + str(len(hydrau_description)) + self.tr(" .hab files"))
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -4224,11 +4225,21 @@ class ASCII(SubHydroW):  # QGroupBox
         # log info
         self.send_log.emit(self.tr('# Loading: ASCII data...'))
         self.send_err_log()
+        # py
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
         self.send_log.emit(
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
             "path_prj, 'ASCII', 2, path_prj, [], True )\n")
+        # script
+        cmd_str = self.exe_cmd + " " + self.script_function_name + \
+                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ",")) + \
+                  " unit_list=" + str(self.hydrau_description["unit_list"]).replace("\'", '"').replace(" ", "") + \
+                  " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
+                  " outputfilename=" + self.name_hdf5 + \
+                  " path_prj=" + self.path_prj
+        self.send_log.emit("script" + cmd_str)
+        # restart
         self.send_log.emit("restart ASCII")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 

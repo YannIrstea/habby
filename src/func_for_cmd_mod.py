@@ -44,6 +44,7 @@ from src import fstress_mod
 from src import calcul_hab_mod
 from src import mesh_management_mod
 from src import lammi_mod
+from src import ascii_mod
 from src import hydro_input_file_mod
 from src.project_manag_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_preferences_dict, load_project_preferences, change_specific_preferences
@@ -241,6 +242,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             for warn in warning_list:
                 print(warn)
 
+        # error
+        if type(hydrau_description) == str:
+            print("Error")
+            return
+
         # run process
         progress_value = Value("i", 0)
         q = Queue()
@@ -308,6 +314,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             for warn in warning_list:
                 print(warn)
 
+        # error
+        if type(hydrau_description) == str:
+            print("Error")
+            return
+
         # create sublist for one reach
         hydrau_description["unit_list"] = [hydrau_description["unit_list"]]
         hydrau_description["unit_list_full"] = [hydrau_description["unit_list_full"]]
@@ -323,6 +334,95 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                           True,
                           project_preferences),
                     name="LOAD_RUBAR_2D")
+        cli_start_process_and_print_progress(p, progress_value)
+
+    # ----------------------------------------------------------------------------------
+    elif all_arg[0] == 'LOAD_ASCII':
+        # remove the first arg LOAD_ASCII
+        all_arg = all_arg[1:]
+
+        # optionnal args
+        unit_list = None
+        outputfilename = None
+
+        # get args
+        for arg in all_arg:
+            # inputfile
+            inputfile_arg_name = 'inputfile='
+            if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
+                filename_path = arg[len(inputfile_arg_name):]
+                if "," in filename_path:
+                    path = os.path.dirname(filename_path)
+                    filename = os.path.basename(filename_path)
+                    filename_path = []
+                    for filename in filename.split(","):
+                        filename_path.append(os.path.join(path, filename))
+                else:
+                    filename_path = [filename_path]
+            # outputfilename
+            outputfilename_arg_name = 'outputfilename='
+            if arg[:len(outputfilename_arg_name)] == outputfilename_arg_name:
+                outputfilename = arg[len(outputfilename_arg_name):]
+            # cut
+            cut_arg_name = 'cut='
+            if arg[:len(cut_arg_name)] == cut_arg_name:
+                cut = eval(arg[len(cut_arg_name):])
+                project_preferences['cut_mesh_partialy_dry'] = cut
+            # unit_list
+            unit_list_arg = "unit_list="
+            if arg[:len(unit_list_arg)] == unit_list_arg:
+                unit_list_base = eval(arg[len(unit_list_arg):])
+                unit_list = []
+                for reach_num in range(len(unit_list_base)):
+                    unit_list.append(list(map(str, unit_list_base[reach_num])))
+
+        # get_hydrau_description_from_source
+        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                   project_preferences[
+                                                                                                       "path_prj"],
+                                                                                                   "ASCII",
+                                                                                                   2)
+
+        # outputfilename
+        if outputfilename:
+            hydrau_description["hdf5_name"] = outputfilename
+        else:
+            # change suffix
+            if not project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
+        # warnings
+        if warning_list:
+            for warn in warning_list:
+                print(warn)
+
+        # error
+        if type(hydrau_description) == str:
+            print("Error")
+            return
+
+        # refresh units if set
+        if unit_list:
+            for reach_num in range(len(hydrau_description["unit_list_tf"])):
+                for unit_num in reversed(range(len(hydrau_description["unit_list"][reach_num]))):
+                    if hydrau_description["unit_list"][reach_num][unit_num] in unit_list[reach_num]:
+                        hydrau_description["unit_list_tf"][reach_num][unit_num] = True
+                    else:
+                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
+                        hydrau_description["unit_list"][reach_num].pop(unit_num)
+
+        # run process
+        progress_value = Value("i", 0)
+        q = Queue()
+        p = Process(target=ascii_mod.load_ascii_and_cut_grid,
+                    args=(hydrau_description,
+                          progress_value,
+                          q,
+                          True,
+                          project_preferences),
+                    name="LOAD_ASCII")
         cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
