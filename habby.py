@@ -19,8 +19,6 @@ import os
 import sys
 import traceback
 from datetime import datetime
-from locale import setlocale, LC_ALL
-setlocale(LC_ALL, '')  # set to user's locale to know with locale, decimal separator of user
 from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen

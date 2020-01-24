@@ -21,12 +21,11 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
+from PyQt5.QtCore import QLocale
 from osgeo import ogr
 from osgeo import osr
 from stl import mesh
 from multiprocessing import Value
-from locale import localeconv, setlocale, LC_ALL
-setlocale(LC_ALL, "")
 
 from src import bio_info_mod
 from src import substrate_mod
@@ -2287,7 +2286,8 @@ class Hdf5Management:
                         data_here += '\n'
 
                         # change decimal point
-                        if localeconv()['decimal_point'] == ",":
+                        locale = QLocale()
+                        if locale.decimalPoint() == ",":
                             data_here = data_here.replace('.', ',')
 
                         # write file
@@ -2415,7 +2415,8 @@ class Hdf5Management:
                                         text_to_write_str += f"\t{str(self.data_2d['mesh']['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
 
                         # change decimal point
-                        if localeconv()['decimal_point'] == ",":
+                        locale = QLocale()
+                        if locale.decimalPoint() == ",":
                             text_to_write_str = text_to_write_str.replace('.', ',')
 
                         # write file
@@ -2495,7 +2496,8 @@ class Hdf5Management:
                             text_to_write_str += f"{x}\t{y}\t{z}\t{h}\t{v}\t{water_level}\t{froude_number}\t{hydraulic_head}\t{conveyance}"
 
                         # change decimal point
-                        if localeconv()['decimal_point'] == ",":
+                        locale = QLocale()
+                        if locale.decimalPoint() == ",":
                             text_to_write_str = text_to_write_str.replace('.', ',')
 
                         # write file
@@ -2745,7 +2747,8 @@ class Hdf5Management:
             f.close()
 
         # change decimal point
-        if localeconv()['decimal_point'] == ",":
+        locale = QLocale()
+        if locale.decimalPoint() == ",":
             txt_file_convert_dot_to_comma(os.path.join(path_txt, output_filename + '.txt'))
 
         # export estimhab input
@@ -2773,7 +2776,8 @@ class Hdf5Management:
             intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
                 f.write(txtin)
-        if localeconv()['decimal_point'] == ",":
+        locale = QLocale()
+        if locale.decimalPoint() == ",":
             txt_file_convert_dot_to_comma(os.path.join(path_txt, intput_filename + '.txt'))
 
 

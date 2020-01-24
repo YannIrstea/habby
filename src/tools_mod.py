@@ -21,14 +21,12 @@ import sys
 import urllib
 from copy import deepcopy
 from glob import glob
-from locale import localeconv
-from locale import localeconv, setlocale, LC_ALL
-setlocale(LC_ALL, "")
 from time import sleep
 import shutil
 import numpy as np
 from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QThread, QCoreApplication as qt_tr
 from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
+from PyQt5.QtCore import QLocale
 import multiprocessing
 
 from src.project_manag_mod import load_project_preferences
@@ -334,7 +332,8 @@ def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_pr
         output_full_path = os.path.join(path_prj, "output", "text", os.path.splitext(filename)[0] + "_empty_chronicle.txt")
         with open(output_full_path, 'wt') as f:
             # change decimal point
-            if localeconv()['decimal_point'] == ",":
+            locale = QLocale()
+            if locale.decimalPoint() == ",":
                 text = text.replace('.', ',')
             f.write(text)
         return True
@@ -566,7 +565,8 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
                 linetext += "None" + "\t"
             if data_hv:
                 # change decimal point
-                if localeconv()['decimal_point'] == ",":
+                locale = QLocale()
+                if locale.decimalPoint() == ",":
                     data_hv = data_hv.replace('.', ',')
                 linetext += str(data_hv) + "\t"
         # new line
