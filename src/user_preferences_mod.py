@@ -68,12 +68,12 @@ class UserPreferences(AppDataFolders):
     # PREFERENCES
     def create_and_clear_temp_folder(self):
         # if not exist : craete it
-        if not os.path.isdir(self.user_preferences_temp_path):
-            os.mkdir(self.user_preferences_temp_path)  # recreate folder (empty)
+        if not os.path.isdir(self.user_pref_temp_path):
+            os.mkdir(self.user_pref_temp_path)  # recreate folder (empty)
         # if exist : clear content
         else:
             try:
-                filesToRemove = [os.path.join(self.user_preferences_temp_path, f) for f in os.listdir(self.user_preferences_temp_path)]
+                filesToRemove = [os.path.join(self.user_pref_temp_path, f) for f in os.listdir(self.user_pref_temp_path)]
                 for f in filesToRemove:
                     os.remove(f)
             except:
@@ -81,17 +81,17 @@ class UserPreferences(AppDataFolders):
                       "and try again.")
 
     def create_or_load_user_preferences(self):
-        if not os.path.isfile(self.user_preferences_habby_file_path):  # check if preferences file exist
+        if not os.path.isfile(self.user_pref_habby_file_path):  # check if preferences file exist
             self.save_user_preferences_json()  # create it
         else:
             self.load_user_preferences_json()  # load it
 
     def save_user_preferences_json(self):
-        with open(self.user_preferences_habby_file_path, "wt") as write_file:
+        with open(self.user_pref_habby_file_path, "wt") as write_file:
             json.dump(self.data, write_file, indent=4)
 
     def load_user_preferences_json(self):
-        with open(self.user_preferences_habby_file_path, "r") as read_file:
+        with open(self.user_pref_habby_file_path, "r") as read_file:
             self.data = json.load(read_file)
 
     # MODEL BIO
@@ -101,16 +101,16 @@ class UserPreferences(AppDataFolders):
             [f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".xml" in f])
         self.picture_from_habby = sorted(
             [f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".png" in f])
-        self.models_from_user_appdata = sorted([f for f in os.listdir(self.user_preferences_biology_models) if
+        self.models_from_user_appdata = sorted([f for f in os.listdir(self.user_pref_biology_models) if
                                                 os.path.isfile(
-                                                    os.path.join(self.user_preferences_biology_models, f)) and ".xml" in f])
-        self.picture_from_user_appdata = sorted([f for f in os.listdir(self.user_preferences_biology_models) if
+                                                    os.path.join(self.user_pref_biology_models, f)) and ".xml" in f])
+        self.picture_from_user_appdata = sorted([f for f in os.listdir(self.user_pref_biology_models) if
                                                  os.path.isfile(
-                                                     os.path.join(self.user_preferences_biology_models, f)) and ".png" in f])
+                                                     os.path.join(self.user_pref_biology_models, f)) and ".png" in f])
 
     def create_or_update_biology_models_json(self):
         # if not exist
-        if not os.path.isfile(self.user_preferences_biology_models_db_file):
+        if not os.path.isfile(self.user_pref_biology_models_db_file):
             self.create_biology_models_dict()
             self.create_biology_models_json()
             self.format_biology_models_dict_togui()
@@ -151,7 +151,7 @@ class UserPreferences(AppDataFolders):
                 path_bio = self.path_bio
             if xml_origine == "user":
                 xml_list = self.models_from_user_appdata
-                path_bio = self.user_preferences_biology_models
+                path_bio = self.user_pref_biology_models
 
             # for each xml file
             for file_ind, xml_filename in enumerate(xml_list):
@@ -188,7 +188,7 @@ class UserPreferences(AppDataFolders):
 
     def create_biology_models_json(self):
         # save database
-        with open(self.user_preferences_biology_models_db_file, "wt") as write_file:
+        with open(self.user_pref_biology_models_db_file, "wt") as write_file:
             json.dump(self.biological_models_dict, write_file, indent=4)
 
     def format_biology_models_dict_togui(self):
@@ -234,7 +234,7 @@ class UserPreferences(AppDataFolders):
                 new_path_xml_list = list(map(str, self.biological_models_dict["path_xml"]))
                 new_xml_list = list(set(existing_path_xml_list) ^ set(new_path_xml_list))
                 if new_xml_list:
-                    new_biology_models_save_folder = os.path.join(self.user_preferences_biology_models_save,
+                    new_biology_models_save_folder = os.path.join(self.user_pref_biology_models_save,
                                                                   strftime("%d_%m_%Y_at_%H_%M_%S"))
                     if not os.path.isdir(new_biology_models_save_folder):
                         os.mkdir(new_biology_models_save_folder)
@@ -254,7 +254,7 @@ class UserPreferences(AppDataFolders):
 
     def load_biology_models_json(self):
         # load_biology_models_json
-        with open(self.user_preferences_biology_models_db_file, "r") as read_file:
+        with open(self.user_pref_biology_models_db_file, "r") as read_file:
             biological_models_dict = json.load(read_file)
         return biological_models_dict
 

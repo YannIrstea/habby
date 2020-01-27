@@ -37,34 +37,45 @@ class AppDataFolders:
         # folders Irstea/HABBY
         appauthor = "INRAE_EDF_OFB"
         appname = "HABBY"
-        self.user_preferences_habby_path = AppDirs(appname, appauthor).user_config_dir
-        self.user_preferences_habby_file_path = os.path.join(self.user_preferences_habby_path, "user_preferences.json")
-        self.user_preferences_biology_models = os.path.join(self.user_preferences_habby_path, "biology", "user_models")
-        self.user_preferences_biology_models_db_file = os.path.join(self.user_preferences_habby_path, "biology",
-                                                               "models_db.json")
-        self.user_preferences_temp_path = os.path.join(self.user_preferences_habby_path, "temp")
-        self.user_preferences_log_path = os.path.join(self.user_preferences_habby_path, "log")
-        self.user_preferences_crashlog_file = os.path.join(self.user_preferences_habby_path, "log", "habby_crash.log")
-        # save
-        self.user_preferences_biology_models_save = AppDirs("HABBY_saves", appauthor).user_config_dir
+        # INRAE_EDF_OFB and HABBY
+        self.user_pref_habby_author_path = AppDirs(appname, appauthor).user_config_dir
+        # saves
+        self.user_pref_biology_models_save = os.path.join(self.user_pref_habby_author_path, "saves")
+        # user_settings
+        self.user_pref_habby_user_settings_path = os.path.join(self.user_pref_habby_author_path, "user_settings")
+        # user_preferences.json
+        self.user_pref_habby_file_path = os.path.join(self.user_pref_habby_user_settings_path, "user_preferences.json")
+        # user_models
+        self.user_pref_biology_models = os.path.join(self.user_pref_habby_user_settings_path, "biology", "user_models")
+        # models_db.json
+        self.user_pref_biology_models_db_file = os.path.join(self.user_pref_habby_user_settings_path, "biology", "models_db.json")
+        # temp
+        self.user_pref_temp_path = os.path.join(self.user_pref_habby_user_settings_path, "temp")
+        # log_path
+        self.user_pref_log_path = os.path.join(self.user_pref_habby_user_settings_path, "log")
+        # log_file
+        self.user_pref_crashlog_file = os.path.join(self.user_pref_habby_user_settings_path, "log", "habby_crash.log")
 
     # preferences
     def create_appdata_folders(self):
-        # user_preferences_habby_file_path
-        if not os.path.isdir(self.user_preferences_habby_path):
-            os.makedirs(self.user_preferences_habby_path)
-        # user_preferences_biology_models
-        if not os.path.isdir(self.user_preferences_biology_models):
-            os.makedirs(self.user_preferences_biology_models)
-        # user_preferences_temp_path
-        if not os.path.isdir(self.user_preferences_temp_path):
-            os.mkdir(self.user_preferences_temp_path)
-        # user_preferences_log_path
-        if not os.path.isdir(self.user_preferences_log_path):
-            os.mkdir(self.user_preferences_log_path)
-        # user_preferences_biology_models_save
-        if not os.path.isdir(self.user_preferences_biology_models_save):
-            os.makedirs(self.user_preferences_biology_models_save)
+        # INRAE_EDF_OFB and HABBY
+        if not os.path.isdir(self.user_pref_habby_author_path):
+            os.makedirs(self.user_pref_habby_author_path)
+        # saves
+        if not os.path.isdir(self.user_pref_biology_models_save):
+            os.makedirs(self.user_pref_biology_models_save)
+        # user_settings
+        if not os.path.isdir(self.user_pref_habby_user_settings_path):
+            os.makedirs(self.user_pref_habby_user_settings_path)
+        # user_models
+        if not os.path.isdir(self.user_pref_biology_models):
+            os.makedirs(self.user_pref_biology_models)
+        # temp
+        if not os.path.isdir(self.user_pref_temp_path):
+            os.mkdir(self.user_pref_temp_path)
+        # log_path
+        if not os.path.isdir(self.user_pref_log_path):
+            os.mkdir(self.user_pref_log_path)
 
     def crash_management_output(self, error_type, error_value, error_traceback):
         """
@@ -79,7 +90,7 @@ class AppDataFolders:
                str(error_value)
 
         # write to crash_log file
-        with open(self.user_preferences_crashlog_file, 'w') as f:
+        with open(self.user_pref_crashlog_file, 'w') as f:
             f.write(text)
         # exit python
         raise SystemExit
