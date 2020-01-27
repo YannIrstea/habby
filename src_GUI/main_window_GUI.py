@@ -1582,7 +1582,7 @@ class MainWindows(QMainWindow):
         """
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ControlModifier:
-            path_choosen = os.path.normpath(self.user_preferences.user_preferences_habby_path)
+            path_choosen = os.path.normpath(self.user_preferences.user_pref_habby_user_settings_path)
         elif modifiers == Qt.ShiftModifier:
             path_choosen = os.path.normpath(os.getcwd())
         else:
