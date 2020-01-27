@@ -1400,7 +1400,7 @@ def load_tps_2d(tpsfile, path, nb_cell):
     data_tps_splited = data_tps.split("\n")
 
     # write temp file and get timestep
-    path_stat = user_preferences.user_preferences_temp_path
+    path_stat = user_preferences.user_pref_temp_path
     file_temp = open(os.path.join(path_stat, tpsfile), "w")
     timestep_list = []
     for line_index, line_str in enumerate(data_tps_splited):

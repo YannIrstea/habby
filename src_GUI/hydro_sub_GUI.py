@@ -4209,7 +4209,7 @@ class ASCII(SubHydroW):  # QGroupBox
                                    self.q,
                                    False,
                                    self.project_preferences,
-                                   user_preferences.user_preferences_temp_path))
+                                   user_preferences.user_pref_temp_path))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
             self.p = Process(target=ascii_mod.load_ascii_and_cut_grid,
@@ -4218,7 +4218,7 @@ class ASCII(SubHydroW):  # QGroupBox
                                    self.q,
                                    False,
                                    self.project_preferences,
-                                   user_preferences.user_preferences_temp_path))
+                                   user_preferences.user_pref_temp_path))
         self.p.name = "ASCII data loading"
         self.p.start()
 

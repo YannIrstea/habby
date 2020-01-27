@@ -28,7 +28,7 @@ from src.project_manag_mod import create_default_project_preferences_dict
 
 
 def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={},
-                            user_preferences_temp_path=''):
+                            user_pref_temp_path=''):
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
@@ -44,7 +44,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     progress_value.value = 10
 
     # load data from txt file
-    data_2d_from_ascii, data_description = load_ascii_model(file_path, path_prj, user_preferences_temp_path)
+    data_2d_from_ascii, data_description = load_ascii_model(file_path, path_prj, user_pref_temp_path)
     if not data_2d_from_ascii and not data_description:
         q.put(mystdout)
         return
@@ -213,7 +213,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         return
 
 
-def load_ascii_model(filename, path_prj, user_preferences_temp_path):
+def load_ascii_model(filename, path_prj, user_pref_temp_path):
     """
     using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
     several reaches and units (discharges or times )descriptions are allowed
@@ -225,9 +225,9 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
     """
     path = os.path.dirname(filename)
-    fnoden, ftinn, fsubn, ffvmn = os.path.join(user_preferences_temp_path, 'wwnode.txt'), os.path.join(
-        user_preferences_temp_path, 'wwtin.txt'), os.path.join(user_preferences_temp_path,
-                                                               'wwsub.txt'), os.path.join(user_preferences_temp_path,
+    fnoden, ftinn, fsubn, ffvmn = os.path.join(user_pref_temp_path, 'wwnode.txt'), os.path.join(
+        user_pref_temp_path, 'wwtin.txt'), os.path.join(user_pref_temp_path,
+                                                               'wwsub.txt'), os.path.join(user_pref_temp_path,
                                                                                           'wwfvm.txt')
     fi = open(filename, 'r', encoding='utf8')
     fnode = open(fnoden, 'w', encoding='utf8')

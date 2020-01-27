@@ -27,7 +27,7 @@ def profileit(func):
     For developper, if used (import of this decorator),
     it will recreate/reimport the class and recreate AppData structure. """
     def wrapper(*args, **kwargs):
-        path_stat = user_preferences.user_preferences_temp_path
+        path_stat = user_preferences.user_pref_temp_path
         datafn = func.__name__ + ".txt"  # Name the data file sensibly
         prof = cProfile.Profile()
         retval = prof.runcall(func, *args, **kwargs)
