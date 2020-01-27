@@ -134,7 +134,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.remove_sel_bio_model_pushbutton = QPushButton(self.tr("Remove selected models"))
         self.remove_sel_bio_model_pushbutton.clicked.connect(self.remove_sel_fish)
 
-        self.create_duplicate_from_selection_pushbutton = QPushButton(self.tr("Create duplciate from selection"))
+        self.create_duplicate_from_selection_pushbutton = QPushButton(self.tr("Create duplicate from selection"))
         self.create_duplicate_from_selection_pushbutton.clicked.connect(self.create_duplicate_from_selection)
 
         self.remove_duplicate_model_pushbutton = QPushButton(self.tr("Remove duplicates models"))
