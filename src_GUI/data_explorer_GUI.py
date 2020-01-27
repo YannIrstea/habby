@@ -1239,7 +1239,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                    fish_name,
                                                                                    "",
                                                                                    string_tr,
-                                                                                   " (" + self.tr('HV = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('UA') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %" + ")")
+                                                                                   " (" + self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('Unknwon area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %" + ")")
                                         state = Value("i", 0)
                                         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                                       args=(
