@@ -421,7 +421,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
         # ax[1].xaxis.set_tick_params(rotation=15)
         ax[1].set_xticklabels([])
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI (WUA/A) []'))
         ax[1].set_title(qt_tr.translate("plot_mod", "Habitat value"))
 
         # %
@@ -433,6 +433,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
         ax[2].set_title(
             qt_tr.translate("plot_mod", "Unknown area"))
+        ax[2].set_ylim([0.0, 1.0])
 
         # GENERAL
         mplcursors.cursor()  # get data with mouse
@@ -486,7 +487,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
                      linestyle=style_list[fish_index],
                        marker=mar)
 
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV (WUA/A) []'))
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI (WUA/A) []'))
         ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value'))
         if len(unit_name) < 25:
             ax[1].set_xticks(x_data)
@@ -521,6 +522,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
             ax[2].set_xticks(x_data[::10])
             ax[2].set_xticklabels(unit_name[::10])
         ax[2].xaxis.set_tick_params(rotation=45)
+        ax[2].set_ylim([0.0, 1.0])
 
         # LEGEND
         handles, labels = ax[0].get_legend_handles_labels()
@@ -663,7 +665,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
                    linestyle=style_list[name_fish_num],
                    label=name_fish_value,
                    marker=mar)
-    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HV []'))
+    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
     ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
     ax[1].set_ylim([-0.1, 1.1])
     if len(sim_name) < 25:
