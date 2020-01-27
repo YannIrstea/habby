@@ -18,10 +18,10 @@ import os
 from multiprocessing import Process, Value
 
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, \
-    QMessageBox, QTabWidget, QApplication,\
+    QMessageBox, QTabWidget, QApplication, QStatusBar,\
     QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QTextEdit
 from subprocess import call
@@ -52,6 +52,7 @@ class BioModelExplorerWindow(QDialog):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.name_icon = name_icon
+        self.status_bar = QStatusBar()
         self.msg2 = QMessageBox()
         self.path_bio = user_preferences.path_bio
         self.process_list = process_list
@@ -69,16 +70,23 @@ class BioModelExplorerWindow(QDialog):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
+        # tab_widget
         self.tab_widget = QTabWidget()
         self.tab_widget.addTab(self.bio_model_filter_tab, self.tr("Model filter"))
         self.tab_widget.addTab(self.bio_model_infoselection_tab, self.tr("Model selection"))
 
+        # tatusTip
+        self.bio_model_infoselection_tab.show_curve_pushbutton.installEventFilter(self)
+        self.bio_model_infoselection_tab.hydrosignature_pushbutton.installEventFilter(self)
+        self.bio_model_infoselection_tab.add_selected_to_main_pushbutton.installEventFilter(self)
+
+        # signal
         self.tab_widget.currentChanged.connect(self.load_model_selected_to_available)
 
+        self.general_layout = QVBoxLayout(self)
+        self.general_layout.addWidget(self.tab_widget)
+        self.general_layout.addWidget(self.status_bar)
         self.setGeometry(60, 95, 800, 600)
-
-        general_layout = QVBoxLayout(self)
-        general_layout.addWidget(self.tab_widget)
         self.setWindowTitle(self.tr("Biological model selector"))
         self.setWindowIcon(QIcon(self.name_icon))
 
@@ -114,12 +122,31 @@ class BioModelExplorerWindow(QDialog):
         self.show()
 
     def load_model_selected_to_available(self):
-        if self.tab_widget.currentIndex() == 1:  # model selected tab
+        if self.tab_widget.currentIndex() == 0:  # model filter tab
+            self.status_bar.showMessage(self.tr("Filter your models and then pass to 'Model selection' tab."))
+        elif self.tab_widget.currentIndex() == 1:  # model selected tab
             bio_model_explorer_selection_dict = self.bio_model_filter_tab.bio_model_explorer_selection_dict
             biological_models_dict_gui = self.bio_model_filter_tab.biological_models_dict_gui
             self.bio_model_infoselection_tab.bio_model_explorer_selection_dict = bio_model_explorer_selection_dict
             self.bio_model_infoselection_tab.biological_models_dict_gui = biological_models_dict_gui
             self.bio_model_infoselection_tab.fill_available_aquatic_animal()
+            self.status_bar.showMessage(self.tr("Select your models by drag and drop and "
+                                                "then click on 'Validate selected models' button."))
+
+    def eventFilter(self, obj, event):
+        '''
+        Manual setStatusTip
+        '''
+        if event.type() == QEvent.Enter:
+            # print("1", obj.statusTip(), obj.objectName())
+            self.oldMessage = self.status_bar.currentMessage()
+            self.status_bar.showMessage(obj.statusTip(), 0)
+        elif event.type() == QEvent.Leave:
+            # print("2", self.oldMessage, obj.objectName())
+            self.status_bar.showMessage(self.oldMessage, 0)
+            pass
+        event.accept()
+        return False
 
     def closeEvent(self, *args, **kwargs):
         self.bio_model_infoselection_tab.quit_biological_model_explorer()
@@ -548,7 +575,6 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget.model().rowsInserted.connect(self.count_models_listwidgets)
         self.available_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
 
-
         self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.setObjectName("selected_aquatic_animal")
@@ -565,17 +591,27 @@ class BioModelInfoSelection(QScrollArea):
         latin_name_title_label = QLabel(self.tr('Latin Name: '))
         self.latin_name_label = QLabel("")
         # show_curve
-        self.show_curve_pushbutton = QPushButton(self.tr('Show suitability curve'))
-        self.show_curve_pushbutton.setToolTip(self.tr("clic = Selected stage ; SHIFT+clic = All stages"))
+        self.show_curve_pushbutton = QPushButton(self.tr("Show habitat suitability indices"))
+        self.show_curve_pushbutton.setStatusTip(self.tr("clic = selected stage ; SHIFT+clic = all stages"))
+        self.show_curve_pushbutton.setToolTip(self.tr("Habitat Suitability Indices are curves used to quantify and \n"
+                                                      "evaluate habitat quality for a specific species, based on \n"
+                                                      "the known selection of particular habitat conditions during \n"
+                                                      "specific periods of the species life history (Bovee 1986)."))
         self.show_curve_pushbutton.clicked.connect(self.show_pref)
+        self.show_curve_pushbutton.setObjectName("show_curve_pushbutton")
+        self.show_curve_pushbutton.setEnabled(False)
         # code_alternative
         code_alternative_title_label = QLabel(self.tr('Code alternative:'))
         self.code_alternative_label = QLabel("")
         # hydrosignature
-        self.hydrosignature_pushbutton = QPushButton(self.tr('Show Measurement Conditions (Hydrosignature)'))
-        self.hydrosignature_pushbutton.setToolTip(self.tr('A hydrosignature quantifies the hydraulic diversity in any area/part of the aquatic space \n'
-                                                          'defined by either volume or area percentages on a depth and current velocity cross grid.'))
+        self.hydrosignature_pushbutton = QPushButton(self.tr("Show hydrosignature"))
+        self.hydrosignature_pushbutton.setStatusTip(self.tr("clic = all stages"))
+        self.hydrosignature_pushbutton.setToolTip(self.tr("A hydrosignature quantifies the hydraulic diversity \n"
+                                                          "in any area/part of the aquatic space defined by either \n"
+                                                          "volume or area percentages on a depth and current \n"
+                                                          "velocity cross grid (Lecoarer 2007)."))
         self.hydrosignature_pushbutton.clicked.connect(self.show_hydrosignature)
+        self.hydrosignature_pushbutton.setEnabled(False)
         # description
         description_title_label = QLabel(self.tr('Description:'))
         description_title_label.setAlignment(Qt.AlignTop)
@@ -591,7 +627,10 @@ class BioModelInfoSelection(QScrollArea):
 
         # add
         self.add_selected_to_main_pushbutton = QPushButton(self.tr("Validate selected models"))
+        self.add_selected_to_main_pushbutton.setStatusTip(self.tr("Validate selected models to send them to your "
+                                                                  "habitat calculation tab."))
         self.add_selected_to_main_pushbutton.clicked.connect(self.add_selected_to_main)
+        self.add_selected_to_main_pushbutton.setEnabled(False)
 
         # quit
         self.quit_biological_model_explorer_pushbutton = QPushButton(self.tr("Close"))
@@ -668,6 +707,10 @@ class BioModelInfoSelection(QScrollArea):
         self.add_selected_to_main_pushbutton.setFocus()
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(self.available_aquatic_animal_listwidget.count()) + ")")
         self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(self.selected_aquatic_animal_listwidget.count()) + ")")
+        if self.selected_aquatic_animal_listwidget.count() > 0:
+            self.add_selected_to_main_pushbutton.setEnabled(True)
+        else:
+            self.add_selected_to_main_pushbutton.setEnabled(False)
 
     def remove_fish(self):
         """
@@ -704,8 +747,20 @@ class BioModelInfoSelection(QScrollArea):
         listwidget = eval("self." + listwidget_source + "_aquatic_animal_listwidget")
 
         # get the file
-        i1 = listwidget.currentItem()  # show the info concerning the one selected fish
-        if not i1:
+        selection = listwidget.selectedItems()
+        if len(selection) == 1:
+            i1 = listwidget.currentItem()  # show the info concerning the one selected fish
+        else:
+            self.latin_name_label.setText("")
+            self.code_alternative_label.setText("")
+            self.description_textedit.setText("")
+            self.animal_picture_label.clear()
+            self.animal_picture_label.setText(self.tr("no image file"))
+            self.animal_picture_path = None
+            self.show_curve_pushbutton.setEnabled(False)
+            self.hydrosignature_pushbutton.setEnabled(False)
+            # set focus
+            self.add_selected_to_main_pushbutton.setFocus()
             return
 
         # get info
@@ -759,6 +814,19 @@ class BioModelInfoSelection(QScrollArea):
             self.animal_picture_label.clear()
             self.animal_picture_label.setText(self.tr("no image file"))
             self.animal_picture_path = None
+
+        # is hydrosignature
+        data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
+        if isinstance(data, np.ndarray):
+            self.hydrosignature_pushbutton.setEnabled(True)
+        else:
+            self.hydrosignature_pushbutton.setEnabled(False)
+
+        # enable show_curve_pushbutton
+        self.show_curve_pushbutton.setEnabled(True)
+
+        # set focus
+        self.add_selected_to_main_pushbutton.setFocus()
 
     def open_explorer_on_picture_path(self):
         if self.animal_picture_path:
@@ -923,6 +991,7 @@ class BioModelInfoSelection(QScrollArea):
 
         # clear
         self.selected_aquatic_animal_listwidget.clear()
+        self.add_selected_to_main_pushbutton.setEnabled(False)
 
         # close window
         self.quit_biological_model_explorer()

@@ -482,7 +482,7 @@ def get_hydrosignature(xmlfile):
             print('Warning: no hydrosignature found in the xml file (3). \n')
             return error_list
     else:
-        print('Warning: no hydrosignature found in the xml file (4). \n')
+        #print('Warning: no hydrosignature found in the xml file (4). \n')
         return error_list
 
     # if data found, plot the image

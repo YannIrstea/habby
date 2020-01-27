@@ -941,7 +941,7 @@ class MainWindows(QMainWindow):
         # if hasattr(self.central_widget, 'chronicle_tab') == True:
         #     self.central_widget.update_merge_for_chronicle()
 
-        self.central_widget.l1.setText(self.tr('Habby says:'))
+        self.central_widget.tracking_journal_title_label.setText(self.tr('Habby says:'))
 
         # update user option to remember the language
         if self.lang == 0:
@@ -1869,7 +1869,7 @@ class CentralW(QWidget):
         self.add_all_tab()
 
         # Area to show the log
-        self.l1 = QLabel(self.tr('HABBY says:'))
+        self.tracking_journal_title_label = QLabel(self.tr('HABBY says:'))
         self.tracking_journal_QTextEdit.setFixedHeight(100)
 
         self.welcome_tab.save_info_signal.connect(self.save_info_projet)
@@ -1888,7 +1888,7 @@ class CentralW(QWidget):
         # layout
         self.layoutc = QGridLayout()
         self.layoutc.addWidget(self.tab_widget, 1, 0)
-        self.layoutc.addWidget(self.l1, 2, 0)
+        self.layoutc.addWidget(self.tracking_journal_title_label, 2, 0)
         self.layoutc.addWidget(self.tracking_journal_QTextEdit, 3, 0)
         self.setLayout(self.layoutc)
 
@@ -2245,18 +2245,6 @@ class CentralW(QWidget):
         # elif self.old_ind_tab == self.opttab:
         #     self.output_tab.save_preferences()
         self.old_ind_tab = self.tab_widget.currentIndex()
-
-    def update_merge_for_chronicle(self):
-        """
-        This function looks up the list of merge file in the QComBox in the bio_info tab and copy this
-        list to the QCombobox in chronicle_GUI. So the two lists of merge file are the same
-        """
-        self.chronicle_tab.hdf5_merge = self.bioinfo_tab.hdf5_merge
-        self.chronicle_tab.merge_all.clear()
-        for i in range(0, self.bioinfo_tab.m_all.count()):
-            if self.bioinfo_tab.m_all.itemText(i)[:7] != 'Chronic':
-                self.chronicle_tab.merge_all.addItem(self.bioinfo_tab.m_all.itemText(i))
-                self.chronicle_tab.merge_all.setItemData(i, self.bioinfo_tab.tooltip[i], Qt.ToolTipRole)
 
     def update_specific_tab(self):
         # calc hab

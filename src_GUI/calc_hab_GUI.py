@@ -527,7 +527,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if self.current_hab_informations_dict:
             if new_item_text_dict:
                 if not new_item_text_dict["selected_aquatic_animal_list"]:
-                    self.send_log.emit("Warning: " + self.tr("No selected models."))
+                    self.send_log.emit("Warning: " + self.tr("No models added (no selection)."))
             self.selected_aquatic_animal_qtablewidget.setRowCount(total_item)
             self.hyd_mode_qtablewidget.setRowCount(total_item)
             self.sub_mode_qtablewidget.setRowCount(total_item)

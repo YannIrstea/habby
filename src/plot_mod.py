@@ -297,7 +297,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     title_plot = qt_tr.translate("plot_mod",
                             'Measurement conditions') + "\n" + fishname
 
-    plt.figure(title_plot)
+    plt.figure(title_plot.replace("\n", " : "))
     # cmap should be coherent with text color
     plt.imshow(data, cmap='Blues',
                interpolation='nearest',
