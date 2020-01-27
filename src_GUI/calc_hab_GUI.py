@@ -163,8 +163,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_default)
         else:
             self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_user)
-            #self.general_option_hyd_combobox.setStyle(QCommonStyle())
         self.general_option_hyd_combobox.activated.connect(self.set_once_all_hyd_combobox)
+        width_size = self.general_option_hyd_combobox.minimumSizeHint().width()
+        width_size = width_size + (width_size * 0.2)
+        self.general_option_hyd_combobox.setMinimumWidth(width_size)
         # 3 column
         self.sub_mode_qtablewidget = QTableWidget()
         self.sub_mode_qtablewidget.setColumnCount(1)
@@ -181,7 +183,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         else:
             self.general_option_sub_combobox.setStyleSheet(self.combobox_style_user)
         self.general_option_sub_combobox.activated.connect(self.set_once_all_sub_combobox)
-
         # 4 column
         self.exist_title_label = QLabel(self.tr("exist in .hab"))
         self.presence_qtablewidget = QTableWidget()
@@ -248,11 +249,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         layout_prov3.addWidget(self.general_option_sub_combobox)
         self.layout4.addLayout(layout_prov3, 2, 2)
         self.layout4.addWidget(self.sub_mode_qtablewidget, 3, 2)
-
         # 4e column
         self.layout4.addWidget(self.exist_title_label, 2, 3)
         self.layout4.addWidget(self.presence_qtablewidget, 3, 3, 1, 1)
-
         # 5e column
         self.layout4.addWidget(self.presence_scrollbar, 3, 4, 1, 1)
 
