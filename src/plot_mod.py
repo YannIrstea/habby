@@ -891,6 +891,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -922,14 +923,15 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    colorbar = fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     data_min_str = len(str(data_min).split(".")[0])
     data_max_str = len(str(data_max).split(".")[0])
     if data_min_str > 2 or data_max_str > 2:  # two before decimal
-        colorbar.ax.tick_params(labelsize=6)
+        color_bar.ax.tick_params(labelsize=6)
     elif data_min_str > 1 or data_max_str > 1:  # two before decimal
-        colorbar.ax.tick_params(labelsize=8)
+        color_bar.ax.tick_params(labelsize=8)
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -944,6 +946,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -975,8 +978,9 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -991,6 +995,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1022,8 +1027,9 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1038,6 +1044,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1069,8 +1076,9 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1085,6 +1093,7 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1116,8 +1125,9 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1132,6 +1142,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1163,8 +1174,9 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1179,6 +1191,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1210,14 +1223,15 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
                                 cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
-    colorbar = fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     data_min_str = len(str(data_min).split(".")[0])
     data_max_str = len(str(data_max).split(".")[0])
     if data_min_str > 2 or data_max_str > 2:  # two before decimal
-        colorbar.ax.tick_params(labelsize=6)
+        color_bar.ax.tick_params(labelsize=6)
     elif data_min_str > 1 or data_max_str > 1:  # two before decimal
-        colorbar.ax.tick_params(labelsize=8)
+        color_bar.ax.tick_params(labelsize=8)
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1286,6 +1300,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1317,8 +1332,9 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
     ax_map.add_collection(data_ploted)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1333,6 +1349,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1364,8 +1381,9 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
     ax_map.add_collection(data_ploted)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1380,6 +1398,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1411,8 +1430,9 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
     ax_map.add_collection(data_ploted)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1442,6 +1462,7 @@ def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # prepare data
     unziped = list(zip(*data_plot))
@@ -1484,6 +1505,7 @@ def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_
     listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
     color_bar.set_ticks(listcathegories_stick)
     color_bar.set_ticklabels(listcathegories_stick_label)
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1513,6 +1535,7 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # prepare data
     unziped = list(zip(*data_plot))
@@ -1555,6 +1578,7 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
     color_bar.set_ticks(listcathegories_stick)
     color_bar.set_ticklabels(listcathegories_stick_label)
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1569,6 +1593,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     reach_title = plot_string_dict["reach_title"]
     unit_title = plot_string_dict["unit_title"]
     filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
@@ -1600,15 +1625,16 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     ax_map.add_collection(data_ploted)
 
     # color_bar
-    fig.colorbar(data_ploted, cax=ax_legend,
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                  format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
 # plot tool
-right_limit_position = 0.90
+right_limit_position = 0.88
 top_limit_position = 0.90
 banner_position = (0.00, top_limit_position,  # x0, y0
                    right_limit_position, 1.00 - top_limit_position)  # width, height

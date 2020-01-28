@@ -587,6 +587,13 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
 
 
 def create_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr, variable_info=""):
+    # colorbar_label and variable_info
+    if variable_info:
+        colorbar_label = variable_info.split(" = ")[0] + " [" + variable_unit + "]"
+        variable_info = " (" + variable_info + ")"
+    else:
+        colorbar_label = "[" + variable_unit + "]"
+
     # plot_string_dict
     plot_string_dict = dict(reach_name=reach_name,
                             unit_name=unit_name,
@@ -594,6 +601,7 @@ def create_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variabl
                             variable_title=variable.replace("_", " ") + ' [' + variable_unit + ']' + " " + variable_info,
                             reach_title=string_tr[0] + " : " + reach_name,
                             unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type + "]",
+                            colorbar_label=colorbar_label,
                             filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_")
                             )
     return plot_string_dict

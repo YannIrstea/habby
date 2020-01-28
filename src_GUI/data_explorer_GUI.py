@@ -1187,7 +1187,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                units[unit_num],
                                                                                unit_type,
                                                                                self.tr("substrate_coarser"),
-                                                                               "",
+                                                                               data_description["sub_classification_code"],
                                                                                string_tr)
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate_coarser,
@@ -1211,7 +1211,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                units[unit_num],
                                                                                unit_type,
                                                                                self.tr("substrate_dominant"),
-                                                                               "",
+                                                                               data_description["sub_classification_code"],
                                                                                string_tr)
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate_dominant,
@@ -1239,7 +1239,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                                                                    fish_name,
                                                                                    "",
                                                                                    string_tr,
-                                                                                   " (" + self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('Unknwon area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %" + ")")
+                                                                                   self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %")
                                         state = Value("i", 0)
                                         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                                       args=(
