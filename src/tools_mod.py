@@ -921,7 +921,7 @@ class MyProcessList(QThread):
                     if self.process_list[i][1].value == 0:
                         self.process_list[i][0].start()
                         #print("start", i)
-            print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
+            #print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
             self.check_all_plot_produced()
 
             # # Pool map mod
@@ -940,7 +940,7 @@ class MyProcessList(QThread):
             self.all_process_runned = False
             for i in range(len(self.process_list)):
                 self.process_list[i][0].start()
-            print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
+            #print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
             self.all_process_runned = True
             self.check_all_export_produced()
 

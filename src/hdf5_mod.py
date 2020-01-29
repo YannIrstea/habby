@@ -444,12 +444,13 @@ class Hdf5Management:
                                                        data=data_2d["node"]["data"][node_variable][reach_num][unit_num])
 
         # get extent
-        xMin = str(min(xMin))
-        xMax = str(max(xMax))
-        yMin = str(min(yMin))
-        yMax = str(max(yMax))
-        extent = [xMin, yMin, xMax, yMax]
-        self.file_object.attrs["extent"] = ", ".join(extent)
+        xMin = min(xMin)
+        xMax = max(xMax)
+        yMin = min(yMin)
+        yMax = max(yMax)
+        self.file_object.attrs["data_extent"] = str(xMin) + ", " + str(yMin) + ", " + str(xMax) + ", " + str(yMax)
+        self.file_object.attrs["data_height"] = xMax - xMin
+        self.file_object.attrs["data_width"] = yMax - yMin
 
         # close file
         self.file_object.close()
@@ -669,12 +670,13 @@ class Hdf5Management:
                                               data=data_2d["node"]["xy"][reach_num][unit_num])
 
             # get extent
-            xMin = str(min(xMin))
-            xMax = str(max(xMax))
-            yMin = str(min(yMin))
-            yMax = str(max(yMax))
-            extent = [xMin, yMin, xMax, yMax]
-            self.file_object.attrs["extent"] = ", ".join(extent)
+            xMin = min(xMin)
+            xMax = max(xMax)
+            yMin = min(yMin)
+            yMax = max(yMax)
+            self.file_object.attrs["data_extent"] = str(xMin) + ", " + str(yMin) + ", " + str(xMax) + ", " + str(yMax)
+            self.file_object.attrs["data_height"] = xMax - xMin
+            self.file_object.attrs["data_width"] = yMax - yMin
 
         # CONSTANT
         if sub_description_system["sub_mapping_method"] == "constant":
@@ -921,12 +923,13 @@ class Hdf5Management:
                                               shape=data_2d["node"]["data"][node_variable][reach_num][unit_num].shape,
                                               data=data_2d["node"]["data"][node_variable][reach_num][unit_num])
         # get extent
-        xMin = str(min(xMin))
-        xMax = str(max(xMax))
-        yMin = str(min(yMin))
-        yMax = str(max(yMax))
-        extent = [xMin, yMin, xMax, yMax]
-        self.file_object.attrs["extent"] = ", ".join(extent)
+        xMin = min(xMin)
+        xMax = max(xMax)
+        yMin = min(yMin)
+        yMax = max(yMax)
+        self.file_object.attrs["data_extent"] = str(xMin) + ", " + str(yMin) + ", " + str(xMax) + ", " + str(yMax)
+        self.file_object.attrs["data_height"] = xMax - xMin
+        self.file_object.attrs["data_width"] = yMax - yMin
 
         # close file
         self.file_object.close()

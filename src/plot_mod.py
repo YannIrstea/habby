@@ -898,7 +898,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -953,7 +953,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1002,7 +1002,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1051,7 +1051,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1100,7 +1100,7 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1149,7 +1149,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1198,7 +1198,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1249,7 +1249,7 @@ def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, 
     filename = plot_string_dict["filename"]
 
     # data
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1282,7 +1282,6 @@ def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, 
             ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
             ylist.append(None)
     ax_map.plot(xlist, ylist, '-b', linewidth=0.1, color='blue')
-    #ax_map.scatter(x=data_xy[:, 0], y=data_xy[:, 1], s=5, color='black')
 
     # color_bar
     ax_legend.remove()
@@ -1307,7 +1306,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1356,7 +1355,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1405,7 +1404,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 0
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1469,7 +1468,7 @@ def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_
     data_plot = unziped[0]  # substrate_coarser
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
     decimal_nb = 0
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])
@@ -1542,7 +1541,7 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     data_plot = unziped[1]  # substrate_dominant
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
     decimal_nb = 0
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])
@@ -1600,7 +1599,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     data_min = 0
     data_max = 1
     decimal_nb = 2
-    extent_list = list(map(float, data_description["extent"].split(", ")))  # get extent
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1706,7 +1705,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     ax_legend.name = "legend"
 
     # ax_map
-    ax_map = fig.add_axes(map_position, frameon=False)
+    ax_map = fig.add_axes(map_position, frameon=True)
     ax_map.name = "map"
     ax_map.xaxis.set_ticks([])  # remove ticks
     ax_map.yaxis.set_ticks([])  # remove ticks
@@ -1715,13 +1714,58 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
 
 
 def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state):
+    """
+    dataLim = data bbox minimum
+    viewLim = data bbox set
+    """
     # ax_map
     ax_map.axis("scaled")  # x and y axes have same proportions
-    delta_x = (extent_list[2] - extent_list[0]) * 0.01
-    delta_y = (extent_list[3] - extent_list[1]) * 0.01
-    ax_map.set_xlim((extent_list[0] - delta_x, extent_list[2] + delta_x))  # set x extent +- margin
-    ax_map.set_ylim((extent_list[1] - delta_y, extent_list[3] + delta_y))  # set y extent
-    ax_map.callbacks.connect('xlim_changed', update_scalebar)  # auto update size
+    # compute data_height and data_width
+    data_height = extent_list[3] - extent_list[1]  # data_height [meter]
+    data_width = extent_list[2] - extent_list[0]  # data_width [meter]
+
+    # add margin
+    delta_x = data_height * 0.01  # +- margin
+    delta_y = data_width * 0.01  # +- margin
+    extent_list[0] = extent_list[0] - delta_x
+    extent_list[2] = extent_list[2] + delta_x
+    extent_list[1] = extent_list[1] - delta_y
+    extent_list[3] = extent_list[3] + delta_y
+    data_height = extent_list[3] - extent_list[1]  # data_height [meter]
+    data_width = extent_list[2] - extent_list[0]  # data_width [meter]
+
+    # compute axe_real_height and axe_real_width
+    axe_real_height = project_preferences['height'] * top_limit_position / 100  # axe_real_height [meter]
+    axe_real_width = project_preferences['width'] * right_limit_position / 100  # axe_real_width [meter]
+    h_w_real_factor = axe_real_height / axe_real_width
+
+    # change data extent size to fit the axe
+    if data_height / data_width > h_w_real_factor:
+        data_width_wish = (data_height * axe_real_width) / axe_real_height
+        delta_width = (data_width_wish - data_width) / 2
+        data_width = data_width_wish
+        extent_list[0] = extent_list[0] - delta_width
+        extent_list[2] = extent_list[2] + delta_width
+    elif data_height / data_width < h_w_real_factor:
+        data_height_wish = (data_width * axe_real_height) / axe_real_width
+        delta_height = (data_height_wish - data_height) / 2
+        data_height = data_height_wish
+        extent_list[1] = extent_list[1] - delta_height
+        extent_list[3] = extent_list[3] + delta_height
+    # h_w_data_factor = data_height / data_width
+    # print("equality", h_w_real_factor == h_w_data_factor)
+
+    # get extent
+    xlim = (extent_list[0], extent_list[2])
+    ylim = (extent_list[1], extent_list[3])
+
+    # set extent
+    ax_map.set_xlim(xlim)
+    ax_map.set_ylim(ylim)
+
+    # auto update size
+    ax_map.callbacks.connect('xlim_changed', update_scalebar)
+    ax_map.callbacks.connect('ylim_changed', update_scalebar)
 
     # ax_scale
     ax_scale = fig.add_axes(scale_position)
@@ -1773,7 +1817,7 @@ def update_scalebar(event):
     # get ax_scale
     ax_scale = ax_list[ax_names_list.index("scale")]
     # remove scalebar_old
-    scalebar_old = ax_scale.artists[0].remove()
+    _ = ax_scale.artists[0].remove()
     # get ax_map
     ax_map = ax_list[ax_names_list.index("map")]
     # AnchoredSizeBar
@@ -1791,18 +1835,21 @@ def update_scalebar(event):
 def compute_scale_value(fig, ax):
     bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     # measured
-    x_length_measured_m, y_length_measured_m = bbox.width * 2.54, bbox.height * 2.54
+    axe_real_width, axe_real_height = bbox.width * 2.54 / 100, bbox.height * 2.54 / 100
 
     # display
-    x_length_display_m = ax.viewLim.bounds[2]
+    data_view_width = ax.viewLim.bounds[2]
 
-    # compute scale int
-    scale_computed_int = int(round(x_length_display_m / x_length_measured_m))
+    # compute scale int for one meter
+    scale_computed_int_m = int(data_view_width / axe_real_width)
+
+    # compute scale int for one centimeter
+    scale_computed_int_cm = int(scale_computed_int_m * 0.01)
 
     # compute scale str
-    scale_computed_str = "1:" + str(scale_computed_int)
+    scale_computed_str = "1:" + str(scale_computed_int_m)
 
-    return scale_computed_int, scale_computed_str
+    return scale_computed_int_cm, scale_computed_str
 
 
 def create_gif_from_files(state, variable, reach_name, unit_names, data_description, project_preferences):
