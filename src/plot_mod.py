@@ -82,7 +82,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         else:  # no sub
             f, axarr = plt.subplots(len(stade), 2, sharey='row')
 
-        f.canvas.set_window_title(title_plot)
+        f.canvas.set_window_title(title_plot.replace("\n", " "))
         plt.suptitle(title_plot)
         for s in range(0, len(stade)):
             axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
@@ -109,7 +109,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         else:  # no sub
             f, axarr = plt.subplots(2, 1, sharey='row')
         title_plot = title_plot + "- " + stade[0]
-        f.canvas.set_window_title(title_plot)
+        f.canvas.set_window_title(title_plot.replace("\n", " - "))
         plt.suptitle(title_plot)
         axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
         axarr[0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
@@ -433,7 +433,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
         ax[2].set_title(
             qt_tr.translate("plot_mod", "Unknown area"))
-        ax[2].set_ylim([0.0, 1.0])
+        #ax[2].set_ylim([0.0, 100.0])
 
         # GENERAL
         mplcursors.cursor()  # get data with mouse
@@ -522,7 +522,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
             ax[2].set_xticks(x_data[::10])
             ax[2].set_xticklabels(unit_name[::10])
         ax[2].xaxis.set_tick_params(rotation=45)
-        ax[2].set_ylim([0.0, 1.0])
+        #ax[2].set_ylim([0.0, 100.0])
 
         # LEGEND
         handles, labels = ax[0].get_legend_handles_labels()
@@ -1705,7 +1705,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     ax_legend.name = "legend"
 
     # ax_map
-    ax_map = fig.add_axes(map_position, frameon=True)
+    ax_map = fig.add_axes(map_position, frameon=False)
     ax_map.name = "map"
     ax_map.xaxis.set_ticks([])  # remove ticks
     ax_map.yaxis.set_ticks([])  # remove ticks

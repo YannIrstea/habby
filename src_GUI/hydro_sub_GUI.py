@@ -3751,11 +3751,11 @@ class TELEMAC(SubHydroW):  # QGroupBox
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
             "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
         # script
-        cmd_str = self.exe_cmd + " " + self.script_function_name + \
-                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ",")) + \
-                  " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
-                  " outputfilename=" + self.name_hdf5 + \
-                  " path_prj=" + self.path_prj
+        cmd_str = self.exe_cmd + ' ' + self.script_function_name + \
+                  ' inputfile="' + os.path.join(self.pathfile[0], self.namefile[0].replace(', ', ',')) + '"' + \
+                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
+                  ' outputfilename=' + self.name_hdf5 + \
+                  ' path_prj="' + self.path_prj + '"'
         self.send_log.emit("script" + cmd_str)
         # restart
         self.send_log.emit("restart LOAD_TELEMAC")
