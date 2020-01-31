@@ -107,6 +107,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.mytablemodel = None
+        self.path_last_file_loaded = self.path_prj
         self.process_list = MyProcessList("plot")
         self.setTitle(title)
         self.init_ui()
@@ -379,8 +380,10 @@ class InterpolationGroup(QGroupBoxCollapsible):
         # find the filename based on user choice
         filename_path = QFileDialog.getOpenFileName(self,
                                                     self.tr("Select file"),
-                                                    self.path_prj,
+                                                    self.path_last_file_loaded,
                                                     "File (*.txt)")[0]
+
+        self.path_last_file_loaded = os.path.dirname(filename_path)
 
         # exeption: you should be able to clik on "cancel"
         if filename_path:
