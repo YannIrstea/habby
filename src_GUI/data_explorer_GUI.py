@@ -778,10 +778,11 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 'Error: ' + self.tr('Selected variables and units not corresponding with figure type choices.'))
             return
         if self.nb_plot == 1 and self.total_fish_result > 32:
-            self.send_log.emit('Error: ' + self.tr(
+            self.send_log.emit('Warning: ' + self.tr(
                 'You cannot display more than 32 habitat values per graph. Current selected : ') + str(
-                self.total_fish_result))
-            return
+                self.total_fish_result) + self.tr(". Only the first 32 will be displayed."))
+            # get 32 first element list
+            variables = variables[:32]
         # check if number of display plot are > 30
         if export_type in ("interactive", "both") and self.nb_plot > 30:  # "interactive", "image export", "both
             qm = QMessageBox

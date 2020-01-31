@@ -489,11 +489,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
             total_fish_number = len(fish_names)
             if total_fish_number > 32:
-                self.send_log.emit('Error: ' + self.tr(
+                self.send_log.emit('Warning: ' + self.tr(
                     'You cannot display more than 32 habitat values per graph. Current selected : ') + str(
-                    total_fish_number) + ". " + self.tr(
-                    'You have to re-compute interpolation with 32 selected habitat values at maximum. Their is no limit for txt exports.'))
-                return
+                    total_fish_number) + ". " + self.tr("Only the first 32 will be displayed.") + " " + self.tr(
+                    'You have to re-compute interpolation with 32 selected habitat values at maximum. There is no limit for txt exports.'))
+                fish_names = fish_names[:32]
+                fish_names.sort()
 
             # seq or txt
             source = self.mytablemodel.source
