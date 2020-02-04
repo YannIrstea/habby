@@ -1866,14 +1866,14 @@ def compute_scale_value(fig, ax_map):
 
     # compute scale int for one centimeter
     if scale_computed_int_m * 0.01 < 1.0:
-        scale_computed_int_cm = scale_computed_int_m * 0.01
+        scale_computed_num_cm = round(scale_computed_int_m * 0.01, 2)
     else:
-        scale_computed_int_cm = int(scale_computed_int_m * 0.01)
+        scale_computed_num_cm = int(scale_computed_int_m * 0.01)
 
     # compute scale str
     scale_computed_str = "1:" + str(scale_computed_int_m)
 
-    return scale_computed_int_cm, scale_computed_str
+    return scale_computed_num_cm, scale_computed_str
 
 
 def create_gif_from_files(state, variable, reach_name, unit_names, data_description, project_preferences):
