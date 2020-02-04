@@ -98,10 +98,10 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # Data hydrological (QLineEdit in the init of StatModUseful)
         l1 = QLabel(self.tr('<b>Hydrological Data</b>'))
-        l2 = QLabel('Q [m<sup>3</sup>/sec]')
+        l2 = QLabel('Q [m<sup>3</sup>/s]')
         l3 = QLabel(self.tr('Width [m]'))
         l4 = QLabel(self.tr('Height [m]'))
-        l7 = QLabel(self.tr('<b> Discharge range [m<sup>3</sup>/sec]</b> (Qmin and Qmax)'))
+        l7 = QLabel(self.tr('<b> Discharge range [m<sup>3</sup>/s]</b> (Qmin and Qmax)'))
 
         # data invertabrate type
         l10 = QLabel(self.tr('<b>Available invertebrate species</b>'))

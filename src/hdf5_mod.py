@@ -337,7 +337,10 @@ class Hdf5Management:
                 if type(attribute_value) == bool:
                     self.file_object.attrs[attribute_name] = str(attribute_value)
                 else:
-                    self.file_object.attrs[attribute_name] = attribute_value
+                    if type(attribute_value) == str:
+                        if "m<sup>3</sup>/s" in attribute_value:
+                            attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
+                        self.file_object.attrs[attribute_name] = attribute_value
 
         # data by type of model (2D)
         if int(hyd_description["hyd_model_dimension"]) <= 2:
@@ -821,7 +824,10 @@ class Hdf5Management:
                 if type(attribute_value) == bool:
                     self.file_object.attrs[attribute_name] = str(attribute_value)
                 else:
-                    self.file_object.attrs[attribute_name] = attribute_value
+                    if type(attribute_value) == str:
+                        if "m<sup>3</sup>/s" in attribute_value:
+                            attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
+                        self.file_object.attrs[attribute_name] = attribute_value
 
         self.file_object.attrs["hab_fish_list"] = ", ".join([])
         self.file_object.attrs["hab_fish_number"] = str(0)
