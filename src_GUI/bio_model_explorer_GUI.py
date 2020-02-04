@@ -98,7 +98,6 @@ class BioModelExplorerWindow(QDialog):
                                                                       ["bio_model_explorer_selection"])[0]
 
         if user_preferences.modified:
-            self.send_log.emit("Warning: " + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.bio_model_explorer_selection_dict = self.bio_model_filter_tab.bio_model_explorer_selection_dict
         elif not user_preferences.modified and not bio_model_explorer_selection_dict:
@@ -317,6 +316,9 @@ class BioModelFilterTab(QScrollArea):
         # clean
         self.clear_filter(True)
         self.clear_filter_dispatch(True)
+
+        if len(self.biological_models_dict_gui["country"]) != len(self.bio_model_explorer_selection_dict['selected']):
+            self.create_dico_select()
 
         # fill
         bio_models_selected = np.ones((len(self.bio_model_explorer_selection_dict['selected']),), dtype=bool)

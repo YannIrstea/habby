@@ -229,34 +229,53 @@ class UserPreferences(AppDataFolders):
         if self.modified:  # update json
             # get differences
             diff_key_list = ""
-            for key in biological_models_dict_from_json:
+            diff_key_inverse_list = ""
+            for key in biological_models_dict_from_json.keys():
                 set_old = set(list(map(str, biological_models_dict_from_json[key])))
                 set_new = set(list(map(str, self.biological_models_dict[key])))
+                # new
                 set_diff = set_new - set_old
                 if set_diff:
                     diff_key_list += str(set_diff) + ", "
+                # old
+                set_diff_inverse = set_old - set_new
+                if set_diff_inverse:
+                    diff_key_inverse_list += str(set_diff_inverse) + ", "
 
-            # new xml curve (from AppData user)
-            if "xml" in diff_key_list and "user" in diff_key_list:
-                diff_list = []
-                existing_path_xml_list = list(map(str, biological_models_dict_from_json["path_xml"]))
-                new_path_xml_list = list(map(str, self.biological_models_dict["path_xml"]))
-                new_xml_list = list(set(existing_path_xml_list) ^ set(new_path_xml_list))
-                # copy
-                if new_xml_list:
-                    new_biology_models_save_folder = os.path.join(self.user_pref_biology_models_save,
-                                                                  strftime("%d_%m_%Y_at_%H_%M_%S"))
-                    if not os.path.isdir(new_biology_models_save_folder):
-                        os.mkdir(new_biology_models_save_folder)
-                    for new_xml_element in new_xml_list:
-                        # xml
-                        sh_copy(new_xml_element, new_biology_models_save_folder)
-                        # png
-                        name_png = os.path.splitext(os.path.basename(new_xml_element))[0] + ".png"
-                        sh_copy(os.path.join(os.path.dirname(new_xml_element), name_png),
-                                new_biology_models_save_folder)
-                        diff_list.append(os.path.basename(new_xml_element))
-                    self.diff_list = ", ".join(diff_list) + " added by user."
+            if diff_key_list or diff_key_inverse_list:
+                # new xml curve (from AppData user)
+                if "xml" in diff_key_list and "user" in diff_key_list:
+                    diff_list = []
+                    existing_path_xml_list = list(map(str, biological_models_dict_from_json["path_xml"]))
+                    new_path_xml_list = list(map(str, self.biological_models_dict["path_xml"]))
+                    new_xml_list = list(set(existing_path_xml_list) ^ set(new_path_xml_list))
+                    # warning and copy to save AppData folder
+                    if new_xml_list:
+                        new_biology_models_save_folder = os.path.join(self.user_pref_biology_models_save,
+                                                                      strftime("%d_%m_%Y_at_%H_%M_%S"))
+                        if not os.path.isdir(new_biology_models_save_folder):
+                            os.mkdir(new_biology_models_save_folder)
+                        for new_xml_element in new_xml_list:
+                            # xml
+                            sh_copy(new_xml_element, new_biology_models_save_folder)
+                            # png
+                            name_png = os.path.splitext(os.path.basename(new_xml_element))[0] + ".png"
+                            sh_copy(os.path.join(os.path.dirname(new_xml_element), name_png),
+                                    new_biology_models_save_folder)
+                            diff_list.append(os.path.basename(new_xml_element))
+                        self.diff_list = ", ".join(diff_list) + " added by user."
+
+                # deleted xml curve (from AppData user)
+                if "xml" in diff_key_inverse_list and "user" in diff_key_inverse_list:
+                    diff_inverse_list = []
+                    existing_path_xml_list = list(map(str, biological_models_dict_from_json["path_xml"]))
+                    new_path_xml_list = list(map(str, self.biological_models_dict["path_xml"]))
+                    removed_xml_list = list(set(existing_path_xml_list) ^ set(new_path_xml_list))
+                    # warning
+                    if removed_xml_list:
+                        for new_xml_element in removed_xml_list:
+                            diff_inverse_list.append(os.path.basename(new_xml_element))
+                        self.diff_list = ", ".join(diff_inverse_list) + " removed by user."
             else:
                 self.diff_list = diff_key_list
 

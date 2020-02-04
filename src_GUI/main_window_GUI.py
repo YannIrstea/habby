@@ -213,6 +213,10 @@ class MainWindows(QMainWindow):
         if self.user_preferences.user_attempt_to_add_preference_curve:
             self.central_widget.write_log(self.user_preferences.user_attempt_to_add_preference_curve)
 
+        # print modification biological database
+        if self.user_preferences.diff_list:
+            self.central_widget.write_log("Warning: " + self.tr("Biological models database has been modified : ") + self.user_preferences.diff_list)
+
         if self.habby_project_file_corrupted:
             self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' + filename_path))
             self.central_widget.write_log(self.tr('Create or open another project.'))
@@ -847,7 +851,6 @@ class MainWindows(QMainWindow):
         This function indicates to the project folder than this project is not used anymore. Hence, this project
         can be used freely by an other instance of HABBY.
         """
-        print("self.name_prj", self.name_prj)
         if self.name_prj != "":
 
             # open the text file

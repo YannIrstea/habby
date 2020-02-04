@@ -501,21 +501,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
         #print("fill_selected_models_listwidets", self.sender())
         # if new added remove duplicates
         if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
-            # index_to_keep = [new_item_text_dict["selected_aquatic_animal_list"].index(x) for x in new_item_text_dict["selected_aquatic_animal_list"] if x not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]]
-            # self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].extend([new_item_text_dict["selected_aquatic_animal_list"][i] for i in index_to_keep])
-            # self.selected_aquatic_animal_dict["hydraulic_mode_list"].extend([new_item_text_dict["hydraulic_mode_list"][i] for i in index_to_keep])
-            # self.selected_aquatic_animal_dict["substrate_mode_list"].extend([new_item_text_dict["substrate_mode_list"][i] for i in index_to_keep])
-            # self.selected_aquatic_animal_dict = sort_homogoeneous_dict_list_by_on_key(self.selected_aquatic_animal_dict, "selected_aquatic_animal_list")
             self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].extend(new_item_text_dict["selected_aquatic_animal_list"])
             self.selected_aquatic_animal_dict["hydraulic_mode_list"].extend(new_item_text_dict["hydraulic_mode_list"])
             self.selected_aquatic_animal_dict["substrate_mode_list"].extend(new_item_text_dict["substrate_mode_list"])
-            self.selected_aquatic_animal_dict = sort_homogoeneous_dict_list_by_on_key(self.selected_aquatic_animal_dict, "selected_aquatic_animal_list")
+            if "general_hyd_sub_combobox_index" in self.selected_aquatic_animal_dict.keys():
+                del self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"]
+            self.selected_aquatic_animal_dict = sort_homogoeneous_dict_list_by_on_key(self.selected_aquatic_animal_dict,
+                                                                                      "selected_aquatic_animal_list")
 
         # get_current_hab_informations
         self.get_current_hab_informations()
-
-        # total_item
-        total_item = len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])
 
         # clear
         self.selected_aquatic_animal_qtablewidget.clear()
@@ -525,9 +520,23 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # if .hab :
         if self.current_hab_informations_dict:
+            # check if user pref curve file has been removed by user (AppData) to remove it in
+            # selected_aquatic_animal_dict
+            for index in reversed(range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]))):
+                # get bio info
+                name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"][index])
+                if not code_bio_model in user_preferences.biological_models_dict["cd_biological_model"]:
+                    # remove it
+                    self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].pop(index)
+
             if new_item_text_dict:
                 if not new_item_text_dict["selected_aquatic_animal_list"]:
                     self.send_log.emit("Warning: " + self.tr("No models added (no selection)."))
+
+            # total_item
+            total_item = len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])
+
+            # set table size
             self.selected_aquatic_animal_qtablewidget.setRowCount(total_item)
             self.hyd_mode_qtablewidget.setRowCount(total_item)
             self.sub_mode_qtablewidget.setRowCount(total_item)
@@ -553,13 +562,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # add new item if not exist
             for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
-                # add label item
+                """ NAME """
                 self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, QLabel(item_str))
                 self.selected_aquatic_animal_qtablewidget.setRowHeight(index, 27)
 
-                # get info
+                # get bio info
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
                 index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
 
