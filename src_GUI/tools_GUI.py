@@ -299,6 +299,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file()
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
+            unit_type = unit_type.replace("m3/s", "m<sup>3</sup>/s")
             unit_type_value = unit_type[unit_type.index("["):unit_type.index("]")+1]
             fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
             fish_list.sort()

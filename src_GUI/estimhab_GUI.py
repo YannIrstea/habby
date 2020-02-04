@@ -392,13 +392,13 @@ class EstimhabW(StatModUseful):
 
         # input
         q1_layout = QHBoxLayout()
-        q1_layout.addWidget(QLabel(self.tr("Q1 [m3/sec]")))
+        q1_layout.addWidget(QLabel('Q1 [m<sup>3</sup>/s]'))
         q1_layout.addWidget(self.eq1)
         q1_layout.addItem(QSpacerItem(self.spacer_width, 1))
         self.eq1.setFixedWidth(self.lineedit_width)
 
         q2_layout = QHBoxLayout()
-        q2_layout.addWidget(QLabel(self.tr("Q2 [m3/sec]")))
+        q2_layout.addWidget(QLabel('Q2 [m<sup>3</sup>/s]'))
         q2_layout.addWidget(self.eq2)
         q2_layout.addItem(QSpacerItem(self.spacer_width, 1))
         self.eq2.setFixedWidth(self.lineedit_width)
@@ -426,7 +426,7 @@ class EstimhabW(StatModUseful):
         self.eh2.setFixedWidth(self.lineedit_width)
 
         q50_layout = QHBoxLayout()
-        q50_layout.addWidget(QLabel(self.tr('Qmedian/Q50 [m3/sec]')))
+        q50_layout.addWidget(QLabel('Qmedian/Q50 [m<sup>3</sup>/s]'))
         q50_layout.addWidget(self.eq50)
         q50_layout.addItem(QSpacerItem(self.spacer_width, 1))
         self.eq50.setFixedWidth(self.lineedit_width)
@@ -439,19 +439,19 @@ class EstimhabW(StatModUseful):
 
         # output
         q1out_layout = QHBoxLayout()
-        q1out_layout.addWidget(QLabel(self.tr("Qmin [m3/sec]")))
+        q1out_layout.addWidget(QLabel(self.tr("Qmin [m<sup>3</sup>/s]")))
         q1out_layout.addWidget(self.eqmin)
         q1out_layout.addItem(QSpacerItem(self.spacer_width, 1))
         self.eqmin.setFixedWidth(self.lineedit_width)
 
         q2out_layout = QHBoxLayout()
-        q2out_layout.addWidget(QLabel(self.tr("Qmax [m3/sec]")))
+        q2out_layout.addWidget(QLabel(self.tr("Qmax [m<sup>3</sup>/s]")))
         q2out_layout.addWidget(self.eqmax)
         q2out_layout.addItem(QSpacerItem(self.spacer_width, 1))
         self.eqmax.setFixedWidth(self.lineedit_width)
 
         self.q2target_layout = QHBoxLayout()
-        self.q2target_layout.addWidget(QLabel(self.tr("Qtarget [m3/sec]")))
+        self.q2target_layout.addWidget(QLabel(self.tr("Qtarget [m<sup>3</sup>/s]")))
         self.q2target_layout.addWidget(self.eqtarget)
         self.q2target_layout.addWidget(self.add_qtarget_button)
         self.add_qtarget_button.clicked.connect(self.add_new_qtarget)

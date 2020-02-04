@@ -377,17 +377,19 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
     if len(area_all) > 1:
         for unit_index in data_description["units_index"]:
             unit_name.append(str(data_description["hyd_unit_list"][reach_num][unit_index]))
-    unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    unit_type = data_description["unit_type"]
+    unit_type_only = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    unit_type_only_scientific = unit_type_only.replace("m3/s", "$m^3$/s")
+    unit_type_scientific = unit_type.replace("m3/s", "$m^3$/s")
     reach_name = data_description["hyd_reach_list"].split(", ")[reach_num]
 
     # plot
     title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
     if len(unit_name) == 1:
-        plot_window_title = title + str(unit_name[0]) + " " + unit_type
+        plot_window_title = title + str(unit_name[0]) + " " + unit_type_only
     else:
-        plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type
+        plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type_only
         plot_window_title = plot_window_title[:80] + "..."
-    filename = name_hdf5 + "_" + qt_tr.translate("plot_mod", "WUA") + "_" + reach_name
 
     # fig = plt.figure(plot_window_title)
     fig, ax = plt.subplots(3, 1, sharex=True)
@@ -398,7 +400,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         name_fish[id] = n.replace('_', ' ')
 
     # one time step - bar
-    if len(area_all) == 1:
+    if len(unit_name) == 1:
         # SPU
         data_bar = []
         percent = []
@@ -412,7 +414,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         ax[0].set_xticks(y_pos)
         ax[0].set_xticklabels([])
         ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type)
+        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type_only_scientific)
 
         # VH
         vh = data_bar2 / area_all[reach_num]
@@ -433,26 +435,34 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
         ax[2].set_title(
             qt_tr.translate("plot_mod", "Unknown area"))
-        #ax[2].set_ylim([0.0, 100.0])
+        ax[2].set_ylim(bottom=0.0)
 
         # GENERAL
         mplcursors.cursor()  # get data with mouse
         plt.tight_layout()
+
+        #
+        if len(name_fish) == 1:  # one fish
+            filename = name_hdf5 + "_" + reach_name + "_" + str(unit_name[0]).replace(".", "_") + '_' \
+                       + name_fish[0].replace(' ', '_')
+        else:  # multi fish
+            filename = name_hdf5 + "_" + reach_name + "_" + str(unit_name[0]).replace(".", "_") + '_' \
+                       + qt_tr.translate("plot_mod", "HSI")
+
         # export or not
         if types_plot == "image export" or types_plot == "both":
             if not project_preferences['erase_id']:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0]) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                filename = filename + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = qt_tr.translate("plot_mod", 'WUA_') + name_hdf5 + '_' + reach_name + "_" + str(unit_name[0])
-                test = tools_mod.remove_image(name, path_im, project_preferences['format'])
+                test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
                 if not test:
                     return
-            plt.savefig(os.path.join(path_im, name + project_preferences['format']),
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
                         dpi=project_preferences['resolution'],
                         transparent=True)
 
     # many time step - lines
-    if len(area_all) > 1:
+    else:
         # SPU
         x_data = list(map(float, unit_name))
         for fish_index, name_fish_value in enumerate(name_fish_origin):
@@ -508,7 +518,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
                      linestyle=style_list[fish_index],
                        marker=mar)
 
-        ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Units [') + unit_type + ']')
+        ax[2].set_xlabel(unit_type_scientific)
         ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
         ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
         # label
@@ -522,7 +532,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
             ax[2].set_xticks(x_data[::10])
             ax[2].set_xticklabels(unit_name[::10])
         ax[2].xaxis.set_tick_params(rotation=45)
-        #ax[2].set_ylim([0.0, 100.0])
+        ax[2].set_ylim(bottom=0.0)
 
         # LEGEND
         handles, labels = ax[0].get_legend_handles_labels()
@@ -538,15 +548,19 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         # view data with mouse
         mplcursors.cursor()
 
+        if len(name_fish) == 1:  # one fish
+            filename = name_hdf5 + "_" + reach_name + "_units_" + name_fish[0].replace(' ', '_')
+        else:
+            filename = name_hdf5 + "_" + reach_name + "_units_" + qt_tr.translate("plot_mod", "HSI")
+
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
-                name = filename + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                filename = filename + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = filename
-                test = tools_mod.remove_image(name, path_im, project_preferences['format'])
+                test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
                 if not test:
                     return
-            plt.savefig(os.path.join(path_im, name + project_preferences['format']),
+            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
                         dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
@@ -614,7 +628,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
 
     # plot
-    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Computational Step : ")
+    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Unit : ")
     if len(sim_name) == 1:
         plot_window_title = title + str(sim_name[0]) + " " + unit_type
     if len(sim_name) > 1:
@@ -671,7 +685,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data, [])  #, rotation=rot
         if not date_presence and is_constant:
-            ax[1].set_xticks(x_data, sim_name)
+            ax[1].set_xticklabels(x_data, sim_name)
     elif len(sim_name) < 100:
         ax[1].set_xticks(x_data[::3], [])
         if not date_presence and is_constant:
@@ -689,7 +703,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         ax[1].xaxis.set_ticklabels([])
     # all case
     if is_constant:
-        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
+        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type.replace("m3/s", "$m^3$/s") + ']')
 
     # unit
     if not is_constant:
@@ -1663,6 +1677,8 @@ def mpl_map_change_parameters(project_preferences):
 
 
 def pre_plot_map(title, variable_title, reach_title, unit_title):
+    # to debug/update plot after show (need fig.canvas.draw() and fig.canvas.flush_events() instead of plt.show())
+    #plt.ion()
     # plot
     fig, ax_border = plt.subplots(1, 1)  # plot creation
     fig.canvas.set_window_title(title)  # set windows title
@@ -1705,7 +1721,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     ax_legend.name = "legend"
 
     # ax_map
-    ax_map = fig.add_axes(map_position, frameon=False)
+    ax_map = fig.add_axes(map_position, frameon=True)
     ax_map.name = "map"
     ax_map.xaxis.set_ticks([])  # remove ticks
     ax_map.yaxis.set_ticks([])  # remove ticks
@@ -1720,6 +1736,11 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
     """
     # ax_map
     ax_map.axis("scaled")  # x and y axes have same proportions
+
+    # compute axe_real_height and axe_real_width
+    axe_real_height = project_preferences['height'] * top_limit_position / 100  # axe_real_height [meter]
+    axe_real_width = project_preferences['width'] * right_limit_position / 100  # axe_real_width [meter]
+
     # compute data_height and data_width
     data_height = extent_list[3] - extent_list[1]  # data_height [meter]
     data_width = extent_list[2] - extent_list[0]  # data_width [meter]
@@ -1731,29 +1752,26 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
     extent_list[2] = extent_list[2] + delta_x
     extent_list[1] = extent_list[1] - delta_y
     extent_list[3] = extent_list[3] + delta_y
-    data_height = extent_list[3] - extent_list[1]  # data_height [meter]
-    data_width = extent_list[2] - extent_list[0]  # data_width [meter]
-
-    # compute axe_real_height and axe_real_width
-    axe_real_height = project_preferences['height'] * top_limit_position / 100  # axe_real_height [meter]
-    axe_real_width = project_preferences['width'] * right_limit_position / 100  # axe_real_width [meter]
-    h_w_real_factor = axe_real_height / axe_real_width
+    view_data_height = extent_list[3] - extent_list[1]  # view_data_height [meter]
+    view_data_width = extent_list[2] - extent_list[0]  # view_data_width [meter]
 
     # change data extent size to fit the axe
-    if data_height / data_width > h_w_real_factor:
-        data_width_wish = (data_height * axe_real_width) / axe_real_height
-        delta_width = (data_width_wish - data_width) / 2
-        data_width = data_width_wish
-        extent_list[0] = extent_list[0] - delta_width
-        extent_list[2] = extent_list[2] + delta_width
-    elif data_height / data_width < h_w_real_factor:
-        data_height_wish = (data_width * axe_real_height) / axe_real_width
-        delta_height = (data_height_wish - data_height) / 2
-        data_height = data_height_wish
+    if view_data_height / view_data_width < axe_real_height / axe_real_width:
+        view_data_height_wish = (view_data_width * axe_real_height) / axe_real_width
+        delta_height = (view_data_height_wish - view_data_height) / 2
+        view_data_height = view_data_height_wish
         extent_list[1] = extent_list[1] - delta_height
         extent_list[3] = extent_list[3] + delta_height
-    # h_w_data_factor = data_height / data_width
-    # print("equality", h_w_real_factor == h_w_data_factor)
+    elif view_data_height / view_data_width > axe_real_height / axe_real_width:
+        view_data_width_wish = (view_data_height * axe_real_width) / axe_real_height
+        delta_width = (view_data_width_wish - view_data_width) / 2
+        view_data_width = view_data_width_wish
+        extent_list[0] = extent_list[0] - delta_width
+        extent_list[2] = extent_list[2] + delta_width
+
+    # print("axe_real_height / axe_real_width", axe_real_height / axe_real_width)
+    # print("view_data_height / view_data_width", view_data_height / view_data_width)
+    # print("equality", axe_real_height / axe_real_width == view_data_height / view_data_width)
 
     # get extent
     xlim = (extent_list[0], extent_list[2])
@@ -1765,7 +1783,7 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
 
     # auto update size
     ax_map.callbacks.connect('xlim_changed', update_scalebar)
-    ax_map.callbacks.connect('ylim_changed', update_scalebar)
+    #fig.canvas.mpl_connect('draw_event', update_scalebar)
 
     # ax_scale
     ax_scale = fig.add_axes(scale_position)
@@ -1773,6 +1791,7 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
     ax_scale.xaxis.set_ticks([])  # remove ticks
     ax_scale.yaxis.set_ticks([])  # remove ticks
     scale_computed_int, scale_computed_str = compute_scale_value(fig, ax_map)  # compute_scale_value
+
     scale_computed_vertivcal_int = int(scale_computed_int / 10)  # scale_computed_vertivcal_int
     scalebar = AnchoredSizeBar(transform=ax_map.transData,
                                size=scale_computed_int,
@@ -1802,6 +1821,8 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
     # output for plot_GUI
     state.value = 1  # process finished
     if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
+        # fig.canvas.draw()
+        # fig.canvas.flush_events()
         plt.show()
     if project_preferences['type_plot'] == "image export":
         plt.close()
@@ -1832,19 +1853,22 @@ def update_scalebar(event):
     ax_scale.add_artist(scalebar)
 
 
-def compute_scale_value(fig, ax):
-    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+def compute_scale_value(fig, ax_map):
+    bbox = ax_map.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     # measured
     axe_real_width, axe_real_height = bbox.width * 2.54 / 100, bbox.height * 2.54 / 100
 
     # display
-    data_view_width = ax.viewLim.bounds[2]
+    data_view_width = ax_map.viewLim.bounds[2]
 
     # compute scale int for one meter
     scale_computed_int_m = int(data_view_width / axe_real_width)
 
     # compute scale int for one centimeter
-    scale_computed_int_cm = int(scale_computed_int_m * 0.01)
+    if scale_computed_int_m * 0.01 < 1.0:
+        scale_computed_int_cm = scale_computed_int_m * 0.01
+    else:
+        scale_computed_int_cm = int(scale_computed_int_m * 0.01)
 
     # compute scale str
     scale_computed_str = "1:" + str(scale_computed_int_m)
@@ -1868,9 +1892,15 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
                 except OSError:
                     pass
 
+    # old
     img, *imgs = [Image.open(file_path) for file_path in list_of_file_path]
-    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + "_" + variable.replace(" ", "_") + ".gif"), format='GIF', append_images=imgs,
-             save_all=True, duration=800, loop=0)
+
+    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + "_" + variable.replace(" ", "_") + ".gif"),
+             format='GIF',
+             append_images=imgs,
+             save_all=True,
+             duration=800,
+             loop=0)
 
     # prog
     state.value = 1  # process finished

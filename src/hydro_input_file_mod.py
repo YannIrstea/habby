@@ -645,6 +645,15 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # set actual hydrau_description
             hydrau_description = hydrau_description_multiple
 
+    # if m3/s
+    if type(hydrau_description) == list:
+        for hydrau_description_index in range(len(hydrau_description)):
+            if "m3/s" in hydrau_description[hydrau_description_index]["unit_type"]:
+                hydrau_description[hydrau_description_index]["unit_type"] = hydrau_description[hydrau_description_index]["unit_type"].replace("m3/s", "m<sup>3</sup>/s")
+    if type(hydrau_description) == dict:
+            if "m3/s" in hydrau_description["unit_type"]:
+                hydrau_description["unit_type"] = hydrau_description["unit_type"].replace("m3/s", "m<sup>3</sup>/s")
+
     # print("hydrau_case, " + hydrau_case)
     return hydrau_description, warning_list
 

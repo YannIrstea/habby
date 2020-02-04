@@ -403,6 +403,7 @@ def check_matching_units(data_description, types):
     for key in types.keys():
         if "units" in key:
             unit_chronicle_type = types[key]
+            unit_chronicle_type = unit_chronicle_type.replace("m<sup>3</sup>/s", "m3/s")
 
     # check matching units type ok
     if unit_hdf5_type == unit_chronicle_type:
@@ -586,7 +587,7 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
 """ OTHERS TOOLS """
 
 
-def create_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr, variable_info=""):
+def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr, variable_info=""):
     # colorbar_label and variable_info
     if variable_info:
         colorbar_label = variable_info.split(" = ")[0] + " [" + variable_unit + "]"
@@ -600,9 +601,9 @@ def create_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variabl
                             title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
                             variable_title=variable.replace("_", " ") + ' [' + variable_unit + ']' + " " + variable_info,
                             reach_title=string_tr[0] + " : " + reach_name,
-                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type + "]",
+                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s", "$m^3$/s") + "]",
                             colorbar_label=colorbar_label,
-                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_")
+                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_") + "_map"
                             )
     return plot_string_dict
 

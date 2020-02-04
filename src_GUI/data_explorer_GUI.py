@@ -1,3 +1,4 @@
+# -*-coding:Latin-1 -*
 """
 This file is part of the free software:
  _   _   ___  ______________   __
@@ -23,7 +24,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstract
 
 from src import hdf5_mod
 from src import plot_mod
-from src.tools_mod import MyProcessList, create_plot_string_dict
+from src.tools_mod import MyProcessList, create_map_plot_string_dict
 from src.project_manag_mod import load_project_preferences
 from src.tools_mod import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
@@ -252,6 +253,7 @@ class DataExplorerFrame(QFrame):
 
             # change unit_type
             if hasattr(hdf5, "unit_type"):
+                hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
                 self.plot_group.units_QLabel.setText(hdf5.unit_type)
 
             # hydraulic
@@ -289,6 +291,10 @@ class DataExplorerFrame(QFrame):
                         if hdf5.nb_unit == 1:
                             self.plot_group.units_QListWidget.selectAll()
 
+            # # change unit_type string
+            # for element_index, _ in enumerate(hdf5.hdf5_attributes_info_text):
+            #     if "m3/s" in hdf5.hdf5_attributes_info_text[element_index]:
+            #         hdf5.hdf5_attributes_info_text[element_index] = hdf5.hdf5_attributes_info_text[element_index].replace("m3/s", u"m<sup>3</sup>/s")
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
             self.file_information_group.hdf5_attributes_qtableview.setModel(tablemodel)
@@ -918,13 +924,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                 string_tr = [self.tr("reach"), self.tr("unit")]
                                 # elevation
                                 if "elevation" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("elevation"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("elevation"),
                                                                                "m",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     # plot_map_elevation
                                     elevation_process = Process(target=plot_mod.plot_map_elevation,
@@ -942,13 +948,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # water_height
                                 if "water_height" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("water_height"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("water_height"),
                                                                                "m",
-                                                                               string_tr)
+                                                                                   string_tr)
 
                                     state = Value("i", 0)
                                     height_process = Process(target=plot_mod.plot_map_height,
@@ -966,13 +972,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # water_velocity
                                 if "water_velocity" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("water_velocity"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("water_velocity"),
                                                                                "m/s",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     velocity_process = Process(target=plot_mod.plot_map_velocity,
                                                                args=(
@@ -989,13 +995,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # conveyance
                                 if "conveyance" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("conveyance"),
-                                                                               "mÂ²/s",
-                                                                               string_tr)
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("conveyance"),
+                                                                               "m²/s",
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     conveyance_process = Process(target=plot_mod.plot_map_conveyance,
                                                                  args=(
@@ -1013,13 +1019,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # froude_number
                                 if "froude_number" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("froude_number"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("froude_number"),
                                                                                "",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     froude_process = Process(target=plot_mod.plot_map_froude_number,
                                                              args=(
@@ -1037,13 +1043,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # hydraulic_head
                                 if "hydraulic_head" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("hydraulic_head"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("hydraulic_head"),
                                                                                "m",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     hydraulic_head_process = Process(target=plot_mod.plot_map_hydraulic_head,
                                                                      args=(
@@ -1063,13 +1069,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # water_level
                                 if "water_level" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("water_level"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("water_level"),
                                                                                "m",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     water_level_process = Process(target=plot_mod.plot_map_water_level,
                                                                   args=(
@@ -1087,13 +1093,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # mesh
                                 if "mesh" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("mesh"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("mesh"),
                                                                                "",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_mesh,
                                                            args=(
@@ -1109,13 +1115,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # max_slope_bottom
                                 if "max_slope_bottom" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("max_slope_bottom"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("max_slope_bottom"),
                                                                                "m/m",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_slope_bottom,
                                                                    args=(
@@ -1133,13 +1139,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # max_slope_energy
                                 if "max_slope_energy" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("max_slope_energy"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("max_slope_energy"),
                                                                                "m/m",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_slope_energy,
                                                                    args=(
@@ -1158,13 +1164,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # shear_stress
                                 if "shear_stress" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("shear_stress"),
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("shear_stress"),
                                                                                "",
-                                                                               string_tr)
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     slope_bottom_process = Process(target=plot_mod.plot_map_shear_stress,
                                                                    args=(
@@ -1183,13 +1189,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # substrate_coarser
                                 if "substrate_coarser" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("substrate_coarser"),
-                                                                               data_description["sub_classification_code"],
-                                                                               string_tr)
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("substrate_coarser"),
+                                                                                   data_description["sub_classification_code"],
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate_coarser,
                                                                args=(
@@ -1207,13 +1213,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
                                 # substrate_dominant
                                 if "substrate_dominant" in variables and not self.plot_production_stoped:
-                                    plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr("substrate_dominant"),
-                                                                               data_description["sub_classification_code"],
-                                                                               string_tr)
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr("substrate_dominant"),
+                                                                                   data_description["sub_classification_code"],
+                                                                                   string_tr)
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate_dominant,
                                                                args=(
@@ -1233,14 +1239,14 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                 if fish_names and not self.plot_production_stoped:  # habitat data (maps)
                                     # map by fish
                                     for fish_index, fish_name in enumerate(fish_names):
-                                        plot_string_dict = create_plot_string_dict(data_description["name_hdf5"],
-                                                                                   reach_name,
-                                                                                   units[unit_num],
-                                                                                   unit_type,
-                                                                                   fish_name,
+                                        plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                       reach_name,
+                                                                                       units[unit_num],
+                                                                                       unit_type,
+                                                                                       fish_name,
                                                                                    "",
-                                                                                   string_tr,
-                                                                                   self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %")
+                                                                                       string_tr,
+                                                                                       self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %")
                                         state = Value("i", 0)
                                         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                                       args=(

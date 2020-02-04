@@ -190,7 +190,7 @@ class Hdf5Management:
                 pass
             else:
                 hdf5_attributes_name_text.append(attribute_name.replace("_", " "))
-                hdf5_attributes_info_text.append(hdf5_attributes_dict[attribute_name])
+                hdf5_attributes_info_text.append(str(hdf5_attributes_dict[attribute_name]))
 
         # set general attributes to the end
         for attribute_name in attributes_to_the_end:
