@@ -116,7 +116,7 @@ class UserPreferences(AppDataFolders):
             self.create_biology_models_json()
             self.format_biology_models_dict_togui()
             self.modified = True
-            self.diff_list = "First creation."
+            self.diff_list = ""
 
         # if exist
         else:
