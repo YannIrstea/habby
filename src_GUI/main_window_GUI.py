@@ -1722,11 +1722,10 @@ class CreateNewProjectDialog(QDialog):
     """
     send_log = pyqtSignal(str, name='send_log')
     """
-       A PyQt signal used to write the log
+    A PyQt signal used to write the log
     """
 
     def __init__(self, lang, physic_tabs, stat_tabs, oldpath_prj):
-
         if oldpath_prj and os.path.isdir(oldpath_prj):
             self.default_fold = os.path.dirname(oldpath_prj)
         else:
@@ -1779,7 +1778,8 @@ class CreateNewProjectDialog(QDialog):
         self.setWindowTitle(self.tr('HABBY- New Project'))
         name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
         self.setWindowIcon(QIcon(name_icon))
-        self.setGeometry(300, 300, 650, 100)
+        self.setMinimumWidth(650)
+        self.setMinimumHeight(100)
         self.button3.setFocus()
         self.setModal(True)
 
