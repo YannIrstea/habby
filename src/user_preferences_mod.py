@@ -33,6 +33,7 @@ class UserPreferences(AppDataFolders):
         super().__init__()
         # state
         self.modified = False
+        self.user_attempt_to_add_preference_curve = False
         # biological models allowed by HABBY dict
         self.biological_models_requirements_dict = dict(ModelType=["univariate suitability index curves"],
                                                         UnitVariable=[
@@ -146,15 +147,22 @@ class UserPreferences(AppDataFolders):
 
         # for each source
         for xml_origine in ["user", "habby"]:
-            if xml_origine == "habby":
-                xml_list = self.models_from_habby
-                path_bio = self.path_bio
             if xml_origine == "user":
                 xml_list = self.models_from_user_appdata
                 path_bio = self.user_pref_biology_models
+            elif xml_origine == "habby":
+                xml_list = self.models_from_habby
+                path_bio = self.path_bio
 
             # for each xml file
             for file_ind, xml_filename in enumerate(xml_list):
+                # check if user model added exist in habby database
+                if xml_origine == "user":
+                    if xml_filename in self.models_from_habby:
+                        self.user_attempt_to_add_preference_curve = "Warning: The recently added preference curve " + xml_filename + " already exists in the HABBY database (filename and code alternative). Please change filename and code alternative and re-run HABBY."
+                        self.models_from_user_appdata = []
+                        xml_list = []
+                        continue
                 # get path
                 path_xml = os.path.join(path_bio, xml_filename)
                 # get_biomodels_informations_for_database
@@ -228,11 +236,13 @@ class UserPreferences(AppDataFolders):
                 if set_diff:
                     diff_key_list += str(set_diff) + ", "
 
-            if "xml" in diff_key_list and "user" in diff_key_list:  # new xml curve (from AppData user)
+            # new xml curve (from AppData user)
+            if "xml" in diff_key_list and "user" in diff_key_list:
                 diff_list = []
                 existing_path_xml_list = list(map(str, biological_models_dict_from_json["path_xml"]))
                 new_path_xml_list = list(map(str, self.biological_models_dict["path_xml"]))
                 new_xml_list = list(set(existing_path_xml_list) ^ set(new_path_xml_list))
+                # copy
                 if new_xml_list:
                     new_biology_models_save_folder = os.path.join(self.user_pref_biology_models_save,
                                                                   strftime("%d_%m_%Y_at_%H_%M_%S"))

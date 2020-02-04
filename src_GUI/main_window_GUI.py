@@ -85,7 +85,7 @@ class MainWindows(QMainWindow):
     """
 
     def __init__(self, name_path=None):
-
+        self.habby_project_file_corrupted = False
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
         self.research_tabs = False
@@ -191,7 +191,10 @@ class MainWindows(QMainWindow):
         if name_path:
             filename_path = name_path
         if os.path.exists(filename_path):
-            self.open_project(filename_path)
+            if os.stat(filename_path).st_size != 0:
+                self.open_project(filename_path)
+            else:
+                self.habby_project_file_corrupted = True
         else:
             self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.') + '</br><br>')
 
@@ -205,6 +208,15 @@ class MainWindows(QMainWindow):
 
         # create the menu bar
         self.my_menu_bar()
+
+        # user_attempt_to_add_preference_curve
+        if self.user_preferences.user_attempt_to_add_preference_curve:
+            self.central_widget.write_log(self.user_preferences.user_attempt_to_add_preference_curve)
+
+        if self.habby_project_file_corrupted:
+            self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' + filename_path))
+            self.central_widget.write_log(self.tr('Create or open another project.'))
+
         # open window
         self.show()
 
@@ -796,7 +808,7 @@ class MainWindows(QMainWindow):
         In this text file, there is either the word "open" or "close". When HABBY open a new project, it checks
         this file is set to close and change it to open. Hence, if a project is open twice a warning is written.
         """
-        if self.name_prj is not None:
+        if self.name_prj != "":
 
             # open the text file
             filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
@@ -835,7 +847,8 @@ class MainWindows(QMainWindow):
         This function indicates to the project folder than this project is not used anymore. Hence, this project
         can be used freely by an other instance of HABBY.
         """
-        if self.name_prj is not None:
+        print("self.name_prj", self.name_prj)
+        if self.name_prj != "":
 
             # open the text file
             filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
@@ -2052,6 +2065,10 @@ class CentralW(QWidget):
 
         if logon = false, do not write in log.txt
         """
+        file_script = None
+        pathname_restartfile = None
+        pathname_logfile = None
+
         # read xml file to find the path to the log file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(fname):
@@ -2083,7 +2100,7 @@ class CentralW(QWidget):
                 self.tracking_journal_QTextEdit.textCursor().insertHtml(
                     "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
                     "found. no Log written. </br> <br>")
-            return
+                return
 
         # add comments to QTextEdit and .log file
         if text_log[0] == '#':
@@ -2132,24 +2149,25 @@ class CentralW(QWidget):
         :param pathname_logfile: the path+name where the log is
         """
         if self.logon:
-            if os.path.isfile(pathname_logfile):
-                with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write('\n' + text_log)
-            elif self.name_prj == '':
-                return
-            else:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                    "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
-                shutil.copy(os.path.join('files_dep', 'log0.txt'),
-                            os.path.join(self.path_prj, self.name_prj + '.log'))
-                shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
-                            os.path.join(self.path_prj, 'restart_' + self.name_prj + '.log'))
-                with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write("    name_project = " + self.name_prj + "\n")
-                with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write("    path_project = " + self.path_prj + "\n")
-                with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write('\n' + text_log)
+            if pathname_logfile:
+                if os.path.isfile(pathname_logfile):
+                    with open(pathname_logfile, "a", encoding='utf8') as myfile:
+                        myfile.write('\n' + text_log)
+                elif self.name_prj == '':
+                    return
+                else:
+                    self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                        "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
+                    shutil.copy(os.path.join('files_dep', 'log0.txt'),
+                                os.path.join(self.path_prj, self.name_prj + '.log'))
+                    shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
+                                os.path.join(self.path_prj, 'restart_' + self.name_prj + '.log'))
+                    with open(pathname_logfile, "a", encoding='utf8') as myfile:
+                        myfile.write("    name_project = " + self.name_prj + "\n")
+                    with open(pathname_logfile, "a", encoding='utf8') as myfile:
+                        myfile.write("    path_project = " + self.path_prj + "\n")
+                    with open(pathname_logfile, "a", encoding='utf8') as myfile:
+                        myfile.write('\n' + text_log)
 
         return
 
