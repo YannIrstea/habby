@@ -507,7 +507,7 @@ class MainWindows(QMainWindow):
 
         # check if exist
         if not os.path.exists(os.path.join(self.path_prj, self.name_prj + ".habby")):
-            self.central_widget.write_log("Error: " + self.tr("the selected project file does not exist.\n"))
+            self.central_widget.write_log("Error: " + self.tr("The selected project file does not exist.\n"))
             self.close_project()
             return
 
@@ -583,6 +583,8 @@ class MainWindows(QMainWindow):
             self.user_preferences.data["recent_project_path"] = self.user_preferences.data["recent_project_path"] + [
                 self.path_prj]
         self.user_preferences.save_user_preferences_json()
+
+        self.my_menu_bar()
 
         self.central_widget.write_log(self.tr('Project opened.'))
 
