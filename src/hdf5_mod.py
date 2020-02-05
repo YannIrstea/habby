@@ -2599,7 +2599,8 @@ class Hdf5Management:
                     # open the pref
                     [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
                                                                                                              hab_aquatic_animal_type_list[idx])
-                    [f, axarr] = plot_mod.plot_suitability_curve_bivariate(state,
+                    state_fake = Value("i", 0)
+                    [f, axarr] = plot_mod.plot_suitability_curve_bivariate(state_fake,
                                                   h_all,
                                                   vel_all,
                                                   pref_values_all,
