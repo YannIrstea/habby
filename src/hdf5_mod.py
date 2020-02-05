@@ -2117,9 +2117,9 @@ class Hdf5Management:
                     connectivity = np.reshape(self.data_2d["mesh"]["tin"][reach_num][unit_num],
                                               (len(self.data_2d["mesh"]["tin"][reach_num][unit_num]) * 3,))
                     offsets = np.arange(3, len(self.data_2d["mesh"]["tin"][reach_num][unit_num]) * 3 + 3, 3)
-                    offsets = np.array(list(map(int, offsets)))
+                    offsets = np.array(list(map(int, offsets)), dtype=np.int64)
                     cell_types = np.zeros(len(self.data_2d["mesh"]["tin"][reach_num][unit_num]), ) + 5  # triangle
-                    cell_types = np.array(list((map(int, cell_types))))
+                    cell_types = np.array(list((map(int, cell_types))), dtype=np.int64)
 
                     cellData = {}
 
@@ -2584,7 +2584,7 @@ class Hdf5Management:
                                                                      h_all,
                                                                      vel_all,
                                                                      sub_all,
-                                                                     code_fish,
+                                                                     information_model_dict["CdBiologicalModel"],
                                                                      name_fish,
                                                                      stages,
                                                                      information_model_dict["substrate_type"],

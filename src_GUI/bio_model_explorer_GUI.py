@@ -883,7 +883,7 @@ class BioModelInfoSelection(QScrollArea):
                                               h_all,
                                               vel_all,
                                               sub_all,
-                                              code_fish,
+                                              information_model_dict["CdBiologicalModel"],
                                               name_fish,
                                               stages,
                                               sub_type,
