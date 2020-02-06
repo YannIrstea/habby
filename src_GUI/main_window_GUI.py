@@ -1978,23 +1978,23 @@ class CentralW(QWidget):
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
                 if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'process_list'):
-                    self.data_explorer_tab.data_explorer_frame.plot_group.process_list.close_all_plot()
+                    self.data_explorer_tab.data_explorer_frame.plot_group.process_list.terminate()
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'dataexporter_group'):
                 if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'process_list'):
                     self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_list.close_all_export()
         # calc hab
         if hasattr(self, 'bioinfo_tab'):
             if hasattr(self.bioinfo_tab, 'process_list'):
-                self.bioinfo_tab.process_list.close_all_plot()
+                self.bioinfo_tab.process_list.terminate()
         # estimhab
         if hasattr(self, 'statmod_tab'):
             if hasattr(self.statmod_tab, 'process_list'):
-                self.statmod_tab.process_list.close_all_plot()
+                self.statmod_tab.process_list.terminate()
         # tools_tab
         if hasattr(self, 'tools_tab'):
             if hasattr(self.tools_tab, 'interpolation_group'):
                 if hasattr(self.tools_tab.interpolation_group, 'process_list'):
-                    self.tools_tab.interpolation_group.process_list.close_all_plot()
+                    self.tools_tab.interpolation_group.process_list.terminate()
 
     def connect_signal_log(self):
         """
