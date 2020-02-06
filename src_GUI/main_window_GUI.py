@@ -200,8 +200,7 @@ class MainWindows(QMainWindow):
 
         # bio_model_explorer_dialog
         if hasattr(self.central_widget, "data_explorer_tab"):
-            self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
+            self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
             self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
@@ -1355,8 +1354,7 @@ class MainWindows(QMainWindow):
 
             if hasattr(self, "bio_model_explorer_dialog"):
                 if not self.bio_model_explorer_dialog:
-                    self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
+                    self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
                     self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
@@ -1366,8 +1364,7 @@ class MainWindows(QMainWindow):
                                                             self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
             else:
-                self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
-                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
+                self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
                 self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
                     self.central_widget.write_log)
                 self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
@@ -1974,27 +1971,28 @@ class CentralW(QWidget):
         """
         method to close the images opened in HABBY and managed by matplotlib
         """
+        # bio_model_explorer_dialog
+        if hasattr(self.parent(), "bio_model_explorer_dialog"):
+            if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_list"):
+                    self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_list.close_all_plot()
         # data_explorer_tab
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
                 if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'process_list'):
-                    self.data_explorer_tab.data_explorer_frame.plot_group.process_list.terminate()
+                    self.data_explorer_tab.data_explorer_frame.plot_group.process_list.close_all_plot()
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'dataexporter_group'):
                 if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'process_list'):
                     self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_list.close_all_export()
-        # calc hab
-        if hasattr(self, 'bioinfo_tab'):
-            if hasattr(self.bioinfo_tab, 'process_list'):
-                self.bioinfo_tab.process_list.terminate()
-        # estimhab
-        if hasattr(self, 'statmod_tab'):
-            if hasattr(self.statmod_tab, 'process_list'):
-                self.statmod_tab.process_list.terminate()
         # tools_tab
         if hasattr(self, 'tools_tab'):
             if hasattr(self.tools_tab, 'interpolation_group'):
                 if hasattr(self.tools_tab.interpolation_group, 'process_list'):
-                    self.tools_tab.interpolation_group.process_list.terminate()
+                    self.tools_tab.interpolation_group.process_list.close_all_plot()
+        # estimhab
+        if hasattr(self, 'statmod_tab'):
+            if hasattr(self.statmod_tab, 'process_list'):
+                self.statmod_tab.process_list.close_all_plot()
 
     def connect_signal_log(self):
         """
