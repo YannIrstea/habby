@@ -646,7 +646,7 @@ class BioModelInfoSelection(QScrollArea):
         self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_listwidget, 1, 1)
 
         # information_curve
-        self.information_curve_group = QGroupBox(self.tr("Suitability curve information"))
+        self.information_curve_group = QGroupBox(self.tr("Habitat Suitability Index information"))
         self.information_curve_layout = QGridLayout(self.information_curve_group)
         self.information_curve_layout.addWidget(latin_name_title_label, 0, 0)
         self.information_curve_layout.addWidget(self.latin_name_label, 0, 1)
@@ -847,7 +847,7 @@ class BioModelInfoSelection(QScrollArea):
         the functions effectively doing the image.
         """
         if not self.selected_fish_cd_biological_model:
-            self.send_log.emit("Warning: " + self.tr("No fish selected to create suitability curves."))
+            self.send_log.emit("Warning: " + self.tr("No fish selected to show Habitat Suitability Index"))
             return
 
         modifiers = QApplication.keyboardModifiers()

@@ -2625,7 +2625,7 @@ class Hdf5Management:
                         newax.axis('off')
 
                 # move suptitle
-                f.suptitle(qt_tr.translate("hdf5_mod", 'Suitability curve'),
+                f.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
                            x=0.5, y=0.54,
                            fontsize=32,
                            weight='bold')
