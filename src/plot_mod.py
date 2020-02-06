@@ -52,7 +52,8 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     """
 
     mpl.rcParams['pdf.fonttype'] = 42
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
+    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
+                                                     "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
         mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
@@ -66,76 +67,146 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     if project_preferences['marker']:
-        mar = 'o'
+        mar = '.'
     else:
         mar = None
 
+    # convert list to numpy (for mplcursor)
+    # height = np.array(height)
+    # vel = np.array(vel)
+    # sub = np.array(sub)
+    # height_values = np.array(height[0][0])
+    # height_pref = np.array(height[0][1])
+    # vel_values = np.array(vel[0][0])
+    # vel_pref = np.array(vel[0][1])
+    # sub_values = np.array(sub[0][0])
+    # sub_pref = np.array(sub[0][1])
+
+    height_values = height[0][0]
+    height_pref = height[0][1]
+    vel_values = vel[0][0]
+    vel_pref = vel[0][1]
+    sub_values = sub[0][0]
+    sub_pref = sub[0][1]
+
     # title and filename
     title_plot = qt_tr.translate("plot_mod",
-                            'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
+                                 'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
 
-    if len(stade) > 1:  # if you take this out, the command
-        # axarr[x,x] does not work as axarr is only 1D
+    # multi stage
+    if len(stade) > 1:
+        # ax[x,x] does not work as ax is only 1D
         # check if sub data exist
         if len(sub[0][0]) > 2:
-            f, axarr = plt.subplots(len(stade), 3, sharey='row')
+            fig, ax = plt.subplots(len(stade), 3, sharey='row')
         else:  # no sub
-            f, axarr = plt.subplots(len(stade), 2, sharey='row')
+            fig, ax = plt.subplots(len(stade), 2, sharey='row')
 
-        f.canvas.set_window_title(title_plot.replace("\n", " "))
+        fig.canvas.set_window_title(title_plot.replace("\n", " "))
         plt.suptitle(title_plot)
+        # get min_max_height_all_stages and min_max_velocity_all_stages
+        min_height_all_stages = []
+        max_height_all_stages = []
+        min_velocity_all_stages = []
+        max_velocity_all_stages = []
         for s in range(0, len(stade)):
-            axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
-            axarr[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-            axarr[s, 0].set_ylabel('Coeff. pref.\n' + stade[s])
-            axarr[s, 0].set_ylim([-0.1, 1.1])
+            min_height_all_stages.append(min(height[s][0]))
+            max_height_all_stages.append(max(height[s][0]))
+            min_velocity_all_stages.append(min(vel[s][0]))
+            max_velocity_all_stages.append(max(vel[s][0]))
+        min_height_all_stages = min(min_height_all_stages) - 0.1
+        max_height_all_stages = max(max_height_all_stages) + 0.1
+        min_velocity_all_stages = min(min_velocity_all_stages) - 0.1
+        max_velocity_all_stages = max(max_velocity_all_stages) + 0.1
 
-            axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
-            axarr[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
-            axarr[s, 1].set_ylim([-0.1, 1.1])
+        for s in range(0, len(stade)):
+            # height
+            ax[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
+            ax[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
+            ax[s, 0].set_xlim([min_height_all_stages, max_height_all_stages])
+            ax[s, 0].set_ylabel('Coeff. pref.\n' + stade[s])
+            ax[s, 0].set_ylim([-0.1, 1.1])
+            # velocity
+            ax[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
+            ax[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/s]'))
+            ax[s, 1].set_xlim([min_velocity_all_stages, max_velocity_all_stages])
+            ax[s, 1].set_ylim([-0.1, 1.1])
 
             if len(sub[0][0]) > 2:  # if substrate is accounted,
                 # it is accounted for all stages
-                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
-                                align='center')
-                axarr[s, 2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[s] + ' [' + sub_code[s] + ']')
-                axarr[s, 2].set_ylim([-0.1, 1.1])
-                axarr[s, 2].set_xlim([0.4, 8.6])
+                ax[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
+                             align='center')
+                ax[s, 2].set_xlabel(
+                    qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[s] + ' [' + sub_code[s] + ']')
+                ax[s, 2].set_ylim([-0.1, 1.1])
+                ax[s, 2].set_xlim([0.4, 8.6])
 
+    # one stage
     else:
         # check if sub data exist
-        if len(sub[0][0]) > 2:
-            f, axarr = plt.subplots(3, 1, sharey='row')
+        if len(sub_values) > 2:
+            fig, ax = plt.subplots(3, 1)
         else:  # no sub
-            f, axarr = plt.subplots(2, 1, sharey='row')
+            fig, ax = plt.subplots(2, 1)
         title_plot = title_plot + "- " + stade[0]
-        f.canvas.set_window_title(title_plot.replace("\n", " - "))
+        fig.canvas.set_window_title(title_plot.replace("\n", " - "))
         plt.suptitle(title_plot)
-        axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
-        axarr[0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-        axarr[0].set_ylabel('Coeff. pref. ')
-        axarr[0].set_ylim([-0.1, 1.1])
-        axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
-        axarr[1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
-        axarr[1].set_ylabel('Coeff. pref. ')
-        axarr[1].set_ylim([-0.1, 1.1])
 
-        # if sub
-        if len(sub[0][0]) > 2:
-            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
-            axarr[2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[0] + ' [' + sub_code[0] + ']')
-            axarr[2].set_ylabel('Coeff. pref. ')
-            axarr[2].set_ylim([-0.1, 1.1])
-            axarr[2].set_xlim([0.4, 8.6])
+        # height
+        line_height = ax[0].plot(height_values,
+                   height_pref,
+                   label="height",
+                   color="blue",
+                   marker=mar)
+        ax[0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
+        ax[0].set_ylabel('Coeff. pref. ')
+        ax[0].set_ylim([-0.1, 1.1])
+
+        # print("x", type(height_values), height_values)
+        # print("y", type(height_pref), height_pref)
+        # print("label", type("height"), "height")
+        # print("color", type("blue"), "blue")
+        # print("marker", type(mar), mar)
+
+        # ax[0].plot(x_data,
+        #            y_data_spu,
+        #            label=name_fish_value,
+        #            color=color_list[fish_index],
+        #            linestyle=style_list[fish_index],
+        #            marker=mar)
+
+
+        # velocity
+        line_velocity = ax[1].plot(vel_values,
+                   vel_pref,
+                   label="velocity",
+                   color="red",
+                   marker=mar)
+        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/s]'))
+        ax[1].set_ylabel('Coeff. pref. ')
+        ax[1].set_ylim([-0.1, 1.1])
+
+        # sub
+        if len(sub_values) > 2:
+            line_sub = ax[2].bar(sub_values,
+                      sub_pref,
+                      label="substrate",
+                      facecolor='c',
+                      align='center')
+            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[0] + ' [' + sub_code[0] + ']')
+            ax[2].set_ylabel('Coeff. pref. ')
+            ax[2].set_ylim([-0.1, 1.1])
+            ax[2].set_xlim([0.4, 8.6])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
+    mplcursors.cursor()  # get data with mouse
     # output for plot_GUI
     state.value = 1  # process finished
-    # fm = plt.get_current_fig_manager()
-    # fm.window.showMinimized()
+
+    # show or return
     if get_fig:
-        return f, axarr
+        return fig, ax
     else:
         plt.show()
 
@@ -198,6 +269,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     axarr.set_xlabel(qt_tr.translate("plot_mod", 'HEM [HFST] / shear stress [N/m²]'))
     axarr.set_ylabel('Coeff. pref.')
     axarr.set_ylim([-0.1, 1.1])
+
+    mplcursors.cursor()  # get data with mouse
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     # output for plot_GUI
@@ -273,6 +346,8 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         axarr.set_ylabel(qt_tr.translate("plot_mod", 'Water height [m]'))
         axarr.set_xlabel(qt_tr.translate("plot_mod", 'Water velocity [m/s]'))
         cbar = plt.colorbar(meshcolor)
+
+    mplcursors.cursor()  # get data with mouse
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     # output for plot_GUI
@@ -474,6 +549,12 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
                      color=color_list[fish_index],
                      linestyle=style_list[fish_index],
                        marker=mar)
+            print("x", type(x_data), x_data)
+            print("y", type(y_data_spu), y_data_spu)
+            print("label", type(name_fish_value), name_fish_value)
+            print("color", type(color_list[fish_index]), color_list[fish_index])
+            print("linestyle", type(style_list[fish_index]), style_list[fish_index])
+            print("marker", type(mar), mar)
 
         ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
         ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
@@ -685,7 +766,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data, [])  #, rotation=rot
         if not date_presence and is_constant:
-            ax[1].set_xticklabels(x_data, sim_name)
+            ax[1].set_xticks(x_data, sim_name)
     elif len(sim_name) < 100:
         ax[1].set_xticks(x_data[::3], [])
         if not date_presence and is_constant:
