@@ -869,14 +869,14 @@ class BioModelInfoSelection(QScrollArea):
         if not hasattr(self, 'process_list'):
             self.process_list = MyProcessList("plot")
         state = Value("i", 0)
+        # univariate
         if information_model_dict["ModelType"] == "univariate suitability index curves":
+            # fish
             if aquatic_animal_type == "fish":
                 # open the pref
                 h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
                                                                                                  aquatic_animal_type,
                                                                                                selected_fish_stage)
-
-
                 sub_type = self.biological_models_dict_gui["substrate_type"][i]
                 curve_process = Process(target=plot_mod.plot_suitability_curve,
                                         args=(state,
@@ -889,35 +889,40 @@ class BioModelInfoSelection(QScrollArea):
                                               sub_type,
                                               sub_code,
                                               project_preferences,
-                                              False))
+                                              False),
+                                        name="plot_suitability_curve")
+            # invertebrate
             if aquatic_animal_type == "invertebrate":
                 # open the pref
-                [shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
                                                                                                  aquatic_animal_type)
                 curve_process = Process(target=plot_mod.plot_suitability_curve_invertebrate,
                                         args=(state,
                                               shear_stress_all,
                                               hem_all,
                                               hv_all,
-                                              code_fish,
+                                              information_model_dict["CdBiologicalModel"],
                                               name_fish,
                                               stages,
                                               project_preferences,
-                                              False))
-        else:  # bivariate
+                                              False),
+                                        name="plot_suitability_curve_invertebrate")
+        # bivariate
+        else:
             # open the pref
-            [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
-                                                                                                       aquatic_animal_type)
+            h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
+                                                                                                    aquatic_animal_type)
             curve_process = Process(target=plot_mod.plot_suitability_curve_bivariate,
                                     args=(state,
                                               h_all,
                                               vel_all,
                                               pref_values_all,
-                                              code_fish,
+                                              information_model_dict["CdBiologicalModel"],
                                               name_fish,
                                               stages,
                                               project_preferences,
-                                              False))
+                                              False),
+                                        name="plot_suitability_curve_bivariate")
         # append
         self.process_list.append((curve_process, state))
         self.process_list.start()
