@@ -74,8 +74,8 @@ adultes: sujets en âge de se reproduire (14 à 28 cm).
 </Stage>
 <Stage Type="adult">
 <PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">2.62 5.24 7.86 10.48 13.1 15.72 18.34 20.96 23.58 26.2 28.82 31.44 34.06 36.68 39.3 41.92 44.54 47.16 49.78 52.4 55.02 57.64 60.26 62.88 65.5 68.12 70.74 73.36 75.98 78.6 81.22 83.84</HeightOfWaterValues>
-<PreferenceValues>0 0 0.04 0.07 0.12 0.14 0.15 0.17 0.23 0.29 0.35 0.41 0.47 0.53 0.59 0.65 0.71 0.77 0.85 0.89 0.93 0.95 0.97 0.99 1 1 1 1 1 1 1 1</PreferenceValues>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 2.62 5.24 7.86 10.48 13.1 15.72 18.34 20.96 23.58 26.2 28.82 31.44 34.06 36.68 39.3 41.92 44.54 47.16 49.78 52.4 55.02 57.64 60.26 62.88 65.5 68.12 70.74 73.36 75.98 78.6 81.22 83.84</HeightOfWaterValues>
+<PreferenceValues>0 0 0 0.04 0.07 0.12 0.14 0.15 0.17 0.23 0.29 0.35 0.41 0.47 0.53 0.59 0.65 0.71 0.77 0.85 0.89 0.93 0.95 0.97 0.99 1 1 1 1 1 1 1 1</PreferenceValues>
 </PreferenceHeightOfWater>
 <PreferenceVelocity>
 <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 5.9 11.8 17.7 23.6 29.5 35.39 41.29 47.19 53.09 58.99 64.89 70.79 76.69 82.59 88.49 94.38 100.28 106.18 112.08 117.98 123.88 129.78 135.68 141.58 147.48 153.37 159.27 165.17 171.07 176.97 182.87</VelocityValues>
