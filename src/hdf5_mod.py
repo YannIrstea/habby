@@ -2625,34 +2625,24 @@ class Hdf5Management:
                         newax.axis('off')
 
                 # move suptitle
-                if self.project_preferences['language'] == 0:
-                    f.suptitle('Suitability curve', x=0.5, y=0.54, fontsize=32,
-                               weight='bold')
-                elif self.project_preferences['language'] == 1:
-                    f.suptitle('Courbe de préférence', x=0.5, y=0.54, fontsize=32,
-                               weight='bold')
-                else:
-                    f.suptitle('Suitability curve', x=0.5, y=0.54, fontsize=32,
-                               weight='bold')
+                f.suptitle(qt_tr.translate("hdf5_mod", 'Suitability curve'),
+                           x=0.5, y=0.54,
+                           fontsize=32,
+                           weight='bold')
                 # general info
-                if self.project_preferences['language'] == 0:
-                    plt.figtext(0.1, 0.7,
-                                "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
-                                weight='bold', fontsize=32)
-                    text_all = name_fish + '\n\n' + data[0][2] \
-                               + '\n\n' + code_fish + '\n\n'
-                elif self.project_preferences['language'] == 1:
-                    plt.figtext(0.1, 0.7,
-                                "Nom latin :\n\nNom commun :\n\nCode ONEMA:\n\nStade choisi :\n\nDescription :",
-                                weight='bold', fontsize=32)
-                    text_all = name_fish + '\n\n' + data[0][1] + '\n\n' \
-                               + code_fish + '\n\n'
-                else:
-                    plt.figtext(0.1, 0.7,
-                                "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
-                                weight='bold', fontsize=32)
-                    text_all = name_fish + '\n\n' + data[0][2] \
-                               + '\n\n' + code_fish + '\n\n'
+                list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
+                                 qt_tr.translate("hdf5_mod", "Common Name:"),
+                                 qt_tr.translate("hdf5_mod", "Code biological model:"),
+                                 qt_tr.translate("hdf5_mod", "ONEMA fish code:"),
+                                 qt_tr.translate("hdf5_mod", "Stage chosen:"),
+                                 qt_tr.translate("hdf5_mod", "Description:")]
+                list_of_title_str = "\n\n".join(list_of_title)
+                plt.figtext(0.1, 0.7,
+                            list_of_title_str,
+                            weight='bold',
+                            fontsize=32)
+                text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + information_model_dict["CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
+
                 for idx, s in enumerate(stages):
                     text_all += s + ', '
                 text_all = text_all[:-2] + '\n\n'
@@ -2668,7 +2658,7 @@ class Hdf5Management:
                     plt.figtext(0.4, 0.71, data[0][-1], wrap=True, fontsize=32, **alignment)
 
                 # title of the page
-                plt.figtext(0.1, 0.9, "REPORT - " + name_fish, fontsize=55,
+                plt.figtext(0.1, 0.92, "REPORT - " + name_fish, fontsize=55,
                             weight='bold',
                             bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
 
