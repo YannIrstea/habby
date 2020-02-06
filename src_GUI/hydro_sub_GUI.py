@@ -3610,8 +3610,12 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 new_names_list = []
                 for file_num, file in enumerate(filename_source_list):
                     if self.hydrau_description["unit_list_tf"][file_num]:
-                        new_names_list.append(os.path.splitext(file)[0])
+                        new_names_list.append(os.path.splitext(file)[0].replace(".", "_"))
                 self.hydrau_description["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                if len(filename_source_list) == len(new_names_list) and len(self.hydrau_description["hdf5_name"]) > 50:
+                    self.hydrau_description["hdf5_name"] = new_names_list[0].replace(".", "_")  \
+                                + "_to_" + \
+                                new_names_list[-1].replace(".", "_")
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
 
         # set text

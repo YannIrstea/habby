@@ -267,8 +267,11 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 name_hdf5 = "_".join(blob) + ".hyd"
             if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = ", ".join(data_index_file["filename"])  # source file name
-                name_hdf5 = "_".join(
-                    [os.path.splitext(file)[0] for file in data_index_file["filename"]]) + ".hyd"
+                name_hdf5 = "_".join([os.path.splitext(file)[0] for file in data_index_file["filename"]]) + ".hyd"
+                if selectedfiles_textfiles_match and len(name_hdf5) > 50:
+                    name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_")  \
+                                + "_to_" + \
+                                os.path.splitext(data_index_file["filename"][-1])[0].replace(".", "_")
         if not more_than_one_file_selected_by_user:
             if ext != ".txt":  # from file
                 namefile = filename  # source file name
@@ -337,13 +340,13 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
             warning_list.extend(warning_list_timestep)
             # get units name from indexHYDRAU.txt file
-            unit_name_from_index_file = data_index_file[headers[time_index]]
+            unit_name_from_index_file = data_index_file[headers[time_index]][data_index_file[headers[0]].index(filename)]
 
             # check if lenght of two loading units
-            if unit_name_from_index_file[0] not in unit_name_from_file:
+            if unit_name_from_index_file not in unit_name_from_file:
                 return "Error: " + unit_name_from_index_file + " doesn't exist in telemac file", None
             else:
-                unit_index = unit_name_from_file.index(unit_name_from_index_file[0])
+                unit_index = unit_name_from_file.index(unit_name_from_index_file)
                 unit_list_tf = [False] * nbtimes
                 unit_list_tf[unit_index] = True
 
