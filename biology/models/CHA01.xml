@@ -38,7 +38,7 @@ La courbe vaut pour l'ensemble de l'espèce.
 </PreferenceVelocity>
 <PreferenceSubstrate>
 <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>1 1 1 1 1 1 1 1</PreferenceValues>
+<PreferenceValues>0 0 0 1 1 1 1 1</PreferenceValues>
 </PreferenceSubstrate>
 </Stage>
 </Stages>
