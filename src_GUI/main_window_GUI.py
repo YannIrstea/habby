@@ -31,8 +31,7 @@ from PyQt5.QtGui import QPixmap, QIcon, QTextCursor, QFont
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, \
     QFileDialog, QMessageBox, QActionGroup, QMenu, QToolBar, QProgressBar
-from lxml import etree as ET
-
+from json import decoder
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
 from src_GUI import welcome_GUI
@@ -192,9 +191,14 @@ class MainWindows(QMainWindow):
             filename_path = name_path
         if os.path.exists(filename_path):
             if os.stat(filename_path).st_size != 0:
-                self.open_project(filename_path)
+                try:
+                    self.open_project(filename_path)
+                except decoder.JSONDecodeError:
+                    self.habby_project_file_corrupted = True
+                    self.path_prj = ''
             else:
                 self.habby_project_file_corrupted = True
+                self.path_prj = ''
         else:
             self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.') + '</br><br>')
 
