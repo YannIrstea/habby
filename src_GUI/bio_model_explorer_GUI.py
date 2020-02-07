@@ -47,7 +47,7 @@ class BioModelExplorerWindow(QDialog):
     A PyQtsignal used to write the log.
     """
 
-    def __init__(self, parent, path_prj, name_prj, name_icon, process_list):
+    def __init__(self, parent, path_prj, name_prj, name_icon):
         super().__init__(parent)
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -55,12 +55,11 @@ class BioModelExplorerWindow(QDialog):
         self.status_bar = QStatusBar()
         self.msg2 = QMessageBox()
         self.path_bio = user_preferences.path_bio
-        self.process_list = process_list
         # filters index
 
         # tabs
         self.bio_model_filter_tab = BioModelFilterTab(path_prj, name_prj)
-        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj, process_list)
+        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj)
         self.init_iu()
 
     def init_iu(self):
@@ -540,18 +539,18 @@ class BioModelInfoSelection(QScrollArea):
     A PyQt signal to send the log.
     """
 
-    def __init__(self, path_prj, name_prj, process_list):
+    def __init__(self, path_prj, name_prj):
         super().__init__()
         self.tab_name = "model_selected"
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.process_list = process_list
         self.selected_fish_cd_biological_model = None
         self.selected_aquatic_animal_list = []
         self.msg2 = QMessageBox()
         self.init_iu()
         self.lang = 0
+        self.process_list = MyProcessList("plot")
         self.animal_picture_path = None
 
     def init_iu(self):
@@ -647,7 +646,7 @@ class BioModelInfoSelection(QScrollArea):
         self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_listwidget, 1, 1)
 
         # information_curve
-        self.information_curve_group = QGroupBox(self.tr("Suitability curve information"))
+        self.information_curve_group = QGroupBox(self.tr("Habitat Suitability Index information"))
         self.information_curve_layout = QGridLayout(self.information_curve_group)
         self.information_curve_layout.addWidget(latin_name_title_label, 0, 0)
         self.information_curve_layout.addWidget(self.latin_name_label, 0, 1)
@@ -848,7 +847,7 @@ class BioModelInfoSelection(QScrollArea):
         the functions effectively doing the image.
         """
         if not self.selected_fish_cd_biological_model:
-            self.send_log.emit("Warning: " + self.tr("No fish selected to create suitability curves."))
+            self.send_log.emit("Warning: " + self.tr("No fish selected to show Habitat Suitability Index"))
             return
 
         modifiers = QApplication.keyboardModifiers()
@@ -865,18 +864,20 @@ class BioModelInfoSelection(QScrollArea):
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
         # plot the pref
         project_preferences = load_project_preferences(self.path_prj)
-        # do the plot
-        if not hasattr(self, 'process_list'):
-            self.process_list = MyProcessList("plot")
+        # check plot process done
+        if self.process_list.check_all_process_closed():
+            self.process_list.new_plots()
+        else:
+            self.process_list.add_plots()
         state = Value("i", 0)
+        # univariate
         if information_model_dict["ModelType"] == "univariate suitability index curves":
+            # fish
             if aquatic_animal_type == "fish":
                 # open the pref
                 h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
                                                                                                  aquatic_animal_type,
                                                                                                selected_fish_stage)
-
-
                 sub_type = self.biological_models_dict_gui["substrate_type"][i]
                 curve_process = Process(target=plot_mod.plot_suitability_curve,
                                         args=(state,
@@ -889,35 +890,40 @@ class BioModelInfoSelection(QScrollArea):
                                               sub_type,
                                               sub_code,
                                               project_preferences,
-                                              False))
+                                              False),
+                                        name="plot_suitability_curve")
+            # invertebrate
             if aquatic_animal_type == "invertebrate":
                 # open the pref
-                [shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
                                                                                                  aquatic_animal_type)
                 curve_process = Process(target=plot_mod.plot_suitability_curve_invertebrate,
                                         args=(state,
                                               shear_stress_all,
                                               hem_all,
                                               hv_all,
-                                              code_fish,
+                                              information_model_dict["CdBiologicalModel"],
                                               name_fish,
                                               stages,
                                               project_preferences,
-                                              False))
-        else:  # bivariate
+                                              False),
+                                        name="plot_suitability_curve_invertebrate")
+        # bivariate
+        else:
             # open the pref
-            [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
-                                                                                                       aquatic_animal_type)
+            h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
+                                                                                                    aquatic_animal_type)
             curve_process = Process(target=plot_mod.plot_suitability_curve_bivariate,
                                     args=(state,
                                               h_all,
                                               vel_all,
                                               pref_values_all,
-                                              code_fish,
+                                              information_model_dict["CdBiologicalModel"],
                                               name_fish,
                                               stages,
                                               project_preferences,
-                                              False))
+                                              False),
+                                        name="plot_suitability_curve_bivariate")
         # append
         self.process_list.append((curve_process, state))
         self.process_list.start()
@@ -940,9 +946,11 @@ class BioModelInfoSelection(QScrollArea):
         # get data
         data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
         if isinstance(data, np.ndarray):
-            # do the plot
-            if not hasattr(self, 'process_list'):
-                self.process_list = MyProcessList("plot")
+            # check plot process done
+            if self.process_list.check_all_process_closed():
+                self.process_list.new_plots()
+            else:
+                self.process_list.add_plots()
             project_preferences = load_project_preferences(self.path_prj)
             state = Value("i", 0)
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,

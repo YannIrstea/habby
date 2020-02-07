@@ -345,7 +345,7 @@ class EstimhabW(StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
-        self.plot_process_list = MyProcessList("plot")
+        self.process_list = MyProcessList("plot")
         self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []
@@ -809,7 +809,7 @@ class EstimhabW(StatModUseful):
         self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
                          args=(estimhab_dict, project_preferences, self.path_prj,
                                state))
-        self.plot_process_list.append((self.p, state))
+        self.process_list.append((self.p, state))
 
         # wait end process
         while state.value != 1:

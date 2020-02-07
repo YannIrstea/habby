@@ -268,10 +268,10 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = ", ".join(data_index_file["filename"])  # source file name
                 name_hdf5 = "_".join([os.path.splitext(file)[0] for file in data_index_file["filename"]]) + ".hyd"
-                if selectedfiles_textfiles_match and len(name_hdf5) > 50:
+                if selectedfiles_textfiles_match and len(name_hdf5) > 25:
                     name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_")  \
                                 + "_to_" + \
-                                os.path.splitext(data_index_file["filename"][-1])[0].replace(".", "_")
+                                os.path.splitext(data_index_file["filename"][-1])[0].replace(".", "_") + ".hyd"
         if not more_than_one_file_selected_by_user:
             if ext != ".txt":  # from file
                 namefile = filename  # source file name

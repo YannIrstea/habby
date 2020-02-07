@@ -56,6 +56,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
                                                      "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
+        default_size = plt.rcParams['figure.figsize']
         mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
         mpl.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
@@ -71,39 +72,56 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     else:
         mar = None
 
-    # convert list to numpy (for mplcursor)
-    # height = np.array(height)
-    # vel = np.array(vel)
-    # sub = np.array(sub)
-    # height_values = np.array(height[0][0])
-    # height_pref = np.array(height[0][1])
-    # vel_values = np.array(vel[0][0])
-    # vel_pref = np.array(vel[0][1])
-    # sub_values = np.array(sub[0][0])
-    # sub_pref = np.array(sub[0][1])
-
-    height_values = height[0][0]
-    height_pref = height[0][1]
-    vel_values = vel[0][0]
-    vel_pref = vel[0][1]
-    sub_values = sub[0][0]
-    sub_pref = sub[0][1]
+    height_values = np.array(height[0][0])
+    height_pref = np.array(height[0][1])
+    vel_values = np.array(vel[0][0])
+    vel_pref = np.array(vel[0][1])
+    sub_values = np.array(sub[0][0])
+    sub_pref = np.array(sub[0][1])
 
     # title and filename
-    title_plot = qt_tr.translate("plot_mod",
-                                 'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
+    title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
+
+    # one stage
+    if len(stade) == 1:
+        # preplot
+        if len(sub_values) > 2:  # check if sub data exist
+            fig, ax = plt.subplots(3, 1)
+        else:  # no sub
+            fig, ax = plt.subplots(2, 1)
+        fig.canvas.set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
+
+        # height
+        ax[0].plot(height_values,
+                   height_pref,
+                   color="blue",
+                   marker=mar)
+        ax[0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
+        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
+        ax[0].set_ylim([-0.1, 1.1])
+
+        # velocity
+        ax[1].plot(vel_values,
+                   vel_pref,
+                   color="red",
+                   marker=mar)
+        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/s]'))
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
+        ax[1].set_ylim([-0.1, 1.1])
+
+        # sub
+        if len(sub_values) > 2:
+            ax[2].bar(sub_values,
+                      sub_pref,
+                      facecolor='c',
+                      align='center')
+            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[0] + ' [' + sub_code[0] + ']')
+            ax[2].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
+            ax[2].set_ylim([-0.1, 1.1])
+            ax[2].set_xlim([0.4, 8.6])
 
     # multi stage
-    if len(stade) > 1:
-        # ax[x,x] does not work as ax is only 1D
-        # check if sub data exist
-        if len(sub[0][0]) > 2:
-            fig, ax = plt.subplots(len(stade), 3, sharey='row')
-        else:  # no sub
-            fig, ax = plt.subplots(len(stade), 2, sharey='row')
-
-        fig.canvas.set_window_title(title_plot.replace("\n", " "))
-        plt.suptitle(title_plot)
+    else:
         # get min_max_height_all_stages and min_max_velocity_all_stages
         min_height_all_stages = []
         max_height_all_stages = []
@@ -119,88 +137,46 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         min_velocity_all_stages = min(min_velocity_all_stages) - 0.1
         max_velocity_all_stages = max(max_velocity_all_stages) + 0.1
 
+        # preplot
+        if len(sub[0][0]) > 2:  # check if sub data exist
+            fig, ax = plt.subplots(len(stade), 3, sharey='row')
+        else:  # no sub
+            fig, ax = plt.subplots(len(stade), 2, sharey='row')
+        fig.canvas.set_window_title(title_plot + name_fish + " - " + code_fish)
+
+        # plot
         for s in range(0, len(stade)):
             # height
-            ax[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
+            ax[s, 0].plot(height[s][0], height[s][1],
+                          '-b',
+                          marker=mar)
             ax[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
             ax[s, 0].set_xlim([min_height_all_stages, max_height_all_stages])
-            ax[s, 0].set_ylabel('Coeff. pref.\n' + stade[s])
+            ax[s, 0].set_ylabel(qt_tr.translate("plot_mod", 'HSI []') + "\n" + stade[s])
             ax[s, 0].set_ylim([-0.1, 1.1])
+
             # velocity
-            ax[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
+            ax[s, 1].plot(vel[s][0], vel[s][1],
+                          '-r',
+                          marker=mar)
             ax[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/s]'))
             ax[s, 1].set_xlim([min_velocity_all_stages, max_velocity_all_stages])
             ax[s, 1].set_ylim([-0.1, 1.1])
 
             if len(sub[0][0]) > 2:  # if substrate is accounted,
                 # it is accounted for all stages
-                ax[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
+                ax[s, 2].bar(sub[s][0], sub[s][1],
+                             facecolor='c',
                              align='center')
                 ax[s, 2].set_xlabel(
                     qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[s] + ' [' + sub_code[s] + ']')
                 ax[s, 2].set_ylim([-0.1, 1.1])
                 ax[s, 2].set_xlim([0.4, 8.6])
 
-    # one stage
-    else:
-        # check if sub data exist
-        if len(sub_values) > 2:
-            fig, ax = plt.subplots(3, 1)
-        else:  # no sub
-            fig, ax = plt.subplots(2, 1)
-        title_plot = title_plot + "- " + stade[0]
-        fig.canvas.set_window_title(title_plot.replace("\n", " - "))
-        plt.suptitle(title_plot)
-
-        # height
-        line_height = ax[0].plot(height_values,
-                   height_pref,
-                   label="height",
-                   color="blue",
-                   marker=mar)
-        ax[0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-        ax[0].set_ylabel('Coeff. pref. ')
-        ax[0].set_ylim([-0.1, 1.1])
-
-        # print("x", type(height_values), height_values)
-        # print("y", type(height_pref), height_pref)
-        # print("label", type("height"), "height")
-        # print("color", type("blue"), "blue")
-        # print("marker", type(mar), mar)
-
-        # ax[0].plot(x_data,
-        #            y_data_spu,
-        #            label=name_fish_value,
-        #            color=color_list[fish_index],
-        #            linestyle=style_list[fish_index],
-        #            marker=mar)
-
-
-        # velocity
-        line_velocity = ax[1].plot(vel_values,
-                   vel_pref,
-                   label="velocity",
-                   color="red",
-                   marker=mar)
-        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/s]'))
-        ax[1].set_ylabel('Coeff. pref. ')
-        ax[1].set_ylim([-0.1, 1.1])
-
-        # sub
-        if len(sub_values) > 2:
-            line_sub = ax[2].bar(sub_values,
-                      sub_pref,
-                      label="substrate",
-                      facecolor='c',
-                      align='center')
-            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[0] + ' [' + sub_code[0] + ']')
-            ax[2].set_ylabel('Coeff. pref. ')
-            ax[2].set_ylim([-0.1, 1.1])
-            ax[2].set_xlim([0.4, 8.6])
-
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-
+    # all cases
+    plt.tight_layout()
     mplcursors.cursor()  # get data with mouse
+
     # output for plot_GUI
     state.value = 1  # process finished
 
@@ -208,6 +184,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     if get_fig:
         return fig, ax
     else:
+        fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
 
 
@@ -230,6 +207,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
+        default_size = plt.rcParams['figure.figsize']
         mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
         mpl.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
@@ -246,13 +224,11 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         mar = None
 
     # title and filename
-    title_plot = qt_tr.translate("plot_mod",
-                            'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
+    title_plot = qt_tr.translate("plot_mod", 'HSI') + " : " + \
+                  name_fish + " - " + stade[0] + " - " + code_fish
 
-    f, axarr = plt.subplots(1, 1, sharey='row')
-    f.canvas.set_window_title(title_plot)
-    plt.suptitle(title_plot)
-    plt.grid()
+    fig, axarr = plt.subplots(1, 1, sharey='row')
+    fig.canvas.set_window_title(title_plot)
     # bar plot
     axarr.bar([x + 0.5 for x in hem_all[0]],
                          hv_all[0])
@@ -267,19 +243,19 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
                rotation=45)
 
     axarr.set_xlabel(qt_tr.translate("plot_mod", 'HEM [HFST] / shear stress [N/m²]'))
-    axarr.set_ylabel('Coeff. pref.')
-    axarr.set_ylim([-0.1, 1.1])
+    axarr.set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
+    axarr.set_ylim([0.0, 1.0])
 
-    mplcursors.cursor()  # get data with mouse
     plt.tight_layout(rect=[0, 0, 1, 0.95])
+    mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
     state.value = 1  # process finished
-    # fm = plt.get_current_fig_manager()
-    # fm.window.showMinimized()
+
     if get_fig:
-        return f, axarr
+        return fig, axarr
     else:
+        fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
 
 
@@ -302,6 +278,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
+        default_size = plt.rcParams['figure.figsize']
         mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
         mpl.rcParams['font.size'] = project_preferences['font_size']
         if project_preferences['font_size'] > 7:
@@ -312,51 +289,47 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
-    if project_preferences['marker']:
-        mar = 'o'
-    else:
-        mar = None
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
 
     # title and filename
-    title_plot = qt_tr.translate("plot_mod",
-                            'Suitability curve') + "\n" + name_fish + ' (' + code_fish + ') '
+    title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
 
     if len(stade) > 1:  # if you take this out, the command
-        # axarr[x,x] does not work as axarr is only 1D
-        f, axarr = plt.subplots(len(stade), 3, sharey='row')
-        f.canvas.set_window_title(title_plot)
-        plt.suptitle(title_plot)
-        for s in range(0, len(stade)):
-            axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
-            axarr[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-            axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
-
-            axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
-            axarr[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/sec]'))
-            axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
+        # TODO : do pcolormesh for each stage
+        _ = 1
     else:
         # prep data
-        X, Y = np.meshgrid(vel[0], height[0])
-        Z = np.array(pref_values).reshape((len(height[0]), len(vel[0])))
-        # plot
-        f, axarr = plt.subplots(1, 1, sharey='row')
-        f.canvas.set_window_title(title_plot)
-        plt.suptitle(title_plot)
-        meshcolor = axarr.pcolormesh(X, Y, Z)
-        axarr.set_ylabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-        axarr.set_xlabel(qt_tr.translate("plot_mod", 'Water velocity [m/s]'))
-        cbar = plt.colorbar(meshcolor)
+        pref_values_array = np.array(pref_values).reshape((len(height[0]), len(vel[0])))
 
-    mplcursors.cursor()  # get data with mouse
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+        # pre plot
+        fig, ax = plt.subplots(1, 1)
+        fig.canvas.set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
+
+        # plot
+        meshcolor = ax.imshow(pref_values_array,
+                              cmap=cmap,
+                              origin="lower",
+                              aspect="auto",
+                              extent=[min(vel[0]), max(vel[0]), min(height[0]), max(height[0])])
+
+        # axe label
+        ax.set_ylabel(qt_tr.translate("plot_mod", 'Water height [m]'))
+        ax.set_xlabel(qt_tr.translate("plot_mod", 'Water velocity [m/s]'))
+
+        # color_bar bar
+        color_bar = plt.colorbar(meshcolor)
+        color_bar.set_label(qt_tr.translate("plot_mod", 'HSI []'))
+
+    plt.tight_layout()
+    mplcursors.cursor(meshcolor)  # get data with mouse
 
     # output for plot_GUI
     state.value = 1  # process finished
-    # fm = plt.get_current_fig_manager()
-    # fm.window.showMinimized()
+
     if get_fig:
-        return f, axarr
+        return fig, ax
     else:
+        fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
 
 
@@ -365,14 +338,16 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.family'] = project_preferences['font_family']
+    default_size = plt.rcParams['figure.figsize']
+    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
 
     # title and filename
     title_plot = qt_tr.translate("plot_mod",
-                            'Measurement conditions') + "\n" + fishname
+                            'Measurement conditions') + " : " + fishname
 
-    plt.figure(title_plot.replace("\n", " : "))
+    fig = plt.figure(title_plot)
     # cmap should be coherent with text color
     plt.imshow(data, cmap='Blues',
                interpolation='nearest',
@@ -393,14 +368,17 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     ax1.set_xticklabels(vclass)
     ax1.set_yticks(np.arange(-0.5, 8.5, 1).tolist())
     ax1.set_yticklabels(hclass)
-    plt.title(title_plot)
     plt.xlabel('Velocity [m/s]')
     plt.ylabel('Height [m]')
     cbar = plt.colorbar()
     cbar.ax.set_ylabel('Relative area [%]')
 
+    plt.tight_layout()
+    mplcursors.cursor()  # get data with mouse
+
     # output for plot_GUI
     state.value = 1  # process finished
+    fig.set_size_inches(default_size[0], default_size[1])
     plt.show()
 
 
@@ -466,7 +444,6 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         plot_window_title = title + ", ".join(map(str, unit_name)) + " " + unit_type_only
         plot_window_title = plot_window_title[:80] + "..."
 
-    # fig = plt.figure(plot_window_title)
     fig, ax = plt.subplots(3, 1, sharex=True)
     fig.canvas.set_window_title(plot_window_title)
 
@@ -549,13 +526,6 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
                      color=color_list[fish_index],
                      linestyle=style_list[fish_index],
                        marker=mar)
-            print("x", type(x_data), x_data)
-            print("y", type(y_data_spu), y_data_spu)
-            print("label", type(name_fish_value), name_fish_value)
-            print("color", type(color_list[fish_index]), color_list[fish_index])
-            print("linestyle", type(style_list[fish_index]), style_list[fish_index])
-            print("marker", type(mar), mar)
-
         ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
         ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
         if len(unit_name) < 25:
@@ -706,6 +676,7 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
 
     reach_name = data_description["hyd_reach_list"]
     unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
+    unit_type = unit_type.replace("m3/s", "$m^3$/s")
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
 
     # plot
