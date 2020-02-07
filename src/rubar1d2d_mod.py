@@ -29,7 +29,7 @@ from src import dist_vistess_mod
 from src import hdf5_mod
 from src import hec_ras2D_mod
 from src import manage_grid_mod
-from src.tools_mod import create_empty_data_2_dict
+from src.tools_mod import create_empty_data_2d_dict
 from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict
 from src.user_preferences_mod import user_preferences
 
@@ -792,9 +792,9 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     data_2d_whole_profile["node"]["z"] = []
 
     # create empty dict
-    data_2d = create_empty_data_2_dict(1,  # always one reach
-                                       mesh_variables=list(data_2d_from_rubar2d["mesh"]["data"].keys()),
-                                       node_variables=list(data_2d_from_rubar2d["node"]["data"].keys()))
+    data_2d = create_empty_data_2d_dict(1,  # always one reach
+                                        mesh_variables=list(data_2d_from_rubar2d["mesh"]["data"].keys()),
+                                        node_variables=list(data_2d_from_rubar2d["node"]["data"].keys()))
 
     # progress from 10 to 90 : from 0 to len(units_index)
     delta = int(80 / int(description_from_rubar2d["unit_number"]))
@@ -958,8 +958,8 @@ def load_rubar2d(filename, file_path, progress_value):
     z = xyz[:, 2]
 
     # data 2d dict
-    data_2d = create_empty_data_2_dict(1,
-                                       node_variables=["h", "v"])
+    data_2d = create_empty_data_2d_dict(1,
+                                        node_variables=["h", "v"])
     data_2d["mesh"]["tin"][0] = ikle
     data_2d["node"]["xy"][0] = xy
     data_2d["node"]["z"][0] = z

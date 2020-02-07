@@ -701,7 +701,7 @@ def copy_files(names, paths, path_input):
                 shutil.copy(src, dst)
 
 
-def create_empty_data_2_dict(reach_number, mesh_variables=[], node_variables=[]):
+def create_empty_data_2d_dict(reach_number, mesh_variables=[], node_variables=[]):
     # create empty dict
     data_2d = dict()
 
@@ -722,6 +722,41 @@ def create_empty_data_2_dict(reach_number, mesh_variables=[], node_variables=[])
         data_2d["node"]["data"][node_variable] = [[] for _ in range(reach_number)]
 
     return data_2d
+
+
+def create_empty_data_2d_whole_profile_dict(reach_number):
+    # create empty dict
+    data_2d_whole_profile = dict()
+
+    # mesh
+    data_2d_whole_profile["mesh"] = dict()
+    data_2d_whole_profile["mesh"]["tin"] = [[] for _ in range(reach_number)]
+
+    # node
+    data_2d_whole_profile["node"] = dict()
+    data_2d_whole_profile["node"]["xy"] = [[] for _ in range(reach_number)]
+    data_2d_whole_profile["node"]["z"] = [[] for _ in range(reach_number)]
+
+    return data_2d_whole_profile
+
+
+def check_data_2d_dict_size(data_dict):
+    for key1 in data_dict.keys():
+        if type(data_dict[key1]) == dict:
+            for key2 in data_dict[key1].keys():
+                if type(data_dict[key1][key2]) == dict:
+                    for key3 in data_dict[key1][key2].keys():
+                        print(key3, ":",
+                              len(data_dict[key1][key2][key3]), "reach,",
+                              len(data_dict[key1][key2][key3][0]), "unit,",
+                              len(data_dict[key1][key2][key3][0][0]), key1,
+                              data_dict[key1][key2][0][0].shape)
+                if type(data_dict[key1][key2]) == list:
+                    print(key2, ":",
+                          len(data_dict[key1][key2]), "reach,",
+                          len(data_dict[key1][key2][0]), "unit,",
+                          len(data_dict[key1][key2][0][0]), key1,
+                          data_dict[key1][key2][0][0].shape)
 
 
 def get_prj_from_epsg_web(epsg_code):

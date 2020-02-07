@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src import hdf5_mod
-from src.tools_mod import create_empty_data_2_dict
+from src.tools_mod import create_empty_data_2d_dict
 from src import manage_grid_mod
 from src.project_manag_mod import create_default_project_preferences_dict
 from src import hydro_input_file_mod
@@ -103,29 +103,31 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
             temp_list[i].sort(axis=0)
         # TODO: sort function may be unadapted to check TIN equality between units
         whole_profil_egual_index = []
+        it_equality = 0
         for i in range(len(temp_list)):
             if i == 0:
-                whole_profil_egual_index.append(i)
+                whole_profil_egual_index.append(it_equality)
             if i > 0:
-                if np.array_equal(temp_list[i], temp_list[0]):
-                    whole_profil_egual_index.append(i)
+                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
+                    whole_profil_egual_index.append(it_equality)
                 else:
-                    whole_profil_egual_index.append("diff")
-        if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
-            data_2d_whole_profile["unit_correspondence"] = True
-        if "diff" not in whole_profil_egual_index:  # one tin for all unit
+                    it_equality = i
+                    whole_profil_egual_index.append(it_equality)  # diff
+        if len(set(whole_profil_egual_index)) > 1:  # all tin are different (one tin by unit)
+            data_2d_whole_profile["unit_correspondence"] = whole_profil_egual_index  # True
+        else:  # one tin for all unit
             data_2d_whole_profile["mesh"]["tin"][0] = [data_2d_whole_profile["mesh"]["tin"][0][0]]
             data_2d_whole_profile["mesh"]["xy_center"][0] = [data_2d_whole_profile["mesh"]["xy_center"][0][0]]
             data_2d_whole_profile["node"]["xy"][0] = [data_2d_whole_profile["node"]["xy"][0][0]]
-            data_2d_whole_profile["unit_correspondence"] = False
+            data_2d_whole_profile["unit_correspondence"] = whole_profil_egual_index  # False
 
         # progress from 10 to 90 : from 0 to len(units_index)
         delta = int(80 / int(hydrau_description[hyd_file]["unit_number"]))
 
         # cut the grid to have the precise wet area and put data in new form
-        data_2d = create_empty_data_2_dict(1,  # always one reach
-                                           mesh_variables=list(data_2d_telemac["mesh"]["data"].keys()),
-                                           node_variables=list(data_2d_telemac["node"]["data"].keys()))
+        data_2d = create_empty_data_2d_dict(1,  # always one reach
+                                            mesh_variables=list(data_2d_telemac["mesh"]["data"].keys()),
+                                            node_variables=list(data_2d_telemac["node"]["data"].keys()))
 
         # get unit list from telemac file
         file_list = hydrau_description[hyd_file]["filename_source"].split(", ")
@@ -165,7 +167,7 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                     if unit_wish in unit_list_from_telemac_file:
                         unit_index_list.append(unit_list_from_telemac_file.index(unit_wish))
 
-        if not data_2d_whole_profile["unit_correspondence"]:
+        if data_2d_whole_profile["unit_correspondence"] == "all":
             # conca xy with z value to facilitate the cutting of the grid (interpolation)
             xy = np.insert(data_2d_telemac["node"]["xy"][0],
                            2,
@@ -177,8 +179,6 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                                                                               hyd_file]["path_filename_source"])
 
         for i, unit_num in enumerate(unit_index_list):
-            # unit unit_name
-            unit_name = hydrau_description[hyd_file]["unit_list"][i]
             if len(file_list) > 1:
                 data_2d_telemac, description_from_telemac_file = load_telemac(file_list[i],
                                                                               hydrau_description[
@@ -249,14 +249,8 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         hyd_description["hyd_unit_list"] = [hydrau_description[hyd_file]["unit_list"]]
         hyd_description["hyd_unit_number"] = hydrau_description[hyd_file]["unit_number"]
         hyd_description["hyd_unit_type"] = hydrau_description[hyd_file]["unit_type"]
-        hyd_description["hyd_varying_mesh"] = data_2d_whole_profile["unit_correspondence"]
+        hyd_description["unit_correspondence"] = data_2d_whole_profile["unit_correspondence"]
         hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["cut_mesh_partialy_dry"]
-
-        if hyd_description["hyd_varying_mesh"]:
-            hyd_description["hyd_unit_z_equal"] = False
-        else:
-            # TODO : check if all z values are equal between units
-            hyd_description["hyd_unit_z_equal"] = True
 
         del data_2d_whole_profile['unit_correspondence']
 
@@ -385,8 +379,8 @@ def load_telemac(namefilet, pathfilet):
     description_from_telemac_file["hyd_unit_z_equal"] = all_z_equal
 
     # data 2d dict
-    data_2d = create_empty_data_2_dict(1,
-                                       node_variables=["h", "v"])
+    data_2d = create_empty_data_2d_dict(1,
+                                        node_variables=["h", "v"])
     data_2d["mesh"]["tin"][0] = ikle
     data_2d["mesh"]["xy_center"] = [coord_c]
     data_2d["node"]["xy"][0] = coord_p

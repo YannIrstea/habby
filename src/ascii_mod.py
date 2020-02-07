@@ -23,7 +23,7 @@ import numpy as np
 from src import hdf5_mod
 from src import manage_grid_mod
 from src import mesh_management_mod
-from src.tools_mod import isstranumber, c_mesh_area, create_empty_data_2_dict
+from src.tools_mod import isstranumber, c_mesh_area, create_empty_data_2d_dict
 from src.project_manag_mod import create_default_project_preferences_dict
 
 
@@ -61,9 +61,9 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     data_2d_whole_profile["node"]["z"] = data_2d_from_ascii["node"]["z"]
 
     # create empty dict
-    data_2d = create_empty_data_2_dict(int(data_description["reach_number"]),
-                                       mesh_variables=list(data_2d_from_ascii["mesh"]["data"].keys()),
-                                       node_variables=list(data_2d_from_ascii["node"]["data"].keys()))
+    data_2d = create_empty_data_2d_dict(int(data_description["reach_number"]),
+                                        mesh_variables=list(data_2d_from_ascii["mesh"]["data"].keys()),
+                                        node_variables=list(data_2d_from_ascii["node"]["data"].keys()))
     if sub_presence:
         data_2d["total_wet_area"] = [[] for _ in range(int(data_description["reach_number"]))]
 
@@ -560,12 +560,12 @@ def load_ascii_model(filename, path_prj, user_pref_temp_path):
             return False, False
 
     if bsub:
-        data_2d = create_empty_data_2_dict(reachnumber,
-                                           mesh_variables=["sub"],
-                                           node_variables=["h", "v"])
+        data_2d = create_empty_data_2d_dict(reachnumber,
+                                            mesh_variables=["sub"],
+                                            node_variables=["h", "v"])
     else:
-        data_2d = create_empty_data_2_dict(reachnumber,
-                                           node_variables=["h", "v"])
+        data_2d = create_empty_data_2d_dict(reachnumber,
+                                            node_variables=["h", "v"])
 
     for reach_num in range(reachnumber):
         if bmeshconstant:
