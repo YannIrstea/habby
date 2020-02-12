@@ -1261,7 +1261,6 @@ class MainWindows(QMainWindow):
 
     def open_preferences(self):
         #"open_preferences", self.sender())
-        self.preferences_dialog.send_log.connect(self.central_widget.write_log)
         self.preferences_dialog.open_preferences()
         # # witdh_for_checkbox_alignement
         witdh_for_checkbox_alignement = self.preferences_dialog.cut_2d_grid_label.size().width()
@@ -1361,24 +1360,25 @@ class MainWindows(QMainWindow):
                     self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
                     self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
-
-
                 else:
                     self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon)
+                    self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
             else:
                 self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
-                self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
-                    self.central_widget.write_log)
+                self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                 self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
             if hasattr(self, "preferences_dialog"):
                 if not self.preferences_dialog:
                     self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+                    self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                 else:
                     self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
+                    self.preferences_dialog.send_log.connect(self.central_widget.write_log)
             else:
                 self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+                self.preferences_dialog.send_log.connect(self.central_widget.write_log)
 
             # run_as_beta_version
             self.run_as_beta_version()
