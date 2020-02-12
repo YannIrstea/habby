@@ -740,23 +740,91 @@ def create_empty_data_2d_whole_profile_dict(reach_number):
     return data_2d_whole_profile
 
 
-def check_data_2d_dict_size(data_dict):
-    for key1 in data_dict.keys():
-        if type(data_dict[key1]) == dict:
-            for key2 in data_dict[key1].keys():
-                if type(data_dict[key1][key2]) == dict:
-                    for key3 in data_dict[key1][key2].keys():
-                        print(key3, ":",
-                              len(data_dict[key1][key2][key3]), "reach,",
-                              len(data_dict[key1][key2][key3][0]), "unit,",
-                              len(data_dict[key1][key2][key3][0][0]), key1,
-                              data_dict[key1][key2][0][0].shape)
-                if type(data_dict[key1][key2]) == list:
-                    print(key2, ":",
-                          len(data_dict[key1][key2]), "reach,",
-                          len(data_dict[key1][key2][0]), "unit,",
-                          len(data_dict[key1][key2][0][0]), key1,
-                          data_dict[key1][key2][0][0].shape)
+def check_data_2d_dict_size(data_2d):
+    for key1 in data_2d.keys():
+        for key2 in data_2d[key1].keys():
+            if type(data_2d[key1][key2]) == dict:
+                for key3 in data_2d[key1][key2].keys():
+                    print(key3, ":",
+                          len(data_2d[key1][key2][key3]), "reach,",
+                          len(data_2d[key1][key2][key3][0]), "unit,",
+                          len(data_2d[key1][key2][key3][0][0]), key1,
+                          data_2d[key1][key2][key3][0][0].shape,
+                          data_2d[key1][key2][key3][0][0].dtype)
+            if type(data_2d[key1][key2]) == list:
+                print(key2, ":",
+                      len(data_2d[key1][key2]), "reach,",
+                      len(data_2d[key1][key2][0]), "unit,",
+                      len(data_2d[key1][key2][0][0]), key1,
+                      data_2d[key1][key2][0][0].shape,
+                      data_2d[key1][key2][0][0].dtype)
+
+
+def check_data_2d_dict_validity(data_2d, reach_number, unit_number):
+    # global
+    reach_validity = True
+    unit_validity = True
+    # variables
+    tin_validity = True
+    i_whole_profile_validity = True
+    xy_validity = True
+    z_validity = True
+    data_validity = True
+    sub_validity = True
+
+    # warnings_list
+    warnings_list = []
+
+    # loop on keys
+    for key1 in data_2d.keys():
+        if type(data_2d[key1]) == list:
+            pass
+        else:
+            # node or mesh
+            for key2 in data_2d[key1].keys():
+                    # data
+                    if type(data_2d[key1][key2]) == dict:
+                        for key3 in data_2d[key1][key2].keys():
+                            if len(data_2d[key1][key2][key3]) != reach_number:
+                                reach_validity = False
+                                warnings_list.append("reach number : " + str(len(data_2d[key1][key2][key3])) + " != " + str(reach_number))
+                            if len(data_2d[key1][key2][key3][0]) != unit_number:
+                                unit_validity = False
+                                warnings_list.append("unit number : " + str(len(data_2d[key1][key2][key3][0])) + " != " + str(unit_number))
+                            if key3 == "sub" and data_2d[key1][key2][key3][0][0].ndim not in (2, 8, 10):
+                                sub_validity = False
+                                warnings_list.append(key3 + " : " + str(data_2d[key1][key2][key3][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][key3][0][0].dtype))
+                            if data_2d[key1][key2][key3][0][0].ndim != 1:
+                                data_validity = False
+                                warnings_list.append(key3 + " : " + str(data_2d[key1][key2][key3][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][key3][0][0].dtype))
+                    # struct (tin, i_whole_profile, xy or z)
+                    if type(data_2d[key1][key2]) == list:
+                        if len(data_2d[key1][key2]) != reach_number:
+                            reach_validity = False
+                            warnings_list.append("reach number : " + str(len(data_2d[key1][key2])) + " != " + str(reach_number))
+                        if len(data_2d[key1][key2][0]) != unit_number:
+                            unit_validity = False
+                            warnings_list.append("unit number : " + str(len(data_2d[key1][key2][0])) + " != " + str(unit_number))
+                        if key2 == "tin" and data_2d[key1][key2][0][0].ndim != 2:
+                            tin_validity = False
+                            warnings_list.append(key2 + " : " + str(data_2d[key1][key2][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][0][0].dtype))
+                        if key2 == "xy" and data_2d[key1][key2][0][0].ndim != 2:
+                            xy_validity = False
+                            warnings_list.append(key2 + " : " + str(data_2d[key1][key2][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][0][0].dtype))
+                        if key2 == "i_whole_profile" and data_2d[key1][key2][0][0].ndim != 1:
+                            i_whole_profile_validity = False
+                            warnings_list.append(key2 + " : " + str(data_2d[key1][key2][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][0][0].dtype))
+                        if key2 == "z" and data_2d[key1][key2][0][0].ndim != 1:
+                            z_validity = False
+                            warnings_list.append(key2 + " : " + str(data_2d[key1][key2][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][0][0].dtype))
+                        if key2 not in ("tin", "xy", "i_whole_profile", "z"):
+                            data_validity = False
+                            warnings_list.append(key2 + " : " + str(data_2d[key1][key2][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][0][0].dtype))
+
+    if reach_validity and unit_validity and tin_validity and i_whole_profile_validity and xy_validity and z_validity and data_validity and sub_validity:
+        return True, ""
+    else:
+        return False, "Error: " + ", ".join(warnings_list)
 
 
 def get_prj_from_epsg_web(epsg_code):
