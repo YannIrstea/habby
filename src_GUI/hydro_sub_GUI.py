@@ -3595,6 +3595,14 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     if self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"][file_num]:
                         new_names_list.append(os.path.splitext(file)[0])
                 self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                if len(filename_source_list) == len(new_names_list) and len(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"]) > 25:
+                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = new_names_list[0].replace(".", "_")  \
+                                + "_to_" + \
+                                new_names_list[-1].replace(".", "_") + ".hyd"
+                if not self.project_preferences["cut_mesh_partialy_dry"]:
+                    namehdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[0]
+                    exthdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[1]
+                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
                 self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
 
         # save one
@@ -3616,6 +3624,10 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.hydrau_description["hdf5_name"] = new_names_list[0].replace(".", "_")  \
                                 + "_to_" + \
                                 new_names_list[-1].replace(".", "_") + ".hyd"
+                if not self.project_preferences["cut_mesh_partialy_dry"]:
+                    namehdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[0]
+                    exthdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[1]
+                    self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
                 self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
 
         # set text
