@@ -617,69 +617,11 @@ class SubHydroW(QWidget):
         self.last_hydraulic_file_name_label = QLabel()
         self.last_path_input_data = None
 
-    def was_model_loaded_before(self, i=0, many_file=False):
-        """
-        A function to test if the model loaded before. If yes,
-        it updates the attibutes anf the widgets of the
-        hydrological model on consideration.
-
-        :param i: an int used in cases where there is more than one file to
-         load (geometry and output for example)
-        :param many_file: A bollean. If true this function will load more than
-         one file, separated by ','. If False,
-                it will only loads the file of one model
-                (see the comment below).
-
-        **Technical comment**
-
-        This method opens the xml project file and look in the attribute of the xml file to see if data from the
-        hydrological model have been loaded before. If yes, the name of the data is written on the GUI of HABBY in the
-        Widget related to the hydrological model. Now, there are often more than one data loaded. This method allows
-        choosing what should be written. There are two different case to be separated: a) We have loaded two different
-        models (like two rivers modeled by HEC-RAS) b) One model type needs two data file (like HEC-RAS would need a
-        geometry and output data). For the case a), the default is to write only the last model loaded. If this
-        default behaviour is changed, the behaviour of gethdf5_name_GUI should also be changed. If we wish to
-        write all data, the switch “many_file” should be True. This switch is also useful for the river2D model, because
-        this model create one output file per time step. For the case b), the argument “i”(which is an int) allows us to
-        choose which data type should be shown. “i” is in the order of the self.attributexml variable. The definition of
-        this order is given in the definition of the class of each hydrological model.
-
-        """
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if os.path.isfile(filename_path_pro):
-            # parser = ET.XMLParser(remove_blank_text=True)
-            # doc = ET.parse(filename_path_pro, parser)
-            # root = doc.getroot()
-            # child = root.find(".//" + self.attributexml[i])
-            # # if there is data in the project file about the model
-            # if child is not None:
-            #     geo_name_path = child.text
-            project_preferences = load_project_preferences(self.path_prj)
-                # if os.path.isfile(geo_name_path) and not many_file:
-                #     self.namefile[i] = os.path.basename(geo_name_path)
-                #     self.pathfile[i] = os.path.dirname(geo_name_path)
-                # # load many file at once
-                # elif many_file:
-                #     list_all_name = geo_name_path.split(',\n')
-                #     for j in range(0, len(list_all_name)):
-                #         if os.path.isfile(list_all_name[j]):
-                #             self.namefile.append(os.path.basename(list_all_name[j]))
-                #             self.pathfile.append(os.path.dirname(list_all_name[j]))
-                #         else:
-                #             self.msg2.setIcon(QMessageBox.Warning)
-                #             self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Previously Loaded File"))
-                #             self.msg2.setText(QCoreApplication.translate("SubHydroW", "One of the file given in the project file does not exist."))
-                #             self.msg2.setStandardButtons(QMessageBox.Ok)
-                #             self.msg2.show()
-                # elif os.path.basename(geo_name_path) != 'unknown file':
-                #     pass
-
     def gethdf5_name_gui(self):
         """
         This function get the name of the hdf5 file for the hydrological and write down in the QLineEdit on the GUI.
         It is possible to have more than one hdf5 file for a model type. For example, we could have created two hdf5
-        based on hec-ras output. The default here is to write the last model loaded. It is the same default behaviour
-        than for the function was_model_loaded_before(). To keep the coherence between the filename and hdf5 name,
+        based on hec-ras output. The default here is to write the last model loaded. To keep the coherence between the filename and hdf5 name,
         a change in this behaviour should be reflected in both function.
 
         This function calls the function get_hdf5_name in the hdf5_mod.py file
@@ -1160,70 +1102,6 @@ class SubHydroW(QWidget):
                 if self.model_type == "ASCII":  # can produce .hab
                     self.drop_merge.emit()
 
-    def recreate_image(self):
-        """
-        This function is used to recreate the images related to the grid and the hydrology. We do not call create_image
-        directly as we might add other command here.
-        """
-
-        self.create_image(False, True)
-
-    def create_image(self, save_fig=True, show_info=False):
-        """
-        plot hydraulic data
-
-        :param save_fig: a boolean to save the figure or not
-        :param show_info: If True, basic information about the data will be displayed into the log window.
-        """
-        # getting the name
-        name_hdf5 = os.path.basename(hdf5_mod.get_hdf5_name(self.model_type, self.name_prj, self.path_prj))
-
-        # getting the data
-        units_raw = hdf5_mod.load_unit_name(name_hdf5, self.path_prj + "/hdf5/")
-
-        # plot hydraulic data (h, v, mesh)
-        types_hdf5 = "hydraulic"
-        names_hdf5 = [name_hdf5]
-        variables = ["water_height", "water_velocity", "mesh"]
-        if len(units_raw) > 1:  # several timestep
-            units = [units_raw[0], units_raw[-1]]  # the first and the last timesteo
-            units_index = [0, len(units_raw) - 1]
-        else:  # one timestep
-            units = units_raw
-            units_index = [0]
-        types_plot = "display"
-        self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.plot(types_hdf5, names_hdf5,
-                                                                                            variables, units,
-                                                                                            units_index, types_plot)
-
-    def create_image_merge(self, save_fig=True, show_info=False):
-        """
-        plot merge data
-
-        :param save_fig: a boolean to save the figure or not
-        :param show_info: If True, basic information about the data will be displayed into the log window.
-        """
-        # getting the subtrate name
-        name_hdf5 = self.lm2.text()
-
-        # getting the subtrate data
-        units_raw = hdf5_mod.load_unit_name(name_hdf5, self.path_prj + "/hdf5/")
-
-        # plot hydraulic data (h, v, mesh)
-        types_hdf5 = "hydraulic"
-        names_hdf5 = [name_hdf5]
-        variables = ["water_height", "water_velocity", "mesh"]
-        if len(units_raw) > 1:  # several timestep
-            units = [units_raw[0], units_raw[-1]]  # the first and the last timesteo
-            units_index = [0, len(units_raw)]
-        else:  # one timestep
-            units = units_raw
-            units_index = [0]
-        types_plot = "display"
-        self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.plot(types_hdf5, names_hdf5,
-                                                                                            variables, units,
-                                                                                            units_index, types_plot)
-
     def name_last_hdf5(self, type):
         """
         This function opens the xml project file to find the name of the last hdf5 merge file and to add it
@@ -1277,9 +1155,6 @@ class HEC_RAS1D(SubHydroW):
         The variable self.extension is a list of list of the accepted file type. The first list is for the file
         with geometry data. The second list is the extension of the files containing the simulation results.
 
-        Using the function self.was_model_loaded_before, HABBY write the name of the hec-ras files which were loaded
-        in HABBY in the same project before.
-
         Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. The user can choose the interpolation
         type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
         profile will always be one. See manage_grid.py for more information on how to create a grid.
@@ -1294,10 +1169,6 @@ class HEC_RAS1D(SubHydroW):
         self.extension = [['.g01', '.g02', '.g03', '.g04', '.g05 ', '.g06', '.g07', '.g08',
                            '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
         self.nb_dim = 1.5
-
-        # if there is the project file with hecras geo info, update the label and attibutes
-        #self.was_model_loaded_before(0)
-        #self.was_model_loaded_before(1)
 
         # label with the file name
         self.geo_t2 = QLabel(self.namefile[0])
@@ -1342,7 +1213,6 @@ class HEC_RAS1D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
         self.spacer1 = QSpacerItem(1, 30)
@@ -1539,7 +1409,6 @@ class Rubar2D(SubHydroW):
 
         # if there is the project file with rubar20 info, update
         # the label and attibutes
-        self.was_model_loaded_before()
         # self.h2d_t2 = QLabel(self.namefile[0], self)
         self.h2d_t2 = QComboBox()
         self.h2d_t2.addItems([self.namefile[0]])
@@ -1591,10 +1460,6 @@ class Rubar2D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar20_gui)
         self.spacer = QSpacerItem(1, 180)
-        # self.butfig = QPushButton(self.tr("create figure"))
-        # self.butfig.clicked.connect(self.recreate_image)
-        # if self.namefile[0] == 'unknown file':
-        #     self.butfig.setDisabled(True)
 
         # last hdf5 created
         self.name_last_hdf5(self.model_type)
@@ -2008,11 +1873,6 @@ class Mascaret(SubHydroW):
         self.extension = [['.xcas'], ['.geo'], ['.opt', '.rub']]
         self.nb_dim = 1
 
-        # if there is the project file with mascaret info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
-        self.was_model_loaded_before(2)
-
         # label with the file name
         self.gen_t2 = QLabel(self.namefile[0])
         self.geo_t2 = QLabel(self.namefile[1])
@@ -2072,7 +1932,6 @@ class Mascaret(SubHydroW):
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
         self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
 
@@ -2301,16 +2160,12 @@ class River2D(SubHydroW):
         self.extension = [['.cdg'], ['.cdg']]  # list of list in case there is more than one possible ext.
         self.nb_dim = 2
 
-        # if there is the project file with river 2d info, update the label and attibutes
-        self.was_model_loaded_before(0, True)
-
         # geometry and output data
         self.l1 = QLabel(self.tr('<b> Geometry and Output data </.b>'))
         self.list_f = QListWidget()
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.add_file_to_list()
         self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
         if not self.namefile:
             self.butfig.setDisabled(True)
 
@@ -2578,8 +2433,6 @@ class Rubar1D(SubHydroW):
         self.nb_dim = 1
 
         # if there is the project file with rubar geo info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.gethdf5_name_gui()
 
@@ -2635,7 +2488,6 @@ class Rubar1D(SubHydroW):
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
         self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
 
@@ -2820,7 +2672,6 @@ class HEC_RAS2D(SubHydroW):
         self.nb_dim = 2
 
         # if there is the project file with hecras info, update the label and attibutes
-        self.was_model_loaded_before()
         # self.h2d_t2 = QLabel(self.namefile[0], self)
 
         self.h2d_t2 = QComboBox()
@@ -2873,10 +2724,6 @@ class HEC_RAS2D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_2d_gui)
         self.spacer = QSpacerItem(1, 180)
-        # self.butfig = QPushButton(self.tr("create figure"))
-        # self.butfig.clicked.connect(self.recreate_image)
-        # if self.namefile[0] == 'unknown file':
-        #     self.butfig.setDisabled(True)
 
         # last hdf5 created
         self.name_last_hdf5(self.model_type)
@@ -2904,57 +2751,6 @@ class HEC_RAS2D(SubHydroW):
         [self.layout_hec2.setRowMinimumHeight(i, 30) for i in range(self.layout_hec2.rowCount())]
 
         self.setLayout(self.layout_hec2)
-        #
-        # # geometry and output data
-        # min_height = QLabel(self.tr('<b> Geometry and output data </b>'))
-        # self.h2d_b = QPushButton(self.tr('Choose file (.hdf, .h5)'), self)
-        # self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        # self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
-        # l2 = QLabel(self.tr('<b> Options </b>'))
-        # l3 = QLabel('All time step', self)
-        # l4 = QLabel('All flow area', self)
-        #
-        # # grid creation
-        # l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
-        # l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
-        #
-        # # ToolTip to indicated in which folder are the files
-        # self.h2d_t2.setToolTip(self.pathfile[0])
-        # self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
-        #
-        # # hdf5 name
-        # lh = QLabel(self.tr('.hyd file name'))
-        # self.hname = QLineEdit(self.name_hdf5)
-        # self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-        #     self.gethdf5_name_gui()
-        #
-        # # load button
-        # self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
-        # self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
-        # self.load_b.clicked.connect(self.load_hec_2d_gui)
-        # self.spacer = QSpacerItem(1, 200)
-        # self.butfig = QPushButton(self.tr("create figure"))
-        # self.butfig.clicked.connect(self.recreate_image)
-        # if self.namefile[0] == 'unknown file':
-        #     self.butfig.setDisabled(True)
-        #
-        # # layout
-        # self.layout_ascii = QGridLayout()
-        # self.layout_ascii.addWidget(min_height, 0, 0)
-        # self.layout_ascii.addWidget(self.h2d_t2, 0, 1)
-        # self.layout_ascii.addWidget(self.h2d_b, 0, 2)
-        # self.layout_ascii.addWidget(l2, 1, 0)
-        # self.layout_ascii.addWidget(l3, 1, 1)
-        # self.layout_ascii.addWidget(l4, 1, 2)
-        # self.layout_ascii.addWidget(l2D1, 2, 0)
-        # self.layout_ascii.addWidget(l2D2, 2, 1, 1, 2)
-        # self.layout_ascii.addWidget(lh, 3, 0)
-        # self.layout_ascii.addWidget(self.hname, 3, 1)
-        # self.layout_ascii.addWidget(self.load_b, 4, 2)
-        # self.layout_ascii.addWidget(self.butfig, 5, 2)
-        # # self.layout_ascii.addItem(self.spacer, 6, 1)
-        # self.setLayout(self.layout_ascii)
 
     def show_dialog_hec_ras2d(self, i=0):
         """
@@ -3296,7 +3092,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         # if there is the project file with telemac info, update
         # the label and attibutes
-        self.was_model_loaded_before()
         # self.h2d_t2 = QLabel(self.namefile[0], self)
         self.h2d_t2 = QComboBox()
         self.h2d_t2.addItems([self.namefile[0]])
@@ -3348,13 +3143,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
-        # self.butfig = QPushButton(self.tr("create figure"))
-        # self.butfig.clicked.connect(self.recreate_image)
-        # if self.namefile[0] == 'unknown file':
-        #     self.butfig.setDisabled(True)
 
         # last hdf5 created
-
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
         self.last_hydraulic_file_name_label = QLabel()
 
@@ -3624,11 +3414,11 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.hydrau_description["hdf5_name"] = new_names_list[0].replace(".", "_")  \
                                 + "_to_" + \
                                 new_names_list[-1].replace(".", "_") + ".hyd"
-                if not self.project_preferences["cut_mesh_partialy_dry"]:
-                    namehdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[0]
-                    exthdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[1]
-                    self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+            if not self.project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[0]
+                exthdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[1]
+                self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+            self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
 
         # set text
         text = str(selected) + "/" + str(total)
@@ -3809,7 +3599,6 @@ class ASCII(SubHydroW):  # QGroupBox
         """
         # if there is the project file with ascii info, update
         # the label and attibutes
-        self.was_model_loaded_before()
         # self.h2d_t2 = QLabel(self.namefile[0], self)
         self.h2d_t2 = QComboBox()
         self.h2d_t2.addItems([self.namefile[0]])
@@ -3860,10 +3649,6 @@ class ASCII(SubHydroW):  # QGroupBox
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_ascii_gui)
         self.spacer = QSpacerItem(1, 180)
-        # self.butfig = QPushButton(self.tr("create figure"))
-        # self.butfig.clicked.connect(self.recreate_image)
-        # if self.namefile[0] == 'unknown file':
-        #     self.butfig.setDisabled(True)
 
         # last hdf5 created
         self.name_last_hdf5(self.model_type)
@@ -4292,12 +4077,6 @@ class LAMMI(SubHydroW):
         """
         Used by __init__() during the initialization.
         """
-
-        # if there is the project file with lammi info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
-        self.was_model_loaded_before(2)
-
         # geometry and output data
         l1 = QLabel(self.tr('<b> General data </b>'))
         self.h2d_t2 = QLabel(self.namefile[0] + ', ' + self.namefile[1])
@@ -4331,7 +4110,6 @@ class LAMMI(SubHydroW):
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
         self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
 
@@ -4493,10 +4271,6 @@ class SW2D(SubHydroW):
         self.data_type = "HYDRAULIC"
         self.nb_dim = 2
 
-        # if there is the project file with sw2d geo info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
-
         # create and update label with the result and geo filename
         self.geo_t2 = QLabel(self.namefile[0])
         self.out_t2 = QLabel(self.namefile[1])
@@ -4533,7 +4307,6 @@ class SW2D(SubHydroW):
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
         self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
 
@@ -4814,11 +4587,6 @@ class IBER2D(SubHydroW):
         self.extension = ['.dat', '.rep', '.rep', '.rep', '.rep']
         self.nb_dim = 2
 
-        # if there is the project file with iber2d geo info,
-        # update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
-
         # create and update label with the result and geo filename
         self.geo_t2 = QLabel(self.namefile[0])
         self.out_t2 = QLabel(self.namefile[1])
@@ -4876,7 +4644,6 @@ class IBER2D(SubHydroW):
         self.load_b.clicked.connect(self.load_iber2d)
         self.spacer = QSpacerItem(1, 200)
         self.butfig = QPushButton(self.tr("create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
 
@@ -5063,7 +4830,6 @@ class HabbyHdf5(SubHydroW):
         self.button5 = QPushButton(self.tr('Merge two hdf5 merge files together'))
         self.button5.clicked.connect(lambda: self.add_two_hdf5(True))
         self.butfig = QPushButton(self.tr("Create figure"))
-        self.butfig.clicked.connect(self.recreate_image)
 
         spacer1 = QSpacerItem(250, 1)
         spacer2 = QSpacerItem(1, 70)
@@ -5867,32 +5633,6 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart LOAD_SUB_SHP")
             self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
             self.send_log.emit("restart    sub_classification_code: " + self.sub_description["sub_classification_code"])
-
-    def recreate_image_sub(self, save_fig=False):
-        """
-        This function is used to recreate the image linked with the subtrate. So this is not the figure for the "merge"
-        part, but only to show the substrat alone.
-
-        :param: save_fig: A boolean to save or not the figure
-        """
-        path_im = self.find_path_im()
-        if not self.last_hdf5:
-            self.send_log.emit('Warning: ' + self.tr('No figure created \n'))
-            return
-
-        # getting the subtrate data
-        path_hdf5 = self.find_path_hdf5()
-
-        # plot susbstrate
-        types_hdf5 = "substrate"
-        names_hdf5 = [self.last_hdf5]
-        variables = ["coarser_dominant"]
-        units = ["no unit"]
-        units_index = [0]
-        types_plot = "display"
-        self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.plot(types_hdf5, names_hdf5,
-                                                                                            variables, units,
-                                                                                            units_index, types_plot)
 
     def update_sub_hdf5_name(self):
         """

@@ -83,7 +83,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                     unit_index_from_file = [True] * nbtimes
                     # hdf5 filename
                     blob2, ext = os.path.splitext(file)
-                    name_hdf5 = blob2 + ".hyd"
+                    name_hdf5 = blob2.replace(".", "_") + ".hyd"
 
                     # multi description
                     hydrau_description_multiple.append(dict(path_prj=path_prj,
@@ -140,14 +140,14 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 warning_list.extend(warning_list_timestep)
                 unit_list_tf = list(map(bool, unit_list))
                 if model_type == 'RUBAR20':  # remove extension
-                    filename = filename.split(".")[0]
+                    filename, _ = os.path.splitext(filename)
 
             hydrau_description = dict(path_prj=path_prj,
                                       name_prj=name_prj,
                                       hydrau_case=hydrau_case,
                                       filename_source=filename,
                                       path_filename_source=folder_path,
-                                      hdf5_name=filename.split('.')[0] + ".hyd",
+                                      hdf5_name=os.path.splitext(filename)[0].replace(".", "_") + ".hyd",
                                       model_type=model_type,
                                       model_dimension=str(nb_dim),
                                       epsg_code=epsg_code,
@@ -264,10 +264,10 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # pathfile[0] = folder_path  # source file path
             if ext != ".txt":  # from file
                 namefile = ", ".join(filename)  # source file name
-                name_hdf5 = "_".join(blob) + ".hyd"
+                name_hdf5 = "_".join(blob).replace(".", "_") + ".hyd"
             if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = ", ".join(data_index_file["filename"])  # source file name
-                name_hdf5 = "_".join([os.path.splitext(file)[0] for file in data_index_file["filename"]]) + ".hyd"
+                name_hdf5 = "_".join([os.path.splitext(file)[0].replace(".", "_") for file in data_index_file["filename"]]) + ".hyd"
                 if selectedfiles_textfiles_match and len(name_hdf5) > 25:
                     name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_")  \
                                 + "_to_" + \
@@ -275,12 +275,12 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if not more_than_one_file_selected_by_user:
             if ext != ".txt":  # from file
                 namefile = filename  # source file name
-                name_hdf5 = filename.split('.')[0] + ".hyd"
+                name_hdf5 = os.path.splitext(filename)[0].replace(".", "_") + ".hyd"
                 if model_type == 'RUBAR20':
-                    namefile = namefile.split(".")[0]
+                    namefile = os.path.splitext(namefile)[0]
             if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = data_index_file["filename"][0]  # source file name
-                name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0] + ".hyd"
+                name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_") + ".hyd"
         if model_type == 'RUBAR20':
             data_index_file[headers[0]] = [namefile]
 
