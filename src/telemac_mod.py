@@ -73,8 +73,8 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
         filename_source = hydrau_description[hyd_file]["filename_source"].split(", ")
 
         # get data_2d_whole_profile
-        data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1)
-        hydrau_description[hyd_file]["unit_correspondence"] = [[]]  # always one reach
+        data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1)  # always one reach by file
+        hydrau_description[hyd_file]["unit_correspondence"] = [[]]  # always one reach by file
         for i, file in enumerate(filename_source):
             # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
             data_2d_telemac, description_from_telemac_file = load_telemac(file, hydrau_description[hyd_file]["path_filename_source"])
@@ -138,7 +138,10 @@ def load_telemac_and_cut_grid(hydrau_description, progress_value, q=[], print_cm
                 hydrau_description[hyd_file]["path_filename_source"])
         # get unit list from indexHYDRAU file
         if "timestep_list" in hydrau_description[hyd_file].keys():
-            unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["timestep_list"]
+            if len(hydrau_description[hyd_file]["timestep_list"]) == len(file_list):
+                unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["timestep_list"]
+            else:
+                unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["unit_list"]
         else:
             unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["unit_list"]
         # get unit index to load
