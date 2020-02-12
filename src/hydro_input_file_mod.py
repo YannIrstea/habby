@@ -340,6 +340,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
             warning_list.extend(warning_list_timestep)
             # get units name from indexHYDRAU.txt file
+            filename = namefile
             unit_name_from_index_file = data_index_file[headers[time_index]][data_index_file[headers[0]].index(filename)]
 
             # check if lenght of two loading units

@@ -1364,8 +1364,7 @@ class MainWindows(QMainWindow):
 
 
                 else:
-                    self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon,
-                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_group.process_list)
+                    self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
             else:
                 self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)

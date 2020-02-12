@@ -1073,15 +1073,15 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     :return: the update connectivity table, the coordinates of the point, the height of the water and the
              velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
     """
+    failload = False, False, False, False, False
     if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
                                                 xy_array=point_all,
                                                 unit_num=unit_num,
                                                 case="before the deletion of dry mesh"):
-        return True, True, True, True, True
+        return failload
 
     typeikle = ikle.dtype
     typepoint = point_all.dtype
-    failload = False, False, False, False, False
     point_new = np.empty((0, 3), dtype=typepoint)
     jpn0 = len(point_all) - 1
     iklenew = np.empty((0, 3), dtype=typeikle)
@@ -1194,6 +1194,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ind_whole = ind_whole[mikle_keep, ...]
         ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
 
+    # all cases
     ipt_iklenew_unique = np.unique(iklekeep)
 
     if ipt_all_ok_wetdry:  # presence of partially wet/dry meshes cutted that we want
@@ -1203,7 +1204,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
     water_height_ok = water_height[ipt_iklenew_unique]
     velocity_ok = velocity[ipt_iklenew_unique]
-    ipt_old_new = np.array([-1] * len(point_all))
+    ipt_old_new = np.array([-1] * len(point_all), dtype=typeikle)
     for i, point_index in enumerate(ipt_iklenew_unique):
         ipt_old_new[point_index] = i
     iklekeep2 = ipt_old_new[ikle]
@@ -1218,7 +1219,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
                                                     xy_array=point_all_ok,
                                                     unit_num=unit_num,
                                                     case="after the cutting of mesh partially wet"):
-            return True, True, True, True, True
+            return failload
 
         water_height_ok = np.append(water_height_ok, np.zeros(len(point_new_single), dtype=water_height.dtype), axis=0)
         velocity_ok = np.append(velocity_ok, np.zeros(len(point_new_single), dtype=velocity.dtype), axis=0)
