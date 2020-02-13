@@ -17,13 +17,13 @@ https://github.com/YannIrstea/habby
 import os
 import sys
 from io import StringIO
-
+from copy import deepcopy
 import numpy as np
 
 from src import hdf5_mod
 from src import manage_grid_mod
 from src import mesh_management_mod
-from src.tools_mod import isstranumber, c_mesh_area, create_empty_data_2d_dict
+from src.tools_mod import isstranumber, c_mesh_area, create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src.project_manag_mod import create_default_project_preferences_dict
 
 
@@ -53,12 +53,11 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         sub_presence = True
 
     # create copy for whole profile
-    data_2d_whole_profile = dict()
-    data_2d_whole_profile["mesh"] = dict()
-    data_2d_whole_profile["node"] = dict()
+    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(data_description["reach_number"]))  # always one reach by file
     data_2d_whole_profile["mesh"]["tin"] = data_2d_from_ascii["mesh"]["tin"]
     data_2d_whole_profile["node"]["xy"] = data_2d_from_ascii["node"]["xy"]
     data_2d_whole_profile["node"]["z"] = data_2d_from_ascii["node"]["z"]
+    data_description["unit_correspondence"] = [[]] * int(data_description["reach_number"])  # multi reach by file
 
     # create empty dict
     data_2d = create_empty_data_2d_dict(int(data_description["reach_number"]),
@@ -140,6 +139,30 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                 data_description["unit_list"][reach_num].pop(unit_num)
     data_description["unit_number"] = str(len(data_description["unit_list"][0]))
 
+    # varying mesh ?
+    # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
+    for reach_num in range(int(data_description["reach_number"])):
+        temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][reach_num])
+        for i in range(len(temp_list)):
+            temp_list[i].sort(axis=0)
+        # TODO: sort function may be unadapted to check TIN equality between units
+        whole_profil_egual_index = []
+        it_equality = 0
+        for i in range(len(temp_list)):
+            if i == 0:
+                whole_profil_egual_index.append(it_equality)
+            if i > 0:
+                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
+                    whole_profil_egual_index.append(it_equality)
+                else:
+                    it_equality = i
+                    whole_profil_egual_index.append(it_equality)  # diff
+            data_description["unit_correspondence"][reach_num] = whole_profil_egual_index
+
+        if len(set(whole_profil_egual_index)) == 1:  # one tin for all unit
+            data_2d_whole_profile["mesh"]["tin"][reach_num] = [data_2d_whole_profile["mesh"]["tin"][reach_num][0]]
+            data_2d_whole_profile["node"]["xy"][reach_num] = [data_2d_whole_profile["node"]["xy"][reach_num][0]]
+
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
 
@@ -160,13 +183,8 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_number"] = data_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["cut_mesh_partialy_dry"])
+    hyd_description["unit_correspondence"] = data_description["unit_correspondence"]
 
-    hyd_description["hyd_varying_mesh"] = data_description["varying_mesh"]
-    if data_description["varying_mesh"]:
-        hyd_description["hyd_unit_z_equal"] = False
-    else:
-        # TODO : check if all z values are equal between units
-        hyd_description["hyd_unit_z_equal"] = True
     # if not project_preferences["CutMeshPartialyDry"]:
     #     namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
     #     exthdf5_old = os.path.splitext(data_description["hdf5_name"])[1]
@@ -179,7 +197,18 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         hyd_description["sub_classification_code"] = data_description["sub_classification_code"]
         hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]
         hyd_description["hab_epsg_code"] = data_description["epsg_code"]
-        data_description["hdf5_name"] = hydrau_description["hdf5_name"]
+        hyd_description["hdf5_name"] = hydrau_description["hdf5_name"]
+        # hyd_varying_mesh ?
+        if len(set(hyd_description["unit_correspondence"][0])) == 1:  # TODO: check varying mesh for each reach
+            hyd_description["hyd_varying_mesh"] = False
+        else:
+            hyd_description["hyd_varying_mesh"] = True
+
+        if hyd_description["hyd_varying_mesh"]:
+            hyd_description["hyd_unit_z_equal"] = False
+        else:
+            # TODO : check if all z values are equal between units
+            hyd_description["hyd_unit_z_equal"] = True
 
     # check if there is no units clean (all units have warning of cut2dgrid)
     if hyd_description["hyd_unit_number"] == "0":
