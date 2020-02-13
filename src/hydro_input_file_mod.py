@@ -1326,9 +1326,11 @@ def get_time_step(file_path, model_type):
     folder_path = os.path.dirname(file_path)
     if model_type == "TELEMAC":
         nbtimes, unit_name_from_file = telemac_mod.get_time_step(filename, folder_path)
-    if model_type == "HECRAS2D":
+    elif model_type == "HECRAS2D":
         nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
-    if model_type == "RUBAR20":
+    elif model_type == "HECRAS1D":
+        nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
+    elif model_type == "RUBAR20":
         nbtimes, unit_name_from_file, warning_list = rubar1d2d_mod.get_time_step(filename, folder_path)
     return nbtimes, unit_name_from_file, warning_list
 

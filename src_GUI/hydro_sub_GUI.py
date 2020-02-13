@@ -1166,6 +1166,7 @@ class HEC_RAS1D(SubHydroW):
         self.attributexml = ['geodata', 'resdata']
         self.data_type = "HYDRAULIC"
         self.model_type = 'HECRAS1D'
+
         self.extension = [['.g01', '.g02', '.g03', '.g04', '.g05 ', '.g06', '.g07', '.g08',
                            '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
         self.nb_dim = 1.5
@@ -1179,14 +1180,11 @@ class HEC_RAS1D(SubHydroW):
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
         self.geo_b = QPushButton(self.tr('Choose file (.g0x)'))
-        self.geo_b.clicked.connect(lambda: self.show_dialog(0))
-        self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
-        self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
-        self.geo_b.clicked.connect(self.propose_next_file)
+        self.geo_b.clicked.connect(lambda: self.show_dialog_hecras1d(0))
 
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton(self.tr('Choose file \n (.xml, .sdf, or .rep file)'))
-        self.out_b.clicked.connect(lambda: self.show_dialog(1))
+        self.out_b.clicked.connect(lambda: self.show_dialog_hecras1d(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
 
@@ -1241,6 +1239,166 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(self.butfig, 9, 3)
         # self.layout_hec.addItem(self.spacer2, 10, 1)
         self.setLayout(self.layout_hec)
+
+    def show_dialog_hecras1d(self, i=0):
+        """
+        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
+        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
+        is then used to loaded the file in other function, which are different for each children class. Based on the
+        name of the chosen file, a name is proposed for the hdf5 file.
+
+        :param i: an int for the case where there is more than one file to load
+        """
+        # disconnect function for multiple file cases
+        try:
+            self.h2d_t2.disconnect()
+        except:
+            pass
+
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        # get minimum water height as we might neglect very low water height
+        self.project_preferences = load_project_preferences(self.path_prj)
+
+        # prepare the filter to show only useful files
+        if len(self.extension[i]) <= 4:
+            filter2 = "File ("
+            for e in self.extension[i]:
+                filter2 += '*' + e + ' '
+            filter2 = filter2[:-1]
+            filter2 += ')' + ";; All File (*.*)"
+        else:
+            filter2 = ''
+
+        # get last path
+        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
+                self.model_type) != "":
+            model_path = self.read_attribute_xml(self.model_type)  # path spe
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
+            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
+        else:
+            model_path = self.path_prj  # path proj
+
+        # find the filename based on user choice
+        filename_list = QFileDialog.getOpenFileNames(self,
+                                                     self.tr("Select file(s)"),
+                                                     model_path,
+                                                     filter2)
+
+        # init
+        self.hydrau_case = "unknown"
+        self.multi_hdf5 = False
+        self.index_hydrau_presence = False
+
+        # if file has been selected
+        if filename_list[0]:
+            self.namefile[i] = os.path.basename(filename_list[0][0])
+            self.pathfile[i] = os.path.dirname(filename_list[0][0])
+            if i == 0:
+                self.geo_t2.setText(self.namefile[i])
+                self.geo_t2.setToolTip(self.pathfile[i])
+                self.propose_next_file()
+                self.save_xml(0)
+
+            elif i == 1:
+
+                # get_hydrau_description_from_source
+                hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                            self.path_prj,
+                                                                                                             self.model_type,
+                                                                                                            self.nb_dim)
+
+                # warnings
+                if warning_list:
+                    for warn in warning_list:
+                        self.send_log.emit(warn)
+
+                # error
+                if type(hydrau_description) == str:
+                    self.clean_gui()
+                    self.send_log.emit(hydrau_description)
+
+                # one hdf5
+                if type(hydrau_description) == dict:
+                    self.hydrau_case = hydrau_description["hydrau_case"]
+                    # change suffix
+                    if not self.project_preferences["cut_mesh_partialy_dry"]:
+                        namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                        exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                        hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                    # multi
+                    self.multi_hdf5 = False
+                    # save last path
+                    self.pathfile[0] = hydrau_description["path_filename_source"]  # source file path
+                    self.namefile[0] = hydrau_description["filename_source"]  # source file name
+                    self.name_hdf5 = hydrau_description["hdf5_name"]
+                    self.save_xml(0)  # path in xml
+                    # set to attribute
+                    self.hydrau_description = hydrau_description
+                    # to GUI (decription)
+                    self.h2d_t2.clear()
+                    self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
+                    self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                    self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                    if not self.hydrau_description["unit_list_tf"]:
+                        self.units_QListWidget.selectAll()
+                    else:
+                        for i in range(len(self.hydrau_description["unit_list_full"])):
+                            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.units_QListWidget.setEnabled(True)
+                    self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                    self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                    self.load_b.setText(self.tr("Create .hyd file"))
+                    self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                    self.unit_counter()
+
+                # multi hdf5
+                if type(hydrau_description) == list:
+                    self.hydrau_case = hydrau_description[0]["hydrau_case"]
+                    # change suffix
+                    if not self.project_preferences["cut_mesh_partialy_dry"]:
+                        for hecras1d_description_num in range(len(hydrau_description)):
+                            namehdf5_old = os.path.splitext(hydrau_description[hecras1d_description_num]["hdf5_name"])[0]
+                            exthdf5_old = os.path.splitext(hydrau_description[hecras1d_description_num]["hdf5_name"])[1]
+                            hydrau_description[hecras1d_description_num]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                    # multi
+                    self.multi_hdf5 = True
+                    # save last path
+                    self.pathfile[0] = hydrau_description[0]["path_filename_source"]  # source file path
+                    self.namefile[0] = hydrau_description[0]["filename_source"]  # source file name
+                    self.name_hdf5 = hydrau_description[0]["hdf5_name"]
+                    self.save_xml(0)  # path in xml
+                    # set to attribute
+                    self.hydrau_description_multiple = hydrau_description
+                    self.hydrau_description = hydrau_description[0]
+                    # get names
+                    names = [description["filename_source"] for description in self.hydrau_description_multiple]
+                    # to GUI (first decription)
+                    self.h2d_t2.clear()
+                    self.h2d_t2.addItems(names)
+                    self.reach_name_label.setText(self.hydrau_description["reach_list"])
+                    self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                    if not self.hydrau_description["unit_list_tf"]:
+                        self.units_QListWidget.selectAll()
+                    else:
+                        for i in range(len(self.hydrau_description["unit_list_full"])):
+                            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.units_QListWidget.setEnabled(True)
+                    self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                    self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                    self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
+                    self.load_b.setText(self.tr("Create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
+                    self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                    self.unit_counter()
 
     def load_hec_ras_gui(self):
         """
