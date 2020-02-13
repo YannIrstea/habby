@@ -93,7 +93,7 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION)
-        self.beta = False  # if set to True : GUI beta version mode is runned
+        self.beta = False  # if set to True : GUI beta version mode is runned (block fonctionality)
         # user_preferences
         self.user_preferences = user_preferences
 
@@ -224,6 +224,9 @@ class MainWindows(QMainWindow):
             self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' + filename_path))
             self.central_widget.write_log(self.tr('Create or open another project.'))
 
+        # run_as_beta_version
+        self.run_as_beta_version()
+
         # open window
         self.show()
 
@@ -264,9 +267,6 @@ class MainWindows(QMainWindow):
         self.change_theme()
 
         self.check_concurrency()
-
-        # run_as_beta_version
-        self.run_as_beta_version()
 
     def closeEvent(self, event):
         """
@@ -329,8 +329,8 @@ class MainWindows(QMainWindow):
         """
         if self.beta:
             # disable_hydraulic_models_not_finished
-            list_to_disable = ['HABBY HDF5', 'HEC-RAS 1D', 'HEC-RAS 2D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D',
-                               'RUBAR 20', 'RUBAR BE', 'SW2D']
+            list_to_disable = ['HABBY_HDF5', 'HEC-RAS_1D', 'HEC-RAS_2D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D',
+                               'RUBAR_20', 'RUBAR_BE', 'SW2D']  # , 'TXT'
             if hasattr(self.central_widget, "hydro_tab"):
                 list_of_model = self.central_widget.hydro_tab.name_model
                 for model in list_of_model:
@@ -338,12 +338,13 @@ class MainWindows(QMainWindow):
                         self.central_widget.hydro_tab.mod.model().item(list_of_model.index(model)).setEnabled(False)
 
             # disable_model_statistic
-            if hasattr(self.central_widget, "statmod_tab"):
-                self.central_widget.statmod_tab.setEnabled(True)
-            if hasattr(self.central_widget, "stathab_tab"):
-                self.central_widget.stathab_tab.setEnabled(False)
-            if hasattr(self.central_widget, "fstress_tab"):
-                self.central_widget.fstress_tab.setEnabled(False)
+            self.statisticmodelaction.setEnabled(False)
+            # if hasattr(self.central_widget, "statmod_tab"):
+            #     self.central_widget.statmod_tab.setEnabled(True)
+            # if hasattr(self.central_widget, "stathab_tab"):
+            #     self.central_widget.stathab_tab.setEnabled(False)
+            # if hasattr(self.central_widget, "fstress_tab"):
+            #     self.central_widget.fstress_tab.setEnabled(False)
 
             # # change GUI title
             if "Beta" not in self.version:
@@ -1380,8 +1381,8 @@ class MainWindows(QMainWindow):
                 self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
 
-            # run_as_beta_version
-            self.run_as_beta_version()
+            # # run_as_beta_version
+            # self.run_as_beta_version()
         else:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
 
