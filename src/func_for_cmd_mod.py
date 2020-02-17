@@ -400,7 +400,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         # error
         if type(hydrau_description) == str:
-            print("Error")
+            print(hydrau_description)
             return
 
         # refresh units if set

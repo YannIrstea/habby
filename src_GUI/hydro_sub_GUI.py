@@ -1126,6 +1126,18 @@ class SubHydroW(QWidget):
             else:
                 self.last_hydraulic_file_name_label.setText(name)
 
+    def create_script(self):
+        # path_prj
+        path_prj_script = self.path_prj + "_restarted"
+        # script
+        cmd_str = self.exe_cmd + ' ' + self.script_function_name + \
+                  ' inputfile="' + os.path.join(self.pathfile[0], self.namefile[0].replace(', ', ',')) + '"' + \
+                  ' unit_list=' + str(self.hydrau_description['unit_list']).replace("\'", "'").replace(' ', '') + \
+                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
+                  ' outputfilename="' + self.name_hdf5 + '"' + \
+                  ' path_prj="' + path_prj_script + '"'
+        self.send_log.emit("script" + cmd_str)
+
 
 class HEC_RAS1D(SubHydroW):
     """
@@ -1987,12 +1999,7 @@ class Rubar2D(SubHydroW):
             "py    selafin_habby1.load_rubar20_and_cut_grid('hydro_rubar20_log', file1, path1, name_prj, "
             "path_prj, 'RUBAR20', 2, path_prj, [], True )\n")
         # script
-        cmd_str = self.exe_cmd + " " + self.script_function_name + \
-                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ",")) + \
-                  " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
-                  " outputfilename=" + self.name_hdf5 + \
-                  " path_prj=" + self.path_prj
-        self.send_log.emit("script" + cmd_str)
+        self.create_script()
         # restart
         self.send_log.emit("restart LOAD_RUBAR20")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
@@ -3715,12 +3722,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
             "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
         # script
-        cmd_str = self.exe_cmd + ' ' + self.script_function_name + \
-                  ' inputfile="' + os.path.join(self.pathfile[0], self.namefile[0].replace(', ', ',')) + '"' + \
-                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
-                  ' outputfilename=' + self.name_hdf5 + \
-                  ' path_prj="' + self.path_prj + '"'
-        self.send_log.emit("script" + cmd_str)
+        self.create_script()
         # restart
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
@@ -4191,13 +4193,7 @@ class ASCII(SubHydroW):  # QGroupBox
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
             "path_prj, 'ASCII', 2, path_prj, [], True )\n")
         # script
-        cmd_str = self.exe_cmd + " " + self.script_function_name + \
-                  " inputfile=" + os.path.join(self.pathfile[0], self.namefile[0].replace(", ", ",")) + \
-                  " unit_list=" + str(self.hydrau_description["unit_list"]).replace("\'", '"').replace(" ", "") + \
-                  " cut=" + str(self.project_preferences["cut_mesh_partialy_dry"]) + \
-                  " outputfilename=" + self.name_hdf5 + \
-                  " path_prj=" + self.path_prj
-        self.send_log.emit("script" + cmd_str)
+        self.create_script()
         # restart
         self.send_log.emit("restart ASCII")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
