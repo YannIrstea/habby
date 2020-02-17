@@ -1294,6 +1294,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.plot_stop_button.setEnabled(False)
         # close_all_export
         self.process_list.stop_plot_production()
+        #self.process_list.terminate()
         # self.process_list.quit()
         # self.process_list.wait()
         # log
@@ -1782,6 +1783,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.data_exporter_stop_pushbutton.setEnabled(False)
         # close_all_export
         self.process_list.close_all_export()
+        self.process_list.terminate()
         # self.process_list.quit()
         # self.process_list.wait()
         # log
