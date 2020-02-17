@@ -140,7 +140,6 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     data_description["unit_number"] = str(len(data_description["unit_list"][0]))
 
     # varying mesh ?
-    # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
     for reach_num in range(int(data_description["reach_number"])):
         temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][reach_num])
         for i in range(len(temp_list)):

@@ -1301,7 +1301,7 @@ class Hdf5Management:
         self.export_paraview()
         self.export_spu_txt()
         self.export_detailled_mesh_txt()
-        self.export_pdf()
+        self.export_export()
 
     def remove_fish_hab(self, fish_names_to_remove):
         """
@@ -2552,7 +2552,7 @@ class Hdf5Management:
             if state:
                 state.value = 1  # process finished
 
-    def export_pdf(self, state=None):
+    def export_export(self, state=None):
         """
         # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
         This functionc create a pdf with information about the fish.
@@ -2589,18 +2589,17 @@ class Hdf5Management:
             plt.rcParams['font.size'] = 24
 
             # create the pdf
-            for idx, f in enumerate(xmlfiles):
-                xmlfile = f
+            for idx, xmlfile in enumerate(xmlfiles):
                 information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
 
                 # read additionnal info
                 attributes = ['Description', 'Image', 'French_common_name',
                               'English_common_name', ]
                 # careful: description is last data returned
-                path_bio = os.path.dirname(f)
+                path_bio = os.path.dirname(xmlfile)
                 path_im_bio = path_bio
-                f = os.path.basename(f)
-                data = bio_info_mod.load_xml_name(path_bio, attributes, [f])
+                xmlfile = os.path.basename(xmlfile)
+                data = bio_info_mod.load_xml_name(path_bio, attributes, [xmlfile])
 
                 # create figure
                 fake_value = Value("i", 0)
@@ -2617,7 +2616,7 @@ class Hdf5Management:
 
                     # plot pref
                     if hab_aquatic_animal_type_list[idx] == "fish":
-                        [f, axarr] = plot_mod.plot_suitability_curve(fake_value,
+                        plot_mod.plot_suitability_curve(fake_value,
                                                                      h_all,
                                                                      vel_all,
                                                                      sub_all,
@@ -2628,7 +2627,7 @@ class Hdf5Management:
                                                                      sub_code,
                                                                      self.project_preferences, True)
                     if hab_aquatic_animal_type_list[idx] == "invertebrate":
-                        [f, axarr] = plot_mod.plot_suitability_curve_invertebrate(fake_value,
+                        plot_mod.plot_suitability_curve_invertebrate(fake_value,
                                                                                   shear_stress_all, hem_all, hv_all,
                                                                                   code_fish, name_fish,
                                                                                   stages, self.project_preferences, True)
@@ -2637,7 +2636,7 @@ class Hdf5Management:
                     [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
                                                                                                              hab_aquatic_animal_type_list[idx])
                     state_fake = Value("i", 0)
-                    [f, axarr] = plot_mod.plot_suitability_curve_bivariate(state_fake,
+                    plot_mod.plot_suitability_curve_bivariate(state_fake,
                                                   h_all,
                                                   vel_all,
                                                   pref_values_all,
@@ -2646,27 +2645,26 @@ class Hdf5Management:
                                                   stages,
                                                   self.project_preferences,
                                                   True)
+                # get axe and fig
+                fig = plt.gcf()
+                #axe_curve = plt.gca()
+
                 # modification of the orginal preference fig
                 # (0,0) is bottom left - 1 is the end of the page in x and y direction
+                # plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
                 plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
                 # position for the image
 
-                # add a fish image
-                if path_im_bio:
-                    fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
-                    if os.path.isfile(fish_im_name):
-                        im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
-                        newax = f.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
-                                           zorder=-1)
-                        newax.imshow(im)
-                        newax.axis('off')
+                # HABBY and date
+                plt.figtext(0.8, 0.97, 'HABBY - ' + time.strftime("%d %b %Y"))
 
-                # move suptitle
-                f.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
-                           x=0.5, y=0.54,
-                           fontsize=32,
-                           weight='bold')
-                # general info
+                # REPORT title
+                plt.figtext(0.1, 0.92, "REPORT - " + name_fish,
+                            fontsize=55,
+                            weight='bold',
+                            bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
+
+                # Informations title
                 list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
                                  qt_tr.translate("hdf5_mod", "Common Name:"),
                                  qt_tr.translate("hdf5_mod", "Code biological model:"),
@@ -2678,29 +2676,47 @@ class Hdf5Management:
                             list_of_title_str,
                             weight='bold',
                             fontsize=32)
-                text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + information_model_dict["CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
 
+                # Informations text
+                text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + information_model_dict["CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
                 for idx, s in enumerate(stages):
                     text_all += s + ', '
                 text_all = text_all[:-2] + '\n\n'
                 plt.figtext(0.4, 0.7, text_all, fontsize=32)
-                # bbox={'facecolor':'grey', 'alpha':0.07, 'pad':50}
 
-                # descirption
-                alignment = {'horizontalalignment': 'left', 'verticalalignment': 'top'}
+                # description
+                newax = fig.add_axes([0.4, 0.55, 0.56, 0.16], anchor='C',
+                                   zorder=-1,
+                                   frameon=True)
+                newax.name = "description"
+                newax.xaxis.set_ticks([])  # remove ticks
+                newax.yaxis.set_ticks([])  # remove ticks
                 if len(data[0][-1]) > 350:
-                    plt.figtext(0.4, 0.71, data[0][-1][:350] + '...', wrap=True,
-                                fontsize=32, **alignment)
+                    decription_str = data[0][-1][:350] + '...'
                 else:
-                    plt.figtext(0.4, 0.71, data[0][-1], wrap=True, fontsize=32, **alignment)
+                    decription_str = data[0][-1]
+                newax.text(0.0, 1.0, decription_str,  # 0.4, 0.71,
+                            wrap=True,
+                            fontsize=32,
+                            # bbox={'facecolor': 'grey', 'alpha': 0.15},
+                            va='top',
+                           ha="left")
 
-                # title of the page
-                plt.figtext(0.1, 0.92, "REPORT - " + name_fish, fontsize=55,
-                            weight='bold',
-                            bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
+                # add a fish image
+                if path_im_bio:
+                    fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
+                    if os.path.isfile(fish_im_name):
+                        im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
+                        newax = fig.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
+                                           zorder=-1)
+                        newax.imshow(im)
+                        newax.axis('off')
 
-                # day
-                plt.figtext(0.8, 0.95, 'HABBY - ' + time.strftime("%d %b %Y"))
+                # move suptitle
+                fig.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
+                           x=0.5, y=0.54,
+                           fontsize=32,
+                           weight='bold')
 
                 # filename
                 filename = os.path.join(path_out, 'report_' + information_model_dict["CdBiologicalModel"] + self.project_preferences["format"])
@@ -2709,7 +2725,7 @@ class Hdf5Management:
                 try:
                     plt.savefig(filename)
                 except PermissionError:
-                    print('Warning: ' + qt_tr.translate("hdf5_mod", 'Close .pdf to update fish information'))
+                    print('Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
 
             if state:
                 state.value = 1  # process finished
