@@ -1022,7 +1022,7 @@ class MyProcessList(QThread):
             # Process mod
             for i in range(len(self.process_list)):
                 if not self.plot_production_stoped:
-                    if self.process_list[i][1].value == 0:
+                    if self.process_list[i][1].value == 0 and not self.process_list[i][0].is_alive():
                         self.process_list[i][0].start()
                         #print("start", i)
             #print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
@@ -1120,6 +1120,9 @@ class MyProcessList(QThread):
                                     self.nb_finished = self.nb_finished + 1
                                     self.progress_signal.emit(self.nb_finished)
                                     #print("emit 3")
+                            sleep(1)
+                            for j in [k for k, l in enumerate(state_list) if l == 0]:
+                                self.process_list[j][0].terminate()
                             break
 
     # def check_all_export_produced(self):
