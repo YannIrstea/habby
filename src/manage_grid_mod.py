@@ -1065,7 +1065,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     This function works for one unit of a reach.
 
     :param ikle: the connectivity table of the 2D grid
-    :param point_all: the coordinate of the points
+    :param point_all: the coordinate x,y,z of the points
     :param water_height: the water height data given on the nodes
     :param velocity: the velocity given on the nodes
     :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
@@ -1075,7 +1075,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     """
     failload = False, False, False, False, False
     if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
-                                                xy_array=point_all,
+                                                xyz_array=point_all,
                                                 unit_num=unit_num,
                                                 case="before the deletion of dry mesh"):
         return failload
@@ -1209,25 +1209,33 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ipt_old_new[point_index] = i
     iklekeep2 = ipt_old_new[ikle]
     iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
-    if ipt_all_ok_wetdry:  # in case no partially wet/dry meshes
+    if ipt_all_ok_wetdry:  # in case of partially wet/dry meshes
         # delete dupplicate of the new point set
         point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
+        lpns = len(point_new_single)
         ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
         iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
         point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
+        # beware that some new points can be doubles of  original ones
+        point_all_ok2, indices2 = np.unique(point_all_ok, axis=0, return_inverse=True)
+        if len(point_all_ok2)!=len(point_all_ok) :
+            lpns-=len(point_all_ok)-len(point_all_ok2)
+            iklekeep=indices2[iklekeep]
+            point_all_ok=point_all_ok2
+
         if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
-                                                    xy_array=point_all_ok,
+                                                    xyz_array=point_all_ok,
                                                     unit_num=unit_num,
                                                     case="after the cutting of mesh partially wet"):
             return failload
-
-        water_height_ok = np.append(water_height_ok, np.zeros(len(point_new_single), dtype=water_height.dtype), axis=0)
-        velocity_ok = np.append(velocity_ok, np.zeros(len(point_new_single), dtype=velocity.dtype), axis=0)
+        #all the new points added have water_height,velocity=0,0
+        water_height_ok = np.append(water_height_ok, np.zeros(lpns, dtype=water_height.dtype), axis=0)
+        velocity_ok = np.append(velocity_ok, np.zeros(lpns, dtype=velocity.dtype), axis=0)
 
     return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
 
 
-def is_duplicates_mesh_and_point_on_one_unit(tin_array, xy_array, unit_num, case):
+def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case):
     # init
     tin_duplicate_tf = False
     xy_duplicate_tf = False
@@ -1242,7 +1250,7 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xy_array, unit_num, case
               ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
 
     # check if points duplicates presence TODO: remove duplicates (if resolved : remove the return)
-    u, c = np.unique(xy_array, return_counts=True, axis=0)
+    u, c = np.unique(xyz_array, return_counts=True, axis=0)
     dup = u[c > 1]
     if len(dup) != 0:
         xy_duplicate_tf = True
