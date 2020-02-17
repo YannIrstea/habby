@@ -180,10 +180,8 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     # output for plot_GUI
     state.value = 1  # process finished
 
-    # show or return
-    if get_fig:
-        return fig, ax
-    else:
+    # show ?
+    if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
 
@@ -252,9 +250,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     # output for plot_GUI
     state.value = 1  # process finished
 
-    if get_fig:
-        return fig, axarr
-    else:
+    if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
 
@@ -326,9 +322,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     # output for plot_GUI
     state.value = 1  # process finished
 
-    if get_fig:
-        return fig, ax
-    else:
+    if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
 

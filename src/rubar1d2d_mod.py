@@ -19,6 +19,7 @@ import sys
 import time
 from lxml import etree as ET
 from io import StringIO
+from copy import deepcopy
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -29,7 +30,7 @@ from src import dist_vistess_mod
 from src import hdf5_mod
 from src import hec_ras2D_mod
 from src import manage_grid_mod
-from src.tools_mod import create_empty_data_2d_dict
+from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict
 from src.user_preferences_mod import user_preferences
 
@@ -784,12 +785,8 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     progress_value.value = 10
 
     # create empty dict
-    data_2d_whole_profile = dict()
-    data_2d_whole_profile["mesh"] = dict()
-    data_2d_whole_profile["node"] = dict()
-    data_2d_whole_profile["mesh"]["tin"] = []
-    data_2d_whole_profile["node"]["xy"] = []
-    data_2d_whole_profile["node"]["z"] = []
+    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(description_from_rubar2d["reach_number"]))  # always one reach by file
+    description_from_rubar2d["unit_correspondence"] = [[]] * int(description_from_rubar2d["reach_number"])  # multi reach by file
 
     # create empty dict
     data_2d = create_empty_data_2d_dict(1,  # always one reach
@@ -861,6 +858,29 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
                 description_from_rubar2d["unit_list"][reach_num].pop(unit_num)
     description_from_rubar2d["unit_number"] = str(len(description_from_rubar2d["unit_list"][0]))
 
+    # varying mesh ?
+    for reach_num in range(int(description_from_rubar2d["reach_number"])):
+        temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][reach_num])
+        for i in range(len(temp_list)):
+            temp_list[i].sort(axis=0)
+        # TODO: sort function may be unadapted to check TIN equality between units
+        whole_profil_egual_index = []
+        it_equality = 0
+        for i in range(len(temp_list)):
+            if i == 0:
+                whole_profil_egual_index.append(it_equality)
+            if i > 0:
+                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
+                    whole_profil_egual_index.append(it_equality)
+                else:
+                    it_equality = i
+                    whole_profil_egual_index.append(it_equality)  # diff
+            description_from_rubar2d["unit_correspondence"][reach_num] = whole_profil_egual_index
+
+        if len(set(whole_profil_egual_index)) == 1:  # one tin for all unit
+            data_2d_whole_profile["mesh"]["tin"][reach_num] = [data_2d_whole_profile["mesh"]["tin"][reach_num][0]]
+            data_2d_whole_profile["node"]["xy"][reach_num] = [data_2d_whole_profile["node"]["xy"][reach_num][0]]
+
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
 
@@ -880,6 +900,7 @@ def load_rubar2d_and_create_grid(hydrau_description, progress_value, q=[], print
     hyd_description["hyd_unit_list"] = description_from_rubar2d["unit_list"]
     hyd_description["hyd_unit_number"] = description_from_rubar2d["unit_number"]
     hyd_description["hyd_unit_type"] = description_from_rubar2d["unit_type"]
+    hyd_description["unit_correspondence"] = description_from_rubar2d["unit_correspondence"]
     hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["cut_mesh_partialy_dry"])
 
     hyd_description["hyd_varying_mesh"] = False

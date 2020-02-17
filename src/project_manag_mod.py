@@ -169,10 +169,11 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
                                                                               'restart_' + name_prj +
                                                                               '.log'))
         # script
+        path_prj_script = path_prj + "_restarted"
         if sys.argv[0][-3:] == ".py":
-            cmd_str = '"' + sys.executable + '" "' + sys.argv[0] + '"' + ' CREATE_PROJECT path_prj="' + path_prj + '"'
+            cmd_str = '"' + sys.executable + '" "' + sys.argv[0] + '"' + ' CREATE_PROJECT path_prj="' + path_prj_script + '"'
         else:
-            cmd_str = '"' + sys.executable + '"' + ' CREATE_PROJECT path_prj="' + path_prj + '"'
+            cmd_str = '"' + sys.executable + '"' + ' CREATE_PROJECT path_prj="' + path_prj_script + '"'
 
         with open(project_preferences["file_script"], "w", encoding='utf8') as myfile:
             myfile.write(cmd_str + "\n")
