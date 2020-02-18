@@ -1218,29 +1218,32 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
         # beware that some new points can be doubles of  original ones
         point_all_ok2, indices2 = np.unique(point_all_ok, axis=0, return_inverse=True)
-        if len(point_all_ok2)!=len(point_all_ok) :
-            lpns-=len(point_all_ok)-len(point_all_ok2)
-            iklekeep=indices2[iklekeep]
-            point_all_ok=point_all_ok2
-
+        nbdouble = 0
+        if len(point_all_ok2) != len(point_all_ok):
+            nbdouble = len(point_all_ok) - len(point_all_ok2)
+            iklekeep = indices2[iklekeep]
+            point_all_ok = point_all_ok2
+            print("Warning: while the cutting of mesh partially wet of the unit n°" + str(
+                unit_num) + " we have been forced to eliminate " + str(nbdouble) +
+                  " duplicate(s) point(s) ")
         if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
                                                     xyz_array=point_all_ok,
                                                     unit_num=unit_num,
-                                                    case="after the cutting of mesh partially wet"):
+                                                    case="after the cutting of mesh partially wet", checkpoint=False):
             return failload
-        #all the new points added have water_height,velocity=0,0
-        water_height_ok = np.append(water_height_ok, np.zeros(lpns, dtype=water_height.dtype), axis=0)
-        velocity_ok = np.append(velocity_ok, np.zeros(lpns, dtype=velocity.dtype), axis=0)
+        # all the new points added have water_height,velocity=0,0
+        water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
+        velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
 
     return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
 
 
-def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case):
+def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case, checkpoint = True):
     # init
     tin_duplicate_tf = False
-    xy_duplicate_tf = False
+    xyz_duplicate_tf = False
 
-    # check if mesh duplicates presence TODO: remove duplicates (if resolved : remove the return)
+    # check if mesh duplicates presence TODO: remove duplicates if it happens ?? (if resolved : remove the return)
     u, c = np.unique(tin_array, return_counts=True, axis=0)
     dup = u[c > 1]
     if len(dup) != 0:
@@ -1248,18 +1251,18 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, cas
         print("Warning: The mesh of unit n° " + str(unit_num) + " has " + str(len(dup)) +
               " duplicate(s) mesh(s) " + case + " : " +
               ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
-
-    # check if points duplicates presence TODO: remove duplicates (if resolved : remove the return)
-    u, c = np.unique(xyz_array, return_counts=True, axis=0)
-    dup = u[c > 1]
-    if len(dup) != 0:
-        xy_duplicate_tf = True
-        print("Warning: The mesh of unit n°" + str(unit_num) + " has " + str(len(dup)) +
-              " duplicate(s) point(s) " + case + " : " +
-              ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
+    if checkpoint:
+        # check if points duplicates presence
+        u, c = np.unique(xyz_array, return_counts=True, axis=0)
+        dup = u[c > 1]
+        if len(dup) != 0:
+            xyz_duplicate_tf = True
+            print("Warning: The mesh of unit n°" + str(unit_num) + " has " + str(len(dup)) +
+                  " duplicate(s) point(s) " + case + " : " +
+                  ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
 
     # return
-    if tin_duplicate_tf or xy_duplicate_tf:
+    if tin_duplicate_tf or xyz_duplicate_tf:
         return True
     else:
         return False
