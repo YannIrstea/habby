@@ -1,0 +1,2 @@
+-r requirements.txt
+C:\habby_dev\env_virtuel\dependances_windows\gdal\2.4.1\GDAL-2.4.1-cp36-cp36m-win_amd64.whl

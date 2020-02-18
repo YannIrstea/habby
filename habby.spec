@@ -7,10 +7,11 @@ from PyInstaller.utils.hooks import collect_data_files # this is very helpful
 from osgeo import gdal, ogr, osr
 
 paths = [
-	'C:\\habby',
-    'C:\\Users\\quentin.royer\\AppData\\Local\\Programs\\Python\\Python36\\DLLs',
-    'C:\\Users\\quentin.royer\\Documents\\TAF\\ENVIRONNEMENTS_VIRTUELS\\env_habby_dist\\Lib\\site-packages\\osgeo'
+	'C:\\habby_dev\\habby',
+    'C:\\habby_dev\\env_virtuel\\env_habby_dev\\Lib\\site-packages\\osgeo'
 ]
+#	'C:\\Users\\quentin.royer\\AppData\\Local\\Programs\\Python\\Python36\\DLLs',
+
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)
 osgeo_pyds = []

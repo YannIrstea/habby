@@ -1,8 +1,21 @@
 from setuptools import setup, find_packages
+from platform import system as operatingsystem
 
+# requirment.txt
+if operatingsystem() == 'Windows':
+    requirement_path = 'requ_windows.txt'
+elif operatingsystem() == 'Linux':
+    requirement_path = 'requ_linux.txt'
+elif operatingsystem() == 'Darwin':
+    requirement_path = 'requ_mac.txt'
+with open(requirement_path) as f:
+    required_packages = f.read().splitlines()
+
+# README.md
 with open("README.md", "r", encoding='utf8') as fh:
     long_description = fh.read()
 
+# INSTALL
 setup(
     name="HABBY",
     version="0.25",
@@ -14,28 +27,7 @@ setup(
     license='CeCILL v2.1',
     packages=find_packages(),
     # do not set packages which versions are different between operatin systems
-    install_requires=[
-        "appdirs==1.4.3",
-        "cycler==0.10.0",
-        "Cython==0.29.13",
-        "h5py==2.8.0rc1",
-        "kiwisolver==1.1.0",
-        "matplotlib==3.1.3",
-        "mplcursors==0.3",
-        "numpy==1.15.3",
-        "numpy-stl==2.10.0",
-        "pyparsing==2.4.2",
-        "PyQt5==5.11.3",
-        "PyQt5-sip==4.19.18",
-        "python-dateutil==2.8.0",
-        "python-utils==2.3.0",
-        "QDarkStyle==2.6.5",
-        "scipy==1.1.0",
-        "six==1.12.0",
-        "triangle==20170429",
-        "Pillow==6.2.1",
-        "lxml==4.4.1"
-    ],
+    install_requires=required_packages,
     include_package_data=True,
     python_requires='>=3.6',
     entry_points="""

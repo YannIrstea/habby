@@ -1,5 +1,5 @@
 ::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
-SET envir_virtuel_path=C:\Users\quentin.royer\Documents\TAF\ENVIRONNEMENTS_VIRTUELS\env_habby_dev2
+SET envir_virtuel_path=C:\habby_dev\env_virtuel\env_habby_dev
 call %envir_virtuel_path%\Scripts\activate.bat
 
 ::::::::::: RUN COMPILATION :::::::::::::::::::
@@ -17,11 +17,11 @@ if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp
 if exist __pycache__ rmdir /Q /S __pycache__
 
 ECHO copy folders
-robocopy biology build\pyinstaller\habby\biology /E
-robocopy doc build\pyinstaller\habby\doc /E
-robocopy model_hydro build\pyinstaller\habby\model_hydro /E
-robocopy translation build\pyinstaller\habby\translation /E
-robocopy files_dep build\pyinstaller\habby\files_dep /E
+robocopy biology build\pyinstaller\habby\biology /E > nul
+robocopy doc build\pyinstaller\habby\doc /E > nul
+robocopy model_hydro build\pyinstaller\habby\model_hydro /E > nul
+robocopy translation build\pyinstaller\habby\translation /E > nul
+robocopy files_dep build\pyinstaller\habby\files_dep /E > nul
 
 if %VarQuestion%== n ECHO run executable to see errors
 if %VarQuestion%== n cd build\pyinstaller\habby\
