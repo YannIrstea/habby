@@ -1,6 +1,9 @@
 ::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
-SET envir_virtuel_path=C:\habby_dev\env_virtuel\env_habby_dev
-call %envir_virtuel_path%\Scripts\activate.bat
+SET envir_virtuels_path=C:\habby_dev\env_virtuels
+SET envir_virtuel_name=env_habby_dev
+SET habby_path=C:\habby_dev\habby
+::call %envir_virtuel_path%\Scripts\activate.bat
+call conda activate %envir_virtuels_path%\%envir_virtuel_name%
 
 ::::::::::: RUN COMPILATION :::::::::::::::::::
 set /p VarQuestion= Do you want to create an installer after the creation of the executable ? (y/n) : 
