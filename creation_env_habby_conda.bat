@@ -1,6 +1,3 @@
-:: update
-::call conda update -n base -c defaults conda --yes
-
 :: add channels
 call conda config --add channels conda-forge
 call conda config --add channels anaconda
@@ -26,11 +23,6 @@ pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 
 :::::::::::::::::::::::::::: RUN HABBY :::::::::::::::
 python habby.py
-
-
-::pyinstaller --windowed --onefile --icon=homer.ico PyProcessMemoryAnalysis.py
-
-
 
 :: Get console open to see details
 @pause 

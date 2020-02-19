@@ -1,16 +1,23 @@
 # -*- mode: python -*-
-		
+
 block_cipher = None
 
 import os
-from PyInstaller.utils.hooks import collect_data_files # this is very helpful
+from PyInstaller.utils.hooks import collect_data_files  # this is very helpful
 from osgeo import gdal, ogr, osr
+from platform import system as operatingsystem
+
+if operatingsystem() == 'Windows':
+    habby_dev_path = 'C:\\habby_dev'
+elif operatingsystem() == 'Linux':
+    habby_dev_path = '\\local\\AIX\\quentin.royer\\Documents\\habby_dev'
+elif operatingsystem() == 'Darwin':
+    habby_dev_path = '\\local\\AIX\\quentin.royer\\Documents\\habby_dev'
 
 paths = [
-	'C:\\habby_dev\\habby',
-    'C:\\habby_dev\\env_virtuels\\env_habby_dev\\Lib\\site-packages\\osgeo'
+    os.path.join(habby_dev_path, 'habby'),
+    os.path.join(habby_dev_path, 'env_virtuels\\env_habby_dev\\Lib\\site-packages\\osgeo')
 ]
-
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)
 osgeo_pyds = []
@@ -21,7 +28,6 @@ print(osgeo_pyds)
 
 hidden_imports = [
     'gdal']
-
 
 a = Analysis(['habby.py'],
              pathex=[],
@@ -37,7 +43,7 @@ a = Analysis(['habby.py'],
              noarchive=False)
 
 pyz = PYZ(a.pure, a.zipped_data,
-             cipher=block_cipher)
+          cipher=block_cipher)
 
 exe = EXE(pyz,
           a.scripts,
@@ -49,7 +55,7 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=False,
-		  icon='translation\\habby_icon.ico')
+          icon='translation\\habby_icon.ico')
 
 coll = COLLECT(exe,
                a.binaries,
