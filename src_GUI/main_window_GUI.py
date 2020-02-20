@@ -27,10 +27,10 @@ import matplotlib as mpl
 import numpy as np
 import qdarkstyle
 from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, Qt, pyqtRemoveInputHook
-from PyQt5.QtGui import QPixmap, QIcon, QTextCursor, QFont
+from PyQt5.QtGui import QPixmap, QIcon, QTextCursor, QColor
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, \
-    QFileDialog, QMessageBox, QActionGroup, QMenu, QToolBar, QProgressBar
+    QFileDialog, QMessageBox, QFrame, QMenu, QToolBar, QProgressBar
 from json import decoder
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
@@ -263,6 +263,11 @@ class MainWindows(QMainWindow):
             self.actual_theme = "dark"
         else:
             self.actual_theme = "classic"
+
+
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
 
         self.change_theme()
 
@@ -1176,8 +1181,10 @@ class MainWindows(QMainWindow):
 
     def change_theme(self):
         #print("change_theme", self.sender(), self.change_theme_action.isChecked())
-        if self.actual_theme == "dark":
-            self.app.setStyleSheet("")
+        if self.actual_theme == "dark":  # 'QScrollArea { background-color : white; }'
+            self.app.setStyleSheet('QToolBar { background : white ;}'
+                        'QFrame { background-color : white; }')
+            #  'QGroupBox QGroupBox {background-color: green;}'
             self.actual_theme = "classic"
         else:
             self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
@@ -1856,9 +1863,6 @@ class CentralW(QWidget):
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
 
         self.logon = True  # do we save the log in .log file or not
-        self.tracking_journal_QTextEdit = QTextEdit(self)  # where the log is show
-        self.tracking_journal_QTextEdit.setReadOnly(True)
-        self.tracking_journal_QTextEdit.textChanged.connect(self.scrolldown_log)
         self.max_lengthshow = 180
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
@@ -1887,17 +1891,29 @@ class CentralW(QWidget):
         # add the widgets to the list of tab if a project exists
         self.add_all_tab()
 
-        # Area to show the log
-        self.tracking_journal_title_label = QLabel(self.tr('HABBY says:'))
-        self.tracking_journal_QTextEdit.setFixedHeight(100)
+        # QTextEdit
+        self.tracking_journal_QTextEdit = QTextEdit(self)  # where the log is show
+        self.tracking_journal_QTextEdit.setReadOnly(True)
+        self.tracking_journal_QTextEdit.textChanged.connect(self.scrolldown_log)
+        self.tracking_journal_QTextEdit.setFrameShape(QFrame.NoFrame)
+        self.tracking_journal_QTextEdit.setTextBackgroundColor(QColor("#A6C313"))
 
-        self.welcome_tab.save_info_signal.connect(self.save_info_projet)
+        # Area to show the log
+        self.tracking_journal_qgroupbox = QGroupBox(self.tr("HABBY says :"))
+        self.tracking_journal_qgroupbox.setFixedHeight(140)
+        tracking_journal_layout = QVBoxLayout()
+        tracking_journal_layout.setContentsMargins(4, 6, 4, 4)  # int left, int top, int right, int bottom
+        tracking_journal_layout.addWidget(self.tracking_journal_QTextEdit)
+        self.tracking_journal_qgroupbox.setLayout(tracking_journal_layout)
+
         # save the description and the figure option if tab changed
+        self.welcome_tab.save_info_signal.connect(self.save_info_projet)
         self.tab_widget.currentChanged.connect(self.save_on_change_tab)
 
         # update plot item in plot tab
         self.tab_widget.currentChanged.connect(self.update_specific_tab)
 
+        # shortcut to change tab (CTRL+TAB)
         self.keyboard_change_tab_filter = AltTabPressEater()
         self.tab_widget.installEventFilter(self.keyboard_change_tab_filter)
         self.keyboard_change_tab_filter.next_signal.connect(self.next_tab)
@@ -1905,10 +1921,9 @@ class CentralW(QWidget):
         self.tab_widget.setFocus()
 
         # layout
-        self.layoutc = QGridLayout()
-        self.layoutc.addWidget(self.tab_widget, 1, 0)
-        self.layoutc.addWidget(self.tracking_journal_title_label, 2, 0)
-        self.layoutc.addWidget(self.tracking_journal_QTextEdit, 3, 0)
+        self.layoutc = QVBoxLayout()
+        self.layoutc.addWidget(self.tab_widget)
+        self.layoutc.addWidget(self.tracking_journal_qgroupbox)
         self.setLayout(self.layoutc)
 
     def previous_tab(self):

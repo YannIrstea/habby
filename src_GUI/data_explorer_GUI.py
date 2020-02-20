@@ -53,10 +53,10 @@ class DataExplorerTab(QScrollArea):
         self.data_explorer_frame = DataExplorerFrame(self.path_prj, self.name_prj, self.send_log)
 
         # insist on white background color (for linux, mac)
-        self.setAutoFillBackground(True)
-        p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.white)
-        self.setPalette(p)
+        # self.setAutoFillBackground(True)
+        # p = self.palette()
+        # p.setColor(self.backgroundRole(), Qt.white)
+        # self.setPalette(p)
 
         # add layout
         self.setWidgetResizable(True)

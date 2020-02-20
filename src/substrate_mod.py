@@ -19,7 +19,6 @@ import sys
 from io import StringIO
 from glob import glob
 from shutil import copy as sh_copy
-from shutil import rmtree
 import numpy as np
 import triangle as tr
 from osgeo import ogr
@@ -27,7 +26,7 @@ from osgeo import osr
 from scipy.spatial import Voronoi
 
 from src import hdf5_mod
-from src.tools_mod import polygon_type_values, point_type_values, copy_shapefiles
+from src.tools_mod import polygon_type_values, point_type_values
 
 
 def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -40,9 +39,10 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     :return:
     """
 
-    sys.stdout = mystdout = StringIO()
-    data_2d = None
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
 
+    data_2d = None
     # prog
     progress_value.value = 5
 
@@ -77,6 +77,8 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         # prog
         progress_value.value = 100
 
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
     if q and not print_cmd:
         q.put(mystdout)
         return
@@ -511,7 +513,7 @@ def load_sub_shp(sub_description, progress_value):
 
 
 def load_sub_cst(sub_description, progress_value):
-    sys.stdout = mystdout = StringIO()
+    # sys.stdout = mystdout = StringIO()
 
     # prog
     progress_value.value = 10
