@@ -24,10 +24,11 @@ osgeo_pyds = []
 for p, lib in _osgeo_pyds:
     if '.pyd' in p or '.pyx' in p or '.pyc' in p:
         osgeo_pyds.append((p, '.'))
-print(osgeo_pyds)
 
 hidden_imports = [
-    'gdal']
+    'gdal',
+    'pkg_resources.py2_warn']
+# pkg_resources.py2_warn : if not set, .exe crash (Failed to execute script pyi_rth_pkgres)
 
 a = Analysis(['habby.py'],
              pathex=[],
