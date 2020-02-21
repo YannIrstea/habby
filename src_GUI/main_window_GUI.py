@@ -1750,7 +1750,10 @@ class CreateNewProjectDialog(QDialog):
         self.init_iu()
 
     def init_iu(self):
-        lg = QLabel(self.tr(" <b> Create a new project </b>"))
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
         l1 = QLabel(self.tr('Project name: '))
         self.e1 = QLineEdit(self.default_name)
         l2 = QLabel(self.tr('Projects folder: '))
@@ -1773,7 +1776,6 @@ class CreateNewProjectDialog(QDialog):
             self.project_type_combobox.setCurrentIndex(2)
 
         layoutl = QGridLayout()
-        layoutl.addWidget(lg, 0, 0)
         layoutl.addWidget(l2, 1, 0)
         layoutl.addWidget(self.e2, 1, 1)
         layoutl.addWidget(button2, 1, 2)
