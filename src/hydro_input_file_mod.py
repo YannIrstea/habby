@@ -21,7 +21,7 @@ from osgeo.ogr import GetDriverByName
 from osgeo.osr import SpatialReference
 
 from src import ascii_mod
-from src import hec_ras2D_mod
+from src import hec_ras2D_mod, hec_ras1D_mod
 from src import rubar1d2d_mod
 from src import telemac_mod
 from src.tools_mod import polygon_type_values, point_type_values
@@ -132,7 +132,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                     nbtimes = len(unit_list[0])
             else:
                 epsg_code = "unknown"
-                unit_type = "time [s]"
+                unit_type = "unknown"
                 reach_number = 1
                 reach_list = "unknown"
                 sub = False
@@ -1329,7 +1329,7 @@ def get_time_step(file_path, model_type):
     elif model_type == "HECRAS2D":
         nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
     elif model_type == "HECRAS1D":
-        nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
+        nbtimes, unit_name_from_file = hec_ras1D_mod.get_time_step(file_path)
     elif model_type == "RUBAR20":
         nbtimes, unit_name_from_file, warning_list = rubar1d2d_mod.get_time_step(filename, folder_path)
     return nbtimes, unit_name_from_file, warning_list

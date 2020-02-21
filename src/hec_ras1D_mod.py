@@ -25,13 +25,16 @@ import time
 from matplotlib.pyplot import axis, plot, step, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
     show, subplot, fill_between, savefig, close, rcParams, suptitle
 import matplotlib as mpl
+
+from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src import manage_grid_mod
 from src import hdf5_mod
 from src.project_manag_mod import create_default_project_preferences_dict
 
 
-def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
-                                     interpo_choice, path_im, save_fig1d, pro_add=1, q=[], print_cmd=False, project_preferences=[]):
+def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+    # name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
+    #                              interpo_choice, path_im, save_fig1d, pro_add=1, q=[], print_cmd=False, project_preferences=[]):
     """
     This function open the hec_ras data and creates the 2D grid from the 1.5 data. It is called by the class HEC_RAS1D
     in a second thread to not freeze the GUI.
@@ -62,16 +65,26 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     """
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+
     if not project_preferences:
         project_preferences = create_default_project_preferences_dict()
 
+    name_hdf5 = hydrau_description["hdf5_name"]
+    namefile = hydrau_description["filename_source"]
+    pathfile = hydrau_description["path_filename_source"]
+    interpo_choice = hydrau_description["interpo_choice"]
+    pro_add = hydrau_description["pro_add"]
+
+    # progress
+    progress_value.value = 10
+
     # load the hec-ra data (the function is just below)
-    [coord_pro, vh_pro, nb_pro_reach, sim_name] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1],
-                                                              path_im,
-                                                              save_fig1d, project_preferences)
-    # manager error
-    if save_fig1d:  # to avoid problem with matplotlib
-        close()
+    coord_pro, vh_pro, nb_pro_reach, sim_name = open_hecras(namefile[0], namefile[1],
+                                                            pathfile[0], pathfile[1])  # geo_file, res_file, path_geo, path_res
+
+    # progress
+    progress_value.value = 30
+
     if coord_pro == [-99] or len(vh_pro) < 1:
         print('Error: HEC-RAS data not loaded')
         if q:
@@ -82,8 +95,23 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
             return
 
     # create the grid
-    [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \
-        = manage_grid_mod.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
+    ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t = manage_grid_mod.grid_and_interpo(vh_pro,
+                                                                                                              coord_pro,
+                                                                                                              nb_pro_reach,
+                                                                                                              interpo_choice,
+                                                                                                              pro_add)
+
+    # get data_2d_whole_profile
+    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1)  # always one reach by file
+
+    # cut the grid to have the precise wet area and put data in new form
+    data_2d = create_empty_data_2d_dict(1,  # always one reach
+                                        mesh_variables=[],
+                                        node_variables=["h", "v"])
+
+
+    # progress
+    progress_value.value = 60
 
     # manage error
     if ikle_all_t == [-99]:
@@ -95,12 +123,23 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
         else:
             return
 
+    # progress
+    progress_value.value = 90
+
     # save the hdf5 file
-    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
-                                     point_all_t,
-                                     point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
-                                     nb_pro_reach,
-                                     sim_name=sim_name, hdf5_type="hydraulic")
+    # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
+    #                                  point_all_t,
+    #                                  point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
+    #                                  nb_pro_reach,
+    #                                  sim_name=sim_name, hdf5_type="hydraulic")
+    # create hdf5
+    hdf5 = hdf5_mod.Hdf5Management(hydrau_description["path_prj"],
+                                   hydrau_description["hdf5_name"])
+    hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
+
+
+    # progress
+    progress_value.value = 100
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -111,7 +150,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
         return
 
 
-def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False, project_preferences=[]):
+def open_hecras(geo_file, res_file, path_geo, path_res):
     """
     This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS.
     All arguments from this function are string.
@@ -161,6 +200,8 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
     rubar after the velocity distribution have the same form than the output from hec-ras, which is useful afterwards
     to save all these data in the hdf5 file.
 
+    NS: To get timestep : need to load all data ?
+
     """
     xy_h = [-99]
     zone_v = [-99]
@@ -202,29 +243,109 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
         return [-99], [-99], [-99], [-99]
     if xy_h == [-99]:
         return [-99], [-99], [-99], [-99]
-    # plot and check
-    if save_fig:
-        if project_preferences['time_step'][0] == -99:
-            tfig = range(0, len(zone_v))
-        else:
-            tfig = project_preferences['time_step']
-            if not isinstance(tfig, (list, tuple)):
-                tfig = tfig.split(',')
-            try:
-                tfig = list(map(int, tfig))
-            except ValueError:
-                print('Error: Time step was not recognized. \n')
-                return
-        pro = [0, 1, 2]
-        for t in tfig:
-            t = int(t)
-            if t < len(xy_h):
-                figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, project_preferences, t, riv_name)
+    # # plot and check
+    # if save_fig:
+    #     if project_preferences['time_step'][0] == -99:
+    #         tfig = range(0, len(zone_v))
+    #     else:
+    #         tfig = project_preferences['time_step']
+    #         if not isinstance(tfig, (list, tuple)):
+    #             tfig = tfig.split(',')
+    #         try:
+    #             tfig = list(map(int, tfig))
+    #         except ValueError:
+    #             print('Error: Time step was not recognized. \n')
+    #             return
+    #     pro = [0, 1, 2]
+    #     for t in tfig:
+    #         t = int(t)
+    #         if t < len(xy_h):
+    #             figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, project_preferences, t, riv_name)
 
     # update the form of the vector to be coherent with rubar and mascaret
     [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
 
     return coord_pro, vh_pro, nb_pro_reach, sim_name
+
+
+def get_time_step(file_path):
+    filename = os.path.basename(file_path)
+    blob, ext = os.path.splitext(filename)
+    path = os.path.dirname(file_path)
+
+    # XML
+    if ext == ".xml":
+        # load the xml file
+        root = load_xml(filename, path)
+        if root == [-99]:  # if error arised
+            print("Error: the XML file could not be read.\n")
+            return [-99], [-99], [-99], [-99]
+        # find profile name and if there is more than one profile
+        try:
+            sim_name = root.findall(".//ProfileNames")
+            sim_name = str(sim_name[0].text)
+            sim_name = sim_name[1:-1]  # erase firt and last " sign
+            sim_name = sim_name.split('" "')
+            nb_sim = len(sim_name)
+            for si in range(0, nb_sim):
+                sim_name[si] = sim_name[si].replace(':', '_')
+        except AttributeError:
+            print("Warning: the number and name of the simulation cannot be read from the XML file.\n")
+            nb_sim = 1
+
+    # REP
+    elif ext == ".rep":
+        # open the rep file
+        try:
+            with open(file_path, 'rt') as f:
+                data_rep = f.read()
+        except IOError:
+            print("Error: the file " + filename + " does not exist.\n")
+            return [-99], [-99], -99, '-99'
+        # obtain the name of the time steps
+        exp_reg4 = 'Profile #(.+)'
+        sim_name_all = re.findall(exp_reg4, data_rep)
+        if not sim_name_all:
+            print('Warning: the name of the time steps was not found. \n')
+        sim_name = []
+        for s in sim_name_all:
+            if s not in sim_name:
+                sim_name.append(s)
+            else:
+                # simulation name are all given in the first cross section
+                break
+
+    # SDF
+    elif ext == ".sdf":
+        # open the sdf file
+        try:
+            with open(file_path, 'rt') as f:
+                data_sdf = f.read()
+        except IOError:
+            print("Error: the file " + filename + " does not exist.\n")
+            return [-99], [-99], '-99', -99
+
+        # get the reach and river name
+        exp_reg_extra = "BEGIN CROSS-SECTIONS:(.+)END CROSS-SECTION"
+        data_sdf2 = re.findall(exp_reg_extra, data_sdf, re.DOTALL)
+        if not data_sdf2:
+            print('Error: No data on cross section found. \n')
+            return [-99], [-99], '-99', -99
+
+        # get the simulation name or the name of the time steps
+        exp_reg_n = "PROFILE ID:(.+)\n|$"  # $ to avoid problem if no match is found
+        sim_name_all = re.findall(exp_reg_n, data_sdf2[0])
+        sim_name = []
+        for s in sim_name_all:
+            if s not in sim_name:
+                sim_name.append(s)
+            else:
+                # the sim_name are ordered, so we get all the simulation name in the first cross-section
+                break
+        if not sim_name:
+            print('Warning: the names of the time steps could not be extracted from the sdf file. \n')
+
+    return len(sim_name), sim_name
 
 
 def open_xmlfile(xml_file, reach_name, path):

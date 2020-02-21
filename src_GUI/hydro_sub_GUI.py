@@ -745,7 +745,7 @@ class SubHydroW(QWidget):
         if self.nb_dim >= 2:
             return
 
-        if self.inter.currentIndex() == 0:
+        if self.interpolation_data_combobox.currentIndex() == 0:
             # disable
             self.nb_extrapro_text.setDisabled(True)
             self.l5.setDisabled(True)
@@ -1137,415 +1137,6 @@ class SubHydroW(QWidget):
                   ' outputfilename="' + self.name_hdf5 + '"' + \
                   ' path_prj="' + path_prj_script + '"'
         self.send_log.emit("script" + cmd_str)
-
-
-class HEC_RAS1D(SubHydroW):
-    """
-   The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
-   src/hec_ras06.py which loads the hec-ras data in 1D. The class HEC_RAS1D inherits from SubHydroW() so it have all
-   the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W().
-   So the class Hec-Ras 1D is called when the user is on the hydrological tab and click on hec-ras1D as hydrological
-   model.
-    """
-
-    def __init__(self, path_prj, name_prj):
-        super(HEC_RAS1D, self).__init__(path_prj, name_prj)
-        self.inter = QComboBox()
-        self.init_iu()
-
-    def init_iu(self):
-        """
-        This function is called by __init__() durring the initialization.
-
-        **Technical comment**
-
-        The self.attributexml variable is the name of the attribute in the xml file. To load a hec-ras file, one needs
-        to give to HABBY one file containing the geometry data and one file containing the simulation result. The name
-        and path to  these two file are saved in the xml project file under the attribute given in
-        the self.attributexml variable.
-
-        The variable self.extension is a list of list of the accepted file type. The first list is for the file
-        with geometry data. The second list is the extension of the files containing the simulation results.
-
-        Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. The user can choose the interpolation
-        type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
-        profile will always be one. See manage_grid.py for more information on how to create a grid.
-
-        We add a QLineEdit with the proposed name for the created hdf5 file. The user can modified this name if wished so.
-        """
-
-        # update attibute for hec-ras 1d
-        self.attributexml = ['geodata', 'resdata']
-        self.data_type = "HYDRAULIC"
-        self.model_type = 'HECRAS1D'
-
-        self.extension = [['.g01', '.g02', '.g03', '.g04', '.g05 ', '.g06', '.g07', '.g08',
-                           '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
-        self.nb_dim = 1.5
-
-        # label with the file name
-        self.geo_t2 = QLabel(self.namefile[0])
-        self.geo_t2.setToolTip(self.pathfile[0])
-        self.out_t2 = QLabel(self.namefile[1])
-        self.out_t2.setToolTip(self.pathfile[1])
-
-        # geometry and output data
-        l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton(self.tr('Choose file (.g0x)'))
-        self.geo_b.clicked.connect(lambda: self.show_dialog_hecras1d(0))
-
-        l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton(self.tr('Choose file \n (.xml, .sdf, or .rep file)'))
-        self.out_b.clicked.connect(lambda: self.show_dialog_hecras1d(1))
-        self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
-        self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
-
-        # # grid creation options
-        l6 = QLabel(self.tr('<b>Grid creation </b>'))
-        l3 = QLabel(self.tr('Velocity distribution'))
-        l31 = QLabel(self.tr('Model 1.5D: No dist. needed'))
-        l4 = QLabel(self.tr('Interpolation of the data'))
-        self.l5 = QLabel(self.tr('Number of additional profiles'))
-        self.inter.addItems(self.interpo)
-        self.nb_extrapro_text = QLineEdit('1')
-        self.dis_enable_nb_profile()
-        self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
-
-        # hdf5 name
-        lh = QLabel(self.tr('.hyd file name'))
-        self.hname = QLineEdit('')
-        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.gethdf5_name_gui()
-
-        # load button
-        self.load_b = QPushButton(self.tr('Create .hyd file'))
-        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_b.clicked.connect(self.load_hec_ras_gui)
-        self.butfig = QPushButton(self.tr("create figure"))
-        if self.namefile[0] == 'unknown file':
-            self.butfig.setDisabled(True)
-        self.spacer1 = QSpacerItem(1, 30)
-        self.spacer2 = QSpacerItem(1, 80)
-
-        # layout
-        self.layout_hec = QGridLayout()
-        self.layout_hec.addWidget(l1, 0, 0)
-        self.layout_hec.addWidget(self.geo_t2, 0, 1)
-        self.layout_hec.addWidget(self.geo_b, 0, 2)
-        self.layout_hec.addWidget(l2, 1, 0)
-        self.layout_hec.addWidget(self.out_t2, 1, 1)
-        self.layout_hec.addWidget(self.out_b, 1, 2)
-        self.layout_hec.addItem(self.spacer1, 2, 1)
-        self.layout_hec.addWidget(l6, 3, 0)
-        self.layout_hec.addWidget(l3, 4, 1)
-        self.layout_hec.addWidget(l31, 4, 2, 1, 2)
-        self.layout_hec.addWidget(l4, 5, 1)
-        self.layout_hec.addWidget(self.inter, 5, 2, 1, 2)
-        self.layout_hec.addWidget(self.l5, 6, 1)
-        self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
-        self.layout_hec.addItem(self.spacer1, 7, 1)
-        self.layout_hec.addWidget(lh, 8, 0)
-        self.layout_hec.addWidget(self.hname, 8, 1)
-        self.layout_hec.addWidget(self.load_b, 8, 3)
-        self.layout_hec.addWidget(self.butfig, 9, 3)
-        # self.layout_hec.addItem(self.spacer2, 10, 1)
-        self.setLayout(self.layout_hec)
-
-    def show_dialog_hecras1d(self, i=0):
-        """
-        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
-        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
-        is then used to loaded the file in other function, which are different for each children class. Based on the
-        name of the chosen file, a name is proposed for the hdf5 file.
-
-        :param i: an int for the case where there is more than one file to load
-        """
-        # disconnect function for multiple file cases
-        try:
-            self.h2d_t2.disconnect()
-        except:
-            pass
-
-        try:
-            self.units_QListWidget.disconnect()
-        except:
-            pass
-
-        # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
-
-        # prepare the filter to show only useful files
-        if len(self.extension[i]) <= 4:
-            filter2 = "File ("
-            for e in self.extension[i]:
-                filter2 += '*' + e + ' '
-            filter2 = filter2[:-1]
-            filter2 += ')' + ";; All File (*.*)"
-        else:
-            filter2 = ''
-
-        # get last path
-        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
-                self.model_type) != "":
-            model_path = self.read_attribute_xml(self.model_type)  # path spe
-        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
-            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
-        else:
-            model_path = self.path_prj  # path proj
-
-        # find the filename based on user choice
-        filename_list = QFileDialog.getOpenFileNames(self,
-                                                     self.tr("Select file(s)"),
-                                                     model_path,
-                                                     filter2)
-
-        # init
-        self.hydrau_case = "unknown"
-        self.multi_hdf5 = False
-        self.index_hydrau_presence = False
-
-        # if file has been selected
-        if filename_list[0]:
-            self.namefile[i] = os.path.basename(filename_list[0][0])
-            self.pathfile[i] = os.path.dirname(filename_list[0][0])
-            if i == 0:
-                self.geo_t2.setText(self.namefile[i])
-                self.geo_t2.setToolTip(self.pathfile[i])
-                self.propose_next_file()
-                self.save_xml(0)
-
-            elif i == 1:
-
-                # get_hydrau_description_from_source
-                hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
-                                                                                                            self.path_prj,
-                                                                                                             self.model_type,
-                                                                                                            self.nb_dim)
-
-                # warnings
-                if warning_list:
-                    for warn in warning_list:
-                        self.send_log.emit(warn)
-
-                # error
-                if type(hydrau_description) == str:
-                    self.clean_gui()
-                    self.send_log.emit(hydrau_description)
-
-                # one hdf5
-                if type(hydrau_description) == dict:
-                    self.hydrau_case = hydrau_description["hydrau_case"]
-                    # change suffix
-                    if not self.project_preferences["cut_mesh_partialy_dry"]:
-                        namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
-                        exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
-                        hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-                    # multi
-                    self.multi_hdf5 = False
-                    # save last path
-                    self.pathfile[0] = hydrau_description["path_filename_source"]  # source file path
-                    self.namefile[0] = hydrau_description["filename_source"]  # source file name
-                    self.name_hdf5 = hydrau_description["hdf5_name"]
-                    self.save_xml(0)  # path in xml
-                    # set to attribute
-                    self.hydrau_description = hydrau_description
-                    # to GUI (decription)
-                    self.h2d_t2.clear()
-                    self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
-                    self.reach_name_label.setText(self.hydrau_description["reach_list"])
-                    self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
-                    self.units_QListWidget.clear()
-                    self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
-                    if not self.hydrau_description["unit_list_tf"]:
-                        self.units_QListWidget.selectAll()
-                    else:
-                        for i in range(len(self.hydrau_description["unit_list_full"])):
-                            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
-                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
-                    self.units_QListWidget.setEnabled(True)
-                    self.epsg_label.setText(self.hydrau_description["epsg_code"])
-                    self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                    self.load_b.setText(self.tr("Create .hyd file"))
-                    self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
-                    self.unit_counter()
-
-                # multi hdf5
-                if type(hydrau_description) == list:
-                    self.hydrau_case = hydrau_description[0]["hydrau_case"]
-                    # change suffix
-                    if not self.project_preferences["cut_mesh_partialy_dry"]:
-                        for hecras1d_description_num in range(len(hydrau_description)):
-                            namehdf5_old = os.path.splitext(hydrau_description[hecras1d_description_num]["hdf5_name"])[0]
-                            exthdf5_old = os.path.splitext(hydrau_description[hecras1d_description_num]["hdf5_name"])[1]
-                            hydrau_description[hecras1d_description_num]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-                    # multi
-                    self.multi_hdf5 = True
-                    # save last path
-                    self.pathfile[0] = hydrau_description[0]["path_filename_source"]  # source file path
-                    self.namefile[0] = hydrau_description[0]["filename_source"]  # source file name
-                    self.name_hdf5 = hydrau_description[0]["hdf5_name"]
-                    self.save_xml(0)  # path in xml
-                    # set to attribute
-                    self.hydrau_description_multiple = hydrau_description
-                    self.hydrau_description = hydrau_description[0]
-                    # get names
-                    names = [description["filename_source"] for description in self.hydrau_description_multiple]
-                    # to GUI (first decription)
-                    self.h2d_t2.clear()
-                    self.h2d_t2.addItems(names)
-                    self.reach_name_label.setText(self.hydrau_description["reach_list"])
-                    self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
-                    self.units_QListWidget.clear()
-                    self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
-                    if not self.hydrau_description["unit_list_tf"]:
-                        self.units_QListWidget.selectAll()
-                    else:
-                        for i in range(len(self.hydrau_description["unit_list_full"])):
-                            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
-                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
-                    self.units_QListWidget.setEnabled(True)
-                    self.epsg_label.setText(self.hydrau_description["epsg_code"])
-                    self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                    self.h2d_t2.currentIndexChanged.connect(self.change_gui_when_combobox_name_change)
-                    self.load_b.setText(self.tr("Create ") + str(len(hydrau_description)) + self.tr(" .hyd files"))
-                    self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
-                    self.unit_counter()
-
-    def load_hec_ras_gui(self):
-        """
-        A function to execute the loading and saving of the HEC-ras file using Hec_ras.py
-
-        **Technical comments**
-
-        This function is called when the user press on the button self.load_b. It is the function which really
-        calls the load function for hec_ras. First, it updates the xml project file. It adds the name of the new file
-        to xml project file under the attribute indicated by self.attributexml. It also gets the path_im by reading the
-        path_im in the xml project file. If we want to create the 1D figure, the option show_all_fig
-        should be selected in the figure option. It also manages the log as explained in the section about the log.
-        It loads the hec-ras data as explained in the section on hec_ras06.py and creates the grid as explained
-        in the manage_grid.py based on the interpolation type wished by the user (linear, nearest neighbor or by block).
-        The variable self.name_hdf5() is taken from the GUI.
-        """
-        # test the availability of files
-        fileNOK = True
-        f0 = os.path.join(self.pathfile[0], self.namefile[0])
-        f1 = os.path.join(self.pathfile[1], self.namefile[1])
-        if os.path.isfile(f0) & os.path.isfile(f1):
-            fileNOK = False
-        if fileNOK:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("HEC-RAS 1D"))
-            self.msg2.setText(self.tr("Unable to load HEC-RAS data files!"))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            self.p = Process(target=None)
-            self.p.start()
-            self.q = Queue()
-            return
-
-        self.load_b.setDisabled(True)
-
-        # update the xml file of the project
-        self.save_xml(0)
-        self.save_xml(1)
-
-        # for error management and figures (when time finsiehed call the self.show_prog function)
-        self.timer.start(100)
-
-        # get the image and load option
-        path_im = self.find_path_im()
-        # the path where to save the hdf5
-        path_hdf5 = self.find_path_hdf5()
-        self.load_b.setDisabled(True)
-        self.name_hdf5 = self.hname.text()
-        self.project_preferences = load_project_preferences(self.path_prj)
-        show_all_fig = True
-        if path_im != 'no_path' and show_all_fig:
-            self.save_fig = True
-        self.interpo_choice = self.inter.currentIndex()
-
-        # get the number of addition profile
-        if self.interpo_choice > 0:
-            try:
-                self.pro_add = int(self.nb_extrapro_text.text())
-            except ValueError:
-                self.send_log.emit('Error: ' + self.tr('Number of profile not recognized.\n'))
-                return
-
-        # load hec_ras data and create the grid in a second thread
-        self.q = Queue()
-        self.p = Process(target=hec_ras1D_mod.open_hec_hec_ras_and_create_grid, args=(self.name_hdf5, path_hdf5,
-                                                                                      self.name_prj, self.path_prj,
-                                                                                      self.model_type, self.namefile,
-                                                                                      self.pathfile,
-                                                                                      self.interpo_choice,
-                                                                                      path_im, show_all_fig,
-                                                                                      self.pro_add, self.q, False,
-                                                                                      self.project_preferences))
-        self.p.name = "HEC-RAS 1D data loading"
-        self.p.start()
-
-        # copy input file
-        path_input = self.find_path_input()
-        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
-        self.p2.start()
-
-        # log info
-
-        self.send_log.emit(self.tr('# Loading: Hec-Ras 1D data...'))
-        self.send_err_log()
-        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1=r'" + path_input + "'")
-        self.send_log.emit("py    path2=r'" + path_input + "'")
-        self.send_log.emit("py    files = [file1, file2]")
-        self.send_log.emit("py    paths = [path1, path2]")
-        self.send_log.emit("py    interp=" + str(self.interpo_choice))
-        self.send_log.emit("py    pro_add=" + str(self.pro_add))
-        self.send_log.emit(
-            "py    Hec_ras06.open_hec_hec_ras_and_create_grid('re_run',path_prj"
-            ", name_prj, path_prj, 'HECRAS1D', files, paths, interp, '.', False, pro_add, [], True)\n")
-        self.send_log.emit("restart LOAD_HECRAS_1D")
-        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
-        self.send_log.emit("restart    interpolation: " + str(self.interpo_choice))
-        self.send_log.emit("restart    number of added profile: " + str(self.pro_add))
-
-    def propose_next_file(self):
-        """
-        This function proposes the second hec-ras file when the first is selected.  Indeed, to load hec-ras, we need
-        one file with the geometry data and one file with the simulation results. If the user selects a file, this
-        function looks if a file with the same name but with the extension of the other file type exists in the
-        selected folder. Careful, when using hec-ras more than one extension type is possible.
-        """
-
-        if self.out_t2.text() == 'unknown file':
-            blob = self.namefile[0]
-
-            for ev in range(0, 3):
-                if ev == 0:  # version 1 from hec-ras
-                    for i in range(0, 10):  # max O09.xml is ok
-                        new_name = blob[:-len(self.extension[0][0])] + '.O0' + str(i) + self.extension[1][0]
-                        pathfilename = os.path.join(self.pathfile[0], new_name)
-                        if os.path.isfile(pathfilename):
-                            self.out_t2.setText(new_name)
-                            # keep the name in an attribute until we save it
-                            self.pathfile[1] = self.pathfile[0]
-                            self.namefile[1] = new_name
-                            break
-                else:  # version 4 from hec-ras
-                    if ev == 2:
-                        new_name = blob[:-len(self.extension[0][0])] + '.RASexport' + self.extension[1][ev]
-                    if ev == 1:
-                        new_name = blob[:-len(self.extension[0][0])] + self.extension[1][ev]
-                    pathfilename = os.path.join(self.pathfile[0], new_name)
-                    if os.path.isfile(pathfilename):
-                        self.out_t2.setText(new_name)
-                        # keep the name in an attribute until we save it
-                        self.pathfile[1] = self.pathfile[0]
-                        self.namefile[1] = new_name
-                        break
 
 
 class Rubar2D(SubHydroW):
@@ -2021,7 +1612,7 @@ class Mascaret(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
         super(Mascaret, self).__init__(path_prj, name_prj)
-        self.inter = QComboBox()
+        self.interpolation_data_combobox = QComboBox()
         self.init_iu()
 
     def init_iu(self):
@@ -2074,7 +1665,7 @@ class Mascaret(SubHydroW):
         l8 = QLabel(self.tr("Manning coefficient"))
         l4 = QLabel(self.tr('Interpolation of the data'))
         self.l5 = QLabel(self.tr('Nb. of additional profiles'))
-        self.inter.addItems(self.interpo)
+        self.interpolation_data_combobox.addItems(self.interpo)
         self.nb_extrapro_text = QLineEdit('1')
         self.nb_vel_text = QLineEdit('70')
         self.manning_text = QLineEdit('0.025')
@@ -2082,7 +1673,7 @@ class Mascaret(SubHydroW):
         self.manningb = QPushButton(self.tr('Load .txt'))
         self.manningb.clicked.connect(self.load_manning_text)
         self.dis_enable_nb_profile()
-        self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
+        self.interpolation_data_combobox.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
         lh = QLabel(self.tr('.hyd file name'))
@@ -2121,7 +1712,7 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(self.ltest, 5, 3)
         self.layout.addWidget(self.manningb, 5, 4)
         self.layout.addWidget(l4, 6, 1)
-        self.layout.addWidget(self.inter, 6, 2, 1, 2)
+        self.layout.addWidget(self.interpolation_data_combobox, 6, 2, 1, 2)
         self.layout.addWidget(self.l5, 7, 1)
         self.layout.addWidget(self.nb_extrapro_text, 7, 2)
         self.layout.addWidget(lh, 8, 0)
@@ -2172,7 +1763,7 @@ class Mascaret(SubHydroW):
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
-        self.interpo_choice = self.inter.currentIndex()
+        self.interpo_choice = self.interpolation_data_combobox.currentIndex()
         path_im = self.find_path_im()
 
         # preparation for the velocity distibution
@@ -2579,7 +2170,7 @@ class Rubar1D(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
         super(Rubar1D, self).__init__(path_prj, name_prj)
-        self.inter = QComboBox()
+        self.interpolation_data_combobox = QComboBox()
         self.init_iu()
 
     def init_iu(self):
@@ -2630,7 +2221,7 @@ class Rubar1D(SubHydroW):
         l8 = QLabel(self.tr("Manning coefficient"))
         l4 = QLabel(self.tr('Interpolation of the data'))
         self.l5 = QLabel(self.tr('Nb. of additional profiles'))
-        self.inter.addItems(self.interpo)
+        self.interpolation_data_combobox.addItems(self.interpo)
         self.nb_extrapro_text = QLineEdit('1')
         self.nb_vel_text = QLineEdit('50')
         self.manning_text = QLineEdit('0.025')
@@ -2638,7 +2229,7 @@ class Rubar1D(SubHydroW):
         self.manningb = QPushButton(self.tr('Load .txt'))
         self.manningb.clicked.connect(self.load_manning_text)
         self.dis_enable_nb_profile()
-        self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
+        self.interpolation_data_combobox.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
         lh = QLabel(self.tr('.hyd file name'))
@@ -2674,7 +2265,7 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(self.ltest, 4, 3)
         self.layout_hec.addWidget(self.manningb, 4, 4)
         self.layout_hec.addWidget(l4, 5, 1)
-        self.layout_hec.addWidget(self.inter, 5, 2)
+        self.layout_hec.addWidget(self.interpolation_data_combobox, 5, 2)
         self.layout_hec.addWidget(self.l5, 6, 1)
         self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2)
         self.layout_hec.addWidget(lh, 7, 0)
@@ -2721,7 +2312,7 @@ class Rubar1D(SubHydroW):
         show_all_fig = True
         if path_im != 'no_path':
             self.save_fig = True
-        self.interpo_choice = self.inter.currentIndex()
+        self.interpo_choice = self.interpolation_data_combobox.currentIndex()
 
         # preparation for the velocity distibution
         manning_float = False
@@ -2811,6 +2402,453 @@ class Rubar1D(SubHydroW):
                 self.namefile[1] = new_name
 
 
+class HEC_RAS1D(SubHydroW):
+    """
+   The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
+   src/hec_ras06.py which loads the hec-ras data in 1D. The class HEC_RAS1D inherits from SubHydroW() so it have all
+   the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W().
+   So the class Hec-Ras 1D is called when the user is on the hydrological tab and click on hec-ras1D as hydrological
+   model.
+    """
+
+    def __init__(self, path_prj, name_prj):
+        super(HEC_RAS1D, self).__init__(path_prj, name_prj)
+        # update attibute for hec-ras 1d
+        self.attributexml = ['geodata', 'resdata']
+        self.model_type = 'HECRAS1D'
+        self.data_type = "HYDRAULIC"
+        self.extension = [['.g01', '.g02', '.g03', '.g04', '.g05 ', '.g06', '.g07', '.g08',
+                           '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
+        self.nb_dim = 1.5
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        This function is called by __init__() durring the initialization.
+
+        **Technical comment**
+
+        The self.attributexml variable is the name of the attribute in the xml file. To load a hec-ras file, one needs
+        to give to HABBY one file containing the geometry data and one file containing the simulation result. The name
+        and path to  these two file are saved in the xml project file under the attribute given in
+        the self.attributexml variable.
+
+        The variable self.extension is a list of list of the accepted file type. The first list is for the file
+        with geometry data. The second list is the extension of the files containing the simulation results.
+
+        Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. The user can choose the interpolation
+        type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
+        profile will always be one. See manage_grid.py for more information on how to create a grid.
+
+        We add a QLineEdit with the proposed name for the created hdf5 file. The user can modified this name if wished so.
+        """
+        # label with the file name
+        self.geo_t2 = QLabel(self.namefile[0])
+        self.geo_t2.setToolTip(self.pathfile[0])
+        self.out_t2 = QLabel(self.namefile[1])
+        self.out_t2.setToolTip(self.pathfile[1])
+
+        # geometry and output data
+        l1 = QLabel(self.tr('Geometry data'))
+        self.geo_b = QPushButton(self.tr('Choose file (.g0x)'))
+        self.geo_b.clicked.connect(lambda: self.show_dialog_hecras1d(0))
+
+        l2 = QLabel(self.tr('Output data'))
+        self.out_b = QPushButton(self.tr('Choose file (.xml, .sdf, or .rep file)'))
+        self.out_b.clicked.connect(lambda: self.show_dialog_hecras1d(1))
+
+        # reach
+        reach_name_title_label = QLabel(self.tr('Reach name'))
+        self.reach_name_label = QLabel(self.tr('unknown'))
+
+        # unit type
+        units_name_title_label = QLabel(self.tr('Unit(s) type'))
+        self.units_name_label = QLabel(self.tr('unknown'))
+
+        # unit number
+        number_timstep_title_label = QLabel(self.tr('Unit(s) number'))
+        self.number_timstep_label = QLabel(self.tr('unknown'))
+
+        # unit list
+        self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.units_QListWidget.setMinimumHeight(100)
+        l_selecttimestep = QLabel(self.tr('Unit(s) selected'))
+
+        # # grid creation options
+        velocity_distrib_title_label = QLabel(self.tr('Velocity distribution'))
+        velocity_distrib_label = QLabel(self.tr('Model 1.5D: No dist. needed'))
+        interpolation_data_title_label = QLabel(self.tr('Interpolation of the data'))
+        self.interpolation_data_combobox = QComboBox()
+        self.interpolation_data_combobox.addItems(self.interpo)
+        self.l5 = QLabel(self.tr('Number of additional profiles'))
+        self.nb_extrapro_text = QLineEdit('1')
+        self.dis_enable_nb_profile()
+        self.interpolation_data_combobox.currentIndexChanged.connect(self.dis_enable_nb_profile)
+
+        # hdf5 name
+        lh = QLabel(self.tr('.hyd file name'))
+        self.hname = QLineEdit('')
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
+            self.gethdf5_name_gui()
+
+        # load button
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
+        self.load_b.clicked.connect(self.load_hec_ras_gui)
+
+        # last hdf5 created
+        self.name_last_hdf5(self.model_type)
+
+        # layout
+        self.layout_hec = QGridLayout()
+        self.layout_hec.addWidget(l1, 0, 0)
+        self.layout_hec.addWidget(self.geo_t2, 0, 1)
+        self.layout_hec.addWidget(self.geo_b, 0, 2)
+        self.layout_hec.addWidget(reach_name_title_label, 1, 0)
+        self.layout_hec.addWidget(self.reach_name_label, 1, 1)
+        self.layout_hec.addWidget(l2, 2, 0)
+        self.layout_hec.addWidget(self.out_t2, 2, 1)
+        self.layout_hec.addWidget(self.out_b, 2, 2)
+        self.layout_hec.addWidget(units_name_title_label, 3, 0)
+        self.layout_hec.addWidget(self.units_name_label, 3, 1)
+        self.layout_hec.addWidget(number_timstep_title_label, 4, 0)
+        self.layout_hec.addWidget(self.number_timstep_label, 4, 1)
+        self.layout_hec.addWidget(l_selecttimestep, 5, 0)
+        self.layout_hec.addWidget(self.units_QListWidget, 5, 1)
+        self.layout_hec.addWidget(velocity_distrib_title_label, 6, 0)
+        self.layout_hec.addWidget(velocity_distrib_label, 6, 1, 1, 1)
+        self.layout_hec.addWidget(interpolation_data_title_label, 7, 0)
+        self.layout_hec.addWidget(self.interpolation_data_combobox, 7, 1, 1, 1)
+        self.layout_hec.addWidget(self.l5, 8, 0)
+        self.layout_hec.addWidget(self.nb_extrapro_text, 8, 1, 1, 1)
+        self.layout_hec.addWidget(lh, 9, 0)
+        self.layout_hec.addWidget(self.hname, 9, 1)
+        self.layout_hec.addWidget(self.load_b, 9, 2)
+        self.layout_hec.addWidget(self.last_hydraulic_file_label, 10, 0)
+        self.layout_hec.addWidget(self.last_hydraulic_file_name_label, 10, 1)
+        [self.layout_hec.setRowMinimumHeight(i, 30) for i in range(self.layout_hec.rowCount())]
+        self.setLayout(self.layout_hec)
+
+    def show_dialog_hecras1d(self, i=0):
+        """
+        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
+        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
+        is then used to loaded the file in other function, which are different for each children class. Based on the
+        name of the chosen file, a name is proposed for the hdf5 file.
+
+        :param i: an int for the case where there is more than one file to load
+        """
+        # disconnect function for multiple file cases
+        try:
+            self.h2d_t2.disconnect()
+        except:
+            pass
+
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        # get minimum water height as we might neglect very low water height
+        self.project_preferences = load_project_preferences(self.path_prj)
+
+        # prepare the filter to show only useful files
+        if len(self.extension[i]) <= 4:
+            filter2 = "File ("
+            for e in self.extension[i]:
+                filter2 += '*' + e + ' '
+            filter2 = filter2[:-1]
+            filter2 += ')' + ";; All File (*.*)"
+        else:
+            filter2 = ''
+
+        # get last path
+        if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
+                self.model_type) != "":
+            model_path = self.read_attribute_xml(self.model_type)  # path spe
+        elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
+            model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
+        else:
+            model_path = self.path_prj  # path proj
+
+        # find the filename based on user choice
+        filename_list = QFileDialog.getOpenFileNames(self,
+                                                     self.tr("Select file(s)"),
+                                                     model_path,
+                                                     filter2)
+
+        # init
+        self.hydrau_case = "unknown"
+        self.multi_hdf5 = False
+        self.index_hydrau_presence = False
+
+        # if file has been selected
+        if filename_list[0]:
+            self.namefile[i] = os.path.basename(filename_list[0][0])
+            self.pathfile[i] = os.path.dirname(filename_list[0][0])
+            # geom data
+            if i == 0:
+                # get reach_name
+                _, _, _, reach_name, _, _ = hec_ras1D_mod.open_geofile(os.path.basename(filename_list[0][0]),
+                                                                         os.path.dirname(filename_list[0][0]))
+                if len(reach_name) == 1:
+                    self.reach_name_label.setText(reach_name[0])
+                else:
+                    print("reach_name", reach_name)
+                self.geo_t2.setText(self.namefile[i])
+                self.geo_t2.setToolTip(self.pathfile[i])
+                self.save_xml(0)
+                new_name = self.propose_next_file()
+                if new_name:
+                    i = 1
+                    filename_list = [[os.path.join(os.path.dirname(filename_list[0][0]), new_name)]]
+
+            # result data
+            if i == 1:
+                # get_hydrau_description_from_source
+                hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                            self.path_prj,
+                                                                                                             self.model_type,
+                                                                                                            self.nb_dim)
+
+                # warnings
+                if warning_list:
+                    for warn in warning_list:
+                        self.send_log.emit(warn)
+
+                # error
+                if type(hydrau_description) == str:
+                    self.clean_gui()
+                    self.send_log.emit(hydrau_description)
+
+                # one hdf5
+                if type(hydrau_description) == dict:
+                    self.hydrau_case = hydrau_description["hydrau_case"]
+                    # change suffix
+                    if not self.project_preferences["cut_mesh_partialy_dry"]:
+                        namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                        exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                        hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                    # multi
+                    self.multi_hdf5 = False
+                    # save last path
+                    self.pathfile[i] = hydrau_description["path_filename_source"]  # source file path
+                    self.namefile[i] = hydrau_description["filename_source"]  # source file name
+                    hydrau_description["path_filename_source"] = [self.pathfile[0]] + [hydrau_description["path_filename_source"]]  # source file path
+                    hydrau_description["filename_source"] = [self.namefile[0]] + [hydrau_description["filename_source"]]  # source file path
+
+                    self.name_hdf5 = hydrau_description["hdf5_name"]
+                    self.save_xml(0)  # path in xml
+                    # set to attribute
+                    self.hydrau_description = hydrau_description
+                    # to GUI (decription)
+                    self.out_t2.setText(self.namefile[i])
+                    self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+                    if not self.hydrau_description["unit_list_tf"]:
+                        self.units_QListWidget.selectAll()
+                    else:
+                        for i in range(len(self.hydrau_description["unit_list_full"])):
+                            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.units_QListWidget.setEnabled(True)
+                    self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                    self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                    self.unit_counter()
+
+    def unit_counter(self):
+        # count total number items (units)
+        total = self.units_QListWidget.count()
+        # count total number items selected
+        selected = len(self.units_QListWidget.selectedItems())
+
+        # refresh hec_ras2d dictonnary
+        unit_list = []
+        unit_list_full = []
+        selected_list = []
+        for i in range(total):
+            unit_list_full.append(self.units_QListWidget.item(i).text())
+            selected_list.append(self.units_QListWidget.item(i).isSelected())
+            if self.units_QListWidget.item(i).isSelected():
+                unit_list.append(self.units_QListWidget.item(i).text())
+
+        # save multi
+        if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
+                self.hydrau_case == 'unknown' and self.multi_hdf5):
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
+        # save one
+        else:
+            self.hydrau_description["unit_list"] = unit_list
+            self.hydrau_description["unit_list_full"] = unit_list_full
+            self.hydrau_description["unit_list_tf"] = selected_list
+            self.hydrau_description["unit_number"] = str(selected)
+
+        # set text
+        text = str(selected) + "/" + str(total)
+        self.number_timstep_label.setText(text)  # number units
+
+    def load_hec_ras_gui(self):
+        """
+        A function to execute the loading and saving of the HEC-ras file using Hec_ras.py
+
+        **Technical comments**
+
+        This function is called when the user press on the button self.load_b. It is the function which really
+        calls the load function for hec_ras. First, it updates the xml project file. It adds the name of the new file
+        to xml project file under the attribute indicated by self.attributexml. It also gets the path_im by reading the
+        path_im in the xml project file. If we want to create the 1D figure, the option show_all_fig
+        should be selected in the figure option. It also manages the log as explained in the section about the log.
+        It loads the hec-ras data as explained in the section on hec_ras06.py and creates the grid as explained
+        in the manage_grid.py based on the interpolation type wished by the user (linear, nearest neighbor or by block).
+        The variable self.name_hdf5() is taken from the GUI.
+        """
+        # test the availability of files
+        fileNOK = True
+        f0 = os.path.join(self.pathfile[0], self.namefile[0])
+        f1 = os.path.join(self.pathfile[1], self.namefile[1])
+        if os.path.isfile(f0) & os.path.isfile(f1):
+            fileNOK = False
+        if fileNOK:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("HEC-RAS 1D"))
+            self.msg2.setText(self.tr("Unable to load HEC-RAS data files!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
+
+        self.load_b.setDisabled(True)
+
+        # update the xml file of the project
+        self.save_xml(0)
+        self.save_xml(1)
+
+        # for error management and figures (when time finsiehed call the self.show_prog function)
+        self.timer.start(100)
+
+        # show progressbar
+        self.nativeParentWidget().progress_bar.setRange(0, 100)
+        self.nativeParentWidget().progress_bar.setValue(0)
+        self.nativeParentWidget().progress_bar.setVisible(True)
+
+        # get the image and load option
+        path_im = self.find_path_im()
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_hdf5()
+        self.load_b.setDisabled(True)
+        self.name_hdf5 = self.hname.text()
+        self.project_preferences = load_project_preferences(self.path_prj)
+        show_all_fig = False
+        if path_im != 'no_path' and show_all_fig:
+            self.save_fig = True
+        self.interpo_choice = self.interpolation_data_combobox.currentIndex()
+
+        # get the number of addition profile
+        if self.interpo_choice > 0:
+            try:
+                self.pro_add = int(self.nb_extrapro_text.text())
+            except ValueError:
+                self.send_log.emit('Error: ' + self.tr('Number of profile not recognized.\n'))
+                return
+
+        # load hec_ras data and create the grid in a second thread
+        self.q = Queue()
+        self.progress_value = Value("i", 0)
+
+        self.hydrau_description["interpo_choice"] = self.interpo_choice
+        self.hydrau_description["pro_add"] = self.pro_add
+
+        # self.p = Process(target=hec_ras1D_mod.open_hec_hec_ras_and_create_grid, args=(self.name_hdf5, path_hdf5,
+        #                                                                               self.name_prj, self.path_prj,
+        #                                                                               self.model_type, self.namefile,  # geo_file, res_file, path_geo, path_res
+        #                                                                               self.pathfile,
+        #                                                                               self.interpo_choice,
+        #                                                                               path_im, show_all_fig,
+        #                                                                               self.pro_add, self.q, False,
+        #                                                                               self.project_preferences))
+        self.p = Process(target=hec_ras1D_mod.open_hec_hec_ras_and_create_grid,
+                         args=(self.hydrau_description,
+                               self.progress_value,
+                               self.q,
+                               False,
+                               self.project_preferences))
+        self.p.name = "HEC-RAS 1D data loading"
+        self.p.start()
+
+        # copy input file
+        path_input = self.find_path_input()
+        self.p2 = Process(target=src.tools_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
+        # log info
+
+        self.send_log.emit(self.tr('# Loading: Hec-Ras 1D data...'))
+        self.send_err_log()
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit("py    path2=r'" + path_input + "'")
+        self.send_log.emit("py    files = [file1, file2]")
+        self.send_log.emit("py    paths = [path1, path2]")
+        self.send_log.emit("py    interp=" + str(self.interpo_choice))
+        self.send_log.emit("py    pro_add=" + str(self.pro_add))
+        self.send_log.emit(
+            "py    Hec_ras06.open_hec_hec_ras_and_create_grid('re_run',path_prj"
+            ", name_prj, path_prj, 'HECRAS1D', files, paths, interp, '.', False, pro_add, [], True)\n")
+        self.send_log.emit("restart LOAD_HECRAS_1D")
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
+        self.send_log.emit("restart    interpolation: " + str(self.interpo_choice))
+        self.send_log.emit("restart    number of added profile: " + str(self.pro_add))
+
+    def propose_next_file(self):
+        """
+        This function proposes the second hec-ras file when the first is selected.  Indeed, to load hec-ras, we need
+        one file with the geometry data and one file with the simulation results. If the user selects a file, this
+        function looks if a file with the same name but with the extension of the other file type exists in the
+        selected folder. Careful, when using hec-ras more than one extension type is possible.
+        """
+        new_name = None
+        blob = self.namefile[0]
+
+        for ev in range(0, 3):
+            if ev == 0:  # version 1 from hec-ras
+                for i in range(0, 10):  # max O09.xml is ok
+                    new_name = blob[:-len(self.extension[0][0])] + '.O0' + str(i) + self.extension[1][0]
+                    pathfilename = os.path.join(self.pathfile[0], new_name)
+                    if os.path.isfile(pathfilename):
+                        self.out_t2.setText(new_name)
+                        # keep the name in an attribute until we save it
+                        self.pathfile[1] = self.pathfile[0]
+                        self.namefile[1] = new_name
+                    else:
+                        new_name = None
+                        break
+            else:  # version 4 from hec-ras
+                if ev == 2:
+                    new_name = blob[:-len(self.extension[0][0])] + '.RASexport' + self.extension[1][ev]
+                if ev == 1:
+                    new_name = blob[:-len(self.extension[0][0])] + self.extension[1][ev]
+                pathfilename = os.path.join(self.pathfile[0], new_name)
+                if os.path.isfile(pathfilename):
+                    self.out_t2.setText(new_name)
+                    # keep the name in an attribute until we save it
+                    self.pathfile[1] = self.pathfile[0]
+                    self.namefile[1] = new_name
+                else:
+                    new_name = None
+                    break
+        return new_name
+
+
 class HEC_RAS2D(SubHydroW):
     """
     The class hec_RAS2D is there to manage the link between the graphical interface and the functions in src/hec_ras2D_mod.py
@@ -2879,16 +2917,11 @@ class HEC_RAS2D(SubHydroW):
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-        #     self.gethdf5_name_gui()
-        #     if self.h2d_t2.text()[-4:] in self.extension[0]:
-        #         self.get_ascii_model_description()
 
         # load button
         self.load_b = QPushButton(self.tr('Create .hyd file'))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_2d_gui)
-        self.spacer = QSpacerItem(1, 180)
 
         # last hdf5 created
         self.name_last_hdf5(self.model_type)
