@@ -78,7 +78,7 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
     # progress
     progress_value.value = 10
 
-    # load the hec-ra data (the function is just below)
+    # load the hec-ra data
     coord_pro, vh_pro, nb_pro_reach, sim_name = open_hecras(namefile[0], namefile[1],
                                                             pathfile[0], pathfile[1])  # geo_file, res_file, path_geo, path_res
 
@@ -243,24 +243,25 @@ def open_hecras(geo_file, res_file, path_geo, path_res):
         return [-99], [-99], [-99], [-99]
     if xy_h == [-99]:
         return [-99], [-99], [-99], [-99]
-    # # plot and check
-    # if save_fig:
-    #     if project_preferences['time_step'][0] == -99:
-    #         tfig = range(0, len(zone_v))
-    #     else:
-    #         tfig = project_preferences['time_step']
-    #         if not isinstance(tfig, (list, tuple)):
-    #             tfig = tfig.split(',')
-    #         try:
-    #             tfig = list(map(int, tfig))
-    #         except ValueError:
-    #             print('Error: Time step was not recognized. \n')
-    #             return
-    #     pro = [0, 1, 2]
-    #     for t in tfig:
-    #         t = int(t)
-    #         if t < len(xy_h):
-    #             figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, project_preferences, t, riv_name)
+    # plot and check
+    # if project_preferences['time_step'][0] == -99:
+    tfig = range(0, len(zone_v))
+    # else:
+    #     tfig = project_preferences['time_step']
+    # if not isinstance(tfig, (list, tuple)):
+    #     tfig = tfig.split(',')
+    try:
+        tfig = list(map(int, tfig))
+    except ValueError:
+        print('Error: Time step was not recognized. \n')
+        return
+    pro = [0, 1, 2]
+    for t in tfig:
+        t = int(t)
+        if t < len(xy_h):
+            project_preferences = create_default_project_preferences_dict()
+            path_im = os.path.join(r"C:\Users\yann.lecoarer\HABBY_projects\DefaultProj", "output", "figures")
+            figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, project_preferences, t, riv_name)
 
     # update the form of the vector to be coherent with rubar and mascaret
     [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
@@ -1517,7 +1518,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
            the (x,y) indicates the start of the zone which end with the next velocity
     :param pro: a list of int with the profile whcih should be ploted [2,3,4]
     :param nb_sim: which simulation should be plotted. In fact, it often relates to the time step.
-    :param name_profile: a list of string with the name of the profiles
+    :param name_profile: a list of string with the name of the profiles (can be Point Kilometric in float)
     :param coord_p2: the data of the profile when non geo-referenced, optional
     :param path_im: the path where the figure should be saved (string)
     :param project_preferences: the figure options
@@ -1550,7 +1551,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
     rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     rcParams['font.size'] = project_preferences['font_size']
     rcParams['lines.linewidth'] = project_preferences['line_width']
-    format = int(project_preferences['format'])
+    format = project_preferences['format']
     rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     if project_preferences['font_size'] > 7:
@@ -1632,15 +1633,18 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
             legend(("Profil", "Surface de l'eau"), fancybox=True, framealpha=0.5)
         xlim([np.min(xz[:, 0] - 1) * 0.95, np.max(xz[:, 0]) * 1.05])
         m += 1
-        if format == 0:
-            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=project_preferences['resolution'])
-        if format == 1:
-            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=project_preferences['resolution'])
-        if format == 2:
-            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=project_preferences['resolution'])
+        # if format == 0:
+        #     savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+        #                          '.pdf'), dpi=project_preferences['resolution'])
+        # if format == 1:
+        #     savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+        #                          '.png'), dpi=project_preferences['resolution'])
+        # if format == 2:
+        #     savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+        #                          '.jpg'), dpi=project_preferences['resolution'])
+        savefig(os.path.join(path_im, "HEC_profile_" + str(i) + "_unit" + str(nb_sim) +
+                             format), dpi=project_preferences['resolution'], transparent=False)
+        close()
 
     # plot the profile in the (x,y) plane
     fig2 = figure(len(pro))
@@ -1662,9 +1666,12 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
     xmip = 1000
     xmap = -1000
 
+    # centerline hydraulic axe ?
     for i in range(0, len(coord_r)):
         coord_r_i = coord_r[i]
         plot(coord_r_i[:, 0], coord_r_i[:, 1], label=txt_riv + str(i))
+
+
     for j in range(0, len(coord_pro_old)):
         coord_j = coord_pro_old[j]
         xy_j = xy_h[j]
@@ -1695,16 +1702,19 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
         title("Position des profils")
     axis('equal')  # if right angle are needed
     legend(fancybox=True, framealpha=0.5)
-    if format == 0 or format == 1:
-        savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                dpi=project_preferences['resolution'], transparent=True)
-    if format == 0 or format == 3:
-        savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                dpi=project_preferences['resolution'], transparent=True)
-    if format == 2:
-        savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                dpi=project_preferences['resolution'], transparent=True)
-    show()
+    # if format == 0 or format == 1:
+    #     savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+    #             dpi=project_preferences['resolution'], transparent=True)
+    # if format == 0 or format == 3:
+    #     savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+    #             dpi=project_preferences['resolution'], transparent=True)
+    # if format == 2:
+    #     savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+    #             dpi=project_preferences['resolution'], transparent=True)
+    savefig(os.path.join(path_im, "HEC_all_pro" + "_unit" + str(nb_sim) + format),
+            dpi=project_preferences['resolution'], transparent=False)
+    #show()
+    close()
 
 
 def main():
