@@ -80,7 +80,8 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
 
     # load the hec-ra data
     coord_pro, vh_pro, nb_pro_reach, sim_name = open_hecras(namefile[0], namefile[1],
-                                                            pathfile[0], pathfile[1])  # geo_file, res_file, path_geo, path_res
+                                                            pathfile[0], pathfile[1],
+                                                            project_preferences)  # geo_file, res_file, path_geo, path_res
 
     # progress
     progress_value.value = 30
@@ -150,7 +151,7 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
         return
 
 
-def open_hecras(geo_file, res_file, path_geo, path_res):
+def open_hecras(geo_file, res_file, path_geo, path_res, project_preferences=None):
     """
     This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS.
     All arguments from this function are string.
@@ -259,8 +260,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res):
     for t in tfig:
         t = int(t)
         if t < len(xy_h):
-            project_preferences = create_default_project_preferences_dict()
-            path_im = os.path.join(r"C:\Users\yann.lecoarer\HABBY_projects\DefaultProj", "output", "figures")
+            path_im = os.path.join(project_preferences["path_prj"], "output", "figures")
             figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, project_preferences, t, riv_name)
 
     # update the form of the vector to be coherent with rubar and mascaret
