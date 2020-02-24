@@ -261,7 +261,8 @@ def open_hecras(geo_file, res_file, path_geo, path_res, project_preferences=None
         t = int(t)
         if t < len(xy_h):
             path_im = os.path.join(project_preferences["path_prj"], "output", "figures")
-            figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, project_preferences, t, riv_name)
+            figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, blob,
+                       project_preferences, t, riv_name)
 
     # update the form of the vector to be coherent with rubar and mascaret
     [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
@@ -1505,7 +1506,7 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
     return coord_pro, vh_pro, nb_pro_reach
 
 
-def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, path_im, project_preferences, nb_sim=0,
+def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, path_im, res_file, project_preferences, nb_sim=0,
                name_profile='no_name', coord_p2=-99):
     """
     A function to plot the results of the loading of hec-ras data.
@@ -1633,16 +1634,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
             legend(("Profil", "Surface de l'eau"), fancybox=True, framealpha=0.5)
         xlim([np.min(xz[:, 0] - 1) * 0.95, np.max(xz[:, 0]) * 1.05])
         m += 1
-        # if format == 0:
-        #     savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-        #                          '.pdf'), dpi=project_preferences['resolution'])
-        # if format == 1:
-        #     savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-        #                          '.png'), dpi=project_preferences['resolution'])
-        # if format == 2:
-        #     savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-        #                          '.jpg'), dpi=project_preferences['resolution'])
-        savefig(os.path.join(path_im, "HEC_profile_" + str(i) + "_unit" + str(nb_sim) +
+        savefig(os.path.join(path_im, res_file + "_profile_" + str(i) + "_unit" + str(nb_sim) +
                              format), dpi=project_preferences['resolution'], transparent=False)
         close()
 
@@ -1702,16 +1694,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, 
         title("Position des profils")
     axis('equal')  # if right angle are needed
     legend(fancybox=True, framealpha=0.5)
-    # if format == 0 or format == 1:
-    #     savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-    #             dpi=project_preferences['resolution'], transparent=True)
-    # if format == 0 or format == 3:
-    #     savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-    #             dpi=project_preferences['resolution'], transparent=True)
-    # if format == 2:
-    #     savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-    #             dpi=project_preferences['resolution'], transparent=True)
-    savefig(os.path.join(path_im, "HEC_all_pro" + "_unit" + str(nb_sim) + format),
+    savefig(os.path.join(path_im, res_file + "_all_pro" + "_unit" + str(nb_sim) + format),
             dpi=project_preferences['resolution'], transparent=False)
     #show()
     close()
