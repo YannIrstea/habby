@@ -1108,7 +1108,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ind_whole = ind_whole  # TODO: full whole profile
     # all meshes are entirely dry
     elif not True in mikle_keep2:
-        print("Warning: The mesh of unit n°" + unit_num + " is entirely dry.")
+        print("Warning: The mesh of unit n°" + str(unit_num) + " is entirely dry.")
         return True, True, True, True, True
     # only the dry meshes are cut (but not the partially ones)
     elif not CutMeshPartialyDry:

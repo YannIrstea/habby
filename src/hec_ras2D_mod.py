@@ -21,12 +21,16 @@ import matplotlib.pyplot as plt
 import time
 import sys
 from io import StringIO
+from copy import deepcopy
+from scipy.interpolate import griddata
+
 from src import manage_grid_mod
 from src import hdf5_mod
 from src.project_manag_mod import create_default_project_preferences_dict
+from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict, check_data_2d_dict_size, check_data_2d_dict_validity
 
 
-def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, project_preferences={}):
+def load_hec_ras_2d_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     # name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
     #                                  print_cmd=False, project_preferences={}
     """
@@ -63,75 +67,154 @@ def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_va
     minwh = project_preferences['min_height_hyd']
 
     # progress
-    progress_value.value = 10
-
-    # create the empy output
-    inter_vel_all_t = []
-    inter_h_all_t = []
+    progress_value.value = 5
 
     # load
-    vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, timesteps = load_hec_ras2d(description_from_indextelemac_file["filename_source"],
-                                                                                          description_from_indextelemac_file["path_filename_source"])
-    if isinstance(vel_cell[0], int):
-        if vel_cell == [-99]:
-            print("Error: HEC-RAS2D data could not be loaded.")
-            if q:
-                sys.stdout = sys.__stdout__
-                q.put(mystdout)
-                return
-            else:
-                return
+    data_2d_from_hecras2d, description_from_hecras2d = load_hec_ras2d(hydrau_description["filename_source"],
+                                                                      hydrau_description["path_filename_source"])
+    if not data_2d_from_hecras2d and not data_2d_from_hecras2d:
+        q.put(mystdout)
+        return
 
-    # mimic the "whole" profile for 1D model (t=0)
-    point_all_t = [coord_p]
-    point_c_all_t = [coord_c]
-    ikle_all_t = [ikle]
-    inter_h_all_t.append([])
-    inter_vel_all_t.append([])
+    # progress
+    progress_value.value = 10
 
-    # cut the data and pass it to node
-    warn1 = True
-    for t in range(0, len(vel_cell)):
-        # cell to node data
-        if t == 0:
-            [v_node, h_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin(point_all_t[0],
-                                                                                            point_c_all_t[0], vel_cell[t],
-                                                                                            height_cell[t], warn1)
-        else:
-            [v_node, h_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin(point_all_t[0],
-                                                                                            point_c_all_t[0], vel_cell[t],
-                                                                                            height_cell[t], warn1,
-                                                                                            vtx_all, wts_all)
-            # to study the difference in average, do no forget to comment sys.stdout = mystdout = StringIO()
-            # other wise you get zero for all.
-        warn1 = False
-        ikle_f = []
-        point_f = []
-        v_f = []
-        h_f = []
-        for f in range(0, len(ikle_all_t[0])):  # by reach (or water area)
-            # cut grid to wet area
-            [ikle2, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_all_t[0][f],
-                                                                                     point_all_t[0][f], h_node[f],
-                                                                                     v_node[f], minwh)
-            ikle_f.append(ikle2)
-            point_f.append(point_all)
-            h_f.append(water_height)
-            v_f.append(velocity)
-        inter_h_all_t.append(h_f)
-        inter_vel_all_t.append(v_f)
-        point_all_t.append(point_f)
-        point_c_all_t.append([[]])
-        ikle_all_t.append(ikle_f)
+    # create empty dict
+    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(description_from_hecras2d["reach_number"]))  # always one reach by file
+    description_from_hecras2d["unit_correspondence"] = [[]] * int(description_from_hecras2d["reach_number"])  # multi reach by file
 
-    # save data
-    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-                                     point_all_t, point_c_all_t,
-                                     inter_vel_all_t, inter_h_all_t, sim_name=timesteps, hdf5_type="hydraulic")
+    # create empty dict
+    data_2d = create_empty_data_2d_dict(1,  # always one reach
+                                        mesh_variables=list(data_2d_from_hecras2d["mesh"]["data"].keys()),
+                                        node_variables=list(data_2d_from_hecras2d["node"]["data"].keys()))
 
+    # progress from 10 to 90 : from 0 to len(units_index)
+    delta = int(80 / int(description_from_hecras2d["unit_number"]))
+
+    # for each reach
+    for reach_num in range(int(description_from_hecras2d["reach_number"])):
+        data_2d_whole_profile["mesh"]["tin"].append([])
+        data_2d_whole_profile["node"]["xy"].append([])
+        data_2d_whole_profile["node"]["z"].append([])
+
+        # for each units
+        description_from_hecras2d["unit_list"] = [description_from_hecras2d["unit_list"].split(", ")]
+        for unit_num in range(len(description_from_hecras2d["unit_list"][reach_num])):
+            # get unit from according to user selection
+            if hydrau_description["unit_list_tf"][reach_num][unit_num]:
+                # conca xy with z value to facilitate the cutting of the grid (interpolation)
+                xy = np.insert(data_2d_from_hecras2d["node"]["xy"][reach_num],
+                               2,
+                               values=data_2d_from_hecras2d["node"]["z"][reach_num],
+                               axis=1)  # Insert values before column 2
+
+                # remove mesh dry and cut partialy dry in option
+                tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
+                    data_2d_from_hecras2d["mesh"]["tin"][reach_num],
+                    xy,
+                    data_2d_from_hecras2d["node"]["data"]["h"][reach_num][unit_num],
+                    data_2d_from_hecras2d["node"]["data"]["v"][reach_num][unit_num],
+                    progress_value,
+                    delta,
+                    project_preferences["cut_mesh_partialy_dry"],
+                    unit_num,
+                    minwh
+                    )
+
+                if not isinstance(tin_data, np.ndarray):  # error or warning
+                    if not tin_data:  # error
+                        print("Error: " + "cut_2d_grid")
+                        q.put(mystdout)
+                        return
+                    elif tin_data:   # warning
+                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
+                        # print("Warning: " + qt_tr.translate("rubar1d2d_mod", "The mesh of timestep ") + unit_name + qt_tr.translate("rubar1d2d_mod", " is entirely dry."))
+                        continue  # Continue to next iteration.
+                else:
+                    # get original data
+                    data_2d_whole_profile["mesh"]["tin"][reach_num].append(data_2d_from_hecras2d["mesh"]["tin"][reach_num])
+                    data_2d_whole_profile["node"]["xy"][reach_num].append(data_2d_from_hecras2d["node"]["xy"][reach_num])
+                    data_2d_whole_profile["node"]["z"][reach_num].append(data_2d_from_hecras2d["node"]["z"][reach_num])
+
+                    # get cuted grid
+                    data_2d["mesh"]["tin"][reach_num].append(tin_data)
+                    data_2d["mesh"]["i_whole_profile"][reach_num].append(i_whole_profile)
+                    for mesh_variable in data_2d_from_hecras2d["mesh"]["data"].keys():
+                        data_2d["mesh"]["data"][mesh_variable][reach_num].append(data_2d_from_hecras2d["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
+                    data_2d["node"]["xy"][reach_num].append(xy_cuted[:, :2])
+                    data_2d["node"]["z"][reach_num].append(xy_cuted[:, 2])
+                    data_2d["node"]["data"]["h"][reach_num].append(h_data)
+                    data_2d["node"]["data"]["v"][reach_num].append(v_data)
+
+    # refresh unit (if unit mesh entirely dry)
+    for reach_num in reversed(range(int(description_from_hecras2d["reach_number"]))):  # for each reach
+        for unit_num in reversed(range(len(description_from_hecras2d["unit_list"][reach_num]))):
+            if not hydrau_description["unit_list_tf"][reach_num][unit_num]:
+                description_from_hecras2d["unit_list"][reach_num].pop(unit_num)
+    description_from_hecras2d["unit_number"] = str(len(description_from_hecras2d["unit_list"][0]))
+
+    # varying mesh ?
+    for reach_num in range(int(description_from_hecras2d["reach_number"])):
+        temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][reach_num])
+        for i in range(len(temp_list)):
+            temp_list[i].sort(axis=0)
+        # TODO: sort function may be unadapted to check TIN equality between units
+        whole_profil_egual_index = []
+        it_equality = 0
+        for i in range(len(temp_list)):
+            if i == 0:
+                whole_profil_egual_index.append(it_equality)
+            if i > 0:
+                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
+                    whole_profil_egual_index.append(it_equality)
+                else:
+                    it_equality = i
+                    whole_profil_egual_index.append(it_equality)  # diff
+            description_from_hecras2d["unit_correspondence"][reach_num] = whole_profil_egual_index
+
+        if len(set(whole_profil_egual_index)) == 1:  # one tin for all unit
+            data_2d_whole_profile["mesh"]["tin"][reach_num] = [data_2d_whole_profile["mesh"]["tin"][reach_num][0]]
+            data_2d_whole_profile["node"]["xy"][reach_num] = [data_2d_whole_profile["node"]["xy"][reach_num][0]]
+
+    # ALL CASE SAVE TO HDF5
+    progress_value.value = 90  # progress
+
+    # hyd description
+    hyd_description = dict()
+    hyd_description["hyd_filename_source"] = description_from_hecras2d["filename_source"]
+    hyd_description["hyd_path_filename_source"] = description_from_hecras2d["path_filename_source"]
+    hyd_description["hyd_model_type"] = description_from_hecras2d["model_type"]
+    hyd_description["hyd_2D_numerical_method"] = "FiniteVolumeMethod"
+    hyd_description["hyd_model_dimension"] = description_from_hecras2d["model_dimension"]
+    hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_from_hecras2d["mesh"]["data"].keys()))
+    hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_from_hecras2d["node"]["data"].keys()))
+    hyd_description["hyd_epsg_code"] = "unknown"
+    hyd_description["hyd_reach_list"] = "unknown"
+    hyd_description["hyd_reach_number"] = description_from_hecras2d["reach_number"]
+    hyd_description["hyd_reach_type"] = "river"
+    hyd_description["hyd_unit_list"] = description_from_hecras2d["unit_list"]
+    hyd_description["hyd_unit_number"] = description_from_hecras2d["unit_number"]
+    hyd_description["hyd_unit_type"] = description_from_hecras2d["unit_type"]
+    hyd_description["unit_correspondence"] = description_from_hecras2d["unit_correspondence"]
+    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["cut_mesh_partialy_dry"])
+
+    hyd_description["hyd_varying_mesh"] = False
+    if hyd_description["hyd_varying_mesh"]:
+        hyd_description["hyd_unit_z_equal"] = False
+    else:
+        # TODO : check if all z values are equal between units
+        hyd_description["hyd_unit_z_equal"] = True
+
+    # create hdf5
+    hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
+                                   hydrau_description["hdf5_name"])
+    hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
+
+    # progress
+    progress_value.value = 100
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q:
+    if q and not print_cmd:
         q.put(mystdout)
         return
     else:
@@ -193,6 +276,7 @@ def load_hec_ras2d(filename, path):
     # initialization
     coord_p_all = []
     coord_c_all = []
+    elev_p_all = []
     elev_c_all = []
     ikle_all = []
     vel_c_all = []
@@ -212,12 +296,17 @@ def load_hec_ras2d(filename, path):
         return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
     # geometry and grid data
+    geometry_base = file2D["Geometry/2D Flow Areas"]
+    # Old version of HEC-RAS2D ?
     try:
-        geometry_base = file2D["Geometry/2D Flow Areas"]
         name_area = geometry_base["Names"][:].astype(str).tolist()
     except KeyError:
-        print('Error: Name of flow area could not be extracted. Check format of the hdf file.')
-        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+        # New version of HEC-RAS2D ?
+        try:
+            name_area = geometry_base["Attributes"]["Name"].astype(str).tolist()
+        except KeyError:
+            print('Error: Name of flow area could not be extracted. Check format of the hdf file.')
+            return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
         # print(list(geometry.items()))
     try:
         for i in range(0, len(name_area)):
@@ -228,18 +317,15 @@ def load_hec_ras2d(filename, path):
             # basic geometry
             coord_p = np.array(geometry["FacePoints Coordinate"])
             coord_c = np.array(geometry["Cells Center Coordinate"])
-            ikle = np.array(geometry["Cells FacePoint Indexes"])
-            #elev = np.array(geometry["Cells Minimum Elevation"])
-            #elev_all.append(elev)
+            ikle = np.array(geometry["Cells FacePoint Indexes"], dtype=np.int64)
+            elev_c = geometry["Cells Minimum Elevation"][:]
             coord_p_all.append(coord_p)
             coord_c_all.append(coord_c)
             ikle_all.append(ikle)
+            elev_c_all.append(elev_c)
     except KeyError:
         print('Error: Geometry data could not be extracted. Check format of the hdf file.')
         return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
-
-    # elevation
-    elevation = geometry["Faces Minimum Elevation"][:]
 
     # water depth
     for i in range(0, len(name_area)):
@@ -250,7 +336,7 @@ def load_hec_ras2d(filename, path):
         water_depth = np.array(result['Depth'])
         water_depth_c_all.append(water_depth)
 
-    # velocity
+    # TODO : velocity verifier que les vecteurs unitaires 'normaux' aux faces sont en fait des vecteurs normaux de vitesses
     nbtstep = 0
     for i in range(0, len(name_area)):
         # velocity is given on the side of the cells.
@@ -263,12 +349,11 @@ def load_hec_ras2d(filename, path):
         face_unit_vec = face_unit_vec[:, :2]
         velocity = result["Face Velocity"][:]
         new_vel = np.hstack((face_unit_vec, velocity.T))  # for optimization (looking for face is slow)
-        new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
+        # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
         lim_b = 0
         nbtstep = velocity.shape[0]
         vel_c = np.zeros((len(coord_c_all[i]), nbtstep))
-        elev_c = np.zeros((len(coord_c_all[i])))
-        for c in range(0, len(coord_c_all[i])):
+        for c in range(len(coord_c_all[i])):
             # find face
             nb_face = where_is_cells_face1[c]
             lim_a = lim_b
@@ -279,15 +364,31 @@ def load_hec_ras2d(filename, path):
             data_face_t = data_face[:, 2:].T
             add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
             add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
-            vel_c[c, :] = (1.0 / nb_face) * np.sqrt(add_vec_x ** 2 + add_vec_y ** 2)
-            # elev
-            data_face = new_elev[face, :]
-            data_face_t = data_face[:, 2:].T
-            add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
-            add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
-            elev_c[c] = (1.0 / nb_face) * np.sqrt(add_vec_x ** 2 + add_vec_y ** 2)
-        elev_all.append(elev_c)
+            vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
         vel_c_all.append(vel_c)
+
+        # elevation FacePoints
+        faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
+        face_center_point = np.mean([coord_p_all[i][faces_facepoint_indexes[:, 0]], coord_p_all[i][faces_facepoint_indexes[:, 1]]], axis=0)
+        elev_f = geometry["Faces Minimum Elevation"][:]
+        elev_c_all3 = griddata(face_center_point, elev_f, coord_c_all[i])
+        elev_c_all[i][np.isnan(elev_c_all[i])] = elev_c_all3[np.isnan(elev_c_all[i])]
+
+        elev_p = griddata(coord_c_all[i], elev_c_all[i], coord_p_all[i])
+        # elev_f = geometry["Faces Minimum Elevation"][:]
+        # elev_p3 = griddata(face_center_point, elev_f, coord_p_all[i])
+        # elev_p[np.isnan(elev_p)] = elev_p3[np.isnan(elev_p)]
+        # elev_p = griddata(coord_c_all[i], elev_c_all[i], coord_p_all[i])
+        # elev_f = geometry["Faces Minimum Elevation"][:]
+        # faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
+        # elev_p2 = np.zeros((len(coord_p_all[i])))
+        # for point_index in range(len(coord_p_all[i])):
+        #     first_bool = faces_facepoint_indexes[:, 0] == point_index
+        #     second_bool = faces_facepoint_indexes[:, 1] == point_index
+        #     elev_p2[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
+        #                           (np.sum(first_bool) + np.sum(second_bool))
+        # elev_p[np.isnan(elev_p)] = elev_p2[np.isnan(elev_p)]
+        elev_p_all.append(elev_p)
 
     # get data time step by time step
     for t in range(0, nbtstep):
@@ -311,12 +412,31 @@ def load_hec_ras2d(filename, path):
         timesteps[idx] = timesteps[idx].replace(':', '-')
 
     # get a triangular grid as hec-ras output are not triangular
-    [ikle_all, coord_c_all, coord_p_all, vel_t_all2, water_depth_t_all2] = get_triangular_grid_hecras(
+    coord_p_all = np.column_stack([coord_p_all[0], elev_p_all[0]])
+    coord_p_all = [coord_p_all]
+    coord_c_all = np.column_stack([coord_c_all[0], elev_c_all[0]])
+    coord_c_all = [coord_c_all]
+
+    ikle_all, coord_c_all, coord_p_all, vel_t_all2, water_depth_t_all2 = get_triangular_grid_hecras(
         ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
+
+    # finite_volume_to_finite_element_triangularxy
+    coord_p_all = coord_p_all[0]
+    ikle = np.column_stack([ikle_all[0], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
+    h_array = np.empty((len(water_depth_t_all2[0][0]), len(timesteps)), dtype=np.float)
+    v_array = np.empty((len(vel_t_all2[0][0]), len(timesteps)), dtype=np.float)
+    for reach_num in range(len(ikle_all)):
+        for unit_num in range(len(timesteps)):
+            h_array[:, unit_num] = np.array(water_depth_t_all2[unit_num][reach_num])
+            v_array[:, unit_num] = np.array(vel_t_all2[unit_num][reach_num])
+    ikle, xyz, h, v = manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle, coord_p_all,
+                                                                                       h_array,
+                                                                                       v_array)
 
     # description telemac data dict
     description_from_file = dict()
     description_from_file["filename_source"] = filename
+    description_from_file["path_filename_source"] = path
     description_from_file["model_type"] = "HECRAS2D"
     description_from_file["model_dimension"] = str(2)
     description_from_file["unit_list"] = ", ".join(timesteps)
@@ -326,26 +446,24 @@ def load_hec_ras2d(filename, path):
     description_from_file["reach_number"] = str(len(name_area))
     description_from_file["reach_name"] = ", ".join(name_area)
 
-    # data 2d dict
-    data_2d = dict()
-    data_2d["h"] = []
-    data_2d["v"] = []
-    data_2d["z"] = []
-    data_2d["xy"] = []
-    data_2d["tin"] = []
-    for reach_num in range(len(ikle_all)):
-        data_2d["tin"].append(ikle_all[reach_num])
-        data_2d["h"].append([])
-        data_2d["v"].append([])
-        data_2d["z"].append([])
-        data_2d["xy"].append([])
-        for unit_num in range(len(timesteps)):
-            data_2d["h"][reach_num].append(water_depth_t_all2[unit_num][reach_num])
-            data_2d["v"][reach_num].append(vel_t_all2[unit_num][reach_num])
-            data_2d["z"][reach_num].append(elev_all[reach_num])
-            data_2d["xy"][reach_num].append(coord_p_all[unit_num][reach_num])
+    # reset to list and separate xy to z
+    h_list = []
+    v_list = []
+    for timestep_index in range(len(timesteps)):
+        h_list.append(h[:, timestep_index])
+        v_list.append(v[:, timestep_index])
+    xy = xyz[:, (0, 1)]
+    z = xyz[:, 2]
 
-    # vel_t_all2, water_depth_t_all2, elev_all, coord_p_all, coord_c_all, ikle_all, timesteps
+    # data 2d dict
+    data_2d = create_empty_data_2d_dict(1,
+                                        node_variables=["h", "v"])
+    data_2d["mesh"]["tin"][0] = ikle
+    data_2d["node"]["xy"][0] = xy
+    data_2d["node"]["z"][0] = z
+    data_2d["node"]["data"]["h"][0] = h_list
+    data_2d["node"]["data"]["v"][0] = v_list
+
     return data_2d, description_from_file
 
 
@@ -453,7 +571,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
             del coord_c[i]
 
         # add grid by reach
-        ikle_all[r] = np.array(ikle)
+        ikle_all[r] = np.array(ikle, dtype=np.int64)
         point_all[r] = np.array(xy)
         coord_c_all[r] = np.array(coord_c)
 

@@ -3114,14 +3114,13 @@ class HEC_RAS2D(SubHydroW):
         total = self.units_QListWidget.count()
         # count total number items selected
         selected = len(self.units_QListWidget.selectedItems())
-
-        # refresh hec_ras2d dictonnary
+        # refresh rubar20 dictonnary
         unit_list = []
         unit_list_full = []
-        selected_list = []
+        unit_lisst_tf = []
         for i in range(total):
             unit_list_full.append(self.units_QListWidget.item(i).text())
-            selected_list.append(self.units_QListWidget.item(i).isSelected())
+            unit_lisst_tf.append(self.units_QListWidget.item(i).isSelected())
             if self.units_QListWidget.item(i).isSelected():
                 unit_list.append(self.units_QListWidget.item(i).text())
 
@@ -3130,14 +3129,35 @@ class HEC_RAS2D(SubHydroW):
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = unit_lisst_tf
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
+
+            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+                # preset name hdf5
+                filename_source_list = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["filename_source"].split(", ")
+                new_names_list = []
+                for file_num, file in enumerate(filename_source_list):
+                    if self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"][file_num]:
+                        new_names_list.append(os.path.splitext(file)[0])
+                self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
+
         # save one
         else:
-            self.hydrau_description["unit_list"] = unit_list
-            self.hydrau_description["unit_list_full"] = unit_list_full
-            self.hydrau_description["unit_list_tf"] = selected_list
+            self.hydrau_description["unit_list"] = [unit_list]
+            self.hydrau_description["unit_list_full"] = [unit_list_full]
+            self.hydrau_description["unit_list_tf"] = [unit_lisst_tf]
             self.hydrau_description["unit_number"] = str(selected)
+
+            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+                # preset name hdf5
+                filename_source_list = self.hydrau_description["filename_source"].split(", ")
+                new_names_list = []
+                for file_num, file in enumerate(filename_source_list):
+                    if self.hydrau_description["unit_list_tf"][file_num]:
+                        new_names_list.append(os.path.splitext(file)[0])
+                self.hydrau_description["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
 
         # set text
         text = str(selected) + "/" + str(total)

@@ -373,8 +373,10 @@ class Hdf5Management:
             self.file_object.create_dataset(name="unit_by_reach",
                                             shape=[len(hyd_description["hyd_unit_list"][0]),
                                                    len(hyd_description["hyd_unit_list"])],
-                                            data=np.array(hyd_description["hyd_unit_list"]).astype(
-                                                np.float64).transpose())
+                                            data=np.array(hyd_description["hyd_unit_list"],
+                                                          dtype=h5py.string_dtype(encoding='utf-8')).transpose())
+            # data = np.array(hyd_description["hyd_unit_list"]).astype(
+            #     np.float).transpose())
             # dataset for unit_list
             self.file_object.create_dataset(name="unit_correspondence",
                                             shape=[len(hyd_description["unit_correspondence"][0]),
@@ -864,8 +866,10 @@ class Hdf5Management:
         self.file_object.create_dataset(name="unit_by_reach",
                                         shape=[len(merge_description["hyd_unit_list"][0]),
                                                len(merge_description["hyd_unit_list"])],
-                                        data=np.array(merge_description["hyd_unit_list"]).astype(
-                                            np.float64).transpose())
+                                        data=np.array(merge_description["hyd_unit_list"],
+                                                      dtype=h5py.string_dtype(encoding='utf-8')).transpose())
+                                        # data=np.array(merge_description["hyd_unit_list"]).astype(
+                                        #     np.str).transpose())
         # dataset for unit_list
         self.file_object.create_dataset(name="unit_correspondence",
                                         shape=[len(merge_description["unit_correspondence"][0]),
