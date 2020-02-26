@@ -353,20 +353,20 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # check if lenght of two loading units
             if unit_name_from_index_file not in unit_name_from_file:
                 return "Error: " + unit_name_from_index_file + " doesn't exist in telemac file", None
-            else:
-                unit_index = unit_name_from_file.index(unit_name_from_index_file)
-                unit_list_tf = [False] * nbtimes
-                unit_list_tf[unit_index] = True
+            # else:
+            #     unit_index = unit_name_from_file.index(unit_name_from_index_file)
+            #     unit_list_tf = [False] * nbtimes
+            #     unit_list_tf[unit_index] = True
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
-            if not reach_presence:
+            else:
                 reach_name = "unknown"
 
             # hydrau_description
-            hydrau_description["unit_list"] = unit_name_from_index_file
-            hydrau_description["unit_list_full"] = unit_name_from_file
-            hydrau_description["unit_list_tf"] = unit_list_tf
+            hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
+            hydrau_description["unit_list_full"] = data_index_file[headers[discharge_index]]
+            hydrau_description["unit_list_tf"] = [True] * len(data_index_file[headers[discharge_index]])
             hydrau_description["unit_number"] = str(1)
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
             hydrau_description["timestep_list"] = data_index_file[headers[time_index]]
@@ -446,7 +446,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
             hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
             hydrau_description["unit_list_full"] = data_index_file[headers[discharge_index]]
-            hydrau_description["unit_list_tf"] = []
+            hydrau_description["unit_list_tf"] = [True] * len(data_index_file[headers[discharge_index]])
             hydrau_description["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
             hydrau_description["timestep_list"] = data_index_file[headers[time_index]]
@@ -1563,6 +1563,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_unit_type"] = hydrau_description[hyd_file]["unit_type"]
         hyd_description["unit_correspondence"] = hydrau_description[hyd_file]["unit_correspondence"]
         hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["cut_mesh_partialy_dry"]
+        hyd_description["hyd_hydrau_case"] = hydrau_description[hyd_file]["hydrau_case"]
+        if hyd_description["hyd_hydrau_case"] in {"1.b", "2.b"}:
+            hyd_description["timestep_source_list"] = [hydrau_description[hyd_file]["timestep_list"]]
 
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hyd_file]["path_prj"],
