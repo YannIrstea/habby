@@ -328,7 +328,7 @@ def load_hec_ras2d(filename, path):
         return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
     # water depth
-    for i in range(0, len(name_area)):
+    for i in range(len(name_area)):
         name_area_i = name_area[i]
         path_h5_geo = '/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas' \
                       + '/' + name_area_i
@@ -338,7 +338,7 @@ def load_hec_ras2d(filename, path):
 
     # TODO : velocity verifier que les vecteurs unitaires 'normaux' aux faces sont en fait des vecteurs normaux de vitesses
     nbtstep = 0
-    for i in range(0, len(name_area)):
+    for i in range(len(name_area)):
         # velocity is given on the side of the cells.
         # It is to be averaged to find the norm of speed in the middle of the cells.
         cells_face_all = np.array(geometry["Cells Face and Orientation Values"])
@@ -367,12 +367,16 @@ def load_hec_ras2d(filename, path):
             vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
         vel_c_all.append(vel_c)
 
-        # elevation FacePoints
-        faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
-        face_center_point = np.mean([coord_p_all[i][faces_facepoint_indexes[:, 0]], coord_p_all[i][faces_facepoint_indexes[:, 1]]], axis=0)
-        elev_f = geometry["Faces Minimum Elevation"][:]
-        elev_c_all3 = griddata(face_center_point, elev_f, coord_c_all[i])
-        elev_c_all[i][np.isnan(elev_c_all[i])] = elev_c_all3[np.isnan(elev_c_all[i])]
+        if np.isnan(elev_c_all[i]).any():
+            print('Warning: '+str(name_area[i])+'there are cells where the center elevation is unknown  we are using Faces Minimum Elevation to calculate them')
+            # elevation FacePoints
+            faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
+            face_center_point = np.mean([coord_p_all[i][faces_facepoint_indexes[:, 0]], coord_p_all[i][faces_facepoint_indexes[:, 1]]], axis=0)
+            elev_f = geometry["Faces Minimum Elevation"][:]
+            elev_c_all3 = griddata(face_center_point, elev_f, coord_c_all[i])
+            elev_c_all[i][np.isnan(elev_c_all[i])] = elev_c_all3[np.isnan(elev_c_all[i])]
+            if np.isnan(elev_c_all[i]).any():
+                print('Warning: there are still cells where the center elevation is unknown')
 
         elev_p = griddata(coord_c_all[i], elev_c_all[i], coord_p_all[i])
         # elev_f = geometry["Faces Minimum Elevation"][:]
@@ -388,6 +392,15 @@ def load_hec_ras2d(filename, path):
         #     elev_p2[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
         #                           (np.sum(first_bool) + np.sum(second_bool))
         # elev_p[np.isnan(elev_p)] = elev_p2[np.isnan(elev_p)]
+        if np.isnan(elev_p).any() :
+            for point_index in np.where(np.isnan(elev_p))[0]:    # for point_index in range(len(coord_p_all[i]))
+                first_bool = faces_facepoint_indexes[:, 0] == point_index
+                second_bool = faces_facepoint_indexes[:, 1] == point_index
+                elev_p[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
+                                      (np.sum(first_bool) + np.sum(second_bool))
+        if np.isnan(elev_p).any():
+            print('Warning: there are still points/nodes where the elevation is unknown')
+
         elev_p_all.append(elev_p)
 
     # get data time step by time step
@@ -417,8 +430,8 @@ def load_hec_ras2d(filename, path):
     coord_c_all = np.column_stack([coord_c_all[0], elev_c_all[0]])
     coord_c_all = [coord_c_all]
 
-    ikle_all, coord_c_all, coord_p_all, vel_t_all2, water_depth_t_all2 = get_triangular_grid_hecras(
-        ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
+    ikle_all, coord_c_all, coord_p_all,  water_depth_t_all2,vel_t_all2 = get_triangular_grid_hecras(
+        ikle_all, coord_c_all, coord_p_all,  water_depth_t_all,vel_t_all)
 
     # finite_volume_to_finite_element_triangularxy
     coord_p_all = coord_p_all[0]
@@ -496,15 +509,15 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     center of the cell). A similar function exists in rubar1d2d_mod.py, but, as there are only one reach in rubar
     and because ikle is different in hec-ras, it was hard to merge both functions together.
 
-    This function can only be used if the original grid is the same for all time steps. The grid created is dfferent
+    This function can only be used if the original grid is the same for all time steps. The grid created is different
     for each time steps.
 
     :param ikle_all: the connectivity table by reach (list of np.array)
     :param coord_c_all: the coordinate of the centroid of the cell by reach
     :param point_all: the points of the grid
-    :param h: data on water height by reach by time step
-    :param v: data on velocity by reach by time step
-    :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)
+    :param h: data on water height [by time step [by reach
+    :param v: data on velocity [by time step [by reach
+    :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xyz (the grid coordinate)
     """
 
     nb_reach = len(ikle_all)
@@ -513,27 +526,27 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     h_all = []
 
     # initilization
-    for t in range(0, nbtime):
+    for t in range( nbtime):
         empty = [None] * nb_reach
         v_all.append(empty)
         h_all.append(empty)
 
     # create the new grid for each reach
-    for r in range(0, nb_reach):
+    for r in range( nb_reach):
         coord_c = list(coord_c_all[r])
         ikle = list(ikle_all[r])
-        xy = list(point_all[r])
+        xyz = list(point_all[r])
 
         nbtime = len(v)
         # now create the triangular grid
         likle = len(ikle)
         to_be_delete = []
         len_c = []
-        for c in range(0, likle):
+        for c in range(likle):
             ikle[c] = [item for item in ikle[c] if item >= 0]  # get rid of the minus 1 in ikle
             ikle_c = ikle[c]
 
-            # in hec-ras, the permieter cells are in the ikle, so we have cells with only two point
+            # in hec-ras, the perimeter cells are in the ikle, so we have cells with only two point
             if len(ikle_c) < 3:
                 len_c.append(0)
                 to_be_delete.append(c)
@@ -545,22 +558,22 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
                 # the polygon which composed the cells before. The first new triangular cell take the place of the
                 # old one (to avoid changing the order of ikle), the other are added at the end
                 # no change to v and h for the first triangular data, change afterwards
-                xy.append(coord_c[c])
+                xyz.append(coord_c[c])
                 # first triangular cell (erase the old one)
-                ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
-                p1 = xy[len(xy) - 1]
-                coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1) / 3
+                ikle[c] = [ikle_c[0], ikle_c[1], len(xyz) - 1]
+                p1 = xyz[- 1]
+                coord_c[c] = (xyz[ikle_c[0]] + xyz[ikle_c[1]] + p1) / 3
                 len_c.append(len(ikle_c) - 1)
                 # next triangular cell
                 for s in range(1, len(ikle_c) - 1):
-                    ikle.append([ikle_c[s], ikle_c[s + 1], len(xy) - 1])
-                    coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s + 1]] + p1) / 3)
+                    ikle.append([ikle_c[s], ikle_c[s + 1], len(xyz) - 1])
+                    coord_c.append((xyz[ikle_c[s]] + xyz[ikle_c[s + 1]] + p1) / 3)
                     # for t in range(0, nbtime):
                     #     v2[t].append(v[t][r][c])
                     #     h2[t].append(h[t][r][c])
                 # last triangular cells
-                ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
-                coord_c.append((xy[ikle_c[-1]] + xy[ikle_c[0]] + p1) / 3)
+                ikle.append([ikle_c[-1], ikle_c[0], len(xyz) - 1])
+                coord_c.append((xyz[ikle_c[-1]] + xyz[ikle_c[0]] + p1) / 3)
                 # for t in range(0, nbtime):
                 #     v2[t].append(v[t][r][c])
                 #     h2[t].append(h[t][r][c])
@@ -572,7 +585,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
 
         # add grid by reach
         ikle_all[r] = np.array(ikle, dtype=np.int64)
-        point_all[r] = np.array(xy)
+        point_all[r] = np.array(xyz)
         coord_c_all[r] = np.array(coord_c)
 
         # put the data in the new cells (np.array to save memeory if a lot of time step)
@@ -601,7 +614,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
             v_all[t][r] = v2[t, :]  # list of np.array
             h_all[t][r] = h2[t, :]
 
-    return ikle_all, coord_c_all, point_all, v_all, h_all
+    return ikle_all, coord_c_all, point_all, h_all, v_all
 
 
 def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im, time_step=[0], flow_area=[0],
