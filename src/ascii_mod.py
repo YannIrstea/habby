@@ -718,7 +718,7 @@ def reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub):
     if len(ikle4):  # partitionning each 4angles in 4 triangles
         for unit_num in range(nbunit):
             manage_grid_mod.is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle4,
-                                                                     xy_array=nodes[:, 0:2],
+                                                                     xyz_array=nodes[:, 0:2],
                                                                      unit_num=unit_num,
                                                                      case="before reduce quadrangles to triangles")
             # always obtain the sames ikle3new,xynew,znew only hnew,vnew are differents

@@ -15,16 +15,23 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-
+import sys
+from io import StringIO
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from osgeo.ogr import GetDriverByName
 from osgeo.osr import SpatialReference
+from copy import deepcopy
+import numpy as np
 
 from src import ascii_mod
 from src import hec_ras2D_mod, hec_ras1D_mod
 from src import rubar1d2d_mod
 from src import telemac_mod
 from src.tools_mod import polygon_type_values, point_type_values
+from src.project_manag_mod import create_default_project_preferences_dict
+from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
+from src import hdf5_mod
+from src import manage_grid_mod
 
 
 def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_dim):
@@ -1333,4 +1340,264 @@ def get_time_step(file_path, model_type):
     elif model_type == "RUBAR20":
         nbtimes, unit_name_from_file, warning_list = rubar1d2d_mod.get_time_step(filename, folder_path)
     return nbtimes, unit_name_from_file, warning_list
+
+
+def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+    """
+    This function calls the function load_hydraulic and call the function cut_2d_grid()
+
+    :param name_hdf5: the base name of the created hdf5 (string)
+    :param namefilet: the name of the selafin file (string)
+    :param pathfilet: the path to this file (string)
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
+    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
+    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
+    :param units_index : List of integer values representing index of units (timestep or discharge). If not specify,
+            all timestep are selected (from cmd command).
+    :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    """
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
+    # minimum water height
+    if not project_preferences:
+        project_preferences = create_default_project_preferences_dict()
+
+    # progress
+    progress_value.value = 10
+
+    # check if hydrau_description_multiple
+    if type(hydrau_description) == dict:  # hydrau_description simple (one .hyd)
+        file_number = 1
+        hydrau_description = [hydrau_description]
+    elif type(hydrau_description) == list:  # hydrau_description_multiple (several .hyd)
+        file_number = len(hydrau_description)
+
+    # for reach .hyd to create
+    for hyd_file in range(0, file_number):
+        # get filename source (can be several)
+        filename_source = hydrau_description[hyd_file]["filename_source"].split(", ")
+
+        # create data_2d_whole_profile
+        data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1)  # always one reach by file
+        hydrau_description[hyd_file]["unit_correspondence"] = [[]]  # always one reach by file
+
+        # for each filename source
+        for i, file in enumerate(filename_source):
+            # load data2d
+            data_2d_source, description_from_source = load_hydraulic(file,
+                                                                     hydrau_description[hyd_file][
+                                                                         "path_filename_source"],
+                                                                     hydrau_description[hyd_file]["model_type"])
+            if data_2d_source == [-99] and description_from_source == [-99]:
+                q.put(mystdout)
+                return
+            data_2d_whole_profile["mesh"]["tin"][0].append(data_2d_source["mesh"]["tin"][0])
+            data_2d_whole_profile["node"]["xy"][0].append(data_2d_source["node"]["xy"][0])
+            if description_from_source["unit_z_equal"]:
+                data_2d_whole_profile["node"]["z"][0].append(data_2d_source["node"]["z"][0][0])
+            elif not description_from_source["unit_z_equal"]:
+                for unit_num in range(len(hydrau_description[hyd_file]["unit_list"])):
+                    data_2d_whole_profile["node"]["z"][0].append(data_2d_source["node"]["z"][0][unit_num])
+
+        # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
+        temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][0])
+        for i in range(len(temp_list)):
+            temp_list[i].sort(axis=0)
+        # TODO: sort function may be unadapted to check TIN equality between units
+        whole_profil_egual_index = []
+        it_equality = 0
+        for i in range(len(temp_list)):
+            if i == 0:
+                whole_profil_egual_index.append(it_equality)
+            if i > 0:
+                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
+                    whole_profil_egual_index.append(it_equality)
+                else:
+                    it_equality = i
+                    whole_profil_egual_index.append(it_equality)  # diff
+        hydrau_description[hyd_file]["unit_correspondence"][0] = whole_profil_egual_index
+        # one file : one reach, varying_mesh==False
+        if len(filename_source) == 1:
+            hydrau_description[hyd_file]["unit_correspondence"][0] = whole_profil_egual_index * int(
+                hydrau_description[hyd_file]["unit_number"])
+        # one tin for all unit
+        if len(set(whole_profil_egual_index)) == 1:
+            data_2d_whole_profile["mesh"]["tin"][0] = [data_2d_whole_profile["mesh"]["tin"][0][0]]
+            data_2d_whole_profile["node"]["xy"][0] = [data_2d_whole_profile["node"]["xy"][0][0]]
+
+        # progress from 10 to 90 : from 0 to len(units_index)
+        delta = int(80 / int(hydrau_description[hyd_file]["unit_number"]))
+
+        # cut the grid to have the precise wet area and put data in new form
+        data_2d = create_empty_data_2d_dict(1,  # always one reach
+                                            mesh_variables=list(data_2d_source["mesh"]["data"].keys()),
+                                            node_variables=list(data_2d_source["node"]["data"].keys()))
+
+        # get unit list from filename_source
+        file_list = hydrau_description[hyd_file]["filename_source"].split(", ")
+        if len(file_list) > 1:
+            unit_number_list = []
+            unit_list_from_source_file_list = []
+            for file_indexHYDRAU in file_list:
+                unit_number, unit_list_from_source_file, warning_list = get_time_step(
+                    os.path.join(hydrau_description[hyd_file]["path_filename_source"], file_indexHYDRAU),
+                    hydrau_description[hyd_file]["model_type"])
+                unit_number_list.append(unit_number)
+                unit_list_from_source_file_list.append(unit_list_from_source_file)
+        if len(file_list) == 1:
+            unit_number, unit_list_from_source_file, warning_list = get_time_step(
+                os.path.join(hydrau_description[hyd_file]["path_filename_source"], hydrau_description[hyd_file]["filename_source"]),
+                hydrau_description[hyd_file]["model_type"])
+        # get unit list from indexHYDRAU file
+        if "timestep_list" in hydrau_description[hyd_file].keys():
+            if len(hydrau_description[hyd_file]["timestep_list"]) == len(file_list):
+                unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["timestep_list"]
+            else:
+                unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["unit_list"]
+        else:
+            unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["unit_list"]
+        # get unit index to load
+        if len(unit_list_from_source_file) == 1 and len(unit_list_from_indexHYDRAU_file) == 1:
+            unit_index_list = [0]
+        else:
+            if len(file_list) > 1:
+                if list(set(unit_number_list))[0] == 1:  # one time step by file
+                    unit_index_list = [0] * len(file_list)
+                if list(set(unit_number_list))[0] > 1:  # several time step by file
+                    unit_index_list = []
+                    for i, time_step in enumerate(unit_list_from_indexHYDRAU_file):
+                        if time_step in unit_list_from_source_file_list[i]:
+                            unit_index_list.append(unit_list_from_source_file_list[i].index(time_step))
+            else:
+                unit_index_list = []  # for all cases with specific timestep indicate
+                for unit_wish in unit_list_from_indexHYDRAU_file:
+                    if unit_wish in unit_list_from_source_file:
+                        unit_index_list.append(unit_list_from_source_file.index(unit_wish))
+
+        # same mesh for all units : conca xy array with first z array
+        if len(set(hydrau_description[hyd_file]["unit_correspondence"][0])) == 1:
+            # conca xy with z value to facilitate the cutting of the grid (interpolation)
+            xy = np.insert(data_2d_source["node"]["xy"][0],
+                           2,
+                           values=data_2d_source["node"]["z"][0][0],
+                           axis=1)  # Insert values before column 2
+        else:
+            data_2d_source, description_from_source = load_hydraulic(file,
+                                                                     hydrau_description[hyd_file][
+                                                                         "path_filename_source"],
+                                                                     hydrau_description[hyd_file]["model_type"])
+
+        for i, unit_num in enumerate(unit_index_list):
+            if len(file_list) > 1:
+                data_2d_source, description_from_source = load_hydraulic(file,
+                                                                         hydrau_description[hyd_file][
+                                                                             "path_filename_source"],
+                                                                         hydrau_description[hyd_file]["model_type"])
+                # conca xy with z value to facilitate the cutting of the grid (interpolation)
+                xy = np.insert(data_2d_source["node"]["xy"][0],
+                               2,
+                               values=data_2d_source["node"]["z"][0][unit_num],
+                               axis=1)  # Insert values before column 2
+
+            tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
+                data_2d_source["mesh"]["tin"][0],
+                xy,
+                data_2d_source["node"]["data"]["h"][0][unit_num],
+                data_2d_source["node"]["data"]["v"][0][unit_num],
+                progress_value,
+                delta,
+                project_preferences["cut_mesh_partialy_dry"],
+                unit_num,
+                project_preferences['min_height_hyd'])
+
+            if not isinstance(tin_data, np.ndarray):  # error or warning
+                if not tin_data:  # error
+                    print("Error: " + qt_tr.translate("hydro_input_file_mod", "cut_2d_grid"))
+                    q.put(mystdout)
+                    return
+                elif tin_data:  # entierly dry
+                    hydrau_description[hyd_file]["unit_list_tf"][unit_num] = False
+                    continue  # Continue to next iteration.
+            else:
+                # save data in dict
+                data_2d["mesh"]["tin"][0].append(tin_data)
+                data_2d["mesh"]["i_whole_profile"][0].append(i_whole_profile)
+                for mesh_variable in data_2d_source["mesh"]["data"].keys():
+                    data_2d["mesh"]["data"][mesh_variable][0].append(
+                        data_2d_source["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
+                data_2d["node"]["xy"][0].append(xy_cuted[:, :2])
+                data_2d["node"]["z"][0].append(xy_cuted[:, 2])
+                data_2d["node"]["data"]["h"][0].append(h_data)
+                data_2d["node"]["data"]["v"][0].append(v_data)
+
+        # refresh unit (if warning)
+        # for reach_num in reversed(range(int(hydrau_description[hyd_file]["reach_number"]))):  # for each reach
+        #     for unit_num in reversed(range(len(hydrau_description[hyd_file]["unit_list"][reach_num]))):
+        #         if not hydrau_description[hyd_file]["unit_list_tf"][reach_num][unit_num]:
+        #             hydrau_description[hyd_file]["unit_list"][reach_num].pop(unit_num)
+        # hydrau_description["unit_number"] = str(len(hydrau_description[hyd_file]["unit_list"][0]))
+
+        # ALL CASE SAVE TO HDF5
+        progress_value.value = 90  # progress
+
+        # hyd description
+        hyd_description = dict()
+        hyd_description["hyd_filename_source"] = hydrau_description[hyd_file]["filename_source"]
+        hyd_description["hyd_path_filename_source"] = hydrau_description[hyd_file]["path_filename_source"]
+        hyd_description["hyd_model_type"] = hydrau_description[hyd_file]["model_type"]
+        hyd_description["hyd_2D_numerical_method"] = "FiniteElementMethod"
+        hyd_description["hyd_model_dimension"] = hydrau_description[hyd_file]["model_dimension"]
+        hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_source["mesh"]["data"].keys()))
+        hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_source["node"]["data"].keys()))
+        hyd_description["hyd_epsg_code"] = hydrau_description[hyd_file]["epsg_code"]
+        hyd_description["hyd_reach_list"] = hydrau_description[hyd_file]["reach_list"]
+        hyd_description["hyd_reach_number"] = hydrau_description[hyd_file]["reach_number"]
+        hyd_description["hyd_reach_type"] = hydrau_description[hyd_file]["reach_type"]
+        hyd_description["hyd_unit_list"] = [hydrau_description[hyd_file]["unit_list"]]
+        hyd_description["hyd_unit_number"] = str(len(hydrau_description[hyd_file]["unit_list"]))
+        hyd_description["hyd_unit_type"] = hydrau_description[hyd_file]["unit_type"]
+        hyd_description["unit_correspondence"] = hydrau_description[hyd_file]["unit_correspondence"]
+        hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["cut_mesh_partialy_dry"]
+
+        # create hdf5
+        hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hyd_file]["path_prj"],
+                                       hydrau_description[hyd_file]["hdf5_name"])
+        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
+
+        # prog
+        progress_value.value = 95
+
+        # create_index_hydrau_text_file
+        if not hydrau_description[hyd_file]["index_hydrau"]:
+            create_index_hydrau_text_file(hydrau_description)
+
+        # prog
+        progress_value.value = 100
+
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
+    if q and not print_cmd:
+        q.put(mystdout)
+        return
+    else:
+        return
+
+
+def load_hydraulic(filename, folder_path, model_type):
+    data_2d = None
+    description_from_file = None
+    if model_type == "TELEMAC":
+        data_2d, description_from_file = telemac_mod.load_telemac(filename, folder_path)
+    elif model_type == "HECRAS2D":
+        data_2d, description_from_file = hec_ras2D_mod.load_hec_ras2d(filename, folder_path)
+    elif model_type == "HECRAS1D":
+        data_2d, description_from_file = hec_ras1D_mod.load_xml(filename, folder_path)
+    elif model_type == "RUBAR20":
+        data_2d, description_from_file = rubar1d2d_mod.load_rubar2d(filename, folder_path)
+    return data_2d, description_from_file
 

@@ -1102,6 +1102,76 @@ class SubHydroW(QWidget):
                 if self.model_type == "ASCII":  # can produce .hab
                     self.drop_merge.emit()
 
+    def unit_counter(self):
+        # count total number items (units)
+        total = self.units_QListWidget.count()
+        # count total number items selected
+        selected = len(self.units_QListWidget.selectedItems())
+        # refresh telemac dictonnary
+        unit_list = []
+        unit_list_full = []
+        selected_list = []
+        for i in range(total):
+            unit_list_full.append(self.units_QListWidget.item(i).text())
+            selected_list.append(self.units_QListWidget.item(i).isSelected())
+            if self.units_QListWidget.item(i).isSelected():
+                unit_list.append(self.units_QListWidget.item(i).text())
+
+        # save multi
+        if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
+                self.hydrau_case == 'unknown' and self.multi_hdf5):
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
+
+            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+                # preset name hdf5
+                filename_source_list = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["filename_source"].split(", ")
+                new_names_list = []
+                for file_num, file in enumerate(filename_source_list):
+                    if self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"][file_num]:
+                        new_names_list.append(os.path.splitext(file)[0])
+                self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                if len(filename_source_list) == len(new_names_list) and len(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"]) > 25:
+                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = new_names_list[0].replace(".", "_")  \
+                                + "_to_" + \
+                                new_names_list[-1].replace(".", "_") + ".hyd"
+                if not self.project_preferences["cut_mesh_partialy_dry"]:
+                    namehdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[0]
+                    exthdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[1]
+                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
+
+        # save one
+        else:
+            self.hydrau_description["unit_list"] = unit_list
+            self.hydrau_description["unit_list_full"] = unit_list_full
+            self.hydrau_description["unit_list_tf"] = selected_list
+            self.hydrau_description["unit_number"] = str(selected)
+
+            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+                # preset name hdf5
+                filename_source_list = self.hydrau_description["filename_source"].split(", ")
+                new_names_list = []
+                for file_num, file in enumerate(filename_source_list):
+                    if self.hydrau_description["unit_list_tf"][file_num]:
+                        new_names_list.append(os.path.splitext(file)[0].replace(".", "_"))
+                self.hydrau_description["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+                if len(filename_source_list) == len(new_names_list) and len(self.hydrau_description["hdf5_name"]) > 25:
+                    self.hydrau_description["hdf5_name"] = new_names_list[0].replace(".", "_")  \
+                                + "_to_" + \
+                                new_names_list[-1].replace(".", "_") + ".hyd"
+            if not self.project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[0]
+                exthdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[1]
+                self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+            self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+
+        # set text
+        text = str(selected) + "/" + str(total)
+        self.number_timstep_label.setText(text)  # number units
+
     def name_last_hdf5(self, type):
         """
         This function opens the xml project file to find the name of the last hdf5 merge file and to add it
@@ -1425,60 +1495,6 @@ class Rubar2D(SubHydroW):
         self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
         self.unit_counter()
 
-    def unit_counter(self):
-        # count total number items (units)
-        total = self.units_QListWidget.count()
-        # count total number items selected
-        selected = len(self.units_QListWidget.selectedItems())
-        # refresh rubar20 dictonnary
-        unit_list = []
-        unit_list_full = []
-        unit_lisst_tf = []
-        for i in range(total):
-            unit_list_full.append(self.units_QListWidget.item(i).text())
-            unit_lisst_tf.append(self.units_QListWidget.item(i).isSelected())
-            if self.units_QListWidget.item(i).isSelected():
-                unit_list.append(self.units_QListWidget.item(i).text())
-
-        # save multi
-        if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
-                self.hydrau_case == 'unknown' and self.multi_hdf5):
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = unit_lisst_tf
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
-
-            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
-                # preset name hdf5
-                filename_source_list = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["filename_source"].split(", ")
-                new_names_list = []
-                for file_num, file in enumerate(filename_source_list):
-                    if self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"][file_num]:
-                        new_names_list.append(os.path.splitext(file)[0])
-                self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
-                self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
-
-        # save one
-        else:
-            self.hydrau_description["unit_list"] = [unit_list]
-            self.hydrau_description["unit_list_full"] = [unit_list_full]
-            self.hydrau_description["unit_list_tf"] = [unit_lisst_tf]
-            self.hydrau_description["unit_number"] = str(selected)
-
-            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
-                # preset name hdf5
-                filename_source_list = self.hydrau_description["filename_source"].split(", ")
-                new_names_list = []
-                for file_num, file in enumerate(filename_source_list):
-                    if self.hydrau_description["unit_list_tf"][file_num]:
-                        new_names_list.append(os.path.splitext(file)[0])
-                self.hydrau_description["hdf5_name"] = "_".join(new_names_list) + ".hyd"
-                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-
-        # set text
-        text = str(selected) + "/" + str(total)
-        self.number_timstep_label.setText(text)  # number units
-
     def clean_gui(self):
         try:
             self.h2d_t2.disconnect()
@@ -1564,7 +1580,7 @@ class Rubar2D(SubHydroW):
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
-            self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid,
+            self.p = Process(target=hydro_input_file_mod.load_hydraulic_cut_to_hdf5,
                              args=(self.hydrau_description_multiple,
                                    self.progress_value,
                                    self.q,
@@ -1572,7 +1588,7 @@ class Rubar2D(SubHydroW):
                                    self.project_preferences))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
-            self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid,
+            self.p = Process(target=hydro_input_file_mod.load_hydraulic_cut_to_hdf5,
                              args=(self.hydrau_description,
                                    self.progress_value,
                                    self.q,
@@ -2860,6 +2876,13 @@ class HEC_RAS2D(SubHydroW):
     def __init__(self, path_prj, name_prj):
 
         super(HEC_RAS2D, self).__init__(path_prj, name_prj)
+        # update attibutes
+        self.attributexml = ['data2D']
+        self.model_type = 'HECRAS2D'
+        self.data_type = "HYDRAULIC"
+        self.extension = [['.hdf', '.txt']]
+        self.nb_dim = 2
+
         self.init_iu()
 
     def init_iu(self):
@@ -2867,12 +2890,6 @@ class HEC_RAS2D(SubHydroW):
         This method is used to by __init__() during the initialization.
         """
 
-        # update attibutes
-        self.attributexml = ['data2D']
-        self.model_type = 'HECRAS2D'
-        self.data_type = "HYDRAULIC"
-        self.extension = [['.hdf']]
-        self.nb_dim = 2
 
         # if there is the project file with hecras info, update the label and attibutes
         # self.h2d_t2 = QLabel(self.namefile[0], self)
@@ -2969,6 +2986,9 @@ class HEC_RAS2D(SubHydroW):
             self.units_QListWidget.disconnect()
         except:
             pass
+
+        # get minimum water height as we might neglect very low water height
+        self.project_preferences = load_project_preferences(self.path_prj)
 
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
@@ -3109,60 +3129,6 @@ class HEC_RAS2D(SubHydroW):
         self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
         self.unit_counter()
 
-    def unit_counter(self):
-        # count total number items (units)
-        total = self.units_QListWidget.count()
-        # count total number items selected
-        selected = len(self.units_QListWidget.selectedItems())
-        # refresh rubar20 dictonnary
-        unit_list = []
-        unit_list_full = []
-        unit_lisst_tf = []
-        for i in range(total):
-            unit_list_full.append(self.units_QListWidget.item(i).text())
-            unit_lisst_tf.append(self.units_QListWidget.item(i).isSelected())
-            if self.units_QListWidget.item(i).isSelected():
-                unit_list.append(self.units_QListWidget.item(i).text())
-
-        # save multi
-        if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
-                self.hydrau_case == 'unknown' and self.multi_hdf5):
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = unit_lisst_tf
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
-
-            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
-                # preset name hdf5
-                filename_source_list = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["filename_source"].split(", ")
-                new_names_list = []
-                for file_num, file in enumerate(filename_source_list):
-                    if self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"][file_num]:
-                        new_names_list.append(os.path.splitext(file)[0])
-                self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
-                self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
-
-        # save one
-        else:
-            self.hydrau_description["unit_list"] = [unit_list]
-            self.hydrau_description["unit_list_full"] = [unit_list_full]
-            self.hydrau_description["unit_list_tf"] = [unit_lisst_tf]
-            self.hydrau_description["unit_number"] = str(selected)
-
-            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
-                # preset name hdf5
-                filename_source_list = self.hydrau_description["filename_source"].split(", ")
-                new_names_list = []
-                for file_num, file in enumerate(filename_source_list):
-                    if self.hydrau_description["unit_list_tf"][file_num]:
-                        new_names_list.append(os.path.splitext(file)[0])
-                self.hydrau_description["hdf5_name"] = "_".join(new_names_list) + ".hyd"
-                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-
-        # set text
-        text = str(selected) + "/" + str(total)
-        self.number_timstep_label.setText(text)  # number units
-
     def clean_gui(self):
         try:
             self.h2d_t2.disconnect()
@@ -3240,7 +3206,7 @@ class HEC_RAS2D(SubHydroW):
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
-            self.p = Process(target=hec_ras2D_mod.load_hec_ras_2d_and_cut_grid,
+            self.p = Process(target=hydro_input_file_mod.load_hydraulic_cut_to_hdf5,
                              args=(self.hydrau_description_multiple,
                                    self.progress_value,
                                    self.q,
@@ -3248,7 +3214,7 @@ class HEC_RAS2D(SubHydroW):
                                    self.project_preferences))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
-            self.p = Process(target=hec_ras2D_mod.load_hec_ras_2d_and_cut_grid,
+            self.p = Process(target=hydro_input_file_mod.load_hydraulic_cut_to_hdf5,
                              args=(self.hydrau_description,
                                    self.progress_value,
                                    self.q,
@@ -3572,76 +3538,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
         self.unit_counter()
 
-    def unit_counter(self):
-        # count total number items (units)
-        total = self.units_QListWidget.count()
-        # count total number items selected
-        selected = len(self.units_QListWidget.selectedItems())
-        # refresh telemac dictonnary
-        unit_list = []
-        unit_list_full = []
-        selected_list = []
-        for i in range(total):
-            unit_list_full.append(self.units_QListWidget.item(i).text())
-            selected_list.append(self.units_QListWidget.item(i).isSelected())
-            if self.units_QListWidget.item(i).isSelected():
-                unit_list.append(self.units_QListWidget.item(i).text())
-
-        # save multi
-        if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
-                self.hydrau_case == 'unknown' and self.multi_hdf5):
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
-
-            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
-                # preset name hdf5
-                filename_source_list = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["filename_source"].split(", ")
-                new_names_list = []
-                for file_num, file in enumerate(filename_source_list):
-                    if self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"][file_num]:
-                        new_names_list.append(os.path.splitext(file)[0])
-                self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
-                if len(filename_source_list) == len(new_names_list) and len(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"]) > 25:
-                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = new_names_list[0].replace(".", "_")  \
-                                + "_to_" + \
-                                new_names_list[-1].replace(".", "_") + ".hyd"
-                if not self.project_preferences["cut_mesh_partialy_dry"]:
-                    namehdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[0]
-                    exthdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[1]
-                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-                self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
-
-        # save one
-        else:
-            self.hydrau_description["unit_list"] = unit_list
-            self.hydrau_description["unit_list_full"] = unit_list_full
-            self.hydrau_description["unit_list_tf"] = selected_list
-            self.hydrau_description["unit_number"] = str(selected)
-
-            if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
-                # preset name hdf5
-                filename_source_list = self.hydrau_description["filename_source"].split(", ")
-                new_names_list = []
-                for file_num, file in enumerate(filename_source_list):
-                    if self.hydrau_description["unit_list_tf"][file_num]:
-                        new_names_list.append(os.path.splitext(file)[0].replace(".", "_"))
-                self.hydrau_description["hdf5_name"] = "_".join(new_names_list) + ".hyd"
-                if len(filename_source_list) == len(new_names_list) and len(self.hydrau_description["hdf5_name"]) > 25:
-                    self.hydrau_description["hdf5_name"] = new_names_list[0].replace(".", "_")  \
-                                + "_to_" + \
-                                new_names_list[-1].replace(".", "_") + ".hyd"
-            if not self.project_preferences["cut_mesh_partialy_dry"]:
-                namehdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[0]
-                exthdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[1]
-                self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-            self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-
-        # set text
-        text = str(selected) + "/" + str(total)
-        self.number_timstep_label.setText(text)  # number units
-
     def clean_gui(self):
         try:
             self.h2d_t2.disconnect()
@@ -3748,7 +3644,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
-            self.p = Process(target=telemac_mod.load_telemac_and_cut_grid,
+            self.p = Process(target=hydro_input_file_mod.load_hydraulic_cut_to_hdf5,
                              args=(self.hydrau_description_multiple,
                                    self.progress_value,
                                    self.q,
@@ -3756,7 +3652,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                    self.project_preferences))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
-            self.p = Process(target=telemac_mod.load_telemac_and_cut_grid,
+            self.p = Process(target=hydro_input_file_mod.load_hydraulic_cut_to_hdf5,
                              args=(self.hydrau_description,
                                    self.progress_value,
                                    self.q,

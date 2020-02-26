@@ -30,197 +30,6 @@ from src.project_manag_mod import create_default_project_preferences_dict
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict, check_data_2d_dict_size, check_data_2d_dict_validity
 
 
-def load_hec_ras_2d_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
-    # name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
-    #                                  print_cmd=False, project_preferences={}
-    """
-    This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
-    pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
-    get only the wetted area. This was done before in the HEC_RAS2D Class in hydro_gui_2.py, but it was necessary to
-    create a separate function to called this task in a second thread to avoid freezing the GUI.
-
-    :param name_hdf5: the base name of the created hdf5 (string)
-    :param filename: the name of the file containg the results of HEC-RAS in 2D. (string)
-    :param path: the path where the file is (string)
-    :param name_prj: the name of the project (string)
-    :param path_prj: the path of the project
-    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
-    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
-    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
-    :param q: used by the second thread to get the error back to the GUI at the end of the thread
-    :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
-    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
-
-    ** Technical comments**
-
-    This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
-    by the cmd. If it is called by the GUI, we want the output to be redirected to the windoows for the log under HABBY.
-    If it is called by the cmd, we want the print function to be sent to the command line.
-
-    """
-    if not print_cmd:
-        sys.stdout = mystdout = StringIO()
-
-    # minimum water height
-    if not project_preferences:
-        project_preferences = create_default_project_preferences_dict()
-    minwh = project_preferences['min_height_hyd']
-
-    # progress
-    progress_value.value = 5
-
-    # load
-    data_2d_from_hecras2d, description_from_hecras2d = load_hec_ras2d(hydrau_description["filename_source"],
-                                                                      hydrau_description["path_filename_source"])
-    if not data_2d_from_hecras2d and not data_2d_from_hecras2d:
-        q.put(mystdout)
-        return
-
-    # progress
-    progress_value.value = 10
-
-    # create empty dict
-    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(description_from_hecras2d["reach_number"]))  # always one reach by file
-    description_from_hecras2d["unit_correspondence"] = [[]] * int(description_from_hecras2d["reach_number"])  # multi reach by file
-
-    # create empty dict
-    data_2d = create_empty_data_2d_dict(1,  # always one reach
-                                        mesh_variables=list(data_2d_from_hecras2d["mesh"]["data"].keys()),
-                                        node_variables=list(data_2d_from_hecras2d["node"]["data"].keys()))
-
-    # progress from 10 to 90 : from 0 to len(units_index)
-    delta = int(80 / int(description_from_hecras2d["unit_number"]))
-
-    # for each reach
-    for reach_num in range(int(description_from_hecras2d["reach_number"])):
-        data_2d_whole_profile["mesh"]["tin"].append([])
-        data_2d_whole_profile["node"]["xy"].append([])
-        data_2d_whole_profile["node"]["z"].append([])
-
-        # for each units
-        description_from_hecras2d["unit_list"] = [description_from_hecras2d["unit_list"].split(", ")]
-        for unit_num in range(len(description_from_hecras2d["unit_list"][reach_num])):
-            # get unit from according to user selection
-            if hydrau_description["unit_list_tf"][reach_num][unit_num]:
-                # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                xy = np.insert(data_2d_from_hecras2d["node"]["xy"][reach_num],
-                               2,
-                               values=data_2d_from_hecras2d["node"]["z"][reach_num],
-                               axis=1)  # Insert values before column 2
-
-                # remove mesh dry and cut partialy dry in option
-                tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
-                    data_2d_from_hecras2d["mesh"]["tin"][reach_num],
-                    xy,
-                    data_2d_from_hecras2d["node"]["data"]["h"][reach_num][unit_num],
-                    data_2d_from_hecras2d["node"]["data"]["v"][reach_num][unit_num],
-                    progress_value,
-                    delta,
-                    project_preferences["cut_mesh_partialy_dry"],
-                    unit_num,
-                    minwh
-                    )
-
-                if not isinstance(tin_data, np.ndarray):  # error or warning
-                    if not tin_data:  # error
-                        print("Error: " + "cut_2d_grid")
-                        q.put(mystdout)
-                        return
-                    elif tin_data:   # warning
-                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
-                        # print("Warning: " + qt_tr.translate("rubar1d2d_mod", "The mesh of timestep ") + unit_name + qt_tr.translate("rubar1d2d_mod", " is entirely dry."))
-                        continue  # Continue to next iteration.
-                else:
-                    # get original data
-                    data_2d_whole_profile["mesh"]["tin"][reach_num].append(data_2d_from_hecras2d["mesh"]["tin"][reach_num])
-                    data_2d_whole_profile["node"]["xy"][reach_num].append(data_2d_from_hecras2d["node"]["xy"][reach_num])
-                    data_2d_whole_profile["node"]["z"][reach_num].append(data_2d_from_hecras2d["node"]["z"][reach_num])
-
-                    # get cuted grid
-                    data_2d["mesh"]["tin"][reach_num].append(tin_data)
-                    data_2d["mesh"]["i_whole_profile"][reach_num].append(i_whole_profile)
-                    for mesh_variable in data_2d_from_hecras2d["mesh"]["data"].keys():
-                        data_2d["mesh"]["data"][mesh_variable][reach_num].append(data_2d_from_hecras2d["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
-                    data_2d["node"]["xy"][reach_num].append(xy_cuted[:, :2])
-                    data_2d["node"]["z"][reach_num].append(xy_cuted[:, 2])
-                    data_2d["node"]["data"]["h"][reach_num].append(h_data)
-                    data_2d["node"]["data"]["v"][reach_num].append(v_data)
-
-    # refresh unit (if unit mesh entirely dry)
-    for reach_num in reversed(range(int(description_from_hecras2d["reach_number"]))):  # for each reach
-        for unit_num in reversed(range(len(description_from_hecras2d["unit_list"][reach_num]))):
-            if not hydrau_description["unit_list_tf"][reach_num][unit_num]:
-                description_from_hecras2d["unit_list"][reach_num].pop(unit_num)
-    description_from_hecras2d["unit_number"] = str(len(description_from_hecras2d["unit_list"][0]))
-
-    # varying mesh ?
-    for reach_num in range(int(description_from_hecras2d["reach_number"])):
-        temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][reach_num])
-        for i in range(len(temp_list)):
-            temp_list[i].sort(axis=0)
-        # TODO: sort function may be unadapted to check TIN equality between units
-        whole_profil_egual_index = []
-        it_equality = 0
-        for i in range(len(temp_list)):
-            if i == 0:
-                whole_profil_egual_index.append(it_equality)
-            if i > 0:
-                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
-                    whole_profil_egual_index.append(it_equality)
-                else:
-                    it_equality = i
-                    whole_profil_egual_index.append(it_equality)  # diff
-            description_from_hecras2d["unit_correspondence"][reach_num] = whole_profil_egual_index
-
-        if len(set(whole_profil_egual_index)) == 1:  # one tin for all unit
-            data_2d_whole_profile["mesh"]["tin"][reach_num] = [data_2d_whole_profile["mesh"]["tin"][reach_num][0]]
-            data_2d_whole_profile["node"]["xy"][reach_num] = [data_2d_whole_profile["node"]["xy"][reach_num][0]]
-
-    # ALL CASE SAVE TO HDF5
-    progress_value.value = 90  # progress
-
-    # hyd description
-    hyd_description = dict()
-    hyd_description["hyd_filename_source"] = description_from_hecras2d["filename_source"]
-    hyd_description["hyd_path_filename_source"] = description_from_hecras2d["path_filename_source"]
-    hyd_description["hyd_model_type"] = description_from_hecras2d["model_type"]
-    hyd_description["hyd_2D_numerical_method"] = "FiniteVolumeMethod"
-    hyd_description["hyd_model_dimension"] = description_from_hecras2d["model_dimension"]
-    hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_from_hecras2d["mesh"]["data"].keys()))
-    hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_from_hecras2d["node"]["data"].keys()))
-    hyd_description["hyd_epsg_code"] = "unknown"
-    hyd_description["hyd_reach_list"] = "unknown"
-    hyd_description["hyd_reach_number"] = description_from_hecras2d["reach_number"]
-    hyd_description["hyd_reach_type"] = "river"
-    hyd_description["hyd_unit_list"] = description_from_hecras2d["unit_list"]
-    hyd_description["hyd_unit_number"] = description_from_hecras2d["unit_number"]
-    hyd_description["hyd_unit_type"] = description_from_hecras2d["unit_type"]
-    hyd_description["unit_correspondence"] = description_from_hecras2d["unit_correspondence"]
-    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["cut_mesh_partialy_dry"])
-
-    hyd_description["hyd_varying_mesh"] = False
-    if hyd_description["hyd_varying_mesh"]:
-        hyd_description["hyd_unit_z_equal"] = False
-    else:
-        # TODO : check if all z values are equal between units
-        hyd_description["hyd_unit_z_equal"] = True
-
-    # create hdf5
-    hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
-                                   hydrau_description["hdf5_name"])
-    hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
-
-    # progress
-    progress_value.value = 100
-    if not print_cmd:
-        sys.stdout = sys.__stdout__
-    if q and not print_cmd:
-        q.put(mystdout)
-        return
-    else:
-        return
-
-
 def load_hec_ras2d(filename, path):
     """
     The goal of this function is to load 2D data from Hec-RAS in the version 5.
@@ -409,7 +218,7 @@ def load_hec_ras2d(filename, path):
         pass
     for idx, t in enumerate(timesteps):
         timesteps[idx] = t.decode('utf-8')
-        timesteps[idx] = timesteps[idx].replace(':', '-')
+        #timesteps[idx] = timesteps[idx].replace(':', '-')
 
     # get a triangular grid as hec-ras output are not triangular
     coord_p_all = np.column_stack([coord_p_all[0], elev_p_all[0]])
@@ -442,9 +251,9 @@ def load_hec_ras2d(filename, path):
     description_from_file["unit_list"] = ", ".join(timesteps)
     description_from_file["unit_number"] = str(len(timesteps))
     description_from_file["unit_type"] = "timestep [s]"
-    description_from_file["unit_z_equal"] = True
     description_from_file["reach_number"] = str(len(name_area))
     description_from_file["reach_name"] = ", ".join(name_area)
+    description_from_file["unit_z_equal"] = True  # TODO: check if always True ?
 
     # reset to list and separate xy to z
     h_list = []
@@ -484,8 +293,20 @@ def get_time_step(filename_path):
     except KeyError:
         print("Error: Can't find timestep dataset in ", filename_path)
 
+    return len(timesteps), timesteps
+
+
+def get_discharges(filename_path):
+    # open file
+    if os.path.isfile(filename_path):
+        try:
+            file2D = h5py.File(filename_path, 'r')
+        except OSError:
+            print("Error: unable to open the hdf file.")
+
     # find discharges
     discharge_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas/2D_AREA/Boundary Conditions"
+    flow_dataset_names = None
     try:
         boundary_conditions = list(file2D[discharge_path].keys())
         flow_dataset_names = [boundary_condition for boundary_condition in boundary_conditions if "flow" in boundary_condition.lower()]
@@ -493,13 +314,13 @@ def get_time_step(filename_path):
         print("Error: Can't find boundary conditions datasets in ", filename_path)
 
     if flow_dataset_names:
+        nb_timesteps, timesteps = get_time_step(filename_path)
         for flow_dataset_name in flow_dataset_names:
             discharge_list = np.sum(file2D[discharge_path + "/" + flow_dataset_name][:], axis=1).astype(np.str).tolist()
             if len(discharge_list) == len(timesteps):
                 for timestep_num, timestep in enumerate(timesteps):
-                    timesteps[timestep_num] = timestep + " - "  + discharge_list[timestep_num]
-
-    return len(timesteps), timesteps
+                    timesteps[timestep_num] = timestep + " - " + discharge_list[timestep_num]
+    return timesteps
 
 
 def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
