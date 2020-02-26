@@ -476,15 +476,29 @@ def get_time_step(filename_path):
             print("Error: unable to open the hdf file.")
 
     # name of the time step
+    timestep_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Time Date Stamp"
     timesteps = []
     try:
-        timesteps = list(file2D["/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series"
-                                "/Time Date Stamp"])
+        timesteps = list(file2D[timestep_path])
+        timesteps = [t.decode('utf-8') for idx, t in enumerate(timesteps)]
     except KeyError:
-        pass
-    for idx, t in enumerate(timesteps):
-        timesteps[idx] = t.decode('utf-8')
-        timesteps[idx] = timesteps[idx].replace(':', '-')
+        print("Error: Can't find timestep dataset in ", filename_path)
+
+    # find discharges
+    discharge_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas/2D_AREA/Boundary Conditions"
+    try:
+        boundary_conditions = list(file2D[discharge_path].keys())
+        flow_dataset_names = [boundary_condition for boundary_condition in boundary_conditions if "flow" in boundary_condition.lower()]
+    except:
+        print("Error: Can't find boundary conditions datasets in ", filename_path)
+
+    if flow_dataset_names:
+        for flow_dataset_name in flow_dataset_names:
+            discharge_list = np.sum(file2D[discharge_path + "/" + flow_dataset_name][:], axis=1).astype(np.str).tolist()
+            if len(discharge_list) == len(timesteps):
+                for timestep_num, timestep in enumerate(timesteps):
+                    timesteps[timestep_num] = timestep + " - "  + discharge_list[timestep_num]
+
     return len(timesteps), timesteps
 
 
