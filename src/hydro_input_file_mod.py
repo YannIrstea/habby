@@ -1494,7 +1494,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
 
         for i, unit_num in enumerate(unit_index_list):
             if len(file_list) > 1:
-                data_2d_source, description_from_source = load_hydraulic(file,
+                data_2d_source, description_from_source = load_hydraulic(file_list[i],
                                                                          hydrau_description[hyd_file][
                                                                              "path_filename_source"],
                                                                          hydrau_description[hyd_file]["model_type"])
