@@ -2571,14 +2571,14 @@ class HEC_RAS1D(SubHydroW):
         self.project_preferences = load_project_preferences(self.path_prj)
 
         # prepare the filter to show only useful files
-        if len(self.extension[i]) <= 4:
-            filter2 = "File ("
-            for e in self.extension[i]:
-                filter2 += '*' + e + ' '
-            filter2 = filter2[:-1]
-            filter2 += ')' + ";; All File (*.*)"
-        else:
-            filter2 = ''
+        # if len(self.extension[i]) <= 4:
+        filter2 = "File ("
+        for e in self.extension[i]:
+            filter2 += '*' + e + ' '
+        filter2 = filter2[:-1]
+        filter2 += ')' + ";; All File (*.*)"
+        # else:
+        #     filter2 = ''
 
         # get last path
         if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
