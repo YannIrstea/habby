@@ -2433,8 +2433,7 @@ class HEC_RAS1D(SubHydroW):
         self.attributexml = ['geodata', 'resdata']
         self.model_type = 'HECRAS1D'
         self.data_type = "HYDRAULIC"
-        self.extension = [['.g01', '.g02', '.g03', '.g04', '.g05 ', '.g06', '.g07', '.g08',
-                           '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
+        self.extension = [['.g*', '.G*'], ['.xml', '.rep', '.sdf']]
         self.nb_dim = 1.5
         self.init_iu()
 
