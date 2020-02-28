@@ -138,14 +138,19 @@ class Hdf5Management:
                         for reach_num, reach_name in enumerate(self.reach_name):
                             self.basename_output_reach_unit.append([])
                             for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                self.basename_output_reach_unit[reach_num].append(self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
+                                self.basename_output_reach_unit[reach_num].append(
+                                    self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
                         self.units_name_output = []
                         for reach_num, reach_name in enumerate(self.reach_name):
                             self.units_name_output.append([])
                             for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                unit_name2 = unit_name.replace(".", "_") + "_" + \
-                                             self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
-                                                                                                                "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                                if self.file_object.attrs["hyd_unit_type"] != 'unknown':
+                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
+                                                 self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
+                                                                                                                    "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                                else:
+                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
+                                                 self.file_object.attrs["hyd_unit_type"]
                                 self.units_name_output[reach_num].append(unit_name2)
 
         except OSError:
@@ -159,7 +164,8 @@ class Hdf5Management:
         :param input_file_path: input file path
         """
         if not os.path.isfile(self.absolute_path_prj_xml):
-            print('Error: ' + qt_tr.translate("hdf5_mod", 'No project saved. Please create a project first in the General tab.'))
+            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                              'No project saved. Please create a project first in the General tab.'))
             return
         else:
             # load_project_preferences
@@ -173,6 +179,16 @@ class Hdf5Management:
 
             # save_project_preferences
             save_project_preferences(self.path_prj, project_preferences)
+
+    # SET HDF5 INFORMATIONS
+    def set_hdf5_attributes(self, attribute_name, attribute_value):
+        # create existing hdf5
+        self.open_hdf5_file(new=False)
+
+        # set attributes
+        for attrib_ind in range(len(attribute_name)):
+            self.file_object.attrs[attribute_name[attrib_ind]] = str(attribute_value[attrib_ind])
+        self.file_object.close()
 
     # GET HDF5 INFORMATIONS
     def get_hdf5_attributes(self):
@@ -231,7 +247,6 @@ class Hdf5Management:
             """ get_hdf5_reach_name """
             # units name
             reach_name = []
-            # get unit_list
             hdf5_attributes = list(self.file_object.attrs.items())
             for attribute_name, attribute_data in hdf5_attributes:
                 if "reach_list" in attribute_name:
@@ -2069,13 +2084,13 @@ class Hdf5Management:
                     # get data
                     xy = self.data_2d_whole["node"]["xy"][reach_num][unit_num]
                     z = self.data_2d_whole["node"]["z"][reach_num][unit_num] * self.project_preferences["vertical_exaggeration"]
-                    faces = self.data_2d_whole["mesh"]["tin"][reach_num][unit_num]
-                    vertices = np.column_stack([xy, z])
+                    tin = self.data_2d_whole["mesh"]["tin"][reach_num][unit_num]
+                    xyz = np.column_stack([xy, z])
                     # Create the mesh
-                    stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-                    for i, f in enumerate(faces):
+                    stl_file = mesh.Mesh(np.zeros(tin.shape[0], dtype=mesh.Mesh.dtype))
+                    for i, f in enumerate(tin):
                         for j in range(3):
-                            stl_file.vectors[i][j] = vertices[f[j], :]
+                            stl_file.vectors[i][j] = xyz[f[j], :]
                     # filename
                     name_file = self.basename + "_" + self.reach_name[reach_num] + "_" + self.data_description["unit_name_whole_profile"][reach_num][unit_num] + "_wholeprofile_mesh.stl"
 

@@ -1041,6 +1041,7 @@ class SubHydroW(QWidget):
                     self.name_last_hdf5("HABITAT")
                     # unblock button merge
                     self.load_b2.setDisabled(False)  # merge
+
                 # SUBSTRATE
                 elif self.model_type == 'SUBSTRATE':
                     self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of substrate data finished (computation time = ") + str(
@@ -1054,6 +1055,7 @@ class SubHydroW(QWidget):
                     self.load_polygon_substrate.setDisabled(False)  # substrate
                     self.load_point_substrate.setDisabled(False)  # substrate
                     self.load_constant_substrate.setDisabled(False)  # substrate
+
                 # HYDRAULIC
                 else:
                     self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of hydraulic data finished (computation time = ") + str(
@@ -1066,6 +1068,11 @@ class SubHydroW(QWidget):
                         self.drop_merge.emit()
                     # unblock button hydraulic
                     self.load_b.setDisabled(False)  # hydraulic
+
+                # send round(c) to attribute .hyd
+                hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
+                hdf5_hyd.set_hdf5_attributes([os.path.splitext(self.name_hdf5)[1][1:] + "_time_creation [s]"],
+                                             [round(self.running_time)])
 
                 # general
                 self.nativeParentWidget().progress_bar.setValue(100)
@@ -5851,12 +5858,12 @@ class SubstrateW(SubHydroW):
         hdf5_name_sub = self.drop_sub.currentText()
 
         # hdf5 output file
-        name_hdf5merge = self.hdf5_merge_lineedit.text()
+        self.name_hdf5 = self.hdf5_merge_lineedit.text()
         # if file exist add number
         nb = 0
-        while os.path.isfile(path_hdf5 + "/" + name_hdf5merge + ".hab"):
+        while os.path.isfile(path_hdf5 + "/" + self.name_hdf5 + ".hab"):
             nb = nb + 1
-            name_hdf5merge = self.hdf5_merge_lineedit.text() + "_" + str(nb)
+            self.name_hdf5 = self.hdf5_merge_lineedit.text() + "_" + str(nb)
 
         # get the figure options and the type of output to be created
         project_preferences = load_project_preferences(self.path_prj)
@@ -5873,7 +5880,7 @@ class SubstrateW(SubHydroW):
         self.p = Process(target=mesh_management_mod.merge_grid_and_save,
                          args=(hdf5_name_hyd,
                                hdf5_name_sub,
-                               name_hdf5merge,
+                               self.name_hdf5,
                                self.path_prj,
                                self.progress_value,
                                self.q,
