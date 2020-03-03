@@ -423,7 +423,7 @@ def compute_interpolation(data_description, fish_names, reach_num, chronicle, ty
 
     # get hdf5 model
     inter_data_model = dict()
-    inter_data_model["unit"] = data_description["hyd_unit_list"][reach_num]
+    inter_data_model["unit"] = list(map(float, data_description["hyd_unit_list"][reach_num]))
     wet_area = np.array(list(map(float, data_description["total_wet_area"][reach_num])))
     # map by fish
     for fish_index, fish_name in enumerate(fish_names):
@@ -1077,7 +1077,7 @@ class MyProcessList(QThread):
         if self.thread_started:
             self.export_production_stoped = True
             while not self.all_process_runned:
-                print("waiting", self.all_process_runned)
+                #print("waiting", self.all_process_runned)
                 pass
 
             for i in range(len(self.process_list)):

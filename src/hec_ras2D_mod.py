@@ -269,7 +269,7 @@ def load_hec_ras2d(filename, path):
     description_from_file["model_dimension"] = str(2)
     description_from_file["unit_list"] = ", ".join(timesteps)
     description_from_file["unit_number"] = str(len(timesteps))
-    description_from_file["unit_type"] = "timestep [s]"
+    description_from_file["unit_type"] = "time [s]"
     description_from_file["reach_number"] = str(len(name_area))
     description_from_file["reach_name"] = ", ".join(name_area)
     description_from_file["unit_z_equal"] = True  # TODO: check if always True ?

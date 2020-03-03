@@ -448,7 +448,7 @@ class MainWindows(QMainWindow):
                 self.delete_project(path_prj)
                 try:
                     os.makedirs(path_prj)
-                except PermissionError:
+                except (PermissionError, FileExistsError):
                     self.msg2.setIcon(QMessageBox.Warning)
                     self.msg2.setWindowTitle(self.tr("Permission Error"))
                     self.msg2.setText(

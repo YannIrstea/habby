@@ -116,7 +116,7 @@ def load_telemac(namefilet, pathfilet):
     description_from_telemac_file["model_dimension"] = str(2)
     description_from_telemac_file["unit_list"] = ", ".join(list(map(str, timestep)))
     description_from_telemac_file["unit_number"] = str(len(list(map(str, timestep))))
-    description_from_telemac_file["unit_type"] = "timestep"
+    description_from_telemac_file["unit_type"] = "time [s]"
     description_from_telemac_file["unit_z_equal"] = all_z_equal
 
     # data 2d dict (one reach by file and varying_mesh==False)
