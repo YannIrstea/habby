@@ -93,7 +93,7 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION)
-        self.beta = False  # if set to True : GUI beta version mode is runned (block fonctionality)
+        self.beta = True  # if set to True : GUI beta version mode is runned (block fonctionality)
         # user_preferences
         self.user_preferences = user_preferences
 
@@ -334,8 +334,9 @@ class MainWindows(QMainWindow):
         """
         if self.beta:
             # disable_hydraulic_models_not_finished
-            list_to_disable = ['HABBY_HDF5', 'HEC-RAS_1D', 'HEC-RAS_2D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D',
-                               'RUBAR_20', 'RUBAR_BE', 'SW2D']  # , 'TXT'
+            # list_to_disable = ['HABBY_HDF5', 'HEC-RAS_1D', 'HEC-RAS_2D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D',
+            #                    'RUBAR_20', 'RUBAR_BE', 'SW2D']  # , 'TXT'
+            list_to_disable = ['HABBY_HDF5', 'HEC-RAS_1D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D', 'RUBAR_BE', 'SW2D']
             if hasattr(self.central_widget, "hydro_tab"):
                 list_of_model = self.central_widget.hydro_tab.name_model
                 for model in list_of_model:
@@ -344,6 +345,8 @@ class MainWindows(QMainWindow):
 
             # disable_model_statistic
             self.statisticmodelaction.setEnabled(False)
+            if hasattr(self.central_widget, "statmod_tab"):
+                self.central_widget.statmod_tab.setEnabled(True)
             # if hasattr(self.central_widget, "statmod_tab"):
             #     self.central_widget.statmod_tab.setEnabled(True)
             # if hasattr(self.central_widget, "stathab_tab"):
@@ -378,6 +381,9 @@ class MainWindows(QMainWindow):
         self.createnew = CreateNewProjectDialog(self.lang, self.physic_tabs, self.stat_tabs, pathprj_old)
         self.createnew.create_project.connect(self.create_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
+        if self.beta:
+            self.createnew.project_type_combobox.model().item(1).setEnabled(False)
+            self.createnew.project_type_combobox.model().item(2).setEnabled(False)
         self.createnew.show()
 
     def open_existing_project_dialog(self):
@@ -692,7 +698,6 @@ class MainWindows(QMainWindow):
 
         self.my_menu_bar()
 
-
         # update central widget
         self.central_widget.name_prj = self.name_prj
         self.central_widget.path_prj = self.path_prj
@@ -741,6 +746,9 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log("restart    Name of the project: " + self.name_prj)
         self.central_widget.write_log("restart    Path of the project: " + self.path_prj)
         self.central_widget.write_log("restart    version habby: " + str(self.version))
+
+
+        self.run_as_beta_version()
 
         # enabled lowest part
         self.central_widget.welcome_tab.current_prj_groupbox.setEnabled(True)

@@ -238,7 +238,7 @@ def load_hec_ras2d(filename, path):
     except KeyError:
         pass
     for idx, t in enumerate(timesteps):
-        timesteps[idx] = t.decode('utf-8').replace(":", "_")  # replace if date with ":" (incompatible with filename)
+        timesteps[idx] = t.decode('utf-8')
 
     # get a triangular grid as hec-ras output are not triangular
     coord_p_all = np.column_stack([coord_p_all[0], elev_p_all[0]])
@@ -309,7 +309,7 @@ def get_time_step(filename_path):
     timesteps = []
     try:
         timesteps = list(file2D[timestep_path])
-        timesteps = [t.decode('utf-8').replace(":", "_").replace(" ", "_") for idx, t in enumerate(timesteps)] # replace if date with ":" (incompatible with filename)
+        timesteps = [t.decode('utf-8') for idx, t in enumerate(timesteps)]
     except KeyError:
         print("Error: Can't find timestep dataset in ", filename_path)
 

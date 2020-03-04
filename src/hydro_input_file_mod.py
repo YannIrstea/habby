@@ -27,7 +27,7 @@ from src import ascii_mod
 from src import hec_ras2D_mod, hec_ras1D_mod
 from src import rubar1d2d_mod
 from src import telemac_mod
-from src.tools_mod import polygon_type_values, point_type_values
+from src.tools_mod import polygon_type_values, point_type_values, sort_homogoeneous_dict_list_by_on_key
 from src.project_manag_mod import create_default_project_preferences_dict
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src import hdf5_mod
@@ -232,6 +232,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             start = headers[discharge_index].find('Q[') + len('Q[')
             end = headers[discharge_index].find(']', start)
             discharge_unit = headers[discharge_index][start:end]
+            # sort by discharge if not done
+            data_index_file = sort_homogoeneous_dict_list_by_on_key(data_index_file,
+                                                  headers[discharge_index])
         if any("T[" in s for s in headers):
             time_presence = True  # "T[" in headers
             time_index = [i for i, s in enumerate(headers) if 'T[' in s][0]
@@ -430,7 +433,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 unit_name_from_index_file = data_index_file[headers[time_index]][rowindex]
                 # check if lenght of two loading units
                 if unit_name_from_index_file not in unit_name_from_file:
-                    return "Error: " + unit_name_from_index_file + "don't exist in" + file, None
+                    return "Error: " + unit_name_from_index_file + " don't exist in " + file, None
 
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
@@ -1561,7 +1564,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_reach_list"] = hydrau_description[hyd_file]["reach_list"]
         hyd_description["hyd_reach_number"] = hydrau_description[hyd_file]["reach_number"]
         hyd_description["hyd_reach_type"] = hydrau_description[hyd_file]["reach_type"]
-        hyd_description["hyd_unit_list"] = [hydrau_description[hyd_file]["unit_list"]]
+        hyd_description["hyd_unit_list"] = [[unit_name.replace(":", "_").replace(" ", "_") for unit_name in hydrau_description[hyd_file]["unit_list"]]]
         hyd_description["hyd_unit_number"] = str(len(hydrau_description[hyd_file]["unit_list"]))
         hyd_description["hyd_unit_type"] = hydrau_description[hyd_file]["unit_type"]
         hyd_description["unit_correspondence"] = hydrau_description[hyd_file]["unit_correspondence"]
