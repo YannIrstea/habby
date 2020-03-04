@@ -16,7 +16,8 @@ elif operatingsystem() == 'Darwin':
 
 paths = [
     os.path.join(habby_dev_path, 'habby'),
-    os.path.join(habby_dev_path, 'env_virtuels\\env_habby_dev\\Lib\\site-packages\\osgeo')
+    os.path.join(habby_dev_path, 'env_virtuels\\env_habby_dev\\Lib\\site-packages\\osgeo'),
+    os.path.join(habby_dev_path, 'env_virtuels\\env_habby_dev\\Lib\\site-packages\\triangle')
 ]
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)
@@ -24,6 +25,13 @@ osgeo_pyds = []
 for p, lib in _osgeo_pyds:
     if '.pyd' in p or '.pyx' in p or '.pyc' in p:
         osgeo_pyds.append((p, '.'))
+_triangle_pyds = collect_data_files('triangle', include_py_files=True)
+triangle_pyds = []
+for p, lib in _osgeo_pyds:
+    if '.pyd' in p or '.pyx' in p or '.pyc' in p:
+        triangle_pyds.append((p, '.'))
+binaries = osgeo_pyds + triangle_pyds
+
 
 hidden_imports = [
     'gdal',

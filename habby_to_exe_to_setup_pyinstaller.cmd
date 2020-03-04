@@ -1,9 +1,14 @@
-::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
+:: activate native conda
+call %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat
+
+:: PATHS
 SET envir_virtuels_path=C:\habby_dev\env_virtuels
 SET envir_virtuel_name=env_habby_dev
 SET habby_path=C:\habby_dev\habby
-::call %envir_virtuel_path%\Scripts\activate.bat
+
+::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
 call conda activate %envir_virtuels_path%\%envir_virtuel_name%
+::call %envir_virtuel_path%\Scripts\activate.bat
 
 ::::::::::: RUN COMPILATION :::::::::::::::::::
 set /p VarQuestion= Do you want to create an installer after the creation of the executable ? (y/n) : 
@@ -12,8 +17,8 @@ ECHO if build\pyinstaller folder exist, remove it
 if exist build\pyinstaller rmdir /Q /S build\pyinstaller
 
 ECHO pyinstaller ##  --windowed remove console  --specpath=pyinstaller_config.spec  --add-binary C:\users\quentin.royer\documents\taf\environnements_virtuels\env_habby_dev2\lib\site-packages\shapely\DLLs\geos.dll;geos.dll 
-::pyinstaller --icon=translation\habby_icon.ico --windowed --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --name=habby habby.py
-pyinstaller habby.spec --distpath=build\pyinstaller --workpath=build\pyinstaller\temp
+pyinstaller --icon=translation\habby_icon.ico --windowed --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --name=habby habby.py
+::pyinstaller habby.spec --distpath=build\pyinstaller --workpath=build\pyinstaller\temp
 
 ECHO if build folder exist, remove it
 if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp

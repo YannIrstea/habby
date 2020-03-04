@@ -1,3 +1,8 @@
+:: activate native conda
+if exist %USERPROFILE%\Miniconda3\Scripts\activate.bat call %USERPROFILE%\Miniconda3\Scripts\activate.bat
+if exist %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat call %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat
+
+call conda update conda --yes
 :: add channels
 call conda config --add channels conda-forge
 call conda config --add channels anaconda
@@ -25,7 +30,7 @@ pip install pillow==7.0.0
 python habby.py
 
 :: EXPORT TO YML
-call conda env export > env_habby_dev.yml
+conda env export > env_habby_dev.yml
 
 :: CREATE env_habby_dev VIRTUAL ENV CONDA FROM .yml
 ::call conda env create --file env_habby_dev.yml
