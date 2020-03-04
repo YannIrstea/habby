@@ -968,8 +968,6 @@ class MainWindows(QMainWindow):
         # if hasattr(self.central_widget, 'chronicle_tab') == True:
         #     self.central_widget.update_merge_for_chronicle()
 
-        self.central_widget.tracking_journal_title_label.setText(self.tr('Habby says:'))
-
         # update user option to remember the language
         if self.lang == 0:
             language = "english"

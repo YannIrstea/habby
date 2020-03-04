@@ -19,6 +19,7 @@ import sys
 from io import StringIO
 from glob import glob
 from shutil import copy as sh_copy
+from shutil import rmtree
 import numpy as np
 import triangle as tr
 from osgeo import ogr
@@ -26,7 +27,7 @@ from osgeo import osr
 from scipy.spatial import Voronoi
 
 from src import hdf5_mod
-from src.tools_mod import polygon_type_values, point_type_values
+from src.tools_mod import polygon_type_values, point_type_values, copy_shapefiles
 
 
 def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -49,6 +50,24 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     # security if point case
     sub_path_source = sub_description["sub_path_source"]
     sub_filename_source = sub_description["sub_filename_source"]
+
+    # create input project folder
+    input_project_folder = os.path.join(sub_description["path_prj"], "input", os.path.splitext(sub_filename_source)[0])
+    if os.path.exists(input_project_folder):
+        try:
+            rmtree(input_project_folder)
+            os.mkdir(input_project_folder)
+        except PermissionError:
+            try:
+                rmtree(input_project_folder)
+                os.mkdir(input_project_folder)
+            except PermissionError:
+                print("Error: Can't remove " + os.path.splitext(sub_filename_source)[0] +
+                      " folder in 'input' project folder, as it file(s) opened in another program.")
+                q.put(mystdout)
+                return
+    else:
+        os.mkdir(input_project_folder)
 
     # set extension if not done
     if os.path.splitext(sub_description["name_hdf5"])[-1] != ".sub":
@@ -464,29 +483,28 @@ def load_sub_shp(sub_description, progress_value):
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
-        if polygon_shp_to_triangle_shp(filename, path_file, path_prj):
+        if polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system):
             # prog (triangulation done)
             progress_value.value = 90
 
             # file name triangulated
-            filename = blob + "_triangulated.shp"
+            filename = blob + "_triangulated.gpkg"
 
             # initialization
             xy = []  # point
             tin = []  # connectivity table
-            ind = 0
 
             # open shape file (think about zero or one to start! )
-            driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-            ds = driver.Open(os.path.join(path_prj, "output", "GIS", filename), 0)  # 0 means read-only. 1 means writeable.
-            layer = ds.GetLayer(0)  # one layer in shapefile
-            layer_defn = layer.GetLayerDefn()
+            driver = ogr.GetDriverByName('GPKG')
+            ds = driver.Open(os.path.join(path_prj, "input", blob, filename), 0)  # 0 means read-only. 1 means writeable.
+            layer = ds.GetLayer(0)
 
             # get point coordinates and connectivity table in two lists
             sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
             for feature_ind, feature in enumerate(layer):
                 sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
                 shape_geom = feature.geometry()
+                shape_geom.SetCoordinateDimension(2)  # never z values
                 geom_part = shape_geom.GetGeometryRef(0)  # only one if triangular mesh
                 p_all = geom_part.GetPoints()
                 tin_i = []
@@ -533,7 +551,7 @@ def load_sub_cst(sub_description, progress_value):
     return data_2d
 
 
-def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
+def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system):
     """
     Convert a polygon shapefile to a polygon triangle shapefile
     with a constrained Delaunay triangulation
@@ -664,7 +682,8 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
 
         # get geometry and attributes of triangles
         triangle_geom_list = []
-        triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
+        #triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
+        triangle_records_list = np.zeros(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
         for i in range(len(polygon_triangle["triangles"])):
             # triangle coords
             p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]]
@@ -676,7 +695,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
             ymean = (p1[1] + p2[1] + p3[1]) / 3
             polyg_center = (xmean, ymean)
             layer.ResetReading()  # reset the read position to the start
-            # if center in polygon: get attributes
+            # if center of triangle in polygon: get attributes
             for j, feature in enumerate(layer):
                 shape_geom = feature.geometry()
                 geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
@@ -688,14 +707,81 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
                     break
 
         # close file
-        ds.Destroy()
+        layer = None
+        ds = None
+
+        # geometry issue : polygons are not joined (little hole) ==> create invalid geom
+        if 0 in triangle_records_list:
+            # write triangulate shapefile
+            out_error_shp_basename = os.path.splitext(filename)[0]
+            out_error_shp_filename = out_error_shp_basename + "_invalid.gpkg"
+            out_error_shp_path = os.path.join(path_prj, "input", out_error_shp_basename)
+            out_error_shp_abs_path = os.path.join(out_error_shp_path, out_error_shp_filename)
+            if os.path.exists(out_error_shp_abs_path):
+                try:
+                    os.remove(out_error_shp_abs_path)
+                except PermissionError:
+                    print('Error: ' + out_error_shp_filename + ' is currently open in an other program. Could not be re-written.')
+                    return False
+
+            driver = ogr.GetDriverByName('GPKG')  # GPKG
+            ds = driver.CreateDataSource(out_error_shp_abs_path)
+            if not crs:  # '' == crs unknown
+                layer = ds.CreateLayer(name=out_error_shp_basename, geom_type=ogr.wkbPolygon)
+            else:  # crs known
+                layer = ds.CreateLayer(name=out_error_shp_basename, srs=crs, geom_type=ogr.wkbPolygon)
+
+            defn = layer.GetLayerDefn()
+            layer.StartTransaction()  # faster
+
+            # triangle_invalid_index_list
+            triangle_invalid_index_list = np.where(triangle_records_list[:, 0] == 0)[0]
+            print("Warning: Maybe in reason of invalid geometry some generated substrate data triangles have been set to default values. You will find " + out_error_shp_filename +
+                  " in 'input' project folder, these help you to find an invalid geometry. Correct it and try again.")
+            for triangle_invalid_index in triangle_invalid_index_list:
+                # set sub_default_values
+                triangle_records_list[triangle_invalid_index, :] = np.array(sub_description_system["sub_default_values"].split(", ")).astype(np.int)
+
+                # get geom
+                p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][triangle_invalid_index][0]]
+                p2 = polygon_triangle["vertices"][polygon_triangle["triangles"][triangle_invalid_index][1]]
+                p3 = polygon_triangle["vertices"][polygon_triangle["triangles"][triangle_invalid_index][2]]
+
+                ring = ogr.Geometry(ogr.wkbLinearRing)
+                ring.AddPoint(*p1)
+                ring.AddPoint(*p2)
+                ring.AddPoint(*p3)
+                ring.AddPoint(*p1)
+                # Create polygon
+                poly = ogr.Geometry(ogr.wkbPolygon)
+                poly.AddGeometry(ring)
+                # Create a new feature
+                feat = ogr.Feature(defn)
+                # set geometry
+                feat.SetGeometry(poly)
+                # create
+                layer.CreateFeature(feat)
+
+            # Save and close everything
+            layer.CommitTransaction()  # faster
+
+            # close file
+            layer = None
+            ds = None
 
         # write triangulate shapefile
         out_shp_basename = os.path.splitext(filename)[0]
-        out_shp_filename = out_shp_basename + "_triangulated.shp"
-        out_shp_path = os.path.join(path_prj, "output", "GIS")
+        out_shp_filename = out_shp_basename + "_triangulated.gpkg"
+        out_shp_path = os.path.join(path_prj, "input", out_shp_basename)
         out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
-        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
+        if os.path.exists(out_shp_abs_path):
+            try:
+                os.remove(out_shp_abs_path)
+            except PermissionError:
+                print(
+                    'Error: ' + out_shp_filename + ' is currently open in an other program. Could not be re-written.')
+                return False
+        driver = ogr.GetDriverByName('GPKG')  # Shapefile
         ds = driver.CreateDataSource(out_shp_abs_path)
         if not crs:  # '' == crs unknown
             layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
@@ -727,6 +813,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
         layer.CommitTransaction()  # faster
 
         # close file
+        layer = None
         ds.Destroy()
 
     return True

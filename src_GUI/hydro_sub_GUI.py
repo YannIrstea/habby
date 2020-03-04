@@ -5726,14 +5726,12 @@ class SubstrateW(SubHydroW):
             self.p.name = "Substrate data loading from shapefile"
             self.p.start()
 
-            sys.stdout = sys.__stdout__  # reset to console
-            self.send_err_log()
-
             # copy_shapefiles
             path_input = self.find_path_input()
 
             # log info
             self.send_log.emit(self.tr('# Loading: Substrate data ...'))
+            # self.send_err_log()
             self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
             self.send_log.emit("py    path1=r'" + path_input + "'")
             self.send_log.emit("py    type='" + self.sub_description["sub_classification_code"] + "'")

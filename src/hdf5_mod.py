@@ -739,7 +739,8 @@ class Hdf5Management:
         # copy input files to input project folder
         copy_shapefiles(os.path.join(sub_description_system["sub_path_source"], sub_description_system["sub_filename_source"]),
                         sub_description_system["name_hdf5"],
-                        os.path.join(sub_description_system["path_prj"], "input"))
+                        os.path.join(sub_description_system["path_prj"], "input"),
+                        remove=False)
 
         # save XML
         self.save_xml("SUBSTRATE", sub_description_system["sub_path_source"])

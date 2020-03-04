@@ -608,25 +608,26 @@ def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, var
     return plot_string_dict
 
 
-def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path):
+def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path, remove=True):
     """
     get all file with same prefix of input_shapefile_abspath and copy them to dest_folder_path.
     """
     # create folder with hdf5 name in input project folder
     input_hdf5name_folder_path = os.path.join(dest_folder_path, os.path.splitext(hdf5_name)[0])
     if os.path.exists(input_hdf5name_folder_path):
-        try:
-            rmtree(input_hdf5name_folder_path)
-            os.mkdir(input_hdf5name_folder_path)
-        except PermissionError:
-            print("Error: Hydraulic input file can be copied to input project folder"
-                  " as it is open in another program.")
+        if remove:
             try:
                 rmtree(input_hdf5name_folder_path)
                 os.mkdir(input_hdf5name_folder_path)
             except PermissionError:
-                print("Error: Can't create folder in input project folder.")
-                return
+                print("Error: Hydraulic input file can be copied to input project folder"
+                      " as it is open in another program.")
+                try:
+                    rmtree(input_hdf5name_folder_path)
+                    os.mkdir(input_hdf5name_folder_path)
+                except PermissionError:
+                    print("Error: Can't create folder in input project folder.")
+                    return
     else:
         os.mkdir(input_hdf5name_folder_path)
 
