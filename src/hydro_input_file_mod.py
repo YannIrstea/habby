@@ -234,7 +234,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             discharge_unit = headers[discharge_index][start:end]
             # sort by discharge if not done
             data_index_file = sort_homogoeneous_dict_list_by_on_key(data_index_file,
-                                                  headers[discharge_index])
+                                                  headers[discharge_index], data_type=float)
         if any("T[" in s for s in headers):
             time_presence = True  # "T[" in headers
             time_index = [i for i, s in enumerate(headers) if 'T[' in s][0]

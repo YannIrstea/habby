@@ -873,8 +873,12 @@ def isstranumber(a):
     return bool_a
 
 
-def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
-    indice_sorted = [dict_to_sort[key].index(x) for x in sorted(dict_to_sort[key])]
+def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key, data_type=str):
+    if data_type == str:
+        indice_sorted = [dict_to_sort[key].index(x) for x in sorted(dict_to_sort[key])]
+    elif data_type == float:
+        indice_sorted = np.argsort(list(map(float, dict_to_sort[key]))).tolist()
+
     if list(set(indice_sorted)) == [0]:
         indice_sorted = list(range(len(indice_sorted)))
 
