@@ -1402,7 +1402,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             data_2d_whole_profile["mesh"]["tin"][0].append(data_2d_source["mesh"]["tin"][0])
             data_2d_whole_profile["node"]["xy"][0].append(data_2d_source["node"]["xy"][0])
             if description_from_source["unit_z_equal"]:
-                data_2d_whole_profile["node"]["z"][0].append(data_2d_source["node"]["z"][0][0])
+                data_2d_whole_profile["node"]["z"][0].append(data_2d_source["node"]["z"][0])
             elif not description_from_source["unit_z_equal"]:
                 for unit_num in range(len(hydrau_description[hyd_file]["unit_list"])):
                     data_2d_whole_profile["node"]["z"][0].append(data_2d_source["node"]["z"][0][unit_num])
@@ -1485,9 +1485,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         # same mesh for all units : conca xy array with first z array
         if len(set(hydrau_description[hyd_file]["unit_correspondence"][0])) == 1:
             # conca xy with z value to facilitate the cutting of the grid (interpolation)
-            xy = np.insert(data_2d_source["node"]["xy"][0],
+            xyz = np.insert(data_2d_source["node"]["xy"][0],
                            2,
-                           values=data_2d_source["node"]["z"][0][0],
+                           values=data_2d_source["node"]["z"][0],
                            axis=1)  # Insert values before column 2
         else:
             data_2d_source, description_from_source = load_hydraulic(file,
@@ -1502,14 +1502,14 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                                                                              "path_filename_source"],
                                                                          hydrau_description[hyd_file]["model_type"])
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                xy = np.insert(data_2d_source["node"]["xy"][0],
+                xyz = np.insert(data_2d_source["node"]["xy"][0],
                                2,
                                values=data_2d_source["node"]["z"][0][unit_num],
                                axis=1)  # Insert values before column 2
 
-            tin_data, xy_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
+            tin_data, xyz_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
                 data_2d_source["mesh"]["tin"][0],
-                xy,
+                xyz,
                 data_2d_source["node"]["data"]["h"][0][unit_num],
                 data_2d_source["node"]["data"]["v"][0][unit_num],
                 progress_value,
@@ -1533,8 +1533,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 for mesh_variable in data_2d_source["mesh"]["data"].keys():
                     data_2d["mesh"]["data"][mesh_variable][0].append(
                         data_2d_source["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
-                data_2d["node"]["xy"][0].append(xy_cuted[:, :2])
-                data_2d["node"]["z"][0].append(xy_cuted[:, 2])
+                data_2d["node"]["xy"][0].append(xyz_cuted[:, :2])
+                data_2d["node"]["z"][0].append(xyz_cuted[:, 2])
                 data_2d["node"]["data"]["h"][0].append(h_data)
                 data_2d["node"]["data"]["v"][0].append(v_data)
 

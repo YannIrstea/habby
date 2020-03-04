@@ -1865,19 +1865,19 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
                 the substrate description for all meshes that is repeated in four triangles if given in a quadrangle
 
     """
-    if type(sub)==np.ndarray:
-        bsub=True
+    if type(sub) == np.ndarray:
+        bsub = True
     else:
-        bsub=False
+        bsub = False
     nbnodes0 = nodes.shape[0]
     nbmesh = ikle.shape[0]
-    nbunit= hmesh.shape[1]
-    #Building the new ikle by spliting each quadrangle to 4 triangles adding the center of the quadrangle to the node list
-    #transforming   a set of triangles and 4angles into only triangles
+    nbunit = hmesh.shape[1]
+    # Building the new ikle by spliting each quadrangle to 4 triangles adding the center of the quadrangle to the node list
+    # transforming   a set of triangles and 4angles into only triangles
     ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
     ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
     ikle2 = np.copy(ikle3[:, 0:3])
-    nodes2=np.copy(nodes)
+    nodes2 = np.copy(nodes)
     if len(ikle4):  # partitionning each 4angles in 4 triangles
         nbnodes = nodes.shape[0]
         if bsub:
@@ -1889,11 +1889,11 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
             ikle2 = np.append(ikle2, np.array([[q0, nbnodes - 1, q3], [q0, q1, nbnodes - 1],
                                                [q1, q2, nbnodes - 1], [nbnodes - 1, q2, q3]]),
                               axis=0)
-            nodes2=np.append(nodes2, [np.mean(nodes[[q0, q1, q2, q3], :], axis=0)], axis=0)
+            nodes2 = np.append(nodes2, [np.mean(nodes[[q0, q1, q2, q3], :], axis=0)], axis=0)
             if bsub:
                 sub = np.append(sub, np.array([sub4[i, :], ] * 4), axis=0)
 
-    #calculating the coordinates x,y,z of the mesh centers
+    # calculating the coordinates x,y,z of the mesh centers
     p1 = nodes[ikle[:, 0], :]
     p2 = nodes[ikle[:, 1], :]
     p3 = nodes[ikle[:, 2], :]
@@ -1903,62 +1903,67 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
     p4 = nodes[ikle[:, 3], :] * t
     xyzmesh34 = np.sum(np.hstack((p1, p2, p3, p4)).reshape(nbmesh, 4, 3), axis=1) / (t + 3)
 
-    hnodes2all,vnodes2all=np.empty((nodes2.shape[0],nbunit), dtype=np.float64),np.empty((nodes2.shape[0],nbunit), dtype=np.float64)
+    hnodes2all, vnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64), np.empty((nodes2.shape[0], nbunit),
+                                                                                             dtype=np.float64)
     hzmeshall = hmesh + xyzmesh34[:, 2].reshape(nbmesh, 1)
-    vmesh=np.abs(vmesh) # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
-    #hvmeshall =hmesh* vmesh
+    vmesh = np.abs(vmesh)  # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
+    # hvmeshall =hmesh* vmesh
     nbnodes2 = nodes2.shape[0]
     for i in range(nbunit):
-        #interpolates values from cell-centered volumes (Finite Volume) to nodal values (mesh) using SciPy griddata
+        # interpolates values from cell-centered volumes (Finite Volume) to nodal values (mesh) using SciPy griddata
         # for a given unit : considering the water surface (z+h) to  find  z+h for nodes in the fully wetted part
-        if np.sum(hmesh[:,i]>0)>2: # at least we need one triangle for griddata
-            hznodes2 = griddata(xyzmesh34[:,(0,1)][hmesh[:,i]>0], hzmeshall[:,i][hmesh[:,i]>0], nodes2[:,(0,1)], method='linear')
+        if np.sum(hmesh[:, i] > 0) > 2:  # at least we need one triangle for griddata
+            hznodes2 = griddata(xyzmesh34[:, (0, 1)][hmesh[:, i] > 0], hzmeshall[:, i][hmesh[:, i] > 0],
+                                nodes2[:, (0, 1)], method='linear')
         else:
-            hznodes2 =np.full(nbnodes2, np.nan)
+            hznodes2 = np.full(nbnodes2, np.nan)
         # Get the hw+z of the NaN edges from first closed wetted meshes
-        wetikle=ikle[hmesh[:,i]>0] # the wet ikle
-        iwetikle=np.where(hmesh[:,i]>0)[0]
-        awetikle=hznodes2[wetikle]
-        awetikle[:, 3][np.where(wetikle[:, [3]] == -1)[0]] = -1 # a matrix of the wet meshes(each line) and th information about the 3 (& -1)or four nodes wiht nan values if their z+hw have not been calculated
-        aawetikle=np.sum(awetikle,axis=1)# a column of wet meshes with the information if there is or not (nan) at least one nan nodes defining the mesh
+        wetikle = ikle[hmesh[:, i] > 0]  # the wet ikle
+        iwetikle = np.where(hmesh[:, i] > 0)[0]
+        awetikle = hznodes2[wetikle]
+        awetikle[:, 3][np.where(wetikle[:, [3]] == -1)[
+            0]] = -1  # a matrix of the wet meshes(each line) and th information about the 3 (& -1)or four nodes wiht nan values if their z+hw have not been calculated
+        aawetikle = np.sum(awetikle,
+                           axis=1)  # a column of wet meshes with the information if there is or not (nan) at least one nan nodes defining the mesh
         for j in range(len(aawetikle)):
             if np.isnan(aawetikle[j]):
-                for k,l in enumerate(awetikle[j,:]):
+                for k, l in enumerate(awetikle[j, :]):
                     if np.isnan(l):
-                        if np.isnan(hznodes2[wetikle[j][k]]) :# TODO the mean value can be better here we just take the first mesh on the river side
-                            hznodes2[wetikle[j][k]]=hzmeshall[:,i][iwetikle[j]] #giving the h+z value of the mesh center to the contouring node that we imagine on the river side
+                        if np.isnan(hznodes2[wetikle[j][
+                            k]]):  # TODO the mean value can be better here we just take the first mesh on the river side
+                            hznodes2[wetikle[j][k]] = hzmeshall[:, i][iwetikle[
+                                j]]  # giving the h+z value of the mesh center to the contouring node that we imagine on the river side
         hnodes2 = hznodes2 - nodes2[:, 2]
-        hnodes2[np.isnan(hznodes2)]=0
-        hnodes2[hnodes2<=0] = 0
+        hnodes2[np.isnan(hznodes2)] = 0
+        hnodes2[hnodes2 <= 0] = 0
 
-
-        #for a given unit : considering the  surface of the elementary flow (h*v) to  find  v for nodes is too risky in a mesh with a node having a very small value the velocity at this node can be calculated as infinite
-        #so interpolating velocity values
-        if vmesh[:,i].shape[0]>2: # at least we need one triangle for griddata
-            vnodes2 = griddata(xyzmesh34[:,(0,1)], vmesh[:,i], nodes2[:,(0,1)], method='linear')
+        # for a given unit : considering the  surface of the elementary flow (h*v) to  find  v for nodes is too risky in a mesh with a node having a very small value the velocity at this node can be calculated as infinite
+        # so interpolating velocity values
+        if vmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
+            vnodes2 = griddata(xyzmesh34[:, (0, 1)], vmesh[:, i], nodes2[:, (0, 1)], method='linear')
         else:
-            vnodes2 =np.full(nbnodes2, np.nan)
+            vnodes2 = np.full(nbnodes2, np.nan)
         # Get the NaN from outer nodes and replace with the nearest values
         vnodes2_nan = np.isnan(vnodes2)
         nodes2nan = nodes2[:, (0, 1)][vnodes2_nan]
-        vnodes2_new_nan = griddata(xyzmesh34[:,(0,1)], vmesh[:,i], nodes2nan, method='nearest')
+        vnodes2_new_nan = griddata(xyzmesh34[:, (0, 1)], vmesh[:, i], nodes2nan, method='nearest')
         vnodes2[vnodes2_nan] = vnodes2_new_nan
-        vnodes2[hnodes2==0]=0 # get realistic
-        hnodes2all[:,i], vnodes2all[:,i]=hnodes2,vnodes2
+        vnodes2[hnodes2 == 0] = 0  # get realistic
+        hnodes2all[:, i], vnodes2all[:, i] = hnodes2, vnodes2
     # giving the exact values of depth and velocity in the quadrangular mesh centers nodes
-    #TODO not to do previously this job  above TAKE CARE that if you got just one quadrangle or similar situation
+    # TODO not to do previously this job  above TAKE CARE that if you got just one quadrangle or similar situation
     # only the following part will give the correct result
     if len(ikle4):
-        hnodes4all=hmesh[np.where(ikle[:, [3]] != -1)[0]]
+        hnodes4all = hmesh[np.where(ikle[:, [3]] != -1)[0]]
         vnodes4all = vmesh[np.where(ikle[:, [3]] != -1)[0]]
         hnodes4all[hnodes4all <= 0] = 0
         vnodes4all[hnodes4all == 0] = 0
-        hnodes2all[nbnodes0:nbnodes2, :]=hnodes4all
+        hnodes2all[nbnodes0:nbnodes2, :] = hnodes4all
         vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
     if bsub:
-        return ikle2, nodes2,hnodes2all,vnodes2all,sub
+        return ikle2, nodes2, hnodes2all, vnodes2all, sub
     else:
-        return ikle2, nodes2,hnodes2all,vnodes2all
+        return ikle2, nodes2, hnodes2all, vnodes2all
 
 
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):

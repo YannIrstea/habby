@@ -28,8 +28,10 @@ from src import manage_grid_mod
 from src import hdf5_mod
 from src.project_manag_mod import create_default_project_preferences_dict
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict, check_data_2d_dict_size, check_data_2d_dict_validity
+from src.dev_tools import profileit
 
 
+# @profileit
 def load_hec_ras2d(filename, path):
     """
     The goal of this function is to load 2D data from Hec-RAS in the version 5.
@@ -203,7 +205,7 @@ def load_hec_ras2d(filename, path):
         #     elev_p2[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
         #                           (np.sum(first_bool) + np.sum(second_bool))
         # elev_p[np.isnan(elev_p)] = elev_p2[np.isnan(elev_p)]
-        if np.isnan(elev_p).any() :
+        if np.isnan(elev_p).any():
             # elevation FacePoints
             faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
             face_center_point = np.mean([coord_p_all[i][faces_facepoint_indexes[:, 0]], coord_p_all[i][faces_facepoint_indexes[:, 1]]], axis=0)
@@ -219,10 +221,10 @@ def load_hec_ras2d(filename, path):
         elev_p_all.append(elev_p)
 
     # get data time step by time step
-    for t in range(nbtstep):
+    for i in range(0, len(name_area)):
         water_depth_t = []
         vel_t = []
-        for i in range(0, len(name_area)):
+        for t in range(nbtstep):
             water_depth_t.append(water_depth_c_all[i][t])
             vel_t.append(vel_c_all[i][:, t])
         water_depth_t_all.append(water_depth_t)
@@ -236,30 +238,38 @@ def load_hec_ras2d(filename, path):
     except KeyError:
         pass
     for idx, t in enumerate(timesteps):
-        timesteps[idx] = t.decode('utf-8')
-        #timesteps[idx] = timesteps[idx].replace(':', '-')
+        timesteps[idx] = t.decode('utf-8').replace(":", "_")  # replace if date with ":" (incompatible with filename)
 
     # get a triangular grid as hec-ras output are not triangular
     coord_p_all = np.column_stack([coord_p_all[0], elev_p_all[0]])
     coord_p_all = [coord_p_all]
     coord_c_all = np.column_stack([coord_c_all[0], elev_c_all[0]])
     coord_c_all = [coord_c_all]
-
-    ikle_all,  coord_p_all,  water_depth_t_all2,vel_t_all2 = get_triangular_grid_hecras(
-        ikle_all, coord_c_all, coord_p_all,  water_depth_t_all,vel_t_all)
+    ikle_all,  coord_p_all,  water_depth_t_all, vel_t_all = get_triangular_grid_hecras(
+        ikle_all, coord_c_all, coord_p_all,  water_depth_t_all, vel_t_all)
 
     # finite_volume_to_finite_element_triangularxy
-    coord_p_all = coord_p_all[0]
-    ikle = np.column_stack([ikle_all[0], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
-    h_array = np.empty((len(water_depth_t_all2[0][0]), len(timesteps)), dtype=np.float)
-    v_array = np.empty((len(vel_t_all2[0][0]), len(timesteps)), dtype=np.float)
-    for reach_num in range(len(ikle_all)):
+    tin = []
+    xy = []
+    z = []
+    h = []
+    v = []
+    for reach_num in range(len(name_area)):
+        ikle_reach = np.column_stack([ikle_all[reach_num], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
+        ikle_reach, xyz_reach, h_reach, v_reach = manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle_reach,
+                                                                                       coord_p_all[reach_num],
+                                                                                        water_depth_t_all[reach_num],
+                                                                                        vel_t_all[reach_num])
+        tin.append(ikle_reach)
+        xy.append(xyz_reach[:, (0, 1)])
+        z.append(xyz_reach[:, 2])
+        h_unit = []
+        v_unit = []
         for unit_num in range(len(timesteps)):
-            h_array[:, unit_num] = np.array(water_depth_t_all2[unit_num][reach_num])
-            v_array[:, unit_num] = np.array(vel_t_all2[unit_num][reach_num])
-    ikle, xyz, h, v = manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle, coord_p_all,
-                                                                                       h_array,
-                                                                                       v_array)
+            h_unit.append(h_reach[:, unit_num])
+            v_unit.append(v_reach[:, unit_num])
+        h.append(h_unit)
+        v.append(v_unit)
 
     # description telemac data dict
     description_from_file = dict()
@@ -274,23 +284,14 @@ def load_hec_ras2d(filename, path):
     description_from_file["reach_name"] = ", ".join(name_area)
     description_from_file["unit_z_equal"] = True  # TODO: check if always True ?
 
-    # reset to list and separate xy to z
-    h_list = []
-    v_list = []
-    for timestep_index in range(len(timesteps)):
-        h_list.append(h[:, timestep_index])
-        v_list.append(v[:, timestep_index])
-    xy = xyz[:, (0, 1)]
-    z = xyz[:, 2]
-
     # data 2d dict
     data_2d = create_empty_data_2d_dict(1,
                                         node_variables=["h", "v"])
-    data_2d["mesh"]["tin"][0] = ikle
-    data_2d["node"]["xy"][0] = xy
-    data_2d["node"]["z"][0] = z
-    data_2d["node"]["data"]["h"][0] = h_list
-    data_2d["node"]["data"]["v"][0] = v_list
+    data_2d["mesh"]["tin"] = tin
+    data_2d["node"]["xy"] = xy
+    data_2d["node"]["z"] = z
+    data_2d["node"]["data"]["h"] = h
+    data_2d["node"]["data"]["v"] = v
 
     return data_2d, description_from_file
 
@@ -308,7 +309,7 @@ def get_time_step(filename_path):
     timesteps = []
     try:
         timesteps = list(file2D[timestep_path])
-        timesteps = [t.decode('utf-8') for idx, t in enumerate(timesteps)]
+        timesteps = [t.decode('utf-8').replace(":", "_").replace(" ", "_") for idx, t in enumerate(timesteps)] # replace if date with ":" (incompatible with filename)
     except KeyError:
         print("Error: Can't find timestep dataset in ", filename_path)
 
@@ -362,88 +363,75 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     """
 
     nb_reach = len(ikle_all)
-    nbtime = len(v)
+
     v_all = []
     h_all = []
 
-    # initilization
-    for t in range( nbtime):
-        v_all.append([None] * nb_reach)
-        h_all.append([None] * nb_reach)
+    nbtime = len(v[0])  #TODO : if multi reach : nbtime can vary by reach ?
 
     # create the new grid for each reach
-    for r in range( nb_reach):
-        # coord_c = list(coord_c_all[r])
-        # ikle = list(ikle_all[r])
-        # xyz = list(point_all[r])
-        # nbtime = len(v)
-
-
-
+    for r in range(nb_reach):
         # store the hydraulic data of the reach
-        hr = np.zeros(( len(ikle_all[r]),nbtime),dtype=np.float64)
-        vr = np.zeros(( len(ikle_all[r]),nbtime),dtype=np.float64)
-
+        hr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
+        vr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
 
         # add data by time step
         for t in range(nbtime):
-            hr[:, t] = h[t][r]  # list of np.array
-            vr[:, t] = v[t][r]
+            hr[:, t] = h[r][t]  # list of np.array
+            vr[:, t] = v[r][t]
 
-
-
-        ikleyann = np.copy(ikle_all[r])
-        iklesum=np.copy(ikleyann)
+        ikle = np.copy(ikle_all[r])
+        iklesum = np.copy(ikle)
         iklesum[iklesum != -1] = 1
         iklesum[iklesum == -1] = 0
-        iklesum = np.sum(iklesum, axis=1) #storing the number of points/nodes defining each cell/polygon
-        bmeshmore2 = iklesum > 2 # bmeshmore2 np array to determine the 'valid' cells/polygons with more than 2 nodes; np.sum(~bmesh2) the number of these invalid meshes
+        iklesum = np.sum(iklesum, axis=1)  # storing the number of points/nodes defining each cell/polygon
+        bmeshmore2 = iklesum > 2  # bmeshmore2 np array to determine the 'valid' cells/polygons with more than 2 nodes; np.sum(~bmesh2) the number of these invalid meshes
         # now calculate nbmeshsup= the increase of the total cells/polygons number after transforming cells with more than 3 nodes into triangles
         # eg we will keep a triangle, a quadrangle will be split in 4 triangles and the increase will be +3, etc...
-        iklemore3=np.copy(iklesum)
+        iklemore3 = np.copy(iklesum)
         iklemore3[iklemore3 < 4] = 1
         nbmeshsup = np.sum(iklemore3 - 1)
-        #calculating the number of point (cell centers) that we will add as node for triangles after splinting cells with more than 3 nodes into triangles
-        npxyzsup = np.sum(iklemore3!=1)
-        # ikleyann3 to store only the valid triangles
-        ikleyann3 = np.concatenate((ikleyann[bmeshmore2][...,:3], np.empty(( nbmeshsup, 3), dtype=ikleyann.dtype)), axis=0)
-        #xyz3  the nodes of the new set of triangles we will add to the nodes cells all the cells centers with more than 3 nodes
-        xyz3 = np.concatenate((point_all[r], np.empty(( npxyzsup, point_all[r].shape[1]), dtype=point_all[r].dtype)), axis=0)
+        # calculating the number of point (cell centers) that we will add as node for triangles after splinting cells with more than 3 nodes into triangles
+        npxyzsup = np.sum(iklemore3 != 1)
+        # ikle3 to store only the valid triangles
+        ikle3 = np.concatenate((ikle[bmeshmore2][..., :3], np.empty((nbmeshsup, 3), dtype=ikle.dtype)),
+                                   axis=0)
+        # xyz3  the nodes of the new set of triangles we will add to the nodes cells all the cells centers with more than 3 nodes
+        xyz3 = np.concatenate((point_all[r], np.empty((npxyzsup, point_all[r].shape[1]), dtype=point_all[r].dtype)),
+                              axis=0)
 
-        hr3 = np.concatenate((hr[bmeshmore2], np.empty(( nbmeshsup,nbtime), dtype=np.float64)), axis=0)
-        vr3 = np.concatenate((vr[bmeshmore2], np.empty((nbmeshsup,nbtime), dtype=np.float64)), axis=0)
-        likle = len(ikleyann)
-        c3,cc3,ixyz3=0,np.sum(bmeshmore2)-1,len(point_all[r])-1 #c3 index for the beginning of ikleyann3 cc3 index for new triangle
+        hr3 = np.concatenate((hr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        vr3 = np.concatenate((vr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        likle = len(ikle)
+        c3, cc3, ixyz3 = 0, np.sum(bmeshmore2) - 1, len(
+            point_all[r]) - 1  # c3 index for the beginning of ikle3 cc3 index for new triangle
         for c in range(likle):
-            if iklesum[c]==3:
-                c3+=1  #ikleyann3 already OK by construction
-            if iklesum[c] > 3: #splitting the cell into triangles with the common node = cell center respecting the rotational direction
+            if iklesum[c] == 3:
+                c3 += 1  # ikle3 already OK by construction
+            if iklesum[
+                c] > 3:  # splitting the cell into triangles with the common node = cell center respecting the rotational direction
                 ixyz3 += 1
                 xyz3[ixyz3, :] = coord_c_all[r][c, :]  # adding the center cell as a point node
-                ikleyann3[c3] [2]= ixyz3 #first triangle
+                ikle3[c3][2] = ixyz3  # first triangle
                 c3 += 1
                 for s in range(1, iklesum[c] - 1):
                     cc3 += 1
-                    ikleyann3[cc3,:]=ikleyann[c][s], ikleyann[c][s + 1], ixyz3 #others triangle
-                    hr3[cc3,:]=hr[c,:]
-                    vr3[cc3,:] = vr[c,:]
+                    ikle3[cc3, :] = ikle[c][s], ikle[c][s + 1], ixyz3  # others triangle
+                    hr3[cc3, :] = hr[c, :]
+                    vr3[cc3, :] = vr[c, :]
                 cc3 += 1
-                ikleyann3[cc3, :] = ikleyann[c][iklesum[c]  - 1], ikleyann[c][0], ixyz3 #last triangle
-                hr3[cc3,:] = hr[c,:]
-                vr3[cc3,:] = vr[c,:]
+                ikle3[cc3, :] = ikle[c][iklesum[c] - 1], ikle[c][0], ixyz3  # last triangle
+                hr3[cc3, :] = hr[c, :]
+                vr3[cc3, :] = vr[c, :]
         # add grid by reach
-        ikle_all[r] = ikleyann3
+        ikle_all[r] = ikle3
         point_all[r] = xyz3
 
-
-
         # add data by time step
-        for t in range(nbtime):
-            h_all[t][r] = hr3[:, t]
-            v_all[t][r] = vr3[:, t]
+        h_all.append(hr3)
+        v_all.append(vr3)
 
-
-    return ikle_all,  point_all, h_all, v_all
+    return ikle_all, point_all, h_all, v_all
 
 
 def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im, time_step=[0], flow_area=[0],

@@ -124,7 +124,10 @@ def load_telemac(namefilet, pathfilet):
                                         node_variables=["h", "v"])
     data_2d["mesh"]["tin"][0] = ikle
     data_2d["node"]["xy"][0] = coord_p
-    data_2d["node"]["z"][0] = z
+    if all_z_equal:
+        data_2d["node"]["z"][0] = z[0]
+    else:
+        data_2d["node"]["z"][0] = z
     data_2d["node"]["data"]["h"][0] = h
     data_2d["node"]["data"]["v"][0] = v
 
