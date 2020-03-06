@@ -1767,7 +1767,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     ax_legend.name = "legend"
 
     # ax_map
-    ax_map = fig.add_axes(map_position, frameon=True)
+    ax_map = fig.add_axes(map_position, frameon=False)
     ax_map.name = "map"
     ax_map.xaxis.set_ticks([])  # remove ticks
     ax_map.yaxis.set_ticks([])  # remove ticks
