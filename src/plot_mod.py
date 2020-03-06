@@ -1926,7 +1926,7 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
     name_hdf5 = data_description["name_hdf5"]
     path_im = project_preferences['path_figure']
 
-    list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + '_' + unit_name.replace(".", "_") + "_" + variable.replace(" ", "_") + project_preferences['format']) for unit_name in unit_names]
+    list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + '_' + unit_name.replace(".", "_") + "_" + variable.replace(" ", "_") + "_map" + project_preferences['format']) for unit_name in unit_names]
     list_of_exist_tf = [False] * len(list_of_file_path)
 
     while not all(list_of_exist_tf):
@@ -1941,7 +1941,7 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
     # old
     img, *imgs = [Image.open(file_path) for file_path in list_of_file_path]
 
-    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + "_" + variable.replace(" ", "_") + ".gif"),
+    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + "_" + variable.replace(" ", "_") + "_map" + ".gif"),
              format='GIF',
              append_images=imgs,
              save_all=True,
