@@ -52,8 +52,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         more_than_one_file_selected_by_user = False  # one file to read
         filename_path = os.path.normpath(filename_list[0])
         folder_path = os.path.dirname(filename_path)
-        filename = os.path.basename(filename_path)
-        blob, ext = os.path.splitext(filename)
+        filename = [os.path.basename(filename_path)]
+        blob, ext = os.path.splitext(filename[0])
     elif len(filename_list) > 1:  # more than one file selected
         more_than_one_file_selected_by_user = True  # several files to read
         filename_path = filename_list
@@ -205,11 +205,19 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 ext = ext[0]
 
         elif ext != ".txt":  # from file
-            # selectedfiles textfiles matching
+            # more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
+            if len(data_index_file["filename"]) > 1:
+                more_than_one_file_selected_by_user = True
+            # textfiles filesexisting matching
             selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
-            for i, file_path in enumerate(data_index_file["filename"]):
-                if file_path in filename:
-                    selectedfiles_textfiles_match[i] = True
+            for i, file_from_indexfile in enumerate(data_index_file["filename"]):
+                if os.path.isfile(os.path.join(folder_path, file_from_indexfile)):
+                    if file_from_indexfile in filename:
+                        selectedfiles_textfiles_match[i] = True
+                    else:
+                        selectedfiles_textfiles_match[i] = False
+                else:
+                    return "Error: " + file_from_indexfile + " doesn't exist in " + folder_path, None
         elif ext == ".txt":  # from indexHYDRAU.txt
             # more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
             if len(data_index_file["filename"]) > 1:
@@ -307,7 +315,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
         """ CASE 1.a """
         if hydrau_case == "1.a":
-            # get units name from TELEMAC file
+            # get units name from file
             filename_path = os.path.join(folder_path, data_index_file["filename"][0])
             unit_type, nbtimes, unit_name_from_file, warning_list_timestep = get_time_step(filename_path, model_type)
             warning_list.extend(warning_list_timestep)
@@ -393,6 +401,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
+
                 pass
                 # return "Error: selected files are different from indexHYDRAU files", None
 
@@ -401,21 +410,24 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if not reach_presence:
                 reach_name = "unknown"
 
-            # check if selected files are equal to data_index_file
-            if len(filename_list) != len(data_index_file["filename"]):
-                index_to_keep = []
-                for index, selected_file in enumerate(data_index_file["filename"]):
-                    if selected_file in [os.path.basename(element) for element in filename_list]:
-                        index_to_keep.append(index)
-                for header in headers:
-                    data_index_file[header] = [data_index_file[header][index] for index in index_to_keep]
+            # # check if selected files are equal to data_index_file
+            # if len(filename_list) != len(data_index_file["filename"]):
+            #     for index, selected_file in enumerate(data_index_file["filename"]):
+
+
+                # index_to_keep = []
+                # for index, selected_file in enumerate(data_index_file["filename"]):
+                #     if selected_file in [os.path.basename(element) for element in filename_list]:
+                #         index_to_keep.append(index)
+                # for header in headers:
+                #     data_index_file[header] = [data_index_file[header][index] for index in index_to_keep]
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
             hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
             hydrau_description["unit_list_full"] = data_index_file[headers[discharge_index]]
-            hydrau_description["unit_list_tf"] = [True] * len(data_index_file[headers[discharge_index]])
-            hydrau_description["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
+            hydrau_description["unit_list_tf"] = selectedfiles_textfiles_match
+            hydrau_description["unit_number"] = str(selectedfiles_textfiles_match.count(True))
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
             hydrau_description["reach_list"] = reach_name
             hydrau_description["reach_number"] = str(1)
@@ -667,7 +679,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if "m3/s" in hydrau_description["unit_type"]:
                 hydrau_description["unit_type"] = hydrau_description["unit_type"].replace("m3/s", "m<sup>3</sup>/s")
 
-    # print("hydrau_case, " + hydrau_case)
+    print("hydrau_case, " + hydrau_case)
     return hydrau_description, warning_list
 
 
@@ -1396,8 +1408,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         for i, file in enumerate(filename_source):
             # load data2d
             data_2d_source, description_from_source = load_hydraulic(file,
-                                                                     hydrau_description[hyd_file][
-                                                                         "path_filename_source"],
+                                                                     hydrau_description[hyd_file]["path_filename_source"],
                                                                      hydrau_description[hyd_file]["model_type"])
             if data_2d_source == [-99] and description_from_source == [-99]:
                 q.put(mystdout)
@@ -1460,16 +1471,17 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 os.path.join(hydrau_description[hyd_file]["path_filename_source"], hydrau_description[hyd_file]["filename_source"]),
                 hydrau_description[hyd_file]["model_type"])
         # get unit list from indexHYDRAU file
-        if "timestep_list" in hydrau_description[hyd_file].keys():
+        if hydrau_description[hyd_file]["hydrau_case"] in {"1.b", "2.b"}:
             if len(hydrau_description[hyd_file]["timestep_list"]) == len(file_list):
                 unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["timestep_list"]
             else:
-                unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["unit_list"]
+                unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["timestep_list"]
         else:
             unit_list_from_indexHYDRAU_file = hydrau_description[hyd_file]["unit_list"]
         # get unit index to load
         if len(unit_list_from_source_file) == 1 and len(unit_list_from_indexHYDRAU_file) == 1:
-            unit_index_list = [0]
+            #unit_index_list = [0]
+            unit_index_list = [0] * len(file_list)
         else:
             if len(file_list) > 1:
                 if list(set(unit_number_list))[0] == 1:  # one time step by file
@@ -1507,39 +1519,41 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xyz = np.insert(data_2d_source["node"]["xy"][0],
                                2,
-                               values=data_2d_source["node"]["z"][0][unit_num],
+                               values=data_2d_source["node"]["z"][0],  #
                                axis=1)  # Insert values before column 2
 
-            tin_data, xyz_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
-                data_2d_source["mesh"]["tin"][0],
-                xyz,
-                data_2d_source["node"]["data"]["h"][0][unit_num],
-                data_2d_source["node"]["data"]["v"][0][unit_num],
-                progress_value,
-                delta,
-                project_preferences["cut_mesh_partialy_dry"],
-                unit_num,
-                project_preferences['min_height_hyd'])
+            # user GUI selection
+            if hydrau_description[hyd_file]["unit_list_tf"][i]:
+                tin_data, xyz_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
+                    data_2d_source["mesh"]["tin"][0],
+                    xyz,
+                    data_2d_source["node"]["data"]["h"][0][unit_num],
+                    data_2d_source["node"]["data"]["v"][0][unit_num],
+                    progress_value,
+                    delta,
+                    project_preferences["cut_mesh_partialy_dry"],
+                    unit_num,
+                    project_preferences['min_height_hyd'])
 
-            if not isinstance(tin_data, np.ndarray):  # error or warning
-                if not tin_data:  # error
-                    print("Error: " + qt_tr.translate("hydro_input_file_mod", "cut_2d_grid"))
-                    q.put(mystdout)
-                    return
-                elif tin_data:  # entierly dry
-                    hydrau_description[hyd_file]["unit_list_tf"][unit_num] = False
-                    continue  # Continue to next iteration.
-            else:
-                # save data in dict
-                data_2d["mesh"]["tin"][0].append(tin_data)
-                data_2d["mesh"]["i_whole_profile"][0].append(i_whole_profile)
-                for mesh_variable in data_2d_source["mesh"]["data"].keys():
-                    data_2d["mesh"]["data"][mesh_variable][0].append(
-                        data_2d_source["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
-                data_2d["node"]["xy"][0].append(xyz_cuted[:, :2])
-                data_2d["node"]["z"][0].append(xyz_cuted[:, 2])
-                data_2d["node"]["data"]["h"][0].append(h_data)
-                data_2d["node"]["data"]["v"][0].append(v_data)
+                if not isinstance(tin_data, np.ndarray):  # error or warning
+                    if not tin_data:  # error
+                        print("Error: " + qt_tr.translate("hydro_input_file_mod", "cut_2d_grid"))
+                        q.put(mystdout)
+                        return
+                    elif tin_data:  # entierly dry
+                        hydrau_description[hyd_file]["unit_list_tf"][unit_num] = False
+                        continue  # Continue to next iteration.
+                else:
+                    # save data in dict
+                    data_2d["mesh"]["tin"][0].append(tin_data)
+                    data_2d["mesh"]["i_whole_profile"][0].append(i_whole_profile)
+                    for mesh_variable in data_2d_source["mesh"]["data"].keys():
+                        data_2d["mesh"]["data"][mesh_variable][0].append(
+                            data_2d_source["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
+                    data_2d["node"]["xy"][0].append(xyz_cuted[:, :2])
+                    data_2d["node"]["z"][0].append(xyz_cuted[:, 2])
+                    data_2d["node"]["data"]["h"][0].append(h_data)
+                    data_2d["node"]["data"]["v"][0].append(v_data)
 
         # refresh unit (if warning)
         # for reach_num in reversed(range(int(hydrau_description[hyd_file]["reach_number"]))):  # for each reach
