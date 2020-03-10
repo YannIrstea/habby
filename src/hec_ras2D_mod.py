@@ -18,6 +18,7 @@ import h5py
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.tri as mtri
 import time
 import sys
 from io import StringIO
@@ -31,7 +32,7 @@ from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_
 from src.dev_tools import profileit
 
 
-# @profileit
+
 def load_hec_ras2d(filename, path):
     """
     The goal of this function is to load 2D data from Hec-RAS in the version 5.
@@ -191,7 +192,14 @@ def load_hec_ras2d(filename, path):
         #     if np.isnan(elev_c_all[i]).any():
         #         print('Warning: there are still cells where the center elevation is unknown')
 
-        elev_p = griddata(coord_c_all[i], elev_c_all[i], coord_p_all[i])
+        elev_p = interpolator_test(coord_c_all[i],
+                                   elev_c_all[i],
+                                   coord_p_all[i])
+        # elev_p = griddata(points=coord_c_all[i],
+        #                   values=elev_c_all[i],
+        #                   xi=coord_p_all[i],
+        #                   method="linear")
+
         # elev_f = geometry["Faces Minimum Elevation"][:]
         # elev_p3 = griddata(face_center_point, elev_f, coord_p_all[i])
         # elev_p[np.isnan(elev_p)] = elev_p3[np.isnan(elev_p)]
@@ -294,6 +302,25 @@ def load_hec_ras2d(filename, path):
     data_2d["node"]["data"]["v"] = v
 
     return data_2d, description_from_file
+
+
+#@profileit
+def interpolator_test(coord_c_all, elev_c_all, coord_p_all):
+    # TODO : compare result array between griddata and matplotlib.tri.LinearTriInterpolator
+    # # griddata
+    elev_p = griddata(points=coord_c_all,
+                      values=elev_c_all,
+                      xi=coord_p_all,
+                      method="linear")
+
+    # # MPL
+    # triang = mtri.Triangulation(coord_c_all[:, 0], coord_c_all[:, 1])
+    # interp_lin = mtri.LinearTriInterpolator(triang, elev_c_all)  # somevalues = hauteur d'eau par exemple
+    #
+    # # Interpolate sur de nouvelles coordonnees
+    # elev_p = np.ma.getdata(interp_lin(coord_p_all[:, 0], coord_p_all[:, 1])) # xi et yi definissent une nouvelle grille​
+
+    return elev_p
 
 
 def get_time_step(filename_path):
