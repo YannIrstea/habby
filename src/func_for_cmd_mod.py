@@ -91,7 +91,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     if not os.path.isdir(path_prj) or not os.path.isfile(file_prof):
         if not all_arg[0] == 'CREATE_PROJECT':
             # print("Warning: Specified project_path does not exist, the latter is created.")
-            # cli_create_project(path_prj, name_prj, False, HABBY_VERSION)
+            # cli_create_project(path_prj, name_prj, False, HABBY_VERSION_STR)
             # project_preferences = load_project_preferences(path_prj)
             print("Error: Specified project_path does not exist. Project creation with CREATE_PROJECT argument.")
             return

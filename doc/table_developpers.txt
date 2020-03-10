@@ -1,0 +1,6 @@
+Yann	Lecoarer	INRAE	main developper	France
+Diane	Von Gunten	INRAE	main developper	France
+Fabrice	Zaoui	EDF	main developper	France
+Quentin	Royer	INRAE	main developper	France
+Guillaume	Perréal	INRAE	minor developpement	France
+Cedric	Briand	EPTB Vilaine	minor developpement	France

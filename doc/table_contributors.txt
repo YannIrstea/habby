@@ -1,0 +1,12 @@
+Yann	Lecoarer	INRAE	main developper - steering group	France
+Diane	Von Gunten	Irstea	main developper	France
+Thierry	Point	Irstea	help preliminary reflexion	France
+Oriane	Prost	Irstea	preliminary study	France
+Fabrice	Zaoui	EDF	main developper - steering group	France
+Quentin	Royer	INRAE	main developper	France
+Nicolas	Lamouroux	INRAE	statistical models - steering group	France
+Laura	Plichard	ECOGEA	biological models	France
+Pierre	Sagnes	OFB	Steering group	France
+Hervé	Capra	INRAE	steering group	France
+Véronique	GOURAUD 	EDF	steering group	France
+Laurence	Tissot	EDF	LAMMI - steering group	France

@@ -17,11 +17,11 @@ https://github.com/YannIrstea/habby
 import os
 from multiprocessing import Process, Value
 
-from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel
+from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
-    QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView
+    QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle
 
 from src.tools_mod import MyProcessList, QGroupBoxCollapsible
 from src import hdf5_mod
@@ -67,7 +67,7 @@ class ToolsTab(QScrollArea):
         self.interpolation_group.setChecked(True)
 
         # other tool
-        self.newtool_group = OtherToolToCreate(self.path_prj, self.name_prj, self.send_log, self.tr("New tools to come"))
+        self.newtool_group = OtherToolToCreate(self.path_prj, self.name_prj, self.send_log, self.tr("New tools coming soon"))
         self.newtool_group.setChecked(False)
 
         # vertical layout
@@ -665,3 +665,55 @@ class MyTableModel(QStandardItemModel):
         for row_nb in range(len(self.rownames)):
             data_to_get.append(self.item(row_nb, col_index).text())
         return data_to_get
+
+
+# The table model class
+class MySimpleTableModel(QAbstractTableModel):
+    def __init__(self, datain, parent=None):
+        QAbstractTableModel.__init__(self, parent)
+        self.arraydata = datain
+
+    def rowCount(self, parent):
+        return len(self.arraydata)
+
+    def columnCount(self, parent):
+        return len(self.arraydata[0])
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QVariant()
+        elif role == Qt.EditRole:
+            print("edit mode")
+            return None
+        elif role != Qt.DisplayRole:
+            return None
+        return self.arraydata[index.row()][index.column()]
+
+
+class LeftHorizontalTabBar(QTabBar):
+    def tabSizeHint(self, index):
+        s = QTabBar.tabSizeHint(self, index)
+        s.transpose()
+        return s
+
+    def paintEvent(self, event):
+        painter = QStylePainter(self)
+        opt = QStyleOptionTab()
+
+        for i in range(self.count()):
+            self.initStyleOption(opt, i)
+            painter.drawControl(QStyle.CE_TabBarTabShape, opt)
+            painter.save()
+
+            s = opt.rect.size()
+            s.transpose()
+            r = QRect(QPoint(), s)
+            r.moveCenter(opt.rect.center())
+            opt.rect = r
+
+            c = self.tabRect(i).center()
+            painter.translate(c)
+            painter.rotate(90)
+            painter.translate(-c)
+            painter.drawControl(QStyle.CE_TabBarTabLabel, opt)
+            painter.restore()

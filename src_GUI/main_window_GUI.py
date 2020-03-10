@@ -22,7 +22,6 @@ from functools import partial
 from platform import system as operatingsystem
 from subprocess import call
 from webbrowser import open as wbopen
-
 import matplotlib as mpl
 import numpy as np
 import qdarkstyle
@@ -30,7 +29,7 @@ from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, Qt, pyqtRemov
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor, QColor
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, \
-    QFileDialog, QMessageBox, QFrame, QMenu, QToolBar, QProgressBar
+    QFileDialog, QMessageBox, QFrame, QMenu, QToolBar, QProgressBar, QScrollArea
 from json import decoder
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
@@ -43,10 +42,11 @@ from src_GUI import data_explorer_GUI
 from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
+from src_GUI import about_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences,\
     create_project_structure, save_project_preferences
-from habby import HABBY_VERSION
+from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
 from src import hdf5_mod
 
@@ -92,10 +92,8 @@ class MainWindows(QMainWindow):
         self.stat_tabs = False
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = str(HABBY_VERSION)
+        self.version = str(HABBY_VERSION_STR)
         self.beta = True  # if set to True : GUI beta version mode is runned (block fonctionality)
-        # user_preferences
-        self.user_preferences = user_preferences
 
         # operating system
         self.operatingsystemactual = operatingsystem()
@@ -111,15 +109,15 @@ class MainWindows(QMainWindow):
                 if lp is not None:
                     self.myEnv.pop(lp_key)
 
-        language_set = self.user_preferences.data["language"]
-        self.actual_theme = self.user_preferences.data["theme"]
+        language_set = user_preferences.data["language"]
+        self.actual_theme = user_preferences.data["theme"]
 
-        recent_projects_set = self.user_preferences.data["recent_project_name"]
-        recent_projects_path_set = self.user_preferences.data["recent_project_path"]
+        recent_projects_set = user_preferences.data["recent_project_name"]
+        recent_projects_path_set = user_preferences.data["recent_project_path"]
         if recent_projects_set:
             if len(recent_projects_set) > self.nb_recent:
-                self.user_preferences.data["recent_project_name"] = recent_projects_set[-self.nb_recent + 1:]
-                self.user_preferences.data["recent_project_path"] = recent_projects_path_set[-self.nb_recent + 1:]
+                user_preferences.data["recent_project_name"] = recent_projects_set[-self.nb_recent + 1:]
+                user_preferences.data["recent_project_path"] = recent_projects_path_set[-self.nb_recent + 1:]
 
         # set up translation
         self.languageTranslator = QTranslator()
@@ -182,8 +180,8 @@ class MainWindows(QMainWindow):
         self.init_ui()
 
         # open_project
-        last_path_prj = self.user_preferences.data["path_prj"]
-        last_name_prj = self.user_preferences.data["name_prj"]
+        last_path_prj = user_preferences.data["path_prj"]
+        last_name_prj = user_preferences.data["name_prj"]
         filename_path = os.path.join(last_path_prj, last_name_prj + ".habby")
 
         # direct open (with habby.exe + arg path)
@@ -213,12 +211,12 @@ class MainWindows(QMainWindow):
         self.my_menu_bar()
 
         # user_attempt_to_add_preference_curve
-        if self.user_preferences.user_attempt_to_add_preference_curve:
-            self.central_widget.write_log(self.user_preferences.user_attempt_to_add_preference_curve)
+        if user_preferences.user_attempt_to_add_preference_curve:
+            self.central_widget.write_log(user_preferences.user_attempt_to_add_preference_curve)
 
         # print modification biological database
-        if self.user_preferences.diff_list:
-            self.central_widget.write_log("Warning: " + self.tr("Biological models database has been modified : ") + self.user_preferences.diff_list)
+        if user_preferences.diff_list:
+            self.central_widget.write_log("Warning: " + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
 
         if self.habby_project_file_corrupted:
             self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' + filename_path))
@@ -238,7 +236,7 @@ class MainWindows(QMainWindow):
         self.setWindowIcon(QIcon(self.name_icon))
 
         # position theme
-        wind_position_x, wind_position_y, wind_position_w, wind_position_h = self.user_preferences.data["wind_position"]
+        wind_position_x, wind_position_y, wind_position_w, wind_position_h = user_preferences.data["wind_position"]
         self.setGeometry(wind_position_x, wind_position_y, wind_position_w, wind_position_h)
 
         # create a vertical toolbar
@@ -255,8 +253,9 @@ class MainWindows(QMainWindow):
 
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
 
-        # soft_information_dialog
-        self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
+        # check_version_dialog
+        self.check_version_dialog = about_GUI.CheckVersionDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
+        self.soft_information_dialog = about_GUI.SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
         # inverse before changing theme
         if self.actual_theme == "classic":
@@ -315,12 +314,12 @@ class MainWindows(QMainWindow):
         if self.isMaximized() or self.isFullScreen():
             pass
         else:
-            self.user_preferences.data["wind_position"] = (self.geometry().x(),
+            user_preferences.data["wind_position"] = (self.geometry().x(),
                                                            self.geometry().y(),
                                                            self.geometry().width(),
                                                            self.geometry().height())
-        self.user_preferences.data["theme"] = self.actual_theme
-        self.user_preferences.save_user_preferences_json()
+        user_preferences.data["theme"] = self.actual_theme
+        user_preferences.save_user_preferences_json()
 
         os._exit(1)
 
@@ -361,10 +360,6 @@ class MainWindows(QMainWindow):
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version) + " - " + self.name_prj)
             else:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version))
-
-    def get_information_soft(self):
-        # show the pref
-        self.soft_information_dialog.show()
 
     # PROJECT
 
@@ -589,15 +584,15 @@ class MainWindows(QMainWindow):
         # check if project open somewhere else
         self.check_concurrency()
 
-        self.user_preferences.data["name_prj"] = self.name_prj
-        self.user_preferences.data["path_prj"] = self.path_prj
-        if not self.name_prj in self.user_preferences.data["recent_project_name"]:
-            self.user_preferences.data["recent_project_name"] = self.user_preferences.data["recent_project_name"] + [
+        user_preferences.data["name_prj"] = self.name_prj
+        user_preferences.data["path_prj"] = self.path_prj
+        if not self.name_prj in user_preferences.data["recent_project_name"]:
+            user_preferences.data["recent_project_name"] = user_preferences.data["recent_project_name"] + [
                 self.name_prj]
-        if not self.path_prj in self.user_preferences.data["recent_project_path"]:
-            self.user_preferences.data["recent_project_path"] = self.user_preferences.data["recent_project_path"] + [
+        if not self.path_prj in user_preferences.data["recent_project_path"]:
+            user_preferences.data["recent_project_path"] = user_preferences.data["recent_project_path"] + [
                 self.path_prj]
-        self.user_preferences.save_user_preferences_json()
+        user_preferences.save_user_preferences_json()
 
         self.my_menu_bar()
 
@@ -666,8 +661,8 @@ class MainWindows(QMainWindow):
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         # update user option and re-do (the whole) menu
-        self.user_preferences.data["name_prj"] = self.name_prj
-        self.user_preferences.data["path_prj"] = self.path_prj
+        user_preferences.data["name_prj"] = self.name_prj
+        user_preferences.data["path_prj"] = self.path_prj
 
         # save name and path of project in the list of recent project
         if self.name_prj not in self.recent_project:
@@ -680,9 +675,9 @@ class MainWindows(QMainWindow):
                         self.recent_project_path[ind[0]]):  # linux windows path
                     self.recent_project.append(self.name_prj)
                     self.recent_project_path.append(self.path_prj)
-        self.user_preferences.data["recent_project_name"] = self.recent_project
-        self.user_preferences.data["recent_project_path"] = self.recent_project_path
-        self.user_preferences.save_user_preferences_json()
+        user_preferences.data["recent_project_name"] = self.recent_project
+        user_preferences.data["recent_project_path"] = self.recent_project_path
+        user_preferences.save_user_preferences_json()
 
         # create structure project
         if not os.path.isfile(fname):
@@ -732,7 +727,8 @@ class MainWindows(QMainWindow):
 
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.set_pref_gui_from_dict(default=True)
-        self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
+        self.check_version_dialog = about_GUI.CheckVersionDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
+        self.soft_information_dialog = about_GUI.SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()
@@ -983,9 +979,9 @@ class MainWindows(QMainWindow):
             language = "french"
         if self.lang == 2:
             language = "spanish"
-        if self.user_preferences.data["language"] != language:
-            self.user_preferences.data["language"] = language
-            self.user_preferences.save_user_preferences_json()
+        if user_preferences.data["language"] != language:
+            user_preferences.data["language"] = language
+            user_preferences.save_user_preferences_json()
 
         # open at the old tab
         self.central_widget.tab_widget.setCurrentIndex(ind_tab)
@@ -1107,14 +1103,34 @@ class MainWindows(QMainWindow):
         self.change_theme_action.triggered.connect(self.change_theme)
         self.change_theme_action.setShortcut('F12')
 
-        # help actions
-        helpm = QAction(self.tr('Developper Help'), self)
-        helpm.setStatusTip(self.tr('Get help to use the programme'))
-        helpm.triggered.connect(self.open_help)
-        helpm.setShortcut('F1')
-        aboutm = QAction(self.tr('About'), self)
-        aboutm.setStatusTip(self.tr('Get information software'))
-        aboutm.triggered.connect(self.get_information_soft)
+        # user_help_action
+        user_help_action = QAction(self.tr('Help contents'), self)
+        user_help_action.setStatusTip(self.tr('Get help to use the program'))
+        user_help_action.triggered.connect(self.open_user_help)
+        user_help_action.setShortcut('F1')
+
+        # dev_help_action
+        dev_help_action = QAction(self.tr('API documentation'), self)
+        dev_help_action.setStatusTip(self.tr('Get help to develop or use the program'))
+        dev_help_action.triggered.connect(self.open_dev_help)
+
+        # issue_action
+        issue_action = QAction(self.tr('Report an issue'), self)
+        issue_action.setStatusTip(self.tr('Report a repeatable problem'))
+        issue_action.triggered.connect(self.open_issue_web_site)
+
+        home_page_action = QAction(self.tr('HABBY official website'), self)
+        home_page_action.setStatusTip(self.tr('Open the HABBY official website'))
+        home_page_action.triggered.connect(self.open_web_site)
+        home_page_action.setShortcut('CTRL+H')
+
+        check_version = QAction(self.tr('Check HABBY version'), self)
+        check_version.setStatusTip(self.tr('Check current and last HABBY version'))
+        check_version.triggered.connect(self.open_check_version_dialog)
+
+        soft_information = QAction(self.tr('About'), self)
+        soft_information.setStatusTip(self.tr('Get software informations'))
+        soft_information.triggered.connect(self.open_soft_information_dialog)
 
         # project menu
         project_menu.addAction(newprj)
@@ -1153,8 +1169,15 @@ class MainWindows(QMainWindow):
         view_menu.addAction(self.change_theme_action)
 
         # help menu
-        help_menu.addAction(helpm)
-        help_menu.addAction(aboutm)
+        help_menu.addAction(user_help_action)
+        help_menu.addAction(dev_help_action)
+        help_menu.addSeparator()
+        help_menu.addAction(issue_action)
+        help_menu.addSeparator()
+        help_menu.addAction(home_page_action)
+        help_menu.addAction(check_version)
+        help_menu.addSeparator()
+        help_menu.addAction(soft_information)
 
         # disable specific actions and menus
         if not self.path_prj:
@@ -1196,9 +1219,9 @@ class MainWindows(QMainWindow):
             self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
             self.actual_theme = "dark"
 
-        if self.user_preferences.data["theme"] != self.actual_theme:
-            self.user_preferences.data["theme"] = self.actual_theme
-            self.user_preferences.save_user_preferences_json()
+        if user_preferences.data["theme"] != self.actual_theme:
+            user_preferences.data["theme"] = self.actual_theme
+            user_preferences.save_user_preferences_json()
 
     def set_unset_fullscreen(self):
         #print("set_unset_fullscreen", self.sender())
@@ -1474,7 +1497,35 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
             self.research_tabs = True
 
-    def open_help(self):
+    def open_web_site(self):
+        wbopen("https://github.com/YannIrstea/habby")
+
+    def open_issue_web_site(self):
+        """
+        This function open the html which form the help from HABBY. For the moment, it is the full documentation
+        with all the coding detail, but we should create a new html or a new pdf file which would be more practical
+        for the user.
+        """
+        wbopen("https://github.com/YannIrstea/habby/issues")
+
+    def open_check_version_dialog(self):
+        # show the pref
+        self.check_version_dialog.show()
+
+    def open_soft_information_dialog(self):
+        # show the pref
+        self.soft_information_dialog.show()
+
+    def open_user_help(self):
+        """
+        This function open the html which form the help from HABBY. For the moment, it is the full documentation
+        with all the coding detail, but we should create a new html or a new pdf file which would be more practical
+        for the user.
+        """
+        filename_help = os.path.join(os.getcwd(), "doc", "_build", "html", "index.html")
+        wbopen(filename_help)
+
+    def open_dev_help(self):
         """
         This function open the html which form the help from HABBY. For the moment, it is the full documentation
         with all the coding detail, but we should create a new html or a new pdf file which would be more practical
@@ -1614,7 +1665,7 @@ class MainWindows(QMainWindow):
         """
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ControlModifier:
-            path_choosen = os.path.normpath(self.user_preferences.user_pref_habby_user_settings_path)
+            path_choosen = os.path.normpath(user_preferences.user_pref_habby_user_settings_path)
         elif modifiers == Qt.ShiftModifier:
             path_choosen = os.path.normpath(os.getcwd())
         else:
@@ -2355,84 +2406,6 @@ class AltTabPressEater(QObject):
             # standard event processing
             return QObject.eventFilter(self, obj, event)
 
-
-class SoftInformationDialog(QDialog):
-    """
-    The class which support the creation and management of the output. It is notably used to select the options to
-    create the figures.
-
-    """
-    send_log = pyqtSignal(str, name='send_log')
-    """
-    A PyQtsignal used to write the log.
-    """
-
-    def __init__(self, path_prj, name_prj, name_icon, actual_version):
-
-        super().__init__()
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.name_icon = name_icon
-        self.actual_version = actual_version
-        self.init_iu()
-
-    def init_iu(self):
-        # insist on white background color (for linux, mac)
-        self.setAutoFillBackground(True)
-        p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.white)
-        self.setPalette(p)
-
-        """ WIDGETS """
-        actual_version_label_title = QLabel(self.tr('Actual'))
-        actual_version_label = QLabel(str(self.actual_version))
-
-        last_version_label_title = QLabel(self.tr('Last'))
-        self.last_version_label = QLabel("-")
-
-        self.close_button = QPushButton(self.tr("Ok"))
-        self.close_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Expanding)
-        self.close_button.clicked.connect(self.close_dialog)
-
-        """ LAYOUT """
-        # versions layout
-        layout_general_options = QFormLayout()
-        general_options_group = QGroupBox(self.tr("HABBY version"))
-        general_options_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        #general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
-        general_options_group.setLayout(layout_general_options)
-        layout_general_options.addRow(actual_version_label_title, actual_version_label)
-        layout_general_options.addRow(last_version_label_title, self.last_version_label)
-
-        # general
-        layout = QVBoxLayout(self)
-        layout.addWidget(general_options_group)
-        layout.addWidget(self.close_button)
-        #layout.setAlignment(Qt.AlignRight)
-        self.setWindowTitle(self.tr("About"))
-        self.setWindowIcon(QIcon(self.name_icon))
-        self.setModal(True)
-
-    def get_last_version_number_from_github(self):
-        last_version_str = "unknown"
-        ssl._create_default_https_context = ssl._create_unverified_context
-        try:
-            url_github = 'https://api.github.com/repos/YannIrstea/habby/tags'
-            with urllib.request.urlopen(url_github) as response:
-                html = response.read()
-                last_version_str = eval(html)[0]["name"][1:]
-                self.last_version_label.setText(last_version_str)
-        except:
-            print("no internet access")
-            self.last_version_label.setText(last_version_str)
-
-    def showEvent(self, event):
-        # do stuff here
-        self.get_last_version_number_from_github()
-        event.accept()
-
-    def close_dialog(self):
-        self.close()
 
 
 if __name__ == '__main__':

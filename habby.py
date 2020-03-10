@@ -24,7 +24,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen
 from appdirs import AppDirs
 
-HABBY_VERSION = 0.25
+HABBY_VERSION_STR = 0.25
 
 
 class AppDataFolders:
@@ -133,7 +133,7 @@ def main():
         app = QApplication(sys.argv)
 
         # Create and display the splash screen
-        splash_pix = QPixmap('translation/habby_icon.png')
+        splash_pix = QPixmap('translation/splash_screen.png')
         splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
         splash.setMask(splash_pix.mask())
         splash.show()
@@ -205,7 +205,7 @@ def main():
             func_for_cmd_mod.habby_on_all(all_arg, name_prj, path_prj)
         else:
             all_arg = sys.argv[1:]
-            func_for_cmd_mod.all_command(all_arg, name_prj, path_prj, HABBY_VERSION)
+            func_for_cmd_mod.all_command(all_arg, name_prj, path_prj, HABBY_VERSION_STR)
 
 
 if __name__ == '__main__':

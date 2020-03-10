@@ -39,7 +39,7 @@ from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_v
     c_mesh_area, create_empty_data_2d_dict, copy_shapefiles, create_empty_data_2d_whole_profile_dict,\
     check_data_2d_dict_size, check_data_2d_dict_validity
 
-from habby import HABBY_VERSION
+from habby import HABBY_VERSION_STR
 
 
 class Hdf5Management:
@@ -122,7 +122,7 @@ class Hdf5Management:
                 self.file_object.attrs['hdf5_version'] = self.hdf5_version
                 self.file_object.attrs['h5py_version'] = self.h5py_version
                 self.file_object.attrs['software'] = 'HABBY'
-                self.file_object.attrs['software_version'] = str(HABBY_VERSION)
+                self.file_object.attrs['software_version'] = str(HABBY_VERSION_STR)
                 self.file_object.attrs['path_project'] = self.path_prj
                 self.file_object.attrs['name_project'] = self.name_prj
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
@@ -330,7 +330,7 @@ class Hdf5Management:
         'hyd_varying_mesh' : boolean
         'hyd_unit_z_equal' : boolean if all z are egual between units, 'False' if the bottom values vary
         """
-        #check_data_2d_dict_size(data_2d)
+        #check_data_2d_dict_size
         validity, error = check_data_2d_dict_validity(data_2d,
                                     int(hyd_description["hyd_reach_number"]),
                                     int(hyd_description["hyd_unit_number"]))
