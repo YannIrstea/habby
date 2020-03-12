@@ -27,7 +27,8 @@ from osgeo import osr
 from scipy.spatial import Voronoi
 
 from src import hdf5_mod
-from src.tools_mod import polygon_type_values, point_type_values, copy_shapefiles
+from src.tools_mod import polygon_type_values, point_type_values
+from src.dev_tools import profileit
 
 
 def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -507,15 +508,13 @@ def load_sub_sig(sub_description, progress_value):
             driver = ogr.GetDriverByName('GPKG')
             ds = driver.Open(os.path.join(path_prj, "input", blob, filename), 0)  # 0 means read-only. 1 means writeable.
 
+            layer_num = 0
             if sub_description_system['sub_mapping_method'] == 'point':
-                layer_num = 0
                 # get all name to found triangulated name
                 for layer_num in range(ds.GetLayerCount()):
                     layer = ds.GetLayer(layer_num)
                     if "_triangulated" in layer.GetName():
                         break
-            else:
-                layer_num = 0
 
             layer = ds.GetLayer(layer_num)
 
@@ -570,7 +569,7 @@ def load_sub_cst(sub_description, progress_value):
 
     return data_2d
 
-
+@profileit
 def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system):
     """
     Convert a polygon shapefile to a polygon triangle shapefile
@@ -587,37 +586,37 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
 
     if ext == ".shp":
         driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-        ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
+        ds_polygon = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
     elif ext == ".gpkg":
         driver = ogr.GetDriverByName('GPKG')  # GPKG
-        ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
+        ds_polygon = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
 
     layer_num = 0
     if sub_description_system['sub_mapping_method'] == 'point':
         # get all name to found triangulated name
-        for layer_num in range(ds.GetLayerCount()):
-            layer = ds.GetLayer(layer_num)
-            if "_triangulated" in layer.GetName():
+        for layer_num in range(ds_polygon.GetLayerCount()):
+            layer_polygon = ds_polygon.GetLayer(layer_num)
+            if "_triangulated" in layer_polygon.GetName():
                 break
 
-    layer = ds.GetLayer(layer_num)
-    layer_defn = layer.GetLayerDefn()
+    layer_polygon = ds_polygon.GetLayer(layer_num)
+    layer_defn = layer_polygon.GetLayerDefn()
 
     # get geom type
-    if layer.GetGeomType() not in polygon_type_values:
-        print("file is not polygon type : ", layer.GetGeomType())
+    if layer_polygon.GetGeomType() not in polygon_type_values:
+        print("file is not polygon type : ", layer_polygon.GetGeomType())
         return False
 
     # fields = sf.fields[1:]
     header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
 
     # get EPSG
-    crs = layer.GetSpatialRef()
+    crs = layer_polygon.GetSpatialRef()
 
     # check if all polygon are triangle yet
     try:
         point_nb_list = []
-        for feature_ind, feature in enumerate(layer):
+        for feature_ind, feature in enumerate(layer_polygon):
             shape_geom = feature.geometry()
             new_points = shape_geom.GetGeometryRef(0).GetPoints()
             point_nb_list.append(len(new_points))
@@ -646,9 +645,9 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         segments_array = []  # segment index or connectivity table
         holes_array = []
         inextpoint = 0
-        records = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
-        layer.ResetReading()
-        for feature_ind, feature in enumerate(layer):
+        records = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=np.int)
+        layer_polygon.ResetReading()
+        for feature_ind, feature in enumerate(layer_polygon):
             records[feature_ind] = [feature.GetField(j) for j in header_list]
             shape_geom = feature.geometry()
             shape_geom.SetCoordinateDimension(2)  # never z values
@@ -721,21 +720,27 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             xmean = (p1[0] + p2[0] + p3[0]) / 3
             ymean = (p1[1] + p2[1] + p3[1]) / 3
             polyg_center = (xmean, ymean)
-            layer.ResetReading()  # reset the read position to the start
+            # creaate ogr point
+            point = ogr.Geometry(ogr.wkbPoint)
+            point.AddPoint(polyg_center[0], polyg_center[1])
+            layer_polygon.ResetReading()  # reset the read position to the start
             # if center of triangle in polygon: get attributes
-            for j, feature in enumerate(layer):
+            for j, feature in enumerate(layer_polygon):
                 shape_geom = feature.geometry()
-                geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
-                point_list = geom_part.GetPoints()[:-1]
-                if len(point_list[0]) > 2:  # Zvalue of Mvalue removed
-                    point_list = [(el[0], el[1]) for el in (tuple(x) for x in point_list)]
-                if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
+                # geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
+                # point_list = geom_part.GetPoints()[:-1]
+                # if len(point_list[0]) > 2:  # Zvalue of Mvalue removed
+                #     point_list = [(el[0], el[1]) for el in (tuple(x) for x in point_list)]
+                # if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
+                # if point.Within(shape_geom):
+                # Contains (0.119s) faster than Within (0.124s) than point_inside_polygon (0.132s)
+                if shape_geom.Contains(point):
                     triangle_records_list[i] = records[j]
                     break
 
         # close file
-        layer = None
-        ds = None
+        layer_polygon = None
+        ds_polygon = None
 
         # geometry issue : polygons are not joined (little hole) ==> create invalid geom
         if triangle_records_list.min() < 0:
@@ -752,14 +757,14 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                     return False
 
             driver = ogr.GetDriverByName('GPKG')  # GPKG
-            ds = driver.CreateDataSource(out_error_shp_abs_path)
+            ds_error = driver.CreateDataSource(out_error_shp_abs_path)
             if not crs:  # '' == crs unknown
-                layer = ds.CreateLayer(name=out_error_shp_basename, geom_type=ogr.wkbPolygon)
+                layer_error = ds_error.CreateLayer(name=out_error_shp_basename, geom_type=ogr.wkbPolygon)
             else:  # crs known
-                layer = ds.CreateLayer(name=out_error_shp_basename, srs=crs, geom_type=ogr.wkbPolygon)
+                layer_error = ds_error.CreateLayer(name=out_error_shp_basename, srs=crs, geom_type=ogr.wkbPolygon)
 
-            defn = layer.GetLayerDefn()
-            layer.StartTransaction()  # faster
+            defn = layer_error.GetLayerDefn()
+            layer_error.StartTransaction()  # faster
 
             # triangle_invalid_index_list
             triangle_invalid_index_list = np.where(triangle_records_list[:, 0] == -1)[0]
@@ -787,14 +792,14 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                 # set geometry
                 feat.SetGeometry(poly)
                 # create
-                layer.CreateFeature(feat)
+                layer_error.CreateFeature(feat)
 
             # Save and close everything
-            layer.CommitTransaction()  # faster
+            layer_error.CommitTransaction()  # faster
 
             # close file
-            layer = None
-            ds = None
+            layer_error = None
+            ds_error = None
 
         # write triangulate
         out_shp_basename = os.path.splitext(filename)[0]
@@ -810,10 +815,10 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
         if os.path.exists(out_shp_abs_path):
             driver = ogr.GetDriverByName('GPKG')
-            ds = driver.Open(in_shp_abs_path, 1)  # 0 means read-only. 1 means writeable.
+            ds_triangle = driver.Open(out_shp_abs_path, 1)  # 0 means read-only. 1 means writeable.
         else:
             driver = ogr.GetDriverByName('GPKG')
-            ds = driver.CreateDataSource(out_shp_abs_path)
+            ds_triangle = driver.CreateDataSource(out_shp_abs_path)
 
         # if os.path.exists(out_shp_abs_path):
         #     try:
@@ -824,15 +829,15 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         #         return False
 
         if not crs:  # '' == crs unknown
-            layer = ds.CreateLayer(name=folder_name + "_triangulated", geom_type=ogr.wkbPolygon)
+            layer_triangle = ds_triangle.CreateLayer(name=folder_name + "_triangulated", geom_type=ogr.wkbPolygon)
         else:  # crs known
-            layer = ds.CreateLayer(name=folder_name + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
+            layer_triangle = ds_triangle.CreateLayer(name=folder_name + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
 
         for field in header_list:
-            layer.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
+            layer_triangle.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
 
-        defn = layer.GetLayerDefn()
-        layer.StartTransaction()  # faster
+        defn = layer_triangle.GetLayerDefn()
+        layer_triangle.StartTransaction()  # faster
         for i in range(len(triangle_geom_list)):
             ring = ogr.Geometry(ogr.wkbLinearRing)
             for point_ind in [0, 1, 2, 0]:
@@ -847,14 +852,15 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             # set geometry
             feat.SetGeometry(poly)
             # create
-            layer.CreateFeature(feat)
+            layer_triangle.CreateFeature(feat)
 
         # Save and close everything
-        layer.CommitTransaction()  # faster
+        layer_triangle.CommitTransaction()  # faster
 
         # close file
-        layer = None
-        ds.Destroy()
+        layer_triangle = None
+        #ds_triangle.Destroy()
+        ds_triangle = None
 
     return True
 
