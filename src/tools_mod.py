@@ -768,6 +768,7 @@ def check_data_2d_dict_size(data_2d):
 
 def check_data_2d_dict_validity(data_2d, reach_number, unit_number):
     # global
+    with_data = True
     reach_validity = True
     unit_validity = True
     # variables
@@ -791,6 +792,10 @@ def check_data_2d_dict_validity(data_2d, reach_number, unit_number):
                     # data
                     if type(data_2d[key1][key2]) == dict:
                         for key3 in data_2d[key1][key2].keys():
+                            if data_2d[key1][key2][key3] == [[]] or data_2d[key1][key2][key3] == []:
+                                with_data = False
+                                warnings_list.append("no data loaded (" + key3 + ")")
+                                break
                             if len(data_2d[key1][key2][key3]) != reach_number:
                                 reach_validity = False
                                 warnings_list.append("reach number : " + str(len(data_2d[key1][key2][key3])) + " != " + str(reach_number))
@@ -805,6 +810,10 @@ def check_data_2d_dict_validity(data_2d, reach_number, unit_number):
                                 warnings_list.append(key3 + " : " + str(data_2d[key1][key2][key3][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][key3][0][0].dtype))
                     # struct (tin, i_whole_profile, xy or z)
                     if type(data_2d[key1][key2]) == list:
+                        if data_2d[key1][key2] == [[]] or data_2d[key1][key2] == []:
+                            with_data = False
+                            warnings_list.append("no data loaded (" + key2 + ")")
+                            break
                         if len(data_2d[key1][key2]) != reach_number:
                             reach_validity = False
                             warnings_list.append("reach number : " + str(len(data_2d[key1][key2])) + " != " + str(reach_number))
@@ -827,7 +836,7 @@ def check_data_2d_dict_validity(data_2d, reach_number, unit_number):
                             data_validity = False
                             warnings_list.append(key2 + " : " + str(data_2d[key1][key2][0][0].ndim) + " ndim" + ", dtype=" + str(data_2d[key1][key2][0][0].dtype))
 
-    if reach_validity and unit_validity and tin_validity and i_whole_profile_validity and xy_validity and z_validity and data_validity and sub_validity:
+    if reach_validity and unit_validity and tin_validity and i_whole_profile_validity and xy_validity and z_validity and data_validity and sub_validity and with_data:
         return True, ""
     else:
         return False, "Error: " + ", ".join(warnings_list)
