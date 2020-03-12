@@ -1435,7 +1435,7 @@ def main():
     # filename = 'mytest.shp'
     # filetxt = 'sub_txt2.txt'
     # # load shp file
-    # [coord_p, ikle_sub, sub_info] = load_sub_shp(filename, path, 'VELOCITY')
+    # [coord_p, ikle_sub, sub_info] = load_sub_sig(filename, path, 'VELOCITY')
     # fig_substrate(coord_p, ikle_sub, sub_info, path)
     # # load txt file
     # [coord_pt, ikle_subt, sub_infot,  x, y, sub] = load_sub_txt(filetxt, path,)

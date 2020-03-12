@@ -56,18 +56,16 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     if os.path.exists(input_project_folder):
         try:
             rmtree(input_project_folder)
-            os.mkdir(input_project_folder)
+            while os.path.exists(input_project_folder):  # check if it exists
+                pass
         except PermissionError:
-            try:
-                rmtree(input_project_folder)
-                os.mkdir(input_project_folder)
-            except PermissionError:
-                print("Error: Can't remove " + os.path.splitext(sub_filename_source)[0] +
-                      " folder in 'input' project folder, as it file(s) opened in another program.")
-                q.put(mystdout)
-                return
-    else:
-        os.mkdir(input_project_folder)
+            print("Error: Can't remove " + os.path.splitext(sub_filename_source)[0] +
+                  " folder in 'input' project folder, as it file(s) opened in another program.")
+            q.put(mystdout)
+            return
+
+    # create folder
+    os.mkdir(input_project_folder)
 
     # set extension if not done
     if os.path.splitext(sub_description["name_hdf5"])[-1] != ".sub":
@@ -75,7 +73,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
 
     # load specific sub
     if sub_description["sub_mapping_method"] == "polygon":
-        data_2d = load_sub_shp(sub_description, progress_value)
+        data_2d = load_sub_sig(sub_description, progress_value)
 
     if sub_description["sub_mapping_method"] == "point":
         data_2d = load_sub_txt(sub_description, progress_value)
@@ -124,11 +122,12 @@ def load_sub_txt(sub_description, progress_value):
              and an array with substrate type and (x,y,sub) of the orginal data
     """
     filename = sub_description["sub_filename_source"]
+    blob, ext = os.path.splitext(filename)
     path = sub_description["sub_path_source"]
     sub_classification_code = sub_description["sub_classification_code"]
     sub_classification_method = sub_description["sub_classification_method"]
     path_prj = sub_description["path_prj"]
-    path_shp = os.path.join(path_prj, "output", "GIS")
+    path_shp = os.path.join(path_prj, "input", blob)
     sub_epsg_code = sub_description["sub_epsg_code"]
 
     file = os.path.join(path, filename)
@@ -198,13 +197,13 @@ def load_sub_txt(sub_description, progress_value):
         # Coord
         point_in = np.vstack((np.array(x), np.array(y))).T
 
-        """ save substrate_point_shp """
+        """ save substrate_point """
         name, ext = os.path.splitext(filename)
-        name = name + "_from_txt"
-        sub_filename_voronoi_shp = name + '.shp'
-        sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
-        driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-        ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
+        filename2 = name + "_triangulated"
+        sub_filename_voronoi = filename2 + '.gpkg'
+        sub_filename_voronoi_path = os.path.join(path_shp, sub_filename_voronoi)
+        driver = ogr.GetDriverByName('GPKG')
+        ds = driver.CreateDataSource(sub_filename_voronoi_path)
         crs = osr.SpatialReference()
         if sub_epsg_code != "unknown":
             try:
@@ -247,6 +246,10 @@ def load_sub_txt(sub_description, progress_value):
 
         # close file
         ds.Destroy()
+
+        # close file
+        layer = None
+        ds = None
 
     # input shp
     if ext == ".shp" or ext == ".gpkg":
@@ -358,12 +361,15 @@ def load_sub_txt(sub_description, progress_value):
 
     sub_array2 = [np.zeros(len(regions), ) for i in range(sub_class_number)]
 
-    """ voronoi shapefile export """
+    """ voronoi export """
     # filename output
-    sub_filename_voronoi_shp = name + '_voronoi' + '.shp'
-    sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
-    driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
-    ds = driver.CreateDataSource(sub_filename_voronoi_shp_path)
+    sub_filename_voronoi = name + '_triangulated' + '.gpkg'
+    sub_filename_voronoi_path = os.path.join(path_shp, sub_filename_voronoi)
+    driver = ogr.GetDriverByName('GPKG')
+    if os.path.exists(sub_filename_voronoi_path):
+        ds = driver.Open(sub_filename_voronoi_path, 1)  # 0 means read-only. 1 means writeable.
+    else:
+        ds = driver.CreateDataSource(sub_filename_voronoi_path)
     crs = osr.SpatialReference()
     if sub_epsg_code != "unknown":
         crs.ImportFromEPSG(int(sub_epsg_code))
@@ -407,16 +413,16 @@ def load_sub_txt(sub_description, progress_value):
     progress_value.value = 40
 
     # set temporary names with voronoi suffix
-    sub_description["sub_filename_source"] = sub_filename_voronoi_shp
+    sub_description["sub_filename_source"] = sub_filename_voronoi
     sub_description["sub_path_source"] = path_shp
 
     # triangulation on voronoi polygons
-    data_2d = load_sub_shp(sub_description, progress_value)
+    data_2d = load_sub_sig(sub_description, progress_value)
 
     return data_2d
 
 
-def load_sub_shp(sub_description, progress_value):
+def load_sub_sig(sub_description, progress_value):
     # filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, sub_mapping_method,
     #                  sub_classification_code, sub_epsg_code, default_values, q=[]
     """
@@ -447,11 +453,10 @@ def load_sub_shp(sub_description, progress_value):
         driver = ogr.GetDriverByName('ESRI Shapefile')  # Shapefile
         ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
     elif ext == ".gpkg":
-        # get type shapefile
         driver = ogr.GetDriverByName('GPKG')  # GPKG
         ds = driver.Open(os.path.join(path_file, filename), 0)  # 0 means read-only. 1 means writeable.
 
-    layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
+    layer = ds.GetLayer(0)
     layer_defn = layer.GetLayerDefn()
 
     header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
@@ -487,17 +492,32 @@ def load_sub_shp(sub_description, progress_value):
             # prog (triangulation done)
             progress_value.value = 90
 
-            # file name triangulated
-            filename = blob + "_triangulated.gpkg"
-
             # initialization
             xy = []  # point
             tin = []  # connectivity table
 
+            if sub_description_system['sub_mapping_method'] == 'point':
+                # file name triangulated
+                blob = blob.replace("_triangulated", "")
+
+            # file name triangulated
+            filename = blob + "_triangulated.gpkg"
+
             # open shape file (think about zero or one to start! )
             driver = ogr.GetDriverByName('GPKG')
             ds = driver.Open(os.path.join(path_prj, "input", blob, filename), 0)  # 0 means read-only. 1 means writeable.
-            layer = ds.GetLayer(0)
+
+            if sub_description_system['sub_mapping_method'] == 'point':
+                layer_num = 0
+                # get all name to found triangulated name
+                for layer_num in range(ds.GetLayerCount()):
+                    layer = ds.GetLayer(layer_num)
+                    if "_triangulated" in layer.GetName():
+                        break
+            else:
+                layer_num = 0
+
+            layer = ds.GetLayer(layer_num)
 
             # get point coordinates and connectivity table in two lists
             sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
@@ -572,7 +592,15 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         driver = ogr.GetDriverByName('GPKG')  # GPKG
         ds = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
 
-    layer = ds.GetLayer(0)  # one layer in shapefile
+    layer_num = 0
+    if sub_description_system['sub_mapping_method'] == 'point':
+        # get all name to found triangulated name
+        for layer_num in range(ds.GetLayerCount()):
+            layer = ds.GetLayer(layer_num)
+            if "_triangulated" in layer.GetName():
+                break
+
+    layer = ds.GetLayer(layer_num)
     layer_defn = layer.GetLayerDefn()
 
     # get geom type
@@ -682,8 +710,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
 
         # get geometry and attributes of triangles
         triangle_geom_list = []
-        #triangle_records_list = np.empty(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
-        triangle_records_list = np.zeros(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int)
+        triangle_records_list = np.ones(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int) * -1
         for i in range(len(polygon_triangle["triangles"])):
             # triangle coords
             p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]]
@@ -711,7 +738,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         ds = None
 
         # geometry issue : polygons are not joined (little hole) ==> create invalid geom
-        if 0 in triangle_records_list:
+        if triangle_records_list.min() < 0:
             # write triangulate shapefile
             out_error_shp_basename = os.path.splitext(filename)[0]
             out_error_shp_filename = out_error_shp_basename + "_invalid.gpkg"
@@ -735,7 +762,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             layer.StartTransaction()  # faster
 
             # triangle_invalid_index_list
-            triangle_invalid_index_list = np.where(triangle_records_list[:, 0] == 0)[0]
+            triangle_invalid_index_list = np.where(triangle_records_list[:, 0] == -1)[0]
             print("Warning: Maybe in reason of invalid geometry some generated substrate data triangles have been set to default values. You will find " + out_error_shp_filename +
                   " in 'input' project folder, these help you to find an invalid geometry. Correct it and try again.")
             for triangle_invalid_index in triangle_invalid_index_list:
@@ -769,24 +796,37 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             layer = None
             ds = None
 
-        # write triangulate shapefile
+        # write triangulate
         out_shp_basename = os.path.splitext(filename)[0]
-        out_shp_filename = out_shp_basename + "_triangulated.gpkg"
-        out_shp_path = os.path.join(path_prj, "input", out_shp_basename)
+        if sub_description_system['sub_mapping_method'] == 'point':
+            out_shp_filename = out_shp_basename + ".gpkg"
+            folder_name = out_shp_basename.replace("_triangulated", "")
+            out_shp_path = os.path.join(path_prj, "input", folder_name)
+        else:
+            out_shp_filename = out_shp_basename + "_triangulated.gpkg"
+            folder_name = out_shp_basename.replace("_triangulated", "")
+            out_shp_path = os.path.join(path_prj, "input", out_shp_basename)
+
         out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
         if os.path.exists(out_shp_abs_path):
-            try:
-                os.remove(out_shp_abs_path)
-            except PermissionError:
-                print(
-                    'Error: ' + out_shp_filename + ' is currently open in an other program. Could not be re-written.')
-                return False
-        driver = ogr.GetDriverByName('GPKG')  # Shapefile
-        ds = driver.CreateDataSource(out_shp_abs_path)
+            driver = ogr.GetDriverByName('GPKG')
+            ds = driver.Open(in_shp_abs_path, 1)  # 0 means read-only. 1 means writeable.
+        else:
+            driver = ogr.GetDriverByName('GPKG')
+            ds = driver.CreateDataSource(out_shp_abs_path)
+
+        # if os.path.exists(out_shp_abs_path):
+        #     try:
+        #         os.remove(out_shp_abs_path)
+        #     except PermissionError:
+        #         print(
+        #             'Error: ' + out_shp_filename + ' is currently open in an other program. Could not be re-written.')
+        #         return False
+
         if not crs:  # '' == crs unknown
-            layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", geom_type=ogr.wkbPolygon)
+            layer = ds.CreateLayer(name=folder_name + "_triangulated", geom_type=ogr.wkbPolygon)
         else:  # crs known
-            layer = ds.CreateLayer(name=out_shp_basename + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
+            layer = ds.CreateLayer(name=folder_name + "_triangulated", srs=crs, geom_type=ogr.wkbPolygon)
 
         for field in header_list:
             layer.CreateField(ogr.FieldDefn(field, ogr.OFTInteger))  # Add one attribute
