@@ -1409,7 +1409,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             data_2d_source, description_from_source = load_hydraulic(file,
                                                                      hydrau_description[hyd_file]["path_filename_source"],
                                                                      hydrau_description[hyd_file]["model_type"])
-            if data_2d_source == [-99] and description_from_source == [-99]:
+            if not data_2d_source and not description_from_source:
                 q.put(mystdout)
                 return
             data_2d_whole_profile["mesh"]["tin"][0].append(data_2d_source["mesh"]["tin"][0])
@@ -1481,6 +1481,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         if len(unit_list_from_source_file) == 1 and len(unit_list_from_indexHYDRAU_file) == 1:
             #unit_index_list = [0]
             unit_index_list = [0] * len(file_list)
+            hydrau_description[hyd_file]["unit_list_tf"] = [True] * len(unit_index_list)
         else:
             if len(file_list) > 1:
                 if list(set(unit_number_list))[0] == 1:  # one time step by file
