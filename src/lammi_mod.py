@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import time
 from io import StringIO
 from collections import OrderedDict
-from src.project_manag_mod import create_default_project_preferences_dict
+from src.project_properties_mod import create_default_project_properties_dict
 from src import substrate_mod
 from src import manage_grid_mod
 from src import hdf5_mod
@@ -195,7 +195,7 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, project_preferences
     failload = [-99], [-99], [-99], [-99], [-99], [-99]
 
     if not project_preferences:
-        project_preferences = create_default_project_preferences_dict()
+        project_preferences = create_default_project_properties_dict()
 
     # get the filename of the transect by facies
     [length_all, fac_filename_all] = get_transect_filename(facies_path, facies_name, transect_path, transect_name,

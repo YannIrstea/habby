@@ -31,7 +31,7 @@ from src import hdf5_mod
 from src import hec_ras2D_mod
 from src import manage_grid_mod
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
-from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict
+from src.project_properties_mod import load_project_properties, create_default_project_properties_dict
 from src.user_preferences_mod import user_preferences
 
 
@@ -72,7 +72,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    project_preferences = load_project_preferences(path_prj)
+    project_preferences = load_project_properties(path_prj)
     [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0], namefile[1], pathfile[0], pathfile[1],
                                                              path_im,
                                                              show_fig_1D, project_preferences)
@@ -639,7 +639,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
     """
 
     if not project_preferences:
-        project_preferences = create_default_project_preferences_dict()
+        project_preferences = create_default_project_properties_dict()
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']

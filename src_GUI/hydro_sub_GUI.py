@@ -49,7 +49,7 @@ from src import rubar1d2d_mod
 from src import substrate_mod
 from src import sw2d_mod
 from src import telemac_mod
-from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences, save_project_preferences
+from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties
 from src.tools_mod import QGroupBoxCollapsible
 from src.user_preferences_mod import user_preferences
 
@@ -691,10 +691,10 @@ class SubHydroW(QWidget):
                               'Save the project in the General tab before saving hydrological data. \n')
         else:
             # change path_last_file_loaded, model_type (path)
-            project_preferences = load_project_preferences(self.path_prj)  # load_project_preferences
+            project_preferences = load_project_properties(self.path_prj)  # load_project_properties
             project_preferences["path_last_file_loaded"] = filename_path_file  # change value
             project_preferences[self.model_type]["path"] = filename_path_file  # change value
-            save_project_preferences(self.path_prj, project_preferences)  # save_project_preferences
+            save_project_properties(self.path_prj, project_preferences)  # save_project_properties
 
     def find_path_im(self):
         """
@@ -708,7 +708,7 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            path_im = load_specific_preferences(self.path_prj, ["path_figure"])[0]
+            path_im = load_specific_properties(self.path_prj, ["path_figure"])[0]
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the figures"))
@@ -732,7 +732,7 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            path_hdf5 = load_specific_preferences(self.path_prj, preference_names=["path_hdf5"])[0]
+            path_hdf5 = load_specific_properties(self.path_prj, preference_names=["path_hdf5"])[0]
         else:
             self.send_log.emit("Error: " + QCoreApplication.translate("SubHydroW", "The project is not saved. Save the project in the General tab "
                                "before calling hdf5 files. \n"))
@@ -748,7 +748,7 @@ class SubHydroW(QWidget):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            path_input = load_specific_preferences(self.path_prj, preference_names=["path_input"])[0]
+            path_input = load_specific_properties(self.path_prj, preference_names=["path_input"])[0]
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(QCoreApplication.translate("SubHydroW", "Save the path to the copied inputs"))
@@ -770,9 +770,9 @@ class SubHydroW(QWidget):
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             if att_here == "path_last_file_loaded":
-                data = load_project_preferences(self.path_prj)[att_here]
+                data = load_project_properties(self.path_prj)[att_here]
             else:
-                data = load_project_preferences(self.path_prj)[att_here]["path"]
+                data = load_project_properties(self.path_prj)[att_here]["path"]
         else:
             pass
 
@@ -892,7 +892,7 @@ class SubHydroW(QWidget):
             self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The project is not saved. '
                                'Save the project in the General tab before saving hydraulic data. \n'))
         else:
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
             if project_preferences[type]["hdf5"]:
                 name = project_preferences[type]["hdf5"][-1]
 
@@ -940,7 +940,7 @@ class SubHydroW(QWidget):
             pass
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
 
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
@@ -1210,7 +1210,7 @@ class SubHydroW(QWidget):
                     self.hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -1542,7 +1542,7 @@ class Rubar2D(SubHydroW):
             pass
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
 
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
@@ -1760,7 +1760,7 @@ class Rubar2D(SubHydroW):
                     self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -1974,7 +1974,7 @@ class Mascaret(SubHydroW):
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -2331,7 +2331,7 @@ class River2D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
 
         for i in range(0, len(self.namefile)):
             # save each name in the project file, empty list on i == 0
@@ -2523,7 +2523,7 @@ class Rubar1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
         show_all_fig = True
         if path_im != 'no_path':
             self.save_fig = True
@@ -2766,7 +2766,7 @@ class HEC_RAS1D(SubHydroW):
             pass
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
 
         # prepare the filter to show only useful files
         # if len(self.extension[i]) <= 4:
@@ -2959,7 +2959,7 @@ class HEC_RAS1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
         show_all_fig = False
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -3807,7 +3807,7 @@ class ASCII(SubHydroW):  # QGroupBox
                         self.hydrau_description_multiple[hdf5_num]["hdf5_name"] = self.hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
 
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -4031,7 +4031,7 @@ class LAMMI(SubHydroW):
         self.name_hdf5 = self.hname.text()
         # get the image and load option
         path_im = self.find_path_im()
-        self.project_preferences = load_project_preferences(self.path_prj)
+        self.project_preferences = load_project_properties(self.path_prj)
         show_all_fig = True
         if not os.path.isdir(self.pathfile[2]):
             self.pathfile[2] = []
@@ -4875,7 +4875,7 @@ class HabbyHdf5(SubHydroW):
                 return
 
             # join the two files
-            self.project_preferences = load_project_preferences(self.path_prj)
+            self.project_preferences = load_project_properties(self.path_prj)
             if self.project_preferences['erase_id']:
                 erase_id = True
             else:
@@ -5441,7 +5441,7 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
             self.send_log.emit("py    path1=r'" + path_input + "'")
             self.send_log.emit("py    type='" + self.sub_description["sub_classification_code"] + "'")
-            self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
+            self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_sig"
                                "(file1, path1, type)\n")
             self.send_log.emit("restart LOAD_SUB_SHP")
             self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
@@ -5570,7 +5570,7 @@ class SubstrateW(SubHydroW):
             self.name_hdf5 = self.hdf5_merge_lineedit.text() + "_" + str(nb)
 
         # get the figure options and the type of output to be created
-        project_preferences = load_project_preferences(self.path_prj)
+        project_preferences = load_project_properties(self.path_prj)
 
         # block button merge
         self.load_b2.setDisabled(True)  # merge

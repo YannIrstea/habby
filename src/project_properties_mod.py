@@ -23,7 +23,7 @@ from platform import system as operatingsystem
 operatingsystem_str = operatingsystem()
 
 
-def create_default_project_preferences_dict(all_export_enabled=False):
+def create_default_project_properties_dict(all_export_enabled=False):
     """
     This function creates the default dictionnary of project user preferences.
     """
@@ -122,8 +122,8 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     :param mode:
     :return:
     """
-    # create_default_project_preferences_dict
-    project_preferences = create_default_project_preferences_dict()
+    # create_default_project_properties_dict
+    project_preferences = create_default_project_properties_dict()
 
     # check if folder exist
     if not os.path.exists(path_prj):
@@ -158,7 +158,7 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     project_preferences["mode"] = mode
 
     # create .habby project file
-    save_project_preferences(path_prj, project_preferences)
+    save_project_properties(path_prj, project_preferences)
 
     # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
     if name_prj != '':
@@ -203,18 +203,18 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
             f.write('open')
 
 
-def save_project_preferences(path_prj, project_preferences):
+def save_project_properties(path_prj, project_preferences):
     name_prj = os.path.basename(path_prj)
 
     with open(os.path.join(path_prj, name_prj + '.habby'), "wt") as write_file:
         json.dump(project_preferences, write_file, indent=4)
 
 
-def load_project_preferences(path_prj):
+def load_project_properties(path_prj):
     """
     This function loads the figure option saved in the xml file and create a dictionnary will be given to the functions
     which create the figures to know the different options chosen by the user. If the options are not written, this
-    function uses data by default which are in the fonction create_default_project_preferences_dict().
+    function uses data by default which are in the fonction create_default_project_properties_dict().
 
     :param path_prj: the path to the xml project file
     :param name_prj: the name to this file
@@ -257,32 +257,32 @@ def load_project_preferences(path_prj):
     return project_preferences
 
 
-def change_specific_preferences(path_prj, preference_names, preference_values):
+def change_specific_properties(path_prj, preference_names, preference_values):
     """
     :param path_prj: path_prj
     :param preference_names: list of preferences names
     :param preference_values: list of preferences values
     """
-    # load_project_preferences
-    project_preferences = load_project_preferences(path_prj)
+    # load_project_properties
+    project_preferences = load_project_properties(path_prj)
 
     # change value
     for preference_name, preference_value in zip(preference_names, preference_values):
         project_preferences[preference_name] = preference_value
 
-    # save_project_preferences
-    save_project_preferences(path_prj, project_preferences)
+    # save_project_properties
+    save_project_properties(path_prj, project_preferences)
 
 
-def load_specific_preferences(path_prj, preference_names):
+def load_specific_properties(path_prj, preference_names):
     """
     load
     :param path_prj: path_prj
     :param preference_names: list of preferences names
     :return: preference_value : list of preferences values
     """
-    # load_project_preferences
-    project_preferences = load_project_preferences(path_prj)
+    # load_project_properties
+    project_preferences = load_project_properties(path_prj)
 
     # load values
     preference_value = []
@@ -302,13 +302,13 @@ def enable_disable_all_exports(path_prj, enabled=False):
                              "detailled_text",  # txt
                              "fish_information"]
 
-    # load_project_preferences
-    project_preferences = load_project_preferences(path_prj)
+    # load_project_properties
+    project_preferences = load_project_properties(path_prj)
 
     # change value
     for preference_name in available_export_list:
         project_preferences[preference_name] = [enabled, enabled]
 
-    # save_project_preferences
-    save_project_preferences(path_prj, project_preferences)
+    # save_project_properties
+    save_project_properties(path_prj, project_preferences)
 

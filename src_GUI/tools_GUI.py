@@ -27,7 +27,7 @@ from src.tools_mod import MyProcessList, QGroupBoxCollapsible
 from src import hdf5_mod
 from src import plot_mod
 from src import tools_mod
-from src.project_manag_mod import load_project_preferences
+from src.project_properties_mod import load_project_properties
 
 
 class ToolsTab(QScrollArea):
@@ -512,7 +512,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
             # load figure option
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
 
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
@@ -581,7 +581,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
             # load figure option
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
 
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)

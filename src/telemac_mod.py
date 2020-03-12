@@ -27,7 +27,7 @@ from copy import deepcopy
 from src import hdf5_mod
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src import manage_grid_mod
-from src.project_manag_mod import create_default_project_preferences_dict
+from src.project_properties_mod import create_default_project_properties_dict
 from src import hydro_input_file_mod
 
 

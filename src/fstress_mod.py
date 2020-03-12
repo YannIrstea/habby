@@ -24,7 +24,7 @@ from src import stathab_mod
 from scipy import stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from src.project_manag_mod import create_default_project_preferences_dict
+from src.project_properties_mod import create_default_project_properties_dict
 
 
 def save_fstress(path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
@@ -464,7 +464,7 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, project_pref
     """
 
     if not project_preferences:
-        project_preferences = create_default_project_preferences_dict()
+        project_preferences = create_default_project_properties_dict()
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -519,7 +519,7 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_prefe
     """
 
     if not project_preferences:
-        project_preferences = create_default_project_preferences_dict()
+        project_preferences = create_default_project_properties_dict()
     plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
     plt.rcParams['font.size'] = project_preferences['font_size']
     plt.rcParams['lines.linewidth'] = project_preferences['line_width']

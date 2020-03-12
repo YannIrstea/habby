@@ -44,8 +44,8 @@ from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 from src_GUI import about_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
-from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences,\
-    create_project_structure, save_project_preferences
+from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties,\
+    create_project_structure, save_project_properties
 from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
 from src import hdf5_mod
@@ -496,9 +496,9 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        change_specific_preferences(self.path_prj,
-                                    preference_names=["language"],
-                                    preference_values=[self.lang])
+        change_specific_properties(self.path_prj,
+                                   preference_names=["language"],
+                                   preference_values=[self.lang])
 
         self.central_widget.write_log(self.tr('Project created.'))
 
@@ -521,8 +521,8 @@ class MainWindows(QMainWindow):
             self.close_project()
             return
 
-        # load_project_preferences
-        project_preferences = load_project_preferences(self.path_prj)
+        # load_project_properties
+        project_preferences = load_project_properties(self.path_prj)
 
         # the text in the Qwidget will be used to save the project
         self.name_prj = project_preferences["name_prj"]
@@ -577,9 +577,9 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.new_proj_signal.connect(self.open_new_project_dialog)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        change_specific_preferences(self.path_prj,
-                                    preference_names=["language"],
-                                    preference_values=[self.lang])
+        change_specific_properties(self.path_prj,
+                                   preference_names=["language"],
+                                   preference_values=[self.lang])
 
         # check if project open somewhere else
         self.check_concurrency()
@@ -687,9 +687,9 @@ class MainWindows(QMainWindow):
                                                        self.username_prj,
                                                        self.descri_prj,
                                                        "GUI")
-            change_specific_preferences(self.path_prj,
-                                        preference_names=["physic_tabs", "stat_tabs"],
-                                        preference_values=[self.physic_tabs, self.stat_tabs])
+            change_specific_properties(self.path_prj,
+                                       preference_names=["physic_tabs", "stat_tabs"],
+                                       preference_values=[self.physic_tabs, self.stat_tabs])
 
         self.my_menu_bar()
 
@@ -721,9 +721,9 @@ class MainWindows(QMainWindow):
         self.central_widget.update_combobox_filenames()
 
         # change language
-        change_specific_preferences(self.path_prj,
-                                    preference_names=["language"],
-                                    preference_values=[self.lang])
+        change_specific_properties(self.path_prj,
+                                   preference_names=["language"],
+                                   preference_values=[self.lang])
 
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.set_pref_gui_from_dict(default=True)
@@ -940,9 +940,9 @@ class MainWindows(QMainWindow):
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         if self.path_prj:
-            change_specific_preferences(self.path_prj,
-                                    preference_names=["language"],
-                                    preference_values=[self.lang])
+            change_specific_properties(self.path_prj,
+                                       preference_names=["language"],
+                                       preference_values=[self.lang])
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
@@ -994,7 +994,7 @@ class MainWindows(QMainWindow):
         self.menubar.clear()
 
         if self.path_prj:
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
             self.physic_tabs = project_preferences["physic_tabs"]
             self.stat_tabs = project_preferences["stat_tabs"]
 
@@ -1444,9 +1444,9 @@ class MainWindows(QMainWindow):
             self.physic_tabs = True
         # save xml
         if self.name_prj:
-            change_specific_preferences(self.path_prj,
-                                        preference_names=["physic_tabs", "stat_tabs"],
-                                        preference_values=[self.physic_tabs, self.stat_tabs])
+            change_specific_properties(self.path_prj,
+                                       preference_names=["physic_tabs", "stat_tabs"],
+                                       preference_values=[self.physic_tabs, self.stat_tabs])
 
     def open_close_stat(self):
         #print("open_close_stat", self.sender())
@@ -1472,9 +1472,9 @@ class MainWindows(QMainWindow):
             self.stat_tabs = True
         # save xml
         if self.name_prj:
-            change_specific_preferences(self.path_prj,
-                                        preference_names=["physic_tabs", "stat_tabs"],
-                                        preference_values=[self.physic_tabs, self.stat_tabs])
+            change_specific_properties(self.path_prj,
+                                       preference_names=["physic_tabs", "stat_tabs"],
+                                       preference_values=[self.physic_tabs, self.stat_tabs])
 
     def open_close_rech(self):
         """
@@ -1559,14 +1559,14 @@ class MainWindows(QMainWindow):
             filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
             if os.path.isfile(filename_path_pro):
                 # load
-                project_preferences = load_project_preferences(self.path_prj)
+                project_preferences = load_project_properties(self.path_prj)
 
                 # remove
                 if file_to_remove in project_preferences[input_type]["hdf5"]:
                     project_preferences[input_type]["hdf5"].remove(file_to_remove)
 
                     # save
-                    save_project_preferences(self.path_prj, project_preferences)
+                    save_project_properties(self.path_prj, project_preferences)
 
         # empty list
         self.central_widget.data_explorer_tab.data_explorer_frame.file_to_remove_list = []
@@ -1598,7 +1598,7 @@ class MainWindows(QMainWindow):
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             # load
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
 
             # rename
             if file_to_rename in project_preferences[input_type]["hdf5"]:
@@ -1606,7 +1606,7 @@ class MainWindows(QMainWindow):
                 project_preferences[input_type]["hdf5"][file_to_rename_index] = file_renamed
 
                 # save
-                save_project_preferences(self.path_prj, project_preferences)
+                save_project_properties(self.path_prj, project_preferences)
 
         # reconnect
         self.central_widget.data_explorer_tab.data_explorer_frame.names_hdf5_QListWidget.blockSignals(False)
@@ -1630,7 +1630,7 @@ class MainWindows(QMainWindow):
         path_im = ''
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            path_im = load_specific_preferences(self.path_prj, ["path_figure"])[0]
+            path_im = load_specific_properties(self.path_prj, ["path_figure"])[0]
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
@@ -1767,9 +1767,9 @@ class MainWindows(QMainWindow):
 
         # save the option in the .habby file
         try:
-            change_specific_preferences(self.path_prj,
-                                        preference_names=["save_log"],
-                                        preference_values=[self.central_widget.logon])
+            change_specific_properties(self.path_prj,
+                                       preference_names=["save_log"],
+                                       preference_values=[self.central_widget.logon])
         except AttributeError:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Log Info"))
@@ -2017,7 +2017,7 @@ class CentralW(QWidget):
         #print("add_all_tab", self.path_prj)
         # load project pref
         if os.path.isfile(fname) and self.name_prj != '':
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
             go_physic = project_preferences["physic_tabs"]
             go_stat = project_preferences["stat_tabs"]
             go_research = False
@@ -2154,7 +2154,7 @@ class CentralW(QWidget):
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(fname):
             # file_log
-            logfile = load_specific_preferences(self.path_prj, ["file_log"])[0]
+            logfile = load_specific_properties(self.path_prj, ["file_log"])[0]
             if logfile:
                 pathname_logfile = logfile
             else:
@@ -2162,13 +2162,13 @@ class CentralW(QWidget):
                                                                         "log file is not indicated in the .habby file. No log written. </br> <br>")
                 return
             # file_script
-            file_script = load_specific_preferences(self.path_prj, ["file_script"])[0]
+            file_script = load_specific_properties(self.path_prj, ["file_script"])[0]
             if not file_script:
                 self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
                                                                         "script file is not indicated in the .habby file. No log written. </br> <br>")
                 return
             # restart log
-            restart = load_specific_preferences(self.path_prj, ["file_restart"])[0]
+            restart = load_specific_properties(self.path_prj, ["file_restart"])[0]
             if restart:
                 pathname_restartfile = restart
             else:
@@ -2326,9 +2326,9 @@ class CentralW(QWidget):
         if not os.path.isfile(fname):
             self.write_log('Error: ' + self.tr('The project file is not found. \n'))
         else:
-            change_specific_preferences(self.path_prj,
-                                        preference_names=["user_name", "description"],
-                                        preference_values=[self.username_prj, self.descri_prj])
+            change_specific_properties(self.path_prj,
+                                       preference_names=["user_name", "description"],
+                                       preference_values=[self.username_prj, self.descri_prj])
 
     def save_on_change_tab(self):
         """

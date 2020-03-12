@@ -31,7 +31,7 @@ from lxml import etree as ET
 
 from src import bio_info_mod
 from src import plot_mod
-from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences
+from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties
 from src.user_preferences_mod import user_preferences
 from src_GUI.data_explorer_GUI import MyProcessList
 from src.bio_info_mod import get_name_stage_codebio_fromstr
@@ -93,8 +93,8 @@ class BioModelExplorerWindow(QDialog):
         # source
         self.source_str = source_str
 
-        bio_model_explorer_selection_dict = load_specific_preferences(self.path_prj,
-                                                                      ["bio_model_explorer_selection"])[0]
+        bio_model_explorer_selection_dict = load_specific_properties(self.path_prj,
+                                                                     ["bio_model_explorer_selection"])[0]
 
         if user_preferences.modified:
             self.bio_model_filter_tab.create_dico_select()
@@ -863,7 +863,7 @@ class BioModelInfoSelection(QScrollArea):
 
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
         # plot the pref
-        project_preferences = load_project_preferences(self.path_prj)
+        project_preferences = load_project_properties(self.path_prj)
         # check plot process done
         if self.process_list.check_all_process_closed():
             self.process_list.new_plots()
@@ -951,7 +951,7 @@ class BioModelInfoSelection(QScrollArea):
                 self.process_list.new_plots()
             else:
                 self.process_list.add_plots()
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
             state = Value("i", 0)
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                              args=(state,
@@ -1012,9 +1012,9 @@ class BioModelInfoSelection(QScrollArea):
         bio_model_explorer_selection_dict["selected"] = self.bio_model_explorer_selection_dict["selected"].tolist()
 
         # save bio_model_explorer_selection_dict in xml project
-        change_specific_preferences(self.path_prj,
-                                    preference_names=["bio_model_explorer_selection"],
-                                    preference_values=[bio_model_explorer_selection_dict])
+        change_specific_properties(self.path_prj,
+                                   preference_names=["bio_model_explorer_selection"],
+                                   preference_values=[bio_model_explorer_selection_dict])
 
         self.parent().parent().parent().close()
 

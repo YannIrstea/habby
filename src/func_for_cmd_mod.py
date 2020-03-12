@@ -46,8 +46,8 @@ from src import mesh_management_mod
 from src import lammi_mod
 from src import ascii_mod
 from src import hydro_input_file_mod
-from src.project_manag_mod import create_project_structure, enable_disable_all_exports, \
-    create_default_project_preferences_dict, load_project_preferences, change_specific_preferences
+from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
+    create_default_project_properties_dict, load_project_properties, change_specific_properties
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -92,12 +92,12 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         if not all_arg[0] == 'CREATE_PROJECT':
             # print("Warning: Specified project_path does not exist, the latter is created.")
             # cli_create_project(path_prj, name_prj, False, HABBY_VERSION_STR)
-            # project_preferences = load_project_preferences(path_prj)
+            # project_preferences = load_project_properties(path_prj)
             print("Error: Specified project_path does not exist. Project creation with CREATE_PROJECT argument.")
             return
     # load project preferences
     else:
-        project_preferences = load_project_preferences(path_prj)
+        project_preferences = load_project_properties(path_prj)
 
     # ----------------------------------------------------------------------------------
     if all_arg[0] == 'LIST_COMMAND':
@@ -178,9 +178,9 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                                      user_name="CLI",
                                      description="CLI-mode",
                                      mode="CLI")
-            change_specific_preferences(path_prj,
-                                        preference_names=["physic_tabs", "stat_tabs"],
-                                        preference_values=[True, True])
+            change_specific_properties(path_prj,
+                                       preference_names=["physic_tabs", "stat_tabs"],
+                                       preference_values=[True, True])
             enable_disable_all_exports(path_prj, enabled=all_export_enabled)
             print("# CREATE_PROJECT finished")
         else:
@@ -903,7 +903,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         if riv_int == 0:
             [mystathab.fish_chosen, coeff_all] = stathab_mod.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
-            project_preferences = create_default_project_preferences_dict()
+            project_preferences = create_default_project_properties_dict()
             project_preferences['erase_id'] = True
             mystathab.project_preferences = project_preferences
             mystathab.savetxt_stathab()

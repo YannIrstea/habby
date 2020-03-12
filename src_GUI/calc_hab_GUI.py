@@ -27,7 +27,7 @@ from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import calcul_hab_mod
 from src import hdf5_mod
-from src.project_manag_mod import load_project_preferences, load_specific_preferences, change_specific_preferences, save_project_preferences
+from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
@@ -53,7 +53,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.name_prj = name_prj
         self.imfish = ''
         self.current_hab_informations_dict = None
-        self.path_bio = load_specific_preferences(self.path_prj, ["path_bio"])[0]
+        self.path_bio = load_specific_properties(self.path_prj, ["path_bio"])[0]
         self.path_im_bio = self.path_bio
         # self.path_bio is defined in StatModUseful.
         self.data_fish = []  # all data concerning the fish
@@ -276,7 +276,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
 
     def load_selected_aquatic_animal_dict(self):
-        self.selected_aquatic_animal_dict = load_specific_preferences(self.path_prj, ["selected_aquatic_animal_list"])[0]
+        self.selected_aquatic_animal_dict = load_specific_properties(self.path_prj, ["selected_aquatic_animal_list"])[0]
 
         if len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]) > 1:
             self.general_option_hyd_combobox_index = self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][0]
@@ -744,9 +744,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                                                          self.general_option_sub_combobox.currentIndex()])
 
             # save
-            change_specific_preferences(self.path_prj,
-                                        preference_names=["selected_aquatic_animal_list"],
-                                        preference_values=[selected_aquatic_animal_dict])
+            change_specific_properties(self.path_prj,
+                                       preference_names=["selected_aquatic_animal_list"],
+                                       preference_values=[selected_aquatic_animal_dict])
 
     def update_merge_list(self):
         """
@@ -759,7 +759,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         try:
             try:
                 # load
-                project_preferences = load_project_preferences(self.path_prj)
+                project_preferences = load_project_properties(self.path_prj)
                 files = project_preferences["HABITAT"]["hdf5"]
             except IOError:
                 self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
@@ -794,7 +794,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     project_preferences["HABITAT"]["hdf5"].remove(f)
 
         # save
-        save_project_preferences(self.path_prj, project_preferences)
+        save_project_properties(self.path_prj, project_preferences)
 
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
@@ -816,7 +816,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
         # get the figure options and the type of output to be created
-        project_preferences = load_project_preferences(self.path_prj)
+        project_preferences = load_project_properties(self.path_prj)
 
         # remove duplicate
         self.remove_duplicates()

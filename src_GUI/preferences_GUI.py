@@ -22,8 +22,8 @@ import numpy as np
 import os
 
 from src.tools_mod import DoubleClicOutputGroup, QHLine
-from src.project_manag_mod import load_project_preferences, create_default_project_preferences_dict, \
-    save_project_preferences
+from src.project_properties_mod import load_project_properties, create_default_project_properties_dict, \
+    save_project_properties
 
 
 class PreferenceWindow(QDialog):
@@ -309,10 +309,10 @@ class PreferenceWindow(QDialog):
 
     def set_pref_gui_from_dict(self, default=False):
         if default:
-            project_preferences = create_default_project_preferences_dict()
+            project_preferences = create_default_project_properties_dict()
         else:
             # read actual figure option
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
 
         # min_height_hyd
         self.min_height_lineedit.setText(str(project_preferences['min_height_hyd']))
@@ -410,7 +410,7 @@ class PreferenceWindow(QDialog):
         Function to collect user choices of project preferences GUI
         """
         # get default option for security and facility
-        project_preferences = load_project_preferences(self.path_prj)
+        project_preferences = load_project_properties(self.path_prj)
 
         fig_size = self.fig_size_lineedit.text()
         if fig_size:
@@ -542,7 +542,7 @@ class PreferenceWindow(QDialog):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
-            save_project_preferences(self.path_prj, project_preferences)
+            save_project_properties(self.path_prj, project_preferences)
 
         self.send_log.emit(self.tr('# Project properties saved.'))
         self.close()

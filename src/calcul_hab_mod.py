@@ -23,7 +23,7 @@ from scipy.interpolate import interp1d, griddata
 import src.tools_mod
 from src import hdf5_mod
 from src import bio_info_mod
-from src.project_manag_mod import load_project_preferences
+from src.project_properties_mod import load_project_properties
 from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 from src.tools_mod import get_translator
 
@@ -129,7 +129,7 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
 
     # fig options
     if not project_preferences:
-        project_preferences = load_project_preferences(hdf5.path_prj)
+        project_preferences = load_project_properties(hdf5.path_prj)
 
     # progress
     progress_value.value = 20

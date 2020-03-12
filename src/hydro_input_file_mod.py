@@ -28,7 +28,7 @@ from src import hec_ras2D_mod, hec_ras1D_mod
 from src import rubar1d2d_mod
 from src import telemac_mod
 from src.tools_mod import polygon_type_values, point_type_values, sort_homogoeneous_dict_list_by_on_key
-from src.project_manag_mod import create_default_project_preferences_dict
+from src.project_properties_mod import create_default_project_properties_dict
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src import hdf5_mod
 from src import manage_grid_mod
@@ -1383,7 +1383,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
 
     # minimum water height
     if not project_preferences:
-        project_preferences = create_default_project_preferences_dict()
+        project_preferences = create_default_project_properties_dict()
 
     # progress
     progress_value.value = 10

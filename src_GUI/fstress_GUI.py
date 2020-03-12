@@ -29,7 +29,7 @@ import src.tools_mod
 from src_GUI import estimhab_GUI
 from src import fstress_mod
 from src import hdf5_mod
-from src.project_manag_mod import load_project_preferences
+from src.project_properties_mod import load_project_properties
 
 
 class FstressW(estimhab_GUI.StatModUseful):
@@ -795,7 +795,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # figures
         self.path_im = self.find_path_im_est()
-        project_preferences = load_project_preferences(self.path_prj)
+        project_preferences = load_project_properties(self.path_prj)
         fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, project_preferences)
         plt.show()
         #self.show_fig.emit()

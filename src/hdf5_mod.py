@@ -32,7 +32,7 @@ from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
-from src.project_manag_mod import load_project_preferences, save_project_preferences
+from src.project_properties_mod import load_project_properties, save_project_properties
 from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_values, copy_hydrau_input_files,\
     c_mesh_max_slope_bottom, c_mesh_max_slope_energy, c_mesh_shear_stress, c_mesh_froude, c_mesh_hydraulic_head, \
     c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level,\
@@ -128,7 +128,7 @@ class Hdf5Management:
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
                 if self.hdf5_type != "ESTIMHAB":
-                    self.project_preferences = load_project_preferences(self.path_prj)
+                    self.project_preferences = load_project_properties(self.path_prj)
 
                     self.get_hdf5_attributes()
 
@@ -168,8 +168,8 @@ class Hdf5Management:
                                               'No project saved. Please create a project first in the General tab.'))
             return
         else:
-            # load_project_preferences
-            project_preferences = load_project_preferences(self.path_prj)
+            # load_project_properties
+            project_preferences = load_project_properties(self.path_prj)
 
             # change values
             if self.filename in project_preferences[model_type]["hdf5"]:
@@ -177,8 +177,8 @@ class Hdf5Management:
             project_preferences[model_type]["hdf5"].append(self.filename)
             project_preferences[model_type]["path"] = input_file_path
 
-            # save_project_preferences
-            save_project_preferences(self.path_prj, project_preferences)
+            # save_project_properties
+            save_project_properties(self.path_prj, project_preferences)
 
     # SET HDF5 INFORMATIONS
     def set_hdf5_attributes(self, attribute_name, attribute_value):
@@ -2985,7 +2985,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     # open the xml project file
     filename_path_pro = os.path.join(path_prj, name_prj + '.habby')
     if os.path.isfile(filename_path_pro):
-        project_preferences = load_project_preferences(path_prj)
+        project_preferences = load_project_properties(path_prj)
         name_hdf5_list = project_preferences[model_name]["hdf5"]
         return name_hdf5_list
     else:

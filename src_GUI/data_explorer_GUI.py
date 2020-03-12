@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstract
 from src import hdf5_mod
 from src import plot_mod
 from src.tools_mod import MyProcessList, create_map_plot_string_dict
-from src.project_manag_mod import load_project_preferences
+from src.project_properties_mod import load_project_properties
 from src.tools_mod import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
 
@@ -811,7 +811,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.process_list.export_production_stoped = False
 
             # figure option
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
             project_preferences['type_plot'] = export_type  # "interactive", "image export", "both
 
             # init
@@ -1639,7 +1639,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.export_production_stoped = False
 
             # figure option
-            project_preferences = load_project_preferences(self.path_prj)
+            project_preferences = load_project_properties(self.path_prj)
 
             # export_production_stoped
             self.process_list.process_list = []

@@ -29,7 +29,7 @@ import matplotlib as mpl
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src import manage_grid_mod
 from src import hdf5_mod
-from src.project_manag_mod import create_default_project_preferences_dict
+from src.project_properties_mod import create_default_project_properties_dict
 
 
 def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -67,7 +67,7 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
         sys.stdout = mystdout = StringIO()
 
     if not project_preferences:
-        project_preferences = create_default_project_preferences_dict()
+        project_preferences = create_default_project_properties_dict()
 
     name_hdf5 = hydrau_description["hdf5_name"]
     namefile = hydrau_description["filename_source"]

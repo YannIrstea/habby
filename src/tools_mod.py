@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
 from PyQt5.QtCore import QLocale
 import multiprocessing
 
-from src.project_manag_mod import load_project_preferences
+from src.project_properties_mod import load_project_properties
 
 GRAVITY = 9.80665  # [m/s2] standard acceleration due to gravity
 
@@ -897,7 +897,7 @@ def get_translator(path_prj):
     """
     #print("get_translator")
     # get language from project_preferences['language']
-    project_preferences = load_project_preferences(path_prj)
+    project_preferences = load_project_properties(path_prj)
     language = project_preferences['language']
 
     # translator

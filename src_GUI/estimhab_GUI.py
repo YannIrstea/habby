@@ -31,7 +31,7 @@ from io import StringIO
 from src import hdf5_mod
 from src.tools_mod import DoubleClicOutputGroup
 from src_GUI.data_explorer_GUI import MyProcessList
-from src.project_manag_mod import load_project_preferences
+from src.project_properties_mod import load_project_properties
 
 
 class StatModUseful(QScrollArea):
@@ -192,7 +192,7 @@ class StatModUseful(QScrollArea):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            path_hdf5 = load_project_preferences(self.path_prj)["path_hdf5"]
+            path_hdf5 = load_project_properties(self.path_prj)["path_hdf5"]
             # parser = ET.XMLParser(remove_blank_text=True)
             # doc = ET.parse(filename_path_pro, parser)
             # root = doc.getroot()
@@ -790,7 +790,7 @@ class EstimhabW(StatModUseful):
         self.check_all_q()
 
         # run and save
-        project_preferences = load_project_preferences(self.path_prj)
+        project_preferences = load_project_properties(self.path_prj)
         sys.stdout = mystdout = StringIO()
 
         estimhab_dict = dict(q=q,
