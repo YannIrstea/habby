@@ -251,7 +251,7 @@ class MainWindows(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-        self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+        self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
 
         # check_version_dialog
         self.check_version_dialog = about_GUI.CheckVersionDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
@@ -333,11 +333,11 @@ class MainWindows(QMainWindow):
         """
         if self.beta:
             # disable_hydraulic_models_not_finished
-            # list_to_disable = ['HABBY_HDF5', 'HEC-RAS_1D', 'HEC-RAS_2D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D',
-            #                    'RUBAR_20', 'RUBAR_BE', 'SW2D']  # , 'TXT'
-            list_to_disable = ['HABBY_HDF5', 'HEC-RAS_1D', 'IBER2D', 'LAMMI', 'MASCARET', 'RIVER2D', 'RUBAR_BE', 'SW2D']
+            # ['', 'LAMMI', 'RubarBE 1D', 'Mascaret 1D', 'HEC-RAS 1D',
+            #      'Rubar20 2D', 'TELEMAC 2D', 'HEC-RAS 2D', 'Iber 2D', 'River 2D', 'SW2D', 'TXT 1D-2D']
+            list_to_disable = ['LAMMI', 'RubarBE 1D', 'Mascaret 1D', 'HEC-RAS 1D', 'Iber 2D', 'River 2D', 'SW2D']
             if hasattr(self.central_widget, "hydro_tab"):
-                list_of_model = self.central_widget.hydro_tab.name_model
+                list_of_model = self.central_widget.hydro_tab.name_models_list
                 for model in list_of_model:
                     if model in list_to_disable:
                         self.central_widget.hydro_tab.mod.model().item(list_of_model.index(model)).setEnabled(False)
@@ -725,7 +725,7 @@ class MainWindows(QMainWindow):
                                    preference_names=["language"],
                                    preference_values=[self.lang])
 
-        self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+        self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.set_pref_gui_from_dict(default=True)
         self.check_version_dialog = about_GUI.CheckVersionDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
         self.soft_information_dialog = about_GUI.SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
@@ -1036,7 +1036,7 @@ class MainWindows(QMainWindow):
             elif j == 4:
                 recent_proj_menu[4].triggered.connect(lambda: self.open_recent_project(4))
         self.preferences_action = QAction(self.tr('Properties'))
-        self.preferences_action.triggered.connect(self.open_preferences)
+        self.preferences_action.triggered.connect(self.open_project_properties)
         self.preferences_action.setShortcut('Ctrl+P')
         tabs_menu = QMenu(project_menu)
         tabs_menu.setTitle(self.tr('Tabs'))
@@ -1296,8 +1296,8 @@ class MainWindows(QMainWindow):
         self.toolbar.addWidget(spacer_toolbar)
         self.toolbar.addAction(self.kill_process)
 
-    def open_preferences(self):
-        #"open_preferences", self.sender())
+    def open_project_properties(self):
+        #"open_project_properties", self.sender())
         self.preferences_dialog.open_preferences()
         # # witdh_for_checkbox_alignement
         witdh_for_checkbox_alignement = self.preferences_dialog.cut_2d_grid_label.size().width()
@@ -1408,14 +1408,17 @@ class MainWindows(QMainWindow):
 
             if hasattr(self, "preferences_dialog"):
                 if not self.preferences_dialog:
-                    self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+                    self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
                 else:
                     self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
             else:
-                self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+                self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
+                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
 
             # # run_as_beta_version
             # self.run_as_beta_version()
@@ -1682,21 +1685,20 @@ class MainWindows(QMainWindow):
         """
         method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
         """
-        tab_list = [("hydro_tab", "hecras1D"),
-                    ("hydro_tab", "hecras2D"),
-                    ("hydro_tab", "rubar2d"),
-                    ("hydro_tab", "rubar1d"),
-                    ("hydro_tab", "sw2d"),
-                    ("hydro_tab", "iber2d"),
-                    ("hydro_tab", "telemac"),
-                    ("hydro_tab", "ascii"),
-                    ("hydro_tab", "riverhere2d"),
-                    ("hydro_tab", "mascar"),
-                    ("hydro_tab", "habbyhdf5"),
-                    ("hydro_tab", "lammi"),
-                    "substrate_tab",
-                    "bioinfo_tab"]
-
+        tab_list = [
+            ("hydro_tab", "lammi"),
+            ("hydro_tab", "rubar1d"),
+            ("hydro_tab", "mascaret"),
+            ("hydro_tab", "hecras1d"),
+            ("hydro_tab", "rubar2d"),
+            ("hydro_tab", "telemac"),
+            ("hydro_tab", "hecras2d"),
+            ("hydro_tab", "iber2d"),
+            ("hydro_tab", "river2d"),
+            ("hydro_tab", "sw2d"),
+            ("hydro_tab", "ascii"),
+            "substrate_tab",
+            "bioinfo_tab"]
         alive = []
         # loop
         if hasattr(self, "central_widget"):
@@ -2081,8 +2083,8 @@ class CentralW(QWidget):
 
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.hydro_tab.send_log.connect(self.write_log)
-            self.hydro_tab.hecras1D.send_log.connect(self.write_log)
-            self.hydro_tab.hecras2D.send_log.connect(self.write_log)
+            self.hydro_tab.hecras1d.send_log.connect(self.write_log)
+            self.hydro_tab.hecras2d.send_log.connect(self.write_log)
             self.hydro_tab.rubar2d.send_log.connect(self.write_log)
             self.hydro_tab.rubar1d.send_log.connect(self.write_log)
             self.hydro_tab.sw2d.send_log.connect(self.write_log)
@@ -2092,10 +2094,9 @@ class CentralW(QWidget):
             self.substrate_tab.send_log.connect(self.write_log)
             self.statmod_tab.send_log.connect(self.write_log)
             self.stathab_tab.send_log.connect(self.write_log)
-            self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
-            self.hydro_tab.mascar.send_log.connect(self.write_log)
+            self.hydro_tab.river2d.send_log.connect(self.write_log)
+            self.hydro_tab.mascaret.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
-            self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
             self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
@@ -2109,23 +2110,21 @@ class CentralW(QWidget):
 
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
-            self.hydro_tab.hecras1D.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.hecras2D.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.hecras1d.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.hecras2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.telemac.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.ascii.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.rubar2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.rubar1d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.sw2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.iber2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.mascar.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.river2d.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.mascaret.drop_hydro.connect(self.update_combobox_filenames)
 
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.ascii.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-            self.hydro_tab.habbyhdf5.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
         """

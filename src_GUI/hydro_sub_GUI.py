@@ -83,7 +83,7 @@ class Hydro2W(QScrollArea):
 
     Any new hydrological model should also be added to the stack and to
     the list of models contained in self.mod
-    (name of the list: self.name_model).
+    (name of the list: self.name_models_list).
 
     In addition to the stack containing the hydrological information, hydro2W
     has two buttons. One button open a QMessageBox() which give information
@@ -117,10 +117,24 @@ class Hydro2W(QScrollArea):
         self.tab_name = "hydraulic"
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS_1D", "HEC-RAS_2D", "LAMMI", "MASCARET",
-                           "RIVER2D", "RUBAR_BE", "RUBAR_20",
-                           "SW2D", "IBER2D", "TELEMAC", "TXT", "HABBY_HDF5"]  # "MAGE"
-        self.name_model.sort()
+        self.name_models_list = ['', 'LAMMI', 'RubarBE 1D', 'Mascaret 1D', 'HEC-RAS 1D',
+                           'Rubar20 2D', 'TELEMAC 2D', 'HEC-RAS 2D', 'Iber 2D', 'River 2D', 'SW2D', 'TXT 1D-2D']
+        self.attribute_models_list = ['free', 'lammi', 'rubar1d', 'mascaret', 'hecras1d',
+                          'rubar2d', 'telemac', 'hecras2d', 'iber2d', 'river2d', 'sw2d', 'ascii']
+        self.class_models_list = ["QWidget", "LAMMI", "Rubar1D", "Mascaret", "HEC_RAS1D",
+                                  "Rubar2D", "TELEMAC", "HEC_RAS2D", "IBER2D", "River2D", "SW2D", "ASCII"]
+        self.website_models_list = ["",
+                                    "<a href=\"https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847\">LAMMI</a>",
+                                    "<a href=\"https://riverhydraulics.inrae.fr/outils/modelisation-numerique/modelisation-1d-avec-evolution-des-fonds-rubarbe/\">RubarBE 1D</a>",
+                                    "<a href=\"http://www.openmascaret.org/\">Mascaret 1D</a>",
+                                    "<a href=\"https://www.hec.usace.army.mil/software/hec-ras/\">HEC-RAS 1D</a>",
+                                    "<a href=\"http://www.captiven.fr/article/logiciel-rubar-20\">Rubar20 2D</a>",
+                                    "<a href=\"http://www.opentelemac.org/index.php/presentation?id=17\">TELEMAC 2D</a>",
+                                    "<a href=\"https://www.hec.usace.army.mil/software/hec-ras/\">HEC-RAS 2D</a>",
+                                    "<a href=\"http://www.iberaula.es/\">Iber 2D</a>",
+                                    "<a href=\"http://www.river2d.ualberta.ca/\">River 2D</a>",
+                                    "<a href=\"https://sw2d.wordpress.com\">SW2D</a>",
+                                    "<a href=\"https://github.com/YannIrstea/habby\">TXT 1D-2D</a>"]
         self.mod_act = 0
         self.msgi = QMessageBox()
         self.init_iu()
@@ -137,74 +151,29 @@ class Hydro2W(QScrollArea):
 
         # group hydraulic model
         self.mod = QComboBox()
-        self.mod.setMaxVisibleItems(len(self.name_model))
-        self.mod.addItems(self.name_model)  # available model
+        self.mod.setMaxVisibleItems(len(self.name_models_list) + 4)
+        self.mod.addItems(self.name_models_list)  # available model
         self.mod.currentIndexChanged.connect(self.selectionchange)
         self.mod.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        # # alignitems to the right
-        # for item_index in range(self.mod.count()):
-        #     self.mod.model().item(item_index).setTextAlignment(Qt.AlignRight)
         self.button1 = QPushButton(self.tr('?'))
         self.button1.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.button1.clicked.connect(self.give_info_model)
-        self.free = QWidget()  # add the widgets representing the available models to a stack of widgets
-        self.hecras1D = HEC_RAS1D(self.path_prj, self.name_prj)
-        self.hecras2D = HEC_RAS2D(self.path_prj, self.name_prj)
-        self.lammi = LAMMI(self.path_prj, self.name_prj)
-        self.mascar = Mascaret(self.path_prj, self.name_prj)
-        self.riverhere2d = River2D(self.path_prj, self.name_prj)
-        self.rubar1d = Rubar1D(self.path_prj, self.name_prj)
-        self.rubar2d = Rubar2D(self.path_prj, self.name_prj)
-        self.sw2d = SW2D(self.path_prj, self.name_prj)
-        self.iber2d = IBER2D(self.path_prj, self.name_prj)
-        self.telemac = TELEMAC(self.path_prj, self.name_prj)
-        self.ascii = ASCII(self.path_prj, self.name_prj)
-        self.habbyhdf5 = HabbyHdf5(self.path_prj, self.name_prj)
         self.layout_modele = QVBoxLayout()
-        self.layout_modele.addWidget(self.free)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.hecras1D)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.hecras2D)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.lammi)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.mascar)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.riverhere2d)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.rubar1d)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.rubar2d)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.sw2d)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.iber2d)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.telemac)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.ascii)  # index row, index column, nb row, nb column
-        self.layout_modele.addWidget(self.habbyhdf5)  # index row, index column, nb row, nb column
+
+        # create class instance and set them to attribute class
+        for model_num in range(len(self.name_models_list)):
+            # create class instance and set to attribute class
+            if model_num == 0:
+                setattr(self, self.attribute_models_list[model_num], eval(self.class_models_list[model_num])())
+            else:
+                setattr(self, self.attribute_models_list[model_num], eval(self.class_models_list[model_num])(self.path_prj, self.name_prj))
+                # hide
+                getattr(self, self.attribute_models_list[model_num]).hide()
+            # add widget
+            self.layout_modele.addWidget(getattr(self, self.attribute_models_list[model_num]))
+
         self.qframe_modele = QFrame()  # 4 rows et 4 columns
         self.qframe_modele.setLayout(self.layout_modele)
-        self.hecras1D.hide()
-        self.hecras2D.hide()
-        self.lammi.hide()
-        self.mascar.hide()
-        self.riverhere2d.hide()
-        self.rubar1d.hide()
-        self.rubar2d.hide()
-        self.sw2d.hide()
-        self.iber2d.hide()
-        self.telemac.hide()
-        self.ascii.hide()
-        self.habbyhdf5.hide()
-
-        # self.stack = QStackedWidget()
-        # self.stack.addWidget(self.free)  # order matters in the next lines!
-        # self.stack.addWidget(self.hecras1D)
-        # self.stack.addWidget(self.hecras2D)
-        # self.stack.addWidget(self.lammi)
-        # self.stack.addWidget(self.mascar)
-        # self.stack.addWidget(self.riverhere2d)
-        # self.stack.addWidget(self.rubar1d)
-        # self.stack.addWidget(self.rubar2d)
-        # self.stack.addWidget(self.sw2d)
-        # self.stack.addWidget(self.iber2d)
-        # self.stack.addWidget(self.telemac)
-        # self.stack.addWidget(self.habbyhdf5)
-        # self.stack.setCurrentIndex(self.mod_act)
-        # self.stack.setFixedHeight(0)
-        # self.stack.setFixedWidth(0)
 
         # group hydraulic hdf5
         self.slfbut = QPushButton(self.tr('export .slf'))  # export slf
@@ -217,10 +186,8 @@ class Hydro2W(QScrollArea):
         self.layout = QVBoxLayout(content_widget)
 
         # layout hydraulic model
-        #hydrau_group = QGroupBox(self.tr('Hydraulic data'))
         hydrau_group = QGroupBoxCollapsible()
         hydrau_group.setTitle(self.tr('Hydraulic data'))
-        #hydrau_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hydrau_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.mod, Qt.AlignLeft)
@@ -234,13 +201,11 @@ class Hydro2W(QScrollArea):
 
         # layout hdf5 model
         hdf5_group = QGroupBox(self.tr('.hyd files created'))
-        #hdf5_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         hdf5_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         hdf5_layout = QHBoxLayout()
         hdf5_layout.addWidget(self.drop_hyd)
         hdf5_layout.addWidget(self.slfbut)
         hdf5_group.setLayout(hdf5_layout)
-        #self.layout.addWidget(hdf5_group)
 
         # spacer to align top
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -258,203 +223,16 @@ class Hydro2W(QScrollArea):
         :param i: the number of the model
                     (0=no model, 1=hecras1d, 2= hecras2D,...)
         """
-        # self.name_model  # list modele
+        # self.name_models_list  # list modele
         self.mod_act = i
 
-        if self.mod.currentText() == "":
-            self.free.show()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
+        model_wish = self.attribute_models_list[i]
 
-        if self.mod.currentText() == "HEC-RAS_1D":
-            self.free.hide()
-            self.hecras1D.show()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "HEC-RAS_2D":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.show()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "LAMMI":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.show()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "MASCARET":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.show()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "RIVER2D":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.show()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "RUBAR_BE":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.show()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "RUBAR_20":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.show()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "SW2D":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.show()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "IBER2D":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.show()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "TELEMAC":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.show()
-            self.ascii.hide()
-            self.habbyhdf5.hide()
-
-        if self.mod.currentText() == "TXT":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.show()
-            self.habbyhdf5.hide()
-            
-        if self.mod.currentText() == "HABBY_HDF5":
-            self.free.hide()
-            self.hecras1D.hide()
-            self.hecras2D.hide()
-            self.lammi.hide()
-            self.mascar.hide()
-            self.riverhere2d.hide()
-            self.rubar1d.hide()
-            self.rubar2d.hide()
-            self.sw2d.hide()
-            self.iber2d.hide()
-            self.telemac.hide()
-            self.ascii.hide()
-            self.habbyhdf5.show()
+        for attribute_model_num, attribute_model in enumerate(self.attribute_models_list):
+            if attribute_model == model_wish:
+                getattr(self, attribute_model).show()
+            else:
+                getattr(self, attribute_model).hide()
 
     def give_info_model(self):
         """
@@ -468,29 +246,10 @@ class Hydro2W(QScrollArea):
         """
         self.msgi.setIcon(QMessageBox.Information)
         text_title = self.tr("Information on the hydraulic model")
-        mod_name = self.name_model[self.mod_act]
+        mod_name = self.name_models_list[self.mod_act]
+        website = self.website_models_list[self.mod_act]
         self.msgi.setWindowTitle(text_title)
-        info_filename = os.path.join('./model_hydro', mod_name + '.txt')
-        if mod_name == "TELEMAC":
-            website = "<a href=\"http://www.opentelemac.org\">TELEMAC</a>"
-        elif mod_name == "HEC-RAS 1D":
-            website = "<a href=\"http://www.hec.usace.army.mil/software/hec-ras\">HEC-RAS 1D</a>"
-        elif mod_name == "HEC-RAS 2D":
-            website = "<a href=\"http://www.hec.usace.army.mil/software/hec-ras\">HEC-RAS 2D</a>"
-        elif mod_name == "SW2D":
-            website = "<a href=\"https://sw2d.wordpress.com\">SW2D</a>"
-        elif mod_name == "MASCARET":
-            website = "<a href=\"http://www.openmascaret.org\">MASCARET</a>"
-        elif mod_name == "RIVER2D":
-            website = "<a href=\"http://www.river2d.ca\">RIVER2D</a>"
-        elif mod_name == "RUBAR 20":
-            website = "<a href=\"http://www.irstea.fr/rubar20\">RUBAR20</a>"
-        elif mod_name == "RUBAR BE":
-            website = "<a href=\"http://www.irstea.fr/rubar3\">RUBARBE</a>"
-        elif mod_name == "IBER2D":
-            website = "<a href=\"http://www.iberaula.es\">IBER2D</a>"
-        else:
-            website = ""
+        info_filename = os.path.join('model_hydro', mod_name + '.txt')
         self.msgi.setStandardButtons(QMessageBox.Ok)
         if os.path.isfile(info_filename):
             with open(info_filename, 'rt') as f:
@@ -506,6 +265,39 @@ class Hydro2W(QScrollArea):
         name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
         self.msgi.setWindowIcon(QIcon(name_icon))
         self.msgi.show()
+
+    def set_suffix_no_cut(self, no_cut_bool):
+        if self.name_models_list[self.mod_act]:
+            # get class
+            current_model_class = getattr(self, self.attribute_models_list[self.mod_act].lower())
+            # get hdf5_name
+            current_hdf5_name = current_model_class.hname.text()
+            # add no_cut suffix if not exist
+            if not no_cut_bool:
+                # check if no_cut suffix exist
+                if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                    # check if there is extension
+                    if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                        extension = os.path.splitext(current_hdf5_name)[1]
+                    else:
+                        extension = ""
+                    # create new name
+                    new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
+                    # set new name
+                    current_model_class.hname.setText(new_hdf5_name)
+            # remove no_cut suffix if exist
+            if no_cut_bool:
+                # check if no_cut suffix exist
+                if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                    # check if there is extension
+                    if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                        extension = os.path.splitext(current_hdf5_name)[1]
+                    else:
+                        extension = ""
+                    # create new name
+                    new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
+                    # set new name
+                    current_model_class.hname.setText(new_hdf5_name)
 
     def export_slf_gui(self):
         """
@@ -996,11 +788,12 @@ class SubHydroW(QWidget):
             # one hdf5
             if type(hydrau_description) == dict:
                 self.hydrau_case = hydrau_description["hydrau_case"]
-                # change suffix
-                if not self.project_preferences["cut_mesh_partialy_dry"]:
-                    namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
-                    exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
-                    hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                # # change suffix
+                # if not self.project_preferences["cut_mesh_partialy_dry"]:
+                #     namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
+                #     exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
+                #     if not "no_cut" in namehdf5_old:
+                #         hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
                 # multi
                 self.multi_hdf5 = False
                 # save last path
@@ -1110,7 +903,8 @@ class SubHydroW(QWidget):
                 if not self.project_preferences["cut_mesh_partialy_dry"]:
                     namehdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[0]
                     exthdf5_old = os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[1]
-                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                    if not "no_cut" in namehdf5_old:
+                        self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
                 self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
 
         # save one
@@ -1137,7 +931,8 @@ class SubHydroW(QWidget):
             if not self.project_preferences["cut_mesh_partialy_dry"]:
                 namehdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[0]
                 exthdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[1]
-                self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                if not "no_cut" in namehdf5_old:
+                    self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
             self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
 
         # set text
@@ -3389,6 +3184,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         # self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0)
         # + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
 
+
 class ASCII(SubHydroW):  # QGroupBox
     """
     The class Telemac is there to manage the link between the graphical
@@ -3418,9 +3214,6 @@ class ASCII(SubHydroW):  # QGroupBox
         """
         Used by __init__() during the initialization.
         """
-        # if there is the project file with ascii info, update
-        # the label and attibutes
-        # self.h2d_t2 = QLabel(self.namefile[0], self)
         self.h2d_t2 = QComboBox()
         self.h2d_t2.addItems([self.namefile[0]])
         self.h2d_t2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -3440,7 +3233,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
         # unit number
         l2 = QLabel(self.tr('Unit(s) number'))
-        self.number_unit_label = QLabel(self.tr('unknown'))
+        self.number_timstep_label = QLabel(self.tr('unknown'))
 
         # unit list
         self.units_QListWidget = QListWidget()
@@ -3460,10 +3253,6 @@ class ASCII(SubHydroW):  # QGroupBox
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-        #     self.gethdf5_name_gui()
-        #     if self.h2d_t2.text()[-4:] in self.extension[0]:
-        #         self.get_ascii_model_description()
 
         # load button
         self.load_b = QPushButton(self.tr('Create .hyd file'))
@@ -3484,7 +3273,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.layout_ascii.addWidget(units_name_title_label, 2, 0)
         self.layout_ascii.addWidget(self.units_name_label, 2, 1)
         self.layout_ascii.addWidget(l2, 3, 0)
-        self.layout_ascii.addWidget(self.number_unit_label, 3, 1)
+        self.layout_ascii.addWidget(self.number_timstep_label, 3, 1)
         self.layout_ascii.addWidget(l_selecttimestep, 4, 0)
         self.layout_ascii.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
         self.layout_ascii.addWidget(epsgtitle_ascii_label, 5, 0)
@@ -3517,6 +3306,9 @@ class ASCII(SubHydroW):  # QGroupBox
             self.units_QListWidget.disconnect()
         except:
             pass
+
+        # get minimum water height as we might neglect very low water height
+        self.project_preferences = load_project_properties(self.path_prj)
 
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
@@ -3715,7 +3507,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.swith_qlabel_qcombobox_reach_name("qlabel")
         self.reach_name_label.setText("unknown")
         self.units_name_label.setText("unknown")  # kind of unit
-        self.number_unit_label.setText("unknown")  # number units
+        self.number_timstep_label.setText("unknown")  # number units
         self.units_QListWidget.clear()
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
@@ -3745,6 +3537,17 @@ class ASCII(SubHydroW):  # QGroupBox
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
+
+            if not self.project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old = \
+                os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[0]
+                exthdf5_old = \
+                os.path.splitext(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])[1]
+                if not "no_cut" in namehdf5_old:
+                    self.hydrau_description_multiple[self.h2d_t2.currentIndex()][
+                        "hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+            self.hname.setText(self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["hdf5_name"])  # hdf5 name
+
         # save one
         else:
             if self.multi_reach:
@@ -3757,13 +3560,20 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.hydrau_description["unit_list_tf"] = [selected_list]
                 self.hydrau_description["unit_number"] = str(selected)
 
+            if not self.project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[0]
+                exthdf5_old = os.path.splitext(self.hydrau_description["hdf5_name"])[1]
+                if not "no_cut" in namehdf5_old:
+                    self.hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+            self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+
         # set text
         text = str(selected) + "/" + str(total)
-        self.number_unit_label.setText(text)  # number units
+        self.number_timstep_label.setText(text)  # number units
 
     def load_ascii_gui(self):
         """
-        The function which call the function which load ascii and
+        The function which call the function which load txt and
          save the name of files in the project file
         """
         # get timestep and epsg selected
@@ -3818,10 +3628,10 @@ class ASCII(SubHydroW):  # QGroupBox
         # path input
         path_input = self.find_path_input()
 
-        # load the ascii data
+        # load the txt data
         self.q = Queue()
         self.progress_value = Value("i", 0)
-        # check ascii cases
+        # check txt cases
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
@@ -4605,292 +4415,6 @@ class IBER2D(SubHydroW):
                     # keep the name in an attribute until we save it
                     self.pathfile[1] = self.pathfile[0]
                     self.namefile[1] = new_name
-
-
-class HabbyHdf5(SubHydroW):
-    """
-    This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
-    it is there possible to just add a along hdf5 file to the current project without having to pass to the original
-    hydrological files.
-    """
-
-    drop_merge = pyqtSignal()
-    """
-    A pyqtsignal which signal that new merge data is ready as it also possible to import merge data here.
-    """
-
-    def __init__(self, path_prj, name_prj):
-
-        super(HabbyHdf5, self).__init__(path_prj, name_prj)
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.model_type = 'Imported_hydro'
-        self.data_type = "HYDRAULIC"
-        self.new_name = 'no name'  # the name of the new hdf5 file
-        self.ismerge = False
-        self.init_iu()
-
-    def init_iu(self):
-        """
-        Used in the initialization by __init__()
-        """
-
-        l0 = QLabel(self.tr('Select the hdf5 created by HABBY to be loaded:'))
-        self.button2 = QPushButton(self.tr('Load hydraulic data from hdf5'))
-        self.button2.clicked.connect(self.get_new_hydro_hdf5)
-        self.button3 = QPushButton(self.tr('Load merge data from hdf5'))
-        self.button3.clicked.connect(self.get_new_merge_hdf5)
-        self.button4 = QPushButton(self.tr('Merge two hdf5 hydraulic files together'))
-        self.button4.clicked.connect(lambda: self.add_two_hdf5(False))
-        self.button5 = QPushButton(self.tr('Merge two hdf5 merge files together'))
-        self.button5.clicked.connect(lambda: self.add_two_hdf5(True))
-        self.butfig = QPushButton(self.tr("Create figure"))
-
-        spacer1 = QSpacerItem(250, 1)
-        spacer2 = QSpacerItem(1, 70)
-
-        self.layout2 = QGridLayout()
-        self.layout2.addWidget(l0, 0, 0)
-        self.layout2.addWidget(self.button2, 0, 1)
-        self.layout2.addWidget(self.button3, 1, 1)
-        self.layout2.addWidget(self.button4, 3, 1)
-        self.layout2.addWidget(self.button5, 4, 1)
-        self.layout2.addWidget(self.butfig, 6, 1)
-        self.layout2.addItem(spacer1, 0, 2)
-        self.layout2.addItem(spacer2, 2, 0)
-        self.layout2.addItem(spacer2, 5, 0)
-        self.layout2.addItem(spacer2, 7, 0)
-        self.setLayout(self.layout2)
-
-    def get_new_hydro_hdf5(self):
-        """
-        This is a function which allows the user to select an hdf5 file containing the hydrological
-        data from a previous project and add it to the current project. It modifies the xml project file and test
-        that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
-        created by HABBY in the method save_hdf5 of the class SubHydroW.
-        """
-
-        self.send_log.emit(self.tr('# Loading: HABBY hdf5 file (hydraulic data only)...'))
-
-        # prep
-        ikle_all_t = []
-        point_all = []
-        inter_vel_all = []
-        inter_height_all = []
-        self.ismerge = False
-
-        # select a file
-        path_hdf5 = self.find_path_hdf5()
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hyd', '*.hyd')[0]
-        if fname_h5 != '':  # cancel
-            blob, ext = os.path.splitext(fname_h5)
-        else:
-            self.send_log.emit('Warning: ' + self.tr('No file selected.\n'))
-            return
-        # load the data to check integrity
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = hdf5_mod.load_hdf5_hyd_and_merge(fname_h5, path_hdf5)
-
-        # copy the file and update the attribute
-        path_input = self.find_path_input()
-        if os.path.isdir(path_hdf5):
-            self.new_name = 'COPY_' + os.path.basename(fname_h5)
-            pathnewname = os.path.join(path_hdf5, self.new_name)
-            shutil.copyfile(fname_h5, pathnewname)
-            # necessary for the restart function
-            pathnewname2 = os.path.join(path_input, self.new_name)
-            shutil.copyfile(fname_h5, pathnewname2)
-        else:
-            self.send_log.emit('Error: ' + self.tr('the path to the project is not found. Is the project saved in the general tab?'))
-            return
-        try:
-            file_hydro2 = h5py.File(pathnewname, 'r+')
-        except OSError:
-            self.send_log.emit('Error: ' + self.tr('The hdf5 file could not be loaded. \n'))
-            return
-        file_hydro2.attrs['path_project'] = self.path_prj
-        file_hydro2.attrs['name_project'] = self.name_prj
-
-        self.add_new_hdf5_to_xml()
-
-        self.send_log.emit(self.tr('# hdf5 file loaded to the current project.'))
-        self.send_log.emit("py    import shutil")
-        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
-        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
-        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
-        self.send_log.emit('restart LOAD_HYDRO_HDF5')
-        self.send_log.emit('restart    file hdf5: ' + pathnewname2)
-        self.drop_hydro.emit()
-
-    def get_new_merge_hdf5(self):
-        """
-        This is a function which allows the user to select an hdf5 file containing the hydrological and the substrate
-        data from a previous project and add it to the current project. It modifies the xml project file and test
-        that the data is in correct form by loading it. The hdf5 should have the same form than the merge data
-        created by HABBY in the method save_hdf5 of the class SubHydroW.
-        """
-
-        self.send_log.emit(self.tr('# Loading: HABBY hdf5 file (hydraulic and substrate data)...'))
-
-        # prep
-        self.ismerge = True
-
-        # select a file
-        path_hdf5 = self.find_path_hdf5()
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
-        if fname_h5 != '':  # cancel
-            blob, ext = os.path.splitext(fname_h5)
-        else:
-            self.send_log.emit('Warning: ' + self.tr('No file selected.\n'))
-            return
-        # load the data to check integrity
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
-            = hdf5_mod.load_hdf5_hyd_and_merge(fname_h5, path_hdf5, merge=True)
-
-        # copy the file and update the attribute
-        path_hdf5 = self.find_path_hdf5()
-        path_input = self.find_path_input()
-        if os.path.isdir(path_hdf5):
-            self.new_name = 'COPY_' + os.path.basename(fname_h5)
-            pathnewname = os.path.join(path_hdf5, self.new_name)
-            shutil.copyfile(fname_h5, pathnewname)
-            # necessary for the restart function
-            pathnewname2 = os.path.join(path_input, self.new_name)
-            shutil.copyfile(fname_h5, pathnewname2)
-        else:
-            self.send_log.emit('Error: ' + self.tr('The path to the project is not found. Is the project saved in the general tab?'))
-            return
-        try:
-            file_hydro2 = h5py.File(pathnewname, 'r+')
-        except OSError:
-            self.send_log.emit('Error: ' + self.tr('The hdf5 file could not be loaded. \n'))
-            return
-        file_hydro2.attrs['path_project'] = self.path_prj
-        file_hydro2.attrs['name_project'] = self.name_prj
-
-        self.add_new_hdf5_to_xml()
-
-        self.send_log.emit(self.tr('# hdf5 file loaded to the current project.'))
-        self.send_log.emit("py    import shutil")
-        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
-        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
-        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
-        self.send_log.emit('restart LOAD_HYDRO_HDF5')
-        self.send_log.emit('restart    file hdf5: ' + pathnewname2)
-        self.drop_merge.emit()
-
-    def add_new_hdf5_to_xml(self):
-        """
-        This function is used to add the new hdf5 to the xml project file
-        """
-        if self.new_name == 'no name':
-            return
-
-        # save the new file name in the xml file of the project
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if not os.path.isfile(filename_prj):
-            self.send_log.emit('Error: ' + self.tr('No project saved. Please create a project first in the General tab.\n'))
-            return
-        else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_prj, parser)
-            root = doc.getroot()
-            # new xml category in case the hydrological model is not supported by HABBY
-            # as long s loded in the right format, it would not be a problem
-            child = root.find(".//Imported_hydro")
-            if child is None:
-                here_element = ET.SubElement(root, "Imported_hydro")
-                if self.ismerge:
-                    hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
-                else:
-                    hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
-                hdf5file.text = self.new_name
-            else:
-                if self.ismerge:
-                    hdf5file = ET.SubElement(child, "hdf5_mergedata")
-                else:
-                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-                hdf5file.text = self.new_name
-
-            doc.write(filename_prj, pretty_print=True)
-
-    def add_two_hdf5(self, merge):
-        """
-        This functions is used to merge together two hydro/merge hdf5. For this, it call the function 'addition_hdf5'
-        from hdf5_mod.py
-
-        :param merge: A boolean which say if we load an hydrological or a merge file
-        """
-
-        self.send_log.emit(self.tr('# Loading: Join two HABBY hdf5 file together ...'))
-        self.ismerge = merge
-        path_hdf5 = self.find_path_hdf5()
-
-        if merge:
-            # select the first file
-            fname_h5 = QFileDialog.getOpenFileName(self,
-                                                   'QFileDialog.getOpenFileName()',
-                                                   path_hdf5,
-                                                   '*.hab',
-                                                   '*.hab')[0]
-        if not merge:
-            # select the first file
-            fname_h5 = QFileDialog.getOpenFileName(self,
-                                                   'QFileDialog.getOpenFileName()',
-                                                   path_hdf5,
-                                                   '*.hyd',
-                                                   '*.hyd')[0]
-        if fname_h5 != '':  # cancel
-            hdf51 = os.path.basename(fname_h5)
-            path1 = os.path.dirname(fname_h5)
-        else:
-            self.send_log.emit('Warning: ' + self.tr('No file selected.\n'))
-            return
-
-        self.msg2.setIcon(QMessageBox.Information)
-        self.msg2.setWindowTitle(self.tr("Select second file"))
-        self.msg2.setText(self.tr("The first file was selected. Now select the second file."))
-        self.msg2.setStandardButtons(QMessageBox.Ok)
-        self.msg2.show()
-
-        if self.msg2.exec() == QMessageBox.Ok:
-            # select the second file
-            if merge:
-                fname_h5 = \
-                    QFileDialog.getOpenFileName(self,
-                                                'QFileDialog.getOpenFileName()',
-                                                path_hdf5,
-                                                '*.hab',
-                                                '*.hab')[0]
-            if not merge:
-                fname_h5 = QFileDialog.getOpenFileName(self,
-                                                       'QFileDialog.getOpenFileName()',
-                                                       path_hdf5,
-                                                       '*.hyd',
-                                                       '*.hyd')[0]
-            if fname_h5 != '':  # cancel
-                hdf52 = os.path.basename(fname_h5)
-                path2 = os.path.dirname(fname_h5)
-            else:
-                self.send_log.emit('Warning: ' + self.tr('No second file selected.\n'))
-                return
-
-            # join the two files
-            self.project_preferences = load_project_properties(self.path_prj)
-            if self.project_preferences['erase_id']:
-                erase_id = True
-            else:
-                erase_id = False
-
-            hdf5_mod.addition_hdf5(path1, hdf51, path2, hdf52, self.name_prj, self.path_prj, self.model_type,
-                                   path_hdf5, merge=self.ismerge, erase_id=erase_id)
-            self.add_new_hdf5_to_xml()
-
-            self.send_log.emit(self.tr('Two hdf5 file added together'))
-
-            if self.ismerge:
-                self.drop_merge.emit()
-            else:
-                self.drop_hydro.emit()
 
 
 class SubstrateW(SubHydroW):

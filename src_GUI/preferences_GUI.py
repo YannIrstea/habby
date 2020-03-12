@@ -26,13 +26,15 @@ from src.project_properties_mod import load_project_properties, create_default_p
     save_project_properties
 
 
-class PreferenceWindow(QDialog):
+class ProjectPropertiesDialog(QDialog):
     """
     The class which support the creation and management of the output. It is notably used to select the options to
     create the figures.
 
     """
     send_log = pyqtSignal(str, name='send_log')
+    cut_mesh_partialy_dry_signal = pyqtSignal(bool,
+                                              name='cut_mesh_partialy_dry_signal')  # to change suffix no_cut
     """
     A PyQtsignal used to write the log.
     """
@@ -526,9 +528,10 @@ class PreferenceWindow(QDialog):
         If you change things here, it is necessary to start a new project as the old projects will not be compatible.
         For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
         """
-        # get the data and check validity
-        # fig_size
         project_preferences = self.collect_project_preferences_choice()
+
+        # project_preferences['cut_mesh_partialy_dry'] to change suffix no_cut
+        self.cut_mesh_partialy_dry_signal.emit(project_preferences['cut_mesh_partialy_dry'])
 
         # save the data in the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')

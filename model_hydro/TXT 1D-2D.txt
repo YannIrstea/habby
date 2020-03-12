@@ -1,0 +1,4 @@
+ can be 1D or 2D hydraulic model, finit volume or finit element, substrate data, multi reach, ...
+Author(s): INRAE
+MORE INFO
+Habby user manual

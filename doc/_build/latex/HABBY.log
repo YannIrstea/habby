@@ -1527,7 +1527,7 @@ Overfull \hbox (29.79063pt too wide) in paragraph at lines 71--73
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 73--75
-[]\T1/ptm/m/n/10 check_uncheck() (src_GUI.output_fig_GUI.PreferenceWindow
+[]\T1/ptm/m/n/10 check_uncheck() (src_GUI.output_fig_GUI.ProjectPropertiesDialog
  []
 
 
@@ -2015,7 +2015,7 @@ Overfull \hbox (15.2506pt too wide) in paragraph at lines 634--636
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 636--638
-[]\T1/ptm/m/n/10 save_option_fig() (src_GUI.output_fig_GUI.PreferenceWindow
+[]\T1/ptm/m/n/10 save_option_fig() (src_GUI.output_fig_GUI.ProjectPropertiesDialog
  []
 
 

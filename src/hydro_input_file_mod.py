@@ -202,7 +202,6 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if type(filename) == list:
                 filename = filename[0]
                 filename_path = filename_path[0]
-                ext = ext[0]
 
         elif ext != ".txt":  # from file
             # more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
@@ -293,8 +292,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if ext != ".txt":  # from file
                 namefile = filename  # source file name
                 name_hdf5 = os.path.splitext(filename)[0].replace(".", "_") + ".hyd"
-                if model_type == 'RUBAR20':
-                    namefile = os.path.splitext(namefile)[0]
+                # if model_type == 'RUBAR20':
+                #     namefile = os.path.splitext(namefile)[0]
             if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = data_index_file["filename"][0]  # source file name
                 name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_") + ".hyd"
