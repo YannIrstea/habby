@@ -15,8 +15,9 @@ call conda install -c conda-forge numpy conda-forge::blas=*=openblas --yes
 call conda install pyinstaller=3.6 --yes
 call conda install gdal=3.0.2 --yes
 call conda install pyqt=5.9.2 --yes
-call conda install triangle=20170429 --yes
+::call conda install triangle=20170429 --yes
 call conda install h5py=2.10.0 --yes
+pip install git+git://github.com/drufat/triangle@master
 pip install appdirs==1.4.3
 pip install qdarkstyle==2.8
 pip install matplotlib==3.1.3

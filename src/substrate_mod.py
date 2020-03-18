@@ -640,16 +640,25 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
 
     # not all_polygon_triangle_tf
     else:
+        # to pass attrbiutes index to triangulate() method
+        terms = tr.tri.terms
+        terms = terms + (('triangleattributelist', 'triangle_attributes'),)
+        tr.tri.translate_frw = {_0: _1 for _0, _1 in terms}
+        tr.tri.translate_inv = {_1: _0 for _0, _1 in terms}
+
         # Extract list of points and segments from shp
         vertices_array = []  # point
         segments_array = []  # segment index or connectivity table
         holes_array = []
         inextpoint = 0
-        records = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=np.int)
+        regions_values = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=np.int)
+        regions_points = []
         layer_polygon.ResetReading()
+        shape_geom = None
         for feature_ind, feature in enumerate(layer_polygon):
-            records[feature_ind] = [feature.GetField(j) for j in header_list]
+            regions_values[feature_ind] = [feature.GetField(j) for j in header_list]
             shape_geom = feature.geometry()
+            regions_points.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
             shape_geom.SetCoordinateDimension(2)  # never z values
             if shape_geom.GetGeometryCount() > 1:  # polygon a trous
                 # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
@@ -696,47 +705,22 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                                                                                      segments_array,
                                                                                      holes_array)
 
-        # triangulate on polygon (if we use regions)
+        # triangulate on polygon
         if holes_array.size == 0:
             polygon_from_shp = dict(vertices=vertices_array2,
-                                    segments=segments_array2)
+                                    segments=segments_array2,
+                                    regions=regions_points)
         else:
             polygon_from_shp = dict(vertices=vertices_array2,
                                     segments=segments_array2,
-                                    holes=holes_array)
-        polygon_triangle = tr.triangulate(polygon_from_shp, "p")  # triangulation
+                                    holes=holes_array,
+                                    regions=regions_points)
+        polygon_triangle = tr.triangulate(polygon_from_shp, "pA")  # 'pA' if we use regions key
         #tr.compare(plt, polygon_from_shp, polygon_triangle)
 
         # get geometry and attributes of triangles
-        triangle_geom_list = []
-        triangle_records_list = np.ones(shape=(len(polygon_triangle["triangles"]), len(header_list)), dtype=np.int) * -1
-        for i in range(len(polygon_triangle["triangles"])):
-            # triangle coords
-            p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]]
-            p2 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][1]]
-            p3 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][2]]
-            triangle_geom_list.append([p1, p2, p3])
-            # triangle centroid
-            xmean = (p1[0] + p2[0] + p3[0]) / 3
-            ymean = (p1[1] + p2[1] + p3[1]) / 3
-            polyg_center = (xmean, ymean)
-            # creaate ogr point
-            point = ogr.Geometry(ogr.wkbPoint)
-            point.AddPoint(polyg_center[0], polyg_center[1])
-            layer_polygon.ResetReading()  # reset the read position to the start
-            # if center of triangle in polygon: get attributes
-            for j, feature in enumerate(layer_polygon):
-                shape_geom = feature.geometry()
-                # geom_part = shape_geom.GetGeometryRef(0)  # 0 == outline
-                # point_list = geom_part.GetPoints()[:-1]
-                # if len(point_list[0]) > 2:  # Zvalue of Mvalue removed
-                #     point_list = [(el[0], el[1]) for el in (tuple(x) for x in point_list)]
-                # if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
-                # if point.Within(shape_geom):
-                # Contains (0.119s) faster than Within (0.124s) than point_inside_polygon (0.132s)
-                if shape_geom.Contains(point):
-                    triangle_records_list[i] = records[j]
-                    break
+        triangle_geom_list = polygon_triangle["vertices"][polygon_triangle["triangles"]]
+        triangle_records_list = regions_values[polygon_triangle['triangle_attributes'].flatten().astype(np.int64)]
 
         # close file
         layer_polygon = None
