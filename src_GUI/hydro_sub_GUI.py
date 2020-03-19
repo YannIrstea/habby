@@ -112,11 +112,11 @@ class Hydro2W(QScrollArea):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.name_models_list = ['', 'LAMMI', 'RubarBE 1D', 'Mascaret 1D', 'HEC-RAS 1D',
-                           'Rubar20 2D', 'TELEMAC 2D', 'HEC-RAS 2D', 'Iber 2D', 'River 2D', 'SW2D', 'TXT 1D-2D']
+                           'Rubar20 2D', 'TELEMAC 2D', 'HEC-RAS 2D', 'Iber 2D', 'River 2D', 'SW2D', 'BASEMENT 2D', 'TXT 1D-2D']
         self.attribute_models_list = ['free', 'lammi', 'rubar1d', 'mascaret', 'hecras1d',
-                          'rubar2d', 'telemac', 'hecras2d', 'iber2d', 'river2d', 'sw2d', 'ascii']
+                          'rubar2d', 'telemac', 'hecras2d', 'iber2d', 'river2d', 'sw2d', 'basement2d', 'ascii']
         self.class_models_list = ["QWidget", "LAMMI", "Rubar1D", "Mascaret", "HEC_RAS1D",
-                                  "Rubar2D", "TELEMAC", "HEC_RAS2D", "IBER2D", "River2D", "SW2D", "ASCII"]
+                                  "Rubar2D", "TELEMAC", "HEC_RAS2D", "IBER2D", "River2D", "SW2D", "Basement2D",  "ASCII"]
         self.website_models_list = ["",
                                     "<a href=\"https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847\">LAMMI</a>",
                                     "<a href=\"https://riverhydraulics.inrae.fr/outils/modelisation-numerique/modelisation-1d-avec-evolution-des-fonds-rubarbe/\">RubarBE 1D</a>",
@@ -128,6 +128,7 @@ class Hydro2W(QScrollArea):
                                     "<a href=\"http://www.iberaula.es/\">Iber 2D</a>",
                                     "<a href=\"http://www.river2d.ualberta.ca/\">River 2D</a>",
                                     "<a href=\"https://sw2d.wordpress.com\">SW2D</a>",
+                                    "<a href=\"https://basement.ethz.ch/\">BASEMENT</a>",
                                     "<a href=\"https://github.com/YannIrstea/habby\">TXT 1D-2D</a>"]
         self.mod_act = 0
         self.msgi = QMessageBox()
@@ -4080,6 +4081,138 @@ class IBER2D(SubHydroW):
                     # keep the name in an attribute until we save it
                     self.pathfile[1] = self.pathfile[0]
                     self.namefile[1] = new_name
+
+
+class Basement2D(SubHydroW):
+    """
+    Basement2D
+    """
+
+    def __init__(self, path_prj, name_prj):
+
+        super(Basement2D, self).__init__(path_prj, name_prj)
+        self.hydrau_case = "unknown"
+        self.multi_hdf5 = False
+        # update the attibutes
+        self.model_type = 'BASEMENT2D'
+        self.data_type = "HYDRAULIC"
+        self.script_function_name = "LOAD_BASEMENT_2D"
+        self.extension = [['.h5', '.txt']]
+        self.nb_dim = 2
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        Used by __init__() during the initialization.
+        """
+
+        # if there is the project file with rubar20 info, update
+        # the label and attibutes
+        # self.h2d_t2 = QLabel(self.namefile[0], self)
+        self.h2d_t2 = QComboBox()
+        self.h2d_t2.addItems([self.namefile[0]])
+        self.h2d_t2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        # geometry and output data
+        l1 = QLabel(self.tr('Basement2D result file(s)'))
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.h5, .txt)'))
+        # self.h2d_b.clicked.connect(lambda: self.show_dialog_rubar20(0))
+        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
+
+        # reach
+        reach_name_title_label = QLabel(self.tr('Reach name'))
+        self.reach_name_label = QLabel(self.tr('unknown'))
+
+        # unit type
+        units_name_title_label = QLabel(self.tr('Unit(s) type'))
+        self.units_name_label = QLabel(self.tr('unknown'))
+
+        # unit number
+        l2 = QLabel(self.tr('Unit(s) number'))
+        self.number_timstep_label = QLabel(self.tr('unknown'))
+
+        # unit list
+        self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.units_QListWidget.setMinimumHeight(100)
+        l_selecttimestep = QLabel(self.tr('Unit(s) selected'))
+        # ToolTip to indicated in which folder are the files
+        self.h2d_t2.setToolTip(self.pathfile[0])
+        self.h2d_b.clicked.connect(
+            lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+
+        # epsg
+        epsgtitle_rubar20_label = QLabel(self.tr('EPSG code'))
+        self.epsg_label = QLineEdit(self.tr('unknown'))
+        self.epsg_label.editingFinished.connect(self.set_epsg_code)
+
+        # hdf5 name
+        lh = QLabel(self.tr('.hyd file name'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
+        # load button
+        self.load_b = QPushButton(self.tr('Create .hyd file'))
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
+        self.load_b.clicked.connect(self.load_hydraulic_create_hdf5)
+        self.spacer = QSpacerItem(1, 180)
+
+        # last hdf5 created
+        self.name_last_hdf5(self.model_type)
+
+        self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
+        self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
+
+        # layout
+        self.layout_rubar20 = QGridLayout()
+        self.layout_rubar20.addWidget(l1, 0, 0)
+        self.layout_rubar20.addWidget(self.h2d_t2, 0, 1)
+        self.layout_rubar20.addWidget(self.h2d_b, 0, 2)
+        self.layout_rubar20.addWidget(reach_name_title_label, 1, 0)
+        self.layout_rubar20.addWidget(self.reach_name_label, 1, 1)
+        self.layout_rubar20.addWidget(units_name_title_label, 2, 0)
+        self.layout_rubar20.addWidget(self.units_name_label, 2, 1)
+        self.layout_rubar20.addWidget(l2, 3, 0)
+        self.layout_rubar20.addWidget(self.number_timstep_label, 3, 1)
+        self.layout_rubar20.addWidget(l_selecttimestep, 4, 0)
+        self.layout_rubar20.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_rubar20.addWidget(epsgtitle_rubar20_label, 5, 0)
+        self.layout_rubar20.addWidget(self.epsg_label, 5, 1)
+        self.layout_rubar20.addWidget(lh, 6, 0)
+        self.layout_rubar20.addWidget(self.hname, 6, 1)
+        self.layout_rubar20.addWidget(self.load_b, 6, 2)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_label, 7, 0)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_name_label, 7, 1)
+        [self.layout_rubar20.setRowMinimumHeight(i, 30) for i in range(self.layout_rubar20.rowCount())]
+
+        self.setLayout(self.layout_rubar20)
+
+    def change_gui_when_combobox_name_change(self):
+        try:
+            self.units_QListWidget.disconnect()
+        except:
+            pass
+
+        self.hydrau_description["hdf5_name"] = self.hname.text()
+
+        # change rubar20 description
+        self.hydrau_description = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]
+
+        # change GUI
+        self.reach_name_label.setText(self.hydrau_description["reach_list"])
+        self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+        self.units_QListWidget.clear()
+        self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
+        # change selection items
+        for i in range(len(self.hydrau_description["unit_list_full"])):
+            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+        self.epsg_label.setText(self.hydrau_description["epsg_code"])
+        if not os.path.splitext(self.hydrau_description["hdf5_name"])[1]:
+            self.hydrau_description["hdf5_name"] = self.hydrau_description["hdf5_name"] + ".hyd"
+        self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+        self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+        self.unit_counter()
 
 
 class SubstrateW(SubHydroW):

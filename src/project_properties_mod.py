@@ -101,6 +101,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['RUBAR20'] = dict(path="", hdf5=[])
     project_preferences['SW2D'] = dict(path="", hdf5=[])
     project_preferences['IBER2D'] = dict(path="", hdf5=[])
+    project_preferences['BASEMENT2D'] = dict(path="", hdf5=[])
 
     project_preferences['STATHAB'] = dict(path="", hdf5=[])
     project_preferences['ESTIMHAB'] = dict(path="", hdf5=[])

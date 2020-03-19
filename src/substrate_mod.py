@@ -28,7 +28,6 @@ from scipy.spatial import Voronoi
 
 from src import hdf5_mod
 from src.tools_mod import polygon_type_values, point_type_values
-from src.dev_tools import profileit
 
 
 def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -569,7 +568,7 @@ def load_sub_cst(sub_description, progress_value):
 
     return data_2d
 
-@profileit
+
 def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system):
     """
     Convert a polygon shapefile to a polygon triangle shapefile

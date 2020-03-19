@@ -26,6 +26,7 @@ import numpy as np
 from src import ascii_mod
 from src import hec_ras2D_mod, hec_ras1D_mod
 from src import rubar1d2d_mod
+from src import basement_mod
 from src import telemac_mod
 from src.tools_mod import polygon_type_values, point_type_values, sort_homogoeneous_dict_list_by_on_key
 from src.project_properties_mod import create_default_project_properties_dict
@@ -1356,6 +1357,9 @@ def get_time_step(file_path, model_type):
     elif model_type == "RUBAR20":
         unit_type = "time [s]"
         nbtimes, unit_name_from_file, warning_list = rubar1d2d_mod.get_time_step(filename, folder_path)
+    elif model_type == "BASEMENT2D":
+        unit_type = "time [s]"
+        nbtimes, unit_name_from_file, warning_list = basement_mod.get_time_step(filename, folder_path)
     return unit_type, nbtimes, unit_name_from_file, warning_list
 
 
