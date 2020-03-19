@@ -1626,5 +1626,7 @@ def load_hydraulic(filename, folder_path, model_type):
         data_2d, description_from_file = hec_ras1D_mod.load_xml(filename, folder_path)
     elif model_type == "RUBAR20":
         data_2d, description_from_file = rubar1d2d_mod.load_rubar2d(filename, folder_path)
+    elif model_type == "BASEMENT2D":
+        data_2d, description_from_file = basement_mod.load_basement(filename, folder_path)
     return data_2d, description_from_file
 

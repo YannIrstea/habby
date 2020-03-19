@@ -1692,6 +1692,7 @@ class MainWindows(QMainWindow):
             ("hydro_tab", "hecras1d"),
             ("hydro_tab", "rubar2d"),
             ("hydro_tab", "telemac"),
+            ("hydro_tab", "basement2d"),
             ("hydro_tab", "hecras2d"),
             ("hydro_tab", "iber2d"),
             ("hydro_tab", "river2d"),
@@ -2090,6 +2091,7 @@ class CentralW(QWidget):
             self.hydro_tab.sw2d.send_log.connect(self.write_log)
             self.hydro_tab.iber2d.send_log.connect(self.write_log)
             self.hydro_tab.telemac.send_log.connect(self.write_log)
+            self.hydro_tab.basement2d.send_log.connect(self.write_log)
             self.hydro_tab.ascii.send_log.connect(self.write_log)
             self.substrate_tab.send_log.connect(self.write_log)
             self.statmod_tab.send_log.connect(self.write_log)
@@ -2113,6 +2115,7 @@ class CentralW(QWidget):
             self.hydro_tab.hecras1d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.hecras2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.telemac.drop_hydro.connect(self.update_combobox_filenames)
+            self.hydro_tab.basement2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.ascii.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.rubar2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.rubar1d.drop_hydro.connect(self.update_combobox_filenames)
