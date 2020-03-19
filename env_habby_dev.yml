@@ -42,7 +42,7 @@ dependencies:
   - libpng=1.6.37=h2a8f88b_0
   - libpq=11.2=h3235a2c_0
   - libspatialite=4.3.0a=h7ffb84d_0
-  - libssh2=1.8.2=h7a1dbc1_0
+  - libssh2=1.9.0=h7a1dbc1_1
   - libtiff=4.1.0=h56a325e_0
   - libxml2=2.9.9=h464c3ec_0
   - lz4-c=1.8.1.2=h2fa13f4_0
@@ -71,17 +71,17 @@ dependencies:
   - pyqt=5.9.2=py36h6538335_2
   - pyreadline=2.1=py36_1
   - python=3.6.10=h9f7ef89_0
+  - python_abi=3.6=1_cp36m
   - pywin32=227=py36he774522_1
   - pywin32-ctypes=0.2.0=py36_1000
   - qt=5.9.7=vc14h73c81de_0
-  - setuptools=45.2.0=py36_0
+  - setuptools=46.0.0=py36_0
   - sip=4.19.8=py36h6538335_0
   - six=1.14.0=py36_0
   - sqlite=3.31.1=he774522_0
   - tbb=2018.0.5=he980bc4_0
   - tiledb=1.6.3=h7b000aa_0
   - tk=8.6.8=hfa6e2cd_0
-  - triangle=20170429=py36hfa6e2cd_1
   - vc=14.1=h0510ff6_4
   - vs2015_runtime=14.16.27012=hf0eaf9b_1
   - wheel=0.34.2=py36_0
@@ -108,6 +108,7 @@ dependencies:
     - qdarkstyle==2.8
     - qtpy==1.9.0
     - scipy==1.4.1
+    - triangle==20190115
     - zipp==3.1.0
 prefix: C:\habby_dev\env_virtuels\env_habby_dev
 

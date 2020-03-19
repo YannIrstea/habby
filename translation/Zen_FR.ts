@@ -4043,7 +4043,7 @@ Fermez-les et réessayez.</translation>
     </message>
 </context>
 <context>
-    <name>PreferenceWindow</name>
+    <name>ProjectPropertiesDialog</name>
     <message>
         <location filename="output_fig_GUI.py" line="40"/>
         <source>&lt;b&gt; Figures Options &lt;/b&gt;</source>
@@ -5047,7 +5047,7 @@ Fermez-les et réessayez.</translation>
     </message>
 </context>
 <context>
-    <name>SoftInformationDialog</name>
+    <name>CheckVersionDialog</name>
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="2345"/>
         <source>Actual</source>
