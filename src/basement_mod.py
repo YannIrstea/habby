@@ -75,6 +75,7 @@ def load_basement(namefilet, pathfilet):
     mesh_nb = CellAll_group["set"][:][0]
     mesh_tin = CellAll_group["Topology"][:].astype(np.int64)
     mesh_z = CellAll_group["BottomEl"][:].flatten()
+
     # get data node
     node_nb = NodesAll_group["set"][:][0]
     node_xyz = NodesAll_group["Coordnts"][:]
@@ -91,12 +92,13 @@ def load_basement(namefilet, pathfilet):
         result_hyd_array = RESULTS_group["CellsAll"]["HydState"][dataset_name_list[timestep_num]][:]
         # h
         mesh_water_level = result_hyd_array[:, 0]
+        mesh_water_height = mesh_water_level - mesh_z
         # v1
-        mesh_water_velocity1 = result_hyd_array[:, 1]
+        mesh_water_velocity1 = result_hyd_array[:, 1] / mesh_water_height
         # v2
-        mesh_water_velocity2 = result_hyd_array[:, 2]
+        mesh_water_velocity2 = result_hyd_array[:, 2] / mesh_water_height
         # append
-        mesh_h[:, timestep_num] = mesh_water_level - mesh_z
+        mesh_h[:, timestep_num] = mesh_water_height
         mesh_v[:, timestep_num] = mesh_water_velocity1 + mesh_water_velocity2
 
     # finite_volume_to_finite_element_triangularxy
