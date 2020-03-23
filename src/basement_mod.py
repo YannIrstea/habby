@@ -82,7 +82,7 @@ def load_basement(namefilet, pathfilet):
     node_xy = node_xyz[:, (0, 1)]
     node_z = node_xyz[:, 2]
     if node_z.min() == 0 and node_z.max() == 0:
-        print("Warning: All nodes elevation data are aqual to 0.")
+        print("Warning: All elevation nodes data are aqual to 0.")
 
     # result data
     mesh_h = np.zeros((mesh_nb, nbtimes), dtype=np.float64)
@@ -90,23 +90,28 @@ def load_basement(namefilet, pathfilet):
     dataset_name_list = list(RESULTS_group["CellsAll"]["HydState"])
     for timestep_num in range(nbtimes):
         result_hyd_array = RESULTS_group["CellsAll"]["HydState"][dataset_name_list[timestep_num]][:]
-        # h
+        # zeau
         mesh_water_level = result_hyd_array[:, 0]
+        # h
         mesh_water_height = mesh_water_level - mesh_z
-        # v1
-        mesh_water_velocity1 = result_hyd_array[:, 1] / mesh_water_height
-        # v2
-        mesh_water_velocity2 = result_hyd_array[:, 2] / mesh_water_height
+        # q_x
+        mesh_q_x = result_hyd_array[:, 1]
+        # q_y
+        mesh_q_y = result_hyd_array[:, 2]
+        # v (mesh_water_height, mesh_q_x, mesh_q_y can have 0.0 values (invalid value encountered in true_divide))
+        with np.errstate(invalid='ignore'):
+            mesh_velocity = np.sqrt((mesh_q_x / mesh_water_height) ** 2 + (mesh_q_y / mesh_water_height) ** 2)
+        mesh_velocity[mesh_water_height == 0] = 0
         # append
         mesh_h[:, timestep_num] = mesh_water_height
-        mesh_v[:, timestep_num] = mesh_water_velocity1 + mesh_water_velocity2
+        mesh_v[:, timestep_num] = mesh_velocity
 
     # finite_volume_to_finite_element_triangularxy
     mesh_tin = np.column_stack([mesh_tin, np.ones(len(mesh_tin), dtype=mesh_tin[0].dtype) * -1])  # add -1 column
     mesh_tin, node_xyz, node_h, node_v = manage_grid_mod.finite_volume_to_finite_element_triangularxy(mesh_tin,
-                                                                                   node_xyz,
-                                                                                    mesh_h,
-                                                                                    mesh_v)
+                                                                                                      node_xyz,
+                                                                                                      mesh_h,
+                                                                                                      mesh_v)
 
     # return to list
     node_h_list = []
