@@ -1560,11 +1560,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                     data_2d["node"]["data"]["v"][0].append(v_data)
 
         # refresh unit (if warning)
-        # for reach_num in reversed(range(int(hydrau_description[hyd_file]["reach_number"]))):  # for each reach
-        #     for unit_num in reversed(range(len(hydrau_description[hyd_file]["unit_list"][reach_num]))):
-        #         if not hydrau_description[hyd_file]["unit_list_tf"][reach_num][unit_num]:
-        #             hydrau_description[hyd_file]["unit_list"][reach_num].pop(unit_num)
-        # hydrau_description["unit_number"] = str(len(hydrau_description[hyd_file]["unit_list"][0]))
+        for unit_num in reversed(range(len(hydrau_description[hyd_file]["unit_list"][0]))):
+            if not hydrau_description[hyd_file]["unit_list_tf"][unit_num]:
+                hydrau_description[hyd_file]["unit_list"].pop(unit_num)
+        hydrau_description[hyd_file]["unit_number"] = str(len(hydrau_description[hyd_file]["unit_list"]))
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress
