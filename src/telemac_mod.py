@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -15,159 +15,153 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import sys
 import time
-from io import StringIO
 from struct import unpack, pack
 from PyQt5.QtCore import QCoreApplication as qt_tr
 import matplotlib.pyplot as plt
 import numpy as np
-from copy import deepcopy
 
-from src import hdf5_mod
-from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
-from src import manage_grid_mod
-from src.project_properties_mod import create_default_project_properties_dict
-from src import hydro_input_file_mod
+from src.hydraulic_bases import HydraulicSimulationResults
+from src.tools_mod import create_empty_data_2d_dict
 
 
-def load_telemac(namefilet, pathfilet):
+class TelemacResult(HydraulicSimulationResults):
     """
-    A function which load the telemac data using the Selafin class.
-
-    :param namefilet: the name of the selafin file (string)
-    :param pathfilet: the path to this file (string)
-    :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
     """
-    faiload = [-99], [-99]
+    def __init__(self, filename, folder_path, model_type, path_prj):
+        HydraulicSimulationResults.__init__(self, filename, folder_path, model_type, path_prj)
+        # file attributes
+        self.extensions_list = [".res", ".slf"]
+        self.file_type = "hdf5"
+        self.valid_file = True
+        # simulation attributes
+        self.equation_type = ["FV"]
+        self.morphology_available = True
 
-    filename_path_res = os.path.join(pathfilet, namefilet)
-    # load the data and do some test
-    if not os.path.isfile(filename_path_res):
-        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file does not exist. Cannot be loaded.'))
-        return faiload
-    blob, ext = os.path.splitext(namefilet)
-    if ext != '.res' and ext != '.slf':
-        print('Warning: ' + qt_tr.translate("telemac_mod", 'The extension of the telemac file is not .res or .slf'))
-    try:
-        telemac_data = Selafin(filename_path_res)
-    except ValueError or KeyError:
-        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file cannot be loaded.'))
-        return faiload
+        # init
+        self.timestep_name_list = None
+        self.timestep_nb = None
+        self.timestep_unit = None
 
-    # time step name
-    nbtimes = telemac_data.tags['times'].size
-    timestep = telemac_data.tags['times']
+        # readable file ?
+        try:
+            self.results_data_file = Selafin(self.filename_path)
+        except OSError:
+            self.warning_list.append("Error: The file can not be opened.")
+            self.valid_file = False
 
-    # put the velocity and height data in the array and list
-    v = []
-    h = []
-    z = []
-    for t in range(0, nbtimes):
-        foundu = foundv = False
-        val_all = telemac_data.getvalues(t)
-        vt = []
-        ht = []
-        zt = []
-        bt = []
-        # load variable based on their name (english or french)
-        for id, n in enumerate(telemac_data.varnames):
-            n = n.decode('utf-8')
-            if 'VITESSE MOY' in n or 'MEAN VELOCITY' in n:
-                vt = val_all[:, id].astype(np.float64)
-            if 'VITESSE U' in n or 'VELOCITY U' in n:
-                vu = val_all[:, id].astype(np.float64)
-                foundu = True
-            if 'VITESSE V' in n or 'VELOCITY V' in n:
-                vv = val_all[:, id].astype(np.float64)
-                foundv = True
-            if 'WATER DEPTH' in n or "HAUTEUR D'EAU" in n:
-                ht = val_all[:, id].astype(np.float64)
-            if 'FOND' in n or 'BOTTOM' in n:
-                bt = val_all[:, id].astype(np.float64)
+        # # result_file ?
+        # if not "RESULTS" in self.results_data_file.keys():
+        #     self.warning_list.append('Error: The file is not BASEMENT results type.')
+        #     self.valid_file = False
 
-        if foundu and foundv:
-            vt = np.sqrt(vu ** 2 + vv ** 2)
+        # is extension
+        if os.path.splitext(self.filename)[1] not in self.extensions_list:
+            self.warning_list.append('Warning: ' + qt_tr.translate("telemac_mod", 'The extension of the telemac file is not .res or .slf'))
+            self.valid_file = False
 
-        if len(vt) == 0:
-            print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (1) \n'))
-            return faiload
-        if len(ht) == 0:
-            print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (2) \n'))
-            return faiload
-        v.append(vt)
-        h.append(ht)
-        z.append(bt)
-    # TODO: improve check equality
-    if all(z[0] == z[nbtimes - 1]):  # first == last
-        #print("all z are equal for each time step")
-        all_z_equal = True
-        #coord_p = np.array([telemac_data.meshx, telemac_data.meshy, z[0]])
-    else:
-        all_z_equal = False
-    coord_p = np.array([telemac_data.meshx, telemac_data.meshy])
-    coord_p = coord_p.T
-    ikle = telemac_data.ikle2.astype(np.int64)
+        # if valid get informations
+        if self.valid_file:
+            # get_time_step ?
+            self.get_time_step()
 
-    # description telemac data dict
-    description_from_telemac_file = dict()
-    description_from_telemac_file["filename_source"] = namefilet
-    description_from_telemac_file["model_type"] = "TELEMAC"
-    description_from_telemac_file["model_dimension"] = str(2)
-    description_from_telemac_file["unit_list"] = ", ".join(list(map(str, timestep)))
-    description_from_telemac_file["unit_number"] = str(len(list(map(str, timestep))))
-    description_from_telemac_file["unit_type"] = "time [s]"
-    description_from_telemac_file["unit_z_equal"] = all_z_equal
+    def get_time_step(self):
+        """
+        get_time_step
+        """
+        timestep_float_list = self.results_data_file.tags['times']
+        self.timestep_name_list = list(map(str, timestep_float_list))
+        self.timestep_nb = len(timestep_float_list)
+        self.timestep_unit = "time [s]"
 
-    # data 2d dict (one reach by file and varying_mesh==False)
-    data_2d = create_empty_data_2d_dict(reach_number=1,
-                                        node_variables=["h", "v"])
-    data_2d["mesh"]["tin"][0] = ikle
-    data_2d["node"]["xy"][0] = coord_p
-    if all_z_equal:
-        data_2d["node"]["z"][0] = z[0]
-    else:
-        data_2d["node"]["z"][0] = z
-    data_2d["node"]["data"]["h"][0] = h
-    data_2d["node"]["data"]["v"][0] = v
+    def load_hydraulic(self, timestep_name_wish_list):
+        """
+        """
+        # load specific timestep
+        timestep_name_wish_list_index = []
+        for time_step_name_wish in timestep_name_wish_list:
+            timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
+        timestep_name_wish_list_index.sort()
 
-    del telemac_data
-    #     return v, h, coord_p, ikle, coord_c, timestep
-    return data_2d, description_from_telemac_file
+        """ get node data """
+        node_v_list = []
+        node_h_list = []
+        node_z_list = []
+        for timestep_index in timestep_name_wish_list_index:
+            foundu = foundv = False
+            val_all = self.results_data_file.getvalues(timestep_index)
+            vt = []
+            ht = []
+            zt = []
+            bt = []
+            # load variable based on their name (english or french)
+            for id, n in enumerate(self.results_data_file.varnames):
+                n = n.decode('utf-8')
+                if 'VITESSE MOY' in n or 'MEAN VELOCITY' in n:
+                    vt = val_all[:, id].astype(np.float64)
+                if 'VITESSE U' in n or 'VELOCITY U' in n:
+                    vu = val_all[:, id].astype(np.float64)
+                    foundu = True
+                if 'VITESSE V' in n or 'VELOCITY V' in n:
+                    vv = val_all[:, id].astype(np.float64)
+                    foundv = True
+                if 'WATER DEPTH' in n or "HAUTEUR D'EAU" in n:
+                    ht = val_all[:, id].astype(np.float64)
+                if 'FOND' in n or 'BOTTOM' in n:
+                    bt = val_all[:, id].astype(np.float64)
 
+            if foundu and foundv:
+                vt = np.sqrt(vu ** 2 + vv ** 2)
 
-def get_time_step(namefilet, pathfilet):
-    """
-    A function which load the telemac time step using the Selafin class.
+            if len(vt) == 0:
+                print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (1) \n'))
+            if len(ht) == 0:
+                print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (2) \n'))
+            node_v_list.append(vt)
+            node_h_list.append(ht)
+            node_z_list.append(bt)
+        # TODO: improve check node_z equality
+        if all(node_z_list[0] == node_z_list[-1]):  # first == last
+            unit_z_equal = True
+        else:
+            unit_z_equal = False
+        node_xy = np.array([self.results_data_file.meshx, self.results_data_file.meshy])
+        node_xy = node_xy.T
+        # TODO: improve check xy equality
+        if all(node_xy[0] == node_xy[-1]):  # first == last
+            unit_xy_equal = True
+        else:
+            unit_xy_equal = False
 
-    :param namefilet: the name of the selafin file (string)
-    :param pathfilet: the path to this file (string)
-    :return: timestep
-    """
-    faiload = False, False
+        """ get mesh data """
+        mesh_tin = self.results_data_file.ikle2.astype(np.int64)
 
-    filename_path_res = os.path.join(pathfilet, namefilet)
-    # load the data and do some test
-    if not os.path.isfile(filename_path_res):
-        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file does not exist. Cannot be loaded.'))
-        return faiload
-    blob, ext = os.path.splitext(namefilet)
-    if ext != '.res' and ext != '.slf' and ext != '.srf':
-        print('Warning: ' + qt_tr.translate("telemac_mod", 'The extension of the telemac file is not .res or .slf or .srf'))
-    try:
-        telemac_data = Selafin(filename_path_res)
-    except ValueError or KeyError:
-        print('Error: ' + qt_tr.translate("telemac_mod", 'The telemac file cannot be loaded.'))
-        return faiload
+        # description telemac data dict
+        description_from_telemac_file = dict()
+        description_from_telemac_file["filename_source"] = self.filename
+        description_from_telemac_file["model_type"] = "TELEMAC"
+        description_from_telemac_file["model_dimension"] = str(2)
+        description_from_telemac_file["unit_list"] = ", ".join(timestep_name_wish_list)
+        description_from_telemac_file["unit_number"] = str(len(timestep_name_wish_list))
+        description_from_telemac_file["unit_type"] = "time [s]"
+        description_from_telemac_file["unit_z_equal"] = unit_z_equal
+        description_from_telemac_file["unit_xy_equal"] = unit_xy_equal
 
-    # time step name
-    nbtimes = telemac_data.tags['times'].size
-    timestep = telemac_data.tags['times']
-    timestep_string = []
-    for i in range(len(timestep)):
-        timestep_string.append(str(timestep[i]))
+        # data 2d dict (one reach by file and varying_mesh==False)
+        data_2d = create_empty_data_2d_dict(reach_number=1,
+                                            node_variables=["h", "v"])
+        data_2d["mesh"]["tin"][0] = mesh_tin
+        data_2d["node"]["xy"][0] = node_xy
+        if unit_z_equal:
+            data_2d["node"]["z"][0] = node_z_list[0]
+        else:
+            data_2d["node"]["z"][0] = node_z_list
+        data_2d["node"]["data"]["h"][0] = node_h_list
+        data_2d["node"]["data"]["v"][0] = node_v_list
 
-    return nbtimes, timestep_string
+        del self.results_data_file
+
+        return data_2d, description_from_telemac_file
 
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
@@ -584,10 +578,3 @@ class Selafin(object):
         """
         if self.file['name'] != '':
             self.file.update({'hook': self.file['hook'].close()})
-
-
-if __name__ == "__main__":
-    namefile = 'mersey.res'
-    pathfile = r'D:\Diane_work\output_hydro\telemac_py'
-    [v, h, coord_p, ikle, coord_c] = load_telemac(namefile, pathfile)
-    plot_vel_h(coord_p, h, v)

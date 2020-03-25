@@ -323,7 +323,8 @@ def interpolator_test(coord_c_all, elev_c_all, coord_p_all):
     return elev_p
 
 
-def get_time_step(filename_path):
+def get_time_step(filename, folder_path):
+    filename_path = os.path.join(folder_path, filename)
     # open file
     if os.path.isfile(filename_path):
         try:

@@ -45,7 +45,7 @@ from src import calcul_hab_mod
 from src import mesh_management_mod
 from src import lammi_mod
 from src import ascii_mod
-from src import hydro_input_file_mod
+from src import input_data_manager_mod
 from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_properties_dict, load_project_properties, change_specific_properties
 
@@ -221,11 +221,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 project_preferences['cut_mesh_partialy_dry'] = cut
 
         # get_hydrau_description_from_source
-        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
-                                                                                                   project_preferences[
+        hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                     project_preferences[
                                                                                                        "path_prj"],
                                                                                                    "TELEMAC",
-                                                                                                   2)
+                                                                                                     2)
 
         # outputfilename
         if outputfilename:
@@ -293,11 +293,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 project_preferences['cut_mesh_partialy_dry'] = cut
 
         # get_hydrau_description_from_source
-        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
-                                                                                                   project_preferences[
+        hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                     project_preferences[
                                                                                                        "path_prj"],
                                                                                                    "RUBAR20",
-                                                                                                   2)
+                                                                                                     2)
 
         # outputfilename
         if outputfilename:
@@ -377,11 +377,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                     unit_list.append(list(map(str, unit_list_base[reach_num])))
 
         # get_hydrau_description_from_source
-        hydrau_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_path,
-                                                                                                   project_preferences[
+        hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                     project_preferences[
                                                                                                        "path_prj"],
                                                                                                    "ASCII",
-                                                                                                   2)
+                                                                                                     2)
 
         # outputfilename
         if outputfilename:
@@ -1525,9 +1525,9 @@ def cli_load_sub(arguments, project_preferences):
         name_hdf5 = os.path.splitext(filename)[0] + ".sub"
 
     # get_sub_description_from_source
-    sub_description, warning_list = hydro_input_file_mod.get_sub_description_from_source(abs_path_file,
-                                                                                         substrate_mapping_method,
-                                                                                         project_preferences["path_prj"])
+    sub_description, warning_list = input_data_manager_mod.get_sub_description_from_source(abs_path_file,
+                                                                                           substrate_mapping_method,
+                                                                                           project_preferences["path_prj"])
 
     # error
     if not sub_description:

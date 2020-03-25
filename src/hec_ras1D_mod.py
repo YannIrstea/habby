@@ -270,10 +270,9 @@ def open_hecras(geo_file, res_file, path_geo, path_res, project_preferences=None
     return coord_pro, vh_pro, nb_pro_reach, sim_name
 
 
-def get_time_step(file_path):
-    filename = os.path.basename(file_path)
+def get_time_step(path, filename):
+    file_path = os.path.join(path, filename)
     blob, ext = os.path.splitext(filename)
-    path = os.path.dirname(file_path)
 
     # XML
     if ext == ".xml":

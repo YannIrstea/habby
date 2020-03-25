@@ -28,6 +28,7 @@ import triangle
 from scipy.interpolate import griddata
 
 from src.project_properties_mod import create_default_project_properties_dict
+from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict, sort_homogoeneous_dict_list_by_on_key
 from src_GUI import preferences_GUI
 from src import tools_mod
 
@@ -1236,6 +1237,234 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
 
     return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
+
+
+def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartialyDry, min_height=0.001):
+    """
+    This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
+    with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
+    All mesh entierly dry are always cuted. if CutMeshPartialyDry is True, partialy dry mesh are also cuted.
+    This function works for one unit of a reach.
+
+    :param ikle: the connectivity table of the 2D grid
+    :param point_all: the coordinate x,y,z of the points
+    :param water_height: the water height data given on the nodes
+    :param velocity: the velocity given on the nodes
+    :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
+    :param CutMeshPartialyDry: If True partialy dry mesh are cuted
+    :return: the update connectivity table, the coordinates of the point, the height of the water and the
+             velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
+    """
+
+    #         xyz = np.insert(data_2d_source["node"]["xy"][0],
+    #                         2,
+    #                         values=data_2d_source["node"]["z"][0],  #
+    #                         axis=1)  # Insert values before column 2
+    #         tin_data, xyz_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
+    #             data_2d["mesh"]["tin"][0],
+    #             xyz,
+    #             data_2d["node"]["data"]["h"][0][unit_num],
+    #             data_2d["node"]["data"]["v"][0][unit_num],
+    #             progress_value,
+    #             delta,
+    #             project_preferences["cut_mesh_partialy_dry"],
+    #             unit_num,
+    #             project_preferences['min_height_hyd'])
+
+
+    failload = False, False, False, False, False
+    # cut the grid to have the precise wet area and put data in new form
+    data_2d_cuted = create_empty_data_2d_dict(1,  # always one reach
+                                        mesh_variables=list(data_2d["mesh"]["data"].keys()),
+                                        node_variables=list(data_2d["node"]["data"].keys()))
+
+    unit_list_cuted = []
+
+    for unit_num, unit_name in enumerate(unit_list):
+        ikle = data_2d["mesh"]["tin"][0]
+        point_all = np.insert(data_2d["node"]["xy"][0],
+                            2,
+                            values=data_2d["node"]["z"][0],  #
+                            axis=1)  # Insert values before column 2
+        water_height = data_2d["node"]["data"]["h"][0][unit_num]
+        velocity = data_2d["node"]["data"]["v"][0][unit_num]
+        if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
+                                                    xyz_array=point_all,
+                                                    unit_num=unit_num,
+                                                    case="before the deletion of dry mesh"):
+            return failload
+
+        typeikle = ikle.dtype
+        typepoint = point_all.dtype
+        point_new = np.empty((0, 3), dtype=typepoint)
+        jpn0 = len(point_all) - 1
+        iklenew = np.empty((0, 3), dtype=typeikle)
+        ind_whole = np.arange(len(ikle), dtype=typeikle)
+
+        # progress
+        prog = progress_value.value
+        delta2 = delta / len(ikle)
+
+        water_height[water_height < min_height] = 0  # correcting the height of water  hw<0 or hw <min_height=> hw=0
+        bhw = (water_height > 0).astype(np.int)
+        ikle_bit = bhw[ikle]
+        ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
+        mikle_keep = ikle_type == 3
+        mikle_keep2 = ikle_type != 0
+        ipt_all_ok_wetdry = []
+        # all meshes are entirely wet
+        if all(mikle_keep):
+            #print("Warning: The mesh of unit n°" + unit_name + " is entirely wet.")
+            iklekeep = ikle
+            point_all_ok = point_all
+            water_height_ok = water_height
+            velocity_ok = velocity
+            ind_whole = ind_whole  # TODO: full whole profile
+        # all meshes are entirely dry
+        elif not True in mikle_keep2:
+            print("Warning: The mesh of unit n°" + str(unit_num) + " is entirely dry.")
+            return True, True, True, True, True
+        # only the dry meshes are cut (but not the partially ones)
+        elif not CutMeshPartialyDry:
+            mikle_keep = ikle_type != 0
+            iklekeep = ikle[mikle_keep, ...]
+            ind_whole = ind_whole[mikle_keep, ...]
+        # we cut  the dry meshes and  the partially ones
+        else:
+            jpn = jpn0
+            ind_whole2 = []
+            for i, iklec in enumerate(ikle):
+                # progress
+                prog += delta2
+                progress_value.value = int(prog)
+                if ikle_type[i] == 1 or ikle_type[i] == 2:
+                    sumk, nboverdry, bkeep = 0, 0, True
+                    ia, ib, ic = ikle[i]
+                    pa = point_all[ia]
+                    pb = point_all[ib]
+                    pc = point_all[ic]
+                    ha = water_height[ia]
+                    hb = water_height[ib]
+                    hc = water_height[ic]
+                    p1, overdry, koverdry = linear_z_cross(pa, pb, ha, hb)
+                    if overdry > 0:
+                        nboverdry = nboverdry + 1
+                        if koverdry > 1: bkeep = False
+                    if len(p1) > 0:
+                        sumk = sumk + 1
+                    p2, overdry, koverdry = linear_z_cross(pb, pc, hb, hc)
+                    if overdry > 0:
+                        nboverdry = nboverdry + 1
+                        if koverdry > 1: bkeep = False
+                    if len(p2) > 0:
+                        sumk = sumk + 2
+                    p3, overdry, koverdry = linear_z_cross(pc, pa, hc, ha)
+                    if overdry > 0:
+                        nboverdry = nboverdry + 1
+                        if koverdry > 1: bkeep = False
+                    if len(p3) > 0:
+                        sumk = sumk + 3
+                    if nboverdry > 0:
+                        if bkeep: mikle_keep[i] = True  # keeping the mesh we can't split
+                    else:
+                        if sumk == 5:
+                            point_new = np.append(point_new, np.array([p2, p3]), axis=0)
+                            if hc == 0:
+                                iklenew = np.append(iklenew, np.array([[ia, jpn + 1, jpn + 2], [ia, ib, jpn + 1]]), axis=0)
+                                ipt_all_ok_wetdry.extend([ia, ib])
+                                ind_whole2.extend([i, i])
+                            else:
+                                iklenew = np.append(iklenew, np.array([[jpn + 2, jpn + 1, ic]]), axis=0)
+                                ipt_all_ok_wetdry.append(ic)
+                                ind_whole2.append(i)
+                        elif sumk == 4:
+                            point_new = np.append(point_new, np.array([p1, p3]), axis=0)
+                            if ha == 0:
+                                iklenew = np.append(iklenew, np.array([[jpn + 1, ib, jpn + 2], [ib, ic, jpn + 2]]), axis=0)
+                                ipt_all_ok_wetdry.extend([ic, ib])
+                                ind_whole2.extend([i, i])
+                            else:
+                                iklenew = np.append(iklenew, np.array([[ia, jpn + 1, jpn + 2]]), axis=0)
+                                ipt_all_ok_wetdry.append(ia)
+                                ind_whole2.append(i)
+                        elif sumk == 3:
+                            point_new = np.append(point_new, np.array([p1, p2]), axis=0)
+                            if hb == 0:
+                                iklenew = np.append(iklenew, np.array([[jpn + 1, jpn + 2, ia], [ia, jpn + 2, ic]]), axis=0)
+                                ipt_all_ok_wetdry.extend([ia, ic])
+                                ind_whole2.extend([i, i])
+                            else:
+                                iklenew = np.append(iklenew, np.array([[ib, jpn + 2, jpn + 1]]), axis=0)
+                                ipt_all_ok_wetdry.append(ib)
+                                ind_whole2.append(i)
+                        else:
+                            print(
+                                "Error: Impossible case during the cutting of mesh partially wet on the timestep " + str(unit_num) + ".")
+                            return failload
+                        jpn += 2
+
+            iklekeep = ikle[
+                mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
+            ind_whole = ind_whole[mikle_keep, ...]
+            ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
+
+        # all cases
+        ipt_iklenew_unique = np.unique(iklekeep)
+
+        if ipt_all_ok_wetdry:  # presence of partially wet/dry meshes cutted that we want
+            ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry, dtype=typeikle), axis=0)
+            ipt_iklenew_unique = np.unique(ipt_iklenew_unique)
+
+        point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
+        water_height_ok = water_height[ipt_iklenew_unique]
+        velocity_ok = velocity[ipt_iklenew_unique]
+        ipt_old_new = np.array([-1] * len(point_all), dtype=typeikle)
+        for i, point_index in enumerate(ipt_iklenew_unique):
+            ipt_old_new[point_index] = i
+        iklekeep2 = ipt_old_new[ikle]
+        iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
+        if ipt_all_ok_wetdry:  # in case of partially wet/dry meshes
+            # delete dupplicate of the new point set
+            point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
+            lpns = len(point_new_single)
+            ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
+            iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
+            point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
+            # beware that some new points can be doubles of  original ones
+            point_all_ok2, indices2 = np.unique(point_all_ok, axis=0, return_inverse=True)
+            nbdouble = 0
+            if len(point_all_ok2) != len(point_all_ok):
+                nbdouble = len(point_all_ok) - len(point_all_ok2)
+                iklekeep = indices2[iklekeep]
+                point_all_ok = point_all_ok2
+                print("Warning: while the cutting of mesh partially wet of the unit n°" + str(
+                    unit_num) + " we have been forced to eliminate " + str(nbdouble) +
+                      " duplicate(s) point(s) ")
+            if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
+                                                        xyz_array=point_all_ok,
+                                                        unit_num=unit_num,
+                                                        case="after the cutting of mesh partially wet", checkpoint=False):
+                return failload
+            # all the new points added have water_height,velocity=0,0
+            water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
+            velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
+
+            # save data in dict
+            data_2d_cuted["mesh"]["tin"][0].append(iklekeep)
+            data_2d_cuted["mesh"]["i_whole_profile"][0].append(ind_whole)
+            for mesh_variable in data_2d["mesh"]["data"].keys():
+                data_2d_cuted["mesh"]["data"][mesh_variable][0].append(data_2d["mesh"]["data"][mesh_variable][0][unit_num][ind_whole])
+            data_2d_cuted["node"]["xy"][0].append(point_all_ok[:, :2])
+            data_2d_cuted["node"]["z"][0].append(point_all_ok[:, 2])
+            data_2d_cuted["node"]["data"]["h"][0].append(water_height_ok)
+            data_2d_cuted["node"]["data"]["v"][0].append(velocity_ok)
+
+            #  unit_list_cuted
+            unit_list_cuted.append(unit_name)
+
+    # iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
+
+    return data_2d_cuted, unit_list_cuted
 
 
 def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case, checkpoint = True):
