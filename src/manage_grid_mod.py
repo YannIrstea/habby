@@ -1239,7 +1239,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
 
 
-def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartialyDry, min_height=0.001):
+def cut_2d_grid_data_2d(data_2d, hydrau_description, progress_value, delta_file, CutMeshPartialyDry, min_height=0.001):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
     with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
@@ -1255,44 +1255,33 @@ def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartia
     :return: the update connectivity table, the coordinates of the point, the height of the water and the
              velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
     """
+    # prog
+    deltaunit = delta_file / len(hydrau_description["unit_list"])
 
-    #         xyz = np.insert(data_2d_source["node"]["xy"][0],
-    #                         2,
-    #                         values=data_2d_source["node"]["z"][0],  #
-    #                         axis=1)  # Insert values before column 2
-    #         tin_data, xyz_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
-    #             data_2d["mesh"]["tin"][0],
-    #             xyz,
-    #             data_2d["node"]["data"]["h"][0][unit_num],
-    #             data_2d["node"]["data"]["v"][0][unit_num],
-    #             progress_value,
-    #             delta,
-    #             project_preferences["cut_mesh_partialy_dry"],
-    #             unit_num,
-    #             project_preferences['min_height_hyd'])
-
-
-    failload = False, False, False, False, False
     # cut the grid to have the precise wet area and put data in new form
     data_2d_cuted = create_empty_data_2d_dict(1,  # always one reach
                                         mesh_variables=list(data_2d["mesh"]["data"].keys()),
                                         node_variables=list(data_2d["node"]["data"].keys()))
 
+    # for each unit
     unit_list_cuted = []
-
-    for unit_num, unit_name in enumerate(unit_list):
-        ikle = data_2d["mesh"]["tin"][0]
-        point_all = np.insert(data_2d["node"]["xy"][0],
+    for unit_num, unit_name in enumerate(hydrau_description["unit_list"]):
+        # get data from dict
+        ikle = data_2d["mesh"]["tin"][0][unit_num]
+        point_all = np.insert(data_2d["node"]["xy"][0][unit_num],
                             2,
-                            values=data_2d["node"]["z"][0],  #
+                            values=data_2d["node"]["z"][0][unit_num],
                             axis=1)  # Insert values before column 2
         water_height = data_2d["node"]["data"]["h"][0][unit_num]
         velocity = data_2d["node"]["data"]["v"][0][unit_num]
+
+        # is_duplicates_mesh_and_point_on_one_unit?
         if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
                                                     xyz_array=point_all,
                                                     unit_num=unit_num,
                                                     case="before the deletion of dry mesh"):
-            return failload
+            print("Warning: The mesh of unit " + unit_name + " is not loaded")
+            continue
 
         typeikle = ikle.dtype
         typepoint = point_all.dtype
@@ -1300,10 +1289,6 @@ def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartia
         jpn0 = len(point_all) - 1
         iklenew = np.empty((0, 3), dtype=typeikle)
         ind_whole = np.arange(len(ikle), dtype=typeikle)
-
-        # progress
-        prog = progress_value.value
-        delta2 = delta / len(ikle)
 
         water_height[water_height < min_height] = 0  # correcting the height of water  hw<0 or hw <min_height=> hw=0
         bhw = (water_height > 0).astype(np.int)
@@ -1314,7 +1299,7 @@ def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartia
         ipt_all_ok_wetdry = []
         # all meshes are entirely wet
         if all(mikle_keep):
-            #print("Warning: The mesh of unit n°" + unit_name + " is entirely wet.")
+            print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
             iklekeep = ikle
             point_all_ok = point_all
             water_height_ok = water_height
@@ -1322,8 +1307,8 @@ def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartia
             ind_whole = ind_whole  # TODO: full whole profile
         # all meshes are entirely dry
         elif not True in mikle_keep2:
-            print("Warning: The mesh of unit n°" + str(unit_num) + " is entirely dry.")
-            return True, True, True, True, True
+            print("Warning: The mesh of unit " + unit_name + " is entirely dry.")
+            continue
         # only the dry meshes are cut (but not the partially ones)
         elif not CutMeshPartialyDry:
             mikle_keep = ikle_type != 0
@@ -1334,9 +1319,7 @@ def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartia
             jpn = jpn0
             ind_whole2 = []
             for i, iklec in enumerate(ikle):
-                # progress
-                prog += delta2
-                progress_value.value = int(prog)
+                #print("delta_ikle", delta_ikle)
                 if ikle_type[i] == 1 or ikle_type[i] == 2:
                     sumk, nboverdry, bkeep = 0, 0, True
                     ia, ib, ic = ikle[i]
@@ -1399,8 +1382,8 @@ def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartia
                                 ind_whole2.append(i)
                         else:
                             print(
-                                "Error: Impossible case during the cutting of mesh partially wet on the timestep " + str(unit_num) + ".")
-                            return failload
+                                "Error: Impossible case during the cutting of mesh partially wet on the unit " + unit_name + ".")
+                            continue
                         jpn += 2
 
             iklekeep = ikle[
@@ -1444,27 +1427,33 @@ def cut_2d_grid_data_2d(data_2d, unit_list, progress_value, delta, CutMeshPartia
                                                         xyz_array=point_all_ok,
                                                         unit_num=unit_num,
                                                         case="after the cutting of mesh partially wet", checkpoint=False):
-                return failload
+                print("Warning: The mesh of unit " + unit_name + " is not loaded.")
+                continue
+
             # all the new points added have water_height,velocity=0,0
             water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
             velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
 
-            # save data in dict
-            data_2d_cuted["mesh"]["tin"][0].append(iklekeep)
-            data_2d_cuted["mesh"]["i_whole_profile"][0].append(ind_whole)
-            for mesh_variable in data_2d["mesh"]["data"].keys():
-                data_2d_cuted["mesh"]["data"][mesh_variable][0].append(data_2d["mesh"]["data"][mesh_variable][0][unit_num][ind_whole])
-            data_2d_cuted["node"]["xy"][0].append(point_all_ok[:, :2])
-            data_2d_cuted["node"]["z"][0].append(point_all_ok[:, 2])
-            data_2d_cuted["node"]["data"]["h"][0].append(water_height_ok)
-            data_2d_cuted["node"]["data"]["v"][0].append(velocity_ok)
+        # save data in dict (only entirely and partially wet units)
+        data_2d_cuted["mesh"]["tin"][0].append(iklekeep)
+        data_2d_cuted["mesh"]["i_whole_profile"][0].append(ind_whole)
+        for mesh_variable in data_2d["mesh"]["data"].keys():
+            data_2d_cuted["mesh"]["data"][mesh_variable][0].append(data_2d["mesh"]["data"][mesh_variable][0][unit_num][ind_whole])
+        data_2d_cuted["node"]["xy"][0].append(point_all_ok[:, :2])
+        data_2d_cuted["node"]["z"][0].append(point_all_ok[:, 2])
+        data_2d_cuted["node"]["data"]["h"][0].append(water_height_ok)
+        data_2d_cuted["node"]["data"]["v"][0].append(velocity_ok)
 
-            #  unit_list_cuted
-            unit_list_cuted.append(unit_name)
+        #  unit_list_cuted
+        unit_list_cuted.append(unit_name)
 
-    # iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
+        # progress
+        progress_value.value += int(deltaunit)
 
-    return data_2d_cuted, unit_list_cuted
+    hydrau_description["unit_list"] = unit_list_cuted
+    hydrau_description["unit_number"] = len(unit_list_cuted)
+
+    return data_2d_cuted, hydrau_description
 
 
 def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case, checkpoint = True):

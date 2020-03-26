@@ -50,7 +50,7 @@ class HydraulicSimulationResults:
         """
 
         # init
-        self.valid_file = False
+        self.valid_file = True
         self.warning_list = []  # text warning output
         self.name_prj = os.path.splitext(os.path.basename(path_prj))[0]
         self.path_prj = path_prj
@@ -73,4 +73,8 @@ class HydraulicSimulationResults:
             self.warning_list.append("Error: The file does not exist.")
             self.valid_file = False
 
-
+        # init
+        self.timestep_name_list = None
+        self.timestep_nb = None
+        self.timestep_unit = None
+        self.unit_z_equal = True

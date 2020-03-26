@@ -25,7 +25,7 @@ import numpy as np
 
 from src.tools_mod import polygon_type_values, point_type_values, sort_homogoeneous_dict_list_by_on_key
 from src.project_properties_mod import create_default_project_properties_dict
-from src.tools_mod import create_empty_data_2d_whole_profile_dict
+from src.tools_mod import create_empty_data_2d_whole_profile_dict, create_empty_data_2d_dict
 from src import hdf5_mod, ascii_mod, telemac_mod, hec_ras2D_mod, hec_ras1D_mod, rubar1d2d_mod, basement_mod
 from src import manage_grid_mod
 
@@ -372,7 +372,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.warning_list.extend(hsr.warning_list)
                 # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[time_index]][
-                    data_index_file[headers[0]].index(self.filename)]
+                    data_index_file[headers[0]].index(namefile)]
 
                 # check if lenght of two loading units
                 if unit_name_from_index_file not in hsr.timestep_name_list:
@@ -497,15 +497,15 @@ class HydraulicSimulationResultsAnalyzer:
                 if not reach_presence:
                     reach_name = "unknown"
 
-                unit_index_from_file = [True] * nbtimes
+                unit_index_from_file = [True] * hsr.timestep_nb
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
                 self.hydrau_description_list[0]["unit_list"] = hsr.timestep_name_list
                 self.hydrau_description_list[0]["unit_list_full"] = hsr.timestep_name_list
                 self.hydrau_description_list[0]["unit_list_tf"] = unit_index_from_file
-                self.hydrau_description_list[0]["unit_number"] = str(nbtimes)
-                self.hydrau_description_list[0]["unit_type"] = "time [" + time_unit + "]"
+                self.hydrau_description_list[0]["unit_number"] = str(hsr.timestep_nb)
+                self.hydrau_description_list[0]["unit_type"] = "time [" + hsr.timestep_unit + "]"
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
@@ -575,7 +575,7 @@ class HydraulicSimulationResultsAnalyzer:
                     hsr = HydraulicSimulationResultsSelector(file,
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
-                    unit_index_from_file = [True] * nbtimes
+                    unit_index_from_file = [True] * hsr.timestep_nb
                     # hdf5 filename
                     blob2, ext = os.path.splitext(file)
                     name_hdf5 = blob2 + ".hyd"
@@ -598,8 +598,8 @@ class HydraulicSimulationResultsAnalyzer:
                                                             unit_list=hsr.timestep_name_list,
                                                             unit_list_full=hsr.timestep_name_list,
                                                             unit_list_tf=unit_index_from_file,
-                                                            unit_number=str(nbtimes),
-                                                            unit_type="time [" + time_unit + "]",
+                                                            unit_number=str(hsr.timestep_nb),
+                                                            unit_type="time [" + hsr.timestep_unit + "]",
                                                             reach_list=reach_name,
                                                             reach_number=str(1),
                                                             reach_type="river",
@@ -681,9 +681,9 @@ class HydraulicSimulationResultsAnalyzer:
 
         print("------------------------------------------------")
         print("self.hydrau_case, " + self.hydrau_case)
-        print(self.hydrau_description_list[0]["unit_list"])
-        print(self.hydrau_description_list[0]["unit_list_tf"])
-        print(self.hydrau_description_list[0]["unit_number"])
+        # print(self.hydrau_description_list[0]["unit_list"])
+        # print(self.hydrau_description_list[0]["unit_list_tf"])
+        # print(self.hydrau_description_list[0]["unit_number"])
 
 
 class HydraulicSimulationResultsSelector:
@@ -1385,213 +1385,107 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
 
     # progress
     progress_value.value = 10
-
-    file_number = len(hydrau_description)
+    delta_file = 80 / len(hydrau_description)
 
     # for each .hyd (or .hab) to create
-    for hdf5_file_index in range(0, file_number):
+    for hdf5_file_index in range(0, len(hydrau_description)):
         # get filename source (can be several)
         filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
 
-        """ create data_2d_whole_profile """
+        # data_2d_whole_profile
         data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1)  # always one reach by file
         hydrau_description[hdf5_file_index]["unit_correspondence"] = [[]]  # always one reach by file
 
+        # data_2d
+        data_2d = create_empty_data_2d_dict(1,  # always one reach
+                                            mesh_variables=[],
+                                            node_variables=["h", "v"])
+
         # for each filename source
         for i, file in enumerate(filename_source):
-            # load data2d
+            # get timestep_name_list
             hsr = HydraulicSimulationResultsSelector(file,
                                              hydrau_description[hdf5_file_index]["path_filename_source"],
                                              hydrau_description[hdf5_file_index]["model_type"],
                                              hydrau_description[hdf5_file_index]["path_prj"])
-            data_2d_source, description_from_source = hsr.load_hydraulic(hydrau_description[hdf5_file_index]["unit_list"])
+            if hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.a", "2.a"}:
+                timestep_with_list = hsr.timestep_name_list
+            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b", "2.b"}:
+                timestep_with_list = hydrau_description[hdf5_file_index]["timestep_list"]
+            else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
+                timestep_with_list = hydrau_description[hdf5_file_index]["unit_list"]
+            # load data
+            data_2d_source, description_from_source = hsr.load_hydraulic(timestep_with_list)
+            # check error
             if not data_2d_source and not description_from_source:
                 q.put(mystdout)
                 return
-            data_2d_whole_profile["mesh"]["tin"][0].append(data_2d_source["mesh"]["tin"][0])
-            data_2d_whole_profile["node"]["xy"][0].append(data_2d_source["node"]["xy"][0])
-            if description_from_source["unit_z_equal"]:
-                data_2d_whole_profile["node"]["z"][0].append(data_2d_source["node"]["z"][0])
-            elif not description_from_source["unit_z_equal"]:
-                for unit_num in range(len(hydrau_description[hdf5_file_index]["unit_list"])):
-                    data_2d_whole_profile["node"]["z"][0].append(data_2d_source["node"]["z"][0][unit_num])
 
-        # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
-        temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][0])
-        for i in range(len(temp_list)):
-            temp_list[i].sort(axis=0)
-        # TODO: sort function may be unadapted to check TIN equality between units
-        whole_profil_egual_index = []
+            # data_2d_whole_profile
+            data_2d_whole_profile["mesh"]["tin"][0].extend(data_2d_source["mesh"]["tin"][0])
+            data_2d_whole_profile["node"]["xy"][0].extend(data_2d_source["node"]["xy"][0])
+            data_2d_whole_profile["node"]["z"][0].extend(data_2d_source["node"]["z"][0])
+            # data_2d
+            data_2d["mesh"]["tin"][0].extend(data_2d_source["mesh"]["tin"][0])
+            data_2d["node"]["xy"][0].extend(data_2d_source["node"]["xy"][0])
+            data_2d["node"]["z"][0].extend(data_2d_source["node"]["z"][0])
+            for mesh_data_key in list(data_2d_source["mesh"]["data"].keys()):
+                data_2d["mesh"]["data"][mesh_data_key][0].extend(data_2d_source["mesh"]["data"][mesh_data_key][0])
+            for node_data_key in list(data_2d_source["node"]["data"].keys()):
+                data_2d["node"]["data"][node_data_key][0].extend(data_2d_source["node"]["data"][node_data_key][0])
+
+        # hyd_varying_mesh and hyd_unit_z_equal?
+        hyd_varying_xy_index = []
+        hyd_varying_z_index = []
         it_equality = 0
-        for i in range(len(temp_list)):
+        for i in range(len(data_2d_whole_profile["node"]["xy"][0])):
             if i == 0:
-                whole_profil_egual_index.append(it_equality)
+                hyd_varying_xy_index.append(it_equality)
+                hyd_varying_z_index.append(it_equality)
             if i > 0:
-                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
-                    whole_profil_egual_index.append(it_equality)
+                # xy
+                if np.array_equal(data_2d_whole_profile["node"]["xy"][0][i], data_2d_whole_profile["node"]["xy"][0][it_equality]):  # equal
+                    hyd_varying_xy_index.append(it_equality)
                 else:
                     it_equality = i
-                    whole_profil_egual_index.append(it_equality)  # diff
-        hydrau_description[hdf5_file_index]["unit_correspondence"][0] = whole_profil_egual_index
-        # one file : one reach, varying_mesh==False
-        if len(filename_source) == 1:
-            hydrau_description[hdf5_file_index]["unit_correspondence"][0] = whole_profil_egual_index * int(
-                hydrau_description[hdf5_file_index]["unit_number"])
-        # one tin for all unit
-        if len(set(whole_profil_egual_index)) == 1:
+                    hyd_varying_xy_index.append(it_equality)  # diff
+                # z
+                if np.array_equal(data_2d_whole_profile["node"]["z"][0][i], data_2d_whole_profile["node"]["z"][0][it_equality]):  # equal
+                    hyd_varying_z_index.append(it_equality)
+                else:
+                    it_equality = i
+                    hyd_varying_z_index.append(it_equality)  # diff
+        if len(set(hyd_varying_xy_index)) == 1:  # one tin for all unit
+            hyd_varying_mesh = False
             data_2d_whole_profile["mesh"]["tin"][0] = [data_2d_whole_profile["mesh"]["tin"][0][0]]
             data_2d_whole_profile["node"]["xy"][0] = [data_2d_whole_profile["node"]["xy"][0][0]]
+        else:
+            hyd_varying_mesh = True
+        # hyd_unit_z_equal ?
+        if len(set(hyd_varying_z_index)) == 1:
+            hyd_unit_z_equal = True
+        else:
+            hyd_unit_z_equal = True
 
-        # progress from 10 to 90 : from 0 to len(units_index)
-        delta = int(80 / int(hydrau_description[hdf5_file_index]["unit_number"]))
-
-        """ create data_2d """
-        # for each filename source
+        # one file : one reach, varying_mesh==False
         if len(filename_source) == 1:
-            # load data2d
-            hsr = HydraulicSimulationResultsSelector(file,
-                                             hydrau_description[hdf5_file_index]["path_filename_source"],
-                                             hydrau_description[hdf5_file_index]["model_type"],
-                                             hydrau_description[hdf5_file_index]["path_prj"])
-            data_2d, description_from_source = hsr.load_hydraulic(hydrau_description[hdf5_file_index]["unit_list"])
-            if not data_2d and not description_from_source:
-                q.put(mystdout)
-                return
+            hydrau_description[hdf5_file_index]["unit_correspondence"][0] = hyd_varying_xy_index * int(hydrau_description[hdf5_file_index]["unit_number"])
+        else:
+            hydrau_description[hdf5_file_index]["unit_correspondence"][0] = hyd_varying_xy_index
 
         """ cut_2d_grid_data_2d """
-        data_2d, hydrau_description[hdf5_file_index]["unit_list"] = manage_grid_mod.cut_2d_grid_data_2d(data_2d_source,
-                                                      hydrau_description[hdf5_file_index]["unit_list"],
-                    progress_value,
-                    delta,
-                    project_preferences["cut_mesh_partialy_dry"],
-                    project_preferences['min_height_hyd'])
+        data_2d, hydrau_description[hdf5_file_index] = manage_grid_mod.cut_2d_grid_data_2d(data_2d,
+                                                                                           hydrau_description[
+                                                                                               hdf5_file_index],
+                                                                                           progress_value,
+                                                                                           delta_file,
+                                                                                           project_preferences[
+                                                                                               "cut_mesh_partialy_dry"],
+                                                                                           project_preferences[
+                                                                                               'min_height_hyd'])
 
-        # # get unit list from filename_source
-        # file_list = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
-        # if len(file_list) > 1:
-        #     unit_number_list = []
-        #     unit_list_from_source_file_list = []
-        #     for file_indexHYDRAU in file_list:
-        #         hsr = HydraulicSimulationResultsSelector(file_indexHYDRAU,
-        #                                                  hydrau_description[hdf5_file_index]["path_filename_source"],
-        #                                                  hydrau_description[hdf5_file_index]["model_type"],
-        #                                                  hydrau_description[hdf5_file_index]["path_prj"])
-        #         unit_type = hsr.timestep_unit
-        #         unit_number = hsr.timestep_nb
-        #         unit_list_from_source_file = hsr.timestep_name_list
-        #         unit_number_list.append(unit_number)
-        #         unit_list_from_source_file_list.append(unit_list_from_source_file)
-        # if len(file_list) == 1:
-        #     hsr = HydraulicSimulationResultsSelector(hydrau_description[hdf5_file_index]["filename_source"],
-        #                                              hydrau_description[hdf5_file_index]["path_filename_source"],
-        #                                              hydrau_description[hdf5_file_index]["model_type"],
-        #                                              hydrau_description[hdf5_file_index]["path_prj"])
-        #     unit_type = hsr.timestep_unit
-        #     unit_number = hsr.timestep_nb
-        #     unit_list_from_source_file = hsr.timestep_name_list
-        #     # get unit list from indexHYDRAU file
-        # if hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b", "2.b"}:
-        #     if len(hydrau_description[hdf5_file_index]["timestep_list"]) == len(file_list):
-        #         unit_list_from_indexHYDRAU_file = hydrau_description[hdf5_file_index]["timestep_list"]
-        #     else:
-        #         unit_list_from_indexHYDRAU_file = hydrau_description[hdf5_file_index]["timestep_list"]
-        # else:
-        #     unit_list_from_indexHYDRAU_file = hydrau_description[hdf5_file_index]["unit_list"]
-        # # get unit index to load
-        # if len(unit_list_from_source_file) == 1 and len(unit_list_from_indexHYDRAU_file) == 1:
-        #     # unit_index_list = [0]
-        #     unit_index_list = [0] * len(file_list)
-        #     hydrau_description[hdf5_file_index]["unit_list_tf"] = [True] * len(unit_index_list)
-        # else:
-        #     if len(file_list) > 1:
-        #         if list(set(unit_number_list))[0] == 1:  # one time step by file
-        #             unit_index_list = [0] * len(file_list)
-        #         if list(set(unit_number_list))[0] > 1:  # several time step by file
-        #             unit_index_list = []
-        #             for i, time_step in enumerate(unit_list_from_indexHYDRAU_file):
-        #                 if time_step in unit_list_from_source_file_list[i]:
-        #                     unit_index_list.append(unit_list_from_source_file_list[i].index(time_step))
-        #     else:
-        #         unit_index_list = []  # for all cases with specific timestep indicate
-        #         for unit_wish in unit_list_from_indexHYDRAU_file: # ? one time step ?
-        #             if unit_wish in unit_list_from_source_file:
-        #                 unit_index_list.append(unit_list_from_source_file.index(unit_wish))
-        #
-        # # same mesh for all units : conca xy array with first z array
-        # if len(set(hydrau_description[hdf5_file_index]["unit_correspondence"][0])) == 1:
-        #     # conca xy with z value to facilitate the cutting of the grid (interpolation)
-        #     xyz = np.insert(data_2d_source["node"]["xy"][0],
-        #                     2,
-        #                     values=data_2d_source["node"]["z"][0],
-        #                     axis=1)  # Insert values before column 2
-        # else:
-        #     # load data2d
-        #     data_2d_source, description_from_source = HydraulicSimulationResultsSelector(file,
-        #                                      hydrau_description[hdf5_file_index]["path_filename_source"],
-        #                                      hydrau_description[hdf5_file_index]["model_type"],
-        #                                      hydrau_description[hdf5_file_index]["path_prj"]).load_hydraulic()
-        #
-        # for i, unit_num in enumerate(unit_index_list):
-        #     if len(file_list) > 1:
-        #         data_2d_source, description_from_source = HydraulicSimulationResultsSelector(file_list[i],
-        #                                                                                      hydrau_description[
-        #                                                                                          hdf5_file_index][
-        #                                                                                          "path_filename_source"],
-        #                                                                                      hydrau_description[
-        #                                                                                          hdf5_file_index][
-        #                                                                                          "model_type"],
-        #                                                                                      hydrau_description[
-        #                                                                                          hdf5_file_index][
-        #                                                                                          "path_prj"]).load_hydraulic()
-        #
-        #         # conca xy with z value to facilitate the cutting of the grid (interpolation)
-        #         xyz = np.insert(data_2d_source["node"]["xy"][0],
-        #                         2,
-        #                         values=data_2d_source["node"]["z"][0],  #
-        #                         axis=1)  # Insert values before column 2
-        #
-        #     # user GUI selection
-        #     if hydrau_description[hdf5_file_index]["unit_list_tf"][i]:
-        #         tin_data, xyz_cuted, h_data, v_data, i_whole_profile = manage_grid_mod.cut_2d_grid(
-        #             data_2d_source["mesh"]["tin"][0],
-        #             xyz,
-        #             data_2d_source["node"]["data"]["h"][0][unit_num],
-        #             data_2d_source["node"]["data"]["v"][0][unit_num],
-        #             progress_value,
-        #             delta,
-        #             project_preferences["cut_mesh_partialy_dry"],
-        #             unit_num,
-        #             project_preferences['min_height_hyd'])
-        #
-        #         if not isinstance(tin_data, np.ndarray):  # error or warning
-        #             if not tin_data:  # error
-        #                 print("Error: " + qt_tr.translate("hydro_input_file_mod", "cut_2d_grid"))
-        #                 q.put(mystdout)
-        #                 return
-        #             elif tin_data:  # entierly dry
-        #                 hydrau_description[hdf5_file_index]["unit_list_tf"][unit_num] = False
-        #                 continue  # Continue to next iteration.
-        #         else:
-        #             # save data in dict
-        #             data_2d["mesh"]["tin"][0].append(tin_data)
-        #             data_2d["mesh"]["i_whole_profile"][0].append(i_whole_profile)
-        #             for mesh_variable in data_2d_source["mesh"]["data"].keys():
-        #                 data_2d["mesh"]["data"][mesh_variable][0].append(
-        #                     data_2d_source["mesh"]["data"][mesh_variable][0][unit_num][i_whole_profile])
-        #             data_2d["node"]["xy"][0].append(xyz_cuted[:, :2])
-        #             data_2d["node"]["z"][0].append(xyz_cuted[:, 2])
-        #             data_2d["node"]["data"]["h"][0].append(h_data)
-        #             data_2d["node"]["data"]["v"][0].append(v_data)
-        #
-        # # refresh unit (if warning)
-        # for unit_num in reversed(range(len(hydrau_description[hdf5_file_index]["unit_list"][0]))):
-        #     if not hydrau_description[hdf5_file_index]["unit_list_tf"][unit_num]:
-        #         hydrau_description[hdf5_file_index]["unit_list"].pop(unit_num)
-        # hydrau_description[hdf5_file_index]["unit_number"] = str(len(hydrau_description[hdf5_file_index]["unit_list"]))
-
-
-        # ALL CASE SAVE TO HDF5
-        progress_value.value = 90  # progress
+        # progress
+        progress_value.value = 90
 
         # hyd description
         hyd_description = dict()
@@ -1610,6 +1504,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                                              hydrau_description[hdf5_file_index]["unit_list"]]]
         hyd_description["hyd_unit_number"] = str(len(hydrau_description[hdf5_file_index]["unit_list"]))
         hyd_description["hyd_unit_type"] = hydrau_description[hdf5_file_index]["unit_type"]
+        hyd_description["hyd_varying_mesh"] = hyd_varying_mesh
+        hyd_description["hyd_unit_z_equal"] = hyd_unit_z_equal
         hyd_description["unit_correspondence"] = hydrau_description[hdf5_file_index]["unit_correspondence"]
         hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["cut_mesh_partialy_dry"]
         hyd_description["hyd_hydrau_case"] = hydrau_description[hdf5_file_index]["hydrau_case"]
@@ -1621,15 +1517,15 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                                        hydrau_description[hdf5_file_index]["hdf5_name"])
         hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
 
-        # prog
-        progress_value.value = 95
+    # prog
+    progress_value.value = 90
 
-        # create_index_hydrau_text_file
-        if not hydrau_description[hdf5_file_index]["index_hydrau"]:
-            create_index_hydrau_text_file(hydrau_description)
+    # create_index_hydrau_text_file
+    if not hydrau_description[hdf5_file_index]["index_hydrau"]:
+        create_index_hydrau_text_file(hydrau_description)
 
-        # prog
-        progress_value.value = 100
+    # prog
+    progress_value.value = 100
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

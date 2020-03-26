@@ -23,6 +23,7 @@ import numpy as np
 
 from src.hydraulic_bases import HydraulicSimulationResults
 from src.tools_mod import create_empty_data_2d_dict
+from src.dev_tools import check_data_2d_dict_size
 
 
 class TelemacResult(HydraulicSimulationResults):
@@ -33,15 +34,9 @@ class TelemacResult(HydraulicSimulationResults):
         # file attributes
         self.extensions_list = [".res", ".slf"]
         self.file_type = "hdf5"
-        self.valid_file = True
         # simulation attributes
         self.equation_type = ["FV"]
         self.morphology_available = True
-
-        # init
-        self.timestep_name_list = None
-        self.timestep_nb = None
-        self.timestep_unit = None
 
         # readable file ?
         try:
@@ -65,6 +60,10 @@ class TelemacResult(HydraulicSimulationResults):
             # get_time_step ?
             self.get_time_step()
 
+    def get_hydraulic_variables_list(self):
+        self.hydraulic_variables_node_list = ["h", "v"]
+        self.hydraulic_variables_mesh_list = []
+
     def get_time_step(self):
         """
         get_time_step
@@ -74,6 +73,7 @@ class TelemacResult(HydraulicSimulationResults):
         self.timestep_nb = len(timestep_float_list)
         self.timestep_unit = "time [s]"
 
+    #@check_data_2d_dict_size
     def load_hydraulic(self, timestep_name_wish_list):
         """
         """
@@ -120,18 +120,17 @@ class TelemacResult(HydraulicSimulationResults):
             node_v_list.append(vt)
             node_h_list.append(ht)
             node_z_list.append(bt)
-        # TODO: improve check node_z equality
-        if all(node_z_list[0] == node_z_list[-1]):  # first == last
-            unit_z_equal = True
-        else:
-            unit_z_equal = False
+        # # TODO: improve check node_z equality
+        # if len(node_z_list) > 1:
+        #     if not all(node_z_list[0] == node_z_list[-1]):  # first == last
+        #         self.unit_z_equal = False
         node_xy = np.array([self.results_data_file.meshx, self.results_data_file.meshy])
         node_xy = node_xy.T
-        # TODO: improve check xy equality
-        if all(node_xy[0] == node_xy[-1]):  # first == last
-            unit_xy_equal = True
-        else:
-            unit_xy_equal = False
+        # # TODO: improve check xy equality
+        # if all(np.equal(node_xy[0], node_xy[-1])):  # first == last
+        #     unit_xy_equal = True
+        # else:
+        #     unit_xy_equal = False
 
         """ get mesh data """
         mesh_tin = self.results_data_file.ikle2.astype(np.int64)
@@ -144,18 +143,14 @@ class TelemacResult(HydraulicSimulationResults):
         description_from_telemac_file["unit_list"] = ", ".join(timestep_name_wish_list)
         description_from_telemac_file["unit_number"] = str(len(timestep_name_wish_list))
         description_from_telemac_file["unit_type"] = "time [s]"
-        description_from_telemac_file["unit_z_equal"] = unit_z_equal
-        description_from_telemac_file["unit_xy_equal"] = unit_xy_equal
+        description_from_telemac_file["unit_z_equal"] = self.unit_z_equal
 
         # data 2d dict (one reach by file and varying_mesh==False)
         data_2d = create_empty_data_2d_dict(reach_number=1,
                                             node_variables=["h", "v"])
-        data_2d["mesh"]["tin"][0] = mesh_tin
-        data_2d["node"]["xy"][0] = node_xy
-        if unit_z_equal:
-            data_2d["node"]["z"][0] = node_z_list[0]
-        else:
-            data_2d["node"]["z"][0] = node_z_list
+        data_2d["mesh"]["tin"][0] = [mesh_tin] * len(timestep_name_wish_list)
+        data_2d["node"]["xy"][0] = [node_xy] * len(timestep_name_wish_list)
+        data_2d["node"]["z"][0] = node_z_list
         data_2d["node"]["data"]["h"][0] = node_h_list
         data_2d["node"]["data"]["v"][0] = node_v_list
 

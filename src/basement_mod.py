@@ -31,15 +31,9 @@ class BasementResult(HydraulicSimulationResults):
         # file attributes
         self.extensions_list = [".h5"]
         self.file_type = "hdf5"
-        self.valid_file = True
         # simulation attributes
         self.equation_type = ["FV"]
         self.morphology_available = True
-
-        # init
-        self.timestep_name_list = None
-        self.timestep_nb = None
-        self.timestep_unit = None
 
         # readable file ?
         try:
@@ -62,6 +56,13 @@ class BasementResult(HydraulicSimulationResults):
         if self.valid_file:
             # get_time_step ?
             self.get_time_step()
+        else:
+            print("Error: File not valid.")
+
+    def get_hydraulic_variables_list(self):
+        #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
+        self.hydraulic_variables_node_list = []
+        self.hydraulic_variables_mesh_list = ["h", "v"]
 
     def get_time_step(self):
         """
@@ -73,7 +74,6 @@ class BasementResult(HydraulicSimulationResults):
         """
         simulation_dict = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])
 
-        hydraulic_variables = simulation_dict["SIMULATION"]["OUTPUT"]
         timestep_float_list = list(frange(simulation_dict["SIMULATION"]["TIME"]["start"],
                                simulation_dict["SIMULATION"]["TIME"]["end"],
                                simulation_dict["SIMULATION"]["TIME"]["out"]))
@@ -89,21 +89,10 @@ class BasementResult(HydraulicSimulationResults):
         :param pathfilet: the path to this file (string)
         :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
         """
-        # init
-        unit_z_equal = True
-
         # simulation dict
         model_dict = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]
         if "MORPHOLOGY" in model_dict["DOMAIN"]["BASEPLANE_2D"].keys():
-            unit_z_equal = False
-
-        # simulation dict
-        simulation_dict = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]
-        # variables_available = simulation_dict["OUTPUT"]  # hydraulic_variables
-        timestep_float_list = list(frange(simulation_dict["TIME"]["start"],
-                               simulation_dict["TIME"]["end"],
-                               simulation_dict["TIME"]["out"]))  # timestep_float_list
-        nbtimes = len(timestep_float_list)  # nbtimes
+            self.unit_z_equal = False
 
         # get group
         CellAll_group = self.results_data_file["CellsAll"]  # CellAll_group
@@ -128,31 +117,31 @@ class BasementResult(HydraulicSimulationResults):
         # tin
         mesh_tin = CellAll_group["Topology"][:].astype(np.int64)
         # z
-        if unit_z_equal:
+        if self.unit_z_equal:
             try:
                 mesh_z = CellAll_group["BottomEl"][:].flatten()
             except KeyError:
                 print("Error: Can't found 'BottomEl' key in " + self.filename + ".")
-        if not unit_z_equal:
-            mesh_z = np.zeros((mesh_nb, nbtimes), dtype=np.float64)
+        if not self.unit_z_equal:
+            mesh_z = np.zeros((mesh_nb, self.timestep_nb), dtype=np.float64)
             dataset_name_list = list(RESULTS_group["CellsAll"]["BottomEl"])
             try:
-                for timestep_num in range(nbtimes):
+                for timestep_num in range(self.timestep_nb):
                     mesh_z[:, timestep_num] = RESULTS_group["CellsAll"]["BottomEl"][dataset_name_list[timestep_num]][:].flatten()
             except KeyError:
                 print("Error: Can't found 'BottomEl' key in " + self.filename + ".")
         # result data
-        mesh_h = np.zeros((mesh_nb, nbtimes), dtype=np.float64)
-        mesh_v = np.zeros((mesh_nb, nbtimes), dtype=np.float64)
+        mesh_h = np.zeros((mesh_nb, self.timestep_nb), dtype=np.float64)
+        mesh_v = np.zeros((mesh_nb, self.timestep_nb), dtype=np.float64)
         dataset_name_list = list(RESULTS_group["CellsAll"]["HydState"])
-        for timestep_num in range(nbtimes):
+        for timestep_num in range(self.timestep_nb):
             result_hyd_array = RESULTS_group["CellsAll"]["HydState"][dataset_name_list[timestep_num]][:]
             # zeau
             mesh_water_level = result_hyd_array[:, 0]
             # h
-            if unit_z_equal:
+            if self.unit_z_equal:
                 mesh_water_height = mesh_water_level - mesh_z
-            if not unit_z_equal:
+            if not self.unit_z_equal:
                 mesh_water_height = mesh_water_level - mesh_z[:, timestep_num]
             # q_x
             mesh_q_x = result_hyd_array[:, 1]
@@ -176,19 +165,19 @@ class BasementResult(HydraulicSimulationResults):
         # return to list
         node_h_list = []
         node_v_list = []
-        for unit_num in range(nbtimes):
+        for unit_num in range(self.timestep_nb):
             node_h_list.append(node_h[:, unit_num])
             node_v_list.append(node_v[:, unit_num])
 
-        # description telemac data dict
+        # description data dict
         description_from_file = dict()
         description_from_file["filename_source"] = self.filename
         description_from_file["model_type"] = "BASEMENT2D"
         description_from_file["model_dimension"] = str(2)
-        description_from_file["unit_list"] = ", ".join(list(map(str, timestep_float_list)))
-        description_from_file["unit_number"] = str(nbtimes)
+        description_from_file["unit_list"] = ", ".join(list(map(str, self.timestep_name_list)))
+        description_from_file["unit_number"] = str(self.timestep_nb)
         description_from_file["unit_type"] = "time [s]"
-        description_from_file["unit_z_equal"] = True
+        description_from_file["unit_z_equal"] = self.unit_z_equal
 
         # data 2d dict (one reach by file and varying_mesh==False)
         data_2d = create_empty_data_2d_dict(reach_number=1,
@@ -198,6 +187,6 @@ class BasementResult(HydraulicSimulationResults):
         data_2d["node"]["z"][0] = node_z
         data_2d["node"]["data"]["h"][0] = node_h_list
         data_2d["node"]["data"]["v"][0] = node_v_list
-        #     return v, h, coord_p, ikle, coord_c, timestep
+
         return data_2d, description_from_file
 

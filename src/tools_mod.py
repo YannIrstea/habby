@@ -708,6 +708,9 @@ def copy_files(names, paths, path_input):
 
 
 def create_empty_data_2d_dict(reach_number, mesh_variables=[], node_variables=[]):
+    """
+    data_2d :
+    """
     # create empty dict
     data_2d = dict()
 
@@ -744,26 +747,6 @@ def create_empty_data_2d_whole_profile_dict(reach_number):
     data_2d_whole_profile["node"]["z"] = [[] for _ in range(reach_number)]
 
     return data_2d_whole_profile
-
-
-def check_data_2d_dict_size(data_2d):
-    for key1 in data_2d.keys():
-        for key2 in data_2d[key1].keys():
-            if type(data_2d[key1][key2]) == dict:
-                for key3 in data_2d[key1][key2].keys():
-                    print(key3, ":",
-                          len(data_2d[key1][key2][key3]), "reach,",
-                          len(data_2d[key1][key2][key3][0]), "unit,",
-                          len(data_2d[key1][key2][key3][0][0]), key1,
-                          data_2d[key1][key2][key3][0][0].shape,
-                          data_2d[key1][key2][key3][0][0].dtype)
-            if type(data_2d[key1][key2]) == list:
-                print(key2, ":",
-                      len(data_2d[key1][key2]), "reach,",
-                      len(data_2d[key1][key2][0]), "unit,",
-                      len(data_2d[key1][key2][0][0]), key1,
-                      data_2d[key1][key2][0][0].shape,
-                      data_2d[key1][key2][0][0].dtype)
 
 
 def check_data_2d_dict_validity(data_2d, reach_number, unit_number):

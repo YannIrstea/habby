@@ -220,43 +220,42 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 cut = eval(arg[len(cut_arg_name):])
                 project_preferences['cut_mesh_partialy_dry'] = cut
 
-        # get_hydrau_description_from_source
-        hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_path,
-                                                                                                     project_preferences[
-                                                                                                       "path_prj"],
-                                                                                                   "TELEMAC",
-                                                                                                     2)
+        # # get_hydrau_description_from_source
+        hsra_value = input_data_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
+                                                        project_preferences["path_prj"],
+                                                        "TELEMAC",
+                                                        2)
 
         # outputfilename
         if outputfilename:
-            hydrau_description["hdf5_name"] = outputfilename
+            hsra_value.hydrau_description_list[0]["hdf5_name"] = outputfilename
         else:
             # change suffix
             if not project_preferences["cut_mesh_partialy_dry"]:
-                namehdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[0]
-                exthdf5_old = os.path.splitext(hydrau_description["hdf5_name"])[1]
-                hydrau_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+                namehdf5_old, exthdf5_old = os.path.splitext(hsra_value.hydrau_description_list[0]["hdf5_name"])
+                hsra_value.hydrau_description_list[0]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
         # warnings
-        if warning_list:
-            for warn in warning_list:
+        if hsra_value.warning_list:
+            for warn in hsra_value.warning_list:
                 print(warn)
 
         # error
-        if type(hydrau_description) == str:
+        if type(hsra_value.hydrau_description_list[0]) == str:
             print("Error")
             return
 
         # run process
         progress_value = Value("i", 0)
         q = Queue()
-        p = Process(target=telemac_mod.load_telemac_and_cut_grid,
-                    args=(hydrau_description,
-                          progress_value,
-                          q,
-                          True,
-                          project_preferences),
-                    name="LOAD_TELEMAC")
+        p = Process(target=input_data_manager_mod.load_hydraulic_cut_to_hdf5,
+                         args=(hsra_value.hydrau_description_list,
+                               progress_value,
+                               q,
+                               True,
+                               project_preferences),
+                    name="TELEMAC")
+
         cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------

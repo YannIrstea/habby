@@ -975,9 +975,6 @@ class SubHydroW(QWidget):
                                self.q,
                                False,
                                self.project_preferences))
-        print(hydrau_description_multiple[0]["unit_list"])
-        print(hydrau_description_multiple[0]["unit_list_tf"])
-        print(hydrau_description_multiple[0]["unit_number"])
 
         self.p.name = self.model_type + " data loading"
         self.p.start()
@@ -1003,7 +1000,7 @@ class SubHydroW(QWidget):
         This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
         messages.
         """
-        # say in the status bar that the processus is alive
+        # RUNNING
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
@@ -1026,23 +1023,101 @@ class SubHydroW(QWidget):
                     QCoreApplication.translate("SubHydroW", "'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
                 self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
 
-        # when the loading is finished
-        if not self.q.empty():
-            # manage error
-            self.timer.stop()
-            queue_back = self.q.get()
-            if queue_back == "const_sub":  # sub cst case
-                const_sub = True
-            else:
-                self.mystdout = queue_back
-                const_sub = False
-            error = self.send_err_log(True)
+        else:
+            # FINISH (but can have known errors)
+            if not self.q.empty():
+                # manage error
+                self.timer.stop()
+                queue_back = self.q.get()
+                if queue_back == "const_sub":  # sub cst case
+                    const_sub = True
+                else:
+                    self.mystdout = queue_back
+                    const_sub = False
+                error = self.send_err_log(True)
 
-            # info
-            if error:
+                # known errors
+                if error:
+                    self.send_log.emit("clear status bar")
+                    self.running_time = 0
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    # MERGE
+                    if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
+                        # unblock button merge
+                        self.load_b2.setDisabled(False)  # merge
+                    # SUBSTRATE
+                    elif self.model_type == 'SUBSTRATE':
+                        # unblock button substrate
+                        self.load_polygon_substrate.setDisabled(False)  # substrate
+                        self.load_point_substrate.setDisabled(False)  # substrate
+                        self.load_constant_substrate.setDisabled(False)  # substrate
+                    # HYDRAULIC
+                    else:
+                        # unblock button hydraulic
+                        self.load_b.setDisabled(False)  # hydraulic
+
+                if not error:
+                    # MERGE
+                    if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
+                        self.send_log.emit(
+                            QCoreApplication.translate("SubHydroW", "Merging of substrate and hydraulic grid finished (computation time = ") + str(
+                                round(self.running_time)) + " s).")
+                        self.drop_merge.emit()
+                        # update last name
+                        self.name_last_hdf5("HABITAT")
+                        # unblock button merge
+                        self.load_b2.setDisabled(False)  # merge
+
+                    # SUBSTRATE
+                    elif self.model_type == 'SUBSTRATE':
+                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of substrate data finished (computation time = ") + str(
+                            round(self.running_time)) + " s).")
+                        self.drop_merge.emit()
+                        # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
+                        self.update_sub_hdf5_name()
+                        # update last name
+                        self.name_last_hdf5("SUBSTRATE")
+                        # unblock button substrate
+                        self.load_polygon_substrate.setDisabled(False)  # substrate
+                        self.load_point_substrate.setDisabled(False)  # substrate
+                        self.load_constant_substrate.setDisabled(False)  # substrate
+
+                    # HYDRAULIC
+                    else:
+                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of hydraulic data finished (computation time = ") + str(
+                            round(self.running_time)) + " s).")
+                        # send a signal to the substrate tab so it can account for the new info
+                        self.drop_hydro.emit()
+                        # update last name
+                        self.name_last_hdf5(self.model_type)
+                        if self.model_type == "ASCII":  # can produce .hab
+                            self.drop_merge.emit()
+                        # unblock button hydraulic
+                        self.load_b.setDisabled(False)  # hydraulic
+
+                    # send round(c) to attribute .hyd
+                    hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
+                    hdf5_hyd.set_hdf5_attributes([os.path.splitext(self.name_hdf5)[1][1:] + "_time_creation [s]"],
+                                                 [round(self.running_time)])
+
+                    # general
+                    self.nativeParentWidget().progress_bar.setValue(100)
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    if not const_sub:
+                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Outputs data can be displayed and exported from 'Data explorer' tab."))
+                    if const_sub:
+                        self.update_sub_hdf5_name()
+                    self.send_log.emit("clear status bar")
+                    # refresh plot gui list file
+                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
+                    self.running_time = 0
+
+            # CLEANING GUI
+            if not self.p.is_alive() and self.q.empty():
+                self.timer.stop()
                 self.send_log.emit("clear status bar")
-                self.running_time = 0
                 self.nativeParentWidget().kill_process.setVisible(False)
+                self.running_time = 0
                 # MERGE
                 if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
                     # unblock button merge
@@ -1057,84 +1132,12 @@ class SubHydroW(QWidget):
                 else:
                     # unblock button hydraulic
                     self.load_b.setDisabled(False)  # hydraulic
-            if not error:
-                # MERGE
-                if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                    self.send_log.emit(
-                        QCoreApplication.translate("SubHydroW", "Merging of substrate and hydraulic grid finished (computation time = ") + str(
-                            round(self.running_time)) + " s).")
-                    self.drop_merge.emit()
-                    # update last name
-                    self.name_last_hdf5("HABITAT")
-                    # unblock button merge
-                    self.load_b2.setDisabled(False)  # merge
-
-                # SUBSTRATE
-                elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of substrate data finished (computation time = ") + str(
-                        round(self.running_time)) + " s).")
-                    self.drop_merge.emit()
-                    # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
-                    self.update_sub_hdf5_name()
-                    # update last name
-                    self.name_last_hdf5("SUBSTRATE")
-                    # unblock button substrate
-                    self.load_polygon_substrate.setDisabled(False)  # substrate
-                    self.load_point_substrate.setDisabled(False)  # substrate
-                    self.load_constant_substrate.setDisabled(False)  # substrate
-
-                # HYDRAULIC
-                else:
-                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of hydraulic data finished (computation time = ") + str(
-                        round(self.running_time)) + " s).")
-                    # send a signal to the substrate tab so it can account for the new info
-                    self.drop_hydro.emit()
-                    # update last name
-                    self.name_last_hdf5(self.model_type)
                     if self.model_type == "ASCII":  # can produce .hab
                         self.drop_merge.emit()
-                    # unblock button hydraulic
-                    self.load_b.setDisabled(False)  # hydraulic
-
-                # send round(c) to attribute .hyd
-                hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
-                hdf5_hyd.set_hdf5_attributes([os.path.splitext(self.name_hdf5)[1][1:] + "_time_creation [s]"],
-                                             [round(self.running_time)])
-
-                # general
-                self.nativeParentWidget().progress_bar.setValue(100)
-                self.nativeParentWidget().kill_process.setVisible(False)
-                if not const_sub:
-                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Outputs data can be displayed and exported from 'Data explorer' tab."))
-                if const_sub:
-                    self.update_sub_hdf5_name()
-                self.send_log.emit("clear status bar")
-                # refresh plot gui list file
-                self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
-                self.running_time = 0
-
-        # finish
-        if not self.p.is_alive() and self.q.empty():
-            self.timer.stop()
-            self.send_log.emit("clear status bar")
-            self.nativeParentWidget().kill_process.setVisible(False)
-            self.running_time = 0
-            # MERGE
-            if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                # unblock button merge
-                self.load_b2.setDisabled(False)  # merge
-            # SUBSTRATE
-            elif self.model_type == 'SUBSTRATE':
-                # unblock button substrate
-                self.load_polygon_substrate.setDisabled(False)  # substrate
-                self.load_point_substrate.setDisabled(False)  # substrate
-                self.load_constant_substrate.setDisabled(False)  # substrate
-            # HYDRAULIC
-            else:
-                # unblock button hydraulic
-                self.load_b.setDisabled(False)  # hydraulic
-                if self.model_type == "ASCII":  # can produce .hab
-                    self.drop_merge.emit()
+                # CRASH
+                if self.p.exitcode == 1:
+                    self.send_log.emit(QCoreApplication.translate("SubHydroW",
+                                                                  "Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
 
 
 class Rubar2D(SubHydroW):

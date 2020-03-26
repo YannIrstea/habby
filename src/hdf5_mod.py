@@ -37,7 +37,7 @@ from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_v
     c_mesh_max_slope_bottom, c_mesh_max_slope_energy, c_mesh_shear_stress, c_mesh_froude, c_mesh_hydraulic_head, \
     c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level,\
     c_mesh_area, create_empty_data_2d_dict, copy_shapefiles, create_empty_data_2d_whole_profile_dict,\
-    check_data_2d_dict_size, check_data_2d_dict_validity
+    check_data_2d_dict_validity
 
 from habby import HABBY_VERSION_STR
 
@@ -306,8 +306,6 @@ class Hdf5Management:
         'mesh':
             'tin' : list by reach, sub list by units and sub list of numpy array type int
             (three values by mesh : triangle nodes indexes)
-            'xy_center' : list by reach, sub list by units and sub list of numpy array type float
-            (two values by node : x and y center coordinates of triangle)
         'node'
             'xy' : list by reach, sub list by units and sub list of numpy array type float
             (two values by node : x and y coordinates)
@@ -330,7 +328,7 @@ class Hdf5Management:
         'hyd_varying_mesh' : boolean
         'hyd_unit_z_equal' : boolean if all z are egual between units, 'False' if the bottom values vary
         """
-        #check_data_2d_dict_size
+        #
         validity, error = check_data_2d_dict_validity(data_2d,
                                     int(hyd_description["hyd_reach_number"]),
                                     int(hyd_description["hyd_unit_number"]))
@@ -343,18 +341,6 @@ class Hdf5Management:
 
         # save dict to attribute
         self.project_preferences = project_preferences
-
-        # hyd_varying_mesh ?
-        if len(set(hyd_description["unit_correspondence"][0])) == 1:
-            hyd_description["hyd_varying_mesh"] = False
-        else:
-            hyd_description["hyd_varying_mesh"] = True
-
-        if hyd_description["hyd_varying_mesh"]:
-            hyd_description["hyd_unit_z_equal"] = False
-        else:
-            # TODO : check if all z values are equal between units
-            hyd_description["hyd_unit_z_equal"] = True
 
         # create hyd attributes
         for attribute_name, attribute_value in list(hyd_description.items()):
@@ -836,8 +822,6 @@ class Hdf5Management:
         'mesh':
             'tin' : list by reach, sub list by units and sub list of numpy array type int
             (three values by mesh : triangle nodes indexes)
-            'xy_center' : list by reach, sub list by units and sub list of numpy array type float
-            (two values by node : x and y center coordinates of triangle)
         'node'
             'xy' : list by reach, sub list by units and sub list of numpy array type float
             (two values by node : x and y coordinates)
