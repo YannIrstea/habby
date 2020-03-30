@@ -1,0 +1,5 @@
+ is a 2D hydro​ and morphodynamics model.
+Author(s): Laboratory of Hydraulics, Hydrology and Glaciology VAW
+Licence: Apache 2.0
+MORE INFO
+results.h5 and results_aux.h5 are needed files for HABBY.

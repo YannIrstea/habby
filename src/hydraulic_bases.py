@@ -16,26 +16,32 @@ https://github.com/YannIrstea/habby
 """
 import os
 
-HSSI = dict(name_models_list=['', 'LAMMI', 'RubarBE 1D', 'Mascaret 1D', 'HEC-RAS 1D',
-                         'Rubar20 2D', 'TELEMAC 2D', 'HEC-RAS 2D', 'Iber 2D', 'River 2D', 'SW2D', 'BASEMENT 2D',
-                         'TXT 1D-2D'],
-            attribute_models_list=['free', 'lammi', 'rubar1d', 'mascaret', 'hecras1d',
-                                   'rubar2d', 'telemac', 'hecras2d', 'iber2d', 'river2d', 'sw2d', 'basement2d', 'ascii'],
-            class_models_list=["QWidget", "LAMMI", "Rubar1D", "Mascaret", "HEC_RAS1D",
-                                 "Rubar2D", "TELEMAC", "HEC_RAS2D", "IBER2D", "River2D", "SW2D", "Basement2D", "ASCII"],
-            website_models_list=["",
-                                 "<a href=\"https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847\">LAMMI</a>",
-                                 "<a href=\"https://riverhydraulics.inrae.fr/outils/modelisation-numerique/modelisation-1d-avec-evolution-des-fonds-rubarbe/\">RubarBE 1D</a>",
-                                 "<a href=\"http://www.openmascaret.org/\">Mascaret 1D</a>",
-                                 "<a href=\"https://www.hec.usace.army.mil/software/hec-ras/\">HEC-RAS 1D</a>",
-                                 "<a href=\"http://www.captiven.fr/article/logiciel-rubar-20\">Rubar20 2D</a>",
-                                 "<a href=\"http://www.opentelemac.org/index.php/presentation?id=17\">TELEMAC 2D</a>",
-                                 "<a href=\"https://www.hec.usace.army.mil/software/hec-ras/\">HEC-RAS 2D</a>",
-                                 "<a href=\"http://www.iberaula.es/\">Iber 2D</a>",
-                                 "<a href=\"http://www.river2d.ualberta.ca/\">River 2D</a>",
-                                 "<a href=\"https://sw2d.wordpress.com\">SW2D</a>",
-                                 "<a href=\"https://basement.ethz.ch/\">BASEMENT</a>",
-                                 "<a href=\"https://github.com/YannIrstea/habby\">TXT 1D-2D</a>"])
+
+class HydraulicModelInformation:
+    def __init__(self):
+        self.available_models_tf_list = []
+        self.name_models_gui_list = []
+        self.attribute_models_list = []
+        self.class_models_list = []
+        self.website_models_list = []
+        self.filename = os.path.join("model_hydro", "HydraulicModelInformation.txt")
+        with open(self.filename, 'r') as f:
+            data_read = f.read()
+        header_list = data_read.splitlines()[0].split("\t")
+        data_splited = data_read.splitlines()[1:]
+        for line_index, line in enumerate(data_splited):
+            line_splited = line.split("\t")
+            for header_index, header_name in enumerate(header_list):
+                getattr(self, header_name).append(line_splited[header_index])
+
+        # set TF to bool
+        self.available_models_tf_list = [eval(bool_str) for bool_str in self.available_models_tf_list]
+
+    def get_index_from_name_models_gui_list(self, name_model_gui):
+        if name_model_gui in self.name_models_gui_list:
+            return self.name_models_gui_list.index(name_model_gui)
+        else:
+            return None
 
 
 class HydraulicSimulationResults:
@@ -77,4 +83,8 @@ class HydraulicSimulationResults:
         self.timestep_name_list = None
         self.timestep_nb = None
         self.timestep_unit = None
+
         self.unit_z_equal = True
+
+        self.reach_name_list = []
+

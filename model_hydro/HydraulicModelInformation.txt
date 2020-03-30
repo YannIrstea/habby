@@ -1,0 +1,14 @@
+available_models_tf_list	name_models_gui_list	attribute_models_list	class_models_list	website_models_list
+True		free	QWidget	
+False	LAMMI	lammi	LAMMI	https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847
+False	RubarBE 1D	rubar1d	Rubar1D	https://riverhydraulics.inrae.fr/outils/modelisation-numerique/modelisation-1d-avec-evolution-des-fonds-rubarbe/
+False	Mascaret 1D	mascaret	Mascaret	http://www.openmascaret.org/
+False	HEC-RAS 1D	hecras1d	HEC_RAS1D	https://www.hec.usace.army.mil/software/hec-ras/
+True	Rubar20 2D	rubar2d	Rubar2D	http://www.captiven.fr/article/logiciel-rubar-20
+True	TELEMAC 2D	telemac	TELEMAC	http://www.opentelemac.org/index.php/presentation?id=17
+True	HEC-RAS 2D	hecras2d	HEC_RAS2D	https://www.hec.usace.army.mil/software/hec-ras/
+False	Iber 2D	iber2d	IBER2D	http://www.iberaula.es/
+False	River 2D	river2d	River2D	http://www.river2d.ualberta.ca/
+False	SW2D	sw2d	SW2D	https://sw2d.wordpress.com
+True	BASEMENT 2D	basement2d	Basement2D	https://basement.ethz.ch/
+True	TXT 1D-2D	ascii	ASCII	https://github.com/YannIrstea/habby

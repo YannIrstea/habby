@@ -332,15 +332,11 @@ class MainWindows(QMainWindow):
         If False : run as stable release or dev.
         """
         if self.beta:
-            # disable_hydraulic_models_not_finished
-            # ['', 'LAMMI', 'RubarBE 1D', 'Mascaret 1D', 'HEC-RAS 1D',
-            #      'Rubar20 2D', 'TELEMAC 2D', 'HEC-RAS 2D', 'Iber 2D', 'River 2D', 'SW2D', 'TXT 1D-2D']
-            list_to_disable = ['LAMMI', 'RubarBE 1D', 'Mascaret 1D', 'HEC-RAS 1D', 'Iber 2D', 'River 2D', 'SW2D']
+            # self.name_models_gui_to_disable_list
             if hasattr(self.central_widget, "hydro_tab"):
-                list_of_model = self.central_widget.hydro_tab.name_models_list
-                for model in list_of_model:
-                    if model in list_to_disable:
-                        self.central_widget.hydro_tab.mod.model().item(list_of_model.index(model)).setEnabled(False)
+                for model_index in range(len(self.central_widget.hydro_tab.hydraulic_model_information.name_models_gui_list)):
+                    if not self.central_widget.hydro_tab.hydraulic_model_information.available_models_tf_list[model_index]:
+                        self.central_widget.hydro_tab.mod.model().item(model_index).setEnabled(False)
 
             # disable_model_statistic
             self.statisticmodelaction.setEnabled(False)

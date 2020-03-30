@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
     QHBoxLayout
 from lxml import etree as ET
 
-from src.hydraulic_bases import HSSI
+from src.hydraulic_bases import HydraulicModelInformation
 from src.input_data_manager_mod import HydraulicSimulationResultsAnalyzer
 import src.tools_mod
 from src import ascii_mod
@@ -79,7 +79,6 @@ class Hydro2W(QScrollArea):
 
     Any new hydrological model should also be added to the stack and to
     the list of models contained in self.mod
-    (name of the list: self.name_models_list).
 
     In addition to the stack containing the hydrological information, hydro2W
     has two buttons. One button open a QMessageBox() which give information
@@ -113,10 +112,7 @@ class Hydro2W(QScrollArea):
         self.tab_name = "hydraulic"
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_models_list = HSSI["name_models_list"]
-        self.attribute_models_list = HSSI["attribute_models_list"]
-        self.class_models_list = HSSI["class_models_list"]
-        self.website_models_list = HSSI["website_models_list"]
+        self.hydraulic_model_information = HydraulicModelInformation()
         self.mod_act = 0
         self.msgi = QMessageBox()
         self.init_iu()
@@ -133,8 +129,8 @@ class Hydro2W(QScrollArea):
 
         # group hydraulic model
         self.mod = QComboBox()
-        self.mod.setMaxVisibleItems(len(self.name_models_list) + 4)
-        self.mod.addItems(self.name_models_list)  # available model
+        self.mod.setMaxVisibleItems(len(self.hydraulic_model_information.name_models_gui_list) + 4)
+        self.mod.addItems(self.hydraulic_model_information.name_models_gui_list)  # available model
         self.mod.currentIndexChanged.connect(self.selectionchange)
         self.mod.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.button1 = QPushButton(self.tr('?'))
@@ -143,16 +139,16 @@ class Hydro2W(QScrollArea):
         self.layout_modele = QVBoxLayout()
 
         # create class instance and set them to attribute class
-        for model_num in range(len(self.name_models_list)):
+        for model_num in range(len(self.hydraulic_model_information.name_models_gui_list)):
             # create class instance and set to attribute class
             if model_num == 0:
-                setattr(self, self.attribute_models_list[model_num], eval(self.class_models_list[model_num])())
+                setattr(self, self.hydraulic_model_information.attribute_models_list[model_num], eval(self.hydraulic_model_information.class_models_list[model_num])())
             else:
-                setattr(self, self.attribute_models_list[model_num], eval(self.class_models_list[model_num])(self.path_prj, self.name_prj))
+                setattr(self, self.hydraulic_model_information.attribute_models_list[model_num], eval(self.hydraulic_model_information.class_models_list[model_num])(self.path_prj, self.name_prj))
                 # hide
-                getattr(self, self.attribute_models_list[model_num]).hide()
+                getattr(self, self.hydraulic_model_information.attribute_models_list[model_num]).hide()
             # add widget
-            self.layout_modele.addWidget(getattr(self, self.attribute_models_list[model_num]))
+            self.layout_modele.addWidget(getattr(self, self.hydraulic_model_information.attribute_models_list[model_num]))
 
         self.qframe_modele = QFrame()  # 4 rows et 4 columns
         self.qframe_modele.setLayout(self.layout_modele)
@@ -205,12 +201,12 @@ class Hydro2W(QScrollArea):
         :param i: the number of the model
                     (0=no model, 1=hecras1d, 2= hecras2D,...)
         """
-        # self.name_models_list  # list modele
+        # self.hydraulic_model_information.name_models_gui_list  # list modele
         self.mod_act = i
 
-        model_wish = self.attribute_models_list[i]
+        model_wish = self.hydraulic_model_information.attribute_models_list[i]
 
-        for attribute_model_num, attribute_model in enumerate(self.attribute_models_list):
+        for attribute_model_num, attribute_model in enumerate(self.hydraulic_model_information.attribute_models_list):
             if attribute_model == model_wish:
                 getattr(self, attribute_model).show()
             else:
@@ -228,16 +224,17 @@ class Hydro2W(QScrollArea):
         """
         self.msgi.setIcon(QMessageBox.Information)
         text_title = self.tr("Information on the hydraulic model")
-        mod_name = self.name_models_list[self.mod_act]
-        website = self.website_models_list[self.mod_act]
+        mod_name = self.hydraulic_model_information.name_models_gui_list[self.mod_act]
+        mod_filename = self.hydraulic_model_information.attribute_models_list[self.mod_act]
+        website = self.hydraulic_model_information.website_models_list[self.mod_act]
         self.msgi.setWindowTitle(text_title)
-        info_filename = os.path.join('model_hydro', mod_name + '.txt')
+        info_filename = os.path.join('model_hydro', mod_filename + '.txt')
         self.msgi.setStandardButtons(QMessageBox.Ok)
         if os.path.isfile(info_filename):
-            with open(info_filename, 'rt') as f:
+            with open(info_filename, 'rt', encoding='utf8') as f:
                 text = f.read()
             text2 = text.split('MORE INFO')
-            self.msgi.setText(website + text2[0])
+            self.msgi.setText('<a href="' + website + '">' + mod_name + "</a>" + text2[0])
             self.msgi.setDetailedText(text2[1])
         else:
             self.msgi.setText(self.tr('Choose a type of hydraulic model !         '))
@@ -249,9 +246,9 @@ class Hydro2W(QScrollArea):
         self.msgi.show()
 
     def set_suffix_no_cut(self, no_cut_bool):
-        if self.name_models_list[self.mod_act]:
+        if self.hydraulic_model_information.name_models_gui_list[self.mod_act]:
             # get class
-            current_model_class = getattr(self, self.attribute_models_list[self.mod_act].lower())
+            current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.mod_act].lower())
             # get hdf5_name
             current_hdf5_name = current_model_class.hname.text()
             # add no_cut suffix if not exist
