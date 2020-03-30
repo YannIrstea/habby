@@ -22,7 +22,9 @@ class HydraulicModelInformation:
         self.available_models_tf_list = []
         self.name_models_gui_list = []
         self.attribute_models_list = []
-        self.class_models_list = []
+        self.class_gui_models_list = []
+        self.class_mod_models_list = []
+        self.file_mod_models_list = []
         self.website_models_list = []
         self.filename = os.path.join("model_hydro", "HydraulicModelInformation.txt")
         with open(self.filename, 'r') as f:
@@ -37,12 +39,23 @@ class HydraulicModelInformation:
         # set TF to bool
         self.available_models_tf_list = [eval(bool_str) for bool_str in self.available_models_tf_list]
 
-    def get_index_from_name_models_gui_list(self, name_model_gui):
-        if name_model_gui in self.name_models_gui_list:
-            return self.name_models_gui_list.index(name_model_gui)
+    def get_attribute_name_from_class_name(self, class_name):
+        if class_name in self.class_gui_models_list:
+            return self.attribute_models_list[self.class_gui_models_list.index(class_name)]
         else:
             return None
 
+    def get_class_mod_name_from_attribute_name(self, attribute_name):
+        if attribute_name in self.attribute_models_list:
+            return self.class_mod_models_list[self.attribute_models_list.index(attribute_name)]
+        else:
+            return None
+
+    def get_file_mod_name_from_attribute_name(self, attribute_name):
+        if attribute_name in self.attribute_models_list:
+            return self.file_mod_models_list[self.attribute_models_list.index(attribute_name)]
+        else:
+            return None
 
 class HydraulicSimulationResults:
     def __init__(self, filename, folder_path, model_type, path_prj):

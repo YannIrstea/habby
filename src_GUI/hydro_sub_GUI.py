@@ -142,9 +142,9 @@ class Hydro2W(QScrollArea):
         for model_num in range(len(self.hydraulic_model_information.name_models_gui_list)):
             # create class instance and set to attribute class
             if model_num == 0:
-                setattr(self, self.hydraulic_model_information.attribute_models_list[model_num], eval(self.hydraulic_model_information.class_models_list[model_num])())
+                setattr(self, self.hydraulic_model_information.attribute_models_list[model_num], eval(self.hydraulic_model_information.class_gui_models_list[model_num])())
             else:
-                setattr(self, self.hydraulic_model_information.attribute_models_list[model_num], eval(self.hydraulic_model_information.class_models_list[model_num])(self.path_prj, self.name_prj))
+                setattr(self, self.hydraulic_model_information.attribute_models_list[model_num], eval(self.hydraulic_model_information.class_gui_models_list[model_num])(self.path_prj, self.name_prj))
                 # hide
                 getattr(self, self.hydraulic_model_information.attribute_models_list[model_num]).hide()
             # add widget
@@ -332,6 +332,7 @@ class SubHydroW(QWidget):
 
         # do not change the string 'unknown file'
         self.namefile = ['unknown file', 'unknown file']
+        self.hydraulic_model_information = HydraulicModelInformation()
 
         # for children, careful with list index out of range
         self.interpo = ["Interpolation by block", "Linear interpolation",
@@ -1154,7 +1155,7 @@ class Rubar2D(SubHydroW):
         self.multi_hdf5 = False
         # update the attibutes
         self.attributexml = ['rubar_geodata', 'tpsdata']
-        self.model_type = 'RUBAR20'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.script_function_name = "LOAD_RUBAR_2D"
         self.extension = [['.dat', '.tps', '.txt']]
@@ -1252,33 +1253,6 @@ class Rubar2D(SubHydroW):
 
         self.setLayout(self.layout_rubar20)
 
-    def change_gui_when_combobox_name_change(self):
-        try:
-            self.units_QListWidget.disconnect()
-        except:
-            pass
-
-        self.hydrau_description["hdf5_name"] = self.hname.text()
-
-        # change rubar20 description
-        self.hydrau_description = self.hydrau_description_list[self.h2d_t2.currentIndex()]
-
-        # change GUI
-        self.reach_name_label.setText(self.hydrau_description["reach_list"])
-        self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
-        self.units_QListWidget.clear()
-        self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
-        # change selection items
-        for i in range(len(self.hydrau_description["unit_list_full"])):
-            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
-            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
-        self.epsg_label.setText(self.hydrau_description["epsg_code"])
-        if not os.path.splitext(self.hydrau_description["hdf5_name"])[1]:
-            self.hydrau_description["hdf5_name"] = self.hydrau_description["hdf5_name"] + ".hyd"
-        self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-        self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
-        self.unit_counter()
-
 
 class Mascaret(SubHydroW):
     """
@@ -1308,7 +1282,7 @@ class Mascaret(SubHydroW):
         self.attributexml = ['gen_data', 'geodata_mas', 'resdata_mas', 'manning_mas']
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
         self.pathfile = ['.', '.', '.', '.']
-        self.model_type = 'MASCARET'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.extension = [['.xcas'], ['.geo'], ['.opt', '.rub']]
         self.nb_dim = 1
@@ -1593,7 +1567,7 @@ class River2D(SubHydroW):
         """
         # update attibute for rubbar 2d
         self.attributexml = ['river2d_data']
-        self.model_type = 'RIVER2D'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.namefile = []
         self.pathfile = []
@@ -1865,7 +1839,7 @@ class Rubar1D(SubHydroW):
         self.attributexml = ['rubar_1dpro', 'data1d_rubar', '', 'manning_rubar']
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
         self.pathfile = ['.', '.', '.', '.']
-        self.model_type = 'RUBAR1D'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         # no useful extension in this case, rbe is assumed
         # the function propose_next_file() uses the fact that .rbe is 4 char
@@ -2099,7 +2073,7 @@ class HEC_RAS1D(SubHydroW):
         super(HEC_RAS1D, self).__init__(path_prj, name_prj)
         # update attibute for hec-ras 1d
         self.attributexml = ['geodata', 'resdata']
-        self.model_type = 'HECRAS1D'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.extension = [['.g*', '.G*'], ['.xml', '.rep', '.sdf']]
         self.nb_dim = 1.5
@@ -2545,7 +2519,7 @@ class HEC_RAS2D(SubHydroW):
         super(HEC_RAS2D, self).__init__(path_prj, name_prj)
         # update attibutes
         self.attributexml = ['data2D']
-        self.model_type = 'HECRAS2D'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.extension = [['.hdf', '.txt']]
         self.nb_dim = 2
@@ -2675,7 +2649,7 @@ class TELEMAC(SubHydroW):
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
         # update the attibutes
-        self.model_type = 'TELEMAC'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.script_function_name = "LOAD_TELEMAC"
         self.extension = [['.res', '.slf', '.srf', '.txt']]
@@ -2790,7 +2764,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.multi_hdf5 = False
         self.multi_reach = False
         self.attributexml = ['ascii_path']
-        self.model_type = 'ASCII'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.script_function_name = "LOAD_ASCII"
         self.data_type = "HYDRAULIC"
         self.extension = [['.txt']]
@@ -3256,7 +3230,7 @@ class LAMMI(SubHydroW):
         self.pathfile = ['.', '.', '.', 'Directory from transect.txt']
         self.file_entree = ['Facies.txt', 'Transect.txt']
         self.attributexml = ['lammi_facies', 'lammi_transect', 'lammi_output']
-        self.model_type = 'LAMMI'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.extension = [['.txt'], ['.txt']]
         self.nb_dim = 1.5
@@ -3455,7 +3429,7 @@ class SW2D(SubHydroW):
 
         # update attibute for rubar 2d
         self.attributexml = ['sw2d_geodata', 'sw2d_result']
-        self.model_type = 'SW2D'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.extension = [['.geo'], ['.res']]  # list of list in case there is more than one possible ext.
         self.data_type = "HYDRAULIC"
         self.nb_dim = 2
@@ -3770,7 +3744,7 @@ class IBER2D(SubHydroW):
         self.attributexml = ['iber2d_geodata', 'iber2d_result1',
                              'iber2d_result2', 'iber2d_result3',
                              'iber2d_result4']
-        self.model_type = 'IBER2D'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         # list of list in case there is more than one possible ext.
         self.extension = ['.dat', '.rep', '.rep', '.rep', '.rep']
@@ -3992,7 +3966,7 @@ class Basement2D(SubHydroW):
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
         # update the attibutes
-        self.model_type = 'BASEMENT2D'
+        self.model_type = self.hydraulic_model_information.get_attribute_name_from_class_name(type(self).__name__)
         self.data_type = "HYDRAULIC"
         self.script_function_name = "LOAD_BASEMENT_2D"
         self.extension = [['.h5', '.txt']]

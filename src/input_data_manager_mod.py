@@ -27,7 +27,9 @@ from src.tools_mod import polygon_type_values, point_type_values, sort_homogoene
 from src.project_properties_mod import create_default_project_properties_dict
 from src.tools_mod import create_empty_data_2d_whole_profile_dict, create_empty_data_2d_dict
 from src import hdf5_mod, ascii_mod, telemac_mod, hec_ras2D_mod, hec_ras1D_mod, rubar1d2d_mod, basement_mod
+
 from src import manage_grid_mod
+from src.hydraulic_bases import HydraulicModelInformation
 
 
 class HydraulicSimulationResultsAnalyzer:
@@ -688,16 +690,9 @@ class HydraulicSimulationResultsAnalyzer:
 
 class HydraulicSimulationResultsSelector:
     def __new__(self, filename, folder_path, model_type, path_prj):
-        if model_type == "TELEMAC":
-            return telemac_mod.TelemacResult(filename, folder_path, model_type, path_prj)
-        elif model_type == "HECRAS2D":
-            return hec_ras2D_mod.HecRas2dResult(filename, folder_path, model_type, path_prj)
-        elif model_type == "HECRAS1D":
-            return None  # TODO
-        elif model_type == "RUBAR20":
-            return rubar1d2d_mod.Rubar2dResult(filename, folder_path, model_type, path_prj)
-        elif model_type == "BASEMENT2D":
-            return basement_mod.BasementResult(filename, folder_path, model_type, path_prj)
+        hydraulic_model_information = HydraulicModelInformation()
+        return getattr(globals()[hydraulic_model_information.get_file_mod_name_from_attribute_name(model_type)],
+                hydraulic_model_information.get_class_mod_name_from_attribute_name(model_type))(filename, folder_path, model_type, path_prj)
 
 
 def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
