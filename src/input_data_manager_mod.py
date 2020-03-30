@@ -688,15 +688,14 @@ class HydraulicSimulationResultsAnalyzer:
 
 class HydraulicSimulationResultsSelector:
     def __new__(self, filename, folder_path, model_type, path_prj):
-        # readable ? (get time step, ..)
         if model_type == "TELEMAC":
             return telemac_mod.TelemacResult(filename, folder_path, model_type, path_prj)
         elif model_type == "HECRAS2D":
-            timestep_nb, timestep_name_list = hec_ras2D_mod.get_time_step(filename, folder_path)
+            return hec_ras2D_mod.HecRas2dResult(filename, folder_path, model_type, path_prj)
         elif model_type == "HECRAS1D":
-            timestep_nb, timestep_name_list = hec_ras1D_mod.get_time_step(filename, folder_path)
+            return None  # TODO
         elif model_type == "RUBAR20":
-            timestep_nb, timestep_name_list, warning_list = rubar1d2d_mod.get_time_step(filename, folder_path)
+            return rubar1d2d_mod.Rubar2dResult(filename, folder_path, model_type, path_prj)
         elif model_type == "BASEMENT2D":
             return basement_mod.BasementResult(filename, folder_path, model_type, path_prj)
 
@@ -1391,16 +1390,13 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
     for hdf5_file_index in range(0, len(hydrau_description)):
         # get filename source (can be several)
         filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
-
         # data_2d_whole_profile
         data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1)  # always one reach by file
         hydrau_description[hdf5_file_index]["unit_correspondence"] = [[]]  # always one reach by file
-
         # data_2d
         data_2d = create_empty_data_2d_dict(1,  # always one reach
                                             mesh_variables=[],
                                             node_variables=["h", "v"])
-
         # for each filename source
         for i, file in enumerate(filename_source):
             # get timestep_name_list
@@ -1420,7 +1416,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             if not data_2d_source and not description_from_source:
                 q.put(mystdout)
                 return
-
             # data_2d_whole_profile
             data_2d_whole_profile["mesh"]["tin"][0].extend(data_2d_source["mesh"]["tin"][0])
             data_2d_whole_profile["node"]["xy"][0].extend(data_2d_source["node"]["xy"][0])

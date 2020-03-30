@@ -23,17 +23,16 @@ import numpy as np
 
 from src.hydraulic_bases import HydraulicSimulationResults
 from src.tools_mod import create_empty_data_2d_dict
-from src.dev_tools import check_data_2d_dict_size
 
 
 class TelemacResult(HydraulicSimulationResults):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
-        HydraulicSimulationResults.__init__(self, filename, folder_path, model_type, path_prj)
+        super().__init__(filename, folder_path, model_type, path_prj)
         # file attributes
         self.extensions_list = [".res", ".slf"]
-        self.file_type = "hdf5"
+        self.file_type = "binary"
         # simulation attributes
         self.equation_type = ["FV"]
         self.morphology_available = True
@@ -50,9 +49,9 @@ class TelemacResult(HydraulicSimulationResults):
         #     self.warning_list.append('Error: The file is not BASEMENT results type.')
         #     self.valid_file = False
 
-        # is extension
+        # is extension ok ?
         if os.path.splitext(self.filename)[1] not in self.extensions_list:
-            self.warning_list.append('Warning: ' + qt_tr.translate("telemac_mod", 'The extension of the telemac file is not .res or .slf'))
+            self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
             self.valid_file = False
 
         # if valid get informations
@@ -73,7 +72,6 @@ class TelemacResult(HydraulicSimulationResults):
         self.timestep_nb = len(timestep_float_list)
         self.timestep_unit = "time [s]"
 
-    #@check_data_2d_dict_size
     def load_hydraulic(self, timestep_name_wish_list):
         """
         """
@@ -82,6 +80,7 @@ class TelemacResult(HydraulicSimulationResults):
         for time_step_name_wish in timestep_name_wish_list:
             timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
         timestep_name_wish_list_index.sort()
+        timestep_wish_nb = len(timestep_name_wish_list_index)
 
         """ get node data """
         node_v_list = []
@@ -141,15 +140,15 @@ class TelemacResult(HydraulicSimulationResults):
         description_from_telemac_file["model_type"] = "TELEMAC"
         description_from_telemac_file["model_dimension"] = str(2)
         description_from_telemac_file["unit_list"] = ", ".join(timestep_name_wish_list)
-        description_from_telemac_file["unit_number"] = str(len(timestep_name_wish_list))
+        description_from_telemac_file["unit_number"] = str(timestep_wish_nb)
         description_from_telemac_file["unit_type"] = "time [s]"
         description_from_telemac_file["unit_z_equal"] = self.unit_z_equal
 
         # data 2d dict (one reach by file and varying_mesh==False)
         data_2d = create_empty_data_2d_dict(reach_number=1,
                                             node_variables=["h", "v"])
-        data_2d["mesh"]["tin"][0] = [mesh_tin] * len(timestep_name_wish_list)
-        data_2d["node"]["xy"][0] = [node_xy] * len(timestep_name_wish_list)
+        data_2d["mesh"]["tin"][0] = [mesh_tin] * timestep_wish_nb
+        data_2d["node"]["xy"][0] = [node_xy] * timestep_wish_nb
         data_2d["node"]["z"][0] = node_z_list
         data_2d["node"]["data"]["h"][0] = node_h_list
         data_2d["node"]["data"]["v"][0] = node_v_list

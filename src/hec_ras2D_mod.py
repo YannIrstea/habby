@@ -30,277 +30,267 @@ from src import hdf5_mod
 from src.project_properties_mod import create_default_project_properties_dict
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict, check_data_2d_dict_validity
 from src.dev_tools import profileit
+from src.hydraulic_bases import HydraulicSimulationResults, HydraulicModelInformation
+from src.dev_tools import check_data_2d_dict_size
 
 
-def load_hec_ras2d(filename, path):
+class HecRas2dResult(HydraulicSimulationResults):
     """
-    The goal of this function is to load 2D data from Hec-RAS in the version 5.
-
-    :param filename: the name of the file containg the results of HEC-RAS in 2D. (string)
-    :param path: the path where the file is (string)
-    :return: velocity and height at the center of the cells, the coordinate of the point of the cells,
-             the coordinates of the center of the cells and the connectivity table. Each output is a list of numpy array
-             (one array by 2D flow area)
-
-    **How to obtain the input file**
-
-    The file neede as input is an hdf5 file (.hdf) created automatically by Hec-Ras. There are many .hdf created by
-    Hec-Ras. The one to choose is the one with the extension p0X.hdf (not g0x.hdf). It is usually the largest file in
-    the results folder.
-
-    **Technical comments**
-
-    Outputs from HEC-RAS in 2D are in the hdf5 format. However, it is not possible to directly use the output of HEC-RAS
-    as an hdf5 input for HABBY. Indeed, even if they are both in hdf5, the formats of the hdf5 files are different
-    (and would miss some important info for HABBY).  So we still need to load the HEC-RAS data in HABBY even if in 2D.
-
-    This function call the function get_trianglar grid which is in rubar1d2d_mod.py.
-
-    **Walk-through**
-
-    The name and path of the file is given as input to the load_hec_ras_2D function. Usually this is done by the class
-    HEC_RAS() in the GUI.  We load the file using the h5py module. This module opens and reads hdf5 file.
-
-    Then we can read different part of the hdf5 file when we know the address of it (this is a bit like a file system).
-    In hdf5 file of Hec-RAS, this first thing is to get the names of the flow area in “Geometry/2D Flow Area”. In
-    general, this is the name of each reach, but it could be lake or pond also. In an hdf5 file, to see the name of
-    the member in a group, use: list("group".keys())
-
-    Then, we go to “Geometry/2D Flow Area/<name>/FacePoint Coordinates” to get the points forming the grid.
-    We can also get the connectivity table (or ikle) to the path “Geometry/2D Flow Area/<name>/Cells Face Point Indexes”
-    We also get the elevations of the cells. However, this is just the minimum elevation of the cells, so it is
-    to be used only for a quick estimation. We then get the water depth by cell.
-    The velocity is given by face of the cells and is averaged to get it on the middle of the cells.
-
-    To get Hec-Ras data by nodes, it is necessary to intepolate the data. There is a function to do this in
-    manage_grid_8.
     """
-    filename_path = os.path.join(path, filename)
+    def __init__(self, filename, folder_path, model_type, path_prj):
+        HydraulicSimulationResults.__init__(self, filename, folder_path, model_type, path_prj)
+        # file attributes
+        self.extensions_list = [".hdf", ".h5"]
+        self.file_type = "hdf5"
+        # simulation attributes
+        self.equation_type = ["FV"]
+        self.morphology_available = True  # TODO ?
 
-    # check extension
-    blob, ext = os.path.splitext(filename)
-    if ext == '.hdf' or ext == '.h5':
-        pass
-    else:
-        print('Warning: The file does not seem to be of Hec-ras2D (hdf) type.')
-
-    # initialization
-    coord_p_all = []
-    coord_c_all = []
-    elev_p_all = []
-    elev_c_all = []
-    ikle_all = []
-    vel_c_all = []
-    water_depth_c_all = []
-    vel_t_all = []
-    water_depth_t_all = []
-
-    # open file
-    if os.path.isfile(filename_path):
+        # readable file ?
         try:
-            file2D = h5py.File(filename_path, 'r')
+            self.results_data_file = h5py.File(self.filename_path, 'r')
         except OSError:
-            print("Error: unable to open the hdf file.")
-            return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
-    else:
-        print('Error: The hdf5 file does not exist.')
-        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+            self.warning_list.append("Error: The file can not be opened.")
+            self.valid_file = False
 
-    # geometry and grid data
-    geometry_base = file2D["Geometry/2D Flow Areas"]
-    # Old version of HEC-RAS2D ?
-    try:
-        name_area = geometry_base["Names"][:].astype(str).tolist()
-    except KeyError:
-        # New version of HEC-RAS2D ?
+        # result_file ?
+        if not "Results" in self.results_data_file.keys():
+            self.warning_list.append('Error: The file is not ' + self.model_type + ' results type.')
+            self.valid_file = False
+
+        # is extension ok ?
+        if os.path.splitext(self.filename)[1] not in self.extensions_list:
+            self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
+            self.valid_file = False
+
+        # if valid get informations
+        if self.valid_file:
+            # get_time_step ?
+            self.get_time_step()
+            # get_reach_names ?
+            self.get_reach_names()
+        else:
+            print("Error: File not valid.")
+
+    def get_hydraulic_variables_list(self):
+        self.hydraulic_variables_node_list = []
+        self.hydraulic_variables_mesh_list = ["h", "v"]
+
+    def get_time_step(self):
+        """
+        """
+        timestep_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Time Date Stamp"
+        self.timestep_name_list = [t.decode('utf-8') for idx, t in enumerate(list(self.results_data_file[timestep_path]))]
+        self.timestep_nb = len(self.timestep_name_list)
+        self.timestep_unit = "Date [s]"
+
+    def get_reach_names(self):
+        """
+        """
+        # Old version of HEC-RAS2D ?
         try:
-            name_area = geometry_base["Attributes"]["Name"].astype(str).tolist()
+            self.reach_name_list = self.results_data_file["Geometry/2D Flow Areas"]["Names"][:].astype(str).tolist()
         except KeyError:
-            print('Error: Name of flow area could not be extracted. Check format of the hdf file.')
-            return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
-        # print(list(geometry.items()))
-    try:
-        for i in range(0, len(name_area)):
-            name_area_i = name_area[i]
-            path_h5_geo = "Geometry/2D Flow Areas" + '/' + name_area_i
-            geometry = file2D[path_h5_geo]
-            # print(list(geometry.keys()))
+            # New version of HEC-RAS2D ?
+            try:
+                self.reach_name_list = self.results_data_file["Geometry/2D Flow Areas"]["Attributes"]["Name"].astype(str).tolist()
+            except KeyError:
+                print('Error: Reach names not found.')
+
+    def load_hydraulic(self, timestep_name_wish_list):
+        """
+        """
+        # load specific timestep
+        timestep_name_wish_list_index = []
+        for time_step_name_wish in timestep_name_wish_list:
+            timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
+        timestep_name_wish_list_index.sort()
+        timestep_wish_nb = len(timestep_name_wish_list_index)
+
+        # get group
+        geometry_flow_areas_group = self.results_data_file["Geometry/2D Flow Areas"]
+        result_flow_areas_group = self.results_data_file["Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas"] # TODO : steadyflow case
+
+        # initialization
+        coord_p_all = []
+        coord_p_xyz_all = []
+        coord_c_all = []
+        coord_c_xyz_all = []
+        elev_p_all = []
+        elev_c_all = []
+        ikle_all = []
+        vel_c_all = []
+        water_depth_c_all = []
+        vel_t_all = []
+        water_depth_t_all = []
+
+        # for each reach
+        for reach_index, reach_name in enumerate(self.reach_name_list):
+            # get group
+            reach_name_geometry_group = geometry_flow_areas_group[reach_name]
+            reach_name_result_group = result_flow_areas_group[reach_name]
+
             # basic geometry
-            coord_p = np.array(geometry["FacePoints Coordinate"])
-            coord_c = np.array(geometry["Cells Center Coordinate"])
-            ikle = np.array(geometry["Cells FacePoint Indexes"], dtype=np.int64)
-            elev_c = geometry["Cells Minimum Elevation"][:]
+            coord_p = reach_name_geometry_group["FacePoints Coordinate"][:]
+            coord_c = reach_name_geometry_group["Cells Center Coordinate"][:]
+            ikle = np.array(reach_name_geometry_group["Cells FacePoint Indexes"], dtype=np.int64)
+            elev_c = reach_name_geometry_group["Cells Minimum Elevation"][:]
             coord_p_all.append(coord_p)
             coord_c_all.append(coord_c)
             ikle_all.append(ikle)
             elev_c_all.append(elev_c)
-    except KeyError:
-        print('Error: Geometry data could not be extracted. Check format of the hdf file.')
-        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+            # water depth by mesh
+            water_depth = reach_name_result_group['Depth'][:]
+            water_depth_c_all.append(water_depth)
 
-    # water depth by mesh
-    for i in range(len(name_area)):
-        name_area_i = name_area[i]
-        path_h5_geo = '/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas' \
-                      + '/' + name_area_i
-        result = file2D[path_h5_geo]
-        water_depth = np.array(result['Depth'])
-        water_depth_c_all.append(water_depth)
+            # velocity is given on the side of the cells.
+            # It is to be averaged to find the norm of speed in the middle of the cells.
+            cells_face_all = reach_name_geometry_group["Cells Face and Orientation Values"][:]
+            cells_face = cells_face_all[:, 0]
+            where_is_cells_face = reach_name_geometry_group["Cells Face and Orientation Info"][:]
+            where_is_cells_face1 = where_is_cells_face[:, 1]
+            face_unit_vec = reach_name_geometry_group["Faces NormalUnitVector and Length"][:]
+            face_unit_vec = face_unit_vec[:, :2]
+            velocity = reach_name_result_group["Face Velocity"][:]
+            new_vel = np.hstack((face_unit_vec, velocity.T))  # for optimization (looking for face is slow)
+            # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
+            lim_b = 0
+            nbtstep = velocity.shape[0]
+            vel_c = np.zeros((len(coord_c_all[reach_index]), nbtstep))
+            for c in range(len(coord_c_all[reach_index])):
+                # find face
+                nb_face = where_is_cells_face1[c]
+                lim_a = lim_b
+                lim_b = lim_a + nb_face
+                face = cells_face[lim_a:lim_b]
+                # vel
+                data_face = new_vel[face, :]
+                data_face_t = data_face[:, 2:].T
+                add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
+                add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
+                vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+            vel_c_all.append(vel_c)
 
-    # TODO : velocity verifier que les vecteurs unitaires 'normaux' aux faces sont en fait des vecteurs normaux de vitesses
-    nbtstep = 0
-    for i in range(len(name_area)):
-        # velocity is given on the side of the cells.
-        # It is to be averaged to find the norm of speed in the middle of the cells.
-        cells_face_all = np.array(geometry["Cells Face and Orientation Values"])
-        cells_face = cells_face_all[:, 0]
-        where_is_cells_face = np.array(geometry["Cells Face and Orientation Info"])
-        where_is_cells_face1 = where_is_cells_face[:, 1]
-        face_unit_vec = np.array(geometry["Faces NormalUnitVector and Length"])
-        face_unit_vec = face_unit_vec[:, :2]
-        velocity = result["Face Velocity"][:]
-        new_vel = np.hstack((face_unit_vec, velocity.T))  # for optimization (looking for face is slow)
-        # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
-        lim_b = 0
-        nbtstep = velocity.shape[0]
-        vel_c = np.zeros((len(coord_c_all[i]), nbtstep))
-        for c in range(len(coord_c_all[i])):
-            # find face
-            nb_face = where_is_cells_face1[c]
-            lim_a = lim_b
-            lim_b = lim_a + nb_face
-            face = cells_face[lim_a:lim_b]
-            # vel
-            data_face = new_vel[face, :]
-            data_face_t = data_face[:, 2:].T
-            add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
-            add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
-            vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
-        vel_c_all.append(vel_c)
+            # important ther are 'flat cells'  all along on the edge/perimeter of the river  whith only 2 nodes/cell  and the center elevation of these cells is unknown (nan from HECRAS)
+            # for habby we will destroy all those cells  afterwards
+            # if np.isnan(elev_c_all[reach_index]).any():
+            #     print('Warning: '+str(name_area[reach_index])+'there are cells where the center elevation is unknown  we are using Faces Minimum Elevation to calculate them')
+            #     # elevation FacePoints
+            #     faces_facepoint_indexes = reach_name_geometry_group["Faces FacePoint Indexes"][:]
+            #     face_center_point = np.mean([coord_p_all[reach_index][faces_facepoint_indexes[:, 0]], coord_p_all[reach_index][faces_facepoint_indexes[:, 1]]], axis=0)
+            #     elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
+            #     elev_c_all3 = griddata(face_center_point, elev_f, coord_c_all[reach_index])
+            #     elev_c_all[reach_index][np.isnan(elev_c_all[reach_index])] = elev_c_all3[np.isnan(elev_c_all[reach_index])]
+            #     if np.isnan(elev_c_all[reach_index]).any():
+            #         print('Warning: there are still cells where the center elevation is unknown')
 
-        # important ther are 'flat cells'  all along on the edge/perimeter of the river  whith only 2 nodes/cell  and the center elevation of these cells is unknown (nan from HECRAS)
-        #for habby we will destroy all those cells  afterwards
-        # if np.isnan(elev_c_all[i]).any():
-        #     print('Warning: '+str(name_area[i])+'there are cells where the center elevation is unknown  we are using Faces Minimum Elevation to calculate them')
-        #     # elevation FacePoints
-        #     faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
-        #     face_center_point = np.mean([coord_p_all[i][faces_facepoint_indexes[:, 0]], coord_p_all[i][faces_facepoint_indexes[:, 1]]], axis=0)
-        #     elev_f = geometry["Faces Minimum Elevation"][:]
-        #     elev_c_all3 = griddata(face_center_point, elev_f, coord_c_all[i])
-        #     elev_c_all[i][np.isnan(elev_c_all[i])] = elev_c_all3[np.isnan(elev_c_all[i])]
-        #     if np.isnan(elev_c_all[i]).any():
-        #         print('Warning: there are still cells where the center elevation is unknown')
+            elev_p = interpolator_test(coord_c_all[reach_index],
+                                       elev_c_all[reach_index],
+                                       coord_p_all[reach_index])
+            # elev_p = griddata(points=coord_c_all[reach_index],
+            #                   values=elev_c_all[reach_index],
+            #                   xi=coord_p_all[reach_index],
+            #                   method="linear")
 
-        elev_p = interpolator_test(coord_c_all[i],
-                                   elev_c_all[i],
-                                   coord_p_all[i])
-        # elev_p = griddata(points=coord_c_all[i],
-        #                   values=elev_c_all[i],
-        #                   xi=coord_p_all[i],
-        #                   method="linear")
+            # elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
+            # elev_p3 = griddata(face_center_point, elev_f, coord_p_all[reach_index])
+            # elev_p[np.isnan(elev_p)] = elev_p3[np.isnan(elev_p)]
+            # elev_p = griddata(coord_c_all[reach_index], elev_c_all[reach_index], coord_p_all[reach_index])
+            # elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
+            # faces_facepoint_indexes = reach_name_geometry_group["Faces FacePoint Indexes"][:]
+            # elev_p2 = np.zeros((len(coord_p_all[reach_index])))
+            # for point_index in range(len(coord_p_all[reach_index])):
+            #     first_bool = faces_facepoint_indexes[:, 0] == point_index
+            #     second_bool = faces_facepoint_indexes[:, 1] == point_index
+            #     elev_p2[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
+            #                           (np.sum(first_bool) + np.sum(second_bool))
+            # elev_p[np.isnan(elev_p)] = elev_p2[np.isnan(elev_p)]
+            if np.isnan(elev_p).any():
+                # elevation FacePoints
+                faces_facepoint_indexes = reach_name_geometry_group["Faces FacePoint Indexes"][:]
+                face_center_point = np.mean(
+                    [coord_p_all[reach_index][faces_facepoint_indexes[:, 0]], coord_p_all[reach_index][faces_facepoint_indexes[:, 1]]],
+                    axis=0)
+                elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
+                for point_index in np.where(np.isnan(elev_p))[0]:  # for point_index in range(len(coord_p_all[reach_index]))
+                    first_bool = faces_facepoint_indexes[:, 0] == point_index
+                    second_bool = faces_facepoint_indexes[:, 1] == point_index
+                    elev_p[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
+                                          (np.sum(first_bool) + np.sum(second_bool))
+            if np.isnan(elev_p).any():
+                print('Warning: there are points/nodes where the elevation is unknown not calculated by HABBY')
 
-        # elev_f = geometry["Faces Minimum Elevation"][:]
-        # elev_p3 = griddata(face_center_point, elev_f, coord_p_all[i])
-        # elev_p[np.isnan(elev_p)] = elev_p3[np.isnan(elev_p)]
-        # elev_p = griddata(coord_c_all[i], elev_c_all[i], coord_p_all[i])
-        # elev_f = geometry["Faces Minimum Elevation"][:]
-        # faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
-        # elev_p2 = np.zeros((len(coord_p_all[i])))
-        # for point_index in range(len(coord_p_all[i])):
-        #     first_bool = faces_facepoint_indexes[:, 0] == point_index
-        #     second_bool = faces_facepoint_indexes[:, 1] == point_index
-        #     elev_p2[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
-        #                           (np.sum(first_bool) + np.sum(second_bool))
-        # elev_p[np.isnan(elev_p)] = elev_p2[np.isnan(elev_p)]
-        if np.isnan(elev_p).any():
-            # elevation FacePoints
-            faces_facepoint_indexes = geometry["Faces FacePoint Indexes"][:]
-            face_center_point = np.mean([coord_p_all[i][faces_facepoint_indexes[:, 0]], coord_p_all[i][faces_facepoint_indexes[:, 1]]], axis=0)
-            elev_f = geometry["Faces Minimum Elevation"][:]
-            for point_index in np.where(np.isnan(elev_p))[0]:    # for point_index in range(len(coord_p_all[i]))
-                first_bool = faces_facepoint_indexes[:, 0] == point_index
-                second_bool = faces_facepoint_indexes[:, 1] == point_index
-                elev_p[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
-                                      (np.sum(first_bool) + np.sum(second_bool))
-        if np.isnan(elev_p).any():
-            print('Warning: there are points/nodes where the elevation is unknown not calculated by HABBY')
+            elev_p_all.append(elev_p)
 
-        elev_p_all.append(elev_p)
+            # get data time step by time step
+            water_depth_t = []
+            vel_t = []
+            for timestep_name_wish_index in timestep_name_wish_list_index:
+                water_depth_t.append(water_depth_c_all[reach_index][timestep_name_wish_index])
+                vel_t.append(vel_c_all[reach_index][:, timestep_name_wish_index])
+            water_depth_t_all.append(water_depth_t)
+            vel_t_all.append(vel_t)
+            # xyz
+            coord_p_xyz_all.append(np.column_stack([coord_p_all[reach_index], elev_p_all[reach_index]]))
+            coord_c_xyz_all.append(np.column_stack([coord_c_all[reach_index], elev_c_all[reach_index]]))
 
-    # get data time step by time step
-    for i in range(0, len(name_area)):
-        water_depth_t = []
-        vel_t = []
-        for t in range(nbtstep):
-            water_depth_t.append(water_depth_c_all[i][t])
-            vel_t.append(vel_c_all[i][:, t])
-        water_depth_t_all.append(water_depth_t)
-        vel_t_all.append(vel_t)
+        # get a triangular grid as hec-ras output are not triangular
+        ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all = get_triangular_grid_hecras(
+            ikle_all, coord_c_xyz_all, coord_p_xyz_all, water_depth_t_all, vel_t_all)
 
-    # name of the time step
-    timesteps = []
-    try:
-        timesteps = list(file2D["/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series"
-                                "/Time Date Stamp"])
-    except KeyError:
-        pass
-    for idx, t in enumerate(timesteps):
-        timesteps[idx] = t.decode('utf-8')
+        # finite_volume_to_finite_element_triangularxy
+        tin = []
+        xy = []
+        z = []
+        h = []
+        v = []
+        for reach_num in range(len(self.reach_name_list)):
+            ikle_reach = np.column_stack(
+                [ikle_all[reach_num], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
+            ikle_reach, xyz_reach, h_reach, v_reach = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
+                ikle_reach,
+                coord_p_xyz_all[reach_num],
+                water_depth_t_all[reach_num],
+                vel_t_all[reach_num])
+            tin.append(ikle_reach)
+            xy.append(xyz_reach[:, (0, 1)])
+            z.append(xyz_reach[:, 2])
+            h_unit = []
+            v_unit = []
+            for unit_num in range(len(timestep_name_wish_list_index)):
+                h_unit.append(h_reach[:, unit_num])
+                v_unit.append(v_reach[:, unit_num])
+            h.append(h_unit)
+            v.append(v_unit)
 
-    # get a triangular grid as hec-ras output are not triangular
-    coord_p_all = np.column_stack([coord_p_all[0], elev_p_all[0]])
-    coord_p_all = [coord_p_all]
-    coord_c_all = np.column_stack([coord_c_all[0], elev_c_all[0]])
-    coord_c_all = [coord_c_all]
-    ikle_all,  coord_p_all,  water_depth_t_all, vel_t_all = get_triangular_grid_hecras(
-        ikle_all, coord_c_all, coord_p_all,  water_depth_t_all, vel_t_all)
+        # description telemac data dict
+        description_from_file = dict()
+        description_from_file["filename_source"] = self.filename
+        description_from_file["path_filename_source"] = self.folder_path
+        description_from_file["model_type"] = "HECRAS2D"
+        description_from_file["model_dimension"] = str(2)
+        description_from_file["unit_list"] = ", ".join(timestep_name_wish_list)
+        description_from_file["unit_number"] = str(len(timestep_name_wish_list))
+        description_from_file["unit_type"] = "time [s]"
+        description_from_file["reach_number"] = str(len(self.reach_name_list))
+        description_from_file["reach_name"] = ", ".join(self.reach_name_list)
+        description_from_file["unit_z_equal"] = True  # TODO: check if always True ?
 
-    # finite_volume_to_finite_element_triangularxy
-    tin = []
-    xy = []
-    z = []
-    h = []
-    v = []
-    for reach_num in range(len(name_area)):
-        ikle_reach = np.column_stack([ikle_all[reach_num], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
-        ikle_reach, xyz_reach, h_reach, v_reach = manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle_reach,
-                                                                                       coord_p_all[reach_num],
-                                                                                        water_depth_t_all[reach_num],
-                                                                                        vel_t_all[reach_num])
-        tin.append(ikle_reach)
-        xy.append(xyz_reach[:, (0, 1)])
-        z.append(xyz_reach[:, 2])
-        h_unit = []
-        v_unit = []
-        for unit_num in range(len(timesteps)):
-            h_unit.append(h_reach[:, unit_num])
-            v_unit.append(v_reach[:, unit_num])
-        h.append(h_unit)
-        v.append(v_unit)
+        # data 2d dict
+        data_2d = create_empty_data_2d_dict(1,
+                                            node_variables=["h", "v"])
 
-    # description telemac data dict
-    description_from_file = dict()
-    description_from_file["filename_source"] = filename
-    description_from_file["path_filename_source"] = path
-    description_from_file["model_type"] = "HECRAS2D"
-    description_from_file["model_dimension"] = str(2)
-    description_from_file["unit_list"] = ", ".join(timesteps)
-    description_from_file["unit_number"] = str(len(timesteps))
-    description_from_file["unit_type"] = "time [s]"
-    description_from_file["reach_number"] = str(len(name_area))
-    description_from_file["reach_name"] = ", ".join(name_area)
-    description_from_file["unit_z_equal"] = True  # TODO: check if always True ?
+        for reach_num in range(len(self.reach_name_list)):
+            data_2d["mesh"]["tin"][reach_num] = [tin[reach_num]] * timestep_wish_nb
+            data_2d["node"]["xy"][reach_num] = [xy[reach_num]] * timestep_wish_nb
+            if self.unit_z_equal:
+                data_2d["node"]["z"][reach_num] = [z[reach_num]] * timestep_wish_nb
+            else:
+                data_2d["node"]["z"][reach_num] = z[reach_num]
+        data_2d["node"]["data"]["h"] = h
+        data_2d["node"]["data"]["v"] = v
 
-    # data 2d dict
-    data_2d = create_empty_data_2d_dict(1,
-                                        node_variables=["h", "v"])
-    data_2d["mesh"]["tin"] = tin
-    data_2d["node"]["xy"] = xy
-    data_2d["node"]["z"] = z
-    data_2d["node"]["data"]["h"] = h
-    data_2d["node"]["data"]["v"] = v
-
-    return data_2d, description_from_file
+        return data_2d, description_from_file
 
 
 #@profileit
@@ -320,27 +310,6 @@ def interpolator_test(coord_c_all, elev_c_all, coord_p_all):
     # elev_p = np.ma.getdata(interp_lin(coord_p_all[:, 0], coord_p_all[:, 1])) # xi et yi definissent une nouvelle grille​
 
     return elev_p
-
-
-def get_time_step(filename, folder_path):
-    filename_path = os.path.join(folder_path, filename)
-    # open file
-    if os.path.isfile(filename_path):
-        try:
-            file2D = h5py.File(filename_path, 'r')
-        except OSError:
-            print("Error: unable to open the hdf file.")
-
-    # name of the time step
-    timestep_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Time Date Stamp"
-    timesteps = []
-    try:
-        timesteps = list(file2D[timestep_path])
-        timesteps = [t.decode('utf-8') for idx, t in enumerate(timesteps)]
-    except KeyError:
-        print("Error: Can't find timestep dataset in ", filename_path)
-
-    return len(timesteps), timesteps
 
 
 def get_discharges(filename_path):
