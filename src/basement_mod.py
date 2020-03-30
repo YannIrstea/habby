@@ -27,7 +27,7 @@ class BasementResult(HydraulicSimulationResults):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
-        HydraulicSimulationResults.__init__(self, filename, folder_path, model_type, path_prj)
+        super().__init__(filename, folder_path, model_type, path_prj)
         # file attributes
         self.extensions_list = [".h5"]
         self.file_type = "hdf5"
@@ -81,7 +81,7 @@ class BasementResult(HydraulicSimulationResults):
             # get_time_step ?
             self.get_time_step()
         else:
-            print("Error: File not valid.")
+            self.warning_list.append("Error: File not valid.")
 
     def get_hydraulic_variables_list(self):
         #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
@@ -203,7 +203,7 @@ class BasementResult(HydraulicSimulationResults):
         # description data dict
         description_from_file = dict()
         description_from_file["filename_source"] = self.filename
-        description_from_file["model_type"] = "BASEMENT2D"
+        description_from_file["model_type"] = self.model_type
         description_from_file["model_dimension"] = str(2)
         description_from_file["unit_list"] = ", ".join(list(map(str, timestep_name_wish_list_index)))
         description_from_file["unit_number"] = str(timestep_wish_nb)

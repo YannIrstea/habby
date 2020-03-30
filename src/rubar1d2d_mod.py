@@ -19,7 +19,6 @@ import sys
 import time
 from lxml import etree as ET
 from io import StringIO
-from copy import deepcopy
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -33,6 +32,195 @@ from src import manage_grid_mod
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src.project_properties_mod import load_project_properties, create_default_project_properties_dict
 from src.user_preferences_mod import user_preferences
+from src.hydraulic_bases import HydraulicSimulationResults
+
+
+class Rubar2dResult(HydraulicSimulationResults):
+    """
+    """
+    def __init__(self, filename, folder_path, model_type, path_prj):
+        super().__init__(filename, folder_path, model_type, path_prj)
+        # file attributes
+        self.extensions_list = [".dat", ".tps"]
+        self.file_type = "hdf5"
+        # simulation attributes
+        self.equation_type = ["FV"]
+        self.morphology_available = True
+        self.second_file_suffix = "_aux"
+
+        # .dat
+        self.filename_dat = os.path.splitext(self.filename)[0] + ".dat"
+        self.filename_dat_path = os.path.join(self.folder_path, self.filename_dat)
+        # exist ?
+        if not os.path.isfile(self.filename_dat_path):
+            self.warning_list.append("Error: The file " + self.filename_dat + " does not exist.")
+            self.valid_file = False
+        else:
+            # is extension ok ?
+            if os.path.splitext(self.filename_dat)[1] not in self.extensions_list:
+                self.warning_list.append(
+                    "Error: The extension of " + self.filename_dat + " is not : " + ", ".join(self.extensions_list) + ".")
+                self.valid_file = False
+
+        # .tps
+        self.filename_tps = os.path.splitext(self.filename)[0] + ".tps"
+        self.filename_tps_path = os.path.join(self.folder_path, self.filename_tps)
+        # exist ?
+        if not os.path.isfile(self.filename_tps_path):
+            self.warning_list.append("Error: The file " + self.filename_tps + " does not exist.")
+            self.valid_file = False
+        else:
+            # is extension ok ?
+            if os.path.splitext(self.filename_tps)[1] not in self.extensions_list:
+                self.warning_list.append(
+                    "Error: The extension of " + self.filename_tps + " is not : " + ", ".join(self.extensions_list) + ".")
+                self.valid_file = False
+
+        # if valid get informations
+        if self.valid_file:
+            # get_time_step ?
+            self.get_time_step()
+        else:
+            self.warning_list.append("Error: File not valid.")
+
+    def get_hydraulic_variables_list(self):
+        #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
+        self.hydraulic_variables_node_list = []
+        self.hydraulic_variables_mesh_list = ["h", "v"]
+
+    def get_time_step(self):
+        """
+        A function which load the telemac time step using the Selafin class.
+
+        :param namefilet: the name of the selafin file (string)
+        :param pathfilet: the path to this file (string)
+        :return: timestep
+        """
+        # open file
+        try:
+            with open(self.filename_tps_path, 'rt') as f:
+                data_tps = f.read()
+        except IOError:
+            self.warning_list.append('Error: The .tps file does not exist.\n')
+            return [-99], [-99], [-99]
+        data_tps_splited = data_tps.split("\n")
+
+        # get timestep and timestep_index
+        timestep_list = []
+        timestep_index_list = []
+        last_line_timestep_len = []
+        for line_index, line_str in enumerate(data_tps_splited):
+            if len(line_str) == 15:  # timestep
+                timestep_list.append(line_str.strip())
+                timestep_index_list.append(line_index)
+                if len(timestep_list) > 1:
+                    last_line_timestep_len.append(len(data_tps_splited[line_index - 1]))
+
+        if len(timestep_list) > 1:
+            # get timestep_index_step
+            timestep_index_step = timestep_index_list[1] - timestep_index_list[0]
+
+            # get last line len (if crash : line(s) are missing)
+            try:
+                last_line_timestep_len.append(len(data_tps_splited[timestep_index_list[-1] + timestep_index_step - 1]))
+            except IndexError:
+                del timestep_list[-1]
+                self.warning_list.append("Warning: " + qt_tr.translate("rubar1d2d_mod",
+                                                                  "The last time step is corrupted : one line data or more are missing. The last timestep is removed."))
+
+            # check if lines are missing in other timestep
+            timestep_index_to_remove_list = []
+            for index in range(len(timestep_index_list)):
+                if index > 0:
+                    # check if timestep index are constant
+                    # print(timestep_index_list[index] - timestep_index_list[index -1])
+                    if timestep_index_list[index] - timestep_index_list[index - 1] != timestep_index_step:
+                        timestep_index_to_remove_list.append(timestep_index_list[index])
+
+            # check if last_line_timestep_len are equal
+            if len(set(last_line_timestep_len)) > 1:  # not equal
+                # index of corrupted timestep
+                timestep_index_to_remove_list.extend(
+                    [timestep_index_list[last_line_timestep_len.index(elem)] for elem in last_line_timestep_len if
+                     elem != last_line_timestep_len[0]])
+
+            # raise warning and remove corrupted timestep
+            if timestep_index_to_remove_list:
+                timestep_to_remove = []
+                for timestep_index_to_remove in timestep_index_to_remove_list:
+                    timestep_to_remove.append(timestep_list[timestep_index_list.index(timestep_index_to_remove)])
+                    # remove timestep
+                    timestep_list.pop(
+                        timestep_list.index(timestep_list[timestep_index_list.index(timestep_index_to_remove)]))
+                self.warning_list.append("Warning: " + qt_tr.translate("rubar1d2d_mod",
+                                                                  "Block data of timestep(s) corrumpted : ") + ", ".join(
+                    timestep_to_remove) +
+                                    qt_tr.translate("rubar1d2d_mod", ". They will be removed."))
+
+        nb_t = len(timestep_list)
+
+        self.timestep_name_list = timestep_list
+        self.timestep_nb = len(timestep_list)
+        self.timestep_unit = "time [s]"
+
+    def load_hydraulic(self, timestep_name_wish_list):
+        """
+        A function which load the telemac data using the Selafin class.
+
+        :param namefilet: the name of the selafin file (string)
+        :param pathfilet: the path to this file (string)
+        :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
+        """
+        # load specific timestep
+        timestep_name_wish_list_index = []
+        for time_step_name_wish in timestep_name_wish_list:
+            timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
+        timestep_name_wish_list_index.sort()
+        timestep_wish_nb = len(timestep_name_wish_list_index)
+
+        # DAT
+        ikle, xyz, nb_cell = load_dat_2d(self.filename_dat, self.folder_path)  # node
+
+        # TPS
+        timestep, h, v = load_tps_2d(self.filename_tps, self.folder_path, nb_cell)  # cell
+
+        # QUADRANGLE TO TRIANGLE
+        # ikle, coord_c, xy, h, v, z = get_triangular_grid(ikle, coord_c, xy, h, v, z)
+        ikle, xyz, h, v = manage_grid_mod.finite_volume_to_finite_element_triangularxy(ikle, xyz, h, v)
+
+        # reset to list and separate xy to z
+        h_list = []
+        v_list = []
+        for timestep_index in timestep_name_wish_list_index:
+            h_list.append(h[:, timestep_index])
+            v_list.append(v[:, timestep_index])
+        xy = xyz[:, (0, 1)]
+        z = xyz[:, 2]
+
+        # description telemac data dict
+        description_from_file = dict()
+        description_from_file["filename_source"] = os.path.splitext(self.filename)[0]
+        description_from_file["model_type"] = self.model_type
+        description_from_file["model_dimension"] = str(2)
+        description_from_file["unit_list"] = ", ".join(list(map(str, timestep_name_wish_list_index)))
+        description_from_file["unit_number"] = str(timestep_wish_nb)
+        description_from_file["unit_type"] = "time [s]"
+        description_from_file["reach_number"] = "1"
+        description_from_file["unit_z_equal"] = self.unit_z_equal  # TODO: check if always True ?
+
+        # data 2d dict (one reach by file and varying_mesh==False)
+        data_2d = create_empty_data_2d_dict(reach_number=1,
+                                            node_variables=["h", "v"])
+        data_2d["mesh"]["tin"][0] = [ikle] * timestep_wish_nb
+        data_2d["node"]["xy"][0] = [xy] * timestep_wish_nb
+        if self.unit_z_equal:
+            data_2d["node"]["z"][0] = [z] * timestep_wish_nb
+        else:
+            data_2d["node"]["z"][0] = z
+        data_2d["node"]["data"]["h"][0] = h_list
+        data_2d["node"]["data"]["v"][0] = v_list
+
+        return data_2d, description_from_file
 
 
 def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,

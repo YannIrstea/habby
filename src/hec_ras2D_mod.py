@@ -38,7 +38,7 @@ class HecRas2dResult(HydraulicSimulationResults):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
-        HydraulicSimulationResults.__init__(self, filename, folder_path, model_type, path_prj)
+        super().__init__(filename, folder_path, model_type, path_prj)
         # file attributes
         self.extensions_list = [".hdf", ".h5"]
         self.file_type = "hdf5"
@@ -70,7 +70,7 @@ class HecRas2dResult(HydraulicSimulationResults):
             # get_reach_names ?
             self.get_reach_names()
         else:
-            print("Error: File not valid.")
+            self.warning_list.append("Error: File not valid.")
 
     def get_hydraulic_variables_list(self):
         self.hydraulic_variables_node_list = []
@@ -267,7 +267,7 @@ class HecRas2dResult(HydraulicSimulationResults):
         description_from_file = dict()
         description_from_file["filename_source"] = self.filename
         description_from_file["path_filename_source"] = self.folder_path
-        description_from_file["model_type"] = "HECRAS2D"
+        description_from_file["model_type"] = self.model_type
         description_from_file["model_dimension"] = str(2)
         description_from_file["unit_list"] = ", ".join(timestep_name_wish_list)
         description_from_file["unit_number"] = str(len(timestep_name_wish_list))
@@ -277,7 +277,7 @@ class HecRas2dResult(HydraulicSimulationResults):
         description_from_file["unit_z_equal"] = True  # TODO: check if always True ?
 
         # data 2d dict
-        data_2d = create_empty_data_2d_dict(1,
+        data_2d = create_empty_data_2d_dict(len(self.reach_name_list),
                                             node_variables=["h", "v"])
 
         for reach_num in range(len(self.reach_name_list)):

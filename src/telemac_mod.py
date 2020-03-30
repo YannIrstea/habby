@@ -58,6 +58,8 @@ class TelemacResult(HydraulicSimulationResults):
         if self.valid_file:
             # get_time_step ?
             self.get_time_step()
+        else:
+            self.warning_list.append("Error: File not valid.")
 
     def get_hydraulic_variables_list(self):
         self.hydraulic_variables_node_list = ["h", "v"]
@@ -137,7 +139,7 @@ class TelemacResult(HydraulicSimulationResults):
         # description telemac data dict
         description_from_telemac_file = dict()
         description_from_telemac_file["filename_source"] = self.filename
-        description_from_telemac_file["model_type"] = "TELEMAC"
+        description_from_telemac_file["model_type"] = self.model_type
         description_from_telemac_file["model_dimension"] = str(2)
         description_from_telemac_file["unit_list"] = ", ".join(timestep_name_wish_list)
         description_from_telemac_file["unit_number"] = str(timestep_wish_nb)
