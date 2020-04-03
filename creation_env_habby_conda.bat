@@ -2,15 +2,23 @@
 if exist %USERPROFILE%\Miniconda3\Scripts\activate.bat call %USERPROFILE%\Miniconda3\Scripts\activate.bat
 if exist %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat call %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat
 
+:: PATHS
+SET habby_path=C:\habby_dev\habby
+SET envir_virtuels_path=C:\habby_dev\env_virtuels
+SET envir_virtuel_name=env_habby_dev
+
 call conda update conda --yes
 :: add channels
 call conda config --add channels conda-forge
 call conda config --add channels anaconda
 call conda config --add channels ramonaoptics
 
+:: remove virtual env folder
+if exist %envir_virtuels_path%\%envir_virtuel_name% rmdir /Q /S %envir_virtuels_path%\%envir_virtuel_name%
+
 :: CONDA and PIP (virtual env + packages installation)
-call conda create --prefix C:\\habby_dev\\env_virtuels\\env_habby_dev python=3.6 --yes
-call conda activate C:\\habby_dev\\env_virtuels\\env_habby_dev
+call conda create --prefix %envir_virtuels_path%\%envir_virtuel_name% python=3.6 --yes
+call conda activate %envir_virtuels_path%\%envir_virtuel_name%
 call conda install -c conda-forge numpy conda-forge::blas=*=openblas --yes 
 call conda install pyinstaller=3.6 --yes
 call conda install gdal=3.0.2 --yes
@@ -28,7 +36,7 @@ pip install mplcursors==0.3
 pip install pillow==7.0.0
 
 :::::::::::::::::::::::::::: RUN HABBY :::::::::::::::
-python habby.py
+python %habby_path%\habby.py
 
 :: EXPORT TO YML
 conda env export > env_habby_dev.yml

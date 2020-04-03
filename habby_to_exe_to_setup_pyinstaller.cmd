@@ -1,10 +1,11 @@
 :: activate native conda
-call %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat
+if exist %USERPROFILE%\Miniconda3\Scripts\activate.bat call %USERPROFILE%\Miniconda3\Scripts\activate.bat
+if exist %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat call %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat
 
 :: PATHS
+SET habby_path=C:\habby_dev\habby
 SET envir_virtuels_path=C:\habby_dev\env_virtuels
 SET envir_virtuel_name=env_habby_dev
-SET habby_path=C:\habby_dev\habby
 
 ::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
 call conda activate %envir_virtuels_path%\%envir_virtuel_name%
