@@ -124,6 +124,8 @@ class BasementResult(HydraulicSimulationResults):
         model_dict = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]
         if "MORPHOLOGY" in model_dict["DOMAIN"]["BASEPLANE_2D"].keys():
             self.unit_z_equal = False
+        else:
+            self.unit_z_equal = True
 
         # get group
         CellAll_group = self.results_data_file["CellsAll"]  # CellAll_group

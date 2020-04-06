@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue
 from shutil import copyfile
 
-from src import telemac_mod
+from src.hydraulic_bases import HydraulicModelInformation
 from src import mascaret_mod
 from src import hec_ras1D_mod
 from src import rubar1d2d_mod
@@ -221,9 +221,10 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 project_preferences['cut_mesh_partialy_dry'] = cut
 
         # # get_hydrau_description_from_source
+        hydraulic_model_information = HydraulicModelInformation()
         hsra_value = input_data_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
                                                         project_preferences["path_prj"],
-                                                        "TELEMAC",
+                                                        hydraulic_model_information.get_attribute_name_from_class_name("TELEMAC"),
                                                         2)
 
         # outputfilename

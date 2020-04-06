@@ -21,7 +21,7 @@ from PyQt5.QtCore import QCoreApplication as qt_tr
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.hydraulic_bases import HydraulicSimulationResults
+from src.hydraulic_bases import HydraulicSimulationResults, HydraulicVariableUnitManagement
 from src.tools_mod import create_empty_data_2d_dict
 
 
@@ -30,12 +30,40 @@ class TelemacResult(HydraulicSimulationResults):
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
         # file attributes
         self.extensions_list = [".res", ".slf"]
         self.file_type = "binary"
         # simulation attributes
-        self.equation_type = ["FV"]
+        self.equation_type = ["FE"]
+        # reach
+        self.multi_reach = False
+        self.reach_num = 1
+        self.reach_name_list = ["unknown"]
         self.morphology_available = True
+        # hydraulic variables
+        self.hvum.set_existing_attributes_list(name=self.hvum.z.name,
+                                               attribute_list=["BOTTOM", "FOND"],
+                                               position="node")
+        self.hvum.set_existing_attributes_list(name=self.hvum.h.name,
+                                               attribute_list=["WATER DEPT", "HAUTEUR D'EAU"],
+                                               position="node")
+        self.hvum.set_existing_attributes_list(name=self.hvum.v.name,
+                                               attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
+                                               position="node")
+        self.hvum.set_existing_attributes_list(name=self.hvum.v_u.name,
+                                               attribute_list=['VITESSE U', 'VELOCITY U'],
+                                               position="node")
+        self.hvum.set_existing_attributes_list(name=self.hvum.v_v.name,
+                                               attribute_list=['VITESSE V', 'VELOCITY V'],
+                                               position="node")
+        self.hvum.set_existing_attributes_list(name=self.hvum.temp.name,
+                                               attribute_list=["TEMP"],
+                                               position="node")
+        self.hvum.set_existing_attributes_list(name=self.hvum.v_frict.name,
+                                               attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
+                                               position="node")
 
         # readable file ?
         try:
@@ -58,12 +86,17 @@ class TelemacResult(HydraulicSimulationResults):
         if self.valid_file:
             # get_time_step ?
             self.get_time_step()
+            # get hydraulic variables list (mesh and node)
+            self.get_hydraulic_variable_list()
         else:
             self.warning_list.append("Error: File not valid.")
 
-    def get_hydraulic_variables_list(self):
-        self.hydraulic_variables_node_list = ["h", "v"]
-        self.hydraulic_variables_mesh_list = []
+    def get_hydraulic_variable_list(self):
+        # get list from source
+        varnames = [varname.decode('utf-8') for varname in self.results_data_file.varnames]
+
+        # check witch variable is available
+        self.hvum.get_available_variables_from_source(varnames)
 
     def get_time_step(self):
         """
@@ -78,86 +111,37 @@ class TelemacResult(HydraulicSimulationResults):
         """
         """
         # load specific timestep
-        timestep_name_wish_list_index = []
+        self.timestep_name_wish_list = timestep_name_wish_list
         for time_step_name_wish in timestep_name_wish_list:
-            timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
-        timestep_name_wish_list_index.sort()
-        timestep_wish_nb = len(timestep_name_wish_list_index)
+            self.timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
+        self.timestep_name_wish_list_index.sort()
+        self.timestep_wish_nb = len(self.timestep_name_wish_list_index)
 
-        """ get node data """
-        node_v_list = []
-        node_h_list = []
-        node_z_list = []
-        for timestep_index in timestep_name_wish_list_index:
-            foundu = foundv = False
-            val_all = self.results_data_file.getvalues(timestep_index)
-            vt = []
-            ht = []
-            zt = []
-            bt = []
-            # load variable based on their name (english or french)
-            for id, n in enumerate(self.results_data_file.varnames):
-                n = n.decode('utf-8')
-                if 'VITESSE MOY' in n or 'MEAN VELOCITY' in n:
-                    vt = val_all[:, id].astype(np.float64)
-                if 'VITESSE U' in n or 'VELOCITY U' in n:
-                    vu = val_all[:, id].astype(np.float64)
-                    foundu = True
-                if 'VITESSE V' in n or 'VELOCITY V' in n:
-                    vv = val_all[:, id].astype(np.float64)
-                    foundv = True
-                if 'WATER DEPTH' in n or "HAUTEUR D'EAU" in n:
-                    ht = val_all[:, id].astype(np.float64)
-                if 'FOND' in n or 'BOTTOM' in n:
-                    bt = val_all[:, id].astype(np.float64)
+        #
+        for reach_num in range(self.reach_num):  # for each reach
+            for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
+                val_all = self.results_data_file.getvalues(timestep_index)
+                for variables_wish in self.hvum.final_variable_list:  # .varunits
+                    if not variables_wish.computed:
+                        variables_wish.data_2d[reach_num].append(val_all[:, variables_wish.varname_index].astype(np.float64))
 
-            if foundu and foundv:
-                vt = np.sqrt(vu ** 2 + vv ** 2)
+            # compute v ?
+            if self.hvum.v.computed:
+                for timestep_index in range(len(self.timestep_name_wish_list_index)):
+                    self.hvum.v.data_2d[reach_num].append(np.sqrt(self.hvum.v_u.data_2d[reach_num][timestep_index] ** 2 + self.hvum.v_v.data_2d[reach_num][timestep_index] ** 2))
+                self.hvum.v.position = "node"
+            # compute shear_stress ?
+            if self.hvum.shear_stress.computed:
+                for timestep_index in range(len(self.timestep_name_wish_list_index)):
+                    self.hvum.shear_stress.data_2d[reach_num].append((self.hvum.v_frict.data_2d[reach_num][timestep_index] ** 2) * self.hvum.ro.value)
+                self.hvum.shear_stress.position = "node"
 
-            if len(vt) == 0:
-                print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (1) \n'))
-            if len(ht) == 0:
-                print('Error: ' + qt_tr.translate("telemac_mod", 'The variable name of the telemec file were not recognized. (2) \n'))
-            node_v_list.append(vt)
-            node_h_list.append(ht)
-            node_z_list.append(bt)
-        # # TODO: improve check node_z equality
-        # if len(node_z_list) > 1:
-        #     if not all(node_z_list[0] == node_z_list[-1]):  # first == last
-        #         self.unit_z_equal = False
-        node_xy = np.array([self.results_data_file.meshx, self.results_data_file.meshy])
-        node_xy = node_xy.T
-        # # TODO: improve check xy equality
-        # if all(np.equal(node_xy[0], node_xy[-1])):  # first == last
-        #     unit_xy_equal = True
-        # else:
-        #     unit_xy_equal = False
+            # coord
+            self.hvum.xy.data_2d[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
 
-        """ get mesh data """
-        mesh_tin = self.results_data_file.ikle2.astype(np.int64)
+            self.hvum.tin.data_2d[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
 
-        # description telemac data dict
-        description_from_telemac_file = dict()
-        description_from_telemac_file["filename_source"] = self.filename
-        description_from_telemac_file["model_type"] = self.model_type
-        description_from_telemac_file["model_dimension"] = str(2)
-        description_from_telemac_file["unit_list"] = ", ".join(timestep_name_wish_list)
-        description_from_telemac_file["unit_number"] = str(timestep_wish_nb)
-        description_from_telemac_file["unit_type"] = "time [s]"
-        description_from_telemac_file["unit_z_equal"] = self.unit_z_equal
-
-        # data 2d dict (one reach by file and varying_mesh==False)
-        data_2d = create_empty_data_2d_dict(reach_number=1,
-                                            node_variables=["h", "v"])
-        data_2d["mesh"]["tin"][0] = [mesh_tin] * timestep_wish_nb
-        data_2d["node"]["xy"][0] = [node_xy] * timestep_wish_nb
-        data_2d["node"]["z"][0] = node_z_list
-        data_2d["node"]["data"]["h"][0] = node_h_list
-        data_2d["node"]["data"]["v"][0] = node_v_list
-
-        del self.results_data_file
-
-        return data_2d, description_from_telemac_file
+        return self.get_data_2d_dict()
 
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):

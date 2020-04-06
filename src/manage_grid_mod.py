@@ -1268,10 +1268,12 @@ def cut_2d_grid_data_2d(data_2d, hydrau_description, progress_value, delta_file,
     for unit_num, unit_name in enumerate(hydrau_description["unit_list"]):
         # get data from dict
         ikle = data_2d["mesh"]["tin"][0][unit_num]
-        point_all = np.insert(data_2d["node"]["xy"][0][unit_num],
-                            2,
-                            values=data_2d["node"]["z"][0][unit_num],
-                            axis=1)  # Insert values before column 2
+        # point_all = np.insert(data_2d["node"]["xy"][0][unit_num],
+        #                     2,
+        #                     values=data_2d["node"]["z"][0][unit_num],
+        #                     axis=1)  # Insert values before column 2
+        point_all = np.column_stack((data_2d["node"]["xy"][0][unit_num],
+                         data_2d["node"]["z"][0][unit_num]))
         water_height = data_2d["node"]["data"]["h"][0][unit_num]
         velocity = data_2d["node"]["data"]["v"][0][unit_num]
 

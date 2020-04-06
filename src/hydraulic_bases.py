@@ -17,8 +17,153 @@ https://github.com/YannIrstea/habby
 import os
 
 
+class HydraulicVariable:
+    def __init__(self, value, unit, name, name_gui):
+        self.value = value
+        self.unit = unit
+        self.name = name
+        self.name_gui = name_gui
+        self.position = None
+        self.existing_attributes_list = []
+        self.data_2d = [[]]
+        self.computed = False
+
+
+class HydraulicVariableUnitManagement:
+    def __init__(self):
+        self.final_variable_list = []
+        self.usefull_variable_wish_list = []
+        self.usefull_variable_detected_list = []
+        self.usefull_variable_node_detected_list = []
+        self.usefull_variable_mesh_detected_list = []
+        self.final_mesh_variable_name_list = []
+        self.final_node_variable_name_list = []
+        # fixed values
+        self.ro = HydraulicVariable(value=999.7,
+                                    unit="kg/m3",
+                                    name="ro",
+                                    name_gui="ρ",)
+        self.g = HydraulicVariable(value=9.80665,
+                                   unit="m/s2",
+                                   name="g",
+                                   name_gui="gravity")
+        # coordinate variables
+        self.tin = HydraulicVariable(value=None,
+                                   unit="",
+                                   name="tin",
+                                   name_gui="tin")
+        self.xy = HydraulicVariable(value=None,
+                                   unit="m",
+                                   name="xy",
+                                   name_gui="xy")
+        self.z = HydraulicVariable(value=None,
+                                   unit="m",
+                                   name="z",
+                                   name_gui="elevation")
+        # usefull variable values
+        self.h = HydraulicVariable(value=None,
+                                   unit="m",
+                                   name="h",
+                                   name_gui="water_height")
+        self.v_u = HydraulicVariable(value=None,
+                                     unit="m/s",
+                                     name="v_u",
+                                     name_gui="water_velocity_u")
+        self.v_v = HydraulicVariable(value=None,
+                                     unit="m/s",
+                                     name="v_v",
+                                     name_gui="water_velocity_v")
+        self.v = HydraulicVariable(value=None,
+                                   unit="m/s",
+                                   name="v",
+                                   name_gui="water_velocity")
+        self.level = HydraulicVariable(value=None,
+                                       unit="m",
+                                       name="level",
+                                       name_gui="water_level")
+        self.froude = HydraulicVariable(value=None,
+                                        unit="",
+                                        name="froude",
+                                        name_gui="froude_number")
+        self.hydraulic_head = HydraulicVariable(value=None,
+                                                unit="",
+                                                name="hydraulic_head",
+                                                name_gui="hydraulic_head")
+        self.conveyance = HydraulicVariable(value=None,
+                                            unit="",
+                                            name="conveyance",
+                                            name_gui="conveyance")
+        self.max_slope_bottom = HydraulicVariable(value=None,
+                                                  unit="",
+                                                  name="max_slope_bottom",
+                                                  name_gui="max_slope_bottom")
+        self.max_slope_energy = HydraulicVariable(value=None,
+                                                  unit="",
+                                                  name="max_slope_energy",
+                                                  name_gui="max_slope_energy")
+        self.shear_stress = HydraulicVariable(value=None,
+                                              unit="",
+                                              name="shear_stress",
+                                              name_gui="shear_stress")
+        self.temp = HydraulicVariable(value=None,
+                                      unit="",
+                                      name="temp",
+                                      name_gui="temperature")
+        self.v_frict = HydraulicVariable(value=None,
+                                         unit="",
+                                         name="v_frict",
+                                         name_gui="friction velocity")
+
+    def set_existing_attributes_list(self, name, attribute_list, position):
+        getattr(self, name).existing_attributes_list = attribute_list
+        getattr(self, name).position = position
+        self.usefull_variable_wish_list.append(getattr(self, name))
+
+    def get_available_variables_from_source(self, varnames):
+        # get_available_variables_from_source
+        for varname_index, varname in enumerate(varnames):
+            for usefull_variable_wish in self.usefull_variable_wish_list:
+                for wish_attribute in usefull_variable_wish.existing_attributes_list:
+                    if wish_attribute in varname:
+                        usefull_variable_wish.varname_index = varname_index
+                        self.usefull_variable_detected_list.append(usefull_variable_wish)
+
+        # copy
+        self.final_variable_list = list(self.usefull_variable_detected_list)
+
+        # separate node and mesh
+        for usefull_variable_detected in self.usefull_variable_detected_list:
+            if usefull_variable_detected.position == "node":
+                self.usefull_variable_node_detected_list.append(usefull_variable_detected.name)
+            elif usefull_variable_detected.position == "mesh":
+                self.usefull_variable_mesh_detected_list.append(usefull_variable_detected.name)
+
+        # computed_node_velocity or original ?
+        if not self.v.name in self.usefull_variable_node_detected_list:
+            self.v.computed = True
+            self.v.position = "node"
+        self.final_variable_list = self.final_variable_list + [self.v]  # always v
+
+        # computed_node_shear_stress or original ?
+        if not self.shear_stress.name in self.usefull_variable_node_detected_list and self.v_frict.name in self.usefull_variable_node_detected_list:
+            self.shear_stress.computed = True
+            self.shear_stress.position = "node"
+            self.final_variable_list = self.final_variable_list + [self.shear_stress]
+
+        self.update_final_variable_list()
+
+    def update_final_variable_list(self):
+        # separate node and mesh
+        for final_variable in self.final_variable_list:
+            if final_variable.position == "node":
+                self.final_node_variable_name_list.append(final_variable.name)
+            elif final_variable.position == "mesh":
+                self.final_mesh_variable_name_list.append(final_variable.name)
+
+
 class HydraulicModelInformation:
     def __init__(self):
+        # models
         self.available_models_tf_list = []
         self.name_models_gui_list = []
         self.attribute_models_list = []
@@ -57,6 +202,7 @@ class HydraulicModelInformation:
         else:
             return None
 
+
 class HydraulicSimulationResults:
     def __init__(self, filename, folder_path, model_type, path_prj):
         """
@@ -67,7 +213,8 @@ class HydraulicSimulationResults:
         :return: hydrau_description_list, type: dict
         :return: warnings list, type: list of str
         """
-
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
         # init
         self.valid_file = True
         self.warning_list = []  # text warning output
@@ -92,12 +239,47 @@ class HydraulicSimulationResults:
             self.warning_list.append("Error: The file does not exist.")
             self.valid_file = False
 
-        # init
-        self.timestep_name_list = None
+        # reach_num
+        self.multi_reach = False
+        self.reach_num = 1
+        self.reach_name_list = ["unknown"]
+
+        # timestep
+        self.timestep_name_list = []
         self.timestep_nb = None
         self.timestep_unit = None
+        self.timestep_name_wish_list_index = []
+        self.timestep_name_wish_list = []
+        self.timestep_wish_nb = None
 
-        self.unit_z_equal = True
+        # coordinates
+        self.unit_z_equal = False
 
-        self.reach_name_list = []
+    def get_data_2d_dict(self):
+        # create empty dict
+        data_2d = dict()
 
+        # mesh
+        data_2d["mesh"] = dict()
+        data_2d["mesh"]["tin"] = self.hvum.tin.data_2d
+        data_2d["mesh"]["data"] = dict()
+        # node
+        data_2d["node"] = dict()
+        data_2d["node"]["xy"] = self.hvum.xy.data_2d
+        data_2d["node"]["z"] = self.hvum.z.data_2d
+        data_2d["node"]["data"] = dict()
+        # variables
+        for variable in self.hvum.final_variable_list:
+            data_2d[variable.position]["data"][variable.name] = variable.data_2d
+
+        # description telemac data_2d dict
+        description_from_file = dict()
+        description_from_file["filename_source"] = self.filename
+        description_from_file["model_type"] = self.model_type
+        description_from_file["model_dimension"] = str(2)
+        description_from_file["unit_list"] = ", ".join(self.timestep_name_wish_list)
+        description_from_file["unit_number"] = str(self.timestep_wish_nb)
+        description_from_file["unit_type"] = "time [s]"
+        description_from_file["unit_z_equal"] = self.unit_z_equal
+
+        return data_2d, description_from_file
