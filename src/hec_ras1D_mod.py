@@ -103,7 +103,9 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
                                                                                                               pro_add)
 
     # get data_2d_whole_profile
-    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1)  # always one reach by file
+    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1,  # always one reach
+                                            mesh_variables=[],
+                                            node_variables=["h", "v"])  # always one reach by file
 
     # cut the grid to have the precise wet area and put data in new form
     data_2d = create_empty_data_2d_dict(1,  # always one reach

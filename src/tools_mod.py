@@ -30,8 +30,7 @@ from PyQt5.QtCore import QLocale
 import multiprocessing
 
 from src.project_properties_mod import load_project_properties
-
-GRAVITY = 9.80665  # [m/s2] standard acceleration due to gravity
+from src.hydraulic_bases import HydraulicVariableUnitManagement
 
 """ HYDRAULIC TOOLS """
 
@@ -106,6 +105,8 @@ def c_mesh_max_slope_energy(tin, xy, z, h, v):
     h3 = h[tin[:, 2]]
     v3 = v[tin[:, 2]]
 
+    GRAVITY = HydraulicVariableUnitManagement().g.value
+
     w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
     zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * GRAVITY), z2 + h2 + v2 ** 2 / (2 * GRAVITY), z3 + h3 + v3 ** 2 / (2 * GRAVITY)
     u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
@@ -134,7 +135,8 @@ def c_mesh_shear_stress(tin, xy, z, h, v):
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
     :return: shear_stress: numpy.ndarray representing all the shear_stress mesh values. Shape : (N_mesh, ).
     """
-    ro = 999.7  # [kg/m3]  density of water 10Â°C /1 atm
+    ro = HydraulicVariableUnitManagement().ro.value
+    GRAVITY = HydraulicVariableUnitManagement().g.value
 
     xy1 = xy[tin[:, 0]]
     z1 = z[tin[:, 0]]
@@ -262,6 +264,7 @@ def c_node_froude(h, v):
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
     :return: node_froude: numpy.ndarray representing all the froude nodes values. Shape : (N_points, ).
     """
+    GRAVITY = HydraulicVariableUnitManagement().g.value
     # compute froude
     null_values = h == 0
     h[null_values] = 100000
@@ -279,6 +282,7 @@ def c_node_hydraulic_head(z, h, v):
     :param v: numpy.ndarray representing all the v values. Shape : (N_points, ).
     :return: node_hydraulic_head: numpy.ndarray representing all the hydraulic_head nodes values. Shape : (N_points, ).
     """
+    GRAVITY = HydraulicVariableUnitManagement().g.value
     # compute hydraulic_head
     #node_hydraulic_head = (z + h) + ((v ** 2) / (2 * GRAVITY))
     node_hydraulic_head = h + ((v ** 2) / (2 * GRAVITY))
@@ -733,19 +737,24 @@ def create_empty_data_2d_dict(reach_number, mesh_variables=[], node_variables=[]
     return data_2d
 
 
-def create_empty_data_2d_whole_profile_dict(reach_number):
+def create_empty_data_2d_whole_profile_dict(reach_number, mesh_variables=[], node_variables=[]):
     # create empty dict
     data_2d_whole_profile = dict()
 
     # mesh
     data_2d_whole_profile["mesh"] = dict()
     data_2d_whole_profile["mesh"]["tin"] = [[] for _ in range(reach_number)]
+    data_2d_whole_profile["mesh"]["data"] = dict()
+    for mesh_variable in mesh_variables:
+        data_2d_whole_profile["mesh"]["data"][mesh_variable] = [[] for _ in range(reach_number)]
 
     # node
     data_2d_whole_profile["node"] = dict()
     data_2d_whole_profile["node"]["xy"] = [[] for _ in range(reach_number)]
     data_2d_whole_profile["node"]["z"] = [[] for _ in range(reach_number)]
-
+    data_2d_whole_profile["node"]["data"] = dict()
+    for node_variable in node_variables:
+        data_2d_whole_profile["node"]["data"][node_variable] = [[] for _ in range(reach_number)]
     return data_2d_whole_profile
 
 

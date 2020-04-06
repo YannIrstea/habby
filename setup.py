@@ -19,7 +19,7 @@ with open("README.md", "r", encoding='utf8') as fh:
 setup(
     name="HABBY",
     version="0.25",
-    description="Program to estimate aquatic habitats using hydraulic data_2d and biological models",
+    description="Program to estimate aquatic habitats using hydraulic data and biological models",
     long_description=long_description,
     url="https://github.com/YannIrstea/habby",
     author="Diane von Gunten, Yann Le Coarer, Quentin Royer and Fabrice Zaoui",

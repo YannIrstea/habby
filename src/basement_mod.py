@@ -83,7 +83,7 @@ class BasementResult(HydraulicSimulationResults):
         else:
             self.warning_list.append("Error: File not valid.")
 
-    def get_hydraulic_variables_list(self):
+    def get_hydraulic_variable_list(self):
         #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
         self.hydraulic_variables_node_list = []
         self.hydraulic_variables_mesh_list = ["h", "v"]

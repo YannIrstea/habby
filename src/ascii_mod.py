@@ -53,7 +53,9 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         sub_presence = True
 
     # create copy for whole profile
-    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(data_description["reach_number"]))  # always one reach by file
+    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(data_description["reach_number"]),  # always one reach
+                                            mesh_variables=[],
+                                            node_variables=["h", "v"])  # always one reach by file
     data_2d_whole_profile["mesh"]["tin"] = data_2d_from_ascii["mesh"]["tin"]
     data_2d_whole_profile["node"]["xy"] = data_2d_from_ascii["node"]["xy"]
     data_2d_whole_profile["node"]["z"] = data_2d_from_ascii["node"]["z"]

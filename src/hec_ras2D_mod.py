@@ -72,7 +72,7 @@ class HecRas2dResult(HydraulicSimulationResults):
         else:
             self.warning_list.append("Error: File not valid.")
 
-    def get_hydraulic_variables_list(self):
+    def get_hydraulic_variable_list(self):
         self.hydraulic_variables_node_list = []
         self.hydraulic_variables_mesh_list = ["h", "v"]
 

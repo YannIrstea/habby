@@ -551,7 +551,9 @@ class Hdf5Management:
         # WHOLE PROFIL
         if whole_profil:
             # create dict
-            data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(hyd_description['hyd_reach_number']))
+            data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(hyd_description['hyd_reach_number']),  # always one reach
+                                            mesh_variables=[],
+                                            node_variables=["h", "v"])
             data_2d_whole_profile_group = 'data_2d_whole_profile'
             hyd_description["unit_name_whole_profile"] = []
 
@@ -1053,7 +1055,9 @@ class Hdf5Management:
         # DATA 2D WHOLE PROFIL
         if whole_profil:
             # create dict
-            data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(data_description['hyd_reach_number']))
+            data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(data_description['hyd_reach_number']),  # always one reach
+                                            mesh_variables=[],
+                                            node_variables=["h", "v"])
             data_2d_whole_profile_group = 'data_2d_whole_profile'
             data_description["unit_name_whole_profile"] = []
 
