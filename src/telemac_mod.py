@@ -122,25 +122,26 @@ class TelemacResult(HydraulicSimulationResults):
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
                 val_all = self.results_data_file.getvalues(timestep_index)
                 for variables_wish in self.hvum.final_variable_list:  # .varunits
-                    if not variables_wish.computed:
-                        variables_wish.data_2d[reach_num].append(val_all[:, variables_wish.varname_index].astype(np.float64))
+                    if not variables_wish.computable:
+                        variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
             # compute v ?
-            if self.hvum.v.computed:
+            if self.hvum.v.computable:
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.v.data_2d[reach_num].append(np.sqrt(self.hvum.v_u.data_2d[reach_num][timestep_index] ** 2 + self.hvum.v_v.data_2d[reach_num][timestep_index] ** 2))
+                    self.hvum.v.data[reach_num].append(np.sqrt(self.hvum.v_u.data[reach_num][timestep_index] ** 2 + self.hvum.v_v.data[reach_num][timestep_index] ** 2))
                 self.hvum.v.position = "node"
             # compute shear_stress ?
-            if self.hvum.shear_stress.computed:
+            if self.hvum.shear_stress.computable:
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.shear_stress.data_2d[reach_num].append((self.hvum.v_frict.data_2d[reach_num][timestep_index] ** 2) * self.hvum.ro.value)
+                    self.hvum.shear_stress.data[reach_num].append((self.hvum.v_frict.data[reach_num][timestep_index] ** 2) * self.hvum.ro.value)
                 self.hvum.shear_stress.position = "node"
 
             # coord
-            self.hvum.xy.data_2d[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+            self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
 
-            self.hvum.tin.data_2d[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+            self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
 
+        #return self.get_data_2d_dict()
         return self.get_data_2d_dict()
 
 
