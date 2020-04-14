@@ -19,6 +19,7 @@ import glob
 import os
 import time
 from copy import deepcopy
+import h5py
 
 import matplotlib
 import numpy as np
@@ -54,12 +55,12 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     """
     This function is used to call HABBY from the command line. The general form is to call:
     habby_cmd command_name input1 input2 .. input n. The list of the command_name is given in the documentation and by
-    calling the command "python habby_cmd.py LIST_COMMAND". This functiion is usually called direclty by the main()
+    calling the command "python habby_cmd.py LIST_COMMAND". This function is usually called directly by the main()
     or it is called by the function restart which read a list of function line by line. Careful, new command cannot
     contain the symbol ":" as it is used by restart.
 
     For the restart function, it is also important that the input folder is just in the folder "next" to the restart
-    path. So the folder should not be moved randolmy inside the project folder or renamed.
+    path. So the folder should not be moved randomly inside the project folder or renamed.
 
     :param all_arg: the list of argument (sys.argv more or less)
     :param name_prj: the name of the project, created by default by the main()
@@ -163,6 +164,9 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         print("COMPARE_TEST: Call the small function which compare the files in two folders. Useful to test habby "
               "output. Input: The path to the folder with the reference file, the path to the folder with the "
               "files to check")
+        print("COMPARE_TEST_FILE: Compares a test file to a reference file according to the values of their datasets."
+              "Input: ref_file= the path and filename of the reference file, test_file= the path and filename of the "
+              "test file")
 
         print('\n')
         print('list of options which can be added after the command: (1) path_prj= path to project, (2) '
@@ -1119,6 +1123,66 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         print('-----------------END TEST -------------------------')
 
     # ----------------------------------------------------------------------------------
+    elif all_arg[0]=='COMPARE_TEST_FILE':
+        #Compares a test file to a reference file, and determines whether they contain the same data
+
+
+        for arg in all_arg:
+            if arg[:9]=='ref_file=':
+                path1=arg[9:]
+            if arg[:10]=='test_file=':
+                path2=arg[10:]
+            if arg[:9] in ['path_prj','name_prj','path_bio']:
+                all_arg.remove(arg)
+
+        try:
+            if not os.path.exists(path1):
+                print('Error: the reference file does not exist or there is a typo in the file path')
+                return
+        except NameError:
+            print('Error: you have not given the argument ref_file')
+            return
+        try:
+            if not os.path.exists(path2):
+                print('Error: the test file does not exist or there is a typo in the file path')
+                return
+        except NameError:
+            print('Error: you have not given the argument test_file')
+            return
+        file1 = h5py.File(path1, 'r')
+        file2 = h5py.File(path2, 'r')
+
+        if len(all_arg) !=3:
+            #If there are any arguments other than the command name, ref_file, test_file, path_prj, name_prj and
+            # path_bio, the program should give an error message
+            print('COMPARE_TEST_FILE takes 2 arguments: ref_file and test_file')
+            return
+
+
+        global dataset_names
+        dataset_names=[]
+        def get_dataset_names(name1, object):
+            global dataset_names
+            if type(object) == h5py._hl.dataset.Dataset:
+                dataset_names += [name1]
+        file1.visititems(get_dataset_names)
+        dataset_names1=dataset_names
+        dataset_names=[]
+        file2.visititems(get_dataset_names)
+        dataset_names2=dataset_names
+        if dataset_names1!=dataset_names2:
+            print("The files contain different datasets")
+        else:
+            equal=True
+            for name in dataset_names1:
+                if np.any(file1[name][()]!=file2[name][()]):
+                    equal=False
+            if equal:
+                print("The files are equal")
+            elif not equal:
+                print("The files are different")
+
+
     else:
         #print(all_arg, name_prj, path_prj, path_bio)
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
@@ -1232,7 +1296,7 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     applied to all second file one by one. So if we have two substrate file and two hydro file, name with \* will result
     in two merged files while # will result in four merge file.
 
-    If more than one extension is possible (example g01, g02, g03, etc. in hec-ras), remplace the changing part of the
+    If more than one extension is possible (example g01, g02, g03, etc. in hec-ras), replace the changing part of the
     extension with the symbol \* (so path_to_folder/\*.g0\* arg1 argn). If the name of the file changed in the extension
     as in RUBAR (where the file have the name PROFIL.file), just change for PROFIL.\* or something similar. Generally
     the matching is done using the function glob, so the shell-type wildcard can be used.
@@ -1655,3 +1719,7 @@ def cli_start_process_and_print_progress(process, progress_value):
         print("# " + process.name + " finished")
     else:
         print("# " + process.name + " crash !!!!!!!!!!!!!!!")
+
+
+
+
