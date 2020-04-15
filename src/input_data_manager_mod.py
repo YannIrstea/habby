@@ -29,7 +29,7 @@ from src.tools_mod import create_empty_data_2d_whole_profile_dict, create_empty_
 from src import hdf5_mod, ascii_mod, telemac_mod, hec_ras2D_mod, hec_ras1D_mod, rubar1d2d_mod, basement_mod
 
 from src import manage_grid_mod
-from src.hydraulic_bases import HydraulicModelInformation
+from src.hydraulic_bases import HydraulicModelInformation, Data2d
 
 
 class HydraulicSimulationResultsAnalyzer:
@@ -1469,14 +1469,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         # get filename source (can be several)
         filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
         # data_2d_whole_profile
-        data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1,  # always one reach
-                                            mesh_variables=hydrau_description[hdf5_file_index]["final_mesh_variable_name_list"],
-                                            node_variables=hydrau_description[hdf5_file_index]["final_node_variable_name_list"])  # always one reach by file
+        data_2d_whole_profile = Data2d()
         hydrau_description[hdf5_file_index]["unit_correspondence"] = [[]]  # always one reach by file
         # data_2d
-        data_2d = create_empty_data_2d_dict(1,  # always one reach
-                                            mesh_variables=[],
-                                            node_variables=["h", "v"])
+        data_2d = Data2d()
         # for each filename source
         for i, file in enumerate(filename_source):
             # get timestep_name_list
@@ -1493,73 +1489,43 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             # load data
             data_2d_source, description_from_source = hsr.load_hydraulic(timestep_with_list)
             # check error
-            if not data_2d_source and not description_from_source:
+            if not data_2d_source:
                 q.put(mystdout)
                 return
             # data_2d_whole_profile
-            data_2d_whole_profile["mesh"]["tin"][0].extend(data_2d_source["mesh"]["tin"][0])
-            data_2d_whole_profile["node"]["xy"][0].extend(data_2d_source["node"]["xy"][0])
-            data_2d_whole_profile["node"]["z"][0].extend(data_2d_source["node"]["z"][0])
-            for mesh_data_key in list(data_2d_source["mesh"]["data"].keys()):
-                data_2d_whole_profile["mesh"]["data"][mesh_data_key][0].extend(data_2d_source["mesh"]["data"][mesh_data_key][0])
-            for node_data_key in list(data_2d_source["node"]["data"].keys()):
-                data_2d_whole_profile["node"]["data"][node_data_key][0].extend(data_2d_source["node"]["data"][node_data_key][0])
+            data_2d_whole_profile.extend(data_2d_source.get_whole_profile())
             # data_2d
-            data_2d["mesh"]["tin"][0].extend(data_2d_source["mesh"]["tin"][0])
-            data_2d["node"]["xy"][0].extend(data_2d_source["node"]["xy"][0])
-            data_2d["node"]["z"][0].extend(data_2d_source["node"]["z"][0])
-            data_2d["node"]["data"]["h"][0].extend(data_2d_source["node"]["data"]["h"][0])
-            data_2d["node"]["data"]["v"][0].extend(data_2d_source["node"]["data"]["v"][0])
+            data_2d.extend(data_2d_source)
 
-        # hyd_varying_mesh and hyd_unit_z_equal?
-        hyd_varying_xy_index = []
-        hyd_varying_z_index = []
-        it_equality = 0
-        for i in range(len(data_2d_whole_profile["node"]["xy"][0])):
-            if i == 0:
-                hyd_varying_xy_index.append(it_equality)
-                hyd_varying_z_index.append(it_equality)
-            if i > 0:
-                # xy
-                if np.array_equal(data_2d_whole_profile["node"]["xy"][0][i], data_2d_whole_profile["node"]["xy"][0][it_equality]):  # equal
-                    hyd_varying_xy_index.append(it_equality)
-                else:
-                    it_equality = i
-                    hyd_varying_xy_index.append(it_equality)  # diff
-                # z
-                if np.array_equal(data_2d_whole_profile["node"]["z"][0][i], data_2d_whole_profile["node"]["z"][0][it_equality]):  # equal
-                    hyd_varying_z_index.append(it_equality)
-                else:
-                    it_equality = i
-                    hyd_varying_z_index.append(it_equality)  # diff
-        if len(set(hyd_varying_xy_index)) == 1:  # one tin for all unit
-            hyd_varying_mesh = False
-            data_2d_whole_profile["mesh"]["tin"][0] = [data_2d_whole_profile["mesh"]["tin"][0][0]]
-            data_2d_whole_profile["node"]["xy"][0] = [data_2d_whole_profile["node"]["xy"][0][0]]
-        else:
-            hyd_varying_mesh = True
-        # hyd_unit_z_equal ?
-        if len(set(hyd_varying_z_index)) == 1:
-            hyd_unit_z_equal = True
-        else:
-            hyd_unit_z_equal = True
+        hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
+        for reach_num in range(len(hyd_varying_xy_index)):
+            if len(set(hyd_varying_xy_index[reach_num])) == 1:  # one tin for all unit
+                hyd_varying_mesh = False
+                data_2d_whole_profile[reach_num] = [data_2d_whole_profile[reach_num][0]]
+            else:
+                hyd_varying_mesh = True
+            # hyd_unit_z_equal ?
+            if len(set(hyd_varying_z_index[reach_num])) == 1:
+                hyd_unit_z_equal = True
+            else:
+                hyd_unit_z_equal = True
 
-        # one file : one reach, varying_mesh==False
-        if len(filename_source) == 1:
-            hydrau_description[hdf5_file_index]["unit_correspondence"][0] = hyd_varying_xy_index * int(hydrau_description[hdf5_file_index]["unit_number"])
-        else:
-            hydrau_description[hdf5_file_index]["unit_correspondence"][0] = hyd_varying_xy_index
+            # one file : one reach, varying_mesh==False
+            if len(filename_source) == 1:
+                hydrau_description[hdf5_file_index]["unit_correspondence"][reach_num] = hyd_varying_xy_index[reach_num] * int(hydrau_description[hdf5_file_index]["unit_number"])
+            else:
+                hydrau_description[hdf5_file_index]["unit_correspondence"][reach_num] = hyd_varying_xy_index[reach_num]
 
         """ cut_2d_grid_data_2d """
-        data_2d, hydrau_description[hdf5_file_index] = manage_grid_mod.cut_2d_grid_data_2d(data_2d,
-                                                                                           hydrau_description[
-                                                                                               hdf5_file_index],
-                                                                                           progress_value,
-                                                                                           delta_file,
-                                                                                           project_preferences[
-                                                                                               "cut_mesh_partialy_dry"],
-                                                                                           project_preferences[
-                                                                                               'min_height_hyd'])
+        data_2d.cut_2d_grid_data_2d(hydrau_description[hdf5_file_index]["unit_list"],
+                                    progress_value,
+                                    delta_file,
+                                    project_preferences["cut_mesh_partialy_dry"],
+                                    project_preferences['min_height_hyd'])
+        hydrau_description[hdf5_file_index]["unit_list"] = data_2d.unit_list_cuted
+        hydrau_description[hdf5_file_index]["unit_number"] = len(data_2d.unit_list_cuted)
+
+
 
         # progress
         progress_value.value = 90
@@ -1571,14 +1537,14 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_model_type"] = hydrau_description[hdf5_file_index]["model_type"]
         hyd_description["hyd_2D_numerical_method"] = "FiniteElementMethod"
         hyd_description["hyd_model_dimension"] = hydrau_description[hdf5_file_index]["model_dimension"]
-        hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_source["mesh"]["data"].keys()))
-        hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_source["node"]["data"].keys()))
+        hyd_description["hyd_mesh_variables_list"] = ", ".join(hydrau_description[hdf5_file_index]["variable_mesh_detected_list"])
+        hyd_description["hyd_node_variables_list"] = ", ".join(hydrau_description[hdf5_file_index]["variable_node_detected_list"])
         hyd_description["hyd_epsg_code"] = hydrau_description[hdf5_file_index]["epsg_code"]
         hyd_description["hyd_reach_list"] = hydrau_description[hdf5_file_index]["reach_list"]
         hyd_description["hyd_reach_number"] = hydrau_description[hdf5_file_index]["reach_number"]
         hyd_description["hyd_reach_type"] = hydrau_description[hdf5_file_index]["reach_type"]
         hyd_description["hyd_unit_list"] = [[unit_name.replace(":", "_").replace(" ", "_") for unit_name in
-                                             hydrau_description[hdf5_file_index]["unit_list"]]]
+                                             hydrau_description[hdf5_file_index]["unit_list"][0]]]
         hyd_description["hyd_unit_number"] = str(len(hydrau_description[hdf5_file_index]["unit_list"]))
         hyd_description["hyd_unit_type"] = hydrau_description[hdf5_file_index]["unit_type"]
         hyd_description["hyd_varying_mesh"] = hyd_varying_mesh

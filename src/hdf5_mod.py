@@ -26,6 +26,7 @@ from osgeo import ogr
 from osgeo import osr
 from stl import mesh
 from multiprocessing import Value
+import sys
 
 from src import bio_info_mod
 from src import substrate_mod
@@ -328,13 +329,13 @@ class Hdf5Management:
         'hyd_varying_mesh' : boolean
         'hyd_unit_z_equal' : boolean if all z are egual between units, 'False' if the bottom values vary
         """
-        #
-        validity, error = check_data_2d_dict_validity(data_2d,
-                                    int(hyd_description["hyd_reach_number"]),
-                                    int(hyd_description["hyd_unit_number"]))
-        if not validity:
-            print(error)
-            return
+        # #
+        # validity, error = check_data_2d_dict_validity(data_2d,
+        #                             int(hyd_description["hyd_reach_number"]),
+        #                             int(hyd_description["hyd_unit_number"]))
+        # if not validity:
+        #     print(error)
+        #     return
 
         # create a new hdf5
         self.open_hdf5_file(new=True)
@@ -412,29 +413,29 @@ class Hdf5Management:
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
                     mesh_group.create_dataset(name="tin",
-                                              shape=data_2d_whole_profile["mesh"]["tin"][reach_num][unit_num].shape,
-                                              data=data_2d_whole_profile["mesh"]["tin"][reach_num][unit_num])
+                                              shape=data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"].shape,
+                                              data=data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"])
                     # NODE GROUP
                     node_group = unit_group.create_group('node')
                     node_group.create_dataset(name="xy",
-                                              shape=data_2d_whole_profile["node"]["xy"][reach_num][unit_num].shape,
-                                              data=data_2d_whole_profile["node"]["xy"][reach_num][unit_num])
+                                              shape=data_2d_whole_profile[reach_num][unit_num]["node"]["xy"].shape,
+                                              data=data_2d_whole_profile[reach_num][unit_num]["node"]["xy"])
                     if hyd_description["hyd_unit_z_equal"]:
                         node_group.create_dataset(name="z",
-                                                  shape=data_2d_whole_profile["node"]["z"][reach_num][0].shape,
-                                                  data=data_2d_whole_profile["node"]["z"][reach_num][0])
+                                                  shape=data_2d_whole_profile[reach_num][0]["node"]["z"].shape,
+                                                  data=data_2d_whole_profile[reach_num][0]["node"]["z"])
                     else:
                         if not hyd_description["hyd_varying_mesh"]:
                             for unit_num2 in range(int(hyd_description["hyd_unit_number"])):
                                 unit_group = reach_group.create_group('unit_' + str(unit_num2))
                                 node_group = unit_group.create_group('node')
                                 node_group.create_dataset(name="z",
-                                                          shape=data_2d_whole_profile["node"]["z"][reach_num][unit_num2].shape,
-                                                          data=data_2d_whole_profile["node"]["z"][reach_num][unit_num2])
+                                                          shape=data_2d_whole_profile[reach_num][unit_num2]["node"]["z"].shape,
+                                                          data=data_2d_whole_profile[reach_num][unit_num2]["node"]["z"])
                         else:
                             node_group.create_dataset(name="z",
-                                                      shape=data_2d_whole_profile["node"]["z"][reach_num][unit_num].shape,
-                                                      data=data_2d_whole_profile["node"]["z"][reach_num][unit_num])
+                                                      shape=data_2d_whole_profile[reach_num][unit_num]["node"]["z"].shape,
+                                                      data=data_2d_whole_profile[reach_num][unit_num]["node"]["z"])
 
             # get extent
             xMin = []
@@ -450,10 +451,10 @@ class Hdf5Management:
                 # UNIT GROUP
                 for unit_num in range(int(hyd_description["hyd_unit_number"])):
                     # extent
-                    xMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
-                    xMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
-                    yMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
-                    yMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
+                    xMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
+                    xMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
+                    yMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
+                    yMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
 
                     unit_group = reach_group.create_group('unit_' + str(unit_num))
                     unit_group.attrs["whole_profile_corresp"] = whole_profile_unit_corresp[reach_num][unit_num]
@@ -462,28 +463,42 @@ class Hdf5Management:
                     mesh_group = unit_group.create_group('mesh')
                     mesh_data_group = mesh_group.create_group('data')
                     mesh_group.create_dataset(name="tin",
-                                              shape=data_2d["mesh"]["tin"][reach_num][unit_num].shape,
-                                              data=data_2d["mesh"]["tin"][reach_num][unit_num])
+                                              shape=data_2d[reach_num][unit_num]["mesh"]["tin"].shape,
+                                              data=data_2d[reach_num][unit_num]["mesh"]["tin"])
                     mesh_group.create_dataset(name="i_whole_profile",
-                                              shape=data_2d["mesh"]["i_whole_profile"][reach_num][unit_num].shape,
-                                              data=data_2d["mesh"]["i_whole_profile"][reach_num][unit_num])
-                    for mesh_variable in data_2d["mesh"]["data"].keys():
-                        mesh_data_group.create_dataset(name=mesh_variable,
-                                                       shape=data_2d["mesh"]["data"][mesh_variable][reach_num][unit_num].shape,
-                                                       data=data_2d["mesh"]["data"][mesh_variable][reach_num][unit_num])
+                                              shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
+                                              data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
+                    for mesh_variable in hyd_description["hyd_mesh_variables_list"].split(", "):
+                        if mesh_variable:
+                            mesh_data_group.create_dataset(name=mesh_variable,
+                                                           shape=data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable].shape,
+                                                           data=data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable])
                     # NODE GROUP
                     node_group = unit_group.create_group('node')
-                    node_data_group = node_group.create_group('data')
                     node_group.create_dataset(name="xy",
-                                              shape=data_2d["node"]["xy"][reach_num][unit_num].shape,
-                                              data=data_2d["node"]["xy"][reach_num][unit_num])
+                                              shape=data_2d[reach_num][unit_num]["node"]["xy"].shape,
+                                              data=data_2d[reach_num][unit_num]["node"]["xy"])
                     node_group.create_dataset(name="z",
-                                              shape=data_2d["node"]["z"][reach_num][unit_num].shape,
-                                              data=data_2d["node"]["z"][reach_num][unit_num])
-                    for node_variable in data_2d["node"]["data"].keys():
-                        node_data_group.create_dataset(name=node_variable,
-                                                       shape=data_2d["node"]["data"][node_variable][reach_num][unit_num].shape,
-                                                       data=data_2d["node"]["data"][node_variable][reach_num][unit_num])
+                                              shape=data_2d[reach_num][unit_num]["node"]["z"].shape,
+                                              data=data_2d[reach_num][unit_num]["node"]["z"])
+                    # float dataset
+
+                    float_data_pandas = data_2d[reach_num][unit_num]["node"]["data"].select_dtypes(include=[float])
+                    float_data_pandas["h"].attrs
+                    float_data_pandas["h"].attrs_maison
+                    float_data_pandas["h"]._metadata
+
+
+                    float_colname_list = list(float_data_pandas.columns)
+                    float_unit_list = [float_data_pandas[colname].attrs for colname in float_colname_list]
+                    float_colname_list = list(float_data_pandas.columns)
+
+                    data_2d[reach_num][unit_num]["node"]["data"].select_dtypes(include=[int]).to_numpy()
+                    # for node_variable in hyd_description["hyd_node_variables_list"].split(", "):
+                    #     if node_variable:
+                    #         node_data_group.create_dataset(name=node_variable,
+                    #                                        shape=data_2d[reach_num][unit_num]["node"]["data"][node_variable].shape,
+                    #                                        data=data_2d[reach_num][unit_num]["node"]["data"][node_variable])
 
         # get extent
         xMin = min(xMin)

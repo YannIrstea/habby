@@ -18,6 +18,8 @@ import os
 import numpy as np
 import pandas as pd
 
+from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
+
 
 class HydraulicVariable:
     def __init__(self, value, unit, name, name_gui, dtype):
@@ -41,6 +43,10 @@ class HydraulicVariableUnitManagement:
         self.usefull_variable_mesh_detected_list = []
         self.final_mesh_variable_name_list = []
         self.final_node_variable_name_list = []
+        # init
+        self.v_x_and_v_y_presence = False
+
+
         # fixed values
         self.ro = HydraulicVariable(value=999.7,
                                     unit="kg/m3",
@@ -74,15 +80,15 @@ class HydraulicVariableUnitManagement:
                                    name="h",
                                    name_gui="water_height",
                                    dtype=np.float64)
-        self.v_u = HydraulicVariable(value=None,
+        self.v_x = HydraulicVariable(value=None,
                                      unit="m/s",
-                                     name="v_u",
-                                     name_gui="water_velocity_u",
+                                     name="v_x",
+                                     name_gui="water_velocity_x",
                                      dtype=np.float64)
-        self.v_v = HydraulicVariable(value=None,
+        self.v_y = HydraulicVariable(value=None,
                                      unit="m/s",
-                                     name="v_v",
-                                     name_gui="water_velocity_v",
+                                     name="v_y",
+                                     name_gui="water_velocity_y",
                                      dtype=np.float64)
         self.v = HydraulicVariable(value=None,
                                    unit="m/s",
@@ -145,6 +151,16 @@ class HydraulicVariableUnitManagement:
         getattr(self, name).position = position
         self.usefull_variable_wish_list.append(getattr(self, name))
 
+    def remove_variable_from(self, usefull, final, variable_name):
+        if usefull:
+            variable_name_list = [variable.name for variable in self.usefull_variable_detected_list]
+            variable_index = variable_name_list.index(variable_name)
+            self.usefull_variable_detected_list.pop(variable_index)
+        if final:
+            variable_name_list = [variable.name for variable in self.final_variable_list]
+            variable_index = variable_name_list.index(variable_name)
+            self.final_variable_list.pop(variable_index)
+
     def get_available_variables_from_source(self, varnames):
         # get_available_variables_from_source
         for varname_index, varname in enumerate(varnames):
@@ -154,9 +170,6 @@ class HydraulicVariableUnitManagement:
                         usefull_variable_wish.varname_index = varname_index
                         self.usefull_variable_detected_list.append(usefull_variable_wish)
 
-        # copy
-        self.final_variable_list = list(self.usefull_variable_detected_list)
-
         # separate node and mesh
         for usefull_variable_detected in self.usefull_variable_detected_list:
             if usefull_variable_detected.position == "node":
@@ -164,16 +177,27 @@ class HydraulicVariableUnitManagement:
             elif usefull_variable_detected.position == "mesh":
                 self.usefull_variable_mesh_detected_list.append(usefull_variable_detected.name)
 
+        # copy
+        self.final_variable_list = list(self.usefull_variable_detected_list)
+
+        """ nodes """
+
+        # is v_x and v_y ?
+        if self.v_x.name in self.usefull_variable_node_detected_list and self.v_y.name in self.usefull_variable_node_detected_list:
+            self.v_x_and_v_y_presence = True
+
         # computed_node_velocity or original ?
-        if not self.v.name in self.usefull_variable_node_detected_list:
+        if self.v.name in self.usefull_variable_node_detected_list:
+            self.v.original = True
+            self.v.computable = False
+        if not self.v.name in self.usefull_variable_node_detected_list and self.v_x_and_v_y_presence:
+            self.v.original = False
             self.v.computable = True
-            self.v.position = "node"
-        self.final_variable_list = self.final_variable_list + [self.v]  # always v
+            self.final_variable_list = self.final_variable_list + [self.v]  # always v
 
         # computed_node_shear_stress or original ?
         if not self.shear_stress.name in self.usefull_variable_node_detected_list and self.v_frict.name in self.usefull_variable_node_detected_list:
             self.shear_stress.computable = True
-            self.shear_stress.position = "node"
             self.final_variable_list = self.final_variable_list + [self.shear_stress]
 
         self.update_final_variable_list()
@@ -282,20 +306,57 @@ class HydraulicSimulationResults:
         self.unit_z_equal = False
 
     def get_data_2d_dict(self):
-        # create empty dict
-        data_2d = dict()
+        # remove z from final
+        self.hvum.final_node_variable_name_list.remove(self.hvum.z.name)
 
-        # mesh
-        data_2d["mesh"] = dict()
+        # create empty list
+        data_2d = Data2d()
 
-        # node
-        data_2d["node"] = dict()
+        for reach_num in range(len(self.reach_name_list)):
+            data_2d.append([])
+            for unit_num in range(len(self.timestep_name_wish_list)):
+                # node
+                column_data_list = []
+                column_name_list = []
+                for node_variable_index, node_variable_name in enumerate(self.hvum.final_node_variable_name_list):
+                    column_data_list.append(getattr(self.hvum, node_variable_name).data[reach_num][unit_num])
+                    column_name_list.append(node_variable_name)
+                if column_data_list:
+                    node_data_pandas = DataFrameHabby(np.vstack(column_data_list).T,
+                                                    columns=column_name_list,
+                                                    index=list(range(len(column_data_list[0]))))
+                    node_data_pandas._metadata.append('unit')
+                    # units
+                    for node_variable_name in self.hvum.final_node_variable_name_list:
+                        node_data_pandas[node_variable_name].unit = dict(unit=getattr(self.hvum, node_variable_name).unit)
+                        node_data_pandas[node_variable_name].attrs.update({'unit' : getattr(self.hvum, node_variable_name).unit})
 
+                else:
+                    node_data_pandas = None
+                # mesh
+                column_data_list = []
+                column_name_list = []
+                # node
+                for mesh_variable_index, mesh_variable_name in enumerate(self.hvum.final_mesh_variable_name_list):
+                    column_data_list.append(getattr(self.hvum, mesh_variable_name).data[reach_num][unit_num])
+                    column_name_list.append(mesh_variable_name)
+                if column_data_list:
+                    mesh_data_pandas = pd.DataFrame(np.vstack(column_data_list).T,
+                                                    columns=column_name_list,
+                                                    index=list(range(len(column_data_list[0]))))
+                    # units
+                    for mesh_variable_name in self.hvum.final_mesh_variable_name_list:
+                        mesh_data_pandas[mesh_variable_name].attrs = dict(unit=getattr(self.hvum, mesh_variable_name).unit)
+                else:
+                    mesh_data_pandas = None
 
-        for variable in self.hvum.final_variable_list:
-            print(variable.position)
-            # data_2d[variable.position] =
-            data_2d[variable.position]["data"][variable.name] = variable.data
+                unit_dict = dict(mesh=dict(data=mesh_data_pandas,
+                                           whole_profile=None,
+                                           tin=self.hvum.tin.data[reach_num][unit_num]),
+                                 node=dict(data=node_data_pandas,
+                                           xy=self.hvum.xy.data[reach_num][unit_num],
+                                           z=self.hvum.z.data[reach_num][unit_num]))
+                data_2d[reach_num].append(unit_dict)
 
         # description telemac data_2d dict
         description_from_file = dict()
@@ -340,3 +401,277 @@ class HydraulicSimulationResults:
     #     return data_2d, description_from_file
 
 
+class Data2d(list):
+    def __init__(self):
+        self.reach_num = 0
+        self.unit_num = 0
+        super().__init__()
+
+    def get_informations(self):
+        self.reach_num = len(self)
+        self.unit_num = len(self[self.reach_num - 1])
+
+    def get_whole_profile(self):
+        """
+        retrun whole_profile from original data2d
+        """
+        self.get_informations()
+
+        whole_profile = Data2d()
+        for reach_num in range(self.reach_num):
+            whole_profile.append([])
+            for unit_num in range(self.unit_num):
+                whole_profile[unit_num].append(dict(mesh=dict(tin=self[reach_num][unit_num]["mesh"]["tin"]),
+                                 node=dict(xy=self[reach_num][unit_num]["node"]["xy"],
+                                           z=self[reach_num][unit_num]["node"]["z"])))
+        return whole_profile
+
+    def get_hyd_varying_xy_and_z_index(self):
+        self.get_informations()
+        # hyd_varying_mesh and hyd_unit_z_equal?
+        hyd_varying_xy_index = []
+        hyd_varying_z_index = []
+        for reach_num in range(self.reach_num):
+            hyd_varying_xy_index.append([])
+            hyd_varying_z_index.append([])
+            it_equality = 0
+            for unit_num in range(self.unit_num):
+                if unit_num == 0:
+                    hyd_varying_xy_index[reach_num].append(it_equality)
+                    hyd_varying_z_index[reach_num].append(it_equality)
+                if unit_num > 0:
+                    # xy
+                    if np.array_equal(self[reach_num][unit_num]["node"]["xy"],
+                                      self[reach_num][it_equality]["node"]["xy"]):  # equal
+                        hyd_varying_xy_index[reach_num].append(it_equality)
+                    else:
+                        it_equality = unit_num
+                        hyd_varying_xy_index[reach_num].append(it_equality)  # diff
+                    # z
+                    if np.array_equal(self[reach_num][unit_num]["node"]["z"],
+                                      self[reach_num][it_equality]["node"]["z"]):  # equal
+                        hyd_varying_z_index[reach_num].append(it_equality)
+                    else:
+                        it_equality = unit_num
+                        hyd_varying_z_index[reach_num].append(it_equality)  # diff
+        return hyd_varying_xy_index, hyd_varying_z_index
+
+    def cut_2d_grid_data_2d(self, unit_list, progress_value, delta_file, CutMeshPartialyDry, min_height):
+        """
+        This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
+        with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
+        All mesh entierly dry are always cuted. if CutMeshPartialyDry is True, partialy dry mesh are also cuted.
+        This function works for one unit of a reach.
+
+        :param ikle: the connectivity table of the 2D grid
+        :param point_all: the coordinate x,y,z of the points
+        :param water_height: the water height data given on the nodes
+        :param velocity: the velocity given on the nodes
+        :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
+        :param CutMeshPartialyDry: If True partialy dry mesh are cuted
+        :return: the update connectivity table, the coordinates of the point, the height of the water and the
+                 velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
+        """
+        self.get_informations()
+        # prog
+        deltaunit = delta_file / len(unit_list)
+
+        # for each reach
+        self.unit_list_cuted = []
+        for reach_num in range(self.reach_num):
+            self.unit_list_cuted.append([])
+            # for each unit
+            for unit_num, unit_name in enumerate(unit_list):
+                # get data from dict
+                ikle = self[reach_num][unit_num]["mesh"]["tin"]
+                point_all = np.column_stack((self[reach_num][unit_num]["node"]["xy"],
+                                 self[reach_num][unit_num]["node"]["z"]))
+                water_height = self[reach_num][unit_num]["node"]["data"]["h"].to_numpy()
+                velocity = self[reach_num][unit_num]["node"]["data"]["v"].to_numpy()
+
+                # is_duplicates_mesh_and_point_on_one_unit?
+                if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
+                                                            xyz_array=point_all,
+                                                            unit_num=unit_num,
+                                                            case="before the deletion of dry mesh"):
+                    print("Warning: The mesh of unit " + unit_name + " is not loaded")
+                    continue
+
+                typeikle = ikle.dtype
+                typepoint = point_all.dtype
+                point_new = np.empty((0, 3), dtype=typepoint)
+                jpn0 = len(point_all) - 1
+                iklenew = np.empty((0, 3), dtype=typeikle)
+                ind_whole = np.arange(len(ikle), dtype=typeikle)
+
+                water_height[water_height < min_height] = 0  # correcting the height of water  hw<0 or hw <min_height=> hw=0
+                bhw = (water_height > 0).astype(np.int)
+                ikle_bit = bhw[ikle]
+                ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
+                mikle_keep = ikle_type == 3
+                mikle_keep2 = ikle_type != 0
+                ipt_all_ok_wetdry = []
+                # all meshes are entirely wet
+                if all(mikle_keep):
+                    print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
+                    iklekeep = ikle
+                    point_all_ok = point_all
+                    water_height_ok = water_height
+                    velocity_ok = velocity
+                    ind_whole = ind_whole  # TODO: full whole profile
+                # all meshes are entirely dry
+                elif not True in mikle_keep2:
+                    print("Warning: The mesh of unit " + unit_name + " is entirely dry.")
+                    continue
+                # only the dry meshes are cut (but not the partially ones)
+                elif not CutMeshPartialyDry:
+                    mikle_keep = ikle_type != 0
+                    iklekeep = ikle[mikle_keep, ...]
+                    ind_whole = ind_whole[mikle_keep, ...]
+                # we cut  the dry meshes and  the partially ones
+                else:
+                    jpn = jpn0
+                    ind_whole2 = []
+                    for i, iklec in enumerate(ikle):
+                        #print("delta_ikle", delta_ikle)
+                        if ikle_type[i] == 1 or ikle_type[i] == 2:
+                            sumk, nboverdry, bkeep = 0, 0, True
+                            ia, ib, ic = ikle[i]
+                            pa = point_all[ia]
+                            pb = point_all[ib]
+                            pc = point_all[ic]
+                            ha = water_height[ia]
+                            hb = water_height[ib]
+                            hc = water_height[ic]
+                            p1, overdry, koverdry = linear_z_cross(pa, pb, ha, hb)
+                            if overdry > 0:
+                                nboverdry = nboverdry + 1
+                                if koverdry > 1: bkeep = False
+                            if len(p1) > 0:
+                                sumk = sumk + 1
+                            p2, overdry, koverdry = linear_z_cross(pb, pc, hb, hc)
+                            if overdry > 0:
+                                nboverdry = nboverdry + 1
+                                if koverdry > 1: bkeep = False
+                            if len(p2) > 0:
+                                sumk = sumk + 2
+                            p3, overdry, koverdry = linear_z_cross(pc, pa, hc, ha)
+                            if overdry > 0:
+                                nboverdry = nboverdry + 1
+                                if koverdry > 1: bkeep = False
+                            if len(p3) > 0:
+                                sumk = sumk + 3
+                            if nboverdry > 0:
+                                if bkeep: mikle_keep[i] = True  # keeping the mesh we can't split
+                            else:
+                                if sumk == 5:
+                                    point_new = np.append(point_new, np.array([p2, p3]), axis=0)
+                                    if hc == 0:
+                                        iklenew = np.append(iklenew, np.array([[ia, jpn + 1, jpn + 2], [ia, ib, jpn + 1]]), axis=0)
+                                        ipt_all_ok_wetdry.extend([ia, ib])
+                                        ind_whole2.extend([i, i])
+                                    else:
+                                        iklenew = np.append(iklenew, np.array([[jpn + 2, jpn + 1, ic]]), axis=0)
+                                        ipt_all_ok_wetdry.append(ic)
+                                        ind_whole2.append(i)
+                                elif sumk == 4:
+                                    point_new = np.append(point_new, np.array([p1, p3]), axis=0)
+                                    if ha == 0:
+                                        iklenew = np.append(iklenew, np.array([[jpn + 1, ib, jpn + 2], [ib, ic, jpn + 2]]), axis=0)
+                                        ipt_all_ok_wetdry.extend([ic, ib])
+                                        ind_whole2.extend([i, i])
+                                    else:
+                                        iklenew = np.append(iklenew, np.array([[ia, jpn + 1, jpn + 2]]), axis=0)
+                                        ipt_all_ok_wetdry.append(ia)
+                                        ind_whole2.append(i)
+                                elif sumk == 3:
+                                    point_new = np.append(point_new, np.array([p1, p2]), axis=0)
+                                    if hb == 0:
+                                        iklenew = np.append(iklenew, np.array([[jpn + 1, jpn + 2, ia], [ia, jpn + 2, ic]]), axis=0)
+                                        ipt_all_ok_wetdry.extend([ia, ic])
+                                        ind_whole2.extend([i, i])
+                                    else:
+                                        iklenew = np.append(iklenew, np.array([[ib, jpn + 2, jpn + 1]]), axis=0)
+                                        ipt_all_ok_wetdry.append(ib)
+                                        ind_whole2.append(i)
+                                else:
+                                    print(
+                                        "Error: Impossible case during the cutting of mesh partially wet on the unit " + unit_name + ".")
+                                    continue
+                                jpn += 2
+
+                    iklekeep = ikle[
+                        mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
+                    ind_whole = ind_whole[mikle_keep, ...]
+                    ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
+
+                # all cases
+                ipt_iklenew_unique = np.unique(iklekeep)
+
+                if ipt_all_ok_wetdry:  # presence of partially wet/dry meshes cutted that we want
+                    ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry, dtype=typeikle), axis=0)
+                    ipt_iklenew_unique = np.unique(ipt_iklenew_unique)
+
+                point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
+                water_height_ok = water_height[ipt_iklenew_unique]
+                velocity_ok = velocity[ipt_iklenew_unique]
+                ipt_old_new = np.array([-1] * len(point_all), dtype=typeikle)
+                for i, point_index in enumerate(ipt_iklenew_unique):
+                    ipt_old_new[point_index] = i
+                iklekeep2 = ipt_old_new[ikle]
+                iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
+                if ipt_all_ok_wetdry:  # in case of partially wet/dry meshes
+                    # delete dupplicate of the new point set
+                    point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
+                    lpns = len(point_new_single)
+                    ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
+                    iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
+                    point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
+                    # beware that some new points can be doubles of  original ones
+                    point_all_ok2, indices2 = np.unique(point_all_ok, axis=0, return_inverse=True)
+                    nbdouble = 0
+                    if len(point_all_ok2) != len(point_all_ok):
+                        nbdouble = len(point_all_ok) - len(point_all_ok2)
+                        iklekeep = indices2[iklekeep]
+                        point_all_ok = point_all_ok2
+                        print("Warning: while the cutting of mesh partially wet of the unit n°" + str(
+                            unit_num) + " we have been forced to eliminate " + str(nbdouble) +
+                              " duplicate(s) point(s) ")
+                    if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
+                                                                xyz_array=point_all_ok,
+                                                                unit_num=unit_num,
+                                                                case="after the cutting of mesh partially wet", checkpoint=False):
+                        print("Warning: The mesh of unit " + unit_name + " is not loaded.")
+                        continue
+
+                    # all the new points added have water_height,velocity=0,0
+                    water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
+                    velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
+
+                # erase old data
+                self[reach_num][unit_num]["mesh"]["tin"] = iklekeep
+                self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
+                self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
+                self[reach_num][unit_num]["node"]["z"] = point_all_ok[:, 2]
+                self[reach_num][unit_num]["node"]["data"]["h"].replace(water_height_ok, inplace=True)
+                self[reach_num][unit_num]["node"]["data"]["v"].replace(velocity_ok, inplace=True)
+
+                #  unit_list_cuted
+                self.unit_list_cuted[reach_num].append(unit_name)
+
+                # progress
+                progress_value.value += int(deltaunit)
+
+
+# class DataFrameHabby(pd.DataFrame):
+#
+#     # temporary properties
+#     _internal_names = pd.DataFrame._internal_names + ['internal_cache']
+#     _internal_names_set = set(_internal_names)
+#
+#     # normal properties
+#     _metadata = ['added_property']
+#
+# @property
+# def _constructor(self):
+#     return DataFrameHabby

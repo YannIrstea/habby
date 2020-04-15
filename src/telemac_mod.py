@@ -52,10 +52,10 @@ class TelemacResult(HydraulicSimulationResults):
         self.hvum.set_existing_attributes_list(name=self.hvum.v.name,
                                                attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
                                                position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_u.name,
+        self.hvum.set_existing_attributes_list(name=self.hvum.v_x.name,
                                                attribute_list=['VITESSE U', 'VELOCITY U'],
                                                position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_v.name,
+        self.hvum.set_existing_attributes_list(name=self.hvum.v_y.name,
                                                attribute_list=['VITESSE V', 'VELOCITY V'],
                                                position="node")
         self.hvum.set_existing_attributes_list(name=self.hvum.temp.name,
@@ -128,7 +128,7 @@ class TelemacResult(HydraulicSimulationResults):
             # compute v ?
             if self.hvum.v.computable:
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.v.data[reach_num].append(np.sqrt(self.hvum.v_u.data[reach_num][timestep_index] ** 2 + self.hvum.v_v.data[reach_num][timestep_index] ** 2))
+                    self.hvum.v.data[reach_num].append(np.sqrt(self.hvum.v_x.data[reach_num][timestep_index] ** 2 + self.hvum.v_y.data[reach_num][timestep_index] ** 2))
                 self.hvum.v.position = "node"
             # compute shear_stress ?
             if self.hvum.shear_stress.computable:
