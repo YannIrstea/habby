@@ -164,9 +164,12 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         print("COMPARE_TEST: Call the small function which compare the files in two folders. Useful to test habby "
               "output. Input: The path to the folder with the reference file, the path to the folder with the "
               "files to check")
-        print("COMPARE_TEST_FILE: Compares a test file to a reference file according to the values of their datasets."
+        print("COMPARE_FILE: Compares a test file to a reference file according to the values of their datasets. "
               "Input: ref_file= the path and filename of the reference file, test_file= the path and filename of the "
               "test file")
+        print("COMPARE_DIR: Compares the files in a test directory and a reference directory according to the values "
+              "of their datasets. Input: ref_path= the path to the reference directory, test_path= the path to the "
+              "test directory")
 
         print('\n')
         print('list of options which can be added after the command: (1) path_prj= path to project, (2) '
@@ -1071,12 +1074,10 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'COMPARE_TEST':
-        # remove the first arg MERGE_GRID_SUB
+        # remove the first arg COMPARE_TEST
         all_arg = all_arg[1:]
 
-        if len(all_arg) != 2:
-            print('COMPARE_TEST needs two arguments, which are the two paths to the folders to be compared.')
-            return
+
 
         # get args
         for arg in all_arg:
@@ -1086,6 +1087,12 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             # test_path
             if arg[:10] == 'test_path=':
                 folder2 = arg[10:]
+            if arg[:9] in ['path_prj=','path_bio=','name_prj=']:
+                all_arg.remove(arg)
+
+        if len(all_arg) != 2:
+            print('COMPARE_TEST needs two arguments, which are the two paths to the folders to be compared.')
+            return
 
         # get folder name
         if not os.path.isdir(folder1):
@@ -1123,66 +1130,126 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         print('-----------------END TEST -------------------------')
 
     # ----------------------------------------------------------------------------------
-    elif all_arg[0]=='COMPARE_TEST_FILE':
+    elif all_arg[0]=='COMPARE_FILE':
         #Compares a test file to a reference file, and determines whether they contain the same data
 
 
         for arg in all_arg:
             if arg[:9]=='ref_file=':
-                path1=arg[9:]
+                ref_name=arg[9:]
+
             if arg[:10]=='test_file=':
-                path2=arg[10:]
+                test_name=arg[10:]
+
             if arg[:9] in ['path_prj','name_prj','path_bio']:
                 all_arg.remove(arg)
 
         try:
-            if not os.path.exists(path1):
-                print('Error: the reference file does not exist or there is a typo in the file path')
+            if not os.path.exists(ref_name):
+                print('Error: the reference file does not exist or there is a typo in the file path provided')
                 return
         except NameError:
             print('Error: you have not given the argument ref_file')
             return
         try:
-            if not os.path.exists(path2):
-                print('Error: the test file does not exist or there is a typo in the file path')
+            if not os.path.exists(test_name):
+                print('Error: the test file does not exist or there is a typo in the file path provided')
                 return
         except NameError:
             print('Error: you have not given the argument test_file')
             return
-        file1 = h5py.File(path1, 'r')
-        file2 = h5py.File(path2, 'r')
 
         if len(all_arg) !=3:
             #If there are any arguments other than the command name, ref_file, test_file, path_prj, name_prj and
             # path_bio, the program should give an error message
-            print('COMPARE_TEST_FILE takes 2 arguments: ref_file and test_file')
+            print('COMPARE_FILE takes 2 arguments: ref_file and test_file, as well as the options path_prj, '
+                  'name_prj and path_bio')
             return
 
-
-        global dataset_names
-        dataset_names=[]
-        def get_dataset_names(name1, object):
-            global dataset_names
-            if type(object) == h5py._hl.dataset.Dataset:
-                dataset_names += [name1]
-        file1.visititems(get_dataset_names)
-        dataset_names1=dataset_names
-        dataset_names=[]
-        file2.visititems(get_dataset_names)
-        dataset_names2=dataset_names
+        file1 = h5py.File(ref_name, 'r')
+        file2 = h5py.File(test_name, 'r')
+        # global dataset_names
+        # dataset_names=[]
+        # def get_dataset_names(name1, object):
+        #     global dataset_names
+        #     if type(object) == h5py._hl.dataset.Dataset:
+        #         dataset_names += [name1]
+        # file1.visititems(get_dataset_names)
+        dataset_names1=hdf5_mod.get_dataset_names(file1)
+        # dataset_names=[]
+        # file2.visititems(get_dataset_names)
+        dataset_names2=hdf5_mod.get_dataset_names(file2)
         if dataset_names1!=dataset_names2:
             print("The files contain different datasets")
         else:
-            equal=True
-            for name in dataset_names1:
-                if np.any(file1[name][()]!=file2[name][()]):
-                    equal=False
-            if equal:
+            if hdf5_mod.datasets_are_equal(file1,file2):
                 print("The files are equal")
-            elif not equal:
+            else:
                 print("The files are different")
 
+    # ----------------------------------------------------------------------------------
+    elif all_arg[0]=="COMPARE_DIR":
+        #Compares a test folder to a reference folder, and determines whether the test folder contains all the hdf5 files
+        #of the reference folder, and if the corresponding files are identical
+        for arg in all_arg:
+            if arg[:9]=='ref_path=':
+                ref_path=arg[9:]
+                if ref_path[-1]=='\\':
+                    ref_path=ref_path[:-1]
+            if arg[:10]=='test_path=':
+                test_path=arg[10:]
+                if test_path[-1]=='\\':
+                    test_path=test_path[:-1]
+            if arg[:9] in ['path_prj','name_prj','path_bio']:
+                all_arg.remove(arg)
 
+        try:
+            if not os.path.isdir(ref_path):
+                print("The path provided for the reference folder does not exist, or it has a typo")
+                return
+        except NameError:
+            print("Error: you have not given the argument ref_path")
+        try:
+            if not os.path.isdir(test_path):
+                print("The path provided for the test folder does not exist, or it has a typo")
+                return
+        except NameError:
+            print("Error: you have not given the argument test_path")
+
+        if len(all_arg) !=3:
+            #If there are too many arguments or not enough, this message should be displayed
+            print('COMPARE_DIR takes 2 arguments: ref_path and test_path, as well as the options path_prj, '
+                  'name_prj and path_bio')
+            return
+
+        ref_filenames=(hdf5_mod.get_all_filename(ref_path,".hyd")+hdf5_mod.get_all_filename(ref_path,".sub")+
+                       hdf5_mod.get_all_filename(ref_path,".hab")+hdf5_mod.get_all_filename(ref_path,".h5"))
+        #files with the above extensions are assumed to be hdf5 files
+
+        n_total=len(ref_filenames)
+        n_missing=0
+        n_different=0
+        for filename in ref_filenames:
+
+            if not os.path.exists(test_path +'/'+ filename):
+                n_missing+=1
+            else:
+                test_file=h5py.File(test_path +'/'+ filename,'r')
+                ref_file=h5py.File(ref_path +'/'+ filename,'r')
+                dataset_names1 = hdf5_mod.get_dataset_names(ref_file)
+                dataset_names2 = hdf5_mod.get_dataset_names(test_file)
+                if not hdf5_mod.datasets_are_equal(ref_file,test_file):
+                    n_different+=1
+
+        if n_missing==0 and n_different==0:
+            print("Good! Every hdf5 file from the reference folder has an equal file in the test folder.")
+
+        else:
+            print("There is a divergence between the test and reference folders. Out of "
+                  ,n_total,"files in the reference folder, ",n_missing," are missing from the test folder, and "
+                  ,n_different," have different values in the test and reference folders")
+
+    # ----------------------------------------------------------------------------------
     else:
         #print(all_arg, name_prj, path_prj, path_bio)
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
@@ -1287,7 +1354,7 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     the input files remplace by \*.ext . where ext is the extension of the files.
     It is better to not add an output name. Indeed default name for output includes the input file name, which
     is practical if different files are given as input. If the default
-    is overided, the same name will be applied, only the units will be different. To be sure to not overwrite a
+    is overridden, the same name will be applied, only the units will be different. To be sure to not overwrite a
     file, this function waits one second between each command. Only the input argument should containts the string '\*'.
     Otherwise, other commands would be treated as input files.
 
