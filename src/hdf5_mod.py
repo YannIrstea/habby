@@ -461,7 +461,6 @@ class Hdf5Management:
 
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
-                    mesh_data_group = mesh_group.create_group('data')
                     mesh_group.create_dataset(name="tin",
                                               shape=data_2d[reach_num][unit_num]["mesh"]["tin"].shape,
                                               data=data_2d[reach_num][unit_num]["mesh"]["tin"])
@@ -470,9 +469,14 @@ class Hdf5Management:
                                               data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
                     for mesh_variable in hyd_description["hyd_mesh_variables_list"].split(", "):
                         if mesh_variable:
-                            mesh_data_group.create_dataset(name=mesh_variable,
-                                                           shape=data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable].shape,
-                                                           data=data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable])
+                            mesh_data_dataset = mesh_group.create_dataset(name="data",
+                                                                     shape=data_2d[reach_num][unit_num]["mesh"][
+                                                                         "data"].shape,
+                                                                     data=data_2d[reach_num][unit_num]["mesh"]["data"],
+                                                                     dtype=data_2d[reach_num][unit_num]["mesh"][
+                                                                         "data"].dtype)
+                            mesh_data_dataset.attrs["unit"] = list(data_2d[reach_num][unit_num]["mesh"]["data"].dtype.fields.keys())[1::2]
+
                     # NODE GROUP
                     node_group = unit_group.create_group('node')
                     node_group.create_dataset(name="xy",
@@ -481,24 +485,12 @@ class Hdf5Management:
                     node_group.create_dataset(name="z",
                                               shape=data_2d[reach_num][unit_num]["node"]["z"].shape,
                                               data=data_2d[reach_num][unit_num]["node"]["z"])
-                    # float dataset
-
-                    float_data_pandas = data_2d[reach_num][unit_num]["node"]["data"].select_dtypes(include=[float])
-                    float_data_pandas["h"].attrs
-                    float_data_pandas["h"].attrs_maison
-                    float_data_pandas["h"]._metadata
-
-
-                    float_colname_list = list(float_data_pandas.columns)
-                    float_unit_list = [float_data_pandas[colname].attrs for colname in float_colname_list]
-                    float_colname_list = list(float_data_pandas.columns)
-
-                    data_2d[reach_num][unit_num]["node"]["data"].select_dtypes(include=[int]).to_numpy()
-                    # for node_variable in hyd_description["hyd_node_variables_list"].split(", "):
-                    #     if node_variable:
-                    #         node_data_group.create_dataset(name=node_variable,
-                    #                                        shape=data_2d[reach_num][unit_num]["node"]["data"][node_variable].shape,
-                    #                                        data=data_2d[reach_num][unit_num]["node"]["data"][node_variable])
+                    node_data_dataset = node_group.create_dataset(name="data",
+                                              shape=data_2d[reach_num][unit_num]["node"]["data"].shape,
+                                              data=data_2d[reach_num][unit_num]["node"]["data"],
+                                            dtype=data_2d[reach_num][unit_num]["node"]["data"].dtype)
+                    raw_variable_unit_list = list(data_2d[reach_num][unit_num]["node"]["data"].dtype.fields.keys())[1::2]
+                    node_data_dataset.attrs["unit"] = [varible_unit[2:] for varible_unit in raw_variable_unit_list]
 
         # get extent
         xMin = min(xMin)
@@ -631,14 +623,18 @@ class Hdf5Management:
                     struct_variable = list(self.file_object[struct_type_group].keys())
                     for struct_variable_name in struct_variable:
                         if struct_variable_name == "data":
-                            # group name
-                            data_group = struct_type_group + "/" + struct_variable_name
+                            # # group name
+                            # data_group = struct_type_group + "/" + struct_variable_name
+                            #
+                            # # for each hyd_variable (h, v, ...)
+                            # hyd_variable_list = list(self.file_object[data_group].keys())
+                            # for hyd_variable_name in hyd_variable_list:
+                            #     variable_dataset = self.file_object[data_group + "/" + hyd_variable_name][:]
+                            #     data_2d[struct_type_name][struct_variable_name][hyd_variable_name][reach_num].append(variable_dataset)
 
-                            # for each hyd_variable (h, v, ...)
-                            hyd_variable_list = list(self.file_object[data_group].keys())
-                            for hyd_variable_name in hyd_variable_list:
-                                variable_dataset = self.file_object[data_group + "/" + hyd_variable_name][:]
-                                data_2d[struct_type_name][struct_variable_name][hyd_variable_name][reach_num].append(variable_dataset)
+                            # data_dataset
+                            data_dataset = struct_type_group + "/" + struct_variable_name
+                            data_2d[struct_type_name][struct_variable_name] = self.file_object[data_dataset][:]
                         else:
                             struct_dataset = self.file_object[struct_type_group + "/" + struct_variable_name][:]
                             data_2d[struct_type_name][struct_variable_name][reach_num].append(struct_dataset)

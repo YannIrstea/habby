@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 import os
 import numpy as np
-import pandas as pd
+import sys
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
 
@@ -315,48 +315,40 @@ class HydraulicSimulationResults:
         for reach_num in range(len(self.reach_name_list)):
             data_2d.append([])
             for unit_num in range(len(self.timestep_name_wish_list)):
-                # node
-                column_data_list = []
-                column_name_list = []
-                for node_variable_index, node_variable_name in enumerate(self.hvum.final_node_variable_name_list):
-                    column_data_list.append(getattr(self.hvum, node_variable_name).data[reach_num][unit_num])
-                    column_name_list.append(node_variable_name)
-                if column_data_list:
-                    node_data_pandas = pd.DataFrame(np.vstack(column_data_list).T,
-                                                    columns=column_name_list,
-                                                    index=list(range(len(column_data_list[0]))))
-                    node_data_pandas._metadata.append('unit')
-                    # units
+                """ node """
+                node_total_nb = self.hvum.xy.data[reach_num][unit_num].shape[0]
+                if self.hvum.final_node_variable_name_list:
+                    # preffix string added to unit (if duplicate numpy don't like it)
+                    dtype_list = [((str(node_variable_index) + "_" + getattr(self.hvum, node_variable_name).unit, node_variable_name), getattr(self.hvum, node_variable_name).dtype) for node_variable_index, node_variable_name in enumerate(self.hvum.final_node_variable_name_list)]
+                    node_data_array = np.zeros(shape=(node_total_nb,),
+                                               dtype=dtype_list)  # structured array
                     for node_variable_name in self.hvum.final_node_variable_name_list:
-                        node_data_pandas[node_variable_name].unit = dict(unit=getattr(self.hvum, node_variable_name).unit)
-                        node_data_pandas[node_variable_name].attrs.update({'unit' : getattr(self.hvum, node_variable_name).unit})
-
+                        node_data_array[node_variable_name] = getattr(self.hvum, node_variable_name).data[reach_num][unit_num]
                 else:
-                    node_data_pandas = None
-                # mesh
-                column_data_list = []
-                column_name_list = []
-                # node
-                for mesh_variable_index, mesh_variable_name in enumerate(self.hvum.final_mesh_variable_name_list):
-                    column_data_list.append(getattr(self.hvum, mesh_variable_name).data[reach_num][unit_num])
-                    column_name_list.append(mesh_variable_name)
-                if column_data_list:
-                    mesh_data_pandas = pd.DataFrame(np.vstack(column_data_list).T,
-                                                    columns=column_name_list,
-                                                    index=list(range(len(column_data_list[0]))))
-                    # units
+                    node_data_array = None
+
+                """ mesh """
+                mesh_total_nb = self.hvum.tin.data[reach_num][unit_num].shape[0]
+                if self.hvum.final_mesh_variable_name_list:
+                    # preffix string added to unit (if duplicate numpy don't like it)
+                    dtype_list = [((str(mesh_variable_index) + "_" + getattr(self.hvum, mesh_variable_name).unit, mesh_variable_name), getattr(self.hvum, mesh_variable_name).dtype) for mesh_variable_index, mesh_variable_name in enumerate(self.hvum.final_mesh_variable_name_list)]
+                    mesh_data_array = np.zeros(shape=(mesh_total_nb,),
+                                               dtype=dtype_list)  # structured array
                     for mesh_variable_name in self.hvum.final_mesh_variable_name_list:
-                        mesh_data_pandas[mesh_variable_name].attrs = dict(unit=getattr(self.hvum, mesh_variable_name).unit)
+                        mesh_data_array[mesh_variable_name] = getattr(self.hvum, mesh_variable_name).data[reach_num][unit_num]
                 else:
-                    mesh_data_pandas = None
+                    mesh_data_array = None
 
-                unit_dict = dict(mesh=dict(data=mesh_data_pandas,
+                """ unit_dict """
+                unit_dict = dict(mesh=dict(data=mesh_data_array,
                                            whole_profile=None,
                                            tin=self.hvum.tin.data[reach_num][unit_num]),
-                                 node=dict(data=node_data_pandas,
+                                 node=dict(data=node_data_array,
                                            xy=self.hvum.xy.data[reach_num][unit_num],
                                            z=self.hvum.z.data[reach_num][unit_num]))
                 data_2d[reach_num].append(unit_dict)
+
+        data_2d.get_informations()
 
         # description telemac data_2d dict
         description_from_file = dict()
@@ -371,41 +363,11 @@ class HydraulicSimulationResults:
         return data_2d, description_from_file
 
 
-    # def get_data_2d_dict(self):
-    #     # create empty dict
-    #     data_2d = dict()
-    #
-    #     # mesh
-    #     data_2d["mesh"] = dict()
-    #     data_2d["mesh"]["tin"] = self.hvum.tin.data
-    #     data_2d["mesh"]["data"] = dict()
-    #     # node
-    #     data_2d["node"] = dict()
-    #     data_2d["node"]["xy"] = self.hvum.xy.data
-    #     data_2d["node"]["z"] = self.hvum.z.data
-    #     data_2d["node"]["data"] = dict()
-    #     # variables
-    #     for variable in self.hvum.final_variable_list:
-    #         data_2d[variable.position]["data"][variable.name] = variable.data
-    #
-    #     # description telemac data_2d dict
-    #     description_from_file = dict()
-    #     description_from_file["filename_source"] = self.filename
-    #     description_from_file["model_type"] = self.model_type
-    #     description_from_file["model_dimension"] = str(2)
-    #     description_from_file["unit_list"] = ", ".join(self.timestep_name_wish_list)
-    #     description_from_file["unit_number"] = str(self.timestep_wish_nb)
-    #     description_from_file["unit_type"] = "time [s]"
-    #     description_from_file["unit_z_equal"] = self.unit_z_equal
-    #
-    #     return data_2d, description_from_file
-
-
 class Data2d(list):
     def __init__(self):
+        super().__init__()
         self.reach_num = 0
         self.unit_num = 0
-        super().__init__()
 
     def get_informations(self):
         self.reach_num = len(self)
@@ -421,7 +383,7 @@ class Data2d(list):
         for reach_num in range(self.reach_num):
             whole_profile.append([])
             for unit_num in range(self.unit_num):
-                whole_profile[unit_num].append(dict(mesh=dict(tin=self[reach_num][unit_num]["mesh"]["tin"]),
+                whole_profile[reach_num].append(dict(mesh=dict(tin=self[reach_num][unit_num]["mesh"]["tin"]),
                                  node=dict(xy=self[reach_num][unit_num]["node"]["xy"],
                                            z=self[reach_num][unit_num]["node"]["z"])))
         return whole_profile
@@ -486,8 +448,8 @@ class Data2d(list):
                 ikle = self[reach_num][unit_num]["mesh"]["tin"]
                 point_all = np.column_stack((self[reach_num][unit_num]["node"]["xy"],
                                  self[reach_num][unit_num]["node"]["z"]))
-                water_height = self[reach_num][unit_num]["node"]["data"]["h"].to_numpy()
-                velocity = self[reach_num][unit_num]["node"]["data"]["v"].to_numpy()
+                water_height = self[reach_num][unit_num]["node"]["data"]["h"]
+                velocity = self[reach_num][unit_num]["node"]["data"]["v"]
 
                 # is_duplicates_mesh_and_point_on_one_unit?
                 if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
@@ -653,8 +615,22 @@ class Data2d(list):
                 self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
                 self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
                 self[reach_num][unit_num]["node"]["z"] = point_all_ok[:, 2]
-                self[reach_num][unit_num]["node"]["data"]["h"].replace(water_height_ok, inplace=True)
-                self[reach_num][unit_num]["node"]["data"]["v"].replace(velocity_ok, inplace=True)
+
+                # recreate new structured array
+                nodes_dtypes_list = self[reach_num][unit_num]["node"]["data"].dtype
+                node_data_array = np.zeros(shape=(water_height_ok.shape[0],),
+                                           dtype=nodes_dtypes_list)  # structured array
+
+                # TODO: remove specific variables replacement
+                node_data_array["h"] = water_height_ok
+                node_data_array["v"] = velocity_ok
+                # # TODO: loop on variables
+                # nodes_name_list = [element_list[0][1] for element_list in nodes_dtypes_list.descr]
+                # for node_variable_name in nodes_name_list:
+                #     node_data_array[node_variable_name] = array..
+
+                # replace old by new structured array
+                self[reach_num][unit_num]["node"]["data"] = node_data_array
 
                 #  unit_list_cuted
                 self.unit_list_cuted[reach_num].append(unit_name)
@@ -662,16 +638,3 @@ class Data2d(list):
                 # progress
                 progress_value.value += int(deltaunit)
 
-
-# class DataFrameHabby(pd.DataFrame):
-#
-#     # temporary properties
-#     _internal_names = pd.DataFrame._internal_names + ['internal_cache']
-#     _internal_names_set = set(_internal_names)
-#
-#     # normal properties
-#     _metadata = ['added_property']
-#
-# @property
-# def _constructor(self):
-#     return DataFrameHabby
