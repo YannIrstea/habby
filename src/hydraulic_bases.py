@@ -322,7 +322,7 @@ class HydraulicSimulationResults:
                     column_data_list.append(getattr(self.hvum, node_variable_name).data[reach_num][unit_num])
                     column_name_list.append(node_variable_name)
                 if column_data_list:
-                    node_data_pandas = DataFrameHabby(np.vstack(column_data_list).T,
+                    node_data_pandas = pd.DataFrame(np.vstack(column_data_list).T,
                                                     columns=column_name_list,
                                                     index=list(range(len(column_data_list[0]))))
                     node_data_pandas._metadata.append('unit')
