@@ -341,7 +341,7 @@ class HydraulicSimulationResults:
 
                 """ unit_dict """
                 unit_dict = dict(mesh=dict(data=mesh_data_array,
-                                           whole_profile=None,
+                                           i_whole_profile=None,
                                            tin=self.hvum.tin.data[reach_num][unit_num]),
                                  node=dict(data=node_data_array,
                                            xy=self.hvum.xy.data[reach_num][unit_num],

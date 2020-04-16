@@ -960,9 +960,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                     height_process = Process(target=plot_mod.plot_map_height,
                                                              args=(
                                                                  state,
-                                                                 hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                                                 hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                 hdf5.data_2d["node"]["data"]["h"][reach_num][unit_num],
+                                                                 hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                                 hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                 hdf5.data_2d[reach_num][unit_num]["node"]["data"]["h"],
                                                                  plot_string_dict,
                                                                  data_description,
                                                                  project_preferences

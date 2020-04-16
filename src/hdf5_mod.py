@@ -39,6 +39,7 @@ from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_v
     c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level,\
     c_mesh_area, create_empty_data_2d_dict, copy_shapefiles, create_empty_data_2d_whole_profile_dict,\
     check_data_2d_dict_validity
+from src.hydraulic_bases import Data2d
 
 from habby import HABBY_VERSION_STR
 
@@ -551,6 +552,8 @@ class Hdf5Management:
             else:
                 hyd_description[attribute_name] = attribute_value
 
+
+
         # dataset for unit_list
         hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
         hyd_description["unit_correspondence"] = self.file_object["unit_correspondence"][:].transpose().tolist()
@@ -588,23 +591,15 @@ class Hdf5Management:
                             data_2d_whole_profile[variable_type_name][variable_mesh_name][reach_num].append(variable_dataset)
 
         # DATA 2D
-        hyd_mesh_variables_list = hyd_description["hyd_mesh_variables_list"].split(", ")
-        if hyd_mesh_variables_list == ['']:
-            hyd_mesh_variables_list = []
-        hyd_node_variables_list = hyd_description["hyd_node_variables_list"].split(", ")
-        if hyd_node_variables_list == ['']:
-            hyd_node_variables_list = []
+        data_2d = Data2d()
 
-        # create dict
-        data_2d = create_empty_data_2d_dict(int(hyd_description['hyd_reach_number']),
-                                            mesh_variables=hyd_mesh_variables_list,
-                                            node_variables=hyd_node_variables_list)
         data_2d_group = 'data_2d'
         # for each reach
         reach_list = list(self.file_object[data_2d_group].keys())
         for reach_num, reach_group_name in enumerate(reach_list):
             # group name
             reach_group = data_2d_group + "/" + reach_group_name
+            data_2d.append([])
 
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
@@ -612,32 +607,42 @@ class Hdf5Management:
             for unit_group_name in desired_units_list:
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
+                """ mesh """
+                # group
+                mesh_group = unit_group + "/mesh"
+                # data
+                if mesh_group + "/data" in self.file_object:
+                    mesh_data_array = self.file_object[mesh_group + "/data"][:]
+                else:
+                    mesh_data_array = None
+                # i_whole_profile
+                i_whole_profile = self.file_object[mesh_group + "/i_whole_profile"][:]
+                # tin
+                tin = self.file_object[mesh_group + "/tin"][:]
 
-                # for each variable_type (mesh or node or another in the future ?)
-                struct_type_list = list(self.file_object[unit_group].keys())
-                for struct_type_name in struct_type_list:
-                    # group name
-                    struct_type_group = unit_group + "/" + struct_type_name
+                """ node """
+                # group
+                node_group = unit_group + "/node"
+                # data
+                if node_group + "/data" in self.file_object:
+                    node_data_array = self.file_object[node_group + "/data"][:]
+                else:
+                    node_data_array = None
+                # xy
+                xy = self.file_object[node_group + "/xy"][:]
+                # z
+                z = self.file_object[node_group + "/z"][:]
 
-                    # for each struct_variable (data, i_whole_profile, tin, xy, z)
-                    struct_variable = list(self.file_object[struct_type_group].keys())
-                    for struct_variable_name in struct_variable:
-                        if struct_variable_name == "data":
-                            # # group name
-                            # data_group = struct_type_group + "/" + struct_variable_name
-                            #
-                            # # for each hyd_variable (h, v, ...)
-                            # hyd_variable_list = list(self.file_object[data_group].keys())
-                            # for hyd_variable_name in hyd_variable_list:
-                            #     variable_dataset = self.file_object[data_group + "/" + hyd_variable_name][:]
-                            #     data_2d[struct_type_name][struct_variable_name][hyd_variable_name][reach_num].append(variable_dataset)
+                # unit_dict
+                unit_dict = dict(mesh=dict(data=mesh_data_array,
+                                           i_whole_profile=i_whole_profile,
+                                           tin=tin),
+                                 node=dict(data=node_data_array,
+                                           xy=xy,
+                                           z=z))
+                data_2d[reach_num].append(unit_dict)
 
-                            # data_dataset
-                            data_dataset = struct_type_group + "/" + struct_variable_name
-                            data_2d[struct_type_name][struct_variable_name] = self.file_object[data_dataset][:]
-                        else:
-                            struct_dataset = self.file_object[struct_type_group + "/" + struct_variable_name][:]
-                            data_2d[struct_type_name][struct_variable_name][reach_num].append(struct_dataset)
+        data_2d.get_informations()
 
         # close file
         self.file_object.close()
