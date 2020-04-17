@@ -17,6 +17,8 @@ https://github.com/YannIrstea/habby
 import os
 import numpy as np
 import sys
+import pandas as pd
+
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
 
@@ -43,9 +45,13 @@ class HydraulicVariableUnitManagement:
         self.usefull_variable_mesh_detected_list = []
         self.final_mesh_variable_name_list = []
         self.final_node_variable_name_list = []
+        # original and computable
+        self.node_variable_original_list = HydraulicVariableUnitList()
+        self.mesh_variable_original_list = HydraulicVariableUnitList()
+        self.node_variable_computable_list = HydraulicVariableUnitList()
+        self.mesh_variable_computable_list = HydraulicVariableUnitList()
         # init
         self.v_x_and_v_y_presence = False
-
 
         # fixed values
         self.ro = HydraulicVariable(value=999.7,
@@ -146,20 +152,16 @@ class HydraulicVariableUnitManagement:
                                      name_gui="substrate",
                                      dtype=np.int64)
 
-    def set_existing_attributes_list(self, name, attribute_list, position):
+        # all_available_variables_list
+        self.all_available_variables_list = HydraulicVariableUnitList()
+        for name in vars(self):
+            if type(getattr(self, name)) == HydraulicVariable:
+                self.all_available_variables_list.append(getattr(self, name))
+
+    def set_existing_attributes_list(self, name, attribute_list=[], position=None):
         getattr(self, name).existing_attributes_list = attribute_list
         getattr(self, name).position = position
         self.usefull_variable_wish_list.append(getattr(self, name))
-
-    def remove_variable_from(self, usefull, final, variable_name):
-        if usefull:
-            variable_name_list = [variable.name for variable in self.usefull_variable_detected_list]
-            variable_index = variable_name_list.index(variable_name)
-            self.usefull_variable_detected_list.pop(variable_index)
-        if final:
-            variable_name_list = [variable.name for variable in self.final_variable_list]
-            variable_index = variable_name_list.index(variable_name)
-            self.final_variable_list.pop(variable_index)
 
     def get_available_variables_from_source(self, varnames):
         # get_available_variables_from_source
@@ -209,6 +211,77 @@ class HydraulicVariableUnitManagement:
                 self.final_node_variable_name_list.append(final_variable.name)
             elif final_variable.position == "mesh":
                 self.final_mesh_variable_name_list.append(final_variable.name)
+
+    def get_original_computable_mesh_and_node_from_original_name(self, mesh_variable_original_name_list, node_variable_original_name_list):
+        """ mesh """
+        for mesh_variable_original_name in mesh_variable_original_name_list:
+            self.mesh_variable_original_list.append(getattr(self, mesh_variable_original_name))
+
+        """ node """
+        for node_variable_original_name in node_variable_original_name_list:
+            self.node_variable_original_list.append(getattr(self, node_variable_original_name))
+
+        # get_computable_mesh_and_node_from_original
+        self.get_computable_mesh_and_node_from_original()
+
+    def get_computable_mesh_and_node_from_original(self):
+        """ mesh """
+        # fix (always v, h, z at node)
+        self.mesh_variable_computable_list.extend([self.v, self.h,
+                                                   self.level, self.froude, self.hydraulic_head, self.conveyance,
+                                                   self.max_slope_bottom, self.max_slope_energy, self.shear_stress])
+
+        """ node """
+        # fix (always v, h, z at node)
+        self.node_variable_computable_list.extend([self.level, self.froude, self.hydraulic_head, self.conveyance])
+
+    def get_original_computable_mesh_and_node_from_dict_gui(self, dict_gui):
+        self.mesh_variable_original_list = [
+            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+            in dict_gui["mesh_variable_original_list"]]
+        self.node_variable_original_list = [
+            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+            in dict_gui["node_variable_original_list"]]
+        self.mesh_variable_computable_list = [
+            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+            in dict_gui["mesh_variable_computable_list"]]
+        self.node_variable_computable_list = [
+            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+            in dict_gui["node_variable_computable_list"]]
+        # compute_total_original_computable_number
+        self.compute_total_original_computable_number()
+
+    def compute_total_original_computable_number(self):
+        self.total_original_computable_number = len(self.mesh_variable_original_list) + \
+                                                len(self.node_variable_original_list) + \
+                                                len(self.mesh_variable_computable_list) + \
+                                                len(self.node_variable_computable_list)
+        # TODO: habitat variables
+        self.total_habitat_variable_number = 0
+
+
+class HydraulicVariableUnitList(list):
+    def __init__(self):
+        super().__init__()
+        self.names = []
+        self.names_gui = []
+        self.unit = []
+        self.dtype = []
+
+    def append(self, hydraulic_variable):
+        super(HydraulicVariableUnitList, self).append(hydraulic_variable)
+        self.names.append(hydraulic_variable.name)
+        self.names_gui.append(hydraulic_variable.name_gui)
+        self.unit.append(hydraulic_variable.unit)
+        self.dtype.append(hydraulic_variable.dtype)
+
+    def extend(self, hydraulic_variable_list):
+        super(HydraulicVariableUnitList, self).append(hydraulic_variable_list)
+        for hydraulic_variable in hydraulic_variable_list:
+            self.names.append(hydraulic_variable.name)
+            self.names_gui.append(hydraulic_variable.name_gui)
+            self.unit.append(hydraulic_variable.unit)
+            self.dtype.append(hydraulic_variable.dtype)
 
 
 class HydraulicModelInformation:
@@ -305,7 +378,7 @@ class HydraulicSimulationResults:
         # coordinates
         self.unit_z_equal = False
 
-    def get_data_2d_dict(self):
+    def get_data_2d(self):
         # remove z from final
         self.hvum.final_node_variable_name_list.remove(self.hvum.z.name)
 
@@ -316,32 +389,20 @@ class HydraulicSimulationResults:
             data_2d.append([])
             for unit_num in range(len(self.timestep_name_wish_list)):
                 """ node """
-                node_total_nb = self.hvum.xy.data[reach_num][unit_num].shape[0]
+                node_data_array = pd.DataFrame()
                 if self.hvum.final_node_variable_name_list:
-                    # preffix string added to unit (if duplicate numpy don't like it)
-                    dtype_list = [((str(node_variable_index) + "_" + getattr(self.hvum, node_variable_name).unit, node_variable_name), getattr(self.hvum, node_variable_name).dtype) for node_variable_index, node_variable_name in enumerate(self.hvum.final_node_variable_name_list)]
-                    node_data_array = np.zeros(shape=(node_total_nb,),
-                                               dtype=dtype_list)  # structured array
                     for node_variable_name in self.hvum.final_node_variable_name_list:
                         node_data_array[node_variable_name] = getattr(self.hvum, node_variable_name).data[reach_num][unit_num]
-                else:
-                    node_data_array = None
 
                 """ mesh """
-                mesh_total_nb = self.hvum.tin.data[reach_num][unit_num].shape[0]
+                mesh_data_array = pd.DataFrame()
                 if self.hvum.final_mesh_variable_name_list:
-                    # preffix string added to unit (if duplicate numpy don't like it)
-                    dtype_list = [((str(mesh_variable_index) + "_" + getattr(self.hvum, mesh_variable_name).unit, mesh_variable_name), getattr(self.hvum, mesh_variable_name).dtype) for mesh_variable_index, mesh_variable_name in enumerate(self.hvum.final_mesh_variable_name_list)]
-                    mesh_data_array = np.zeros(shape=(mesh_total_nb,),
-                                               dtype=dtype_list)  # structured array
                     for mesh_variable_name in self.hvum.final_mesh_variable_name_list:
                         mesh_data_array[mesh_variable_name] = getattr(self.hvum, mesh_variable_name).data[reach_num][unit_num]
-                else:
-                    mesh_data_array = None
 
                 """ unit_dict """
                 unit_dict = dict(mesh=dict(data=mesh_data_array,
-                                           i_whole_profile=None,
+                                           i_whole_profile=None,  # np.arange(self.hvum.tin.data[reach_num][unit_num].shape[0])
                                            tin=self.hvum.tin.data[reach_num][unit_num]),
                                  node=dict(data=node_data_array,
                                            xy=self.hvum.xy.data[reach_num][unit_num],
@@ -359,6 +420,7 @@ class HydraulicSimulationResults:
         description_from_file["unit_number"] = str(self.timestep_wish_nb)
         description_from_file["unit_type"] = "time [s]"
         description_from_file["unit_z_equal"] = self.unit_z_equal
+        # description_from_file["variables"] = []
 
         return data_2d, description_from_file
 
@@ -448,8 +510,8 @@ class Data2d(list):
                 ikle = self[reach_num][unit_num]["mesh"]["tin"]
                 point_all = np.column_stack((self[reach_num][unit_num]["node"]["xy"],
                                  self[reach_num][unit_num]["node"]["z"]))
-                water_height = self[reach_num][unit_num]["node"]["data"]["h"]
-                velocity = self[reach_num][unit_num]["node"]["data"]["v"]
+                water_height = self[reach_num][unit_num]["node"]["data"]["h"].to_numpy()
+                # velocity = self[reach_num][unit_num]["node"]["data"]["v"].to_numpy()
 
                 # is_duplicates_mesh_and_point_on_one_unit?
                 if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
@@ -479,7 +541,7 @@ class Data2d(list):
                     iklekeep = ikle
                     point_all_ok = point_all
                     water_height_ok = water_height
-                    velocity_ok = velocity
+                    # velocity_ok = velocity
                     ind_whole = ind_whole  # TODO: full whole profile
                 # all meshes are entirely dry
                 elif not True in mikle_keep2:
@@ -576,7 +638,10 @@ class Data2d(list):
 
                 point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
                 water_height_ok = water_height[ipt_iklenew_unique]
-                velocity_ok = velocity[ipt_iklenew_unique]
+                # change all node dataframe
+                # velocity_ok = velocity[ipt_iklenew_unique]
+                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[ipt_iklenew_unique]
+
                 ipt_old_new = np.array([-1] * len(point_all), dtype=typeikle)
                 for i, point_index in enumerate(ipt_iklenew_unique):
                     ipt_old_new[point_index] = i
@@ -608,29 +673,18 @@ class Data2d(list):
 
                     # all the new points added have water_height,velocity=0,0
                     water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
-                    velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
+                    # velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
+                    # new pandas dataframe (to be added to the end)
+                    zero_pd = pd.DataFrame(0, index=np.arange(lpns - nbdouble),
+                                 columns=self[reach_num][unit_num]["node"]["data"].columns.values)
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].append(zero_pd)
+                    self[reach_num][unit_num]["node"]["data"]["h"] = water_height_ok
 
                 # erase old data
                 self[reach_num][unit_num]["mesh"]["tin"] = iklekeep
                 self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
                 self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
                 self[reach_num][unit_num]["node"]["z"] = point_all_ok[:, 2]
-
-                # recreate new structured array
-                nodes_dtypes_list = self[reach_num][unit_num]["node"]["data"].dtype
-                node_data_array = np.zeros(shape=(water_height_ok.shape[0],),
-                                           dtype=nodes_dtypes_list)  # structured array
-
-                # TODO: remove specific variables replacement
-                node_data_array["h"] = water_height_ok
-                node_data_array["v"] = velocity_ok
-                # # TODO: loop on variables
-                # nodes_name_list = [element_list[0][1] for element_list in nodes_dtypes_list.descr]
-                # for node_variable_name in nodes_name_list:
-                #     node_data_array[node_variable_name] = array..
-
-                # replace old by new structured array
-                self[reach_num][unit_num]["node"]["data"] = node_data_array
 
                 #  unit_list_cuted
                 self.unit_list_cuted[reach_num].append(unit_name)

@@ -1532,8 +1532,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hydrau_description[hdf5_file_index]["unit_list"] = data_2d.unit_list_cuted
         hydrau_description[hdf5_file_index]["unit_number"] = len(data_2d.unit_list_cuted)
 
-
-
         # progress
         progress_value.value = 90
 
@@ -1544,8 +1542,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_model_type"] = hydrau_description[hdf5_file_index]["model_type"]
         hyd_description["hyd_2D_numerical_method"] = "FiniteElementMethod"
         hyd_description["hyd_model_dimension"] = hydrau_description[hdf5_file_index]["model_dimension"]
-        hyd_description["hyd_mesh_variables_list"] = ", ".join(hydrau_description[hdf5_file_index]["variable_mesh_detected_list"])
-        hyd_description["hyd_node_variables_list"] = ", ".join(hydrau_description[hdf5_file_index]["variable_node_detected_list"])
+        hyd_description["hyd_mesh_variables_list"] = hydrau_description[hdf5_file_index]["variable_mesh_detected_list"]
+        hyd_description["hyd_node_variables_list"] = hydrau_description[hdf5_file_index]["variable_node_detected_list"]
         hyd_description["hyd_epsg_code"] = hydrau_description[hdf5_file_index]["epsg_code"]
         hyd_description["hyd_reach_list"] = hydrau_description[hdf5_file_index]["reach_list"]
         hyd_description["hyd_reach_number"] = hydrau_description[hdf5_file_index]["reach_number"]

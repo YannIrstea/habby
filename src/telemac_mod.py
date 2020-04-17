@@ -141,8 +141,8 @@ class TelemacResult(HydraulicSimulationResults):
 
             self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
 
-        #return self.get_data_2d_dict()
-        return self.get_data_2d_dict()
+        #return self.get_data_2d()
+        return self.get_data_2d()
 
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):

@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -39,7 +39,7 @@ from src.tools_mod import txt_file_convert_dot_to_comma, c_mesh_mean_from_node_v
     c_mesh_conveyance, c_node_conveyance, c_node_froude, c_node_hydraulic_head, c_node_water_level, c_mesh_water_level,\
     c_mesh_area, create_empty_data_2d_dict, copy_shapefiles, create_empty_data_2d_whole_profile_dict,\
     check_data_2d_dict_validity
-from src.hydraulic_bases import Data2d
+from src.hydraulic_bases import Data2d, HydraulicVariableUnitManagement
 
 from habby import HABBY_VERSION_STR
 
@@ -59,7 +59,8 @@ class Hdf5Management:
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
-        # variables
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
         self.hyd_variables = ["elevation", "water_height", "water_velocity", "water_level",
                                "froude_number", "hydraulic_head", "conveyance",
                               "max_slope_bottom", "max_slope_energy", "shear_stress"]
@@ -224,7 +225,14 @@ class Hdf5Management:
             """ get_2D_variables """
             # hydraulic
             if self.hdf5_type == "hydraulic":
-                pass
+                # self.hvum.
+                self.hvum.get_original_computable_mesh_and_node_from_original_name(hdf5_attributes_dict["hyd_mesh_variables_list"].tolist(),
+                                                                                   hdf5_attributes_dict["hyd_node_variables_list"].tolist())
+
+                self.hyd_mesh_variable_original_list = self.hvum.mesh_variable_original_list
+                self.hyd_node_variable_original_list = self.hvum.node_variable_original_list
+                self.hyd_mesh_variable_computable_list = self.hvum.mesh_variable_computable_list
+                self.hyd_node_variable_computable_list = self.hvum.node_variable_computable_list
             # substrate constant ==> nothing to plot
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
                 self.variables = []
@@ -468,15 +476,14 @@ class Hdf5Management:
                     mesh_group.create_dataset(name="i_whole_profile",
                                               shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
                                               data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
-                    for mesh_variable in hyd_description["hyd_mesh_variables_list"].split(", "):
-                        if mesh_variable:
-                            mesh_data_dataset = mesh_group.create_dataset(name="data",
-                                                                     shape=data_2d[reach_num][unit_num]["mesh"][
-                                                                         "data"].shape,
-                                                                     data=data_2d[reach_num][unit_num]["mesh"]["data"],
-                                                                     dtype=data_2d[reach_num][unit_num]["mesh"][
-                                                                         "data"].dtype)
-                            mesh_data_dataset.attrs["unit"] = list(data_2d[reach_num][unit_num]["mesh"]["data"].dtype.fields.keys())[1::2]
+                    if hyd_description["hyd_mesh_variables_list"]:
+                        mesh_data_dataset = mesh_group.create_dataset(name="data",
+                                                                 shape=data_2d[reach_num][unit_num]["mesh"][
+                                                                     "data"].shape,
+                                                                 data=data_2d[reach_num][unit_num]["mesh"]["data"],
+                                                                 dtype=data_2d[reach_num][unit_num]["mesh"][
+                                                                     "data"].dtype)
+                        mesh_data_dataset.attrs["unit"] = list(data_2d[reach_num][unit_num]["mesh"]["data"].dtype.fields.keys())[1::2]
 
                     # NODE GROUP
                     node_group = unit_group.create_group('node')
@@ -486,12 +493,13 @@ class Hdf5Management:
                     node_group.create_dataset(name="z",
                                               shape=data_2d[reach_num][unit_num]["node"]["z"].shape,
                                               data=data_2d[reach_num][unit_num]["node"]["z"])
+                    rec_array = data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
                     node_data_dataset = node_group.create_dataset(name="data",
-                                              shape=data_2d[reach_num][unit_num]["node"]["data"].shape,
-                                              data=data_2d[reach_num][unit_num]["node"]["data"],
-                                            dtype=data_2d[reach_num][unit_num]["node"]["data"].dtype)
-                    raw_variable_unit_list = list(data_2d[reach_num][unit_num]["node"]["data"].dtype.fields.keys())[1::2]
-                    node_data_dataset.attrs["unit"] = [varible_unit[2:] for varible_unit in raw_variable_unit_list]
+                                              shape=rec_array.shape,
+                                              data=rec_array,
+                                            dtype=rec_array.dtype)
+                    # raw_variable_unit_list = list(data_2d[reach_num][unit_num]["node"]["data"].dtype.fields.keys())[1::2]
+                    # node_data_dataset.attrs["unit"] = [varible_unit[2:] for varible_unit in raw_variable_unit_list]
 
         # get extent
         xMin = min(xMin)
@@ -549,10 +557,10 @@ class Hdf5Management:
                     hyd_description[attribute_name] = eval(attribute_value)
                 else:
                     hyd_description[attribute_name] = attribute_value
+            if type(attribute_value) == np.array:
+                hyd_description[attribute_name] = attribute_value.tolist()
             else:
                 hyd_description[attribute_name] = attribute_value
-
-
 
         # dataset for unit_list
         hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
@@ -610,28 +618,41 @@ class Hdf5Management:
                 """ mesh """
                 # group
                 mesh_group = unit_group + "/mesh"
-                # data
-                if mesh_group + "/data" in self.file_object:
-                    mesh_data_array = self.file_object[mesh_group + "/data"][:]
-                else:
-                    mesh_data_array = None
                 # i_whole_profile
                 i_whole_profile = self.file_object[mesh_group + "/i_whole_profile"][:]
                 # tin
                 tin = self.file_object[mesh_group + "/tin"][:]
+                # data
+                if mesh_group + "/data" in self.file_object:
+                    mesh_data_array = self.file_object[mesh_group + "/data"][:]
+                    dtype_list = [((str(type_num) + "_" + self.file_object[mesh_group + "/data"].attrs["unit"].tolist()[
+                        type_num], type_tuple[0]), type_tuple[1]) for type_num, type_tuple in enumerate(mesh_data_array.dtype.descr)]
+                    mesh_data_array.dtype = dtype_list
+                else:
+                    mesh_data_array = None
+                    # dtype_list = [((str(mesh_variable_index) + "_" + getattr(self.hvum, mesh_variable_name).unit, mesh_variable_name), getattr(self.hvum, mesh_variable_name).dtype) for mesh_variable_index, mesh_variable_name in enumerate(self.hvum.final_mesh_variable_name_list)]
+                    # mesh_data_array = np.zeros(shape=(len(i_whole_profile),),
+                    #                            dtype=[(("m/s", "fake"), np.bool)])  # structured array
+                    # mesh_data_array = np.recarray(shape=(len(i_whole_profile),),
+                    #                            formats=[dtype_value for dtype_value in self.hvum.mesh_variable_computable_list.dtype],
+                    #                               names=[names for names in self.hvum.mesh_variable_computable_list.names])  # recarray,
+                    #                               #titles=[unit for unit in self.hvum.mesh_variable_computable_list.unit]
+
 
                 """ node """
                 # group
                 node_group = unit_group + "/node"
-                # data
-                if node_group + "/data" in self.file_object:
-                    node_data_array = self.file_object[node_group + "/data"][:]
-                else:
-                    node_data_array = None
                 # xy
                 xy = self.file_object[node_group + "/xy"][:]
                 # z
                 z = self.file_object[node_group + "/z"][:]
+
+                # data (always ?)
+                node_data_array = self.file_object[node_group + "/data"][:]
+                dtype_list = [((str(type_num) + "_" + self.file_object[node_group + "/data"].attrs["unit"].tolist()[
+                    type_num], type_tuple[0]), type_tuple[1]) for type_num, type_tuple in enumerate(node_data_array.dtype.descr)]
+                node_data_array.dtype = dtype_list
+
 
                 # unit_dict
                 unit_dict = dict(mesh=dict(data=mesh_data_array,
@@ -1421,155 +1442,122 @@ class Hdf5Management:
                 variables_node = [self.project_preferences["pvd_variable_z"]]
 
         # compute_variables
-        self.compute_variables(variables_node=variables_node, variables_mesh=variables_mesh)
+        self.compute_variables(node_variable_list=variables_node, mesh_variable_list=variables_mesh)
 
-    def compute_variables(self, variables_node=[], variables_mesh=[]):
+    def compute_variables(self, node_variable_list=[], mesh_variable_list=[]):
         """
         Compute all necessary variables.
-        :param variables_node:
-        :param variables_mesh:
+        :param node_variable_list:
+        :param mesh_variable_list:
         :return:
         """
-        if variables_mesh:
-            #print("compute_variables_mesh", variables_mesh)
-            # replace height by h, same for velocity
-            if "water_height" in variables_mesh:
-                variables_mesh[variables_mesh.index("water_height")] = "h"
-            if "water_velocity" in variables_mesh:
-                variables_mesh[variables_mesh.index("water_velocity")] = "v"
-
-            # create keys and empty list
-            for variable in variables_mesh:
-                self.data_2d["mesh"]["data"][variable] = []
-
+        if mesh_variable_list:
             # for all reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-
-                # append empty list
-                for variable in variables_mesh:
-                    self.data_2d["mesh"]["data"][variable].append([])
-
                 # for all units
-                for unit_num in range(len(self.data_2d["mesh"]["tin"][reach_num])):
-                    for variable in variables_mesh:
-                        # compute area mean
-                        if variable == "area":
-                            area = c_mesh_area(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                            self.data_2d["node"]["xy"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(area)
-
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    """ mesh """
+                    for mesh_variable in mesh_variable_list:
+                        mesh_data = None
                         # compute height mean
-                        elif variable == "h":
-                            h = c_mesh_mean_from_node_values(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                             self.data_2d["node"]["data"]["h"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(h)
-
+                        if mesh_variable.name == self.hvum.h.name:
+                            mesh_data = c_mesh_mean_from_node_values(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                             self.data_2d[reach_num][unit_num]["node"]["data"]["h"])
                         # compute velocity mean
-                        elif variable == "v":
-                            v = c_mesh_mean_from_node_values(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                             self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(v)
-
+                        elif mesh_variable.name == self.hvum.v.name:
+                            mesh_data = c_mesh_mean_from_node_values(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                             self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
                         # compute water_level
-                        elif variable == "water_level":
-                            water_level = c_mesh_water_level(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                           self.data_2d["node"]["z"][reach_num][unit_num],
-                                                           self.data_2d["node"]["data"]["h"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(water_level)
-
+                        elif mesh_variable.name == self.hvum.level.name:
+                            mesh_data = c_mesh_water_level(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                           self.data_2d[reach_num][unit_num]["node"]["z"],
+                                                           self.data_2d[reach_num][unit_num]["node"]["data"]["h"])
                         # compute froude
-                        elif variable == "froude_number":
-                            froude = c_mesh_froude(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                   self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                   self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(froude)
-
+                        elif mesh_variable.name == self.hvum.froude.name:
+                            mesh_data = c_mesh_froude(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                   self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                   self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
                         # compute hydraulic_head
-                        elif variable == "hydraulic_head":
-                            hydraulic_head = c_mesh_hydraulic_head(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                   self.data_2d["node"]["z"][reach_num][unit_num],
-                                                                   self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                                   self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(hydraulic_head)
-
+                        elif mesh_variable.name == self.hvum.hydraulic_head.name:
+                            mesh_data = c_mesh_hydraulic_head(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                   self.data_2d[reach_num][unit_num]["node"]["z"],
+                                                                   self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                                   self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
                         # compute conveyance
-                        elif variable == "conveyance":
-                            conveyance = c_mesh_conveyance(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                           self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                           self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(conveyance)
-
+                        elif mesh_variable.name == self.hvum.conveyance.name:
+                            mesh_data = c_mesh_conveyance(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                           self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                           self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
                         # compute max_slope_bottom
-                        elif variable == "max_slope_bottom":
-                            max_slope_bottom = c_mesh_max_slope_bottom(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                       self.data_2d["node"]["xy"][reach_num][unit_num],
-                                                                       self.data_2d["node"]["z"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(max_slope_bottom)
-
+                        elif mesh_variable.name == self.hvum.max_slope_bottom.name:
+                            mesh_data = c_mesh_max_slope_bottom(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                       self.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                                       self.data_2d[reach_num][unit_num]["node"]["z"])
                         # compute max_slope_energy
-                        elif variable == "max_slope_energy":
-                            max_slope_bottom = c_mesh_max_slope_energy(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                                       self.data_2d["node"]["xy"][reach_num][unit_num],
-                                                                       self.data_2d["node"]["z"][reach_num][unit_num],
-                                                                       self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                                       self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(max_slope_bottom)
-
+                        elif mesh_variable.name == self.hvum.max_slope_energy.name:
+                            mesh_data = c_mesh_max_slope_energy(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                       self.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                                       self.data_2d[reach_num][unit_num]["node"]["z"],
+                                                                       self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                                       self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
                         # compute shear_stress
-                        elif variable == "shear_stress":
-                            shear_stress = c_mesh_shear_stress(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                                               self.data_2d["node"]["xy"][reach_num][unit_num],
-                                                               self.data_2d["node"]["z"][reach_num][unit_num],
-                                                               self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                               self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["mesh"]["data"][variable][reach_num].append(shear_stress)
+                        elif mesh_variable.name == self.hvum.shear_stress.name:
+                            mesh_data = c_mesh_shear_stress(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                               self.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                               self.data_2d[reach_num][unit_num]["node"]["z"],
+                                                               self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                               self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
+                        # create empty structured array
+                        if self.data_2d[reach_num][unit_num]["mesh"]["data"] is None:
+                            dtype_list = [((
+                                           str(mesh_variable_index) + "_" + mesh_variable_el.unit,
+                                           mesh_variable_el.name), mesh_variable_el.dtype) for
+                                          mesh_variable_index, mesh_variable_el in
+                                          enumerate(mesh_variable_list)]
+                            empty_mesh_data_array = np.zeros(shape=(len(self.data_2d[reach_num][unit_num]["mesh"]["tin"]),),
+                                                       dtype=dtype_list)  # structured array
+                            self.data_2d[reach_num][unit_num]["mesh"]["data"] = empty_mesh_data_array
 
-        if variables_node:
-            #print("compute_variables_node", variables_node)
-            # replace height by h, same for velocity
-            if "water_height" in variables_node:
-                variables_node[variables_node.index("water_height")] = "h"
-            if "water_velocity" in variables_node:
-                variables_node[variables_node.index("water_velocity")] = "v"
+                        # add to existing structured array
+                        self.data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable.name] = mesh_data
 
-            # create keys and empty list
-            for variable in variables_node:
-                self.data_2d["node"]["data"][variable] = []
-
+        if node_variable_list:
             # for all reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-
-                # append empty list
-                for variable in variables_node:
-                    self.data_2d["node"]["data"][variable].append([])
-
                 # for all units
-                for unit_num in range(len(self.data_2d["mesh"]["tin"][reach_num])):
-                    for variable in variables_node:
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    for node_variable in node_variable_list:
+                        node_data = None
                         # compute water_level
-                        if variable == "water_level":
-                            water_level = c_node_water_level(self.data_2d["node"]["z"][reach_num][unit_num],
-                                                             self.data_2d["node"]["data"]["h"][reach_num][unit_num])
-                            self.data_2d["node"]["data"][variable][reach_num].append(water_level)
-
+                        if node_variable.name == self.hvum.level.name:
+                            node_data = c_node_water_level(self.data_2d[reach_num][unit_num]["node"]["z"],
+                                                             self.data_2d[reach_num][unit_num]["node"]["data"]["h"])
                         # compute froude
-                        if variable == "froude_number":
-                            froude_number = c_node_froude(self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                   self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["node"]["data"][variable][reach_num].append(froude_number)
-
+                        elif node_variable.name == self.hvum.froude.name:
+                            node_data = c_node_froude(self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                   self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
                         # compute hydraulic_head
-                        if variable == "hydraulic_head":
-                            hydraulic_head = c_node_hydraulic_head(self.data_2d["node"]["z"][reach_num][unit_num],
-                                                                   self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                                   self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["node"]["data"][variable][reach_num].append(hydraulic_head)
-
+                        elif node_variable.name == self.hvum.hydraulic_head.name:
+                            node_data = c_node_hydraulic_head(self.data_2d[reach_num][unit_num]["node"]["z"],
+                                                                   self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                                   self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
                         # compute conveyance
-                        if variable == "conveyance":
-                            conveyance = c_node_conveyance(self.data_2d["node"]["data"]["h"][reach_num][unit_num],
-                                                             self.data_2d["node"]["data"]["v"][reach_num][unit_num])
-                            self.data_2d["node"]["data"][variable][reach_num].append(conveyance)
+                        elif node_variable.name == self.hvum.conveyance.name:
+                            node_data = c_node_conveyance(self.data_2d[reach_num][unit_num]["node"]["data"]["h"],
+                                                             self.data_2d[reach_num][unit_num]["node"]["data"]["v"])
+                        # create empty structured array
+                        if self.data_2d[reach_num][unit_num]["node"]["data"] is None:
+                            dtype_list = [((
+                                           str(node_variable_index) + "_" + node_variable_el.unit,
+                                           node_variable_el.name), node_variable_el.dtype) for
+                                          node_variable_index, node_variable_el in
+                                          enumerate(node_variable_list)]
+                            empty_node_data_array = np.zeros(shape=(len(self.data_2d[reach_num][unit_num]["node"]["tin"]),),
+                                                       dtype=dtype_list)  # structured array
+                            self.data_2d[reach_num][unit_num]["node"]["data"] = empty_node_data_array
+
+                        # add to existing structured array
+                        self.data_2d[reach_num][unit_num]["node"]["data"][node_variable.name] = node_data
 
     # HABITAT ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
