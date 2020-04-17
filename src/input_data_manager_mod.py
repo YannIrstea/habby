@@ -155,10 +155,7 @@ class HydraulicSimulationResultsAnalyzer:
                     filename = os.path.basename(self.filename_list[0])
                     hsr = HydraulicSimulationResultsSelector(filename, self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
-                    variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                    variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                    final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                    final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                    variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
                     unit_list = hsr.timestep_name_list
                     unit_number = str(hsr.timestep_nb)
                     unit_list_tf = [True] * hsr.timestep_nb
@@ -176,10 +173,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                     model_type=self.model_type,
                                                     model_dimension=str(self.nb_dim),
                                                     epsg_code=epsg_code,
-                                                    variable_mesh_detected_list=variable_mesh_detected_list,
-                                                    variable_node_detected_list=variable_node_detected_list,
-                                                    final_mesh_variable_name_list=final_mesh_variable_name_list,
-                                                    final_node_variable_name_list=final_node_variable_name_list,
+                                                    variable_name_unit_dict=variable_name_unit_dict,
                                                     unit_list=unit_list,
                                                     unit_list_full=unit_list,
                                                     unit_list_tf=unit_list_tf,
@@ -362,10 +356,7 @@ class HydraulicSimulationResultsAnalyzer:
                     data_index_file[headers[0]] = [data_index_file[headers[0]][index_file]]
                     data_index_file[headers[discharge_index]] = [data_index_file[headers[discharge_index]][index_file]]
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -377,10 +368,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 1.b """
@@ -406,10 +394,7 @@ class HydraulicSimulationResultsAnalyzer:
                 else:
                     reach_name = "unknown"
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["unit_list"] = data_index_file[headers[discharge_index]]
@@ -421,10 +406,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 2.a """
@@ -442,11 +424,7 @@ class HydraulicSimulationResultsAnalyzer:
                             return "Error: file " + file + " contain more than one time step (timestep :" \
                                    + str(hsr.timestep_name_list) + ")", None
                     if file == data_index_file["filename"][-1]:  # last
-                        variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                        variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                        final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                        final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
-
+                        variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
                 # selected files same than indexHYDRAU file
                 if not selectedfiles_textfiles_matching:
                     pass
@@ -479,10 +457,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 2.b """
@@ -498,10 +473,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if unit_name_from_index_file not in hsr.timestep_name_list:
                         return "Error: " + unit_name_from_index_file + " don't exist in " + file, None
                     if file == data_index_file["filename"][-1]:  # last
-                        variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                        variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                        final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                        final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                        variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
 
                 # selected files same than indexHYDRAU file
                 if not selectedfiles_textfiles_matching:
@@ -523,10 +495,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 3.a """
@@ -546,10 +515,7 @@ class HydraulicSimulationResultsAnalyzer:
 
                 unit_index_from_file = [True] * hsr.timestep_nb
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -561,10 +527,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
 
             """ CASE 3.b """
@@ -607,10 +570,7 @@ class HydraulicSimulationResultsAnalyzer:
                 if not reach_presence:
                     reach_name = "unknown"
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -622,10 +582,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
 
             """ CASE 4.a """
@@ -651,10 +608,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if not reach_presence:
                         reach_name = "unknown"
 
-                    variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                    variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                    final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                    final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                    variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
 
                     # multi description
                     self.hydrau_description_list.append(dict(path_prj=self.path_prj,
@@ -674,10 +628,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                              reach_list=reach_name,
                                                              reach_number=str(1),
                                                              reach_type="river",
-                                                             variable_mesh_detected_list=variable_mesh_detected_list,
-                                                             variable_node_detected_list=variable_node_detected_list,
-                                                             final_mesh_variable_name_list=final_mesh_variable_name_list,
-                                                             final_node_variable_name_list=final_node_variable_name_list,
+                                                             variable_name_unit_dict=variable_name_unit_dict,
                                                              flow_type="transient flow",
                                                              index_hydrau=True))  # continuous flow
 
@@ -728,10 +679,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if not reach_presence:
                         reach_name = "unknown"
 
-                    variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                    variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                    final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                    final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                    variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
 
                     # multi description
                     self.hydrau_description_list.append(dict(path_prj=self.path_prj,
@@ -751,10 +699,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                              reach_list=reach_name,
                                                              reach_number=str(1),
                                                              reach_type="river",
-                                                             variable_mesh_detected_list=variable_mesh_detected_list,
-                                                             variable_node_detected_list=variable_node_detected_list,
-                                                             final_mesh_variable_name_list=final_mesh_variable_name_list,
-                                                             final_node_variable_name_list=final_node_variable_name_list,
+                                                             variable_name_unit_dict=variable_name_unit_dict,
                                                              flow_type="transient flow",
                                                              index_hydrau=True))  # continuous flow
 
@@ -1468,15 +1413,11 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
     for hdf5_file_index in range(0, len(hydrau_description)):
         # get filename source (can be several)
         filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
-        # data_2d_whole_profile
-        data_2d_whole_profile = Data2d()
-        for reach_num in range(int(hydrau_description[hdf5_file_index]["reach_number"])):
-            data_2d_whole_profile.append([])
-        hydrau_description[hdf5_file_index]["unit_correspondence"] = []  # always one reach by file
         # data_2d
         data_2d = Data2d()
-        for reach_num in range(int(hydrau_description[hdf5_file_index]["reach_number"])):
-            data_2d.append([])
+        # data_2d_whole_profile
+        data_2d_whole_profile = Data2d()
+        hydrau_description[hdf5_file_index]["unit_correspondence"] = []  # always one reach by file
         # for each filename source
         for i, file in enumerate(filename_source):
             # get timestep_name_list
@@ -1497,11 +1438,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 q.put(mystdout)
                 return
             for reach_num in range(data_2d_source.reach_num):
-                # data_2d_whole_profile
-                whole = data_2d_source.get_whole_profile()
-                data_2d_whole_profile[reach_num].extend(whole[reach_num])
                 # data_2d
-                data_2d[reach_num].extend(data_2d_source[reach_num])
+                data_2d.add_unit(data_2d_source, reach_num)
+                # data_2d_whole_profile
+                data_2d_whole_profile.add_unit(data_2d_source.get_only_mesh(), reach_num)
 
         # varying mesh ?
         hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
@@ -1523,12 +1463,12 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             else:
                 hydrau_description[hdf5_file_index]["unit_correspondence"].append(hyd_varying_xy_index[reach_num])
 
-        """ cut_2d_grid_data_2d """
-        data_2d.cut_2d_grid_data_2d(hydrau_description[hdf5_file_index]["unit_list"],
-                                    progress_value,
-                                    delta_file,
-                                    project_preferences["cut_mesh_partialy_dry"],
-                                    project_preferences['min_height_hyd'])
+        """ cut_2d """
+        data_2d.cut_2d(hydrau_description[hdf5_file_index]["unit_list"],
+                       progress_value,
+                       delta_file,
+                       project_preferences["cut_mesh_partialy_dry"],
+                       project_preferences['min_height_hyd'])
         hydrau_description[hdf5_file_index]["unit_list"] = data_2d.unit_list_cuted
         hydrau_description[hdf5_file_index]["unit_number"] = len(data_2d.unit_list_cuted)
 
@@ -1542,8 +1482,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_model_type"] = hydrau_description[hdf5_file_index]["model_type"]
         hyd_description["hyd_2D_numerical_method"] = "FiniteElementMethod"
         hyd_description["hyd_model_dimension"] = hydrau_description[hdf5_file_index]["model_dimension"]
-        hyd_description["hyd_mesh_variables_list"] = hydrau_description[hdf5_file_index]["variable_mesh_detected_list"]
-        hyd_description["hyd_node_variables_list"] = hydrau_description[hdf5_file_index]["variable_node_detected_list"]
         hyd_description["hyd_epsg_code"] = hydrau_description[hdf5_file_index]["epsg_code"]
         hyd_description["hyd_reach_list"] = hydrau_description[hdf5_file_index]["reach_list"]
         hyd_description["hyd_reach_number"] = hydrau_description[hdf5_file_index]["reach_number"]

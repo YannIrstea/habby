@@ -263,14 +263,14 @@ class DataExplorerFrame(QFrame):
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.set_hydraulic_layout()
-                if hdf5.hyd_mesh_variable_original_list:
-                    self.plot_group.mesh_variable_original_QListWidget.addItems(hdf5.hyd_mesh_variable_original_list.names_gui)
-                if hdf5.hyd_node_variable_original_list:
-                    self.plot_group.node_variable_original_QListWidget.addItems(hdf5.hyd_node_variable_original_list.names_gui)
-                if hdf5.hyd_mesh_variable_computable_list:
-                    self.plot_group.mesh_variable_computable_QListWidget.addItems(hdf5.hyd_mesh_variable_computable_list.names_gui)
-                if hdf5.hyd_node_variable_computable_list:
-                    self.plot_group.node_variable_computable_QListWidget.addItems(hdf5.hyd_node_variable_computable_list.names_gui)
+                if hdf5.hvum.mesh_variable_original_list:
+                    self.plot_group.mesh_variable_original_QListWidget.addItems(hdf5.hvum.mesh_variable_original_list.names_gui)
+                if hdf5.hvum.node_variable_original_list:
+                    self.plot_group.node_variable_original_QListWidget.addItems(hdf5.hvum.node_variable_original_list.names_gui)
+                if hdf5.hvum.mesh_variable_computable_list:
+                    self.plot_group.mesh_variable_computable_QListWidget.addItems(hdf5.hvum.mesh_variable_computable_list.names_gui)
+                if hdf5.hvum.node_variable_computable_list:
+                    self.plot_group.node_variable_computable_QListWidget.addItems(hdf5.hvum.node_variable_computable_list.names_gui)
 
                 if hdf5.reach_name:
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
@@ -905,7 +905,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                         # compute variables
                         self.hvum.get_original_computable_mesh_and_node_from_dict_gui(variables)
                         hdf5.compute_variables(mesh_variable_list=self.hvum.mesh_variable_computable_list,
-                                               node_variable_list=self.hvum.node_variable_computable_list)
+                                               node_variable_list=self.hvum.variable_computable_list)
                         # data_description
                         data_description = dict(hdf5.data_description)
                         data_description["reach_list"] = hdf5.data_description["hyd_reach_list"].split(", ")

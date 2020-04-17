@@ -225,14 +225,11 @@ class Hdf5Management:
             """ get_2D_variables """
             # hydraulic
             if self.hdf5_type == "hydraulic":
-                # self.hvum.
-                self.hvum.get_original_computable_mesh_and_node_from_original_name(hdf5_attributes_dict["hyd_mesh_variables_list"].tolist(),
-                                                                                   hdf5_attributes_dict["hyd_node_variables_list"].tolist())
-
-                self.hyd_mesh_variable_original_list = self.hvum.mesh_variable_original_list
-                self.hyd_node_variable_original_list = self.hvum.node_variable_original_list
-                self.hyd_mesh_variable_computable_list = self.hvum.mesh_variable_computable_list
-                self.hyd_node_variable_computable_list = self.hvum.node_variable_computable_list
+                aa = 1
+                # self.hvum.get_original_computable_mesh_and_node_from_original_name(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
+                #                                                                    hdf5_attributes_dict["node_variable_original_name_list"].tolist())
+                # mesh_variable_original_unit_list
+                # mesh_variable_original_unit_list
             # substrate constant ==> nothing to plot
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
                 self.variables = []
@@ -378,6 +375,12 @@ class Hdf5Management:
                     else:
                         self.file_object.attrs[attribute_name] = attribute_value
 
+        # variables attrs
+        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.variable_data_detected_list.get_meshs().names
+        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.variable_data_detected_list.get_nodes().names
+        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.variable_data_detected_list.get_meshs().units
+        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.variable_data_detected_list.get_nodes().units
+
         # data by type of model (2D)
         if int(hyd_description["hyd_model_dimension"]) <= 2:
             # dataset for unit_list
@@ -476,7 +479,7 @@ class Hdf5Management:
                     mesh_group.create_dataset(name="i_whole_profile",
                                               shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
                                               data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
-                    if hyd_description["hyd_mesh_variables_list"]:
+                    if data_2d.hvum.variable_data_detected_list.get_meshs():
                         mesh_data_dataset = mesh_group.create_dataset(name="data",
                                                                  shape=data_2d[reach_num][unit_num]["mesh"][
                                                                      "data"].shape,
@@ -630,14 +633,6 @@ class Hdf5Management:
                     mesh_data_array.dtype = dtype_list
                 else:
                     mesh_data_array = None
-                    # dtype_list = [((str(mesh_variable_index) + "_" + getattr(self.hvum, mesh_variable_name).unit, mesh_variable_name), getattr(self.hvum, mesh_variable_name).dtype) for mesh_variable_index, mesh_variable_name in enumerate(self.hvum.final_mesh_variable_name_list)]
-                    # mesh_data_array = np.zeros(shape=(len(i_whole_profile),),
-                    #                            dtype=[(("m/s", "fake"), np.bool)])  # structured array
-                    # mesh_data_array = np.recarray(shape=(len(i_whole_profile),),
-                    #                            formats=[dtype_value for dtype_value in self.hvum.mesh_variable_computable_list.dtype],
-                    #                               names=[names for names in self.hvum.mesh_variable_computable_list.names])  # recarray,
-                    #                               #titles=[unit for unit in self.hvum.mesh_variable_computable_list.unit]
-
 
                 """ node """
                 # group
@@ -652,7 +647,6 @@ class Hdf5Management:
                 dtype_list = [((str(type_num) + "_" + self.file_object[node_group + "/data"].attrs["unit"].tolist()[
                     type_num], type_tuple[0]), type_tuple[1]) for type_num, type_tuple in enumerate(node_data_array.dtype.descr)]
                 node_data_array.dtype = dtype_list
-
 
                 # unit_dict
                 unit_dict = dict(mesh=dict(data=mesh_data_array,

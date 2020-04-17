@@ -18,6 +18,7 @@ import os
 import numpy as np
 import sys
 import pandas as pd
+from copy import deepcopy
 
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
@@ -31,28 +32,13 @@ class HydraulicVariable:
         self.name_gui = name_gui
         self.dtype = dtype
         self.position = None
-        self.existing_attributes_list = []
+        self.software_attributes_list = []
         self.data = [[]]
         self.computable = False
 
 
 class HydraulicVariableUnitManagement:
     def __init__(self):
-        self.final_variable_list = []
-        self.usefull_variable_wish_list = []
-        self.usefull_variable_detected_list = []
-        self.usefull_variable_node_detected_list = []
-        self.usefull_variable_mesh_detected_list = []
-        self.final_mesh_variable_name_list = []
-        self.final_node_variable_name_list = []
-        # original and computable
-        self.node_variable_original_list = HydraulicVariableUnitList()
-        self.mesh_variable_original_list = HydraulicVariableUnitList()
-        self.node_variable_computable_list = HydraulicVariableUnitList()
-        self.mesh_variable_computable_list = HydraulicVariableUnitList()
-        # init
-        self.v_x_and_v_y_presence = False
-
         # fixed values
         self.ro = HydraulicVariable(value=999.7,
                                     unit="kg/m3",
@@ -152,65 +138,62 @@ class HydraulicVariableUnitManagement:
                                      name_gui="substrate",
                                      dtype=np.int64)
 
+        # all variables (like z, all hydraulic variables)
+        self.variable_wish_list = HydraulicVariableUnitList()
+        self.variable_detected_list = HydraulicVariableUnitList()
+        # hydraulic variable
+        self.variable_data_detected_list = HydraulicVariableUnitList()
+        # original and computable
+        self.variable_original_list = HydraulicVariableUnitList()
+        self.variable_computable_list = HydraulicVariableUnitList()
+
+        # init
+        self.v_x_and_v_y_presence = False
+
         # all_available_variables_list
-        self.all_available_variables_list = HydraulicVariableUnitList()
+        self.all_sys_variable_list = HydraulicVariableUnitList()
         for name in vars(self):
             if type(getattr(self, name)) == HydraulicVariable:
-                self.all_available_variables_list.append(getattr(self, name))
+                self.all_sys_variable_list.append(getattr(self, name))
 
-    def set_existing_attributes_list(self, name, attribute_list=[], position=None):
-        getattr(self, name).existing_attributes_list = attribute_list
+    def link_unit_with_software_attribute(self, name, attribute_list, position):
+        getattr(self, name).software_attributes_list = attribute_list
         getattr(self, name).position = position
-        self.usefull_variable_wish_list.append(getattr(self, name))
+        self.variable_wish_list.append(getattr(self, name))
 
-    def get_available_variables_from_source(self, varnames):
-        # get_available_variables_from_source
+    def detect_variable_from_software_attribute(self, varnames):
+        # detect_variable_from_software_attribute
         for varname_index, varname in enumerate(varnames):
-            for usefull_variable_wish in self.usefull_variable_wish_list:
-                for wish_attribute in usefull_variable_wish.existing_attributes_list:
+            for usefull_variable_wish in self.variable_wish_list:
+                for wish_attribute in usefull_variable_wish.software_attributes_list:
                     if wish_attribute in varname:
                         usefull_variable_wish.varname_index = varname_index
-                        self.usefull_variable_detected_list.append(usefull_variable_wish)
+                        self.variable_detected_list.append(usefull_variable_wish)
 
-        # separate node and mesh
-        for usefull_variable_detected in self.usefull_variable_detected_list:
-            if usefull_variable_detected.position == "node":
-                self.usefull_variable_node_detected_list.append(usefull_variable_detected.name)
-            elif usefull_variable_detected.position == "mesh":
-                self.usefull_variable_mesh_detected_list.append(usefull_variable_detected.name)
-
-        # copy
-        self.final_variable_list = list(self.usefull_variable_detected_list)
+        # copy an remove z
+        self.variable_data_detected_list.extend(self.variable_detected_list)
+        self.variable_data_detected_list.remove(self.z)
 
         """ nodes """
 
         # is v_x and v_y ?
-        if self.v_x.name in self.usefull_variable_node_detected_list and self.v_y.name in self.usefull_variable_node_detected_list:
+        node_names = self.variable_detected_list.get_nodes().names
+        if self.v_x.name in node_names and self.v_y.name in node_names:
             self.v_x_and_v_y_presence = True
 
         # computed_node_velocity or original ?
-        if self.v.name in self.usefull_variable_node_detected_list:
+        if self.v.name in node_names:
             self.v.original = True
             self.v.computable = False
-        if not self.v.name in self.usefull_variable_node_detected_list and self.v_x_and_v_y_presence:
+        if not self.v.name in node_names and self.v_x_and_v_y_presence:
             self.v.original = False
             self.v.computable = True
-            self.final_variable_list = self.final_variable_list + [self.v]  # always v
+            self.variable_data_detected_list.append(self.v)  # always v
 
         # computed_node_shear_stress or original ?
-        if not self.shear_stress.name in self.usefull_variable_node_detected_list and self.v_frict.name in self.usefull_variable_node_detected_list:
+        if not self.shear_stress.name in node_names and self.v_frict.name in node_names:
             self.shear_stress.computable = True
-            self.final_variable_list = self.final_variable_list + [self.shear_stress]
-
-        self.update_final_variable_list()
-
-    def update_final_variable_list(self):
-        # separate node and mesh
-        for final_variable in self.final_variable_list:
-            if final_variable.position == "node":
-                self.final_node_variable_name_list.append(final_variable.name)
-            elif final_variable.position == "mesh":
-                self.final_mesh_variable_name_list.append(final_variable.name)
+            self.variable_data_detected_list.append(self.shear_stress)
 
     def get_original_computable_mesh_and_node_from_original_name(self, mesh_variable_original_name_list, node_variable_original_name_list):
         """ mesh """
@@ -219,7 +202,7 @@ class HydraulicVariableUnitManagement:
 
         """ node """
         for node_variable_original_name in node_variable_original_name_list:
-            self.node_variable_original_list.append(getattr(self, node_variable_original_name))
+            self.variable_original_list.append(getattr(self, node_variable_original_name))
 
         # get_computable_mesh_and_node_from_original
         self.get_computable_mesh_and_node_from_original()
@@ -227,35 +210,34 @@ class HydraulicVariableUnitManagement:
     def get_computable_mesh_and_node_from_original(self):
         """ mesh """
         # fix (always v, h, z at node)
-        self.mesh_variable_computable_list.extend([self.v, self.h,
+        self.variable_computable_list.extend([self.v, self.h,
                                                    self.level, self.froude, self.hydraulic_head, self.conveyance,
                                                    self.max_slope_bottom, self.max_slope_energy, self.shear_stress])
-
         """ node """
         # fix (always v, h, z at node)
-        self.node_variable_computable_list.extend([self.level, self.froude, self.hydraulic_head, self.conveyance])
+        self.variable_computable_list.extend([self.level, self.froude, self.hydraulic_head, self.conveyance])
 
     def get_original_computable_mesh_and_node_from_dict_gui(self, dict_gui):
         self.mesh_variable_original_list = [
-            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+            self.all_sys_variable_list[self.all_sys_variable_list.names_gui.index(name_gui)] for name_gui
             in dict_gui["mesh_variable_original_list"]]
-        self.node_variable_original_list = [
-            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+        self.variable_original_list = [
+            self.all_sys_variable_list[self.all_sys_variable_list.names_gui.index(name_gui)] for name_gui
             in dict_gui["node_variable_original_list"]]
         self.mesh_variable_computable_list = [
-            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+            self.all_sys_variable_list[self.all_sys_variable_list.names_gui.index(name_gui)] for name_gui
             in dict_gui["mesh_variable_computable_list"]]
-        self.node_variable_computable_list = [
-            self.all_available_variables_list[self.all_available_variables_list.names_gui.index(name_gui)] for name_gui
+        self.variable_computable_list = [
+            self.all_sys_variable_list[self.all_sys_variable_list.names_gui.index(name_gui)] for name_gui
             in dict_gui["node_variable_computable_list"]]
         # compute_total_original_computable_number
         self.compute_total_original_computable_number()
 
     def compute_total_original_computable_number(self):
         self.total_original_computable_number = len(self.mesh_variable_original_list) + \
-                                                len(self.node_variable_original_list) + \
+                                                len(self.variable_original_list) + \
                                                 len(self.mesh_variable_computable_list) + \
-                                                len(self.node_variable_computable_list)
+                                                len(self.variable_computable_list)
         # TODO: habitat variables
         self.total_habitat_variable_number = 0
 
@@ -265,23 +247,55 @@ class HydraulicVariableUnitList(list):
         super().__init__()
         self.names = []
         self.names_gui = []
-        self.unit = []
-        self.dtype = []
+        self.units = []
+        self.dtypes = []
 
     def append(self, hydraulic_variable):
         super(HydraulicVariableUnitList, self).append(hydraulic_variable)
         self.names.append(hydraulic_variable.name)
         self.names_gui.append(hydraulic_variable.name_gui)
-        self.unit.append(hydraulic_variable.unit)
-        self.dtype.append(hydraulic_variable.dtype)
+        self.units.append(hydraulic_variable.unit)
+        self.dtypes.append(hydraulic_variable.dtype)
 
     def extend(self, hydraulic_variable_list):
-        super(HydraulicVariableUnitList, self).append(hydraulic_variable_list)
+        super(HydraulicVariableUnitList, self).extend(hydraulic_variable_list)
         for hydraulic_variable in hydraulic_variable_list:
             self.names.append(hydraulic_variable.name)
             self.names_gui.append(hydraulic_variable.name_gui)
-            self.unit.append(hydraulic_variable.unit)
-            self.dtype.append(hydraulic_variable.dtype)
+            self.units.append(hydraulic_variable.unit)
+            self.dtypes.append(hydraulic_variable.dtype)
+
+    def remove(self, x):
+        index = self.index(x)
+        super(HydraulicVariableUnitList, self).remove(x)
+        self.names.pop(index)
+        self.names_gui.pop(index)
+        self.units.pop(index)
+        self.dtypes.pop(index)
+
+    def get_nodes(self):
+        node_list = HydraulicVariableUnitList()
+        for hvu in self:
+            if hvu.position == "node":
+                node_list.append(hvu)
+        return node_list
+
+    def get_meshs(self):
+        mesh_list = HydraulicVariableUnitList()
+        for hvu in self:
+            if hvu.position == "mesh":
+                mesh_list.append(hvu)
+        return mesh_list
+
+    def get_dict(self):
+        variable_name_unit_dict = dict()
+
+        variable_name_unit_dict["variable_mesh_data_name_list"] = self.get_meshs().names
+        variable_name_unit_dict["variable_mesh_data_unit_list"] = self.get_meshs().units
+
+        variable_name_unit_dict["variable_node_data_name_list"] = self.get_nodes().names
+        variable_name_unit_dict["variable_node_data_unit_list"] = self.get_nodes().units
+        return variable_name_unit_dict
 
 
 class HydraulicModelInformation:
@@ -379,26 +393,26 @@ class HydraulicSimulationResults:
         self.unit_z_equal = False
 
     def get_data_2d(self):
-        # remove z from final
-        self.hvum.final_node_variable_name_list.remove(self.hvum.z.name)
-
         # create empty list
         data_2d = Data2d()
+        data_2d.hvum = self.hvum
 
         for reach_num in range(len(self.reach_name_list)):
             data_2d.append([])
             for unit_num in range(len(self.timestep_name_wish_list)):
                 """ node """
                 node_data_array = pd.DataFrame()
-                if self.hvum.final_node_variable_name_list:
-                    for node_variable_name in self.hvum.final_node_variable_name_list:
-                        node_data_array[node_variable_name] = getattr(self.hvum, node_variable_name).data[reach_num][unit_num]
+                node_list = self.hvum.variable_data_detected_list.get_nodes()
+                if node_list:
+                    for node_variable in node_list:
+                        node_data_array[node_variable.name] = getattr(self.hvum, node_variable.name).data[reach_num][unit_num]
 
                 """ mesh """
                 mesh_data_array = pd.DataFrame()
-                if self.hvum.final_mesh_variable_name_list:
-                    for mesh_variable_name in self.hvum.final_mesh_variable_name_list:
-                        mesh_data_array[mesh_variable_name] = getattr(self.hvum, mesh_variable_name).data[reach_num][unit_num]
+                mesh_list = self.hvum.variable_data_detected_list.get_meshs()
+                if mesh_list:
+                    for mesh_variable in mesh_list:
+                        mesh_data_array[mesh_variable.name] = getattr(self.hvum, mesh_variable.name).data[reach_num][unit_num]
 
                 """ unit_dict """
                 unit_dict = dict(mesh=dict(data=mesh_data_array,
@@ -420,7 +434,7 @@ class HydraulicSimulationResults:
         description_from_file["unit_number"] = str(self.timestep_wish_nb)
         description_from_file["unit_type"] = "time [s]"
         description_from_file["unit_z_equal"] = self.unit_z_equal
-        # description_from_file["variables"] = []
+        description_from_file["variables"] = dict()
 
         return data_2d, description_from_file
 
@@ -430,12 +444,14 @@ class Data2d(list):
         super().__init__()
         self.reach_num = 0
         self.unit_num = 0
+        self.hvum = None
 
     def get_informations(self):
         self.reach_num = len(self)
-        self.unit_num = len(self[self.reach_num - 1])
+        if self.reach_num:
+            self.unit_num = len(self[self.reach_num - 1])
 
-    def get_whole_profile(self):
+    def get_only_mesh(self):
         """
         retrun whole_profile from original data2d
         """
@@ -443,12 +459,35 @@ class Data2d(list):
 
         whole_profile = Data2d()
         for reach_num in range(self.reach_num):
-            whole_profile.append([])
+            unit_list = []
             for unit_num in range(self.unit_num):
-                whole_profile[reach_num].append(dict(mesh=dict(tin=self[reach_num][unit_num]["mesh"]["tin"]),
+                unit_list.append(dict(mesh=dict(tin=self[reach_num][unit_num]["mesh"]["tin"]),
                                  node=dict(xy=self[reach_num][unit_num]["node"]["xy"],
                                            z=self[reach_num][unit_num]["node"]["z"])))
+            whole_profile.append(unit_list)
         return whole_profile
+
+    def add_reach(self, data_2d_new, reach_num):
+        self.get_informations()
+        self.append(data_2d_new[reach_num])
+
+        # TODO: check if same units number and name
+
+        # update attrs
+        self.get_informations()
+        self.hvum = data_2d_new.hvum
+
+    def add_unit(self,  data_2d_new, reach_num):
+        self.get_informations()
+        if not self.reach_num:
+            self.append([])
+        self[reach_num].extend(data_2d_new[reach_num])
+
+        # TODO: check if same units number and name
+
+        # update attrs
+        self.get_informations()
+        self.hvum = data_2d_new.hvum
 
     def get_hyd_varying_xy_and_z_index(self):
         self.get_informations()
@@ -480,7 +519,7 @@ class Data2d(list):
                         hyd_varying_z_index[reach_num].append(it_equality)  # diff
         return hyd_varying_xy_index, hyd_varying_z_index
 
-    def cut_2d_grid_data_2d(self, unit_list, progress_value, delta_file, CutMeshPartialyDry, min_height):
+    def cut_2d(self, unit_list, progress_value, delta_file, CutMeshPartialyDry, min_height):
         """
         This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
         with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
@@ -691,4 +730,8 @@ class Data2d(list):
 
                 # progress
                 progress_value.value += int(deltaunit)
+
+
+
+
 

@@ -814,8 +814,8 @@ class SubHydroW(QWidget):
             self.h2d_t2.clear()
             self.h2d_t2.addItems(names)
             self.reach_name_label.setText(self.hydrau_description_list[0]["reach_list"])
-            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_mesh_detected_list"])
-            node_list = ", ".join(self.hydrau_description_list[0]["variable_node_detected_list"])
+            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"]["variable_mesh_data_name_list"])
+            node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"]["variable_node_data_name_list"])
             self.usefull_variable_label.setText("node : " + node_list + "\nmesh : " + mesh_list)
             self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
             self.units_QListWidget.clear()

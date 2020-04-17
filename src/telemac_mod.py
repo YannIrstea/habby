@@ -43,27 +43,27 @@ class TelemacResult(HydraulicSimulationResults):
         self.reach_name_list = ["unknown"]
         self.morphology_available = True
         # hydraulic variables
-        self.hvum.set_existing_attributes_list(name=self.hvum.z.name,
-                                               attribute_list=["BOTTOM", "FOND"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.h.name,
-                                               attribute_list=["WATER DEPT", "HAUTEUR D'EAU"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v.name,
-                                               attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_x.name,
-                                               attribute_list=['VITESSE U', 'VELOCITY U'],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_y.name,
-                                               attribute_list=['VITESSE V', 'VELOCITY V'],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.temp.name,
-                                               attribute_list=["TEMP"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_frict.name,
-                                               attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
-                                               position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["BOTTOM", "FOND"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["WATER DEPT", "HAUTEUR D'EAU"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_x.name,
+                                                    attribute_list=['VITESSE U', 'VELOCITY U'],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_y.name,
+                                                    attribute_list=['VITESSE V', 'VELOCITY V'],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.temp.name,
+                                                    attribute_list=["TEMP"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_frict.name,
+                                                    attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
+                                                    position="node")
 
         # readable file ?
         try:
@@ -96,7 +96,7 @@ class TelemacResult(HydraulicSimulationResults):
         varnames = [varname.decode('utf-8') for varname in self.results_data_file.varnames]
 
         # check witch variable is available
-        self.hvum.get_available_variables_from_source(varnames)
+        self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """
@@ -121,7 +121,7 @@ class TelemacResult(HydraulicSimulationResults):
         for reach_num in range(self.reach_num):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
                 val_all = self.results_data_file.getvalues(timestep_index)
-                for variables_wish in self.hvum.final_variable_list:  # .varunits
+                for variables_wish in self.hvum.variable_detected_list:  # .varunits
                     if not variables_wish.computable:
                         variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
