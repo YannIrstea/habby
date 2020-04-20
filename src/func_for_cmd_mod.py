@@ -177,7 +177,17 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_PROJECT':
+
+
         all_export_enabled = False
+        ##As a test measure, we may need to enable all_export_enabled, to be able to test exports
+        for arg in all_arg:
+            if arg[:19]=="all_export_enabled=":
+                if arg[19:]=="False":
+                    all_export_enabled=False
+                else:
+                    all_export_enabled = True
+
         if not os.path.exists(path_prj):
             create_project_structure(path_prj,
                                      save_log=False,
@@ -1168,16 +1178,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         file1 = h5py.File(ref_name, 'r')
         file2 = h5py.File(test_name, 'r')
-        # global dataset_names
-        # dataset_names=[]
-        # def get_dataset_names(name1, object):
-        #     global dataset_names
-        #     if type(object) == h5py._hl.dataset.Dataset:
-        #         dataset_names += [name1]
-        # file1.visititems(get_dataset_names)
         dataset_names1=hdf5_mod.get_dataset_names(file1)
-        # dataset_names=[]
-        # file2.visititems(get_dataset_names)
         dataset_names2=hdf5_mod.get_dataset_names(file2)
         if dataset_names1!=dataset_names2:
             print("The files contain different datasets")
@@ -1209,12 +1210,14 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 return
         except NameError:
             print("Error: you have not given the argument ref_path")
+            return
         try:
             if not os.path.isdir(test_path):
                 print("The path provided for the test folder does not exist, or it has a typo")
                 return
         except NameError:
             print("Error: you have not given the argument test_path")
+            return
 
         if len(all_arg) !=3:
             #If there are too many arguments or not enough, this message should be displayed
@@ -1248,6 +1251,49 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             print("There is a divergence between the test and reference folders. Out of "
                   ,n_total,"files in the reference folder, ",n_missing," are missing from the test folder, and "
                   ,n_different," have different values in the test and reference folders")
+
+    # ----------------------------------------------------------------------------------
+    elif all_arg[0]=="EXPORT":
+        # Given a project folder, takes as entry an hdf5 file, which should be in the hdf5 folder of the project
+        # directory, and exports its content
+        # Works for .hyd files, but gives error messages related to rtree module
+        # Does not work for .sub files
+
+        for arg in all_arg:
+            if arg[:10]=="file_name=":
+                file_name=arg[10:]
+            if arg[:7]=="format=":
+                format=arg[7:]
+
+        try:
+            file_name
+            format
+        except NameError:
+            print("Error: the EXPORT command takes as arguments path_prj, file_name and format")
+            return
+
+        # if not file_name or not format:
+        #     print("Error: the EXPORT command takes as arguments path_prj, file_name and format")
+
+
+
+        if not os.path.exists(path_prj+"\\hdf5\\"+file_name):
+            print("Error: the file ", file_name, " does not exist, or is not located in the path_prj\\hdf5 folder.")
+            return
+
+
+
+        try:
+            data=hdf5_mod.Hdf5Management(path_prj,file_name)
+            data.project_preferences=project_preferences
+            hdf5_mod.simple_export(data,format)
+            print("Success!")
+        except ValueError:
+            print("The EXPORT command only allows as input hdf5 files with a .hyd or .hab extension.")
+
+
+
+
 
     # ----------------------------------------------------------------------------------
     else:

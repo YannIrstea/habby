@@ -3041,3 +3041,30 @@ def datasets_are_equal(file1,file2):
             if np.any(file1[name][()] != file2[name][()]):
                 equal = False
         return equal
+
+def simple_export(data,format):
+    # Takes as input the Hdf5management object data and the string format, and exports the data to the output folder
+    # of the project
+    if data.extension==".hyd":
+        data.load_hdf5_hyd(whole_profil=True)
+        for name in data.available_export_list:
+            data.project_preferences[name]=[True,True]
+        data.get_variables_from_dict_and_compute()
+        if format in ["gpkg","all"]:
+            data.export_gpkg()
+
+        if format in ["stl","all"]:
+            data.export_stl()
+
+
+        if format in ["pvd","stu","all"]:
+            data.compute_variables(variables_node=data.hyd_variables_computed_node,
+                                   variables_mesh=data.hyd_variables_computed_mesh)
+            data.export_paraview()
+
+    elif data.extension==".hab":
+        #TODO: Write specific code for exporting habitat files
+        pass
+
+    else:
+        raise ValueError
