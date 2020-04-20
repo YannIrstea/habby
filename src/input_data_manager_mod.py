@@ -29,7 +29,8 @@ from src.tools_mod import create_empty_data_2d_whole_profile_dict, create_empty_
 from src import hdf5_mod, ascii_mod, telemac_mod, hec_ras2D_mod, hec_ras1D_mod, rubar1d2d_mod, basement_mod
 
 from src import manage_grid_mod
-from src.hydraulic_bases import HydraulicModelInformation, Data2d
+from src.hydraulic_bases import HydraulicModelInformation
+from src.data_2d_mod import Data2d
 
 
 class HydraulicSimulationResultsAnalyzer:

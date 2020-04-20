@@ -28,7 +28,7 @@ from src.tools_mod import MyProcessList, create_map_plot_string_dict
 from src.project_properties_mod import load_project_properties
 from src.tools_mod import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
-from src.hydraulic_bases import HydraulicVariableUnitManagement
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 class DataExplorerTab(QScrollArea):
@@ -263,14 +263,14 @@ class DataExplorerFrame(QFrame):
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.set_hydraulic_layout()
-                if hdf5.hvum.mesh_variable_original_list:
-                    self.plot_group.mesh_variable_original_QListWidget.addItems(hdf5.hvum.mesh_variable_original_list.names_gui)
-                if hdf5.hvum.node_variable_original_list:
-                    self.plot_group.node_variable_original_QListWidget.addItems(hdf5.hvum.node_variable_original_list.names_gui)
-                if hdf5.hvum.mesh_variable_computable_list:
-                    self.plot_group.mesh_variable_computable_QListWidget.addItems(hdf5.hvum.mesh_variable_computable_list.names_gui)
-                if hdf5.hvum.node_variable_computable_list:
-                    self.plot_group.node_variable_computable_QListWidget.addItems(hdf5.hvum.node_variable_computable_list.names_gui)
+                if hdf5.hvum.variable_original_list.get_meshs().names_gui:
+                    self.plot_group.mesh_variable_original_QListWidget.addItems(hdf5.hvum.variable_original_list.get_meshs().names_gui)
+                if hdf5.hvum.variable_original_list.get_nodes().names_gui:
+                    self.plot_group.node_variable_original_QListWidget.addItems(hdf5.hvum.variable_original_list.get_nodes().names_gui)
+                if hdf5.hvum.variable_computable_list.get_meshs().names_gui:
+                    self.plot_group.mesh_variable_computable_QListWidget.addItems(hdf5.hvum.variable_computable_list.get_meshs().names_gui)
+                if hdf5.hvum.variable_computable_list.get_nodes().names_gui:
+                    self.plot_group.node_variable_computable_QListWidget.addItems(hdf5.hvum.variable_computable_list.get_nodes().names_gui)
 
                 if hdf5.reach_name:
                     self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
@@ -278,6 +278,8 @@ class DataExplorerFrame(QFrame):
                         self.plot_group.reach_QListWidget.selectAll()
                         if hdf5.nb_unit == 1:
                             self.plot_group.units_QListWidget.selectAll()
+                        else:
+                            self.plot_group.units_QListWidget.setCurrentRow(0)
 
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
@@ -290,6 +292,8 @@ class DataExplorerFrame(QFrame):
                             self.plot_group.reach_QListWidget.selectAll()
                             if hdf5.nb_unit == 1:
                                 self.plot_group.units_QListWidget.selectAll()
+                            else:
+                                self.plot_group.units_QListWidget.setCurrentRow(0)
 
             # habitat
             if self.types_hdf5_QComboBox.currentIndex() == 3:
@@ -302,6 +306,8 @@ class DataExplorerFrame(QFrame):
                         self.plot_group.reach_QListWidget.selectAll()
                         if hdf5.nb_unit == 1:
                             self.plot_group.units_QListWidget.selectAll()
+                        else:
+                            self.plot_group.units_QListWidget.setCurrentRow(0)
 
             # # change unit_type string
             # for element_index, _ in enumerate(hdf5.hdf5_attributes_info_text):
@@ -469,14 +475,14 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.node_variable_original_QListWidget.itemSelectionChanged.connect(self.count_plot)
         
         """ computable data """
-        self.mesh_variable_computable_QLabel = QLabel(self.tr('computable mesh variables'))
+        self.mesh_variable_computable_QLabel = QLabel(self.tr('computed mesh variables'))
         self.mesh_variable_computable_QListWidget = QListWidget()
         self.mesh_variable_computable_QListWidget.setObjectName("mesh_variable_computable_QListWidget")
         self.mesh_variable_computable_QListWidget.setMinimumWidth(listwidgets_width)
         self.mesh_variable_computable_QListWidget.setMaximumHeight(listwidgets_height)
         self.mesh_variable_computable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.mesh_variable_computable_QListWidget.itemSelectionChanged.connect(self.count_plot)
-        self.node_variable_computable_QLabel = QLabel(self.tr('computable node variables'))
+        self.node_variable_computable_QLabel = QLabel(self.tr('computed node variables'))
         self.node_variable_computable_QListWidget = QListWidget()
         self.node_variable_computable_QListWidget.setObjectName("node_variable_computable_QListWidget")
         self.node_variable_computable_QListWidget.setMinimumWidth(listwidgets_width)
@@ -599,9 +605,11 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
         if types_hdf5 and names_hdf5 and variables and reach and units and plot_type:
             self.hvum.get_original_computable_mesh_and_node_from_dict_gui(variables)
+            # total_variables_number
+            total_variables_number = self.hvum.variable_original_list.__len__() + \
+                                     self.hvum.variable_computable_list.__len__()
             # is fish ?
-            total_habitat_variable_number = self.hvum.total_habitat_variable_number
-            total_original_computable_number = self.hvum.total_original_computable_number
+            total_habitat_variable_number = self.hvum.variable_habitat_list.__len__()
             # for GIF
             map_condition = plot_type == ["map"] or plot_type == ["map", "result"]  # map_condition
             export_type_condition = export_type == "image export"  # export_type_condition
@@ -616,13 +624,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 if plot_type == ["result"]:
                     self.nb_plot = 0
                 if plot_type == ["map"]:
-                    self.nb_plot = len(names_hdf5) * total_original_computable_number * len(reach) * len(units)
+                    self.nb_plot = len(names_hdf5) * total_variables_number * len(reach) * len(units)
                     if self.gif_export:
-                        self.nb_plot = self.nb_plot + total_original_computable_number * len(reach)
+                        self.nb_plot = self.nb_plot + total_variables_number * len(reach)
                 if plot_type == ["map", "result"]:
-                    self.nb_plot = len(names_hdf5) * total_original_computable_number * len(reach) * len(units)
+                    self.nb_plot = len(names_hdf5) * total_variables_number * len(reach) * len(units)
                     if self.gif_export:
-                        self.nb_plot = self.nb_plot + total_original_computable_number * len(reach)
+                        self.nb_plot = self.nb_plot + total_variables_number * len(reach)
 
             # one fish
             if total_habitat_variable_number == 1:
@@ -632,7 +640,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     # one map by fish by unit
                     nb_map = len(names_hdf5) * total_habitat_variable_number * len(reach) * len(units)
                     if self.gif_export:
-                        nb_map = nb_map + total_habitat_variable_number * len(reach) + total_original_computable_number * len(reach)
+                        nb_map = nb_map + total_habitat_variable_number * len(reach) + total_variables_number * len(reach)
                 if len(units) == 1:
                     if plot_type == ["map"]:
                         nb_wua_hv = 0
@@ -644,29 +652,29 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     else:
                         nb_wua_hv = len(names_hdf5) * total_habitat_variable_number
                 # total
-                self.nb_plot = (len(names_hdf5) * total_original_computable_number * len(reach) * len(units)) + nb_map + nb_wua_hv
+                self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map + nb_wua_hv
 
             # multi fish
             if total_habitat_variable_number > 1:
                 if plot_type == ["result"]:
-                    self.nb_plot = 1  # (len(names_hdf5) * total_original_computable_number * len(units)) + 1
+                    self.nb_plot = 1
                     self.total_fish_result = total_habitat_variable_number
                 if plot_type == ["map"]:
                     # one map by fish by unit
                     nb_map = total_habitat_variable_number * len(reach) * len(units)
                     if self.gif_export:
                         nb_map = nb_map + total_habitat_variable_number * len(reach)
-                    self.nb_plot = (len(names_hdf5) * total_original_computable_number * len(reach) * len(units)) + nb_map
+                    self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map
                     if self.gif_export:
-                        self.nb_plot = self.nb_plot + total_original_computable_number * len(reach)
+                        self.nb_plot = self.nb_plot + total_variables_number * len(reach)
                 if plot_type == ["map", "result"]:
                     # one map by fish by unit
                     nb_map = total_habitat_variable_number * len(reach) * len(units)
                     if self.gif_export:
                         nb_map = nb_map + total_habitat_variable_number * len(reach)
-                    self.nb_plot = (len(names_hdf5) * total_original_computable_number * len(reach) * len(units)) + nb_map + 1
+                    self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map + 1
                     if self.gif_export:
-                        self.nb_plot = self.nb_plot + total_original_computable_number * len(reach)
+                        self.nb_plot = self.nb_plot + total_variables_number * len(reach)
             # set prog
             if self.nb_plot != 0:
                 self.plot_progressbar.setRange(0, self.nb_plot)
@@ -726,10 +734,14 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
         # variables
         variables = dict()
-        variables["node_variable_original_list"] = [selection.text() for selection in self.node_variable_original_QListWidget.selectedItems()]
-        variables["mesh_variable_original_list"] = [selection.text() for selection in self.mesh_variable_original_QListWidget.selectedItems()]
-        variables["node_variable_computable_list"] = [selection.text() for selection in self.node_variable_computable_QListWidget.selectedItems()]
-        variables["mesh_variable_computable_list"] = [selection.text() for selection in self.mesh_variable_computable_QListWidget.selectedItems()]
+        if self.node_variable_original_QListWidget.selectedIndexes().__len__() > 0:
+            variables["node_variable_original_list"] = [selection.text() for selection in self.node_variable_original_QListWidget.selectedItems()]
+        if self.mesh_variable_original_QListWidget.selectedIndexes().__len__() > 0:
+            variables["mesh_variable_original_list"] = [selection.text() for selection in self.mesh_variable_original_QListWidget.selectedItems()]
+        if self.node_variable_computable_QListWidget.selectedIndexes().__len__() > 0:
+            variables["node_variable_computable_list"] = [selection.text() for selection in self.node_variable_computable_QListWidget.selectedItems()]
+        if self.mesh_variable_computable_QListWidget.selectedIndexes().__len__() > 0:
+            variables["mesh_variable_computable_list"] = [selection.text() for selection in self.mesh_variable_computable_QListWidget.selectedItems()]
 
         # type of view (interactif, export, both)
         export_type = self.export_type_QComboBox.currentText()
@@ -884,28 +896,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 if not self.plot_production_stoped:  # stop loop with button
                     # create hdf5 class by file
                     hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name_hdf5)
-                    # variables_mesh = variables.copy()
-                    # variables_node = variables.copy()
-                    # # remove useless variables names for mesh
-                    # variables_useless = ['mesh', 'substrate_coarser', 'substrate_dominant', 'elevation', "water_height",
-                    #                      "water_velocity", "water_level", "froude_number",
-                    #                      "hydraulic_head", "conveyance"]
-                    # for variables_useless in variables_useless:
-                    #     if variables_useless in variables_mesh:
-                    #         variables_mesh.remove(variables_useless)
-                    # # remove useless variables names for node
-                    # variables_useless = ['mesh', 'substrate_coarser', 'substrate_dominant', 'elevation', "water_height",
-                    #                      "water_velocity", 'max_slope_bottom', 'max_slope_energy', 'shear_stress']
-                    # for variables_useless in variables_useless:
-                    #     if variables_useless in variables_node:
-                    #         variables_node.remove(variables_useless)
                     # load hydraulic data
                     if types_hdf5 == "hydraulic":
-                        hdf5.load_hdf5_hyd(units_index=units_index)  #
+                        hdf5.load_hdf5_hyd(units_index=units_index,
+                                           variable_dict=variables)  #
                         # compute variables
-                        self.hvum.get_original_computable_mesh_and_node_from_dict_gui(variables)
-                        hdf5.compute_variables(mesh_variable_list=self.hvum.mesh_variable_computable_list,
-                                               node_variable_list=self.hvum.variable_computable_list)
+                        hdf5.data_2d.compute_variables(variable_computable_list=self.hvum.variable_computable_list)
                         # data_description
                         data_description = dict(hdf5.data_description)
                         data_description["reach_list"] = hdf5.data_description["hyd_reach_list"].split(", ")
@@ -953,6 +949,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     unit_type = data_description["unit_type"][
                                 data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(
                                     ']')]
+                    all_variable_list = self.hvum.variable_original_list + self.hvum.variable_computable_list
 
                     # for each reach
                     for reach_name in reach:
@@ -975,32 +972,52 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                 # string_tr
                                 string_tr = [self.tr("reach"), self.tr("unit")]
 
-
-
-                                # # elevation
-                                # if "elevation" in variables and not self.plot_production_stoped:
+                                for variable in all_variable_list:
+                                    if not self.plot_production_stoped:
+                                        plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                       reach_name,
+                                                                                       units[unit_num],
+                                                                                       unit_type,
+                                                                                       self.tr(variable.name_gui),
+                                                                                       variable.unit,
+                                                                                       string_tr)
+                                        state = Value("i", 0)
+                                        process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
+                                                                   args=(
+                                                                       state,
+                                                                       hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                                       hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                       hdf5.data_2d[reach_num][unit_num]["node"]["data"][variable.name],
+                                                                       plot_string_dict,
+                                                                       data_description,
+                                                                       project_preferences
+                                                                   ),
+                                                                   name=variable.name)
+                                        self.process_list.append([process, state])
+                                # # water_velocity
+                                # if "water_velocity" in variables and not self.plot_production_stoped:
                                 #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
                                 #                                                    reach_name,
                                 #                                                    units[unit_num],
                                 #                                                    unit_type,
-                                #                                                    self.tr("elevation"),
-                                #                                                "m",
+                                #                                                    self.tr("water_velocity"),
+                                #                                                "m/s",
                                 #                                                    string_tr)
                                 #     state = Value("i", 0)
-                                #     # plot_map_elevation
-                                #     elevation_process = Process(target=plot_mod.plot_map_elevation,
-                                #                            args=(
-                                #                                state,
-                                #                                hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                hdf5.data_2d["node"]["z"][reach_num][unit_num],
-                                #                                plot_string_dict,
-                                #                                data_description,
-                                #                                project_preferences
-                                #                            ),
-                                #                            name="plot_map_elevation")
-                                #     self.process_list.append([elevation_process, state])
-                                #
+                                #     velocity_process = Process(target=plot_mod.plot_map_velocity,
+                                #                                args=(
+                                #                                    state,
+                                #                                    hdf5.data_2d["node"]["xy"][reach_num][unit_num],
+                                #                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                #                                    hdf5.data_2d["node"]["data"]["v"][reach_num][unit_num],
+                                #                                    plot_string_dict,
+                                #                                    data_description,
+                                #                                    project_preferences
+                                #                                ),
+                                #                                name="plot_map_velocity")
+                                #     self.process_list.append([velocity_process, state])
+
+
                                 # # water_height
                                 # if "water_height" in variables and not self.plot_production_stoped:
                                 #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
@@ -1025,28 +1042,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                 #                              name="plot_map_height")
                                 #     self.process_list.append([height_process, state])
                                 #
-                                # # water_velocity
-                                # if "water_velocity" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("water_velocity"),
-                                #                                                "m/s",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     velocity_process = Process(target=plot_mod.plot_map_velocity,
-                                #                                args=(
-                                #                                    state,
-                                #                                    hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["node"]["data"]["v"][reach_num][unit_num],
-                                #                                    plot_string_dict,
-                                #                                    data_description,
-                                #                                    project_preferences
-                                #                                ),
-                                #                                name="plot_map_velocity")
-                                #     self.process_list.append([velocity_process, state])
                                 #
                                 # # conveyance
                                 # if "conveyance" in variables and not self.plot_production_stoped:
@@ -1315,6 +1310,31 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                 #                                       ),
                                 #                                       name="plot_map_fish_habitat")
                                 #         self.process_list.append([habitat_map_process, state])
+
+                                # # elevation
+                                # if "elevation" in variables and not self.plot_production_stoped:
+                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                #                                                    reach_name,
+                                #                                                    units[unit_num],
+                                #                                                    unit_type,
+                                #                                                    self.tr("elevation"),
+                                #                                                "m",
+                                #                                                    string_tr)
+                                #     state = Value("i", 0)
+                                #     # plot_map_elevation
+                                #     elevation_process = Process(target=plot_mod.plot_map_elevation,
+                                #                            args=(
+                                #                                state,
+                                #                                hdf5.data_2d["node"]["xy"][reach_num][unit_num],
+                                #                                hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                #                                hdf5.data_2d["node"]["z"][reach_num][unit_num],
+                                #                                plot_string_dict,
+                                #                                data_description,
+                                #                                project_preferences
+                                #                            ),
+                                #                            name="plot_map_elevation")
+                                #     self.process_list.append([elevation_process, state])
+
 
                             # GIF
                             if self.gif_export:

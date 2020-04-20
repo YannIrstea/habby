@@ -941,7 +941,109 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     plt.show()
 
 
+# all cases
+def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+    mpl_map_change_parameters(project_preferences)
+
+    # title and filename
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
+
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap.set_bad(color='black', alpha=1.0)
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
+    bounds_nb = 50  # number of bound (color level)
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
+    while not np.all(np.diff(bounds) > 0):  # check if constant or null
+        bounds_nb += - 1  # remove one bound
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
+    # all values are null
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+    # normal case
+    else:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+
+    # color_bar
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
+
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+    mpl_map_change_parameters(project_preferences)
+
+    # title and filename
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
+
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap.set_bad(color='black', alpha=1.0)
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
+    n = len(data_plot)
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = data_xy[int(data_tin[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)
+        patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
+
+    # color_bar
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
+
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+
 # map node
+
+
 def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     mpl_map_change_parameters(project_preferences)
 
@@ -1298,7 +1400,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
 
 
 # map mesh
-def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
+def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
     mpl_map_change_parameters(project_preferences)
 
     # title and filename

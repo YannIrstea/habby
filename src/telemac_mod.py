@@ -21,7 +21,8 @@ from PyQt5.QtCore import QCoreApplication as qt_tr
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.hydraulic_bases import HydraulicSimulationResults, HydraulicVariableUnitManagement
+from src.hydraulic_bases import HydraulicSimulationResults
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src.tools_mod import create_empty_data_2d_dict
 
 
@@ -130,11 +131,6 @@ class TelemacResult(HydraulicSimulationResults):
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
                     self.hvum.v.data[reach_num].append(np.sqrt(self.hvum.v_x.data[reach_num][timestep_index] ** 2 + self.hvum.v_y.data[reach_num][timestep_index] ** 2))
                 self.hvum.v.position = "node"
-            # compute shear_stress ?
-            if self.hvum.shear_stress.computable:
-                for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.shear_stress.data[reach_num].append((self.hvum.v_frict.data[reach_num][timestep_index] ** 2) * self.hvum.ro.value)
-                self.hvum.shear_stress.position = "node"
 
             # coord
             self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
