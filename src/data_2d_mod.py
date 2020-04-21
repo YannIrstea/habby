@@ -310,6 +310,8 @@ class Data2d(list):
                     self[reach_num][unit_num]["node"]["data"]["h"] = water_height_ok
 
                 # erase old data
+                if not self[reach_num][unit_num]["mesh"]["data"].empty:
+                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].loc[ind_whole]
                 self[reach_num][unit_num]["mesh"]["tin"] = iklekeep
                 self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
                 self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
@@ -396,9 +398,8 @@ class UnitDict(dict):
         # HydraulicVariableUnit
         self.hvum = HydraulicVariableUnitManagement()
 
-    # mesh
     """ COMPUTATION """
-
+    # mesh
     def c_mesh_mean_from_node_values(self, node_variable_name):
         mesh_values = np.mean([self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 0]],
                                self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 1]],

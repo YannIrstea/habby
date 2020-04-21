@@ -18,23 +18,16 @@ import h5py
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.tri as mtri
 import time
-import sys
-from io import StringIO
-from copy import deepcopy
 from scipy.interpolate import griddata
+import pandas as pd
+import sys
 
 from src import manage_grid_mod
-from src import hdf5_mod
-from src.project_properties_mod import create_default_project_properties_dict
-from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict, check_data_2d_dict_validity
-from src.dev_tools import profileit
-from src.hydraulic_bases import HydraulicSimulationResults, HydraulicModelInformation
-from src.dev_tools import check_data_2d_dict_size
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
-class HecRas2dResult(HydraulicSimulationResults):
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
@@ -45,6 +38,25 @@ class HecRas2dResult(HydraulicSimulationResults):
         # simulation attributes
         self.equation_type = ["FV"]
         self.morphology_available = True  # TODO ?
+        # hydraulic variables
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["Cells Minimum Elevation"],
+                                                    position="node")  # after FV to FE conversion
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["Depth"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["Depth"],
+                                                    position="node")  # after FV to FE conversion
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["Face Velocity"],
+                                                    position="mesh")  # after face to mesh conversion
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["Face Velocity"],
+                                                    position="node")  # after FV to FE conversion
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.shear_stress.name,
+                                                    attribute_list=["Face Shear Stress"],
+                                                    position="mesh")  # after face to mesh conversion
 
         # readable file ?
         try:
@@ -69,12 +81,25 @@ class HecRas2dResult(HydraulicSimulationResults):
             self.get_time_step()
             # get_reach_names ?
             self.get_reach_names()
+            # get_hydraulic_variable_list ?
+            self.get_hydraulic_variable_list()
         else:
             self.warning_list.append("Error: File not valid.")
 
     def get_hydraulic_variable_list(self):
-        self.hydraulic_variables_node_list = []
-        self.hydraulic_variables_mesh_list = ["h", "v"]
+        # result_path
+        self.results_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas/"
+        # get variables from first reach
+        varnames = []
+        for dataset_name in self.results_data_file[self.results_path][self.reach_name_list[0]].keys():
+            # get list from source
+            varnames.append(dataset_name)
+
+        # add z
+        varnames = varnames + [self.hvum.z.software_attributes_list[0]]
+
+        # check witch variable is available
+        self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """
@@ -96,16 +121,17 @@ class HecRas2dResult(HydraulicSimulationResults):
                 self.reach_name_list = self.results_data_file["Geometry/2D Flow Areas"]["Attributes"]["Name"].astype(str).tolist()
             except KeyError:
                 print('Error: Reach names not found.')
+        self.reach_num = len(self.reach_name_list)
 
     def load_hydraulic(self, timestep_name_wish_list):
         """
         """
         # load specific timestep
-        timestep_name_wish_list_index = []
+        self.timestep_name_wish_list = timestep_name_wish_list
         for time_step_name_wish in timestep_name_wish_list:
-            timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
-        timestep_name_wish_list_index.sort()
-        timestep_wish_nb = len(timestep_name_wish_list_index)
+            self.timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
+        self.timestep_name_wish_list_index.sort()
+        self.timestep_wish_nb = len(self.timestep_name_wish_list_index)
 
         # get group
         geometry_flow_areas_group = self.results_data_file["Geometry/2D Flow Areas"]
@@ -120,8 +146,10 @@ class HecRas2dResult(HydraulicSimulationResults):
         elev_c_all = []
         ikle_all = []
         vel_c_all = []
+        shear_stress_c_all = []
         water_depth_c_all = []
         vel_t_all = []
+        shear_stress_t_all = []
         water_depth_t_all = []
 
         # for each reach
@@ -134,13 +162,13 @@ class HecRas2dResult(HydraulicSimulationResults):
             coord_p = reach_name_geometry_group["FacePoints Coordinate"][:]
             coord_c = reach_name_geometry_group["Cells Center Coordinate"][:]
             ikle = np.array(reach_name_geometry_group["Cells FacePoint Indexes"], dtype=np.int64)
-            elev_c = reach_name_geometry_group["Cells Minimum Elevation"][:]
+            elev_c = reach_name_geometry_group[self.hvum.z.software_attributes_list[0]][:]
             coord_p_all.append(coord_p)
             coord_c_all.append(coord_c)
             ikle_all.append(ikle)
             elev_c_all.append(elev_c)
             # water depth by mesh
-            water_depth = reach_name_result_group['Depth'][:]
+            water_depth = reach_name_result_group['Depth'][self.timestep_name_wish_list_index, :]
             water_depth_c_all.append(water_depth)
 
             # velocity is given on the side of the cells.
@@ -151,12 +179,16 @@ class HecRas2dResult(HydraulicSimulationResults):
             where_is_cells_face1 = where_is_cells_face[:, 1]
             face_unit_vec = reach_name_geometry_group["Faces NormalUnitVector and Length"][:]
             face_unit_vec = face_unit_vec[:, :2]
-            velocity = reach_name_result_group["Face Velocity"][:]
-            new_vel = np.hstack((face_unit_vec, velocity.T))  # for optimization (looking for face is slow)
+            # face_variables
+            velocity = reach_name_result_group[self.hvum.v.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
+            shear_stress = reach_name_result_group[self.hvum.shear_stress.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
+            new_vel = np.hstack((face_unit_vec, velocity))  # for optimization (looking for face is slow)
             # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
             lim_b = 0
-            nbtstep = velocity.shape[0]
+            nbtstep = self.timestep_wish_nb
             vel_c = np.zeros((len(coord_c_all[reach_index]), nbtstep))
+            shear_stress_c = np.zeros((len(coord_c_all[reach_index]), nbtstep))
+            # for each mesh
             for c in range(len(coord_c_all[reach_index])):
                 # find face
                 nb_face = where_is_cells_face1[c]
@@ -169,7 +201,10 @@ class HecRas2dResult(HydraulicSimulationResults):
                 add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
                 add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
                 vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+                # shear_stress
+                shear_stress_c[c, :] = np.mean(shear_stress[face, :], axis=0)
             vel_c_all.append(vel_c)
+            shear_stress_c_all.append(shear_stress_c)
 
             # important ther are 'flat cells'  all along on the edge/perimeter of the river  whith only 2 nodes/cell  and the center elevation of these cells is unknown (nan from HECRAS)
             # for habby we will destroy all those cells  afterwards
@@ -225,18 +260,21 @@ class HecRas2dResult(HydraulicSimulationResults):
             # get data time step by time step
             water_depth_t = []
             vel_t = []
-            for timestep_name_wish_index in timestep_name_wish_list_index:
+            shear_stress_t = []
+            for timestep_name_wish_index in range(self.timestep_wish_nb):
                 water_depth_t.append(water_depth_c_all[reach_index][timestep_name_wish_index])
                 vel_t.append(vel_c_all[reach_index][:, timestep_name_wish_index])
+                shear_stress_t.append(shear_stress_c_all[reach_index][:, timestep_name_wish_index])
             water_depth_t_all.append(water_depth_t)
             vel_t_all.append(vel_t)
+            shear_stress_t_all.append(shear_stress_t)
             # xyz
             coord_p_xyz_all.append(np.column_stack([coord_p_all[reach_index], elev_p_all[reach_index]]))
             coord_c_xyz_all.append(np.column_stack([coord_c_all[reach_index], elev_c_all[reach_index]]))
 
         # get a triangular grid as hec-ras output are not triangular
-        ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all = get_triangular_grid_hecras(
-            ikle_all, coord_c_xyz_all, coord_p_xyz_all, water_depth_t_all, vel_t_all)
+        ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all = get_triangular_grid_hecras(
+            ikle_all, coord_c_xyz_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all)
 
         # finite_volume_to_finite_element_triangularxy
         tin = []
@@ -244,53 +282,58 @@ class HecRas2dResult(HydraulicSimulationResults):
         z = []
         h = []
         v = []
+        shear_stress = []
         for reach_num in range(len(self.reach_name_list)):
             ikle_reach = np.column_stack(
                 [ikle_all[reach_num], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
-            ikle_reach, xyz_reach, h_reach, v_reach = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
+            ikle_reach, xyz_reach, h_reach, v_reach, shear_stress_reach = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
                 ikle_reach,
                 coord_p_xyz_all[reach_num],
                 water_depth_t_all[reach_num],
-                vel_t_all[reach_num])
+                vel_t_all[reach_num],
+                shear_stress_t_all[reach_num])
             tin.append(ikle_reach)
             xy.append(xyz_reach[:, (0, 1)])
             z.append(xyz_reach[:, 2])
             h_unit = []
             v_unit = []
-            for unit_num in range(len(timestep_name_wish_list_index)):
+            shear_stress_unit = []
+            for unit_num in range(len(self.timestep_name_wish_list_index)):
                 h_unit.append(h_reach[:, unit_num])
                 v_unit.append(v_reach[:, unit_num])
+                shear_stress_unit.append(shear_stress_reach[:, unit_num])
             h.append(h_unit)
             v.append(v_unit)
+            shear_stress.append(shear_stress_unit)
 
-        # description telemac data dict
-        description_from_file = dict()
-        description_from_file["filename_source"] = self.filename
-        description_from_file["path_filename_source"] = self.folder_path
-        description_from_file["model_type"] = self.model_type
-        description_from_file["model_dimension"] = str(2)
-        description_from_file["unit_list"] = ", ".join(timestep_name_wish_list)
-        description_from_file["unit_number"] = str(len(timestep_name_wish_list))
-        description_from_file["unit_type"] = "time [s]"
-        description_from_file["reach_number"] = str(len(self.reach_name_list))
-        description_from_file["reach_name"] = ", ".join(self.reach_name_list)
-        description_from_file["unit_z_equal"] = True  # TODO: check if always True ?
+        # prepare original and computed data for data_2d
+        for reach_num in range(self.reach_num):  # for each reach
+            for timestep_index in range(self.timestep_wish_nb):  # for each timestep
+                for variables_wish in self.hvum.variable_detected_list:  # .varunits
+                    if variables_wish.position == "mesh":
+                        if variables_wish.name == self.hvum.h.name:
+                            variables_wish.data[reach_num].append(water_depth_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype))
+                        if variables_wish.name == self.hvum.v.name:
+                            variables_wish.data[reach_num].append(vel_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype))
+                        if variables_wish.name == self.hvum.shear_stress.name:
+                            variables_wish.data[reach_num].append(shear_stress_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype))
 
-        # data 2d dict
-        data_2d = create_empty_data_2d_dict(len(self.reach_name_list),
-                                            node_variables=["h", "v"])
+                    if variables_wish.position == "node":
+                        if variables_wish.name == self.hvum.h.name:
+                            variables_wish.data[reach_num].append(h[reach_num][timestep_index].astype(variables_wish.dtype))
+                        if variables_wish.name == self.hvum.v.name:
+                            variables_wish.data[reach_num].append(v[reach_num][timestep_index].astype(variables_wish.dtype))
+                        if variables_wish.name == self.hvum.shear_stress.name:
+                            variables_wish.data[reach_num].append(shear_stress[reach_num][timestep_index].astype(variables_wish.dtype))
+                        if variables_wish.name == self.hvum.z.name:
+                            self.hvum.z.data[reach_num].append(z[reach_num].astype(variables_wish.dtype))
 
-        for reach_num in range(len(self.reach_name_list)):
-            data_2d["mesh"]["tin"][reach_num] = [tin[reach_num]] * timestep_wish_nb
-            data_2d["node"]["xy"][reach_num] = [xy[reach_num]] * timestep_wish_nb
-            if self.unit_z_equal:
-                data_2d["node"]["z"][reach_num] = [z[reach_num]] * timestep_wish_nb
-            else:
-                data_2d["node"]["z"][reach_num] = z[reach_num]
-        data_2d["node"]["data"]["h"] = h
-        data_2d["node"]["data"]["v"] = v
+            # coord
+            self.hvum.xy.data[reach_num] = [xy[reach_num]] * self.timestep_wish_nb
 
-        return data_2d, description_from_file
+            self.hvum.tin.data[reach_num] = [tin[reach_num]] * self.timestep_wish_nb
+
+        return self.get_data_2d()
 
 
 #@profileit
@@ -339,7 +382,7 @@ def get_discharges(filename_path):
     return timesteps
 
 
-def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
+def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v, shear_stress):
     """
     In Hec-ras, it is possible to have non-triangular cells, often rectangular cells This function transform the
     "mixed" grid to a triangular grid. For this,
@@ -361,20 +404,23 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     nb_reach = len(ikle_all)
 
     v_all = []
+    shear_stress_all = []
     h_all = []
 
-    nbtime = len(v[0])  #TODO : if multi reach : nbtime can vary by reach ?
+    nbtime = len(v[0])  #TODO : if multi reach : nbtime can vary by reach ? We said nbtime can't vary by reach ...
 
     # create the new grid for each reach
     for r in range(nb_reach):
         # store the hydraulic data of the reach
         hr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
         vr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
+        shear_stressr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
 
         # add data by time step
         for t in range(nbtime):
             hr[:, t] = h[r][t]  # list of np.array
             vr[:, t] = v[r][t]
+            shear_stressr[:, t] = shear_stress[r][t]
 
         ikle = np.copy(ikle_all[r])
         iklesum = np.copy(ikle)
@@ -398,6 +444,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
 
         hr3 = np.concatenate((hr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
         vr3 = np.concatenate((vr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        shear_stressr3 = np.concatenate((shear_stressr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
         likle = len(ikle)
         c3, cc3, ixyz3 = 0, np.sum(bmeshmore2) - 1, len(
             point_all[r]) - 1  # c3 index for the beginning of ikle3 cc3 index for new triangle
@@ -415,10 +462,12 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
                     ikle3[cc3, :] = ikle[c][s], ikle[c][s + 1], ixyz3  # others triangle
                     hr3[cc3, :] = hr[c, :]
                     vr3[cc3, :] = vr[c, :]
+                    shear_stressr3[cc3, :] = shear_stressr[c, :]
                 cc3 += 1
                 ikle3[cc3, :] = ikle[c][iklesum[c] - 1], ikle[c][0], ixyz3  # last triangle
                 hr3[cc3, :] = hr[c, :]
                 vr3[cc3, :] = vr[c, :]
+                shear_stressr3[cc3, :] = shear_stressr[c, :]
         # add grid by reach
         ikle_all[r] = ikle3
         point_all[r] = xyz3
@@ -426,8 +475,9 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
         # add data by time step
         h_all.append(hr3)
         v_all.append(vr3)
+        shear_stress_all.append(shear_stressr3)
 
-    return ikle_all, point_all, h_all, v_all
+    return ikle_all, point_all, h_all, v_all, shear_stress_all
 
 
 def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im, time_step=[0], flow_area=[0],

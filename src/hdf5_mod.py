@@ -107,7 +107,7 @@ class Hdf5Management:
         # get mode
         if not new:
             mode_file = 'r+'  # Readonly, file must exist
-        if new:
+        else:
             mode_file = 'w'  # Read/write, file must exist
 
         # extension check
@@ -119,44 +119,45 @@ class Hdf5Management:
             # write or open hdf5 file
             self.file_object = h5py.File(name=self.absolute_path_file,
                                          mode=mode_file)
-            if new:  # write + write attributes
-                self.file_object.attrs['hdf5_version'] = self.hdf5_version
-                self.file_object.attrs['h5py_version'] = self.h5py_version
-                self.file_object.attrs['software'] = 'HABBY'
-                self.file_object.attrs['software_version'] = str(HABBY_VERSION_STR)
-                self.file_object.attrs['path_project'] = self.path_prj
-                self.file_object.attrs['name_project'] = self.name_prj
-                self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
-            if not new:
-                if self.hdf5_type != "ESTIMHAB":
-                    self.project_preferences = load_project_properties(self.path_prj)
-
-                    self.get_hdf5_attributes()
-
-                    # create basename_output_reach_unit for output files
-                    if self.extension != ".sub":
-                        self.basename_output_reach_unit = []
-                        for reach_num, reach_name in enumerate(self.reach_name):
-                            self.basename_output_reach_unit.append([])
-                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                self.basename_output_reach_unit[reach_num].append(
-                                    self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
-                        self.units_name_output = []
-                        for reach_num, reach_name in enumerate(self.reach_name):
-                            self.units_name_output.append([])
-                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                if self.file_object.attrs["hyd_unit_type"] != 'unknown':
-                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
-                                                 self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
-                                                                                                                    "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
-                                else:
-                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
-                                                 self.file_object.attrs["hyd_unit_type"]
-                                self.units_name_output[reach_num].append(unit_name2)
-
         except OSError:
             print('Error: ' + qt_tr.translate("hdf5_mod", 'the hdf5 file could not be loaded.'))
             self.file_object = None
+            return
+
+        if new:  # write + write attributes
+            self.file_object.attrs['hdf5_version'] = self.hdf5_version
+            self.file_object.attrs['h5py_version'] = self.h5py_version
+            self.file_object.attrs['software'] = 'HABBY'
+            self.file_object.attrs['software_version'] = str(HABBY_VERSION_STR)
+            self.file_object.attrs['path_project'] = self.path_prj
+            self.file_object.attrs['name_project'] = self.name_prj
+            self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
+        elif not new:
+            if self.hdf5_type != "ESTIMHAB":
+                self.project_preferences = load_project_properties(self.path_prj)
+
+                self.get_hdf5_attributes()
+
+                # create basename_output_reach_unit for output files
+                if self.extension != ".sub":
+                    self.basename_output_reach_unit = []
+                    for reach_num, reach_name in enumerate(self.reach_name):
+                        self.basename_output_reach_unit.append([])
+                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                            self.basename_output_reach_unit[reach_num].append(
+                                self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
+                    self.units_name_output = []
+                    for reach_num, reach_name in enumerate(self.reach_name):
+                        self.units_name_output.append([])
+                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                            if self.file_object.attrs["hyd_unit_type"] != 'unknown':
+                                unit_name2 = unit_name.replace(".", "_") + "_" + \
+                                             self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
+                                                                                                                "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                            else:
+                                unit_name2 = unit_name.replace(".", "_") + "_" + \
+                                             self.file_object.attrs["hyd_unit_type"]
+                            self.units_name_output[reach_num].append(unit_name2)
 
     def save_xml(self, model_type, input_file_path):
         """
@@ -262,7 +263,7 @@ class Hdf5Management:
 
             """ get xml parent element name """
             if self.hdf5_type == "hydraulic":
-                self.input_type = hdf5_attributes_dict["hyd_model_type"].upper()
+                self.input_type = hdf5_attributes_dict["hyd_model_type"]
             elif self.hdf5_type == "substrate":
                 self.input_type = "SUBSTRATE"
             else:
@@ -1067,7 +1068,7 @@ class Hdf5Management:
                                     os.path.join(project_preferences["path_prj"], "input"))
 
         # save XML
-        self.save_xml("HABITAT", "")  # uppercase for xml
+        self.save_xml("HABITAT", "")
 
         # reload to export data or not
         for key in self.available_export_list:

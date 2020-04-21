@@ -20,13 +20,13 @@ from struct import unpack, pack
 from PyQt5.QtCore import QCoreApplication as qt_tr
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
-from src.hydraulic_bases import HydraulicSimulationResults
 from src.variable_unit_mod import HydraulicVariableUnitManagement
-from src.tools_mod import create_empty_data_2d_dict
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
-class TelemacResult(HydraulicSimulationResults):
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
@@ -118,26 +118,27 @@ class TelemacResult(HydraulicSimulationResults):
         self.timestep_name_wish_list_index.sort()
         self.timestep_wish_nb = len(self.timestep_name_wish_list_index)
 
-        #
+        # prepare original data for data_2d
         for reach_num in range(self.reach_num):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
                 val_all = self.results_data_file.getvalues(timestep_index)
                 for variables_wish in self.hvum.variable_detected_list:  # .varunits
                     if not variables_wish.computable:
                         variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
+                    if variables_wish.name == self.hvum.z.name:
+                        self.hvum.z.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
-            # compute v ?
-            if self.hvum.v.computable:
+                # struct
+                self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+
+        # prepare computable data for data_2d
+        if self.hvum.v.computable:  # compute v ?
+            for reach_num in range(self.reach_num):  # for each reach
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.v.data[reach_num].append(np.sqrt(self.hvum.v_x.data[reach_num][timestep_index] ** 2 + self.hvum.v_y.data[reach_num][timestep_index] ** 2))
-                self.hvum.v.position = "node"
+                    self.hvum.variable_data_detected_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.variable_data_detected_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.variable_data_detected_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
+                    self.hvum.variable_data_detected_list.get_from_name(self.hvum.v.name).position = "node"
 
-            # coord
-            self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
-
-            self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
-
-        #return self.get_data_2d()
         return self.get_data_2d()
 
 

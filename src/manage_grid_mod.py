@@ -1049,7 +1049,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
         return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
-#@profileit
+# @profileit
 def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, unit_num,
                 min_height=0.001):
     """
@@ -1094,7 +1094,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     ipt_all_ok_wetdry = []
     # all meshes are entirely wet
     if all(mikle_keep):
-        #print("Warning: The mesh of unit n°" + unit_name + " is entirely wet.")
+        # print("Warning: The mesh of unit n°" + unit_name + " is entirely wet.")
         iklekeep = ikle
         point_all_ok = point_all
         water_height_ok = water_height
@@ -1179,7 +1179,8 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
                             ind_whole2.append(i)
                     else:
                         print(
-                            "Error: Impossible case during the cutting of mesh partially wet on the timestep " + str(unit_num) + ".")
+                            "Error: Impossible case during the cutting of mesh partially wet on the timestep " + str(
+                                unit_num) + ".")
                         return failload
                     jpn += 2
 
@@ -1232,7 +1233,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
 
 
-def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case, checkpoint = True):
+def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case, checkpoint=True):
     # init
     tin_duplicate_tf = False
     xyz_duplicate_tf = False
@@ -1846,7 +1847,7 @@ def habby_grid_data(grid_new, grid_ori, vel_ori, height_ori):
     return vel_new, height_new
 
 
-def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=''):
+def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, shear_stressmesh, sub=''):
     """
     all the following parameters are numpy arrays
     :param ikle: the connectivity table 4 columns for quadrangular or triangular (las column value=-1)  meshes
@@ -1897,10 +1898,11 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
     p4 = nodes[ikle[:, 3], :] * t
     xyzmesh34 = np.sum(np.hstack((p1, p2, p3, p4)).reshape(nbmesh, 4, 3), axis=1) / (t + 3)
 
-    hnodes2all, vnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64), np.empty((nodes2.shape[0], nbunit),
-                                                                                             dtype=np.float64)
+    hnodes2all, vnodes2all, shear_stressnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64), np.empty(
+        (nodes2.shape[0], nbunit), dtype=np.float64), np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
     hzmeshall = hmesh + xyzmesh34[:, 2].reshape(nbmesh, 1)
     vmesh = np.abs(vmesh)  # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
+    shear_stressmesh = np.abs(shear_stressmesh)
     # hvmeshall =hmesh* vmesh
     nbnodes2 = nodes2.shape[0]
     for i in range(nbunit):
@@ -1942,6 +1944,15 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
                                method='linear')
         else:
             vnodes2 = np.full(nbnodes2, np.nan)
+        # shear_stress
+        if shear_stressmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
+            shear_stressnode2 = griddata(points=xyzmesh34[:, (0, 1)],
+                                         values=shear_stressmesh[:, i],
+                                         xi=nodes2[:, (0, 1)],
+                                         method='linear')
+        else:
+            shear_stressnode2 = np.full(nbnodes2, np.nan)
+
         # Get the NaN from outer nodes and replace with the nearest values
         vnodes2_nan = np.isnan(vnodes2)
         nodes2nan = nodes2[:, (0, 1)][vnodes2_nan]
@@ -1951,21 +1962,34 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, sub=
                                    method='nearest')
         vnodes2[vnodes2_nan] = vnodes2_new_nan
         vnodes2[hnodes2 == 0] = 0  # get realistic
-        hnodes2all[:, i], vnodes2all[:, i] = hnodes2, vnodes2
+        # shear_stress
+        shear_stressnode2_nan = np.isnan(shear_stressnode2)
+        nodes2nan = nodes2[:, (0, 1)][shear_stressnode2_nan]
+        shear_stressnodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
+                                              values=shear_stressmesh[:, i],
+                                              xi=nodes2nan,
+                                              method='nearest')
+        shear_stressnode2[vnodes2_nan] = shear_stressnodes2_new_nan
+        shear_stressnode2[hnodes2 == 0] = 0  # get realistic
+
+        hnodes2all[:, i], vnodes2all[:, i], shear_stressnodes2all[:, i] = hnodes2, vnodes2, shear_stressnode2
     # giving the exact values of depth and velocity in the quadrangular mesh centers nodes
     # TODO not to do previously this job  above TAKE CARE that if you got just one quadrangle or similar situation
     # only the following part will give the correct result
     if len(ikle4):
         hnodes4all = hmesh[np.where(ikle[:, [3]] != -1)[0]]
         vnodes4all = vmesh[np.where(ikle[:, [3]] != -1)[0]]
+        shear_stressnodes4all = shear_stressmesh[np.where(ikle[:, [3]] != -1)[0]]
         hnodes4all[hnodes4all <= 0] = 0
         vnodes4all[hnodes4all == 0] = 0
+        shear_stressnodes4all[hnodes4all == 0] = 0
         hnodes2all[nbnodes0:nbnodes2, :] = hnodes4all
         vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
+        shear_stressnodes2all[nbnodes0:nbnodes2, :] = shear_stressnodes4all
     if bsub:
-        return ikle2, nodes2, hnodes2all, vnodes2all, sub
+        return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all, sub
     else:
-        return ikle2, nodes2, hnodes2all, vnodes2all
+        return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all
 
 
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):

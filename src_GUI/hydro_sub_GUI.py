@@ -30,13 +30,14 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
     QHBoxLayout
 from lxml import etree as ET
 
-from src.hydraulic_bases import HydraulicModelInformation
-from src.input_data_manager_mod import HydraulicSimulationResultsAnalyzer
+import src.substrate_mod
+from src.hydraulic_results_manager_mod import HydraulicModelInformation
+from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
 import src.tools_mod
 from src import ascii_mod
 from src import hdf5_mod
 from src import hec_ras1D_mod
-from src import input_data_manager_mod
+from src import hydraulic_process_mod
 from src import iber2d_mod
 from src import lammi_mod
 from src import mascaret_mod
@@ -246,6 +247,7 @@ class Hydro2W(QScrollArea):
         self.msgi.show()
 
     def set_suffix_no_cut(self, no_cut_bool):
+        print("set_suffix_no_cut")
         if self.hydraulic_model_information.name_models_gui_list[self.mod_act]:
             # get class
             current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.mod_act].lower())
@@ -265,7 +267,7 @@ class Hydro2W(QScrollArea):
                     # set new name
                     current_model_class.hname.setText(new_hdf5_name)
             # remove no_cut suffix if exist
-            if no_cut_bool:
+            elif no_cut_bool:
                 # check if no_cut suffix exist
                 if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
                     # check if there is extension
@@ -970,7 +972,7 @@ class SubHydroW(QWidget):
         self.save_xml(0)
 
         # check cases
-        self.p = Process(target=input_data_manager_mod.load_hydraulic_cut_to_hdf5,
+        self.p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
                          args=(hydrau_description_multiple,
                                self.progress_value,
                                self.q,
@@ -2268,10 +2270,10 @@ class HEC_RAS1D(SubHydroW):
             # result data
             if i == 1:
                 # get_hydrau_description_from_source
-                hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_list[0],
-                                                                                                             self.path_prj,
-                                                                                                             self.model_type,
-                                                                                                             self.nb_dim)
+                hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                            self.path_prj,
+                                                                                                            self.model_type,
+                                                                                                            self.nb_dim)
 
                 # warnings
                 if warning_list:
@@ -2552,6 +2554,10 @@ class HEC_RAS2D(SubHydroW):
         reach_name_title_label = QLabel(self.tr('Reach name'))
         self.reach_name_label = QLabel(self.tr('unknown'))
 
+        # usefull variables
+        usefull_variable_label_title = QLabel(self.tr('Usefull variables detected'))
+        self.usefull_variable_label = QLabel(self.tr('unknown'))
+
         # unit type
         units_name_title_label = QLabel(self.tr('Unit(s) type'))
         self.units_name_label = QLabel(self.tr('unknown'))
@@ -2595,19 +2601,23 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         self.layout_hec2.addWidget(reach_name_title_label, 1, 0)
         self.layout_hec2.addWidget(self.reach_name_label, 1, 1)
-        self.layout_hec2.addWidget(units_name_title_label, 2, 0)
-        self.layout_hec2.addWidget(self.units_name_label, 2, 1)
-        self.layout_hec2.addWidget(l2, 3, 0)
-        self.layout_hec2.addWidget(self.number_timstep_label, 3, 1)
-        self.layout_hec2.addWidget(l_selecttimestep, 4, 0)
-        self.layout_hec2.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
-        self.layout_hec2.addWidget(epsgtitle_label, 5, 0)
-        self.layout_hec2.addWidget(self.epsg_label, 5, 1)
-        self.layout_hec2.addWidget(lh, 6, 0)
-        self.layout_hec2.addWidget(self.hname, 6, 1)
-        self.layout_hec2.addWidget(self.load_b, 6, 2)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_label, 7, 0)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 7, 1)
+
+        self.layout_hec2.addWidget(usefull_variable_label_title, 2, 0)
+        self.layout_hec2.addWidget(self.usefull_variable_label, 2, 1)
+
+        self.layout_hec2.addWidget(units_name_title_label, 3, 0)
+        self.layout_hec2.addWidget(self.units_name_label, 3, 1)
+        self.layout_hec2.addWidget(l2, 4, 0)
+        self.layout_hec2.addWidget(self.number_timstep_label, 4, 1)
+        self.layout_hec2.addWidget(l_selecttimestep, 5, 0)
+        self.layout_hec2.addWidget(self.units_QListWidget, 5, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_hec2.addWidget(epsgtitle_label, 6, 0)
+        self.layout_hec2.addWidget(self.epsg_label, 6, 1)
+        self.layout_hec2.addWidget(lh, 7, 0)
+        self.layout_hec2.addWidget(self.hname, 7, 1)
+        self.layout_hec2.addWidget(self.load_b, 7, 2)
+        self.layout_hec2.addWidget(self.last_hydraulic_file_label, 8, 0)
+        self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 8, 1)
         [self.layout_hec2.setRowMinimumHeight(i, 30) for i in range(self.layout_hec2.rowCount())]
 
         self.setLayout(self.layout_hec2)
@@ -2919,7 +2929,7 @@ class ASCII(SubHydroW):  # QGroupBox
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(
+            hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(
                 filename_list[0],
                 self.path_prj,
                 self.model_type,
@@ -3558,10 +3568,10 @@ class SW2D(SubHydroW):
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            telemac_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_list[0],
-                                                                                                          self.path_prj,
-                                                                                                          self.model_type,
-                                                                                                          self.nb_dim)
+            telemac_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                         self.path_prj,
+                                                                                                         self.model_type,
+                                                                                                         self.nb_dim)
 
             # warnings
             if warning_list:
@@ -4489,9 +4499,9 @@ class SubstrateW(SubHydroW):
                     self.msg2.show()
 
             # get_sub_description_from_source
-            sub_description, warning_list = input_data_manager_mod.get_sub_description_from_source(filename_path,
-                                                                                                   substrate_mapping_method,
-                                                                                                   self.path_prj)
+            sub_description, warning_list = src.substrate_mod.get_sub_description_from_source(filename_path,
+                                                                                              substrate_mapping_method,
+                                                                                              self.path_prj)
             # save to attribute
             self.sub_description = sub_description
             # error

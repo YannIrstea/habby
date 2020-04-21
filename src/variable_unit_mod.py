@@ -14,7 +14,7 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from copy import copy
+from copy import deepcopy
 import numpy as np
 
 
@@ -40,7 +40,10 @@ class HydraulicVariableUnitList(list):
         self.dtypes = []
 
     def append(self, hydraulic_variable):
-        hydraulic_variable = copy(hydraulic_variable)
+        """
+        with copy
+        """
+        hydraulic_variable = deepcopy(hydraulic_variable)
         super(HydraulicVariableUnitList, self).append(hydraulic_variable)
         self.names.append(hydraulic_variable.name)
         self.names_gui.append(hydraulic_variable.name_gui)
@@ -48,6 +51,9 @@ class HydraulicVariableUnitList(list):
         self.dtypes.append(hydraulic_variable.dtype)
 
     def extend(self, hydraulic_variable_list):
+        """
+        without copy
+        """
         super(HydraulicVariableUnitList, self).extend(hydraulic_variable_list)
         for hydraulic_variable in hydraulic_variable_list:
             self.names.append(hydraulic_variable.name)
@@ -93,6 +99,9 @@ class HydraulicVariableUnitList(list):
         variable_name_unit_dict["variable_node_data_name_list"] = self.get_nodes().names
         variable_name_unit_dict["variable_node_data_unit_list"] = self.get_nodes().units
         return variable_name_unit_dict
+
+    def get_from_name(self, name):
+        return self[self.names.index(name)]
 
 
 class HydraulicVariableUnitManagement:

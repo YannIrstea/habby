@@ -14,8 +14,10 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
+import importlib
 import os
 import pandas as pd
+import sys
 
 from src.data_2d_mod import Data2d, UnitDict
 from src.variable_unit_mod import HydraulicVariableUnitManagement
@@ -23,6 +25,9 @@ from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 class HydraulicModelInformation:
     def __init__(self):
+        """
+        Hydraulic software informations
+        """
         # models
         self.available_models_tf_list = []
         self.name_models_gui_list = []
@@ -41,7 +46,7 @@ class HydraulicModelInformation:
             for header_index, header_name in enumerate(header_list):
                 getattr(self, header_name).append(line_splited[header_index])
 
-        # set TF to bool
+        # convert to bool
         self.available_models_tf_list = [eval(bool_str) for bool_str in self.available_models_tf_list]
 
     def get_attribute_name_from_class_name(self, class_name):
@@ -63,7 +68,21 @@ class HydraulicModelInformation:
             return None
 
 
-class HydraulicSimulationResults:
+class HydraulicSimulationResultsSelector:
+    def __new__(self, filename, folder_path, model_type, path_prj):
+        hydraulic_model_information = HydraulicModelInformation()
+        filename_mod = hydraulic_model_information.get_file_mod_name_from_attribute_name(model_type)
+
+        # Contrived example of generating a module named as a string
+        full_module_name = "src." + filename_mod
+
+        # The file gets executed upon import, as expected.
+        mymodule = importlib.import_module(full_module_name)
+
+        return mymodule.HydraulicSimulationResults(filename, folder_path, model_type, path_prj)
+
+
+class HydraulicSimulationResultsBase:
     def __init__(self, filename, folder_path, model_type, path_prj):
         """
         :param filename_path_list: list of absolute path file, type: list of str
@@ -119,32 +138,31 @@ class HydraulicSimulationResults:
         # create empty list
         data_2d = Data2d()
         data_2d.hvum = self.hvum
+        node_list = self.hvum.variable_data_detected_list.get_nodes()
+        mesh_list = self.hvum.variable_data_detected_list.get_meshs()
 
+        sys.stdout = sys.__stdout__
         for reach_num in range(len(self.reach_name_list)):
             unit_list = []
             for unit_num in range(len(self.timestep_name_wish_list)):
-                """ node """
-                node_dataframe = pd.DataFrame()
-                node_list = self.hvum.variable_data_detected_list.get_nodes()
-                if node_list:
-                    for node_variable in node_list:
-                        node_dataframe[node_variable.name] = getattr(self.hvum, node_variable.name).data[reach_num][unit_num]
-
-                """ mesh """
-                mesh_dataframe = pd.DataFrame()
-                mesh_list = self.hvum.variable_data_detected_list.get_meshs()
-                if mesh_list:
-                    for mesh_variable in mesh_list:
-                        mesh_dataframe[mesh_variable.name] = getattr(self.hvum, mesh_variable.name).data[reach_num][unit_num]
-
-                """ unit_dict """
+                # unit_dict
                 unit_dict = UnitDict()
-                unit_dict["mesh"] = dict(data=mesh_dataframe,
-                                         i_whole_profile=None,
-                                         tin=self.hvum.tin.data[reach_num][unit_num])
-                unit_dict["node"] = dict(data=node_dataframe,
+                unit_dict["node"] = dict(data=None,
                                          xy=self.hvum.xy.data[reach_num][unit_num],
                                          z=self.hvum.z.data[reach_num][unit_num])
+                unit_dict["mesh"] = dict(data=None,
+                                         i_whole_profile=None,
+                                         tin=self.hvum.tin.data[reach_num][unit_num])
+                # node
+                unit_dict["node"]["data"] = pd.DataFrame()
+                if node_list:
+                    for node_variable in node_list:
+                        unit_dict["node"]["data"][node_variable.name] = node_variable.data[reach_num][unit_num]
+                # mesh
+                unit_dict["mesh"]["data"] = pd.DataFrame()
+                if mesh_list:
+                    for mesh_variable in mesh_list:
+                        unit_dict["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_num][unit_num]
                 # append by unit
                 unit_list.append(unit_dict)
             # append by reach
