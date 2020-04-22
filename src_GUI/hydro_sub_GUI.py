@@ -405,7 +405,6 @@ class SubHydroW(QWidget):
 
         sys.stdout = self.mystdout = StringIO()  # out to GUI
         pathname_hdf5 = hdf5_mod.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
-        sys.stdout = sys.__stdout__  # reset to console
         self.send_err_log()
 
         if pathname_hdf5:
@@ -924,12 +923,6 @@ class SubHydroW(QWidget):
                 self.send_log.emit("Error: " + self.tr("No units selected for : ") + self.hydrau_description_list[i][
                     "filename_source"] + "\n")
                 return
-        # if not self.multi_hdf5:
-        #     selection = self.units_QListWidget.selectedItems()
-        #     if not selection:
-        #         self.send_log.emit("Error: " + self.tr("No units selected. \n"))
-        #         return
-        #     self.hydrau_description["epsg_code"] = self.epsg_label.text()
 
         # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
@@ -2555,7 +2548,7 @@ class HEC_RAS2D(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Usefull variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Hydraulic variables'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -2691,7 +2684,7 @@ class TELEMAC(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Usefull variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Hydraulic variables'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -4017,7 +4010,7 @@ class Basement2D(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Usefull variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Hydraulic variables'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type

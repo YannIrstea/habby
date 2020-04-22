@@ -134,14 +134,24 @@ class HydraulicSimulationResultsBase:
         # coordinates
         self.unit_z_equal = False
 
+    def load_specific_timestep(self, timestep_name_wish_list):
+        self.timestep_name_wish_list = timestep_name_wish_list
+        for time_step_name_wish in timestep_name_wish_list:
+            if time_step_name_wish not in self.timestep_name_list:
+                print("Error: timestep " + time_step_name_wish + " not found in " + self.filename +
+                      ". Change it in indexHYDRAU.txt and retry.")
+            else:
+                self.timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
+        self.timestep_name_wish_list_index.sort()
+        self.timestep_wish_nb = len(self.timestep_name_wish_list_index)
+
     def get_data_2d(self):
         # create empty list
         data_2d = Data2d()
         data_2d.hvum = self.hvum
-        node_list = self.hvum.variable_data_detected_list.get_nodes()
-        mesh_list = self.hvum.variable_data_detected_list.get_meshs()
+        node_list = self.hvum.all_available_variable_list.get_nodes()
+        mesh_list = self.hvum.all_available_variable_list.get_meshs()
 
-        sys.stdout = sys.__stdout__
         for reach_num in range(len(self.reach_name_list)):
             unit_list = []
             for unit_num in range(len(self.timestep_name_wish_list)):

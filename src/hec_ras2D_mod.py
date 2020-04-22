@@ -127,11 +127,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         """
         """
         # load specific timestep
-        self.timestep_name_wish_list = timestep_name_wish_list
-        for time_step_name_wish in timestep_name_wish_list:
-            self.timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
-        self.timestep_name_wish_list_index.sort()
-        self.timestep_wish_nb = len(self.timestep_name_wish_list_index)
+        self.load_specific_timestep(timestep_name_wish_list)
 
         # get group
         geometry_flow_areas_group = self.results_data_file["Geometry/2D Flow Areas"]

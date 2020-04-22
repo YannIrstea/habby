@@ -150,7 +150,7 @@ class HydraulicSimulationResultsAnalyzer:
                     filename = os.path.basename(self.filename_list[0])
                     hsr = HydraulicSimulationResultsSelector(filename, self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
-                    variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                    variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
                     unit_list = hsr.timestep_name_list
                     unit_number = str(hsr.timestep_nb)
                     unit_list_tf = [True] * hsr.timestep_nb
@@ -351,7 +351,7 @@ class HydraulicSimulationResultsAnalyzer:
                     data_index_file[headers[0]] = [data_index_file[headers[0]][index_file]]
                     data_index_file[headers[discharge_index]] = [data_index_file[headers[discharge_index]][index_file]]
 
-                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -389,7 +389,7 @@ class HydraulicSimulationResultsAnalyzer:
                 else:
                     reach_name = "unknown"
 
-                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["unit_list"] = data_index_file[headers[discharge_index]]
@@ -419,7 +419,7 @@ class HydraulicSimulationResultsAnalyzer:
                             return "Error: file " + file + " contain more than one time step (timestep :" \
                                    + str(hsr.timestep_name_list) + ")", None
                     if file == data_index_file["filename"][-1]:  # last
-                        variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                        variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
                 # selected files same than indexHYDRAU file
                 if not selectedfiles_textfiles_matching:
                     pass
@@ -468,7 +468,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if unit_name_from_index_file not in hsr.timestep_name_list:
                         return "Error: " + unit_name_from_index_file + " don't exist in " + file, None
                     if file == data_index_file["filename"][-1]:  # last
-                        variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                        variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
 
                 # selected files same than indexHYDRAU file
                 if not selectedfiles_textfiles_matching:
@@ -510,7 +510,7 @@ class HydraulicSimulationResultsAnalyzer:
 
                 unit_index_from_file = [True] * hsr.timestep_nb
 
-                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -565,7 +565,7 @@ class HydraulicSimulationResultsAnalyzer:
                 if not reach_presence:
                     reach_name = "unknown"
 
-                variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -603,7 +603,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if not reach_presence:
                         reach_name = "unknown"
 
-                    variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                    variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
 
                     # multi description
                     self.hydrau_description_list.append(dict(path_prj=self.path_prj,
@@ -674,7 +674,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if not reach_presence:
                         reach_name = "unknown"
 
-                    variable_name_unit_dict = hsr.hvum.variable_data_detected_list.get_dict()
+                    variable_name_unit_dict = hsr.hvum.all_available_variable_list.get_dict()
 
                     # multi description
                     self.hydrau_description_list.append(dict(path_prj=self.path_prj,
@@ -1065,8 +1065,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                                              hydrau_description[hdf5_file_index]["path_prj"])
             if hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.a", "2.a"}:
                 timestep_with_list = hsr.timestep_name_list
-            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b", "2.b"}:
+            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b"}:
                 timestep_with_list = hydrau_description[hdf5_file_index]["timestep_list"]
+            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"2.b"}:
+                timestep_with_list = [hydrau_description[hdf5_file_index]["timestep_list"][i]]
             else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
                 timestep_with_list = hydrau_description[hdf5_file_index]["unit_list"]
             # load data

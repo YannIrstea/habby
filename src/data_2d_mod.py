@@ -15,7 +15,6 @@ https://github.com/YannIrstea/habby
 
 """
 import numpy as np
-import sys
 import pandas as pd
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
@@ -564,7 +563,8 @@ class UnitDict(dict):
         GRAVITY = HydraulicVariableUnitManagement().g.value
         # compute froude
         self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.v.name] / np.sqrt(GRAVITY * self["node"]["data"][self.hvum.h.name])
-        self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(0)  # divid by 0 return Nan
+        with pd.option_context('mode.use_inf_as_na', True):
+            self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(0)  # divid by 0 return Nan
 
     def c_node_hydraulic_head(self):
         GRAVITY = HydraulicVariableUnitManagement().g.value

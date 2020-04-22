@@ -221,8 +221,8 @@ class Hdf5Management:
             """ get_2D_variables """
             # hydraulic
             if self.hdf5_type == "hydraulic":
-                self.hvum.get_original_computable_mesh_and_node_from_original_name(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                                                                                   hdf5_attributes_dict["node_variable_original_name_list"].tolist())
+                self.hvum.get_original_computable_mesh_and_node_from_hdf5(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
+                                                                          hdf5_attributes_dict["node_variable_original_name_list"].tolist())
 
             # substrate constant ==> nothing to plot
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
@@ -370,10 +370,10 @@ class Hdf5Management:
                         self.file_object.attrs[attribute_name] = attribute_value
 
         # variables attrs
-        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.variable_data_detected_list.get_meshs().names
-        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.variable_data_detected_list.get_nodes().names
-        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.variable_data_detected_list.get_meshs().units
-        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.variable_data_detected_list.get_nodes().units
+        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.all_available_variable_list.get_meshs().names
+        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.all_available_variable_list.get_nodes().names
+        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.all_available_variable_list.get_meshs().units
+        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.all_available_variable_list.get_nodes().units
 
         # data by type of model (2D)
         if int(hyd_description["hyd_model_dimension"]) <= 2:
@@ -473,7 +473,7 @@ class Hdf5Management:
                     mesh_group.create_dataset(name="i_whole_profile",
                                               shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
                                               data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
-                    if data_2d.hvum.variable_data_detected_list.get_meshs():
+                    if data_2d.hvum.all_available_variable_list.get_meshs():
                         rec_array = data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
                         mesh_group.create_dataset(name="data",
                                                   shape=rec_array.shape,
@@ -488,7 +488,7 @@ class Hdf5Management:
                     node_group.create_dataset(name="z",
                                               shape=data_2d[reach_num][unit_num]["node"]["z"].shape,
                                               data=data_2d[reach_num][unit_num]["node"]["z"])
-                    if data_2d.hvum.variable_data_detected_list.get_nodes():
+                    if data_2d.hvum.all_available_variable_list.get_nodes():
                         rec_array = data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
                         node_group.create_dataset(name="data",
                                                   shape=rec_array.shape,
@@ -530,12 +530,16 @@ class Hdf5Management:
                 self.export_detailled_point_txt()
                 break
 
-    def load_hdf5_hyd(self, units_index="all", variable_dict="all", whole_profil=False):
+    def load_hdf5_hyd(self, units_index="all", all_wish_variable_list="all", whole_profil=False):
         # open an hdf5
         self.open_hdf5_file(new=False)
 
         # save unit_index for computing variables
         self.units_index = units_index
+
+        # variables
+        if all_wish_variable_list != "all":
+            self.hvum.get_final_variable_list_from_wish(all_wish_variable_list)
 
         # attributes
         if self.units_index == "all":
@@ -559,11 +563,6 @@ class Hdf5Management:
         # dataset for unit_list
         hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
         hyd_description["unit_correspondence"] = self.file_object["unit_correspondence"][:].transpose().tolist()
-
-        # variables
-        if variable_dict != "all":
-            self.hvum_wish = HydraulicVariableUnitManagement()
-            self.hvum_wish.get_original_computable_mesh_and_node_from_dict_gui(variable_dict)
 
         """ WHOLE PROFIL """
         if whole_profil:
@@ -621,26 +620,13 @@ class Hdf5Management:
                 tin = self.file_object[mesh_group + "/tin"][:]
 
                 # data (always ?)
+                mesh_dataframe = DataFrame()
                 if mesh_group + "/data" in self.file_object:
-                    read_all = False
-                    if variable_dict != "all":
-                        # ex_names_list
-                        ex_names_list = self.hvum.variable_original_list.get_meshs().names
-                        # wi_names_list
-                        wi_names_list = self.hvum_wish.variable_original_list.get_meshs().names
-                        if ex_names_list != wi_names_list:
-                            mesh_dataframe = DataFrame()
-                            if wi_names_list:
-                                for mesh_variable_name in wi_names_list:
-                                    mesh_dataframe[mesh_variable_name] = self.file_object[mesh_group + "/data"][mesh_variable_name]
-                        else:
-                            read_all = True
+                    if all_wish_variable_list != "all":
+                        for mesh_variable in self.hvum.all_final_variable_list.get_hdf5(True).get_meshs():
+                            mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][mesh_variable.name]
                     else:
-                        read_all = True
-                    if read_all:
                         mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
-                else:
-                    mesh_dataframe = DataFrame()
 
                 """ node """
                 # group
@@ -651,34 +637,13 @@ class Hdf5Management:
                 z = self.file_object[node_group + "/z"][:]
 
                 # data (always ?)
+                node_dataframe = DataFrame()
                 if node_group + "/data" in self.file_object:
-                    read_all = False
-                    if variable_dict != "all":
-                        # ex_names_list
-                        ex_names_list = self.hvum.variable_original_list.get_nodes().names
-                        # wi_names_list
-                        wi_names_list = self.hvum_wish.variable_original_list.get_nodes().names
-                        # wi_computed_list
-                        wi_computed_list = self.hvum_wish.variable_computable_list.get_nodes().names
-                        if self.hvum.h.name not in wi_names_list:  # always h
-                            wi_names_list.append(self.hvum.h.name)
-                        if self.hvum.v.name not in wi_names_list:   # always v
-                            wi_names_list.append(self.hvum.v.name)
-                        if self.hvum.shear_stress.name in wi_computed_list:
-                            wi_names_list.append(self.hvum.v_frict.name)
-                        if ex_names_list != wi_names_list:
-                            node_dataframe = DataFrame()
-                            if wi_names_list:
-                                for node_variable_name in wi_names_list:
-                                    node_dataframe[node_variable_name] = self.file_object[node_group + "/data"][node_variable_name]
-                        else:
-                            read_all = True
+                    if all_wish_variable_list != "all":
+                        for node_variable in self.hvum.all_final_variable_list.get_hdf5(True).get_nodes():
+                            node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][node_variable.name]
                     else:
-                        read_all = True
-                    if read_all:
                         node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
-                else:
-                    node_dataframe = DataFrame()
 
                 """ unit_dict """
                 unit_dict = UnitDict()
@@ -698,6 +663,10 @@ class Hdf5Management:
         # close file
         self.file_object.close()
         self.file_object = None
+
+        # compute ?
+        if self.hvum.all_final_variable_list.get_hdf5(False):
+            data_2d.compute_variables(self.hvum.all_final_variable_list.get_hdf5(False))
 
         # to attributes
         self.data_2d = data_2d
