@@ -149,8 +149,8 @@ class HydraulicSimulationResultsBase:
         # create empty list
         data_2d = Data2d()
         data_2d.hvum = self.hvum
-        node_list = self.hvum.all_available_variable_list.get_nodes()
-        mesh_list = self.hvum.all_available_variable_list.get_meshs()
+        node_list = self.hvum.hdf5_and_computable_list.nodes()
+        mesh_list = self.hvum.hdf5_and_computable_list.meshs()
 
         for reach_num in range(len(self.reach_name_list)):
             unit_list = []
@@ -158,8 +158,7 @@ class HydraulicSimulationResultsBase:
                 # unit_dict
                 unit_dict = UnitDict()
                 unit_dict["node"] = dict(data=None,
-                                         xy=self.hvum.xy.data[reach_num][unit_num],
-                                         z=self.hvum.z.data[reach_num][unit_num])
+                                         xy=self.hvum.xy.data[reach_num][unit_num])
                 unit_dict["mesh"] = dict(data=None,
                                          i_whole_profile=None,
                                          tin=self.hvum.tin.data[reach_num][unit_num])

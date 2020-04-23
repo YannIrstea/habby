@@ -815,8 +815,8 @@ class SubHydroW(QWidget):
             self.h2d_t2.clear()
             self.h2d_t2.addItems(names)
             self.reach_name_label.setText(self.hydrau_description_list[0]["reach_list"])
-            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"]["variable_mesh_data_name_list"])
-            node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"]["variable_node_data_name_list"])
+            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].meshs().names())
+            node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].nodes().names())
             self.usefull_variable_label.setText("node : " + node_list + "\nmesh : " + mesh_list)
             self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
             self.units_QListWidget.clear()
@@ -836,6 +836,7 @@ class SubHydroW(QWidget):
                 text_load_button = text_load_button + "s"
             self.load_b.setText(text_load_button)
             self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+            self.hname.textChanged.connect(self.unit_counter)
             self.unit_counter()
 
     def unit_counter(self):
@@ -859,6 +860,7 @@ class SubHydroW(QWidget):
         self.hydrau_description_list[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
         self.hydrau_description_list[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
         self.hydrau_description_list[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
+        self.hydrau_description_list[self.h2d_t2.currentIndex()]["hdf5_name"] = self.hname.text()
 
         if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
             # preset name hdf5
@@ -942,7 +944,7 @@ class SubHydroW(QWidget):
         self.nativeParentWidget().progress_bar.setVisible(True)
 
         # check if extension is set by user (multi hdf5 case)
-        hydrau_description_multiple = list(self.hydrau_description_list) # create copy to not erase inital choices
+        hydrau_description_multiple = list(self.hydrau_description_list)  # create copy to not erase inital choices
         for hdf5_num in range(len(hydrau_description_multiple)):
             if not os.path.splitext(hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
                 hydrau_description_multiple[hdf5_num]["hdf5_name"] = hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
@@ -2548,7 +2550,7 @@ class HEC_RAS2D(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Hydraulic variables'))
+        usefull_variable_label_title = QLabel(self.tr('Variables detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -2684,7 +2686,7 @@ class TELEMAC(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Hydraulic variables'))
+        usefull_variable_label_title = QLabel(self.tr('Variables detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -4010,7 +4012,7 @@ class Basement2D(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Hydraulic variables'))
+        usefull_variable_label_title = QLabel(self.tr('Variables detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type

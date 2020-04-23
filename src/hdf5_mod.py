@@ -370,10 +370,11 @@ class Hdf5Management:
                         self.file_object.attrs[attribute_name] = attribute_value
 
         # variables attrs
-        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.all_available_variable_list.get_meshs().names
-        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.all_available_variable_list.get_nodes().names
-        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.all_available_variable_list.get_meshs().units
-        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.all_available_variable_list.get_nodes().units
+        data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
+        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
+        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
+        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()
+        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().units()
 
         # data by type of model (2D)
         if int(hyd_description["hyd_model_dimension"]) <= 2:
@@ -473,7 +474,7 @@ class Hdf5Management:
                     mesh_group.create_dataset(name="i_whole_profile",
                                               shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
                                               data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
-                    if data_2d.hvum.all_available_variable_list.get_meshs():
+                    if data_2d.hvum.hdf5_and_computable_list.meshs():
                         rec_array = data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
                         mesh_group.create_dataset(name="data",
                                                   shape=rec_array.shape,
@@ -485,10 +486,7 @@ class Hdf5Management:
                     node_group.create_dataset(name="xy",
                                               shape=data_2d[reach_num][unit_num]["node"]["xy"].shape,
                                               data=data_2d[reach_num][unit_num]["node"]["xy"])
-                    node_group.create_dataset(name="z",
-                                              shape=data_2d[reach_num][unit_num]["node"]["z"].shape,
-                                              data=data_2d[reach_num][unit_num]["node"]["z"])
-                    if data_2d.hvum.all_available_variable_list.get_nodes():
+                    if data_2d.hvum.hdf5_and_computable_list.nodes():
                         rec_array = data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
                         node_group.create_dataset(name="data",
                                                   shape=rec_array.shape,
@@ -530,7 +528,7 @@ class Hdf5Management:
                 self.export_detailled_point_txt()
                 break
 
-    def load_hdf5_hyd(self, units_index="all", all_wish_variable_list="all", whole_profil=False):
+    def load_hdf5_hyd(self, units_index="all", user_target_list="all", whole_profil=False):
         # open an hdf5
         self.open_hdf5_file(new=False)
 
@@ -538,8 +536,8 @@ class Hdf5Management:
         self.units_index = units_index
 
         # variables
-        if all_wish_variable_list != "all":
-            self.hvum.get_final_variable_list_from_wish(all_wish_variable_list)
+        if user_target_list != "all":
+            self.hvum.get_final_variable_list_from_wish(user_target_list)
 
         # attributes
         if self.units_index == "all":
@@ -622,8 +620,8 @@ class Hdf5Management:
                 # data (always ?)
                 mesh_dataframe = DataFrame()
                 if mesh_group + "/data" in self.file_object:
-                    if all_wish_variable_list != "all":
-                        for mesh_variable in self.hvum.all_final_variable_list.get_hdf5(True).get_meshs():
+                    if user_target_list != "all":
+                        for mesh_variable in self.hvum.all_final_variable_list.hdf5s().meshs():
                             mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][mesh_variable.name]
                     else:
                         mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
@@ -633,14 +631,14 @@ class Hdf5Management:
                 node_group = unit_group + "/node"
                 # xy
                 xy = self.file_object[node_group + "/xy"][:]
-                # z
-                z = self.file_object[node_group + "/z"][:]
+                # # z
+                # z = self.file_object[node_group + "/z"][:]
 
                 # data (always ?)
                 node_dataframe = DataFrame()
                 if node_group + "/data" in self.file_object:
-                    if all_wish_variable_list != "all":
-                        for node_variable in self.hvum.all_final_variable_list.get_hdf5(True).get_nodes():
+                    if user_target_list != "all":
+                        for node_variable in self.hvum.all_final_variable_list.hdf5s().nodes():
                             node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][node_variable.name]
                     else:
                         node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
@@ -651,8 +649,7 @@ class Hdf5Management:
                                            i_whole_profile=i_whole_profile,
                                            tin=tin)
                 unit_dict["node"] = dict(data=node_dataframe,
-                                           xy=xy,
-                                           z=z)
+                                           xy=xy)
                 # append by unit
                 unit_list.append(unit_dict)
             # append by reach
@@ -665,8 +662,8 @@ class Hdf5Management:
         self.file_object = None
 
         # compute ?
-        if self.hvum.all_final_variable_list.get_hdf5(False):
-            data_2d.compute_variables(self.hvum.all_final_variable_list.get_hdf5(False))
+        if self.hvum.all_final_variable_list.to_compute():
+            data_2d.compute_variables(self.hvum.all_final_variable_list.to_compute())
 
         # to attributes
         self.data_2d = data_2d

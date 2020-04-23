@@ -117,7 +117,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         for reach_num in range(self.reach_num):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
                 val_all = self.results_data_file.getvalues(timestep_index)
-                for variables_wish in self.hvum.variable_detected_list:  # .varunits
+                for variables_wish in self.hvum.software_detected_list:  # .varunits
                     if not variables_wish.precomputable_tohdf5:
                         variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
                     if variables_wish.name == self.hvum.z.name:
@@ -129,11 +129,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # prepare computable data for data_2d
         if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
-            self.hvum.all_available_variable_list.append(self.hvum.v)
+            self.hvum.hdf5_and_computable_list.append(self.hvum.v)
             for reach_num in range(self.reach_num):  # for each reach
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.all_available_variable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.all_available_variable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.all_available_variable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
-                    self.hvum.all_available_variable_list.get_from_name(self.hvum.v.name).position = "node"
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
 
         return self.get_data_2d()
 

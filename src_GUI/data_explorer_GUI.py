@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 """
 import os
 from multiprocessing import Process, Value
+from PyQt5.QtGui import QFont
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
@@ -261,15 +262,25 @@ class DataExplorerFrame(QFrame):
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.set_hydraulic_layout()
-                if hdf5.hvum.all_available_variable_list.get_meshs().names_gui:
-                    for mesh in hdf5.hvum.all_available_variable_list.get_meshs():
+                if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
+                    for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
                         mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
                         mesh_item.setData(Qt.UserRole, mesh)
+                        if not mesh.hdf5:
+                            mesh_item.setText(mesh_item.text() + " *")
+                            # item_font = mesh_item.font()
+                            # item_font.setItalic(True)
+                            # mesh_item.setFont(item_font)
                         self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                if hdf5.hvum.all_available_variable_list.get_nodes().names_gui:
-                    for node in hdf5.hvum.all_available_variable_list.get_nodes():
+                if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
+                    for node in hdf5.hvum.hdf5_and_computable_list.nodes():
                         node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
                         node_item.setData(Qt.UserRole, node)
+                        if not node.hdf5:
+                            node_item.setText(node_item.text() + " *")
+                            # item_font = node_item.font()
+                            # item_font.setItalic(True)
+                            # node_item.setFont(item_font)
                         self.plot_group.node_variable_QListWidget.addItem(node_item)
 
                 if hdf5.reach_name:
@@ -464,23 +475,23 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.mesh_variable_QLabel = QLabel(self.tr('mesh variables'))
         self.mesh_variable_QListWidget = QListWidget()
         self.mesh_variable_QListWidget.setObjectName("mesh_variable_QListWidget")
-        self.mesh_variable_QListWidget.setMinimumWidth(listwidgets_width)
-        self.mesh_variable_QListWidget.setMaximumHeight(listwidgets_height)
+        # self.mesh_variable_QListWidget.setMinimumWidth(listwidgets_width)
+        # self.mesh_variable_QListWidget.setMaximumHeight(listwidgets_height)
         self.mesh_variable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.mesh_variable_QListWidget.itemSelectionChanged.connect(self.count_plot)
         self.node_variable_QLabel = QLabel(self.tr('node variables'))
         self.node_variable_QListWidget = QListWidget()
         self.node_variable_QListWidget.setObjectName("node_variable_QListWidget")
-        self.node_variable_QListWidget.setMinimumWidth(listwidgets_width)
-        self.node_variable_QListWidget.setMaximumHeight(listwidgets_height)
+        # self.node_variable_QListWidget.setMinimumWidth(listwidgets_width)
+        # self.node_variable_QListWidget.setMaximumHeight(listwidgets_height)
         self.node_variable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.node_variable_QListWidget.itemSelectionChanged.connect(self.count_plot)
 
         self.variable_hdf5_layout = QGridLayout()
         self.variable_hdf5_layout.addWidget(self.node_variable_QLabel, 0, 0)
         self.variable_hdf5_layout.addWidget(self.node_variable_QListWidget, 1, 0)
-        self.variable_hdf5_layout.addWidget(self.mesh_variable_QLabel, 2, 0)
-        self.variable_hdf5_layout.addWidget(self.mesh_variable_QListWidget, 3, 0)
+        self.variable_hdf5_layout.addWidget(self.mesh_variable_QLabel, 0, 1)
+        self.variable_hdf5_layout.addWidget(self.mesh_variable_QListWidget, 1, 1)
 
         # reach_QListWidget
         self.reach_hdf5_QLabel = QLabel(self.tr('reach(s)'))
@@ -582,11 +593,11 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         if self.plot_map_QCheckBox.isChecked() and self.plot_result_QCheckBox.isChecked():
             plot_type = ["map", "result"]
 
-        if types_hdf5 and names_hdf5 and self.hvum.all_wish_variable_list and reach and units and plot_type:
+        if types_hdf5 and names_hdf5 and self.hvum.user_target_list and reach and units and plot_type:
             # total_variables_number
-            total_variables_number = self.hvum.all_wish_variable_list.__len__()
+            total_variables_number = self.hvum.user_target_list.__len__()
             # is fish ?
-            total_habitat_variable_number = self.hvum.all_wish_variable_list.get_hab(True).__len__()
+            total_habitat_variable_number = self.hvum.user_target_list.habs().__len__()
             # for GIF
             map_condition = plot_type == ["map"] or plot_type == ["map", "result"]  # map_condition
             export_type_condition = export_type == "image export"  # export_type_condition
@@ -715,10 +726,10 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # variables
         if self.node_variable_QListWidget.selectedIndexes().__len__() > 0:
             for selection in self.node_variable_QListWidget.selectedItems():
-                self.hvum.all_wish_variable_list.append(selection.data(Qt.UserRole))
+                self.hvum.user_target_list.append(selection.data(Qt.UserRole))
         if self.mesh_variable_QListWidget.selectedIndexes().__len__() > 0:
             for selection in self.mesh_variable_QListWidget.selectedItems():
-                self.hvum.all_wish_variable_list.append(selection.data(Qt.UserRole))
+                self.hvum.user_target_list.append(selection.data(Qt.UserRole))
 
         # type of view (interactif, export, both)
         export_type = self.export_type_QComboBox.currentText()
@@ -812,7 +823,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.send_log.emit('Error: ' + self.tr('No hdf5 type selected.'))
         if not names_hdf5:
             self.send_log.emit('Error: ' + self.tr('No hdf5 file selected.'))
-        if not self.hvum.all_wish_variable_list:
+        if not self.hvum.user_target_list:
             self.send_log.emit('Error: ' + self.tr('No variable selected.'))
         if not reach:
             self.send_log.emit('Error: ' + self.tr('No reach selected.'))
@@ -827,7 +838,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 'You cannot display more than 32 habitat values per graph. Current selected : ') + str(
                 self.total_fish_result) + self.tr(". Only the first 32 will be displayed."))
             # get 32 first element list
-            self.hvum.all_wish_variable_list = self.hvum.all_wish_variable_list[:32]
+            self.hvum.user_target_list = self.hvum.user_target_list[:32]
         # check if number of display plot are > 30
         if export_type in ("interactive", "both") and self.nb_plot > 30:  # "interactive", "image export", "both
             qm = QMessageBox
@@ -841,7 +852,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 return
 
         # Go plot
-        if types_hdf5 and names_hdf5 and self.hvum.all_wish_variable_list and reach and units and plot_type:
+        if types_hdf5 and names_hdf5 and self.hvum.user_target_list and reach and units and plot_type:
             # disable
             self.plot_button.setEnabled(False)
             # active stop button
@@ -872,7 +883,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     # load hydraulic data
                     if types_hdf5 == "hydraulic":
                         hdf5.load_hdf5_hyd(units_index=units_index,
-                                           all_wish_variable_list=self.hvum.all_wish_variable_list)  #
+                                           user_target_list=self.hvum.user_target_list)  #
                         # compute variables
                         # hdf5.data_2d.compute_variables(variable_computable_list=self.hvum.all_available_variable_list)
                         # data_description
@@ -897,7 +908,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     # load habitat data
                     if types_hdf5 == "habitat":
                         hdf5.load_hdf5_hab(units_index=units_index,
-                                           fish_names=self.hvum.all_wish_variable_list.get_hab(True),
+                                           fish_names=self.hvum.user_target_list.habs(),
                                            whole_profil=False,
                                            convert_to_coarser_dom=True)
                         # # compute variables
@@ -912,7 +923,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                         data_description["units_index"] = units_index
                         data_description["name_hdf5"] = hdf5.data_description["hab_filename"]
 
-                    habitat_variable_list = self.hvum.all_wish_variable_list.get_hab(True)
+                    habitat_variable_list = self.hvum.user_target_list.habs()
 
                     # all cases
                     unit_type = data_description["unit_type"][
@@ -940,7 +951,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                                 # string_tr
                                 string_tr = [self.tr("reach"), self.tr("unit")]
 
-                                for variable in self.hvum.all_wish_variable_list.get_hab(False):
+                                for variable in self.hvum.user_target_list.no_habs():
                                     if not self.plot_production_stoped:
                                         plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
                                                                                        reach_name,
