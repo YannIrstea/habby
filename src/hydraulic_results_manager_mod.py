@@ -149,6 +149,7 @@ class HydraulicSimulationResultsBase:
         # create empty list
         data_2d = Data2d()
         data_2d.hvum = self.hvum
+        self.hvum.hdf5_and_computable_list.sort_by_names_gui()
         node_list = self.hvum.hdf5_and_computable_list.nodes()
         mesh_list = self.hvum.hdf5_and_computable_list.meshs()
 
@@ -166,12 +167,18 @@ class HydraulicSimulationResultsBase:
                 unit_dict["node"]["data"] = pd.DataFrame()
                 if node_list:
                     for node_variable in node_list:
-                        unit_dict["node"]["data"][node_variable.name] = node_variable.data[reach_num][unit_num]
+                        try:
+                            unit_dict["node"]["data"][node_variable.name] = node_variable.data[reach_num][unit_num]
+                        except IndexError:
+                            print("Error: node data not found : " + node_variable.name + " in get_data_2d.")
                 # mesh
                 unit_dict["mesh"]["data"] = pd.DataFrame()
                 if mesh_list:
                     for mesh_variable in mesh_list:
-                        unit_dict["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_num][unit_num]
+                        try:
+                            unit_dict["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_num][unit_num]
+                        except IndexError:
+                            print("Error: mesh data not found : " + mesh_variable.name + " in get_data_2d.")
                 # append by unit
                 unit_list.append(unit_dict)
             # append by reach

@@ -62,7 +62,7 @@ class HydraulicVariableUnitList(list):
     def pop(self, index):
         super(HydraulicVariableUnitList, self).pop(index)
 
-    """ get sublist """
+    """ get attribute list """
     def names(self):
         names_list = []
         for hvu in self:
@@ -123,16 +123,6 @@ class HydraulicVariableUnitList(list):
             if not hvu.hdf5:
                 to_compute_list.append(hvu)
         return to_compute_list
-
-    def get_dict(self):
-        variable_name_unit_dict = dict()
-
-        variable_name_unit_dict["variable_mesh_data_name_list"] = self.meshs().names()
-        variable_name_unit_dict["variable_mesh_data_unit_list"] = self.meshs().units()
-
-        variable_name_unit_dict["variable_node_data_name_list"] = self.nodes().names()
-        variable_name_unit_dict["variable_node_data_unit_list"] = self.nodes().units()
-        return variable_name_unit_dict
 
     """ select """
     def get_from_name(self, name):
@@ -312,24 +302,14 @@ class HydraulicVariableUnitManagement:
             self.h.position = "node"
             self.h.precomputable_tohdf5 = True
             self.hdf5_and_computable_list.append(self.h)
+        # always v but computed_node_velocity or original ?
         if self.v.name not in node_names:
             self.v.position = "node"
-            self.v.precomputable_tohdf5 = True
+            if self.v_x.name in node_names and self.v_y.name in node_names:
+                self.v.precomputable_tohdf5 = True
+            else:
+                self.v.precomputable_tohdf5 = False
             self.hdf5_and_computable_list.append(self.v)
-
-        # computed_node_velocity or original ?
-        self.v.position = "node"
-        if self.v.name in node_names:
-            self.v.precomputable_tohdf5 = False
-        elif not self.v.name in node_names and self.v_x.name in node_names and self.v_y.name in node_names:
-            self.v.precomputable_tohdf5 = True
-        self.hdf5_and_computable_list.append(self.v)
-
-        # computed_node_shear_stress or original ?
-        self.shear_stress.position = "node"
-        if not self.shear_stress.name in node_names and self.v_frict.name in node_names:
-            self.shear_stress.precomputable_tohdf5 = True
-        self.hdf5_and_computable_list.append(self.shear_stress)
 
     def get_original_computable_mesh_and_node_from_hdf5(self, mesh_variable_original_name_list, node_variable_original_name_list):
         # hdf5
@@ -349,9 +329,13 @@ class HydraulicVariableUnitManagement:
 
         # computable
         """ mesh """
-        computable_mesh_list = [self.v, self.h, self.z,
-                               self.level, self.froude, self.hydraulic_head, self.conveyance,
-                               self.max_slope_bottom, self.max_slope_energy, self.shear_stress]
+        computable_mesh_list = [self.v, self.h, self.z, self.level, self.froude, self.hydraulic_head,
+                                self.conveyance, self.max_slope_bottom, self.max_slope_energy]
+        # shear_stress
+        if self.v_frict.name in self.hdf5_and_computable_list.names():
+            computable_mesh_list.append(self.shear_stress)
+        # shear_stress_beta
+        computable_mesh_list.append(self.shear_stress_beta)
         for computed_mesh in computable_mesh_list:
             if computed_mesh.name not in mesh_variable_original_name_list:
                 computed_mesh.position = "mesh"
@@ -373,12 +357,48 @@ class HydraulicVariableUnitManagement:
         # sort_by_names_gui
         self.hdf5_and_computable_list.sort_by_names_gui()
 
+    def get_final_variable_list_from_project_preferences(self, project_preferences, hdf5_type):
+        """
+        Get all variables to compute from dict (project_preferences) for exports.
+        :return:
+        """
+        # INDEX IF HYD OR HAB
+        if hdf5_type == "hydraulic":
+            index = 0
+        else:
+            index = 1
+
+        mesh = False
+        node = False
+        # get_variables_from_dict
+        if project_preferences["mesh_units"][index]:
+            mesh = True
+        if project_preferences["point_units"][index]:
+            node = True
+        if project_preferences["detailled_text"][index]:
+            mesh = True
+            node = True
+        if project_preferences["variables_units"][index]:
+            mesh = True
+            node = True
+            # pvd_variable_z ?
+
+        if node and mesh:
+            user_target_list = self.hdf5_and_computable_list
+        else:
+            if mesh:
+                user_target_list = self.hdf5_and_computable_list.meshs()
+            elif node:
+                user_target_list = self.hdf5_and_computable_list.nodes()
+
+        self.get_final_variable_list_from_wish(user_target_list)
+
     def get_final_variable_list_from_wish(self, user_target_list):
         """
         load hdf5 or compute ? Depend on user wish selection
         """
         print("######################################")
-        print("--------wish---------")
+        print("-------- variables wish ---------")
         print("nodes : ", user_target_list.nodes().names())
         print("meshs : ", user_target_list.meshs().names())
 
@@ -404,6 +424,10 @@ class HydraulicVariableUnitManagement:
                     self.h.position = variable_wish.position
                     self.h.hdf5 = True
                     self.all_final_variable_list.append(self.h)
+                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                    self.z.position = variable_wish.position
+                    self.z.hdf5 = True
+                    self.all_final_variable_list.append(self.z)
             # froud node ==> need h and v node
             elif variable_wish.name == self.froude.name:
                 if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
@@ -443,10 +467,15 @@ class HydraulicVariableUnitManagement:
         for variable_wish in user_target_list.to_compute().meshs():
             # z
             if variable_wish.name == self.z.name:
-                if self.z.name not in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                    self.z.position = "node"
-                    self.z.hdf5 = True
-                    self.all_final_variable_list.append(self.z)
+                # hec-ras ?
+                if self.z.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                    pass
+                else:
+                    # already added?
+                    if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.z.position = "node"
+                        self.z.hdf5 = True
+                        self.all_final_variable_list.append(self.z)
             # v mesh ==> need first : v mesh hdf5 (FinitVolume)
             if variable_wish.name == self.v.name:
                 # (FinitVolume)
@@ -471,8 +500,36 @@ class HydraulicVariableUnitManagement:
                     self.h.position = "node"
                     self.h.hdf5 = True
                     self.all_final_variable_list.append(self.h)
+            # shear_stress mesh ==> need first : h mesh hdf5 (FinitVolume)
+            elif variable_wish.name == self.shear_stress.name:
+                # shear_stress at mesh ?
+                if self.shear_stress.name not in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                    if self.v_frict.name in self.hdf5_and_computable_list.hdf5s().nodes().names():
+                        if self.shear_stress.name not in self.all_final_variable_list.to_compute().nodes().names():
+                            self.shear_stress.position = "node"
+                            self.shear_stress.hdf5 = False
+                            self.all_final_variable_list.append(self.shear_stress)
+                        if self.v_frict.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                            self.v_frict.position = "node"
+                            self.v_frict.hdf5 = True
+                            self.all_final_variable_list.append(self.v_frict)
 
             # variables never in hdf
+
+            # shear_stress_beta mesh ==> need first : h mesh hdf5 (FinitVolume)
+            elif variable_wish.name == self.shear_stress_beta.name:
+                if self.z.name not in self.all_final_variable_list.to_compute().nodes().names():
+                    self.z.position = "node"
+                    self.z.hdf5 = True
+                    self.all_final_variable_list.append(self.z)
+                if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                    self.v.position = "node"
+                    self.v.hdf5 = True
+                    self.all_final_variable_list.append(self.v)
+                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                    self.h.position = "node"
+                    self.h.hdf5 = True
+                    self.all_final_variable_list.append(self.h)
 
             # level mesh ==> need first : h mesh hdf5 (FinitVolume)
             elif variable_wish.name == self.level.name:
@@ -484,7 +541,7 @@ class HydraulicVariableUnitManagement:
                         self.all_final_variable_list.append(self.h)
                     if self.z.name not in self.all_final_variable_list.hdf5s().meshs().names():
                         self.z.position = "mesh"
-                        self.z.hdf5 = False
+                        self.z.hdf5 = True
                         self.all_final_variable_list.append(self.z)
                 else:
                     # compute mean from node (need h node)
@@ -492,21 +549,27 @@ class HydraulicVariableUnitManagement:
                         self.h.position = "node"
                         self.h.hdf5 = True
                         self.all_final_variable_list.append(self.h)
+                    if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.z.position = "node"
+                        self.z.hdf5 = True
+                        self.all_final_variable_list.append(self.z)
                     # compute mean from node (need level node)
-                    if self.level.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                    if self.level.name not in self.all_final_variable_list.to_compute().nodes().names():
                         self.level.position = "node"
                         self.level.hdf5 = False
                         self.all_final_variable_list.append(self.level)
-            # froud mesh ==> need first : h and v mesh hdf5 (FinitVolume)
+            # froude mesh ==> need first : h and v mesh hdf5 (FinitVolume)
             elif variable_wish.name == self.froude.name:
-                # (FinitVolume)
-                if self.h.name in self.all_final_variable_list.hdf5s().meshs().names() and self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
-                    self.h.position = "mesh"
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                    self.v.position = "mesh"
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
+                # FinitVolume ?
+                if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                    # already added?
+                    if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
+                        self.h.position = "mesh"
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                        self.v.position = "mesh"
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
                 else:
                     # compute at node
                     if self.froude.name not in self.all_final_variable_list.to_compute().nodes().names():
@@ -522,14 +585,16 @@ class HydraulicVariableUnitManagement:
                             self.all_final_variable_list.append(self.v)
             # hydraulic_head mesh ==> need first : h and v mesh hdf5 (FinitVolume)
             elif variable_wish.name == self.hydraulic_head.name:
-                # (FinitVolume)
-                if self.h.name in self.all_final_variable_list.hdf5s().meshs().names() and self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
-                    self.h.position = "mesh"
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                    self.v.position = "mesh"
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
+                # FinitVolume ?
+                if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                    # already added?
+                    if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
+                        self.h.position = "mesh"
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                        self.v.position = "mesh"
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
                 else:
                     # compute at node
                     if self.hydraulic_head.name not in self.all_final_variable_list.to_compute().nodes().names():
@@ -545,14 +610,16 @@ class HydraulicVariableUnitManagement:
                             self.all_final_variable_list.append(self.v)
             # conveyance mesh ==> need first : h and v mesh hdf5 (FinitVolume)
             elif variable_wish.name == self.conveyance.name:
-                # (FinitVolume)
-                if self.h.name in self.all_final_variable_list.hdf5s().meshs().names() and self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
-                    self.h.position = "mesh"
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                    self.v.position = "mesh"
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
+                # FinitVolume ?
+                if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                    # already added?
+                    if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
+                        self.h.position = "mesh"
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                        self.v.position = "mesh"
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
                 else:
                     # compute at node
                     if self.conveyance.name not in self.all_final_variable_list.to_compute().nodes().names():
@@ -566,26 +633,34 @@ class HydraulicVariableUnitManagement:
                             self.v.position = "node"
                             self.v.hdf5 = True
                             self.all_final_variable_list.append(self.v)
-            # max_slope_bottom mesh ==> need first : no need
+            # max_slope_bottom mesh ==> need : z
             elif variable_wish.name == self.max_slope_bottom.name:
-                pass
+                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                    self.z.position = "node"
+                    self.z.hdf5 = True
+                    self.all_final_variable_list.append(self.z)
             # max_slope_energy mesh ==> need first : h and v node hdf5 (FinitVolume)
             elif variable_wish.name == self.max_slope_energy.name:
-                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
                     self.h.position = "node"
                     self.h.hdf5 = True
                     self.all_final_variable_list.append(self.h)
+                if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
                     self.v.position = "node"
                     self.v.hdf5 = True
                     self.all_final_variable_list.append(self.v)
-
+                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                    self.z.position = "node"
+                    self.z.hdf5 = True
+                    self.all_final_variable_list.append(self.z)
 
             # all cases
             self.all_final_variable_list.append(variable_wish)
 
         # print final names
-        print("--------final---------")
-        print("nodes : ", self.all_final_variable_list.nodes().names())
-        print("meshs : ", self.all_final_variable_list.meshs().names())
-
+        print("-------- variables final ---------")
+        print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes().names())
+        print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs().names())
+        print("computed nodes : ", self.all_final_variable_list.to_compute().nodes().names())
+        print("computed meshs : ", self.all_final_variable_list.to_compute().meshs().names())
 

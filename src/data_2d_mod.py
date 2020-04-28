@@ -362,18 +362,18 @@ class Data2d(list):
                 for unit_num in range(0, self.unit_num):
                     """ mesh """
                     for mesh_variable in mesh_variable_list:
-                        # c_mesh_mean_elevation
+                        # c_mesh_elevation
                         if mesh_variable.name == self.hvum.z.name:
-                            self[reach_num][unit_num].c_mesh_mean_elevation()
-                        # compute height mean
+                            self[reach_num][unit_num].c_mesh_elevation()
+                        # compute height
                         if mesh_variable.name == self.hvum.h.name:
-                            self[reach_num][unit_num].c_mesh_mean_height()
-                        # compute velocity mean
+                            self[reach_num][unit_num].c_mesh_height()
+                        # compute velocity
                         elif mesh_variable.name == self.hvum.v.name:
-                            self[reach_num][unit_num].c_mesh_mean_velocity()
-                        # compute shear_stress mean
+                            self[reach_num][unit_num].c_mesh_velocity()
+                        # compute shear_stress
                         elif mesh_variable.name == self.hvum.shear_stress.name:
-                            self[reach_num][unit_num].c_mesh_mean_shear_stress()
+                            self[reach_num][unit_num].c_mesh_shear_stress()
                         # compute shear_stress_beta
                         elif mesh_variable.name == self.hvum.shear_stress_beta.name:
                             self[reach_num][unit_num].c_mesh_shear_stress_beta()
@@ -403,30 +403,33 @@ class UnitDict(dict):
         # HydraulicVariableUnit
         self.hvum = HydraulicVariableUnitManagement()
 
-    """ COMPUTATION """
-    # mesh
+    """ mesh """
+    # mean from node variable
     def c_mesh_mean_from_node_values(self, node_variable_name):
         mesh_values = np.mean([self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 0]],
                                self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 1]],
                                self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 2]]], axis=0)
         return mesh_values
 
-    def c_mesh_mean_elevation(self):
+    def c_mesh_elevation(self):
+        print("c_mesh_elevation")
         self["mesh"]["data"][self.hvum.z.name] = self.c_mesh_mean_from_node_values(self.hvum.z.name)
 
-    def c_mesh_mean_height(self):
+    def c_mesh_height(self):
+        print("c_mesh_height")
         self["mesh"]["data"][self.hvum.h.name] = self.c_mesh_mean_from_node_values(self.hvum.h.name)
 
-    def c_mesh_mean_velocity(self):
+    def c_mesh_velocity(self):
+        print("c_mesh_velocity")
         self["mesh"]["data"][self.hvum.v.name] = self.c_mesh_mean_from_node_values(self.hvum.v.name)
 
-    def c_mesh_mean_shear_stress(self):
+    def c_mesh_shear_stress(self):
+        print("c_mesh_shear_stress")
         self["mesh"]["data"][self.hvum.shear_stress.name] = self.c_mesh_mean_from_node_values(self.hvum.shear_stress.name)
 
+    # compute from node variable
     def c_mesh_shear_stress_beta(self):
-        ro = HydraulicVariableUnitManagement().ro.value
-        GRAVITY = HydraulicVariableUnitManagement().g.value
-
+        print("c_mesh_shear_stress_beta")
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
         z1 = self["node"]["data"][self.hvum.z.name].to_numpy()[self["mesh"]["tin"][:, 0]]
         h1 = self["node"]["data"][self.hvum.h.name].to_numpy()[self["mesh"]["tin"][:, 0]]
@@ -441,13 +444,13 @@ class UnitDict(dict):
         v3 = self["node"]["data"][self.hvum.v.name].to_numpy()[self["mesh"]["tin"][:, 2]]
 
         w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
-        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * GRAVITY), z2 + h2 + v2 ** 2 / (2 * GRAVITY), z3 + h3 + v3 ** 2 / (
-                    2 * GRAVITY)
+        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * self.hvum.g.value), z2 + h2 + v2 ** 2 / (2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (
+                    2 * self.hvum.g.value)
         u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
         v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
         with np.errstate(divide='ignore', invalid='ignore'):
             max_slope_energy = np.sqrt(u ** 2 + v ** 2) / np.abs(w)
-        shear_stress = ro * GRAVITY * (h1 + h2 + h3) * max_slope_energy / 3
+        shear_stress = self.hvum.ro.value * self.hvum.g.value * (h1 + h2 + h3) * max_slope_energy / 3
 
         # change inf values to nan
         if np.inf in shear_stress:
@@ -460,12 +463,13 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.shear_stress_beta.name] = shear_stress
 
     def c_mesh_max_slope_bottom(self):
+        print("c_mesh_max_slope_bottom")
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
-        z1 = self["node"]["z"][self["mesh"]["tin"][:, 0]]
+        z1 = self["node"]["data"]["z"].to_numpy()[self["mesh"]["tin"][:, 0]]
         xy2 = self["node"]["xy"][self["mesh"]["tin"][:, 1]]
-        z2 = self["node"]["z"][self["mesh"]["tin"][:, 1]]
+        z2 = self["node"]["data"]["z"].to_numpy()[self["mesh"]["tin"][:, 1]]
         xy3 = self["node"]["xy"][self["mesh"]["tin"][:, 2]]
-        z3 = self["node"]["z"][self["mesh"]["tin"][:, 2]]
+        z3 = self["node"]["data"]["z"].to_numpy()[self["mesh"]["tin"][:, 2]]
 
         w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
         u = (xy2[:, 1] - xy1[:, 1]) * (z3 - z1) - (z2 - z1) * (xy3[:, 1] - xy1[:, 1])
@@ -485,6 +489,7 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.max_slope_bottom.name] = max_slope_bottom
 
     def c_mesh_max_slope_energy(self):
+        print("c_mesh_max_slope_energy")
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
         z1 = self["node"]["data"][self.hvum.z.name].to_numpy()[self["mesh"]["tin"][:, 0]]
         h1 = self["node"]["data"][self.hvum.h.name].to_numpy()[self["mesh"]["tin"][:, 0]]
@@ -498,11 +503,9 @@ class UnitDict(dict):
         h3 = self["node"]["data"][self.hvum.h.name].to_numpy()[self["mesh"]["tin"][:, 2]]
         v3 = self["node"]["data"][self.hvum.v.name].to_numpy()[self["mesh"]["tin"][:, 2]]
 
-        GRAVITY = HydraulicVariableUnitManagement().g.value
-
         w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
-        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * GRAVITY), z2 + h2 + v2 ** 2 / (2 * GRAVITY), z3 + h3 + v3 ** 2 / (
-                    2 * GRAVITY)
+        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * self.hvum.g.value), z2 + h2 + v2 ** 2 / (2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (
+                    2 * self.hvum.g.value)
         u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
         v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -519,37 +522,49 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.max_slope_energy.name] = max_slope_energy
 
     def c_mesh_froude(self):
-        # if not froud at node
-        if not self.hvum.froude.name in self["node"]["data"].columns.tolist():
-            # c_node_froude
-            self.c_node_froude()
+        print("c_mesh_froude")
+        mesh_colnames = self["mesh"]["data"].columns.tolist()
+        # if v and h mesh existing
+        if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
+            # froude from mesh h and v
+            self["mesh"]["data"][self.hvum.froude.name] = self["mesh"]["data"][self.hvum.v.name] / np.sqrt(
+                self.hvum.g.value * self["mesh"]["data"][self.hvum.h.name])
+            with pd.option_context('mode.use_inf_as_na', True):
+                self["mesh"]["data"][self.hvum.froude.name] = self["mesh"]["data"][self.hvum.froude.name].fillna(
+                    0)  # divid by 0 return Nan
 
-        # compute mesh mean
-        self["mesh"]["data"][self.hvum.froude.name] = self.c_mesh_mean_from_node_values(self.hvum.froude.name)
+        # compute from node
+        else:
+            self["mesh"]["data"][self.hvum.froude.name] = self.c_mesh_mean_from_node_values(self.hvum.froude.name)
 
     def c_mesh_hydraulic_head(self):
-        # if not hydraulic_head at nodes
-        if not self.hvum.hydraulic_head.name in self["node"]["data"].columns.tolist():
-            # c_node_hydraulic_head
-            self.c_node_hydraulic_head()
-
+        print("c_mesh_hydraulic_head")
+        mesh_colnames = self["mesh"]["data"].columns.tolist()
+        # if v and h mesh existing
+        if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
+            # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
+            self["mesh"]["data"][self.hvum.hydraulic_head.name] = self["mesh"]["data"][self.hvum.h.name] + (
+                        (self["mesh"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
         # compute mesh mean
-        self["mesh"]["data"][self.hvum.hydraulic_head.name] = self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head.name)
+        else:
+            self["mesh"]["data"][self.hvum.hydraulic_head.name] = self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head.name)
 
     def c_mesh_conveyance(self):
-        # if not hydraulic_head at nodes
-        if not self.hvum.conveyance.name in self["node"]["data"].columns.tolist():
-            # c_node_conveyance
-            self.c_node_conveyance()
-
+        print("c_mesh_conveyance")
+        mesh_colnames = self["mesh"]["data"].columns.tolist()
+        # if v and h mesh existing
+        if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
+            self["mesh"]["data"][self.hvum.conveyance.name] = self["mesh"]["data"][self.hvum.h.name] * \
+                                                              self["mesh"]["data"][self.hvum.v.name]
         # compute mesh mean
-        self["mesh"]["data"][self.hvum.conveyance.name] = self.c_mesh_mean_from_node_values(self.hvum.conveyance.name)
+        else:
+            self["mesh"]["data"][self.hvum.conveyance.name] = self.c_mesh_mean_from_node_values(self.hvum.conveyance.name)
 
     def c_mesh_water_level(self):
+        print("c_mesh_water_level")
         mesh_colnames = self["mesh"]["data"].columns.tolist()
         # if z and h mesh existing
-        if self.hvum.h.name in mesh_colnames:
-            self["mesh"]["data"][self.hvum.z.name] = self.c_mesh_mean_from_node_values(self.hvum.z.name)
+        if self.hvum.h.name in mesh_colnames and self.hvum.z.name in mesh_colnames:
             # mesh_water_level from mesh_h and mesh_z
             self["mesh"]["data"][self.hvum.level.name] = np.sum([self["mesh"]["data"][self.hvum.z.name],
                                                         self["mesh"]["data"][self.hvum.h.name]], axis=0)
@@ -558,6 +573,7 @@ class UnitDict(dict):
             self["mesh"]["data"][self.hvum.level.name] = self.c_mesh_mean_from_node_values(self.hvum.level.name)
 
     def c_mesh_area(self, tin, xy):
+        print("c_mesh_area")
         # get points coord
         pa = xy[tin[:, 0]]
         pb = xy[tin[:, 1]]
@@ -569,26 +585,29 @@ class UnitDict(dict):
 
         return area
 
-    # node
+    """ node """
     def c_node_shear_stress(self):
+        print("c_node_shear_stress")
         self["node"]["data"][self.hvum.shear_stress.name] = (self["node"]["data"][self.hvum.v_frict.name] ** 2) * self.hvum.ro.value
 
     def c_node_froude(self):
-        GRAVITY = HydraulicVariableUnitManagement().g.value
+        print("c_node_froude")
         # compute froude
-        self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.v.name] / np.sqrt(GRAVITY * self["node"]["data"][self.hvum.h.name])
+        self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.v.name] / np.sqrt(self.hvum.g.value * self["node"]["data"][self.hvum.h.name])
         with pd.option_context('mode.use_inf_as_na', True):
             self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(0)  # divid by 0 return Nan
 
     def c_node_hydraulic_head(self):
-        GRAVITY = HydraulicVariableUnitManagement().g.value
+        print("c_node_hydraulic_head")
         # TODO: add z for 3d pvd
-        # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * GRAVITY))
-        self["node"]["data"][self.hvum.hydraulic_head.name] = self["node"]["data"][self.hvum.h.name] + ((self["node"]["data"][self.hvum.v.name] ** 2) / (2 * GRAVITY))
+        # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
+        self["node"]["data"][self.hvum.hydraulic_head.name] = self["node"]["data"][self.hvum.h.name] + ((self["node"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
 
     def c_node_conveyance(self):
+        print("c_node_conveyance")
         self["node"]["data"][self.hvum.conveyance.name] = self["node"]["data"][self.hvum.h.name] * self["node"]["data"][self.hvum.v.name]
 
     def c_node_water_level(self):
+        print("c_node_water_level")
         self["node"]["data"][self.hvum.level.name] = self["node"]["data"][self.hvum.z.name] + self["node"]["data"][self.hvum.h.name]
 

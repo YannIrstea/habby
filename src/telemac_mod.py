@@ -120,8 +120,6 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 for variables_wish in self.hvum.software_detected_list:  # .varunits
                     if not variables_wish.precomputable_tohdf5:
                         variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
-                    if variables_wish.name == self.hvum.z.name:
-                        self.hvum.z.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
                 # struct
                 self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
@@ -129,9 +127,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # prepare computable data for data_2d
         if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
-            self.hvum.hdf5_and_computable_list.append(self.hvum.v)
             for reach_num in range(self.reach_num):  # for each reach
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
+                    # compute from v_x v_y
                     self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
                     self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
 

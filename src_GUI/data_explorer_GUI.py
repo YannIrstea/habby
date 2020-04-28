@@ -1729,9 +1729,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
                     # hydraulic
                     if types_hdf5 == "hydraulic":  # load hydraulic data
-                        hdf5.load_hdf5_hyd(whole_profil=True)
-                        hdf5.project_preferences = project_preferences
-                        hdf5.get_variables_from_dict_and_compute()
+                        hdf5.load_hdf5_hyd(whole_profil=True, user_target_list=project_preferences)
                         total_gpkg_export = sum(
                             [export_dict["mesh_whole_profile_hyd"], export_dict["point_whole_profile_hyd"],
                              export_dict["mesh_units_hyd"], export_dict["point_units_hyd"]])
