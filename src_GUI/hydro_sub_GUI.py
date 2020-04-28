@@ -979,7 +979,7 @@ class SubHydroW(QWidget):
 
         # log info
         self.send_log.emit(self.tr('# Loading: ' + self.model_type + ' data...'))
-        self.send_err_log()
+        #self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit(
             "py    selafin_habby1.load_hec_ras2d_and_cut_grid('hydro_hec_ras2d_log', file1, path1, name_prj, "
@@ -1054,7 +1054,7 @@ class SubHydroW(QWidget):
                         # unblock button hydraulic
                         self.load_b.setDisabled(False)  # hydraulic
 
-                if not error:
+                elif not error:
                     # MERGE
                     if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
                         self.send_log.emit(
