@@ -1809,9 +1809,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
                         if export_dict["fish_information_hab"]:
                             if hdf5.fish_list:
                                 state = Value("i", 0)
-                                export_pdf_process = Process(target=hdf5.export_export,
+                                export_pdf_process = Process(target=hdf5.export_report,
                                                              args=(state,),
-                                                             name="export_export")
+                                                             name="export_report")
                                 self.process_list.append([export_pdf_process, state])
                             else:
                                 # append fake first

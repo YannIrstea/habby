@@ -332,11 +332,14 @@ class Data2d(list):
         self.get_informations()
 
         node_variable_list = variable_computable_list.nodes()
-        if node_variable_list:
-            # for all reach
-            for reach_num in range(0, self.reach_num):
-                # for all units
-                for unit_num in range(0, self.unit_num):
+        mesh_variable_list = variable_computable_list.meshs()
+        # for all reach
+        for reach_num in range(0, self.reach_num):
+            # for all units
+            for unit_num in range(0, self.unit_num):
+                print("--- compute_variables unit", str(unit_num), " ---")
+                """ node """
+                if node_variable_list:
                     for node_variable in node_variable_list:
                         # compute water_level
                         if node_variable.name == self.hvum.level.name:
@@ -353,14 +356,8 @@ class Data2d(list):
                         # compute shear_stress
                         elif node_variable.name == self.hvum.shear_stress.name:
                             self[reach_num][unit_num].c_node_shear_stress()
-
-        mesh_variable_list = variable_computable_list.meshs()
-        if mesh_variable_list:
-            # for all reach
-            for reach_num in range(0, self.reach_num):
-                # for all units
-                for unit_num in range(0, self.unit_num):
-                    """ mesh """
+                """ mesh """
+                if mesh_variable_list:
                     for mesh_variable in mesh_variable_list:
                         # c_mesh_elevation
                         if mesh_variable.name == self.hvum.z.name:

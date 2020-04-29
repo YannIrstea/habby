@@ -1333,7 +1333,7 @@ class Hdf5Management:
         self.export_paraview()
         self.export_spu_txt()
         self.export_detailled_mesh_txt()
-        self.export_export()
+        self.export_report()
 
     def remove_fish_hab(self, fish_names_to_remove):
         """
@@ -1496,6 +1496,10 @@ class Hdf5Management:
             fish_names = self.data_description["hab_fish_list"].split(", ")
             if fish_names == ['']:
                 fish_names = []
+
+        # Mapping between OGR and Python data types
+        OGRTypes_dict = {np.int64: ogr.OFTInteger,
+                         np.float64: ogr.OFTReal}
 
         # CRS
         crs = osr.SpatialReference()
@@ -1683,15 +1687,9 @@ class Hdf5Management:
                             layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon)
 
                         # create fields (no width no precision to be specified with GPKG)
-                        layer.CreateField(ogr.FieldDefn('water_velocity', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('water_height', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('level', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('froude_number', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('hydraulic_head', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('conveyance', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('max_slope_bottom', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('max_slope_energy', ogr.OFTReal))
-                        layer.CreateField(ogr.FieldDefn('shear_stress', ogr.OFTReal))
+                        for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
+                            layer.CreateField(ogr.FieldDefn(mesh_variable.name_gui, OGRTypes_dict[mesh_variable.dtype]))
+
                         defn = layer.GetLayerDefn()
                         if self.hdf5_type == "habitat":
                             layer.CreateField(ogr.FieldDefn('area', ogr.OFTReal))
@@ -1746,26 +1744,9 @@ class Hdf5Management:
                             feat = ogr.Feature(defn)
 
                             # variables
-                            self.hvum.hdf5_and_computable_list.meshs().names()
-                            height = self.data_2d[reach_num][unit_num]["mesh"]["data"]["h"][mesh_num]
-                            velocity = self.data_2d[reach_num][unit_num]["mesh"]["data"]["v"][mesh_num]
-                            level = self.data_2d[reach_num][unit_num]["mesh"]["data"]["level"][mesh_num]
-                            froude_number = self.data_2d[reach_num][unit_num]["mesh"]["data"]["froude_number"][mesh_num]
-                            hydraulic_head = self.data_2d[reach_num][unit_num]["mesh"]["data"]["hydraulic_head"][mesh_num]
-                            conveyance = self.data_2d[reach_num][unit_num]["mesh"]["data"]["conveyance"][mesh_num]
-                            max_slope_bottom = self.data_2d[reach_num][unit_num]["mesh"]["data"]["max_slope_bottom"][mesh_num]
-                            max_slope_energy = self.data_2d[reach_num][unit_num]["mesh"]["data"]["max_slope_energy"][mesh_num]
-                            shear_stress = self.data_2d[reach_num][unit_num]["mesh"]["data"]["shear_stress"][mesh_num]
-
-                            feat.SetField('water_height', height)
-                            feat.SetField('water_velocity', velocity)
-                            feat.SetField('level', level)
-                            feat.SetField('froude_number', froude_number)
-                            feat.SetField('hydraulic_head', hydraulic_head)
-                            feat.SetField('conveyance', conveyance)
-                            feat.SetField('max_slope_bottom', max_slope_bottom)
-                            feat.SetField('max_slope_energy', max_slope_energy)
-                            feat.SetField('shear_stress', shear_stress)
+                            for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
+                                feat.SetField(mesh_variable.name_gui,
+                                              self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][mesh_variable.name][mesh_num])
 
                             if self.hdf5_type == "habitat":
                                 # area
@@ -1792,7 +1773,7 @@ class Hdf5Management:
             # DATA 2D WHOLE PROFILE point
             if point_whole_profile_tf:  # only on .hyd creation
                 # for all units (selected or all)
-                for unit_num in range(0, len(self.data_2d_whole["mesh"]["tin"][reach_num])):
+                for unit_num in range(0, len(self.data_2d_whole[reach_num])):
                     # layer_name
                     if not self.data_description['hyd_varying_mesh']:
                         layer_name = "point_wholeprofile_allunits"
@@ -1855,13 +1836,8 @@ class Hdf5Management:
                             layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint)
 
                         # create fields (no width no precision to be specified with GPKG)
-                        layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('water_height', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('water_velocity', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('level', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('froude_number', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('hydraulic_head', ogr.OFTReal))  # Add one attribute
-                        layer.CreateField(ogr.FieldDefn('conveyance', ogr.OFTReal))  # Add one attribute
+                        for node_variable in self.hvum.hdf5_and_computable_list.nodes():
+                            layer.CreateField(ogr.FieldDefn(node_variable.name_gui, OGRTypes_dict[node_variable.dtype]))
 
                         defn = layer.GetLayerDefn()
                         layer.StartTransaction()  # faster
@@ -1872,25 +1848,17 @@ class Hdf5Management:
                             x = self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][0]
                             y = self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][1]
                             z = self.data_2d[reach_num][unit_num]["node"]["data"]["z"][point_num]
-                            h = self.data_2d[reach_num][unit_num]["node"]["data"]["h"][point_num]
-                            v = self.data_2d[reach_num][unit_num]["node"]["data"]["v"][point_num]
-                            level = self.data_2d[reach_num][unit_num]["node"]["data"]["level"][point_num]
-                            froude_number = self.data_2d[reach_num][unit_num]["node"]["data"]["froude_number"][point_num]
-                            hydraulic_head = self.data_2d[reach_num][unit_num]["node"]["data"]["hydraulic_head"][point_num]
-                            conveyance = self.data_2d[reach_num][unit_num]["node"]["data"]["conveyance"][point_num]
 
                             # Create a point
                             point = ogr.Geometry(ogr.wkbPoint)
                             point.AddPoint(x, y, z)
                             # Create a new feature
                             feat = ogr.Feature(defn)
-                            feat.SetField('water_height', h)
-                            feat.SetField('water_velocity', v)
-                            feat.SetField('elevation', z)
-                            feat.SetField('level', level)
-                            feat.SetField('froude_number', froude_number)
-                            feat.SetField('hydraulic_head', hydraulic_head)
-                            feat.SetField('conveyance', conveyance)
+
+                            for node_variable in self.hvum.hdf5_and_computable_list.nodes():
+                                feat.SetField(node_variable.name_gui,
+                                              self.data_2d[reach_num][unit_num][node_variable.position]["data"][node_variable.name][point_num])
+
                             # set geometry
                             feat.SetGeometry(point)
                             # create
@@ -2408,7 +2376,7 @@ class Hdf5Management:
             if state:
                 state.value = 1  # process finished
 
-    def export_export(self, state=None):
+    def export_report(self, state=None):
         """
         # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
         This functionc create a pdf with information about the fish.
