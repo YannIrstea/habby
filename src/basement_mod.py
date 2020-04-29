@@ -18,12 +18,12 @@ import os
 import numpy as np
 import h5py
 
-from src.hydraulic_bases import HydraulicSimulationResults
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 from src.tools_mod import create_empty_data_2d_dict, frange
 from src import manage_grid_mod
 
 
-class BasementResult(HydraulicSimulationResults):
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):

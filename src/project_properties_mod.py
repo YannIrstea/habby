@@ -22,6 +22,9 @@ from platform import system as operatingsystem
 
 operatingsystem_str = operatingsystem()
 
+from src.hydraulic_results_manager_mod import HydraulicModelInformation
+from src.variable_unit_mod import HydraulicVariableUnitManagement
+
 
 def create_default_project_properties_dict(all_export_enabled=False):
     """
@@ -65,7 +68,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
     project_preferences['fish_information'] = [all_export_enabled, all_export_enabled]  # image of fish informations
     project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
-    project_preferences['pvd_variable_z'] = "water_level"
+    project_preferences['pvd_variable_z'] = HydraulicVariableUnitManagement().level.name_gui
 
     # figures
     project_preferences['height'] = 11.2  # cm
@@ -90,18 +93,9 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['bio_model_explorer_selection'] = dict()
 
     # data
-    project_preferences['telemac'] = dict(path="", hdf5=[])
-    project_preferences['ascii'] = dict(path="", hdf5=[])
-    project_preferences['hecras1d'] = dict(path="", hdf5=[])
-    project_preferences['hecras2d'] = dict(path="", hdf5=[])
-    project_preferences['lammi'] = dict(path="", hdf5=[])
-    project_preferences['mascaret'] = dict(path="", hdf5=[])
-    project_preferences['river2d'] = dict(path="", hdf5=[])
-    project_preferences['rubar1d'] = dict(path="", hdf5=[])
-    project_preferences['rubar2d'] = dict(path="", hdf5=[])
-    project_preferences['sw2d'] = dict(path="", hdf5=[])
-    project_preferences['iber2d'] = dict(path="", hdf5=[])
-    project_preferences['basement2d'] = dict(path="", hdf5=[])
+    hydraulic_model_information = HydraulicModelInformation()
+    for attribute_model in hydraulic_model_information.attribute_models_list:
+        project_preferences[attribute_model] = dict(path="", hdf5=[])
 
     project_preferences['STATHAB'] = dict(path="", hdf5=[])
     project_preferences['ESTIMHAB'] = dict(path="", hdf5=[])

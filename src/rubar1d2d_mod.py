@@ -32,10 +32,10 @@ from src import manage_grid_mod
 from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src.project_properties_mod import load_project_properties, create_default_project_properties_dict
 from src.user_preferences_mod import user_preferences
-from src.hydraulic_bases import HydraulicSimulationResults
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
-class Rubar2dResult(HydraulicSimulationResults):
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):

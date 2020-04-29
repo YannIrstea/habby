@@ -537,6 +537,7 @@ class MainWindows(QMainWindow):
         self.central_widget.name_prj = self.name_prj
 
         # recreate new widget
+        print("recreate_tabs_attributes1")
         self.recreate_tabs_attributes()
 
         # update estimhab and stathab
@@ -704,6 +705,7 @@ class MainWindows(QMainWindow):
         self.central_widget.tab_widget.removeTab(0)
 
         # recreate new widget
+        print("recreate_tabs_attributes2")
         self.recreate_tabs_attributes()
 
         # add_all_tab
@@ -919,6 +921,7 @@ class MainWindows(QMainWindow):
         self.app.installTranslator(self.languageTranslator)
 
         # recreate new widget
+        print("recreate_tabs_attributes3")
         self.recreate_tabs_attributes()
         if self.central_widget.tab_widget.count() == 1:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
@@ -1300,7 +1303,6 @@ class MainWindows(QMainWindow):
         self.preferences_dialog.erase_data_label.setMinimumWidth(witdh_for_checkbox_alignement)
 
     def recreate_tabs_attributes(self):
-        #print("recreate_tabs_attributes", self.sender())
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             if hasattr(self.central_widget, "welcome_tab"):
@@ -2119,6 +2121,8 @@ class CentralW(QWidget):
             self.hydro_tab.iber2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.river2d.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.mascaret.drop_hydro.connect(self.update_combobox_filenames)
+
+            #self.parent().preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.hydro_tab.set_suffix_no_cut)
 
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)

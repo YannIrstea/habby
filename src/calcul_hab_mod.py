@@ -125,7 +125,7 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
             run_choice["sub_opt"].pop(i)
 
     # compute_variables
-    hdf5.compute_variables(variables_mesh=variable_mesh)
+    hdf5.compute_variables(mesh_variable_list=variable_mesh)
 
     # fig options
     if not project_preferences:

@@ -18,18 +18,13 @@ import os
 import sys
 from io import StringIO
 from PyQt5.QtCore import QCoreApplication as qt_tr
-from osgeo.ogr import GetDriverByName
-from osgeo.osr import SpatialReference
-from copy import deepcopy
-import numpy as np
 
-from src.tools_mod import polygon_type_values, point_type_values, sort_homogoeneous_dict_list_by_on_key
+from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
 from src.project_properties_mod import create_default_project_properties_dict
-from src.tools_mod import create_empty_data_2d_whole_profile_dict, create_empty_data_2d_dict
-from src import hdf5_mod, ascii_mod, telemac_mod, hec_ras2D_mod, hec_ras1D_mod, rubar1d2d_mod, basement_mod
+from src import hdf5_mod, ascii_mod
 
-from src import manage_grid_mod
-from src.hydraulic_bases import HydraulicModelInformation, Data2d
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsSelector
+from src.data_2d_mod import Data2d
 
 
 class HydraulicSimulationResultsAnalyzer:
@@ -155,10 +150,7 @@ class HydraulicSimulationResultsAnalyzer:
                     filename = os.path.basename(self.filename_list[0])
                     hsr = HydraulicSimulationResultsSelector(filename, self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
-                    variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                    variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                    final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                    final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                    variable_name_unit_dict = hsr.hvum.software_detected_list
                     unit_list = hsr.timestep_name_list
                     unit_number = str(hsr.timestep_nb)
                     unit_list_tf = [True] * hsr.timestep_nb
@@ -176,10 +168,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                     model_type=self.model_type,
                                                     model_dimension=str(self.nb_dim),
                                                     epsg_code=epsg_code,
-                                                    variable_mesh_detected_list=variable_mesh_detected_list,
-                                                    variable_node_detected_list=variable_node_detected_list,
-                                                    final_mesh_variable_name_list=final_mesh_variable_name_list,
-                                                    final_node_variable_name_list=final_node_variable_name_list,
+                                                    variable_name_unit_dict=variable_name_unit_dict,
                                                     unit_list=unit_list,
                                                     unit_list_full=unit_list,
                                                     unit_list_tf=unit_list_tf,
@@ -362,10 +351,7 @@ class HydraulicSimulationResultsAnalyzer:
                     data_index_file[headers[0]] = [data_index_file[headers[0]][index_file]]
                     data_index_file[headers[discharge_index]] = [data_index_file[headers[discharge_index]][index_file]]
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.software_detected_list
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -377,10 +363,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 1.b """
@@ -406,10 +389,7 @@ class HydraulicSimulationResultsAnalyzer:
                 else:
                     reach_name = "unknown"
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.software_detected_list
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["unit_list"] = data_index_file[headers[discharge_index]]
@@ -421,10 +401,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 2.a """
@@ -442,11 +419,7 @@ class HydraulicSimulationResultsAnalyzer:
                             return "Error: file " + file + " contain more than one time step (timestep :" \
                                    + str(hsr.timestep_name_list) + ")", None
                     if file == data_index_file["filename"][-1]:  # last
-                        variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                        variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                        final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                        final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
-
+                        variable_name_unit_dict = hsr.hvum.software_detected_list
                 # selected files same than indexHYDRAU file
                 if not selectedfiles_textfiles_matching:
                     pass
@@ -479,10 +452,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 2.b """
@@ -498,10 +468,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if unit_name_from_index_file not in hsr.timestep_name_list:
                         return "Error: " + unit_name_from_index_file + " don't exist in " + file, None
                     if file == data_index_file["filename"][-1]:  # last
-                        variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                        variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                        final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                        final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                        variable_name_unit_dict = hsr.hvum.software_detected_list
 
                 # selected files same than indexHYDRAU file
                 if not selectedfiles_textfiles_matching:
@@ -523,10 +490,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
 
             """ CASE 3.a """
@@ -546,10 +510,7 @@ class HydraulicSimulationResultsAnalyzer:
 
                 unit_index_from_file = [True] * hsr.timestep_nb
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.software_detected_list
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -561,10 +522,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
 
             """ CASE 3.b """
@@ -607,10 +565,7 @@ class HydraulicSimulationResultsAnalyzer:
                 if not reach_presence:
                     reach_name = "unknown"
 
-                variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                variable_name_unit_dict = hsr.hvum.software_detected_list
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -622,10 +577,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_list"] = reach_name
                 self.hydrau_description_list[0]["reach_number"] = str(1)
                 self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_mesh_detected_list"] = variable_mesh_detected_list
-                self.hydrau_description_list[0]["variable_node_detected_list"] = variable_node_detected_list
-                self.hydrau_description_list[0]["final_mesh_variable_name_list"] = final_mesh_variable_name_list
-                self.hydrau_description_list[0]["final_node_variable_name_list"] = final_node_variable_name_list
+                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
 
             """ CASE 4.a """
@@ -651,10 +603,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if not reach_presence:
                         reach_name = "unknown"
 
-                    variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                    variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                    final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                    final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                    variable_name_unit_dict = hsr.hvum.software_detected_list
 
                     # multi description
                     self.hydrau_description_list.append(dict(path_prj=self.path_prj,
@@ -674,10 +623,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                              reach_list=reach_name,
                                                              reach_number=str(1),
                                                              reach_type="river",
-                                                             variable_mesh_detected_list=variable_mesh_detected_list,
-                                                             variable_node_detected_list=variable_node_detected_list,
-                                                             final_mesh_variable_name_list=final_mesh_variable_name_list,
-                                                             final_node_variable_name_list=final_node_variable_name_list,
+                                                             variable_name_unit_dict=variable_name_unit_dict,
                                                              flow_type="transient flow",
                                                              index_hydrau=True))  # continuous flow
 
@@ -728,10 +674,7 @@ class HydraulicSimulationResultsAnalyzer:
                     if not reach_presence:
                         reach_name = "unknown"
 
-                    variable_mesh_detected_list = hsr.hvum.usefull_variable_mesh_detected_list
-                    variable_node_detected_list = hsr.hvum.usefull_variable_node_detected_list
-                    final_mesh_variable_name_list = hsr.hvum.final_mesh_variable_name_list
-                    final_node_variable_name_list = hsr.hvum.final_node_variable_name_list
+                    variable_name_unit_dict = hsr.hvum.software_detected_list
 
                     # multi description
                     self.hydrau_description_list.append(dict(path_prj=self.path_prj,
@@ -751,10 +694,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                              reach_list=reach_name,
                                                              reach_number=str(1),
                                                              reach_type="river",
-                                                             variable_mesh_detected_list=variable_mesh_detected_list,
-                                                             variable_node_detected_list=variable_node_detected_list,
-                                                             final_mesh_variable_name_list=final_mesh_variable_name_list,
-                                                             final_node_variable_name_list=final_node_variable_name_list,
+                                                             variable_name_unit_dict=variable_name_unit_dict,
                                                              flow_type="transient flow",
                                                              index_hydrau=True))  # continuous flow
 
@@ -769,13 +709,6 @@ class HydraulicSimulationResultsAnalyzer:
         # print(self.hydrau_description_list[0]["unit_list"])
         # print(self.hydrau_description_list[0]["unit_list_tf"])
         # print(self.hydrau_description_list[0]["unit_number"])
-
-
-class HydraulicSimulationResultsSelector:
-    def __new__(self, filename, folder_path, model_type, path_prj):
-        hydraulic_model_information = HydraulicModelInformation()
-        return getattr(globals()[hydraulic_model_information.get_file_mod_name_from_attribute_name(model_type)],
-                hydraulic_model_information.get_class_mod_name_from_attribute_name(model_type))(filename, folder_path, model_type, path_prj)
 
 
 def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
@@ -1085,356 +1018,6 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
             f.write(text)
 
 
-def get_sub_description_from_source(filename_path, substrate_mapping_method, path_prj):
-    warning_list = []  # text warning output
-    name_prj = os.path.splitext(os.path.basename(path_prj))[0]
-    substrate_classification_code = None
-    substrate_classification_method = None
-    substrate_default_values = None
-    epsg_code = None
-    substrate_classification_codes = ['Cemagref', 'Sandre']
-    substrate_classification_methods = ['coarser-dominant', 'percentage']
-
-    dirname = os.path.dirname(filename_path)
-    filename = os.path.basename(filename_path)
-    blob, ext = os.path.splitext(filename)
-
-    # POLYGON
-    if substrate_mapping_method == "polygon":
-        # check classification code in .txt (polygon or point shp)
-        if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-            warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                            "The selected shapefile is not accompanied by its habby .txt file."))
-            return False, warning_list
-
-        if ext == ".shp":
-            # get type shapefile
-            driver = GetDriverByName('ESRI Shapefile')  # Shapefile
-            ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
-        elif ext == ".gpkg":
-            # get type shapefile
-            driver = GetDriverByName('GPKG')  # GPKG
-            ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
-
-        # get layer
-        layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
-
-        # get geom type
-        if layer.GetGeomType() not in polygon_type_values:
-            # get the first feature
-            feature = layer.GetNextFeature()
-            geom_type = feature.GetGeometryRef().GetGeometryName()
-            warning_list.append(
-                "Error : " + qt_tr.translate("hydro_input_file_mod",
-                                             "Selected shapefile is not polygon type. Type : " + geom_type))
-            return False, warning_list
-
-        if os.path.isfile(os.path.join(dirname, blob + ".txt")):
-            with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
-                dataraw = f.read()
-            substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
-                "\n")
-            if "substrate_classification_code=" in substrate_classification_code_raw:
-                substrate_classification_code = \
-                    substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
-                if substrate_classification_code not in substrate_classification_codes:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                    "The classification code in .txt file is not recognized : ")
-                                        + substrate_classification_code)
-                    return False, warning_list
-            else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The name 'substrate_classification_code=' is not found in"
-                                                                " .txt file."))
-                return False, warning_list
-            if "substrate_classification_method=" in substrate_classification_method_raw:
-                substrate_classification_method = \
-                    substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
-                if substrate_classification_method not in substrate_classification_methods:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                    "The classification method in .txt file is not recognized : ")
-                                        + substrate_classification_method)
-                    return False, warning_list
-            else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The name 'substrate_classification_method=' is not found in"
-                                                                " .txt file."))
-                return False, warning_list
-            if "default_values=" in substrate_default_values_raw:
-                substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
-                constant_values_list = substrate_default_values.split(",")
-                for value in constant_values_list:
-                    try:
-                        int(value.strip())
-                    except:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                        "Default values can't be converted to integer : ")
-                                            + substrate_default_values)
-                        return False, warning_list
-            else:
-                warning_list.append(
-                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
-                                                                        " .txt file."))
-                return False, warning_list
-
-        # check EPSG code in .prj
-        if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
-            warning_list.append(
-                "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
-            epsg_code = "unknown"
-        else:
-            inSpatialRef = layer.GetSpatialRef()
-            sr = SpatialReference(str(inSpatialRef))
-            res = sr.AutoIdentifyEPSG()
-            epsg_code_str = sr.GetAuthorityCode(None)
-            if epsg_code_str:
-                epsg_code = epsg_code_str
-            else:
-                epsg_code = "unknown"
-
-    # POINT
-    if substrate_mapping_method == "point":
-        # txt case
-        if ext == ".txt":
-            if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                warning_list.append(
-                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The selected file don't exist."))
-                return False, warning_list
-            with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
-                dataraw = f.read()
-            if len(dataraw.split("\n")[:4]) < 4:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "This text file is not a valid point substrate."))
-                return False, warning_list
-            epsg_raw, substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
-                "\n")[:4]
-            # check EPSG in .txt (polygon or point shp)
-            if "EPSG=" in epsg_raw:
-                epsg_code = epsg_raw.split("EPSG=")[1].strip()
-            else:
-                warning_list.append(
-                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'EPSG=' is not found in .txt file."))
-                return False, warning_list
-            # check classification code in .txt ()
-            if "substrate_classification_code=" in substrate_classification_code_raw:
-                substrate_classification_code = \
-                    substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
-                if substrate_classification_code not in substrate_classification_codes:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                    "The classification code in .txt file is not recognized : ")
-                                        + substrate_classification_code)
-                    return False, warning_list
-            else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The name 'substrate_classification_code=' is not found in"
-                                                                " .txt file."))
-                return False, warning_list
-            if "substrate_classification_method=" in substrate_classification_method_raw:
-                substrate_classification_method = \
-                    substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
-                if substrate_classification_method not in substrate_classification_methods:
-                    warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                    "The classification method in .txt file is not recognized : ")
-                        + substrate_classification_method)
-                    return False, warning_list
-            else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The name 'substrate_classification_method=' is not found in"
-                                                                " .txt file."))
-                return False, warning_list
-            if "default_values=" in substrate_default_values_raw:
-                substrate_default_values = substrate_default_values_raw.split("default_values=")[1].strip()
-                constant_values_list = substrate_default_values.split(",")
-                for value in constant_values_list:
-                    try:
-                        int(value.strip())
-                    except:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                        "Default values can't be converted to integer : ")
-                                            + substrate_default_values)
-                        return False, warning_list
-            else:
-                warning_list.append(
-                    "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
-                                                                        " .txt file."))
-                return False, warning_list
-
-        if ext == ".shp" or ext == ".gpkg":
-            # check classification code in .txt (polygon or point shp)
-            if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The selected shapefile is not accompanied by its habby .txt file."))
-                return False, warning_list
-
-            if ext == ".shp":
-                # get type shapefile
-                driver = GetDriverByName('ESRI Shapefile')  # Shapefile
-                ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
-            elif ext == ".gpkg":
-                # get type shapefile
-                driver = GetDriverByName('GPKG')  # GPKG
-                ds = driver.Open(os.path.join(dirname, filename), 0)  # 0 means read-only. 1 means writeable.
-
-            layer = ds.GetLayer(0)  # one layer in shapefile but can be multiple in gpkg..
-
-            # get geom type
-            if layer.GetGeomType() not in point_type_values:  # point type
-                # get the first feature
-                feature = layer.GetNextFeature()
-                geom_type = feature.GetGeometryRef().GetGeometryName()
-                warning_list.append(
-                    "Error : " + qt_tr.translate("hydro_input_file_mod",
-                                                 "Selected shapefile is not point type. Type : " + geom_type))
-                return False, warning_list
-
-            else:
-                with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
-                    dataraw = f.read()
-                substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split(
-                    "\n")
-                if "substrate_classification_code=" in substrate_classification_code_raw:
-                    substrate_classification_code = \
-                        substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
-                    if substrate_classification_code not in substrate_classification_codes:
-                        warning_list.append(
-                            "Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                        "The classification code in .txt file is not recognized : ")
-                            + substrate_classification_code)
-                        return False, warning_list
-                else:
-                    warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                    "The name 'substrate_classification_code=' is not found in"
-                                                    " .txt file."))
-                    return False, warning_list
-                if "substrate_classification_method=" in substrate_classification_method_raw:
-                    substrate_classification_method = \
-                        substrate_classification_method_raw.split("substrate_classification_method=")[
-                            1].strip()
-                    if substrate_classification_method not in substrate_classification_methods:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                        "The classification method in .txt file is not recognized : ")
-                                            + substrate_classification_method)
-                        return
-                else:
-                    warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                    "The name 'substrate_classification_method=' is not found in"
-                                                    " .txt file."))
-                    return False, warning_list
-                if "default_values=" in substrate_default_values_raw:
-                    substrate_default_values = substrate_default_values_raw.split("default_values=")[
-                        1].strip()
-                    constant_values_list = substrate_default_values.split(",")
-                    for value in constant_values_list:
-                        try:
-                            int(value.strip())
-                        except:
-                            warning_list.append(
-                                "Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                            "Default values can't be converted to integer : ")
-                                + substrate_default_values)
-                            return False, warning_list
-                else:
-                    warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod", "The name 'default_values=' is not found in"
-                                                                            " .txt file."))
-                    return False, warning_list
-
-            # check EPSG code in .prj
-            if not os.path.isfile(os.path.join(dirname, blob + ".prj")) and ext == ".shp":
-                warning_list.append(
-                    "Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
-                epsg_code = "unknown"
-            else:
-                inSpatialRef = layer.GetSpatialRef()
-                sr = SpatialReference(str(inSpatialRef))
-                res = sr.AutoIdentifyEPSG()
-                epsg_code_str = sr.GetAuthorityCode(None)
-                if epsg_code_str:
-                    epsg_code = epsg_code_str
-                else:
-                    epsg_code = "unknown"
-
-    # CONSTANT
-    if substrate_mapping_method == "constant":
-        epsg_code = "unknown"
-        # txt
-        if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
-            warning_list.append(
-                "Error: " + qt_tr.translate("hydro_input_file_mod", "The selected text file don't exist."))
-            return False, warning_list
-        if os.path.isfile(os.path.join(dirname, blob + ".txt")):
-            with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
-                dataraw = f.read()
-            substrate_classification_code_raw, substrate_classification_method_raw, constant_values_raw = dataraw.split(
-                "\n")
-            # classification code
-            if "substrate_classification_code=" in substrate_classification_code_raw:
-                substrate_classification_code = \
-                    substrate_classification_code_raw.split("substrate_classification_code=")[1].strip()
-                if substrate_classification_code not in substrate_classification_codes:
-                    warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                    "The classification code in .txt file is not recognized : ")
-                                        + substrate_classification_code)
-                    return False, warning_list
-            else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The name 'substrate_classification_code=' is not found in"
-                                                                " .txt file."))
-                return False, warning_list
-            if "substrate_classification_method=" in substrate_classification_method_raw:
-                substrate_classification_method = \
-                    substrate_classification_method_raw.split("substrate_classification_method=")[1].strip()
-                if substrate_classification_method not in substrate_classification_methods:
-                    warning_list.append(
-                        "Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                    "The classification method in .txt file is not recognized : ")
-                        + substrate_classification_method)
-                    return False, warning_list
-            else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The name 'substrate_classification_method=' is not found in"
-                                                                " .txt file."))
-                return False, warning_list
-            # constant values
-            if "constant_values=" in constant_values_raw:
-                substrate_default_values = constant_values_raw.split("constant_values=")[1].strip()
-                substrate_default_values_list = substrate_default_values.split(",")
-                for value in substrate_default_values_list:
-                    try:
-                        int(value.strip())
-                    except:
-                        warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                        "Constant values can't be converted to integer : ")
-                                            + substrate_default_values)
-                        return False, warning_list
-            else:
-                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
-                                                                "The name 'constant_values=' is not found in .txt file."))
-                return False, warning_list
-
-    # create dict
-    sub_description = dict(sub_mapping_method=substrate_mapping_method,
-                           sub_classification_code=substrate_classification_code,
-                           sub_classification_method=substrate_classification_method,
-                           sub_default_values=substrate_default_values,
-                           sub_epsg_code=epsg_code,
-                           sub_filename_source=filename,
-                           sub_path_source=dirname,
-                           sub_reach_number="1",
-                           sub_reach_list="unknown",
-                           sub_unit_number="1",
-                           sub_unit_list="0.0",
-                           sub_unit_type="unknown",
-                           name_prj=name_prj,
-                           path_prj=path_prj
-                           )
-
-    return sub_description, warning_list
-
-
 def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     """
     This function calls the function load_hydraulic and call the function cut_2d_grid()
@@ -1468,15 +1051,11 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
     for hdf5_file_index in range(0, len(hydrau_description)):
         # get filename source (can be several)
         filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
-        # data_2d_whole_profile
-        data_2d_whole_profile = Data2d()
-        for reach_num in range(int(hydrau_description[hdf5_file_index]["reach_number"])):
-            data_2d_whole_profile.append([])
-        hydrau_description[hdf5_file_index]["unit_correspondence"] = []  # always one reach by file
         # data_2d
         data_2d = Data2d()
-        for reach_num in range(int(hydrau_description[hdf5_file_index]["reach_number"])):
-            data_2d.append([])
+        # data_2d_whole_profile
+        data_2d_whole_profile = Data2d()
+        hydrau_description[hdf5_file_index]["unit_correspondence"] = []  # always one reach by file
         # for each filename source
         for i, file in enumerate(filename_source):
             # get timestep_name_list
@@ -1486,8 +1065,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                                              hydrau_description[hdf5_file_index]["path_prj"])
             if hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.a", "2.a"}:
                 timestep_with_list = hsr.timestep_name_list
-            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b", "2.b"}:
+            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b"}:
                 timestep_with_list = hydrau_description[hdf5_file_index]["timestep_list"]
+            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"2.b"}:
+                timestep_with_list = [hydrau_description[hdf5_file_index]["timestep_list"][i]]
             else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
                 timestep_with_list = hydrau_description[hdf5_file_index]["unit_list"]
             # load data
@@ -1497,18 +1078,17 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 q.put(mystdout)
                 return
             for reach_num in range(data_2d_source.reach_num):
-                # data_2d_whole_profile
-                whole = data_2d_source.get_whole_profile()
-                data_2d_whole_profile[reach_num].extend(whole[reach_num])
                 # data_2d
-                data_2d[reach_num].extend(data_2d_source[reach_num])
+                data_2d.add_unit(data_2d_source, reach_num)
+                # data_2d_whole_profile
+                data_2d_whole_profile.add_unit(data_2d_source.get_only_mesh(), reach_num)
 
         # varying mesh ?
         hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
         for reach_num in range(len(hyd_varying_xy_index)):
             if len(set(hyd_varying_xy_index[reach_num])) == 1:  # one tin for all unit
                 hyd_varying_mesh = False
-                data_2d_whole_profile[reach_num] = [data_2d_whole_profile[reach_num][0]]
+                data_2d_whole_profile.reduce_to_one_unit_by_reach()
             else:
                 hyd_varying_mesh = True
             # hyd_unit_z_equal ?
@@ -1523,16 +1103,14 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             else:
                 hydrau_description[hdf5_file_index]["unit_correspondence"].append(hyd_varying_xy_index[reach_num])
 
-        """ cut_2d_grid_data_2d """
-        data_2d.cut_2d_grid_data_2d(hydrau_description[hdf5_file_index]["unit_list"],
-                                    progress_value,
-                                    delta_file,
-                                    project_preferences["cut_mesh_partialy_dry"],
-                                    project_preferences['min_height_hyd'])
+        """ cut_2d """
+        data_2d.cut_2d(hydrau_description[hdf5_file_index]["unit_list"],
+                       progress_value,
+                       delta_file,
+                       project_preferences["cut_mesh_partialy_dry"],
+                       project_preferences['min_height_hyd'])
         hydrau_description[hdf5_file_index]["unit_list"] = data_2d.unit_list_cuted
         hydrau_description[hdf5_file_index]["unit_number"] = len(data_2d.unit_list_cuted)
-
-
 
         # progress
         progress_value.value = 90
@@ -1544,8 +1122,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_model_type"] = hydrau_description[hdf5_file_index]["model_type"]
         hyd_description["hyd_2D_numerical_method"] = "FiniteElementMethod"
         hyd_description["hyd_model_dimension"] = hydrau_description[hdf5_file_index]["model_dimension"]
-        hyd_description["hyd_mesh_variables_list"] = ", ".join(hydrau_description[hdf5_file_index]["variable_mesh_detected_list"])
-        hyd_description["hyd_node_variables_list"] = ", ".join(hydrau_description[hdf5_file_index]["variable_node_detected_list"])
         hyd_description["hyd_epsg_code"] = hydrau_description[hdf5_file_index]["epsg_code"]
         hyd_description["hyd_reach_list"] = hydrau_description[hdf5_file_index]["reach_list"]
         hyd_description["hyd_reach_number"] = hydrau_description[hdf5_file_index]["reach_number"]

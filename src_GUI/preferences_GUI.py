@@ -24,6 +24,7 @@ import os
 from src.tools_mod import DoubleClicOutputGroup, QHLine
 from src.project_properties_mod import load_project_properties, create_default_project_properties_dict, \
     save_project_properties
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 class ProjectPropertiesDialog(QDialog):
@@ -51,6 +52,7 @@ class ProjectPropertiesDialog(QDialog):
                          'Greens', 'Greys', 'Oranges', 'Purples',
                          'Reds', 'gist_earth', 'terrain', 'ocean']
         self.msg2 = QMessageBox()
+        self.hvum = HydraulicVariableUnitManagement()
         self.init_iu()
 
     def init_iu(self):
@@ -332,7 +334,14 @@ class ProjectPropertiesDialog(QDialog):
             self.erase_data_checkbox.setChecked(False)
 
         # pvd_variable_z_combobox
-        item_list = ["point_elevation", "water_height", "water_velocity", "water_level", "hydraulic_head", "conveyance", "froude_number"]
+        item_list = [self.hvum.z.name_gui,
+                     self.hvum.h.name_gui,
+                     self.hvum.v.name_gui,
+                     self.hvum.level.name_gui,
+                     self.hvum.hydraulic_head.name_gui,
+                     self.hvum.conveyance.name_gui,
+                     self.hvum.froude.name_gui
+                     ]
         self.pvd_variable_z_combobox.clear()
         self.pvd_variable_z_combobox.addItems(item_list)
         self.pvd_variable_z_combobox.setCurrentIndex(item_list.index(project_preferences["pvd_variable_z"]))
