@@ -815,8 +815,8 @@ class SubHydroW(QWidget):
             self.h2d_t2.clear()
             self.h2d_t2.addItems(names)
             self.reach_name_label.setText(self.hydrau_description_list[0]["reach_list"])
-            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].meshs().names())
-            node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].nodes().names())
+            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].meshs().names_gui())
+            node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].nodes().names_gui())
             self.usefull_variable_label.setText("node : " + node_list + "\nmesh : " + mesh_list)
             self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
             self.units_QListWidget.clear()
@@ -884,6 +884,9 @@ class SubHydroW(QWidget):
         # set text
         text = str(selected) + "/" + str(total)
         self.number_timstep_label.setText(text)  # number units
+
+        self.load_b.setDefault(True)
+        self.load_b.setFocus()
 
     def change_gui_when_combobox_name_change(self):
         try:
@@ -2548,9 +2551,10 @@ class HEC_RAS2D(SubHydroW):
         # reach
         reach_name_title_label = QLabel(self.tr('Reach name'))
         self.reach_name_label = QLabel(self.tr('unknown'))
+        self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -2686,7 +2690,7 @@ class TELEMAC(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -4012,7 +4016,7 @@ class Basement2D(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type

@@ -33,12 +33,30 @@ class Data2d(list):
         if self.reach_num:
             self.unit_num = len(self[self.reach_num - 1])
 
+    def add_reach(self, data_2d_new, reach_num):
+        self.append(data_2d_new[reach_num])
+
+        # TODO: check if same units number and name
+
+        # update attrs
+        self.get_informations()
+        self.hvum = data_2d_new.hvum
+
+    def add_unit(self,  data_2d_new, reach_num):
+        if not self.reach_num:
+            self.append([])
+        self[reach_num].extend(data_2d_new[reach_num])
+
+        # TODO: check if same units number and name
+
+        # update attrs
+        self.get_informations()
+        self.hvum = data_2d_new.hvum
+
     def get_only_mesh(self):
         """
         retrun whole_profile from original data2d
         """
-        self.get_informations()
-
         whole_profile = Data2d()
         for reach_num in range(self.reach_num):
             unit_list = []
@@ -56,30 +74,7 @@ class Data2d(list):
 
         return whole_profile
 
-    def add_reach(self, data_2d_new, reach_num):
-        self.get_informations()
-        self.append(data_2d_new[reach_num])
-
-        # TODO: check if same units number and name
-
-        # update attrs
-        self.get_informations()
-        self.hvum = data_2d_new.hvum
-
-    def add_unit(self,  data_2d_new, reach_num):
-        self.get_informations()
-        if not self.reach_num:
-            self.append([])
-        self[reach_num].extend(data_2d_new[reach_num])
-
-        # TODO: check if same units number and name
-
-        # update attrs
-        self.get_informations()
-        self.hvum = data_2d_new.hvum
-
     def get_hyd_varying_xy_and_z_index(self):
-        self.get_informations()
         # hyd_varying_mesh and hyd_unit_z_equal?
         hyd_varying_xy_index = []
         hyd_varying_z_index = []
@@ -107,6 +102,11 @@ class Data2d(list):
                         it_equality = unit_num
                         hyd_varying_z_index[reach_num].append(it_equality)  # diff
         return hyd_varying_xy_index, hyd_varying_z_index
+
+    def reduce_to_one_unit_by_reach(self):
+        for reach_num in range(self.reach_num):
+            self[reach_num] = [self[reach_num][0]]
+        self.get_informations()
 
     def cut_2d(self, unit_list, progress_value, delta_file, CutMeshPartialyDry, min_height):
         """
@@ -322,6 +322,8 @@ class Data2d(list):
                 # progress
                 progress_value.value += int(deltaunit)
 
+        self.get_informations()
+
     def compute_variables(self, variable_computable_list):
         """
         Compute all necessary variables.
@@ -329,8 +331,6 @@ class Data2d(list):
         :param mesh_variable_list:
         :return:
         """
-        self.get_informations()
-
         node_variable_list = variable_computable_list.nodes()
         mesh_variable_list = variable_computable_list.meshs()
         # for all reach

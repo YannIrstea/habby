@@ -1088,7 +1088,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         for reach_num in range(len(hyd_varying_xy_index)):
             if len(set(hyd_varying_xy_index[reach_num])) == 1:  # one tin for all unit
                 hyd_varying_mesh = False
-                data_2d_whole_profile[reach_num] = [data_2d_whole_profile[reach_num][0]]
+                data_2d_whole_profile.reduce_to_one_unit_by_reach()
             else:
                 hyd_varying_mesh = True
             # hyd_unit_z_equal ?

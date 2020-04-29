@@ -1771,7 +1771,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
                     if types_hdf5 == "habitat":  # load habitat data
                         hdf5.load_hdf5_hab(whole_profil=True)
                         hdf5.project_preferences = project_preferences
-                        hdf5.get_variables_from_dict_and_compute()
                         total_gpkg_export = sum([export_dict["mesh_units_hab"], export_dict["point_units_hab"]])
                         if export_dict["mesh_units_hab"] or export_dict["point_units_hab"]:
                             # append fake first

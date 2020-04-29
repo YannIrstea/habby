@@ -356,8 +356,8 @@ class Hdf5Management:
 
         # variables attrs
         data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        print("node_list :", data_2d.hvum.hdf5_and_computable_list.nodes().names())
-        print("mesh_list :", data_2d.hvum.hdf5_and_computable_list.meshs().names())
+        print("node data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.nodes().names_gui()))
+        print("mesh data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.meshs().names_gui()))
         self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
         self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
         self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()
@@ -505,8 +505,6 @@ class Hdf5Management:
             if True in project_preferences[key]:
                 # load
                 self.load_hdf5_hyd(whole_profil=True)
-                # get_variables_to_compute_from_project_pref
-                self.get_variables_from_dict_and_compute()
                 # exports
                 self.export_gpkg()
                 self.export_stl()
@@ -1883,13 +1881,13 @@ class Hdf5Management:
         if self.project_preferences['elevation_whole_profile'][index]:
             """ create stl whole profile (to see topography) """
             # for all reach
-            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                # for all units (selected or all)
-                for unit_num in range(0, len(self.data_2d_whole["node"]["xy"][reach_num])):
+            for reach_num in range(self.data_2d_whole.reach_num):
+                # for all units
+                for unit_num in range(self.data_2d_whole.unit_num):
                     # get data
-                    xy = self.data_2d_whole["node"]["xy"][reach_num][unit_num]
-                    z = self.data_2d_whole["node"]["z"][reach_num][unit_num] * self.project_preferences["vertical_exaggeration"]
-                    tin = self.data_2d_whole["mesh"]["tin"][reach_num][unit_num]
+                    xy = self.data_2d_whole[reach_num][unit_num]["node"]["xy"]
+                    z = self.data_2d_whole[reach_num][unit_num]["node"]["z"] * self.project_preferences["vertical_exaggeration"]
+                    tin = self.data_2d_whole[reach_num][unit_num]["mesh"]["tin"]
                     xyz = np.column_stack([xy, z])
                     # Create the mesh
                     stl_file = mesh.Mesh(np.zeros(tin.shape[0], dtype=mesh.Mesh.dtype))
@@ -1934,52 +1932,22 @@ class Hdf5Management:
 
             file_names_all = []
             part_timestep_indice = []
+            pvd_variable_z = self.hvum.all_sys_variable_list.get_from_name_gui(self.project_preferences["pvd_variable_z"])
 
-            # for each reach
-            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+            # for all reach
+            for reach_num in range(self.data_2d.reach_num):
+                # for all units
+                for unit_num in range(self.data_2d.unit_num):
                     part_timestep_indice.append((reach_num, unit_num))
                     # create one vtu file by time step
-                    x = np.ascontiguousarray(self.data_2d["node"]["xy"][reach_num][unit_num][:, 0])
-                    y = np.ascontiguousarray(self.data_2d["node"]["xy"][reach_num][unit_num][:, 1])
-                    try:
-                        if self.project_preferences['pvd_variable_z'] == "point_elevation":
-                            z = np.ascontiguousarray(self.data_2d["node"]["z"][reach_num][unit_num] *
-                                                     self.project_preferences["vertical_exaggeration"])
-
-                        elif self.project_preferences['pvd_variable_z'] == "water_height":
-                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["h"][reach_num][unit_num] *
-                                                     self.project_preferences["vertical_exaggeration"])
-
-                        elif self.project_preferences['pvd_variable_z'] == "water_velocity":
-                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["v"][reach_num][unit_num] *
-                                                     self.project_preferences["vertical_exaggeration"])
-
-                        elif self.project_preferences['pvd_variable_z'] == "level":
-                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["level"][reach_num][unit_num] *
-                                                     self.project_preferences["vertical_exaggeration"])
-
-                        elif self.project_preferences['pvd_variable_z'] == "hydraulic_head":
-                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["hydraulic_head"][reach_num][unit_num] *
-                                                     self.project_preferences["vertical_exaggeration"])
-
-                        elif self.project_preferences['pvd_variable_z'] == "conveyance":
-                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["conveyance"][reach_num][unit_num] *
-                                                     self.project_preferences["vertical_exaggeration"])
-
-                        elif self.project_preferences['pvd_variable_z'] == "froude_number":
-                            z = np.ascontiguousarray(self.data_2d["node"]["data"]["froude_number"][reach_num][unit_num] *
-                                                     self.project_preferences["vertical_exaggeration"])
-
-                    except Warning:
-                        print('Error: ' + qt_tr.translate("hdf5_mod", 'oh no!'))
-
-                    connectivity = np.reshape(self.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                              (len(self.data_2d["mesh"]["tin"][reach_num][unit_num]) * 3,))
-                    offsets = np.arange(3, len(self.data_2d["mesh"]["tin"][reach_num][unit_num]) * 3 + 3, 3)
+                    x = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"]["xy"][:, 0])
+                    y = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"]["xy"][:, 1])
+                    z = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"]["data"][pvd_variable_z.name].to_numpy() * self.project_preferences["vertical_exaggeration"])
+                    connectivity = np.reshape(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                              (len(self.data_2d[reach_num][unit_num]["mesh"]["tin"]) * 3,))
+                    offsets = np.arange(3, len(self.data_2d[reach_num][unit_num]["mesh"]["tin"]) * 3 + 3, 3)
                     offsets = np.array(list(map(int, offsets)), dtype=np.int64)
-                    cell_types = np.zeros(len(self.data_2d["mesh"]["tin"][reach_num][unit_num]), ) + 5  # triangle
+                    cell_types = np.zeros(len(self.data_2d[reach_num][unit_num]["mesh"]["tin"]), ) + 5  # triangle
                     cell_types = np.array(list((map(int, cell_types))), dtype=np.int64)
 
                     cellData = {}
@@ -1989,13 +1957,13 @@ class Hdf5Management:
                         if name_fish:
                             for fish_name in self.data_description["hab_fish_list"].split(", "):
                                 newkey = "HV " + fish_name
-                                cellData[newkey] = self.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num]
+                                cellData[newkey] = self.data_2d[reach_num][unit_num]["mesh"]["hv_data"][fish_name]
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
                             cellData["substrate_coarser"] = np.ascontiguousarray(
-                                self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][:, 0])
+                                self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, 0])
                             cellData["substrate_dominant"] = np.ascontiguousarray(
-                                self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][:, 1])
+                                self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, 1])
 
                         if self.data_description["sub_classification_method"] == 'percentage':
                             if self.data_description["sub_classification_code"] == "Cemagref":
@@ -2004,18 +1972,11 @@ class Hdf5Management:
                                 sub_class_number = 12
                             for i in range(sub_class_number):
                                 cellData['S' + str(i + 1)] = np.ascontiguousarray(
-                                    self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][:, i])
+                                    self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, i])
 
-                    # mesh variables
-                    cellData['water_height'] = self.data_2d["mesh"]["data"]["h"][reach_num][unit_num]
-                    cellData['water_velocity'] = self.data_2d["mesh"]["data"]["v"][reach_num][unit_num]
-                    cellData['level'] = self.data_2d["mesh"]["data"]["level"][reach_num][unit_num]
-                    cellData['froude_number'] = self.data_2d["mesh"]["data"]["froude_number"][reach_num][unit_num]
-                    cellData['hydraulic_head'] = self.data_2d["mesh"]["data"]["hydraulic_head"][reach_num][unit_num]
-                    cellData['conveyance'] = self.data_2d["mesh"]["data"]["conveyance"][reach_num][unit_num]
-                    cellData['max_slope_bottom'] = self.data_2d["mesh"]["data"]["max_slope_bottom"][reach_num][unit_num]
-                    cellData['max_slope_energy'] = self.data_2d["mesh"]["data"]["max_slope_energy"][reach_num][unit_num]
-                    cellData['shear_stress'] = self.data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num]
+                    # hyd variables mesh
+                    for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
+                        cellData[mesh_variable.name_gui] = self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][mesh_variable.name].to_numpy()
 
                     # create the grid and the vtu files
                     name_file = os.path.join(self.path_visualisation,
@@ -2193,10 +2154,10 @@ class Hdf5Management:
                 else:
                     fish_names = []
 
-            # for each reach
-            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+            # for all reach
+            for reach_num in range(self.data_2d.reach_num):
+                # for all units
+                for unit_num in range(self.data_2d.unit_num):
                     name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate("hdf5_mod", "detailled_mesh") + ".txt"
                     if os.path.isfile(os.path.join(path_txt, name)):
                         if not self.project_preferences['erase_id']:
@@ -2212,22 +2173,15 @@ class Hdf5Management:
 
                     # open text to write
                     with open(name, 'wt', encoding='utf-8') as f:
+                        # hyd variables mesh
+                        text_to_write_str_list = self.hvum.hdf5_and_computable_list.meshs().names()
+
                         # header 1
-                        text_to_write_str_list = [qt_tr.translate("hdf5_mod", "area"),
-                                       qt_tr.translate("hdf5_mod", "water_height"),
-                                       qt_tr.translate("hdf5_mod", "water_velocity"),
-                                       qt_tr.translate("hdf5_mod", "level"),
-                                       qt_tr.translate("hdf5_mod", "froude_number"),
-                                       qt_tr.translate("hdf5_mod", "hydraulic_head"),
-                                       qt_tr.translate("hdf5_mod", "conveyance"),
-                                       qt_tr.translate("hdf5_mod", "max_slope_bottom"),
-                                       qt_tr.translate("hdf5_mod", "max_slope_energy"),
-                                       qt_tr.translate("hdf5_mod", "shear_stress"),
+                        text_to_write_str_list.extend([
                                        qt_tr.translate("hdf5_mod", "node1"),
                                        qt_tr.translate("hdf5_mod", "node2"),
-                                       qt_tr.translate("hdf5_mod", "node3")]
+                                       qt_tr.translate("hdf5_mod", "node3")])
                         text_to_write_str = "\t".join(text_to_write_str_list)
-
                         if self.hdf5_type == "habitat":
                             # sub
                             if self.data_description["sub_classification_method"] == 'coarser-dominant':
@@ -2249,7 +2203,10 @@ class Hdf5Management:
                         f.write(text_to_write_str)
 
                         # header 2
-                        text_to_write_str = '[m2]\t[m]\t[m/s]\t[m]\t[]\t[m]\t[m²/s]\t[m/m]\t[m/m]\t[]\t[]\t[]\t[]'
+                        text_to_write_str = "["
+                        text_to_write_str += ']\t['.join(self.hvum.hdf5_and_computable_list.meshs().units())
+                        text_to_write_str += ']\t[]\t[]\t[]'
+
                         if self.hdf5_type == "habitat" and fish_names:
                             text_to_write_str += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
                                               range(sub_class_number))
@@ -2259,30 +2216,22 @@ class Hdf5Management:
                         # data
                         text_to_write_str = ""
                         # for each mesh
-                        for mesh_num in range(0, len(self.data_2d["mesh"]["tin"][reach_num][unit_num])):
-                            node1 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                            node2 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][1]
-                            node3 = self.data_2d["mesh"]["tin"][reach_num][unit_num][mesh_num][2]
-                            area_str = str(self.data_2d["mesh"]["data"]["area"][reach_num][unit_num][mesh_num])
-                            height_str = str(self.data_2d["mesh"]["data"]["h"][reach_num][unit_num][mesh_num])
-                            velocity_str = str(self.data_2d["mesh"]["data"]["v"][reach_num][unit_num][mesh_num])
-                            water_level_str = str(self.data_2d["mesh"]["data"]["level"][reach_num][unit_num][mesh_num])
-                            froude_number_str = str(self.data_2d["mesh"]["data"]["froude_number"][reach_num][unit_num][mesh_num])
-                            hydraulic_head_str = str(self.data_2d["mesh"]["data"]["hydraulic_head"][reach_num][unit_num][mesh_num])
-                            conveyance_str = str(self.data_2d["mesh"]["data"]["conveyance"][reach_num][unit_num][mesh_num])
-                            max_slope_bottom_str = str(self.data_2d["mesh"]["data"]["max_slope_bottom"][reach_num][unit_num][mesh_num])
-                            max_slope_energy_str = str(self.data_2d["mesh"]["data"]["max_slope_energy"][reach_num][unit_num][mesh_num])
-                            shear_stress_str = str(self.data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num][mesh_num])
-
+                        for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"]["tin"])):
+                            node1 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][0]  # node num
+                            node2 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][1]
+                            node3 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][2]
                             text_to_write_str += '\n'
-                            text_to_write_str += f"{area_str}\t{height_str}\t{velocity_str}\t{water_level_str}\t{froude_number_str}\t{hydraulic_head_str}\t{conveyance_str}\t{max_slope_bottom_str}\t{max_slope_energy_str}\t{shear_stress_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
-
+                            data_list = []
+                            for mesh_variable_name in self.hvum.hdf5_and_computable_list.meshs().names():
+                                data_list.append("[" + str(self.data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable_name][mesh_num]) + "]")
+                            text_to_write_str += "\t".join(data_list)
+                            text_to_write_str += f"\t{str(node1)}\t{str(node2)}\t{str(node3)}"
                             if self.hdf5_type == "habitat":
-                                sub = self.data_2d["mesh"]["data"]["sub"][reach_num][unit_num][mesh_num]
+                                sub = self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][mesh_num]
                                 text_to_write_str += "\t" + "\t".join(str(e) for e in sub.tolist())
                                 if fish_names:
                                     for fish_name in fish_names:
-                                        text_to_write_str += f"\t{str(self.data_2d['mesh']['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
+                                        text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['hv_data'][fish_name][mesh_num])}"
 
                         # change decimal point
                         locale = QLocale()
@@ -2309,10 +2258,10 @@ class Hdf5Management:
             if not os.path.exists(path_txt):
                 print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
-            # for each reach
-            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+            # for all reach
+            for reach_num in range(self.data_2d.reach_num):
+                # for all units
+                for unit_num in range(self.data_2d.unit_num):
                     name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate("hdf5_mod",
                                                                                                         "detailled_point") + ".txt"
                     if os.path.isfile(os.path.join(path_txt, name)):
@@ -2330,40 +2279,28 @@ class Hdf5Management:
                     # open text to write
                     with open(name, 'wt', encoding='utf-8') as f:
                         # header 1
-                        text_to_write_str_list = [qt_tr.translate("hdf5_mod", "x"),
-                                       qt_tr.translate("hdf5_mod", "y"),
-                                       qt_tr.translate("hdf5_mod", "z"),
-                                       qt_tr.translate("hdf5_mod", "water_height"),
-                                       qt_tr.translate("hdf5_mod", "water_velocity"),
-                                       qt_tr.translate("hdf5_mod", "level"),
-                                       qt_tr.translate("hdf5_mod", "froude_number"),
-                                       qt_tr.translate("hdf5_mod", "hydraulic_head"),
-                                       qt_tr.translate("hdf5_mod", "conveyance")]
-                        text_to_write_str = "\t".join(text_to_write_str_list)
+                        text_to_write_str = "x\ty\t"
+                        text_to_write_str += "\t".join(self.hvum.hdf5_and_computable_list.nodes().names())
                         text_to_write_str += '\n'
                         f.write(text_to_write_str)
 
                         # header 2 2
-                        text_to_write_str = '[m]\t[m]\t[m]\t[m]\t[m/s]\t[m]\t[]\t[m]\t[m²/s]'
+                        text_to_write_str = '[m]\t[m]\t['
+                        text_to_write_str += "]\t[".join(self.hvum.hdf5_and_computable_list.nodes().units())
+                        text_to_write_str += "]"
                         f.write(text_to_write_str)
 
                         # data
                         text_to_write_str = ""
                         # for each point
-                        for point_num in range(0, len(self.data_2d["node"]["xy"][reach_num][unit_num])):
-                            # data geom (get the triangle coordinates)
-                            x = str(self.data_2d["node"]["xy"][reach_num][unit_num][point_num][0])
-                            y = str(self.data_2d["node"]["xy"][reach_num][unit_num][point_num][1])
-                            z = str(self.data_2d["node"]["z"][reach_num][unit_num][point_num])
-                            h = str(self.data_2d["node"]["data"]["h"][reach_num][unit_num][point_num])
-                            v = str(self.data_2d["node"]["data"]["v"][reach_num][unit_num][point_num])
-                            level = str(self.data_2d["node"]["data"]["level"][reach_num][unit_num][point_num])
-                            froude_number = str(self.data_2d["node"]["data"]["froude_number"][reach_num][unit_num][point_num])
-                            hydraulic_head = str(self.data_2d["node"]["data"]["hydraulic_head"][reach_num][unit_num][point_num])
-                            conveyance = str(self.data_2d["node"]["data"]["conveyance"][reach_num][unit_num][point_num])
-
+                        for point_num in range(0, len(self.data_2d[reach_num][unit_num]["node"]["xy"])):
                             text_to_write_str += '\n'
-                            text_to_write_str += f"{x}\t{y}\t{z}\t{h}\t{v}\t{level}\t{froude_number}\t{hydraulic_head}\t{conveyance}"
+                            # data geom (get the triangle coordinates)
+                            x = str(self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][0])
+                            y = str(self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][1])
+                            text_to_write_str += f"{x}\t{y}"
+                            for node_variable_name in self.hvum.hdf5_and_computable_list.nodes().names():
+                                text_to_write_str += "\t" + str(self.data_2d[reach_num][unit_num]["node"]["data"][node_variable_name][point_num])
 
                         # change decimal point
                         locale = QLocale()

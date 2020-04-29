@@ -128,6 +128,9 @@ class HydraulicVariableUnitList(list):
     def get_from_name(self, name):
         return self[self.names().index(name)]
 
+    def get_from_name_gui(self, name_gui):
+        return self[self.names_gui().index(name_gui)]
+
 
 class HydraulicVariableUnitManagement:
     def __init__(self):
@@ -390,8 +393,11 @@ class HydraulicVariableUnitManagement:
                 user_target_list = self.hdf5_and_computable_list.meshs()
             elif node:
                 user_target_list = self.hdf5_and_computable_list.nodes()
+            else:  # whole profile == no data
+                user_target_list = None
 
-        self.get_final_variable_list_from_wish(user_target_list)
+        if user_target_list is not None:
+            self.get_final_variable_list_from_wish(user_target_list)
 
     def get_final_variable_list_from_wish(self, user_target_list):
         """
