@@ -821,7 +821,7 @@ class SubHydroW(QWidget):
             self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
             self.units_QListWidget.clear()
             self.units_QListWidget.addItems(self.hydrau_description_list[0]["unit_list_full"])
-            if not self.hydrau_description_list[0]["unit_list_tf"]:
+            if all(self.hydrau_description_list[0]["unit_list_tf"]):
                 self.units_QListWidget.selectAll()
             else:
                 for i in range(len(self.hydrau_description_list[0]["unit_list_full"])):
@@ -903,9 +903,12 @@ class SubHydroW(QWidget):
         self.units_QListWidget.clear()
         self.units_QListWidget.addItems(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])
         # change selection items
-        for i in range(len(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])):
-            self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"][i])
-            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+        if all(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"]):
+            self.units_QListWidget.selectAll()
+        else:
+            for i in range(len(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])):
+                self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"][i])
+                self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
         self.epsg_label.setText(self.hydrau_description_list[hydrau_description_index]["epsg_code"])
         if not os.path.splitext(self.hydrau_description_list[hydrau_description_index]["hdf5_name"])[1]:
             self.hydrau_description_list[hydrau_description_index]["hdf5_name"] = self.hydrau_description_list[hydrau_description_index]["hdf5_name"] + ".hyd"
