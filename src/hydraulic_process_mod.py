@@ -17,12 +17,15 @@ https://github.com/YannIrstea/habby
 import os
 import sys
 from io import StringIO
-from PyQt5.QtCore import QCoreApplication as qt_tr
+from time import sleep
 
+from PyQt5.QtCore import QCoreApplication as qt_tr, QThread, pyqtSignal
+from multiprocessing import Process, Value
+
+from src.hdf5_mod import Hdf5Management
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
 from src.project_properties_mod import create_default_project_properties_dict
 from src import hdf5_mod, ascii_mod
-
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsSelector
 from src.data_2d_mod import Data2d
 
@@ -1160,3 +1163,317 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         return
     else:
         return
+
+
+class MyProcessList(QThread):
+    """
+    This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
+
+    :param nb_plot_total: integer value representing the total number of graphs to be produced.
+    :param progress_bar: Qprogressbar of DataExplorerFrame to be refreshed
+    """
+    progress_signal = pyqtSignal(int)
+
+    def __init__(self, type, parent=None):
+        QThread.__init__(self, parent)
+        self.plot_production_stoped = False
+        self.add_plots_state = False
+        self.thread_started = False
+        self.all_process_runned = False
+        self.nb_finished = 0
+        self.nb_plot_total = 0
+        self.nb_export_total = 0
+        self.export_finished = False
+        self.export_production_stoped = False
+        self.process_type = type  # cal or plot or export
+        self.process_list = []
+        self.save_process = []
+        self.export_hdf5_mode = False
+
+    def set_export_hdf5_mode(self, path_prj, name_hdf5, export_dict, project_preferences):
+        self.export_hdf5_mode = True
+        # create hdf5 class by file
+        self.hdf5 = Hdf5Management(path_prj, name_hdf5)
+        self.project_preferences = project_preferences
+        self.export_dict = export_dict
+
+    def load_data_and_append_export_process(self):
+        # hydraulic
+        if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
+            self.hdf5.load_hdf5_hyd(whole_profil=True, user_target_list=self.project_preferences)
+            total_gpkg_export = sum(
+                [self.export_dict["mesh_whole_profile_hyd"], self.export_dict["point_whole_profile_hyd"],
+                 self.export_dict["mesh_units_hyd"], self.export_dict["point_units_hyd"]])
+            if self.export_dict["mesh_whole_profile_hyd"] or self.export_dict["point_whole_profile_hyd"] or \
+                    self.export_dict["mesh_units_hyd"] or self.export_dict["point_units_hyd"]:
+                # append fake first
+                for fake_num in range(1, total_gpkg_export):
+                    self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
+                state = Value("i", 0)
+                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
+                                              args=(state,),
+                                              name="export_gpkg")
+                self.process_list.append([export_gpkg_process, state])
+            if self.export_dict["elevation_whole_profile_hyd"]:
+                state = Value("i", 0)
+                export_stl_process = Process(target=self.hdf5.export_stl,
+                                             args=(state,),
+                                             name="export_stl")
+                self.process_list.append([export_stl_process, state])
+            if self.export_dict["variables_units_hyd"]:
+                state = Value("i", 0)
+                export_paraview_process = Process(target=self.hdf5.export_paraview,
+                                                  args=(state,),
+                                                  name="export_paraview")
+                self.process_list.append([export_paraview_process, state])
+            if self.export_dict["detailled_text_hyd"]:
+                state = Value("i", 0)
+                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
+                                                            args=(state,),
+                                                            name="export_detailled_txt")
+                self.process_list.append([export_detailled_mesh_txt_process, state])
+
+        # substrate
+        elif self.hdf5.hdf5_type == "substrate":  # load substrate data
+            self.hdf5.load_hdf5_sub()
+
+        # habitat
+        elif self.hdf5.hdf5_type == "habitat":  # load habitat data
+            self.hdf5.load_hdf5_hab(whole_profil=True)
+            self.hdf5.project_preferences = self.project_preferences
+            total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
+            if self.export_dict["mesh_units_hab"] or self.export_dict["point_units_hab"]:
+                # append fake first
+                for fake_num in range(1, total_gpkg_export):
+                    self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
+                state = Value("i", 0)
+                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
+                                              args=(state,),
+                                              name="export_gpkg")
+                self.process_list.append([export_gpkg_process, state])
+            if self.export_dict["elevation_whole_profile_hab"]:
+                state = Value("i", 0)
+                export_stl_process = Process(target=self.hdf5.export_stl,
+                                             args=(state,),
+                                             name="export_stl")
+                self.process_list.append([export_stl_process, state])
+            if self.export_dict["variables_units_hab"]:
+                state = Value("i", 0)
+                export_paraview_process = Process(target=self.hdf5.export_paraview,
+                                                  args=(state,),
+                                                  name="export_paraview")
+                self.process_list.append([export_paraview_process, state])
+            if self.export_dict["habitat_text_hab"]:
+                state = Value("i", 0)
+                export_spu_txt_process = Process(target=self.hdf5.export_spu_txt,
+                                                 args=(state,),
+                                                 name="export_spu_txt")
+                self.process_list.append([export_spu_txt_process, state])
+            if self.export_dict["detailled_text_hab"]:
+                state = Value("i", 0)
+                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
+                                                            args=(state,),
+                                                            name="export_detailled_txt")
+                self.process_list.append([export_detailled_mesh_txt_process, state])
+            if self.export_dict["fish_information_hab"]:
+                if self.hdf5.fish_list:
+                    state = Value("i", 0)
+                    export_pdf_process = Process(target=self.hdf5.export_report,
+                                                 args=(state,),
+                                                 name="export_report")
+                    self.process_list.append([export_pdf_process, state])
+                else:
+                    # append fake first
+                    self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
+                    print('Warning: ' + 'No habitat data in this .hab file to export Fish informations report.')
+        #
+        # # start thread
+        # self.process_list.start()
+
+        # while progress_value.value != process_list.nb_export_total:
+        #     progress_value.value = process_list.nb_finished
+        # process_list.terminate()
+
+    def new_plots(self):
+        self.add_plots_state = False
+        self.save_process = []
+        self.process_list = []
+
+    def add_plots(self):
+        #print("add_plots")
+        self.add_plots_state = True
+        self.plot_production_stoped = False
+        # remove plots not started
+        self.remove_process_not_started()
+
+    def append(self, process):
+        self.process_list.append(process)
+
+    def run(self):
+        self.thread_started = True
+        self.plot_production_stoped = False
+        if self.process_type == "plot":
+            self.nb_plot_total = len(self.process_list)
+            # Process mod
+            for i in range(len(self.process_list)):
+                if not self.plot_production_stoped:
+                    if self.process_list[i][1].value == 0 and not self.process_list[i][0].is_alive():
+                        self.process_list[i][0].start()
+                        #print("start", i)
+            #print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
+            self.check_all_plot_produced()
+
+            # # Pool map mod
+            # data_list = []
+            # for i in range(len(self.process_list)):
+            #     data_list.append(self.process_list[i])
+            # p = multiprocessing.Pool()
+            # result = p.map(mp_worker, data_list)
+            # print("result", result)
+            # #self.check_all_plot_produced_map()
+            # print("before2")
+            # p.close()
+            # print("before3")
+            # self.progress_signal.emit(len(data_list))
+        if self.process_type == "export":
+            if self.export_hdf5_mode:
+                self.load_data_and_append_export_process()
+
+            self.all_process_runned = False
+            for i in range(len(self.process_list)):
+                self.process_list[i][0].start()
+            #print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
+            self.all_process_runned = True
+            self.check_all_export_produced()
+
+    def stop_plot_production(self):
+        #print("stop_plot_production")
+        self.plot_production_stoped = True
+
+    def stop_export_production(self):
+        self.export_production_stoped = True
+
+    def close_all_plot(self):
+        #print("close_all_plot")
+        # remove plots not started
+        self.remove_process_not_started()
+        for i in range(len(self.process_list)):
+            #print(self.process_list[i][0].name, "terminate !!")
+            self.process_list[i][0].terminate()
+        self.process_list = []
+
+    def close_all_export(self):
+        """
+        Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
+        """
+        #print("close_all_export")
+        if self.thread_started:
+            self.export_production_stoped = True
+            while not self.all_process_runned:
+                #print("waiting", self.all_process_runned)
+                pass
+
+            for i in range(len(self.process_list)):
+                # print(self.process_list[i][0].name,
+                #       self.process_list[i][0].exitcode,
+                #       self.process_list[i][0].is_alive(),
+                #       self.process_list[i][1].value)
+                if self.process_list[i][0].is_alive() or self.process_list[i][1].value == 1:
+                    #print(self.process_list[i][0].name, "terminate !!")
+                    self.process_list[i][0].terminate()
+            self.thread_started = False
+            self.process_list = []
+
+    def check_all_plot_produced(self):
+        """
+        State is analysed and progress bar refreshed.
+        """
+        #print("check_all_plot_produced")
+        self.nb_finished = 0
+        self.nb_plot_total = len(self.process_list)
+        state_list = []
+        for i in range(len(self.process_list)):
+            state = self.process_list[i][1].value
+            state_list.append(state)
+            if state == 1:
+                self.nb_finished = self.nb_finished + 1
+                self.progress_signal.emit(self.nb_finished)
+                #print("emit 1")
+            if state == 0:
+                if i == self.nb_plot_total - 1:  # last of all plot
+                    while 0 in state_list:
+                        for j in [k for k, l in enumerate(state_list) if l == 0]:
+                            state = self.process_list[j][1].value
+                            state_list[j] = state
+                            if state == 1:
+                                self.nb_finished = self.nb_finished + 1
+                                self.progress_signal.emit(self.nb_finished)
+                                #print("emit 2")
+                        if self.plot_production_stoped:
+                            sleep(1)
+                            for j in [k for k, l in enumerate(state_list) if l == 0]:
+                                state = self.process_list[j][1].value
+                                state_list[j] = state
+                                if state == 1:
+                                    self.nb_finished = self.nb_finished + 1
+                                    self.progress_signal.emit(self.nb_finished)
+                                    #print("emit 3")
+                            sleep(1)
+                            for j in [k for k, l in enumerate(state_list) if l == 0]:
+                                self.process_list[j][0].terminate()
+                            break
+
+    # def check_all_export_produced(self):
+    #     self.nb_finished = 0
+    #     self.nb_export_total = len(self.process_list)
+    #     state_list = []
+    #     for i in range(len(self.process_list)):
+    #         state = self.process_list[i][1].value
+    #         state_list.append(state)
+    #         if state == 1:
+    #             self.nb_finished = self.nb_finished + 1
+    #             self.progress_signal.emit(self.nb_finished)
+    #             #print("emit")
+    #         if state == 0:
+    #             if i == self.nb_export_total - 1:  # last of all plot
+    #                 while 0 in state_list:
+    #                     for j in [k for k, l in enumerate(state_list) if l == 0]:
+    #                         state = self.process_list[j][1].value
+    #                         state_list[j] = state
+    #                         if state == 1:
+    #                             self.nb_finished = self.nb_finished + 1
+    #                             self.progress_signal.emit(self.nb_finished)
+    #                             #print("emit")
+    #                     if self.export_production_stoped:
+    #                         break
+
+    def check_all_export_produced(self):
+        self.nb_finished = 0
+        self.nb_export_total = len(self.process_list)
+        state_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
+        self.nb_finished = state_list.count(1)
+        while 0 in state_list:
+            if self.export_production_stoped:
+                break
+            state_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
+            if state_list.count(1) != self.nb_finished:
+                self.nb_finished = state_list.count(1)
+        self.export_finished = True
+
+    def check_all_process_closed(self):
+        """
+        Check if a process is alive (plot window open)
+        """
+        #print("check_all_process_closed")
+        if any([self.process_list[i][0].is_alive() for i in range(len(self.process_list))]):  # plot window open or plot not finished
+            return False
+        else:
+            return True
+
+    def remove_process_not_started(self):
+        #print("remove_process_not_started")
+        for i in reversed(range(len(self.process_list))):
+            if not self.process_list[i][0].is_alive():
+                #print(self.process_list[i][0].name, "removed from list")
+                self.process_list.pop(i)
+        self.nb_plot_total = len(self.process_list)

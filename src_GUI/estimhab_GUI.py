@@ -30,7 +30,7 @@ import sys
 from io import StringIO
 from src import hdf5_mod
 from src.tools_mod import DoubleClicOutputGroup
-from src_GUI.data_explorer_GUI import MyProcessList
+from src.hydraulic_process_mod import MyProcessList
 from src.project_properties_mod import load_project_properties
 
 

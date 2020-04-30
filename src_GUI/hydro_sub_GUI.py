@@ -747,7 +747,7 @@ class SubHydroW(QWidget):
             model_path = self.path_prj  # path proj
 
         # find the filename based on user choice
-        filename_list = QFileDialog.getOpenFileNames(self,
+        filename_list = QFileDialog().getOpenFileNames(self,
                                                      self.tr("Select file(s)"),
                                                      model_path,
                                                      filter2)

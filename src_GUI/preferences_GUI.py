@@ -84,17 +84,17 @@ class ProjectPropertiesDialog(QDialog):
         self.point_whole_profile_hyd.setObjectName("point_whole_profile_hyd")
 
         self.mesh_units_hyd = QCheckBox("")
-        self.mesh_units_hab = QCheckBox("")
         self.mesh_units_hyd.setObjectName("mesh_units_hyd")
+        self.mesh_units_hab = QCheckBox("")
         self.mesh_units_hab.setObjectName("mesh_units_hab")
 
         self.point_units_hyd = QCheckBox("")
-        self.point_units_hab = QCheckBox("")
         self.point_units_hyd.setObjectName("point_units_hyd")
+        self.point_units_hab = QCheckBox("")
         self.point_units_hab.setObjectName("point_units_hab")
 
         vertical_exaggeration = QLabel("3D vertical exaggeration")
-        self.vertical_exaggeration_lineedit = QLineEdit("10")
+        self.vertical_exaggeration_lineedit = QLineEdit()
         self.vertical_exaggeration_lineedit.setToolTip(self.tr("Exaggeration coefficient of z nodes values (all 3D)"))
         self.vertical_exaggeration_lineedit.setAlignment(Qt.AlignCenter)
         self.vertical_exaggeration_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)

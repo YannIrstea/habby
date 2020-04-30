@@ -23,7 +23,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle
 
-from src.tools_mod import MyProcessList, QGroupBoxCollapsible
+from src.tools_mod import QGroupBoxCollapsible
+from src.hydraulic_process_mod import MyProcessList
 from src import hdf5_mod
 from src import plot_mod
 from src import tools_mod

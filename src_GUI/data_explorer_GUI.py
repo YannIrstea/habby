@@ -16,16 +16,17 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Value
+from multiprocessing import Process, Value, Queue
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel, QTimer
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
     QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QProgressBar, QListWidgetItem
 
 from src import hdf5_mod
 from src import plot_mod
-from src.tools_mod import MyProcessList, create_map_plot_string_dict
+from src.tools_mod import create_map_plot_string_dict
+from src.hydraulic_process_mod import MyProcessList
 from src.project_properties_mod import load_project_properties
 from src.tools_mod import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
@@ -458,7 +459,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.setTitle(title)
         self.total_fish_result = 0
         self.process_list = MyProcessList("plot")
-        self.process_list.progress_signal.connect(self.show_prog)
+        # self.process_list.progress_signal.connect(self.show_prog)
         self.variables_to_remove = ["mesh", "elevation", "water_height", "water_velocity",
                                     "substrate_coarser", "substrate_dominant", "max_slope_bottom", "max_slope_energy",
                                     "shear_stress",
@@ -1366,8 +1367,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.setTitle(title)
-        self.process_list = MyProcessList("export")
-        self.process_list.progress_signal.connect(self.show_prog)
         self.current_type = 0
         self.checkbox_list = []
         self.nb_export = 0
@@ -1379,6 +1378,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                           "variables_units",
                                           "detailled_text",
                                           "fish_information"]
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.show_prog)
+        self.progress_value = Value("i", 0)
         self.init_ui()
 
     def init_ui(self):
@@ -1667,17 +1669,21 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progressbar.setValue(0)
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
-    def show_prog(self, value):
-        self.data_exporter_progressbar.setValue(value)
-        self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_export))
-
-        if value == self.nb_export and self.nb_export != 0:  # != 0 if closefig of mainwindow
+    def show_prog(self):
+        # RUNNING
+        if not self.process_list.export_finished:
+            # self.process_list.nb_finished
+            self.data_exporter_progressbar.setValue(int(self.process_list.nb_finished))
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished, self.process_list.nb_export_total))
+        else:
+            self.timer.stop()
             # activate
             self.data_exporter_run_pushbutton.setEnabled(True)
             # disable stop button
             self.data_exporter_stop_pushbutton.setEnabled(False)
-            # log
-            self.send_log.emit(self.tr("Export(s) done."))
+            if not self.export_production_stoped:
+                # log
+                self.send_log.emit(self.tr("Export(s) done."))
 
     def start_export(self):
         types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
@@ -1695,10 +1701,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
             # figure option
             project_preferences = load_project_properties(self.path_prj)
 
-            # export_production_stoped
-            self.process_list.process_list = []
-            self.process_list.export_production_stoped = False
-
             # disable
             self.data_exporter_run_pushbutton.setEnabled(False)
 
@@ -1706,6 +1708,8 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progressbar.setValue(0)
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
             QCoreApplication.processEvents()
+
+            self.process_list = MyProcessList("export")
 
             # loop on all desired hdf5 file
             for name_hdf5 in names_hdf5:
@@ -1724,102 +1728,23 @@ class DataExporterGroup(QGroupBoxCollapsible):
                     for key in export_dict.keys():
                         project_preferences[key[:-4]][index_dict] = export_dict[key]
 
-                    # create hdf5 class by file
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name_hdf5)
+                    self.process_list.set_export_hdf5_mode(self.path_prj, name_hdf5, export_dict, project_preferences)
+                    self.process_list.start()
+                    # # global export process
+                    # self.export_process = Process(target=export_process,
+                    #                                 args=(self.progress_value,
+                    #                                     self.path_prj,
+                    #                                     name_hdf5,
+                    #                                     export_dict,
+                    #                                     project_preferences),
+                    #                                 name="export_process")
+                    # self.export_process.daemon = True
+                    # self.export_process.start()
 
-                    # hydraulic
-                    if types_hdf5 == "hydraulic":  # load hydraulic data
-                        hdf5.load_hdf5_hyd(whole_profil=True, user_target_list=project_preferences)
-                        total_gpkg_export = sum(
-                            [export_dict["mesh_whole_profile_hyd"], export_dict["point_whole_profile_hyd"],
-                             export_dict["mesh_units_hyd"], export_dict["point_units_hyd"]])
-                        if export_dict["mesh_whole_profile_hyd"] or export_dict["point_whole_profile_hyd"] or \
-                                export_dict["mesh_units_hyd"] or export_dict["point_units_hyd"]:
-                            # append fake first
-                            for fake_num in range(1, total_gpkg_export):
-                                self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
-                            state = Value("i", 0)
-                            export_gpkg_process = Process(target=hdf5.export_gpkg,
-                                                          args=(state,),
-                                                          name="export_gpkg")
-                            self.process_list.append([export_gpkg_process, state])
+            # for error management and figures
+            print("self.timer.start(100)")
+            self.timer.start(100)
 
-                        if export_dict["elevation_whole_profile_hyd"]:
-                            state = Value("i", 0)
-                            export_stl_process = Process(target=hdf5.export_stl,
-                                                         args=(state,),
-                                                         name="export_stl")
-                            self.process_list.append([export_stl_process, state])
-                        if export_dict["variables_units_hyd"]:
-                            state = Value("i", 0)
-                            export_paraview_process = Process(target=hdf5.export_paraview,
-                                                              args=(state,),
-                                                              name="export_paraview")
-                            self.process_list.append([export_paraview_process, state])
-                        if export_dict["detailled_text_hyd"]:
-                            state = Value("i", 0)
-                            export_detailled_mesh_txt_process = Process(target=hdf5.export_detailled_txt,
-                                                                        args=(state,),
-                                                                        name="export_detailled_txt")
-                            self.process_list.append([export_detailled_mesh_txt_process, state])
-
-                    # substrate
-                    if types_hdf5 == "substrate":  # load substrate data
-                        hdf5.load_hdf5_sub()
-
-                    # habitat
-                    if types_hdf5 == "habitat":  # load habitat data
-                        hdf5.load_hdf5_hab(whole_profil=True)
-                        hdf5.project_preferences = project_preferences
-                        total_gpkg_export = sum([export_dict["mesh_units_hab"], export_dict["point_units_hab"]])
-                        if export_dict["mesh_units_hab"] or export_dict["point_units_hab"]:
-                            # append fake first
-                            for fake_num in range(1, total_gpkg_export):
-                                self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
-                            state = Value("i", 0)
-                            export_gpkg_process = Process(target=hdf5.export_gpkg,
-                                                          args=(state,),
-                                                          name="export_gpkg")
-                            self.process_list.append([export_gpkg_process, state])
-                        if export_dict["elevation_whole_profile_hab"]:
-                            state = Value("i", 0)
-                            export_stl_process = Process(target=hdf5.export_stl,
-                                                         args=(state,),
-                                                         name="export_stl")
-                            self.process_list.append([export_stl_process, state])
-                        if export_dict["variables_units_hab"]:
-                            state = Value("i", 0)
-                            export_paraview_process = Process(target=hdf5.export_paraview,
-                                                              args=(state,),
-                                                              name="export_paraview")
-                            self.process_list.append([export_paraview_process, state])
-                        if export_dict["habitat_text_hab"]:
-                            state = Value("i", 0)
-                            export_spu_txt_process = Process(target=hdf5.export_spu_txt,
-                                                             args=(state,),
-                                                             name="export_spu_txt")
-                            self.process_list.append([export_spu_txt_process, state])
-                        if export_dict["detailled_text_hab"]:
-                            state = Value("i", 0)
-                            export_detailled_mesh_txt_process = Process(target=hdf5.export_detailled_txt,
-                                                                        args=(state,),
-                                                                        name="export_detailled_txt")
-                            self.process_list.append([export_detailled_mesh_txt_process, state])
-                        if export_dict["fish_information_hab"]:
-                            if hdf5.fish_list:
-                                state = Value("i", 0)
-                                export_pdf_process = Process(target=hdf5.export_report,
-                                                             args=(state,),
-                                                             name="export_report")
-                                self.process_list.append([export_pdf_process, state])
-                            else:
-                                # append fake first
-                                self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
-                                self.send_log.emit('Warning: ' + self.tr(
-                                    'No habitat data in this .hab file to export Fish informations report.'))
-
-            # start thread
-            self.process_list.start()
             # disable run_pushbutton
             self.data_exporter_run_pushbutton.setEnabled(False)
             # enable stop_pushbutton
@@ -1835,8 +1760,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
         # close_all_export
         self.process_list.close_all_export()
         self.process_list.terminate()
-        # self.process_list.quit()
-        # self.process_list.wait()
         # log
         self.send_log.emit(self.tr("Export(s) stoped by user."))
 

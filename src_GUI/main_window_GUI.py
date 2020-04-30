@@ -2413,6 +2413,5 @@ class AltTabPressEater(QObject):
             return QObject.eventFilter(self, obj, event)
 
 
-
 if __name__ == '__main__':
     pass

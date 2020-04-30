@@ -524,7 +524,7 @@ class HydraulicVariableUnitManagement:
 
             # shear_stress_beta mesh ==> need first : h mesh hdf5 (FinitVolume)
             elif variable_wish.name == self.shear_stress_beta.name:
-                if self.z.name not in self.all_final_variable_list.to_compute().nodes().names():
+                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
                     self.z.position = "node"
                     self.z.hdf5 = True
                     self.all_final_variable_list.append(self.z)
