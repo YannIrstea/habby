@@ -836,7 +836,7 @@ class SubHydroW(QWidget):
                 text_load_button = text_load_button + "s"
             self.load_b.setText(text_load_button)
             self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
-            self.hname.textChanged.connect(self.unit_counter)
+            #self.hname.textChanged.connect(self.unit_counter)
             self.unit_counter()
 
     def unit_counter(self):
@@ -885,7 +885,6 @@ class SubHydroW(QWidget):
         text = str(selected) + "/" + str(total)
         self.number_timstep_label.setText(text)  # number units
 
-        self.load_b.setDefault(True)
         self.load_b.setFocus()
 
     def change_gui_when_combobox_name_change(self):
@@ -2723,6 +2722,7 @@ class TELEMAC(SubHydroW):
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
         # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
         #     self.gethdf5_name_gui()
         #     if self.h2d_t2.text()[-4:] in self.extension[0]:
@@ -2732,6 +2732,7 @@ class TELEMAC(SubHydroW):
         self.load_b = QPushButton(self.tr('Create .hyd file'),)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hydraulic_create_hdf5)
+        self.load_b.setDefault(True)
         self.spacer = QSpacerItem(1, 180)
 
         # last hdf5 created
