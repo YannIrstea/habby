@@ -246,58 +246,68 @@ class DataExplorerFrame(QFrame):
         self.plot_group.units_QLabel.setText(self.tr("unit(s)"))
         self.habitatvalueremover_group.existing_animal_QListWidget.clear()
 
-        # one file selected
-        if len(selection) == 1:
-            hdf5name = selection[0].text()
-            self.plot_group.units_QListWidget.clear()
+        if len(selection) >= 1:
+            reach_list = []
+            unit_list = []
+            variable_node_list = []
+            variable_mesh_list = []
+            for selection_el in selection:
+                # read
+                hdf5name = selection_el.text()
+                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+                hdf5.open_hdf5_file(False)
+                # check reach
+                reach_list.append(hdf5.reach_name)
+                # check unit
+                unit_list.append(hdf5.units_name)
+                # check variable_node
+                variable_node_list.append(hdf5.hvum.hdf5_and_computable_list.meshs().names())
+                # check variable_mesh
+                variable_mesh_list.append(hdf5.hvum.hdf5_and_computable_list.nodes().names())
 
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            if not reach_list.count(reach_list[0]) == len(reach_list) and \
+                    not unit_list.count(unit_list[0]) == len(unit_list) and \
+                    not variable_node_list.count(variable_node_list[0]) == len(variable_node_list) and \
+                    not variable_mesh_list.count(variable_mesh_list[0]) == len(variable_mesh_list):
+                self.set_empty_layout()
+            else:
+                # one file selected
+                self.plot_group.units_QListWidget.clear()
+                hdf5name = selection[0].text()
 
-            # change unit_type
-            if hasattr(hdf5, "unit_type"):
-                hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
-                self.plot_group.units_QLabel.setText(hdf5.unit_type)
+                # create hdf5 class
+                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+                hdf5.open_hdf5_file(False)
 
-            # hydraulic
-            if self.types_hdf5_QComboBox.currentIndex() == 1:
-                self.set_hydraulic_layout()
-                if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                    for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
-                        mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                        mesh_item.setData(Qt.UserRole, mesh)
-                        if not mesh.hdf5:
-                            mesh_item.setText(mesh_item.text() + " *")
-                            # item_font = mesh_item.font()
-                            # item_font.setItalic(True)
-                            # mesh_item.setFont(item_font)
-                        self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                    for node in hdf5.hvum.hdf5_and_computable_list.nodes():
-                        node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                        node_item.setData(Qt.UserRole, node)
-                        if not node.hdf5:
-                            node_item.setText(node_item.text() + " *")
-                            # item_font = node_item.font()
-                            # item_font.setItalic(True)
-                            # node_item.setFont(item_font)
-                        self.plot_group.node_variable_QListWidget.addItem(node_item)
+                # change unit_type
+                if hasattr(hdf5, "unit_type"):
+                    hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
+                    self.plot_group.units_QLabel.setText(hdf5.unit_type)
 
-                if hdf5.reach_name:
-                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                    if len(hdf5.reach_name) == 1:
-                        self.plot_group.reach_QListWidget.selectAll()
-                        if hdf5.nb_unit == 1:
-                            self.plot_group.units_QListWidget.selectAll()
-                        else:
-                            self.plot_group.units_QListWidget.setCurrentRow(0)
+                # hydraulic
+                if self.types_hdf5_QComboBox.currentIndex() == 1:
+                    self.set_hydraulic_layout()
+                    if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
+                        for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
+                            mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
+                            mesh_item.setData(Qt.UserRole, mesh)
+                            if not mesh.hdf5:
+                                mesh_item.setText(mesh_item.text() + " *")
+                                # item_font = mesh_item.font()
+                                # item_font.setItalic(True)
+                                # mesh_item.setFont(item_font)
+                            self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
+                    if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
+                        for node in hdf5.hvum.hdf5_and_computable_list.nodes():
+                            node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
+                            node_item.setData(Qt.UserRole, node)
+                            if not node.hdf5:
+                                node_item.setText(node_item.text() + " *")
+                                # item_font = node_item.font()
+                                # item_font.setItalic(True)
+                                # node_item.setFont(item_font)
+                            self.plot_group.node_variable_QListWidget.addItem(node_item)
 
-            # substrat
-            if self.types_hdf5_QComboBox.currentIndex() == 2:
-                self.set_substrate_layout()
-                if hdf5.variables:  # if not False (from constant substrate) add items else nothing
-                    self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
                     if hdf5.reach_name:
                         self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                         if len(hdf5.reach_name) == 1:
@@ -307,19 +317,33 @@ class DataExplorerFrame(QFrame):
                             else:
                                 self.plot_group.units_QListWidget.setCurrentRow(0)
 
-            # habitat
-            if self.types_hdf5_QComboBox.currentIndex() == 3:
-                self.set_habitat_layout()
-                self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
-                if hdf5.reach_name:
-                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                    self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
-                    if len(hdf5.reach_name) == 1:
-                        self.plot_group.reach_QListWidget.selectAll()
-                        if hdf5.nb_unit == 1:
-                            self.plot_group.units_QListWidget.selectAll()
-                        else:
-                            self.plot_group.units_QListWidget.setCurrentRow(0)
+                # substrat
+                if self.types_hdf5_QComboBox.currentIndex() == 2:
+                    self.set_substrate_layout()
+                    if hdf5.variables:  # if not False (from constant substrate) add items else nothing
+                        self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
+                        if hdf5.reach_name:
+                            self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+                            if len(hdf5.reach_name) == 1:
+                                self.plot_group.reach_QListWidget.selectAll()
+                                if hdf5.nb_unit == 1:
+                                    self.plot_group.units_QListWidget.selectAll()
+                                else:
+                                    self.plot_group.units_QListWidget.setCurrentRow(0)
+
+                # habitat
+                if self.types_hdf5_QComboBox.currentIndex() == 3:
+                    self.set_habitat_layout()
+                    self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
+                    if hdf5.reach_name:
+                        self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+                        self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
+                        if len(hdf5.reach_name) == 1:
+                            self.plot_group.reach_QListWidget.selectAll()
+                            if hdf5.nb_unit == 1:
+                                self.plot_group.units_QListWidget.selectAll()
+                            else:
+                                self.plot_group.units_QListWidget.setCurrentRow(0)
 
             # # change unit_type string
             # for element_index, _ in enumerate(hdf5.hdf5_attributes_info_text):
@@ -338,8 +362,9 @@ class DataExplorerFrame(QFrame):
             height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(hdf5.hdf5_attributes_name_text) + 1)
             self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
             self.file_information_group.toggle_group(self.file_information_group.isChecked())
-        else:
-            self.set_empty_layout()
+
+
+
 
         # count plot
         self.plot_group.count_plot()
@@ -555,6 +580,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
         self.plot_map_QCheckBox.setChecked(True)
         self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
+        # self.plot_3d_QCheckBox = QCheckBox(self.tr("3d"))
+        # self.plot_3d_QCheckBox.setChecked(True)
+        # self.plot_3d_QCheckBox.stateChanged.connect(self.count_plot)
         self.plot_result_QCheckBox = QCheckBox(self.tr("Global habitat values"))
         self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
@@ -569,6 +597,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         plot_type_layout = QHBoxLayout()
         plot_type_layout.addWidget(plot_type_qlabel)
         plot_type_layout.addWidget(self.plot_map_QCheckBox)
+        # plot_type_layout.addWidget(self.plot_3d_QCheckBox)
         plot_type_layout.addWidget(self.plot_result_QCheckBox)
         plot_type_layout.setAlignment(Qt.AlignLeft)
         progress_layout = QHBoxLayout()
@@ -884,7 +913,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     # load hydraulic data
                     if types_hdf5 == "hydraulic":
                         hdf5.load_hdf5_hyd(units_index=units_index,
-                                           user_target_list=self.hvum.user_target_list)  #
+                                           user_target_list=self.hvum.user_target_list,
+                                           whole_profil=True)  #
                         # compute variables
                         # hdf5.data_2d.compute_variables(variable_computable_list=self.hvum.all_available_variable_list)
                         # data_description
@@ -951,29 +981,49 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                             for unit_num, t in enumerate(units_index):
                                 # string_tr
                                 string_tr = [self.tr("reach"), self.tr("unit")]
-
+                                # # 3d
+                                # if self.plot_3d_QCheckBox.isChecked():
+                                #     state = Value("i", 0)
+                                #     process = Process(target=plot_mod.view_mayavi,
+                                #                       args=(
+                                #                           state,
+                                #                           hdf5.data_2d,
+                                #                           hdf5.data_2d_whole,
+                                #                           "level",
+                                #                           reach_num,
+                                #                           unit_num,
+                                #                           data_description,
+                                #                           project_preferences),
+                                #                       name="3d")
+                                #     process.start()
+                                #     self.process_list.append([process, state])
+                                # else:
+                                # plot
                                 for variable in self.hvum.user_target_list.no_habs():
                                     if not self.plot_production_stoped:
-                                        plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                                                                       reach_name,
-                                                                                       units[unit_num],
-                                                                                       unit_type,
-                                                                                       self.tr(variable.name_gui),
-                                                                                       variable.unit,
-                                                                                       string_tr)
-                                        state = Value("i", 0)
-                                        process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
-                                                                   args=(
-                                                                       state,
-                                                                       hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
-                                                                       hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                                                       hdf5.data_2d[reach_num][unit_num][variable.position]["data"][variable.name].to_numpy(),
-                                                                       plot_string_dict,
-                                                                       data_description,
-                                                                       project_preferences
-                                                                   ),
-                                                                   name=variable.name)
-                                        self.process_list.append([process, state])
+                                        if self.plot_map_QCheckBox.isChecked():
+                                            plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                           reach_name,
+                                                                                           units[unit_num],
+                                                                                           unit_type,
+                                                                                           self.tr(variable.name_gui),
+                                                                                           variable.unit,
+                                                                                           string_tr)
+                                            state = Value("i", 0)
+                                            process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
+                                                                       args=(
+                                                                           state,
+                                                                           hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                                           hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                           hdf5.data_2d[reach_num][unit_num][variable.position]["data"][variable.name].to_numpy(),
+                                                                           plot_string_dict,
+                                                                           data_description,
+                                                                           project_preferences
+                                                                       ),
+                                                                       name=variable.name)
+                                            self.process_list.append([process, state])
+
+
                                 # # water_velocity
                                 # if "water_velocity" in variables and not self.plot_production_stoped:
                                 #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],

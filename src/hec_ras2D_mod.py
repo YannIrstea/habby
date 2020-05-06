@@ -20,6 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from scipy.interpolate import griddata
+import pandas as pd
 
 from src import manage_grid_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
@@ -269,6 +270,17 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all, z_all = get_triangular_grid_hecras(
             ikle_all, coord_c_xyz_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all)
 
+        # transform data to pandas
+        data_mesh_pd_r_list = []
+        for reach_num in range(len(self.reach_name_list)):
+            data_mesh_pd_t_list = []
+            for timestep_name_wish_index in range(self.timestep_wish_nb):
+                data_mesh_pd = pd.DataFrame()
+                data_mesh_pd[self.hvum.v.name] = vel_t_all[reach_num][:, timestep_name_wish_index]
+                data_mesh_pd[self.hvum.shear_stress.name] = shear_stress_t_all[reach_num][:, timestep_name_wish_index]
+                data_mesh_pd_t_list.append(data_mesh_pd)
+            data_mesh_pd_r_list.append(data_mesh_pd_t_list)
+
         # finite_volume_to_finite_element_triangularxy
         tin = []
         xy = []
@@ -283,8 +295,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 ikle_reach,
                 coord_p_xyz_all[reach_num],
                 water_depth_t_all[reach_num],
-                vel_t_all[reach_num],
-                shear_stress_t_all[reach_num])
+                # vel_t_all[reach_num],
+                # shear_stress_t_all[reach_num]
+                data_mesh_pd_r_list[reach_num])
             tin.append(ikle_reach)
             xy.append(xyz_reach[:, (0, 1)])
             z.append(xyz_reach[:, 2])

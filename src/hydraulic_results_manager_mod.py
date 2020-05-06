@@ -18,6 +18,9 @@ import importlib
 import os
 import pandas as pd
 import sys
+import numpy as np
+import trimesh
+from mayavi import mlab
 
 from src.data_2d_mod import Data2d, UnitDict
 from src.variable_unit_mod import HydraulicVariableUnitManagement
@@ -155,6 +158,7 @@ class HydraulicSimulationResultsBase:
 
         for reach_num in range(len(self.reach_name_list)):
             unit_list = []
+
             for unit_num in range(len(self.timestep_name_wish_list)):
                 # unit_dict
                 unit_dict = UnitDict()

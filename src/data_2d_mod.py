@@ -16,6 +16,8 @@ https://github.com/YannIrstea/habby
 """
 import numpy as np
 import pandas as pd
+from scipy.interpolate import griddata
+import sys
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
 from src.variable_unit_mod import HydraulicVariableUnitManagement
@@ -266,9 +268,6 @@ class Data2d(list):
 
                 point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
                 water_height_ok = water_height[ipt_iklenew_unique]
-                # change all node dataframe
-                # velocity_ok = velocity[ipt_iklenew_unique]
-                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[ipt_iklenew_unique]
 
                 ipt_old_new = np.array([-1] * len(point_all), dtype=typeikle)
                 for i, point_index in enumerate(ipt_iklenew_unique):
@@ -302,12 +301,35 @@ class Data2d(list):
                     # all the new points added have water_height,velocity=0,0
                     water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
                     # velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
+
+                    # temp
+                    if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
+                        # inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
+                        temp_data = griddata(points=self[reach_num][unit_num]["node"]["xy"],
+                                 values=self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name].to_numpy(),
+                                 xi=point_new_single[:, :2],
+                                 method="linear")
+
+                    # change all node dataframe
+                    # velocity_ok = velocity[ipt_iklenew_unique]
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[
+                        ipt_iklenew_unique]
+
+                    if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
+                        temp_ok = np.append(self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name], temp_data, axis=0)
+
                     # new pandas dataframe (to be added to the end)
-                    zero_pd = pd.DataFrame(0, index=np.arange(lpns - nbdouble),
+                    nan_pd = pd.DataFrame(np.nan, index=np.arange(lpns - nbdouble),
                                  columns=self[reach_num][unit_num]["node"]["data"].columns.values)
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].append(zero_pd)
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].append(nan_pd)
                     self[reach_num][unit_num]["node"]["data"]["h"] = water_height_ok
                     self[reach_num][unit_num]["node"]["data"]["z"] = point_all_ok[:, 2]
+                    if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
+                        self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = temp_ok
+
+                else:
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[
+                        ipt_iklenew_unique]
 
                 # erase old data
                 if not self[reach_num][unit_num]["mesh"]["data"].empty:
@@ -315,6 +337,9 @@ class Data2d(list):
                 self[reach_num][unit_num]["mesh"]["tin"] = iklekeep
                 self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
                 self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
+
+                # fillna with 0
+                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].fillna(0)
 
                 #  unit_list_cuted
                 self.unit_list_cuted[reach_num].append(unit_name)

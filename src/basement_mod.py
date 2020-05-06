@@ -20,6 +20,7 @@ import h5py
 
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 from src.tools_mod import create_empty_data_2d_dict, frange
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src import manage_grid_mod
 
 
@@ -28,14 +29,31 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
         # file attributes
         self.extensions_list = [".h5"]
         self.file_type = "hdf5"
         # simulation attributes
         self.equation_type = ["FV"]
+        # reach
+        self.multi_reach = False # ?
+        self.reach_num = 1
+        self.reach_name_list = ["unknown"]
+
         self.morphology_available = True
         self.second_file_suffix = "_aux"
 
+        # hydraulic variables
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["always z"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["always depth"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["always velocity"],
+                                                    position="mesh")
         # readable file ?
         try:
             self.results_data_file = h5py.File(self.filename_path, 'r')
@@ -80,13 +98,19 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         if self.valid_file:
             # get_time_step ?
             self.get_time_step()
+            # get hydraulic variables list (mesh and node)
+            self.get_hydraulic_variable_list()
         else:
             self.warning_list.append("Error: File not valid.")
 
     def get_hydraulic_variable_list(self):
-        #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
-        self.hydraulic_variables_node_list = []
-        self.hydraulic_variables_mesh_list = ["h", "v"]
+        # #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
+
+        # get list from source
+        varnames = ["always z", "always depth", "always velocity"]
+
+        # check witch variable is available
+        self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """

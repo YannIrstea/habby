@@ -933,6 +933,7 @@ class SubHydroW(QWidget):
 
         # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        self.hydrau_description_list[self.h2d_t2.currentIndex()]["hdf5_name"] = self.name_hdf5
         if self.name_hdf5 == "":
             self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
             return

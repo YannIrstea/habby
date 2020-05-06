@@ -30,6 +30,7 @@ from matplotlib import colors
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import mplcursors
 from PIL import Image
+from mayavi import mlab
 
 from src import tools_mod
 from src.tools_mod import get_translator
@@ -1038,6 +1039,28 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, data_de
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+# 3d
+def view_mayavi(state, data_2d, data_2d_whole, varname, reach_num, unit_num, data_description, project_preferences):
+    state.value = 1  # process finished
+    # BOTOM
+    bottom_mesh = mlab.triangular_mesh(data_2d_whole[reach_num][unit_num]["node"]["xy"][:, 0],
+                                       data_2d_whole[reach_num][unit_num]["node"]["xy"][:, 1],
+                                       data_2d_whole[reach_num][unit_num]["node"]["z"] * project_preferences["vertical_exaggeration"],
+                                       data_2d_whole[reach_num][unit_num]["mesh"]["tin"],
+                                       representation="surface")  # , scalars=t
+
+    # OTHER
+    other_mesh = mlab.triangular_mesh(data_2d[reach_num][unit_num]["node"]["xy"][:, 0],
+                                       data_2d[reach_num][unit_num]["node"]["xy"][:, 1],
+                                       data_2d[reach_num][unit_num]["node"]["data"][varname].to_numpy() * project_preferences["vertical_exaggeration"],
+                                      data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                      color=(0, 0, 1),
+                                       representation="surface")  # , scalars=t
+
+    # SHOW
+    mlab.show()
 
 
 

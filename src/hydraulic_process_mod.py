@@ -1192,7 +1192,6 @@ class MyProcessList(QThread):
 
     def set_export_hdf5_mode(self, path_prj, name_hdf5, export_dict, project_preferences):
         self.export_hdf5_mode = True
-        # create hdf5 class by file
         self.hdf5 = Hdf5Management(path_prj, name_hdf5)
         self.project_preferences = project_preferences
         self.export_dict = export_dict
