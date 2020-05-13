@@ -296,6 +296,7 @@ class DataExplorerFrame(QFrame):
                                 # item_font = mesh_item.font()
                                 # item_font.setItalic(True)
                                 # mesh_item.setFont(item_font)
+                                mesh_item.setToolTip("computable")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
                     if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
                         for node in hdf5.hvum.hdf5_and_computable_list.nodes():
@@ -306,6 +307,7 @@ class DataExplorerFrame(QFrame):
                                 # item_font = node_item.font()
                                 # item_font.setItalic(True)
                                 # node_item.setFont(item_font)
+                                node_item.setToolTip("computable")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
                     if hdf5.reach_name:
