@@ -440,10 +440,10 @@ class Hdf5Management:
             # data_2d
             data_group = self.file_object.create_group('data_2d')
             # REACH GROUP
-            for reach_num in range(int(hyd_description["hyd_reach_number"])):
+            for reach_num in range(data_2d.reach_num):
                 reach_group = data_group.create_group('reach_' + str(reach_num))
                 # UNIT GROUP
-                for unit_num in range(int(hyd_description["hyd_unit_number"])):
+                for unit_num in range(data_2d.unit_num):
                     # extent
                     xMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
                     xMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))

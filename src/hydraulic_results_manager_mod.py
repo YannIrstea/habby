@@ -155,6 +155,7 @@ class HydraulicSimulationResultsBase:
         self.hvum.hdf5_and_computable_list.sort_by_names_gui()
         node_list = self.hvum.hdf5_and_computable_list.nodes()
         mesh_list = self.hvum.hdf5_and_computable_list.meshs()
+        mesh_list = self.hvum.hdf5_and_computable_list.meshs()
 
         for reach_num in range(len(self.reach_name_list)):
             unit_list = []
@@ -165,7 +166,8 @@ class HydraulicSimulationResultsBase:
                 unit_dict["node"] = dict(data=None,
                                          xy=self.hvum.xy.data[reach_num][unit_num])
                 unit_dict["mesh"] = dict(data=None,
-                                         i_whole_profile=None,
+                                         i_whole_profile=np.arange(0,
+                                                                   self.hvum.tin.data[reach_num][unit_num].shape[0]),
                                          tin=self.hvum.tin.data[reach_num][unit_num])
                 # node
                 unit_dict["node"]["data"] = pd.DataFrame()

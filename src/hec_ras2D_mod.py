@@ -286,33 +286,37 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         xy = []
         z = []
         h = []
-        v = []
-        shear_stress = []
+        # v = []
+        # shear_stress = []
+        data_node_list = []
         for reach_num in range(len(self.reach_name_list)):
             ikle_reach = np.column_stack(
                 [ikle_all[reach_num], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
-            ikle_reach, xyz_reach, h_reach, v_reach, shear_stress_reach = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
-                ikle_reach,
-                coord_p_xyz_all[reach_num],
-                water_depth_t_all[reach_num],
-                # vel_t_all[reach_num],
-                # shear_stress_t_all[reach_num]
-                data_mesh_pd_r_list[reach_num])
+            ikle_reach, xyz_reach, h_reach, data_node_pd = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
+                                                                                    ikle_reach,
+                                                                                    coord_p_xyz_all[reach_num],
+                                                                                    water_depth_t_all[reach_num],
+                                                                                    # vel_t_all[reach_num],
+                                                                                    # shear_stress_t_all[reach_num]
+                                                                                    data_mesh_pd_r_list[reach_num])
             tin.append(ikle_reach)
             xy.append(xyz_reach[:, (0, 1)])
             z.append(xyz_reach[:, 2])
 
             h_unit = []
-            v_unit = []
-            shear_stress_unit = []
+            # v_unit = []
+            # shear_stress_unit = []
+            data_node_list_unit = []
             for unit_num in range(len(self.timestep_name_wish_list_index)):
                 h_unit.append(h_reach[:, unit_num])
                 h_unit.append(h_reach[:, unit_num])
-                v_unit.append(v_reach[:, unit_num])
-                shear_stress_unit.append(shear_stress_reach[:, unit_num])
+                # v_unit.append(v_reach[:, unit_num])
+                # shear_stress_unit.append(shear_stress_reach[:, unit_num])
+                data_node_list_unit.append(data_node_pd[unit_num])
             h.append(h_unit)
-            v.append(v_unit)
-            shear_stress.append(shear_stress_unit)
+            # v.append(v_unit)
+            # shear_stress.append(shear_stress_unit)
+            data_node_list.append(data_node_list_unit)
 
         # prepare original and computed data for data_2d
         for reach_num in range(self.reach_num):  # for each reach
@@ -332,10 +336,15 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                             variables_wish.data[reach_num].append(z[reach_num].astype(variables_wish.dtype))
                         elif variables_wish.name == self.hvum.h.name:
                             variables_wish.data[reach_num].append(h[reach_num][timestep_index].astype(variables_wish.dtype))
-                        elif variables_wish.name == self.hvum.v.name:
-                            variables_wish.data[reach_num].append(v[reach_num][timestep_index].astype(variables_wish.dtype))
-                        elif variables_wish.name == self.hvum.shear_stress.name:
-                            variables_wish.data[reach_num].append(shear_stress[reach_num][timestep_index].astype(variables_wish.dtype))
+
+                        else:
+                            var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(variables_wish.name)
+                            variables_wish.data[reach_num].append(data_node_list[reach_num][timestep_index][:, var_node_index].astype(variables_wish.dtype))
+
+                        # elif variables_wish.name == self.hvum.v.name:
+                        #     variables_wish.data[reach_num].append(v[reach_num][timestep_index].astype(variables_wish.dtype))
+                        # elif variables_wish.name == self.hvum.shear_stress.name:
+                        #     variables_wish.data[reach_num].append(shear_stress[reach_num][timestep_index].astype(variables_wish.dtype))
 
             # coord
             self.hvum.xy.data[reach_num] = [xy[reach_num]] * self.timestep_wish_nb

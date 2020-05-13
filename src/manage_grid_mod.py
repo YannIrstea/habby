@@ -1677,7 +1677,7 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
     #     (nodes2.shape[0], nbunit), dtype=np.float64), np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
     hnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
     hzmeshall = hmesh + xyzmesh34[:, 2].reshape(nbmesh, 1)
-    data_nodes2all = DataFrame()
+    data_nodes2all = [[]] * nbunit
 
     # vmesh = np.abs(vmesh)  # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
     # shear_stressmesh = np.abs(shear_stressmesh)
@@ -1772,7 +1772,10 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
         # shear_stressnode2[vnodes2_nan] = shear_stressnodes2_new_nan
         # shear_stressnode2[hnodes2 == 0] = 0  # get realistic
 
-        hnodes2all[:, i], vnodes2all[:, i], shear_stressnodes2all[:, i] = hnodes2, vnodes2, shear_stressnode2
+        data_nodes2all[i] = data_pd_nodes2
+        hnodes2all[:, i] = hnodes2
+        # hnodes2all[:, i], vnodes2all[:, i], shear_stressnodes2all[:, i] = hnodes2, vnodes2, shear_stressnode2
+
     # giving the exact values of depth and velocity in the quadrangular mesh centers nodes
     # TODO not to do previously this job  above TAKE CARE that if you got just one quadrangle or similar situation
     # only the following part will give the correct result
@@ -1780,17 +1783,24 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
         hnodes4all = hmesh[np.where(ikle[:, [3]] != -1)[0]]
         # vnodes4all = vmesh[np.where(ikle[:, [3]] != -1)[0]]
         # shear_stressnodes4all = shear_stressmesh[np.where(ikle[:, [3]] != -1)[0]]
+        data_nodes4all = data_mesh_pd[np.where(ikle[:, [3]] != -1)[0]]
 
         hnodes4all[hnodes4all <= 0] = 0
-        vnodes4all[hnodes4all == 0] = 0
-        shear_stressnodes4all[hnodes4all == 0] = 0
+        # vnodes4all[hnodes4all == 0] = 0
+        # shear_stressnodes4all[hnodes4all == 0] = 0
+        data_nodes4all[hnodes4all == 0] = 0
+
         hnodes2all[nbnodes0:nbnodes2, :] = hnodes4all
-        vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
-        shear_stressnodes2all[nbnodes0:nbnodes2, :] = shear_stressnodes4all
+        # vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
+        # shear_stressnodes2all[nbnodes0:nbnodes2, :] = shear_stressnodes4all
+        data_nodes2all[nbnodes0:nbnodes2, :] = data_nodes4all
+
     if bsub:
-        return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all, sub
+        # return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all, sub
+        return ikle2, nodes2, hnodes2all, data_nodes2all, sub
     else:
-        return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all
+        # return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all
+        return ikle2, nodes2, hnodes2all, data_nodes2all
 
 
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):
