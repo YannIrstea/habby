@@ -30,7 +30,7 @@ from matplotlib import colors
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import mplcursors
 from PIL import Image
-from mayavi import mlab
+# from mayavi import mlab
 
 from src import tools_mod
 from src.tools_mod import get_translator
