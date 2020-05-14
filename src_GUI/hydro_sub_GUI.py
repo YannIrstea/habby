@@ -747,7 +747,7 @@ class SubHydroW(QWidget):
             model_path = self.path_prj  # path proj
 
         # find the filename based on user choice
-        filename_list = QFileDialog.getOpenFileNames(self,
+        filename_list = QFileDialog().getOpenFileNames(self,
                                                      self.tr("Select file(s)"),
                                                      model_path,
                                                      filter2)
@@ -821,7 +821,7 @@ class SubHydroW(QWidget):
             self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
             self.units_QListWidget.clear()
             self.units_QListWidget.addItems(self.hydrau_description_list[0]["unit_list_full"])
-            if not self.hydrau_description_list[0]["unit_list_tf"]:
+            if all(self.hydrau_description_list[0]["unit_list_tf"]):
                 self.units_QListWidget.selectAll()
             else:
                 for i in range(len(self.hydrau_description_list[0]["unit_list_full"])):
@@ -836,7 +836,7 @@ class SubHydroW(QWidget):
                 text_load_button = text_load_button + "s"
             self.load_b.setText(text_load_button)
             self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
-            self.hname.textChanged.connect(self.unit_counter)
+            #self.hname.textChanged.connect(self.unit_counter)
             self.unit_counter()
 
     def unit_counter(self):
@@ -885,7 +885,6 @@ class SubHydroW(QWidget):
         text = str(selected) + "/" + str(total)
         self.number_timstep_label.setText(text)  # number units
 
-        self.load_b.setDefault(True)
         self.load_b.setFocus()
 
     def change_gui_when_combobox_name_change(self):
@@ -903,9 +902,12 @@ class SubHydroW(QWidget):
         self.units_QListWidget.clear()
         self.units_QListWidget.addItems(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])
         # change selection items
-        for i in range(len(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])):
-            self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"][i])
-            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+        if all(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"]):
+            self.units_QListWidget.selectAll()
+        else:
+            for i in range(len(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])):
+                self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"][i])
+                self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
         self.epsg_label.setText(self.hydrau_description_list[hydrau_description_index]["epsg_code"])
         if not os.path.splitext(self.hydrau_description_list[hydrau_description_index]["hdf5_name"])[1]:
             self.hydrau_description_list[hydrau_description_index]["hdf5_name"] = self.hydrau_description_list[hydrau_description_index]["hdf5_name"] + ".hyd"
@@ -931,6 +933,7 @@ class SubHydroW(QWidget):
 
         # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        self.hydrau_description_list[self.h2d_t2.currentIndex()]["hdf5_name"] = self.name_hdf5
         if self.name_hdf5 == "":
             self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
             return
@@ -2720,6 +2723,7 @@ class TELEMAC(SubHydroW):
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
         # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
         #     self.gethdf5_name_gui()
         #     if self.h2d_t2.text()[-4:] in self.extension[0]:
@@ -2729,6 +2733,7 @@ class TELEMAC(SubHydroW):
         self.load_b = QPushButton(self.tr('Create .hyd file'),)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hydraulic_create_hdf5)
+        self.load_b.setDefault(True)
         self.spacer = QSpacerItem(1, 180)
 
         # last hdf5 created

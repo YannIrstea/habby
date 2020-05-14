@@ -21,7 +21,6 @@ import matplotlib.pyplot as plt
 import time
 from scipy.interpolate import griddata
 import pandas as pd
-import sys
 
 from src import manage_grid_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
@@ -172,6 +171,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             # face_variables
             velocity = reach_name_result_group[self.hvum.v.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
             shear_stress = reach_name_result_group[self.hvum.shear_stress.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
+            new_shear_stress = np.hstack((face_unit_vec, shear_stress))  # for optimization (looking for face is slow)
             new_vel = np.hstack((face_unit_vec, velocity))  # for optimization (looking for face is slow)
             # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
             lim_b = 0
@@ -192,7 +192,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
                 vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
                 # shear_stress
-                shear_stress_c[c, :] = np.mean(shear_stress[face, :], axis=0)
+                data2_face = new_shear_stress[face, :]
+                data2_face_t = data2_face[:, 2:].T
+                add_vec_x2 = np.sum(data2_face_t * data2_face[:, 0], axis=1)
+                add_vec_y2 = np.sum(data2_face_t * data2_face[:, 1], axis=1)
+                shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / nb_face
             vel_c_all.append(vel_c)
             shear_stress_c_all.append(shear_stress_c)
 
@@ -266,37 +270,52 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all, z_all = get_triangular_grid_hecras(
             ikle_all, coord_c_xyz_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all)
 
+        # transform data to pandas
+        data_mesh_pd_r_list = []
+        for reach_num in range(len(self.reach_name_list)):
+            data_mesh_pd_t_list = []
+            for timestep_name_wish_index in range(self.timestep_wish_nb):
+                data_mesh_pd = pd.DataFrame()
+                data_mesh_pd[self.hvum.v.name] = vel_t_all[reach_num][:, timestep_name_wish_index]
+                data_mesh_pd[self.hvum.shear_stress.name] = shear_stress_t_all[reach_num][:, timestep_name_wish_index]
+                data_mesh_pd_t_list.append(data_mesh_pd)
+            data_mesh_pd_r_list.append(data_mesh_pd_t_list)
+
         # finite_volume_to_finite_element_triangularxy
         tin = []
         xy = []
         z = []
         h = []
-        v = []
-        shear_stress = []
+        # v = []
+        # shear_stress = []
+        data_node_list = []
         for reach_num in range(len(self.reach_name_list)):
             ikle_reach = np.column_stack(
                 [ikle_all[reach_num], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
-            ikle_reach, xyz_reach, h_reach, v_reach, shear_stress_reach = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
-                ikle_reach,
-                coord_p_xyz_all[reach_num],
-                water_depth_t_all[reach_num],
-                vel_t_all[reach_num],
-                shear_stress_t_all[reach_num])
+            ikle_reach, xyz_reach, h_reach, data_node_pd = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
+                                                                                    ikle_reach,
+                                                                                    coord_p_xyz_all[reach_num],
+                                                                                    water_depth_t_all[reach_num],
+                                                                                    # vel_t_all[reach_num],
+                                                                                    # shear_stress_t_all[reach_num]
+                                                                                    data_mesh_pd_r_list[reach_num])
             tin.append(ikle_reach)
             xy.append(xyz_reach[:, (0, 1)])
             z.append(xyz_reach[:, 2])
 
             h_unit = []
-            v_unit = []
-            shear_stress_unit = []
+            # v_unit = []
+            # shear_stress_unit = []
+            data_node_list_unit = []
             for unit_num in range(len(self.timestep_name_wish_list_index)):
                 h_unit.append(h_reach[:, unit_num])
-                h_unit.append(h_reach[:, unit_num])
-                v_unit.append(v_reach[:, unit_num])
-                shear_stress_unit.append(shear_stress_reach[:, unit_num])
+                # v_unit.append(v_reach[:, unit_num])
+                # shear_stress_unit.append(shear_stress_reach[:, unit_num])
+                data_node_list_unit.append(data_node_pd[unit_num])
             h.append(h_unit)
-            v.append(v_unit)
-            shear_stress.append(shear_stress_unit)
+            # v.append(v_unit)
+            # shear_stress.append(shear_stress_unit)
+            data_node_list.append(data_node_list_unit)
 
         # prepare original and computed data for data_2d
         for reach_num in range(self.reach_num):  # for each reach
@@ -316,10 +335,15 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                             variables_wish.data[reach_num].append(z[reach_num].astype(variables_wish.dtype))
                         elif variables_wish.name == self.hvum.h.name:
                             variables_wish.data[reach_num].append(h[reach_num][timestep_index].astype(variables_wish.dtype))
-                        elif variables_wish.name == self.hvum.v.name:
-                            variables_wish.data[reach_num].append(v[reach_num][timestep_index].astype(variables_wish.dtype))
-                        elif variables_wish.name == self.hvum.shear_stress.name:
-                            variables_wish.data[reach_num].append(shear_stress[reach_num][timestep_index].astype(variables_wish.dtype))
+
+                        else:
+                            var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(variables_wish.name)
+                            variables_wish.data[reach_num].append(data_node_list[reach_num][timestep_index][:, var_node_index].astype(variables_wish.dtype))
+
+                        # elif variables_wish.name == self.hvum.v.name:
+                        #     variables_wish.data[reach_num].append(v[reach_num][timestep_index].astype(variables_wish.dtype))
+                        # elif variables_wish.name == self.hvum.shear_stress.name:
+                        #     variables_wish.data[reach_num].append(shear_stress[reach_num][timestep_index].astype(variables_wish.dtype))
 
             # coord
             self.hvum.xy.data[reach_num] = [xy[reach_num]] * self.timestep_wish_nb

@@ -24,6 +24,7 @@ import scipy.interpolate
 import scipy.spatial.qhull as qhull
 import triangle
 from scipy.interpolate import griddata
+from pandas import DataFrame
 
 
 def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1):
@@ -1620,7 +1621,7 @@ def habby_grid_data(grid_new, grid_ori, vel_ori, height_ori):
     return vel_new, height_new
 
 
-def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, shear_stressmesh, sub=''):
+def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_pd_t_list, sub=''):
     """
     all the following parameters are numpy arrays
     :param ikle: the connectivity table 4 columns for quadrangular or triangular (las column value=-1)  meshes
@@ -1633,6 +1634,7 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, shea
                 the substrate description for all meshes that is repeated in four triangles if given in a quadrangle
 
     """
+    # vmesh, shear_stressmesh
     if type(sub) == np.ndarray:
         bsub = True
     else:
@@ -1671,14 +1673,21 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, shea
     p4 = nodes[ikle[:, 3], :] * t
     xyzmesh34 = np.sum(np.hstack((p1, p2, p3, p4)).reshape(nbmesh, 4, 3), axis=1) / (t + 3)
 
-    hnodes2all, vnodes2all, shear_stressnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64), np.empty(
-        (nodes2.shape[0], nbunit), dtype=np.float64), np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
+    # hnodes2all, vnodes2all, shear_stressnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64), np.empty(
+    #     (nodes2.shape[0], nbunit), dtype=np.float64), np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
+    hnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
     hzmeshall = hmesh + xyzmesh34[:, 2].reshape(nbmesh, 1)
-    vmesh = np.abs(vmesh)  # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
-    shear_stressmesh = np.abs(shear_stressmesh)
+    data_nodes2all = [[]] * nbunit
+
+    # vmesh = np.abs(vmesh)  # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
+    # shear_stressmesh = np.abs(shear_stressmesh)
+
     # hvmeshall =hmesh* vmesh
     nbnodes2 = nodes2.shape[0]
     for i in range(nbunit):
+        # abs
+        data_mesh_pd = np.abs(data_mesh_pd_t_list[i])
+
         # interpolates values from cell-centered volumes (Finite Volume) to nodal values (mesh) using SciPy griddata
         # for a given unit : considering the water surface (z+h) to  find  z+h for nodes in the fully wetted part
         if np.sum(hmesh[:, i] > 0) > 2:  # at least we need one triangle for griddata
@@ -1710,59 +1719,88 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, vmesh, shea
 
         # for a given unit : considering the  surface of the elementary flow (h*v) to  find  v for nodes is too risky in a mesh with a node having a very small value the velocity at this node can be calculated as infinite
         # so interpolating velocity values
-        if vmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
-            vnodes2 = griddata(points=xyzmesh34[:, (0, 1)],
-                               values=vmesh[:, i],
+        if data_mesh_pd.shape[0] > 2:  # at least we need one triangle for griddata
+            data_pd_nodes2 = griddata(points=xyzmesh34[:, (0, 1)],
+                               values=data_mesh_pd,
                                xi=nodes2[:, (0, 1)],
                                method='linear')
         else:
-            vnodes2 = np.full(nbnodes2, np.nan)
-        # shear_stress
-        if shear_stressmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
-            shear_stressnode2 = griddata(points=xyzmesh34[:, (0, 1)],
-                                         values=shear_stressmesh[:, i],
-                                         xi=nodes2[:, (0, 1)],
-                                         method='linear')
-        else:
-            shear_stressnode2 = np.full(nbnodes2, np.nan)
+            data_pd_nodes2 = np.full(nbnodes2, np.nan)
+        # # so interpolating velocity values
+        # if vmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
+        #     vnodes2 = griddata(points=xyzmesh34[:, (0, 1)],
+        #                        values=vmesh[:, i],
+        #                        xi=nodes2[:, (0, 1)],
+        #                        method='linear')
+        # else:
+        #     vnodes2 = np.full(nbnodes2, np.nan)
+        # # shear_stress
+        # if shear_stressmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
+        #     shear_stressnode2 = griddata(points=xyzmesh34[:, (0, 1)],
+        #                                  values=shear_stressmesh[:, i],
+        #                                  xi=nodes2[:, (0, 1)],
+        #                                  method='linear')
+        # else:
+        #     shear_stressnode2 = np.full(nbnodes2, np.nan)
 
         # Get the NaN from outer nodes and replace with the nearest values
-        vnodes2_nan = np.isnan(vnodes2)
-        nodes2nan = nodes2[:, (0, 1)][vnodes2_nan]
-        vnodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
-                                   values=vmesh[:, i],
+        data_pd_nodes2_nan = np.isnan(data_pd_nodes2[:, 0])
+        nodes2nan = nodes2[:, (0, 1)][data_pd_nodes2_nan]
+        data_pd_nodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
+                                   values=data_mesh_pd,
                                    xi=nodes2nan,
                                    method='nearest')
-        vnodes2[vnodes2_nan] = vnodes2_new_nan
-        vnodes2[hnodes2 == 0] = 0  # get realistic
-        # shear_stress
-        shear_stressnode2_nan = np.isnan(shear_stressnode2)
-        nodes2nan = nodes2[:, (0, 1)][shear_stressnode2_nan]
-        shear_stressnodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
-                                              values=shear_stressmesh[:, i],
-                                              xi=nodes2nan,
-                                              method='nearest')
-        shear_stressnode2[vnodes2_nan] = shear_stressnodes2_new_nan
-        shear_stressnode2[hnodes2 == 0] = 0  # get realistic
+        data_pd_nodes2[data_pd_nodes2_nan] = data_pd_nodes2_new_nan
+        data_pd_nodes2[hnodes2 == 0] = 0  # get realistic
 
-        hnodes2all[:, i], vnodes2all[:, i], shear_stressnodes2all[:, i] = hnodes2, vnodes2, shear_stressnode2
+        # vnodes2_nan = np.isnan(vnodes2)
+        # nodes2nan = nodes2[:, (0, 1)][vnodes2_nan]
+        # vnodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
+        #                            values=vmesh[:, i],
+        #                            xi=nodes2nan,
+        #                            method='nearest')
+        # vnodes2[vnodes2_nan] = vnodes2_new_nan
+        # vnodes2[hnodes2 == 0] = 0  # get realistic
+        #
+        # # shear_stress
+        # shear_stressnode2_nan = np.isnan(shear_stressnode2)
+        # nodes2nan = nodes2[:, (0, 1)][shear_stressnode2_nan]
+        # shear_stressnodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
+        #                                       values=shear_stressmesh[:, i],
+        #                                       xi=nodes2nan,
+        #                                       method='nearest')
+        # shear_stressnode2[vnodes2_nan] = shear_stressnodes2_new_nan
+        # shear_stressnode2[hnodes2 == 0] = 0  # get realistic
+
+        data_nodes2all[i] = data_pd_nodes2
+        hnodes2all[:, i] = hnodes2
+        # hnodes2all[:, i], vnodes2all[:, i], shear_stressnodes2all[:, i] = hnodes2, vnodes2, shear_stressnode2
+
     # giving the exact values of depth and velocity in the quadrangular mesh centers nodes
     # TODO not to do previously this job  above TAKE CARE that if you got just one quadrangle or similar situation
     # only the following part will give the correct result
     if len(ikle4):
         hnodes4all = hmesh[np.where(ikle[:, [3]] != -1)[0]]
-        vnodes4all = vmesh[np.where(ikle[:, [3]] != -1)[0]]
-        shear_stressnodes4all = shear_stressmesh[np.where(ikle[:, [3]] != -1)[0]]
+        # vnodes4all = vmesh[np.where(ikle[:, [3]] != -1)[0]]
+        # shear_stressnodes4all = shear_stressmesh[np.where(ikle[:, [3]] != -1)[0]]
+        data_nodes4all = data_mesh_pd[np.where(ikle[:, [3]] != -1)[0]]
+
         hnodes4all[hnodes4all <= 0] = 0
-        vnodes4all[hnodes4all == 0] = 0
-        shear_stressnodes4all[hnodes4all == 0] = 0
+        # vnodes4all[hnodes4all == 0] = 0
+        # shear_stressnodes4all[hnodes4all == 0] = 0
+        data_nodes4all[hnodes4all == 0] = 0
+
         hnodes2all[nbnodes0:nbnodes2, :] = hnodes4all
-        vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
-        shear_stressnodes2all[nbnodes0:nbnodes2, :] = shear_stressnodes4all
+        # vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
+        # shear_stressnodes2all[nbnodes0:nbnodes2, :] = shear_stressnodes4all
+        data_nodes2all[nbnodes0:nbnodes2, :] = data_nodes4all
+
     if bsub:
-        return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all, sub
+        # return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all, sub
+        return ikle2, nodes2, hnodes2all, data_nodes2all, sub
     else:
-        return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all
+        # return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all
+        return ikle2, nodes2, hnodes2all, data_nodes2all
 
 
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):

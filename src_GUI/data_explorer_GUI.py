@@ -16,16 +16,17 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Value
+from multiprocessing import Process, Value, Queue
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel, QTimer
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
     QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QProgressBar, QListWidgetItem
 
 from src import hdf5_mod
 from src import plot_mod
-from src.tools_mod import MyProcessList, create_map_plot_string_dict
+from src.tools_mod import create_map_plot_string_dict
+from src.hydraulic_process_mod import MyProcessList
 from src.project_properties_mod import load_project_properties
 from src.tools_mod import QHLine, DoubleClicOutputGroup
 from src_GUI.tools_GUI import QGroupBoxCollapsible
@@ -245,58 +246,70 @@ class DataExplorerFrame(QFrame):
         self.plot_group.units_QLabel.setText(self.tr("unit(s)"))
         self.habitatvalueremover_group.existing_animal_QListWidget.clear()
 
-        # one file selected
-        if len(selection) == 1:
-            hdf5name = selection[0].text()
-            self.plot_group.units_QListWidget.clear()
+        if len(selection) >= 1:
+            reach_list = []
+            unit_list = []
+            variable_node_list = []
+            variable_mesh_list = []
+            for selection_el in selection:
+                # read
+                hdf5name = selection_el.text()
+                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+                hdf5.open_hdf5_file(False)
+                # check reach
+                reach_list.append(hdf5.reach_name)
+                # check unit
+                unit_list.append(hdf5.units_name)
+                # check variable_node
+                variable_node_list.append(hdf5.hvum.hdf5_and_computable_list.meshs().names())
+                # check variable_mesh
+                variable_mesh_list.append(hdf5.hvum.hdf5_and_computable_list.nodes().names())
 
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            if not reach_list.count(reach_list[0]) == len(reach_list) and \
+                    not unit_list.count(unit_list[0]) == len(unit_list) and \
+                    not variable_node_list.count(variable_node_list[0]) == len(variable_node_list) and \
+                    not variable_mesh_list.count(variable_mesh_list[0]) == len(variable_mesh_list):
+                self.set_empty_layout()
+            else:
+                # one file selected
+                self.plot_group.units_QListWidget.clear()
+                hdf5name = selection[0].text()
 
-            # change unit_type
-            if hasattr(hdf5, "unit_type"):
-                hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
-                self.plot_group.units_QLabel.setText(hdf5.unit_type)
+                # create hdf5 class
+                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+                hdf5.open_hdf5_file(False)
 
-            # hydraulic
-            if self.types_hdf5_QComboBox.currentIndex() == 1:
-                self.set_hydraulic_layout()
-                if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                    for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
-                        mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                        mesh_item.setData(Qt.UserRole, mesh)
-                        if not mesh.hdf5:
-                            mesh_item.setText(mesh_item.text() + " *")
-                            # item_font = mesh_item.font()
-                            # item_font.setItalic(True)
-                            # mesh_item.setFont(item_font)
-                        self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                    for node in hdf5.hvum.hdf5_and_computable_list.nodes():
-                        node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                        node_item.setData(Qt.UserRole, node)
-                        if not node.hdf5:
-                            node_item.setText(node_item.text() + " *")
-                            # item_font = node_item.font()
-                            # item_font.setItalic(True)
-                            # node_item.setFont(item_font)
-                        self.plot_group.node_variable_QListWidget.addItem(node_item)
+                # change unit_type
+                if hasattr(hdf5, "unit_type"):
+                    hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
+                    self.plot_group.units_QLabel.setText(hdf5.unit_type)
 
-                if hdf5.reach_name:
-                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                    if len(hdf5.reach_name) == 1:
-                        self.plot_group.reach_QListWidget.selectAll()
-                        if hdf5.nb_unit == 1:
-                            self.plot_group.units_QListWidget.selectAll()
-                        else:
-                            self.plot_group.units_QListWidget.setCurrentRow(0)
+                # hydraulic
+                if self.types_hdf5_QComboBox.currentIndex() == 1:
+                    self.set_hydraulic_layout()
+                    if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
+                        for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
+                            mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
+                            mesh_item.setData(Qt.UserRole, mesh)
+                            if not mesh.hdf5:
+                                mesh_item.setText(mesh_item.text() + " *")
+                                # item_font = mesh_item.font()
+                                # item_font.setItalic(True)
+                                # mesh_item.setFont(item_font)
+                                mesh_item.setToolTip("computable")
+                            self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
+                    if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
+                        for node in hdf5.hvum.hdf5_and_computable_list.nodes():
+                            node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
+                            node_item.setData(Qt.UserRole, node)
+                            if not node.hdf5:
+                                node_item.setText(node_item.text() + " *")
+                                # item_font = node_item.font()
+                                # item_font.setItalic(True)
+                                # node_item.setFont(item_font)
+                                node_item.setToolTip("computable")
+                            self.plot_group.node_variable_QListWidget.addItem(node_item)
 
-            # substrat
-            if self.types_hdf5_QComboBox.currentIndex() == 2:
-                self.set_substrate_layout()
-                if hdf5.variables:  # if not False (from constant substrate) add items else nothing
-                    self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
                     if hdf5.reach_name:
                         self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                         if len(hdf5.reach_name) == 1:
@@ -306,19 +319,33 @@ class DataExplorerFrame(QFrame):
                             else:
                                 self.plot_group.units_QListWidget.setCurrentRow(0)
 
-            # habitat
-            if self.types_hdf5_QComboBox.currentIndex() == 3:
-                self.set_habitat_layout()
-                self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
-                if hdf5.reach_name:
-                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                    self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
-                    if len(hdf5.reach_name) == 1:
-                        self.plot_group.reach_QListWidget.selectAll()
-                        if hdf5.nb_unit == 1:
-                            self.plot_group.units_QListWidget.selectAll()
-                        else:
-                            self.plot_group.units_QListWidget.setCurrentRow(0)
+                # substrat
+                if self.types_hdf5_QComboBox.currentIndex() == 2:
+                    self.set_substrate_layout()
+                    if hdf5.variables:  # if not False (from constant substrate) add items else nothing
+                        self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
+                        if hdf5.reach_name:
+                            self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+                            if len(hdf5.reach_name) == 1:
+                                self.plot_group.reach_QListWidget.selectAll()
+                                if hdf5.nb_unit == 1:
+                                    self.plot_group.units_QListWidget.selectAll()
+                                else:
+                                    self.plot_group.units_QListWidget.setCurrentRow(0)
+
+                # habitat
+                if self.types_hdf5_QComboBox.currentIndex() == 3:
+                    self.set_habitat_layout()
+                    self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
+                    if hdf5.reach_name:
+                        self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
+                        self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
+                        if len(hdf5.reach_name) == 1:
+                            self.plot_group.reach_QListWidget.selectAll()
+                            if hdf5.nb_unit == 1:
+                                self.plot_group.units_QListWidget.selectAll()
+                            else:
+                                self.plot_group.units_QListWidget.setCurrentRow(0)
 
             # # change unit_type string
             # for element_index, _ in enumerate(hdf5.hdf5_attributes_info_text):
@@ -337,8 +364,9 @@ class DataExplorerFrame(QFrame):
             height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(hdf5.hdf5_attributes_name_text) + 1)
             self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
             self.file_information_group.toggle_group(self.file_information_group.isChecked())
-        else:
-            self.set_empty_layout()
+
+
+
 
         # count plot
         self.plot_group.count_plot()
@@ -458,7 +486,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.setTitle(title)
         self.total_fish_result = 0
         self.process_list = MyProcessList("plot")
-        self.process_list.progress_signal.connect(self.show_prog)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.show_prog)
+        # self.process_list.progress_signal.connect(self.show_prog)
         self.variables_to_remove = ["mesh", "elevation", "water_height", "water_velocity",
                                     "substrate_coarser", "substrate_dominant", "max_slope_bottom", "max_slope_energy",
                                     "shear_stress",
@@ -519,14 +549,14 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.units_layout.addWidget(self.units_QListWidget)
 
         # export_type_QComboBox
-        self.export_type_QLabel = QLabel(self.tr('View or export ?'))
+        self.export_type_QLabel = QLabel(self.tr('View or export :'))
         self.export_type_QComboBox = QComboBox()
         self.export_type_QComboBox.addItems(["interactive", "image export", "both"])
         self.export_type_QComboBox.currentIndexChanged.connect(self.count_plot)
         self.export_type_layout = QVBoxLayout()
         self.export_type_layout.setAlignment(Qt.AlignTop)
-        self.export_type_layout.addWidget(self.export_type_QLabel)
-        self.export_type_layout.addWidget(self.export_type_QComboBox)
+        # self.export_type_layout.addWidget(self.export_type_QLabel)
+        # self.export_type_layout.addWidget(self.export_type_QComboBox)
 
         # progress
         self.plot_progressbar = QProgressBar()
@@ -538,22 +568,18 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # buttons plot_button
         self.plot_button = QPushButton(self.tr("run"))
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
-        self.plot_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        self.export_type_layout.addWidget(self.plot_button)
         self.plot_button.setEnabled(False)
-
-        # stop plot_button
-        self.plot_stop_button = QPushButton(self.tr("stop"))
-        self.plot_stop_button.clicked.connect(self.stop_plot)
-        self.plot_stop_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        self.plot_stop_button.setEnabled(False)
-        self.export_type_layout.addWidget(self.plot_stop_button)
+        self.plot_button.setCheckable(True)
+        self.plot_button.toggle()
 
         # type plot
         plot_type_qlabel = QLabel(self.tr("figure type :"))
         self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
         self.plot_map_QCheckBox.setChecked(True)
         self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
+        # self.plot_3d_QCheckBox = QCheckBox(self.tr("3d"))
+        # self.plot_3d_QCheckBox.setChecked(True)
+        # self.plot_3d_QCheckBox.stateChanged.connect(self.count_plot)
         self.plot_result_QCheckBox = QCheckBox(self.tr("Global habitat values"))
         self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
@@ -568,23 +594,30 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         plot_type_layout = QHBoxLayout()
         plot_type_layout.addWidget(plot_type_qlabel)
         plot_type_layout.addWidget(self.plot_map_QCheckBox)
+        # plot_type_layout.addWidget(self.plot_3d_QCheckBox)
         plot_type_layout.addWidget(self.plot_result_QCheckBox)
+        plot_type_layout.addWidget(self.export_type_QLabel)
+        plot_type_layout.addWidget(self.export_type_QComboBox)
         plot_type_layout.setAlignment(Qt.AlignLeft)
         progress_layout = QHBoxLayout()
         progress_layout.addWidget(self.plot_progressbar)
         progress_layout.addWidget(self.plot_progress_label)
+        progress_layout.addWidget(self.plot_button)
         plot_layout2.addLayout(plot_layout)
         plot_layout2.addLayout(plot_type_layout)
-        # plot_layout2.addWidget(self.progress_bar)
         plot_layout2.addLayout(progress_layout)
-        # plot_group = QGroupBoxCollapsible(self.tr("Figure exporter/viewer"))
         self.setLayout(plot_layout2)
 
     def count_plot(self):
         """
         count number of graphic to produce and ajust progress bar range
         """
-        types_hdf5, names_hdf5, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
+        types_hdf5, names_hdf5, plot_attr = self.collect_data_from_gui()
+
+        reach = plot_attr.reach
+        units = plot_attr.units
+        export_type = plot_attr.export_type
+
         plot_type = []
         if self.plot_map_QCheckBox.isChecked():
             plot_type = ["map"]
@@ -676,19 +709,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.plot_progressbar.setValue(0)
             self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
-    def show_prog(self, value):
-        self.plot_progressbar.setValue(value)
-        self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_plot))
-        QCoreApplication.processEvents()
-
-        if value == self.nb_plot and self.nb_plot != 0:  # != 0 if closefig of mainwindow
-            # activate
-            self.plot_button.setEnabled(True)
-            # disable stop button
-            self.plot_stop_button.setEnabled(False)
-            # log
-            self.send_log.emit(self.tr("Figure(s) done."))
-
     def collect_data_from_gui(self):
         """
         Get selected values by user
@@ -743,15 +763,24 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         if self.plot_map_QCheckBox.isChecked() and self.plot_result_QCheckBox.isChecked():
             plot_type = ["map", "result"]
 
+        plot_attr = lambda: None
+        plot_attr.reach = reach
+        plot_attr.units = units
+        plot_attr.units_index = units_index
+        plot_attr.export_type = export_type
+        plot_attr.plot_type = plot_type
+
         # store values
-        return types_hdf5, names_hdf5, reach, units, units_index, export_type, plot_type
+        return types_hdf5, names_hdf5, plot_attr
 
     def collect_data_from_gui_and_plot(self):
         """
         Get selected values by user and plot them
         """
-        types_hdf5, names_hdf5, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
-        self.plot_figure(types_hdf5, names_hdf5, reach, units, units_index, export_type, plot_type)
+        if not self.plot_button.isChecked():
+            self.plot_figure(*self.collect_data_from_gui())
+        else:
+            self.stop_plot()
 
     def reach_hdf5_change(self):
         """
@@ -808,7 +837,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # count plot
         self.count_plot()
 
-    def plot_figure(self, types_hdf5, names_hdf5, reach, units, units_index, export_type, plot_type):
+    def plot_figure(self, types_hdf5, names_hdf5, plot_attr):
         """
         Plot
         :param types_hdf5: string representing the type of hdf5 ("hydraulic", "substrat", "habitat")
@@ -825,9 +854,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.send_log.emit('Error: ' + self.tr('No hdf5 file selected.'))
         if not self.hvum.user_target_list:
             self.send_log.emit('Error: ' + self.tr('No variable selected.'))
-        if not reach:
+        if not plot_attr.reach:
             self.send_log.emit('Error: ' + self.tr('No reach selected.'))
-        if not units:
+        if not plot_attr.units:
             self.send_log.emit('Error: ' + self.tr('No unit selected.'))
         if self.nb_plot == 0:
             self.send_log.emit(
@@ -840,7 +869,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # get 32 first element list
             self.hvum.user_target_list = self.hvum.user_target_list[:32]
         # check if number of display plot are > 30
-        if export_type in ("interactive", "both") and self.nb_plot > 30:  # "interactive", "image export", "both
+        if plot_attr.export_type in ("interactive", "both") and self.nb_plot > 30:  # "interactive", "image export", "both
             qm = QMessageBox
             ret = qm.question(self, self.tr("Warning"),
                               self.tr("Displaying a large number of plots may crash HABBY. "
@@ -852,500 +881,54 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 return
 
         # Go plot
-        if types_hdf5 and names_hdf5 and self.hvum.user_target_list and reach and units and plot_type:
+        if types_hdf5 and names_hdf5 and self.hvum.user_target_list and plot_attr.reach and plot_attr.units and plot_attr.plot_type:
             # disable
-            self.plot_button.setEnabled(False)
+            self.plot_button.setText("stop")
+
             # active stop button
-            self.plot_stop_button.setEnabled(True)
             self.plot_production_stoped = False
             self.process_list.export_production_stoped = False
 
             # figure option
             project_preferences = load_project_properties(self.path_prj)
-            project_preferences['type_plot'] = export_type  # "interactive", "image export", "both
+            project_preferences['type_plot'] = plot_attr.export_type  # "interactive", "image export", "both
+
+            plot_attr.hvum = self.hvum
+            plot_attr.plot_map_QCheckBoxisChecked = self.plot_map_QCheckBox.isChecked()
 
             # check plot process done
             if self.process_list.check_all_process_closed():
                 self.process_list.new_plots()
+                self.process_list.nb_plot_total = self.nb_plot
             else:
-                self.process_list.add_plots()
-
-            # progress bar
-            self.plot_progressbar.setValue(0)
-            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
-            QCoreApplication.processEvents()
+                self.process_list.add_plots(self.nb_plot)
 
             # loop on all desired hdf5 file
             for name_hdf5 in names_hdf5:
                 if not self.plot_production_stoped:  # stop loop with button
-                    # create hdf5 class by file
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name_hdf5)
-                    # load hydraulic data
-                    if types_hdf5 == "hydraulic":
-                        hdf5.load_hdf5_hyd(units_index=units_index,
-                                           user_target_list=self.hvum.user_target_list)  #
-                        # compute variables
-                        # hdf5.data_2d.compute_variables(variable_computable_list=self.hvum.all_available_variable_list)
-                        # data_description
-                        data_description = dict(hdf5.data_description)
-                        data_description["reach_list"] = hdf5.data_description["hyd_reach_list"].split(", ")
-                        data_description["reach_number"] = hdf5.data_description["hyd_reach_number"]
-                        data_description["unit_number"] = hdf5.data_description["hyd_unit_number"]
-                        data_description["unit_type"] = hdf5.data_description["hyd_unit_type"]
-                        data_description["units_index"] = units_index
-                        data_description["name_hdf5"] = hdf5.data_description["hyd_filename"]
-                    # load substrate data
-                    if types_hdf5 == "substrate":
-                        hdf5.load_hdf5_sub(convert_to_coarser_dom=True)
-                        # data_description
-                        data_description = dict(hdf5.data_description)
-                        data_description["reach_list"] = hdf5.data_description["sub_reach_list"].split(", ")
-                        data_description["reach_number"] = hdf5.data_description["sub_reach_number"]
-                        data_description["unit_number"] = hdf5.data_description["sub_unit_number"]
-                        data_description["unit_type"] = hdf5.data_description["sub_unit_type"]
-                        data_description["name_hdf5"] = hdf5.data_description["sub_filename"]
-                        data_description["sub_classification_code"] = hdf5.data_description["sub_classification_code"]
-                    # load habitat data
-                    if types_hdf5 == "habitat":
-                        hdf5.load_hdf5_hab(units_index=units_index,
-                                           fish_names=self.hvum.user_target_list.habs(),
-                                           whole_profil=False,
-                                           convert_to_coarser_dom=True)
-                        # # compute variables
-                        # hdf5.compute_variables(mesh_variable_list=variables_mesh,
-                        #                        node_variable_list=variables_node)
-                        # data_description
-                        data_description = dict(hdf5.data_description)
-                        data_description["reach_list"] = hdf5.data_description["hyd_reach_list"].split(", ")
-                        data_description["reach_number"] = hdf5.data_description["hyd_reach_number"]
-                        data_description["unit_number"] = hdf5.data_description["hyd_unit_number"]
-                        data_description["unit_type"] = hdf5.data_description["hyd_unit_type"]
-                        data_description["units_index"] = units_index
-                        data_description["name_hdf5"] = hdf5.data_description["hab_filename"]
-
-                    habitat_variable_list = self.hvum.user_target_list.habs()
-
-                    # all cases
-                    unit_type = data_description["unit_type"][
-                                data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(
-                                    ']')]
-
-                    # for each reach
-                    for reach_name in reach:
-                        reach_num = data_description["reach_list"].index(reach_name)
-                        # for one or more desired units ==> habitat data (HV and WUA)
-                        if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stoped:
-                            state = Value("i", 0)
-                            plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
-                                                               args=(state,
-                                                                     data_description,
-                                                                     reach_num,
-                                                                     habitat_variable_list,
-                                                                     project_preferences),
-                                                               name="plot_fish_hv_wua")
-                            self.process_list.append([plot_hab_fig_spu_process, state])
-
-                        # for each desired units ==> maps
-                        if plot_type != ["result"]:
-                            for unit_num, t in enumerate(units_index):
-                                # string_tr
-                                string_tr = [self.tr("reach"), self.tr("unit")]
-
-                                for variable in self.hvum.user_target_list.no_habs():
-                                    if not self.plot_production_stoped:
-                                        plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                                                                       reach_name,
-                                                                                       units[unit_num],
-                                                                                       unit_type,
-                                                                                       self.tr(variable.name_gui),
-                                                                                       variable.unit,
-                                                                                       string_tr)
-                                        state = Value("i", 0)
-                                        process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
-                                                                   args=(
-                                                                       state,
-                                                                       hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
-                                                                       hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                                                       hdf5.data_2d[reach_num][unit_num][variable.position]["data"][variable.name].to_numpy(),
-                                                                       plot_string_dict,
-                                                                       data_description,
-                                                                       project_preferences
-                                                                   ),
-                                                                   name=variable.name)
-                                        self.process_list.append([process, state])
-                                # # water_velocity
-                                # if "water_velocity" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("water_velocity"),
-                                #                                                "m/s",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     velocity_process = Process(target=plot_mod.plot_map_velocity,
-                                #                                args=(
-                                #                                    state,
-                                #                                    hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["node"]["data"]["v"][reach_num][unit_num],
-                                #                                    plot_string_dict,
-                                #                                    data_description,
-                                #                                    project_preferences
-                                #                                ),
-                                #                                name="plot_map_velocity")
-                                #     self.process_list.append([velocity_process, state])
+                    self.process_list.set_plot_hdf5_mode(self.path_prj, name_hdf5, plot_attr, project_preferences)
+                    # start thread
+                    self.process_list.start()
 
 
-                                # # water_height
-                                # if "water_height" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("water_height"),
-                                #                                                "m",
-                                #                                                    string_tr)
-                                #
-                                #     state = Value("i", 0)
-                                #     height_process = Process(target=plot_mod.plot_map_height,
-                                #                              args=(
-                                #                                  state,
-                                #                                  hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
-                                #                                  hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                #                                  hdf5.data_2d[reach_num][unit_num]["node"]["data"]["h"],
-                                #                                  plot_string_dict,
-                                #                                  data_description,
-                                #                                  project_preferences
-                                #                              ),
-                                #                              name="plot_map_height")
-                                #     self.process_list.append([height_process, state])
-                                #
-                                #
-                                # # conveyance
-                                # if "conveyance" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("conveyance"),
-                                #                                                "m²/s",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     conveyance_process = Process(target=plot_mod.plot_map_conveyance,
-                                #                                  args=(
-                                #                                      state,
-                                #                                      hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                      hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                      hdf5.data_2d["node"]["data"]["conveyance"][
-                                #                                          reach_num][unit_num],
-                                #                                      plot_string_dict,
-                                #                                      data_description,
-                                #                                      project_preferences
-                                #                                  ),
-                                #                                  name="plot_map_conveyance")
-                                #     self.process_list.append([conveyance_process, state])
-                                #
-                                # # froude_number
-                                # if "froude_number" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("froude_number"),
-                                #                                                "",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     froude_process = Process(target=plot_mod.plot_map_froude_number,
-                                #                              args=(
-                                #                                  state,
-                                #                                  hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                  hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                  hdf5.data_2d["node"]["data"]["froude_number"][reach_num][
-                                #                                      unit_num],
-                                #                                  plot_string_dict,
-                                #                                  data_description,
-                                #                                  project_preferences
-                                #                              ),
-                                #                              name="plot_map_froude")
-                                #     self.process_list.append([froude_process, state])
-                                #
-                                # # hydraulic_head
-                                # if "hydraulic_head" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("hydraulic_head"),
-                                #                                                "m",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     hydraulic_head_process = Process(target=plot_mod.plot_map_hydraulic_head,
-                                #                                      args=(
-                                #                                          state,
-                                #                                          hdf5.data_2d["node"]["xy"][reach_num][
-                                #                                              unit_num],
-                                #                                          hdf5.data_2d["mesh"]["tin"][reach_num][
-                                #                                              unit_num],
-                                #                                          hdf5.data_2d["node"]["data"]["hydraulic_head"][
-                                #                                              reach_num][unit_num],
-                                #                                          plot_string_dict,
-                                #                                          data_description,
-                                #                                          project_preferences
-                                #                                      ),
-                                #                                      name="plot_map_hydraulic_head")
-                                #     self.process_list.append([hydraulic_head_process, state])
-                                #
-                                # # water_level
-                                # if "water_level" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("water_level"),
-                                #                                                "m",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     water_level_process = Process(target=plot_mod.plot_map_water_level,
-                                #                                   args=(
-                                #                                       state,
-                                #                                       hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                       hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                       hdf5.data_2d["node"]["data"]["water_level"][
-                                #                                           reach_num][unit_num],
-                                #                                       plot_string_dict,
-                                #                                       data_description,
-                                #                                       project_preferences
-                                #                                   ),
-                                #                                   name="plot_map_water_level")
-                                #     self.process_list.append([water_level_process, state])
-                                #
-                                # # mesh
-                                # if "mesh" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("mesh"),
-                                #                                                "",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     mesh_process = Process(target=plot_mod.plot_map_mesh,
-                                #                            args=(
-                                #                                state,
-                                #                                hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                plot_string_dict,
-                                #                                data_description,
-                                #                                project_preferences
-                                #                            ),
-                                #                            name="plot_map_mesh_and_point")
-                                #     self.process_list.append([mesh_process, state])
-                                #
-                                # # max_slope_bottom
-                                # if "max_slope_bottom" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("max_slope_bottom"),
-                                #                                                "m/m",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     slope_bottom_process = Process(target=plot_mod.plot_map_slope_bottom,
-                                #                                    args=(
-                                #                                        state,
-                                #                                        hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                        hdf5.data_2d["mesh"]["data"]["max_slope_bottom"][
-                                #                                            reach_num][unit_num],
-                                #                                        plot_string_dict,
-                                #                                        data_description,
-                                #                                        project_preferences
-                                #                                    ),
-                                #                                    name="plot_map_slope_bottom")
-                                #     self.process_list.append([slope_bottom_process, state])
-                                #
-                                # # max_slope_energy
-                                # if "max_slope_energy" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("max_slope_energy"),
-                                #                                                "m/m",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     slope_bottom_process = Process(target=plot_mod.plot_map_slope_energy,
-                                #                                    args=(
-                                #                                        state,
-                                #                                        hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                        hdf5.data_2d["mesh"]["data"]["max_slope_energy"][
-                                #                                            reach_num][unit_num],
-                                #                                        plot_string_dict,
-                                #                                        data_description,
-                                #                                        project_preferences
-                                #
-                                #                                    ),
-                                #                                    name="plot_map_slope_energy")
-                                #     self.process_list.append([slope_bottom_process, state])
-                                #
-                                # # shear_stress
-                                # if "shear_stress" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("shear_stress"),
-                                #                                                "",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     slope_bottom_process = Process(target=plot_mod.plot_map_shear_stress,
-                                #                                    args=(
-                                #                                        state,
-                                #                                        hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                        hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                        hdf5.data_2d["mesh"]["data"]["shear_stress"][
-                                #                                            reach_num][unit_num],
-                                #                                        plot_string_dict,
-                                #                                        data_description,
-                                #                                        project_preferences
-                                #
-                                #                                    ),
-                                #                                    name="plot_map_shear_stress")
-                                #     self.process_list.append([slope_bottom_process, state])
-                                #
-                                # # substrate_coarser
-                                # if "substrate_coarser" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("substrate_coarser"),
-                                #                                                    data_description["sub_classification_code"],
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     susbtrat_process = Process(target=plot_mod.plot_map_substrate_coarser,
-                                #                                args=(
-                                #                                    state,
-                                #                                    hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["mesh"]["data"]["sub"][reach_num][
-                                #                                        unit_num],
-                                #                                    plot_string_dict,
-                                #                                    data_description,
-                                #                                    project_preferences
-                                #                                ),
-                                #                                name="plot_substrate_coarser")
-                                #     self.process_list.append([susbtrat_process, state])
-                                #
-                                # # substrate_dominant
-                                # if "substrate_dominant" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("substrate_dominant"),
-                                #                                                    data_description["sub_classification_code"],
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     susbtrat_process = Process(target=plot_mod.plot_map_substrate_dominant,
-                                #                                args=(
-                                #                                    state,
-                                #                                    hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                    hdf5.data_2d["mesh"]["data"]["sub"][reach_num][
-                                #                                        unit_num],
-                                #                                    plot_string_dict,
-                                #                                    data_description,
-                                #                                    project_preferences
-                                #                                ),
-                                #                                name="plot_substrate_dominant")
-                                #     self.process_list.append([susbtrat_process, state])
-                                #
-                                # # fish map
-                                # if habitat_variable_list and not self.plot_production_stoped:  # habitat data (maps)
-                                #     # map by fish
-                                #     for fish_index, fish_name in enumerate(habitat_variable_list):
-                                #         plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                        reach_name,
-                                #                                                        units[unit_num],
-                                #                                                        unit_type,
-                                #                                                        fish_name,
-                                #                                                    "",
-                                #                                                        string_tr,
-                                #                                                        self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %")
-                                #         state = Value("i", 0)
-                                #         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
-                                #                                       args=(
-                                #                                           state,
-                                #                                           hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                           hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                           hdf5.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num],
-                                #                                           plot_string_dict,
-                                #                                           data_description,
-                                #                                           project_preferences
-                                #                                       ),
-                                #                                       name="plot_map_fish_habitat")
-                                #         self.process_list.append([habitat_map_process, state])
+            # progress bar
+            self.plot_progressbar.setRange(0, self.process_list.nb_plot_total)
+            self.plot_progressbar.setValue(self.process_list.nb_finished)
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.process_list.nb_plot_total))
+            QCoreApplication.processEvents()
 
-                                # # elevation
-                                # if "elevation" in variables and not self.plot_production_stoped:
-                                #     plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                #                                                    reach_name,
-                                #                                                    units[unit_num],
-                                #                                                    unit_type,
-                                #                                                    self.tr("elevation"),
-                                #                                                "m",
-                                #                                                    string_tr)
-                                #     state = Value("i", 0)
-                                #     # plot_map_elevation
-                                #     elevation_process = Process(target=plot_mod.plot_map_elevation,
-                                #                            args=(
-                                #                                state,
-                                #                                hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                                #                                hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                #                                hdf5.data_2d["node"]["z"][reach_num][unit_num],
-                                #                                plot_string_dict,
-                                #                                data_description,
-                                #                                project_preferences
-                                #                            ),
-                                #                            name="plot_map_elevation")
-                                #     self.process_list.append([elevation_process, state])
-
-
-                            # GIF
-                            if self.gif_export:
-                                for variable in variables:
-                                    # plot map
-                                    state = Value("i", 0)
-                                    gif_map_process = Process(target=plot_mod.create_gif_from_files,
-                                                              args=(state,
-                                                                    self.tr(variable),
-                                                                    reach_name,
-                                                                    units,
-                                                                    data_description,
-                                                                    project_preferences),
-                                                              name="plot_gif")
-                                    self.process_list.append([gif_map_process, state])
-
-            # ajust total plot if add_plots
-            self.nb_plot = len(self.process_list.process_list)
-            # start thread
-            self.process_list.start()
-            # activate
-            self.plot_button.setEnabled(False)
-            # disable stop button
-            self.plot_stop_button.setEnabled(True)
+            # for error management and figures
+            print("self.timer.start(100)")
+            self.timer.start(100)
 
     def stop_plot(self):
         # stop plot production
         self.plot_production_stoped = True
         # activate
-        self.plot_button.setEnabled(True)
+        self.plot_button.setText(self.tr("run"))
+        # self.plot_button.setChecked(True)
         # disable stop button
-        self.plot_stop_button.setEnabled(False)
+        # self.plot_stop_button.setEnabled(False)
         # close_all_export
         self.process_list.stop_plot_production()
         #self.process_list.terminate()
@@ -1353,6 +936,27 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # self.process_list.wait()
         # log
         self.send_log.emit(self.tr("Figure(s) production stoped by user."))
+
+    def show_prog(self):
+        # RUNNING
+        print("show_prog", self.process_list.plot_finished, self.process_list.nb_finished,
+                                                             self.process_list.nb_plot_total)
+        if not self.process_list.plot_finished:
+            # self.process_list.nb_finished
+            self.plot_progressbar.setValue(int(self.process_list.nb_finished))
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                      self.process_list.nb_plot_total))
+        else:
+            self.plot_progressbar.setValue(int(self.process_list.nb_finished))
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                      self.process_list.nb_plot_total))
+            self.timer.stop()
+            # activate
+            self.plot_button.setText(self.tr("run"))
+            self.plot_button.setChecked(True)
+            if not self.plot_production_stoped:
+                # log
+                self.send_log.emit(self.tr("Figure(s) done."))
 
 
 class DataExporterGroup(QGroupBoxCollapsible):
@@ -1366,8 +970,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.setTitle(title)
-        self.process_list = MyProcessList("export")
-        self.process_list.progress_signal.connect(self.show_prog)
         self.current_type = 0
         self.checkbox_list = []
         self.nb_export = 0
@@ -1379,6 +981,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                           "variables_units",
                                           "detailled_text",
                                           "fish_information"]
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.show_prog)
+        self.progress_value = Value("i", 0)
         self.init_ui()
 
     def init_ui(self):
@@ -1449,15 +1054,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
         """ data_exporter widgets """
         self.data_exporter_run_pushbutton = QPushButton(self.tr("run"))
-        self.data_exporter_run_pushbutton.clicked.connect(self.start_export)
+        self.data_exporter_run_pushbutton.clicked.connect(self.start_stop_export)
         self.data_exporter_run_pushbutton.setFixedWidth(110)
-        self.data_exporter_run_pushbutton.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.data_exporter_run_pushbutton.setEnabled(False)
-        self.data_exporter_stop_pushbutton = QPushButton(self.tr("stop"))
-        self.data_exporter_stop_pushbutton.clicked.connect(self.stop_export)
-        self.data_exporter_stop_pushbutton.setEnabled(False)
-        self.data_exporter_stop_pushbutton.setFixedWidth(110)
-        self.data_exporter_stop_pushbutton.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.data_exporter_run_pushbutton.setCheckable(True)
+        self.data_exporter_run_pushbutton.toggle()
+
         self.data_exporter_progressbar = QProgressBar()
         self.data_exporter_progressbar.setValue(0)
         self.data_exporter_progressbar.setTextVisible(False)
@@ -1502,6 +1104,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 9, 0)
         self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled mesh and points")), 9, 1)
         self.hyd_export_layout.addWidget(self.detailled_text_hyd, 9, 2, Qt.AlignCenter)
+        self.hyd_export_layout.setColumnStretch(0, 3)
+        self.hyd_export_layout.setColumnStretch(1, 3)
+        self.hyd_export_layout.setColumnStretch(2, 1)
         # hyd_export_widget
         self.hyd_export_widget = QWidget()
         self.hyd_export_widget.hide()
@@ -1543,7 +1148,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hab_export_layout.addWidget(QLabel(self.tr("Report (figure extension)")), 13, 0)
         self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 13, 1)
         self.hab_export_layout.addWidget(self.fish_information_hab, 13, 2, Qt.AlignCenter)
-
+        self.hab_export_layout.setColumnStretch(0, 3)
+        self.hab_export_layout.setColumnStretch(1, 3)
+        self.hab_export_layout.setColumnStretch(2, 1)
         # hab_export_widget
         self.hab_export_widget = QWidget()
         self.hab_export_widget.hide()
@@ -1553,19 +1160,14 @@ class DataExporterGroup(QGroupBoxCollapsible):
         progress_layout = QHBoxLayout()
         progress_layout.addWidget(self.data_exporter_progressbar)
         progress_layout.addWidget(self.data_exporter_progress_label)
-
-        """ run_stop_layout """
-        run_stop_layout = QVBoxLayout()
-        run_stop_layout.addWidget(self.data_exporter_run_pushbutton)
-        run_stop_layout.addWidget(self.data_exporter_stop_pushbutton)
+        progress_layout.addWidget(self.data_exporter_run_pushbutton)
 
         """ data_exporter layout """
-        self.data_exporter_layout = QGridLayout()
-        self.data_exporter_layout.addWidget(self.empty_export_widget, 0, 0)
-        self.data_exporter_layout.addWidget(self.hyd_export_widget, 0, 0)
-        self.data_exporter_layout.addWidget(self.hab_export_widget, 0, 0)
-        self.data_exporter_layout.addLayout(run_stop_layout, 0, 1)
-        self.data_exporter_layout.addLayout(progress_layout, 1, 0, 1, 2)
+        self.data_exporter_layout = QVBoxLayout()
+        self.data_exporter_layout.addWidget(self.empty_export_widget)
+        self.data_exporter_layout.addWidget(self.hyd_export_widget)
+        self.data_exporter_layout.addWidget(self.hab_export_widget)
+        self.data_exporter_layout.addLayout(progress_layout)
         self.setLayout(self.data_exporter_layout)
 
     def change_export_layout(self, type):
@@ -1667,17 +1269,14 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progressbar.setValue(0)
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
-    def show_prog(self, value):
-        self.data_exporter_progressbar.setValue(value)
-        self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(value, self.nb_export))
-
-        if value == self.nb_export and self.nb_export != 0:  # != 0 if closefig of mainwindow
-            # activate
-            self.data_exporter_run_pushbutton.setEnabled(True)
-            # disable stop button
-            self.data_exporter_stop_pushbutton.setEnabled(False)
-            # log
-            self.send_log.emit(self.tr("Export(s) done."))
+    def start_stop_export(self):
+        print("start_stop_export", self.data_exporter_run_pushbutton.isChecked())
+        # CHECKED ==> START
+        if not self.data_exporter_run_pushbutton.isChecked():
+            self.start_export()
+        # UNCHECKED ==> STOP
+        else:
+            self.stop_export()
 
     def start_export(self):
         types_hdf5, names_hdf5, export_dict = self.collect_data_from_gui()
@@ -1695,17 +1294,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
             # figure option
             project_preferences = load_project_properties(self.path_prj)
 
-            # export_production_stoped
-            self.process_list.process_list = []
-            self.process_list.export_production_stoped = False
-
-            # disable
-            self.data_exporter_run_pushbutton.setEnabled(False)
-
-            # progress bar
-            self.data_exporter_progressbar.setValue(0)
-            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
-            QCoreApplication.processEvents()
+            # switch to stop
+            self.data_exporter_run_pushbutton.setText(self.tr("stop"))
+            self.process_list = MyProcessList("export")
 
             # loop on all desired hdf5 file
             for name_hdf5 in names_hdf5:
@@ -1724,121 +1315,49 @@ class DataExporterGroup(QGroupBoxCollapsible):
                     for key in export_dict.keys():
                         project_preferences[key[:-4]][index_dict] = export_dict[key]
 
-                    # create hdf5 class by file
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name_hdf5)
+                    export_dict["nb_export"] = self.nb_export
 
-                    # hydraulic
-                    if types_hdf5 == "hydraulic":  # load hydraulic data
-                        hdf5.load_hdf5_hyd(whole_profil=True, user_target_list=project_preferences)
-                        total_gpkg_export = sum(
-                            [export_dict["mesh_whole_profile_hyd"], export_dict["point_whole_profile_hyd"],
-                             export_dict["mesh_units_hyd"], export_dict["point_units_hyd"]])
-                        if export_dict["mesh_whole_profile_hyd"] or export_dict["point_whole_profile_hyd"] or \
-                                export_dict["mesh_units_hyd"] or export_dict["point_units_hyd"]:
-                            # append fake first
-                            for fake_num in range(1, total_gpkg_export):
-                                self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
-                            state = Value("i", 0)
-                            export_gpkg_process = Process(target=hdf5.export_gpkg,
-                                                          args=(state,),
-                                                          name="export_gpkg")
-                            self.process_list.append([export_gpkg_process, state])
+                    self.process_list.set_export_hdf5_mode(self.path_prj, name_hdf5, export_dict, project_preferences)
+                    self.process_list.start()
 
-                        if export_dict["elevation_whole_profile_hyd"]:
-                            state = Value("i", 0)
-                            export_stl_process = Process(target=hdf5.export_stl,
-                                                         args=(state,),
-                                                         name="export_stl")
-                            self.process_list.append([export_stl_process, state])
-                        if export_dict["variables_units_hyd"]:
-                            state = Value("i", 0)
-                            export_paraview_process = Process(target=hdf5.export_paraview,
-                                                              args=(state,),
-                                                              name="export_paraview")
-                            self.process_list.append([export_paraview_process, state])
-                        if export_dict["detailled_text_hyd"]:
-                            state = Value("i", 0)
-                            export_detailled_mesh_txt_process = Process(target=hdf5.export_detailled_txt,
-                                                                        args=(state,),
-                                                                        name="export_detailled_txt")
-                            self.process_list.append([export_detailled_mesh_txt_process, state])
-
-                    # substrate
-                    if types_hdf5 == "substrate":  # load substrate data
-                        hdf5.load_hdf5_sub()
-
-                    # habitat
-                    if types_hdf5 == "habitat":  # load habitat data
-                        hdf5.load_hdf5_hab(whole_profil=True)
-                        hdf5.project_preferences = project_preferences
-                        total_gpkg_export = sum([export_dict["mesh_units_hab"], export_dict["point_units_hab"]])
-                        if export_dict["mesh_units_hab"] or export_dict["point_units_hab"]:
-                            # append fake first
-                            for fake_num in range(1, total_gpkg_export):
-                                self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
-                            state = Value("i", 0)
-                            export_gpkg_process = Process(target=hdf5.export_gpkg,
-                                                          args=(state,),
-                                                          name="export_gpkg")
-                            self.process_list.append([export_gpkg_process, state])
-                        if export_dict["elevation_whole_profile_hab"]:
-                            state = Value("i", 0)
-                            export_stl_process = Process(target=hdf5.export_stl,
-                                                         args=(state,),
-                                                         name="export_stl")
-                            self.process_list.append([export_stl_process, state])
-                        if export_dict["variables_units_hab"]:
-                            state = Value("i", 0)
-                            export_paraview_process = Process(target=hdf5.export_paraview,
-                                                              args=(state,),
-                                                              name="export_paraview")
-                            self.process_list.append([export_paraview_process, state])
-                        if export_dict["habitat_text_hab"]:
-                            state = Value("i", 0)
-                            export_spu_txt_process = Process(target=hdf5.export_spu_txt,
-                                                             args=(state,),
-                                                             name="export_spu_txt")
-                            self.process_list.append([export_spu_txt_process, state])
-                        if export_dict["detailled_text_hab"]:
-                            state = Value("i", 0)
-                            export_detailled_mesh_txt_process = Process(target=hdf5.export_detailled_txt,
-                                                                        args=(state,),
-                                                                        name="export_detailled_txt")
-                            self.process_list.append([export_detailled_mesh_txt_process, state])
-                        if export_dict["fish_information_hab"]:
-                            if hdf5.fish_list:
-                                state = Value("i", 0)
-                                export_pdf_process = Process(target=hdf5.export_report,
-                                                             args=(state,),
-                                                             name="export_report")
-                                self.process_list.append([export_pdf_process, state])
-                            else:
-                                # append fake first
-                                self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
-                                self.send_log.emit('Warning: ' + self.tr(
-                                    'No habitat data in this .hab file to export Fish informations report.'))
-
-            # start thread
-            self.process_list.start()
-            # disable run_pushbutton
-            self.data_exporter_run_pushbutton.setEnabled(False)
-            # enable stop_pushbutton
-            self.data_exporter_stop_pushbutton.setEnabled(True)
+            # for error management and figures
+            print("self.timer.start(100)")
+            self.timer.start(100)
 
     def stop_export(self):
         # stop plot production
         self.export_production_stoped = True
         # activate
+        self.data_exporter_run_pushbutton.setText(self.tr("run"))
         self.data_exporter_run_pushbutton.setEnabled(True)
-        # disable stop button
-        self.data_exporter_stop_pushbutton.setEnabled(False)
         # close_all_export
         self.process_list.close_all_export()
         self.process_list.terminate()
-        # self.process_list.quit()
-        # self.process_list.wait()
         # log
         self.send_log.emit(self.tr("Export(s) stoped by user."))
+
+    def show_prog(self):
+        print("show_prog", self.process_list.export_finished, self.data_exporter_run_pushbutton.isChecked(),
+                                                            self.process_list.nb_finished,
+                                                             self.process_list.nb_export_total)
+        # RUNNING
+        if not self.process_list.export_finished:
+            # self.process_list.nb_finished
+            self.data_exporter_progressbar.setValue(int(self.process_list.nb_finished))
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                               self.process_list.nb_export_total))
+        # NOT RUNNING
+        else:
+            self.timer.stop()
+            self.data_exporter_progressbar.setValue(int(self.process_list.nb_finished))
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                               self.process_list.nb_export_total))
+            self.data_exporter_run_pushbutton.setText(self.tr("run"))
+            self.data_exporter_run_pushbutton.setChecked(True)
+            # FINISHED
+            if not self.export_production_stoped:
+                # log
+                self.send_log.emit(self.tr("Export(s) done."))
 
 
 class HabitatValueRemover(QGroupBoxCollapsible):

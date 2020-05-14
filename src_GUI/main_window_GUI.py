@@ -171,6 +171,12 @@ class MainWindows(QMainWindow):
                                        self.name_prj,
                                        lang_bio)
 
+        # shortcut to change tab (CTRL+TAB)
+        self.keyboard_change_tab_filter = AltTabPressEater()
+        self.app.installEventFilter(self.keyboard_change_tab_filter)
+        self.keyboard_change_tab_filter.next_signal.connect(self.central_widget.next_tab)
+        self.keyboard_change_tab_filter.previous_signal.connect(self.central_widget.previous_tab)
+
         self.msg2 = QMessageBox()
         # call the normal constructor of QWidget
         super().__init__()
@@ -495,6 +501,8 @@ class MainWindows(QMainWindow):
         change_specific_properties(self.path_prj,
                                    preference_names=["language"],
                                    preference_values=[self.lang])
+        print("self.central_widget.setFocus()")
+        self.central_widget.setFocus()
 
         self.central_widget.write_log(self.tr('Project created.'))
 
@@ -1973,13 +1981,6 @@ class CentralW(QWidget):
         # update plot item in plot tab
         self.tab_widget.currentChanged.connect(self.update_specific_tab)
 
-        # shortcut to change tab (CTRL+TAB)
-        self.keyboard_change_tab_filter = AltTabPressEater()
-        self.tab_widget.installEventFilter(self.keyboard_change_tab_filter)
-        self.keyboard_change_tab_filter.next_signal.connect(self.next_tab)
-        self.keyboard_change_tab_filter.previous_signal.connect(self.previous_tab)
-        self.tab_widget.setFocus()
-
         # layout
         self.layoutc = QVBoxLayout()
         self.layoutc.addWidget(self.tab_widget)
@@ -2348,6 +2349,9 @@ class CentralW(QWidget):
         self.old_ind_tab = self.tab_widget.currentIndex()
 
     def update_specific_tab(self):
+        # hyd
+        if self.tab_widget.currentIndex() == 1:
+            self.hydro_tab.mod.setFocus()
         # calc hab
         if self.tab_widget.currentIndex() == 3:
             self.bioinfo_tab.update_merge_list()
@@ -2400,14 +2404,13 @@ class AltTabPressEater(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress and event.key() == 16777217:
             self.next_signal.emit()
-            return True # eat alt+tab or alt+shift+tab key
+            return True  # CTRL+TAB
         elif event.type() == QEvent.KeyPress and event.key() == 16777218:
             self.previous_signal.emit()
-            return True  # eat alt+tab or alt+shift+tab key
+            return True  # CTRL+MAJ+TAB
         else:
             # standard event processing
             return QObject.eventFilter(self, obj, event)
-
 
 
 if __name__ == '__main__':

@@ -18,6 +18,9 @@ import importlib
 import os
 import pandas as pd
 import sys
+import numpy as np
+import trimesh
+from mayavi import mlab
 
 from src.data_2d_mod import Data2d, UnitDict
 from src.variable_unit_mod import HydraulicVariableUnitManagement
@@ -152,16 +155,19 @@ class HydraulicSimulationResultsBase:
         self.hvum.hdf5_and_computable_list.sort_by_names_gui()
         node_list = self.hvum.hdf5_and_computable_list.nodes()
         mesh_list = self.hvum.hdf5_and_computable_list.meshs()
+        mesh_list = self.hvum.hdf5_and_computable_list.meshs()
 
         for reach_num in range(len(self.reach_name_list)):
             unit_list = []
+
             for unit_num in range(len(self.timestep_name_wish_list)):
                 # unit_dict
                 unit_dict = UnitDict()
                 unit_dict["node"] = dict(data=None,
                                          xy=self.hvum.xy.data[reach_num][unit_num])
                 unit_dict["mesh"] = dict(data=None,
-                                         i_whole_profile=None,
+                                         i_whole_profile=np.arange(0,
+                                                                   self.hvum.tin.data[reach_num][unit_num].shape[0]),
                                          tin=self.hvum.tin.data[reach_num][unit_num])
                 # node
                 unit_dict["node"]["data"] = pd.DataFrame()
