@@ -19,8 +19,8 @@ import os
 import pandas as pd
 import sys
 import numpy as np
-import trimesh
-from mayavi import mlab
+# import trimesh
+# from mayavi import mlab
 
 from src.data_2d_mod import Data2d, UnitDict
 from src.variable_unit_mod import HydraulicVariableUnitManagement
