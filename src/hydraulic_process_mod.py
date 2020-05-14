@@ -30,6 +30,7 @@ from src.hydraulic_results_manager_mod import HydraulicSimulationResultsSelector
 from src.data_2d_mod import Data2d
 from src import plot_mod
 from src.tools_mod import create_map_plot_string_dict
+from src.dev_tools import profileit
 
 
 class HydraulicSimulationResultsAnalyzer:
@@ -1791,26 +1792,30 @@ class MyProcessList(QThread):
         self.nb_plot_total = len(self.process_list)
 
     def new_plots(self):
+        self.nb_finished = 0
         self.add_plots_state = False
         self.save_process = []
         self.process_list = []
 
-    def add_plots(self):
+    def add_plots(self, plus):
         #print("add_plots")
         self.add_plots_state = True
         self.plot_production_stoped = False
         # remove plots not started
         self.remove_process_not_started()
+        self.nb_plot_total = self.nb_plot_total + plus
 
     def append(self, process):
         self.process_list.append(process)
 
+    @profileit
     def run(self):
         self.thread_started = True
         self.plot_production_stoped = False
         if self.process_type == "plot":
 
             if self.plot_hdf5_mode:
+                self.plot_finished = False
                 self.load_data_and_append_plot_process()
 
             # Process mod
@@ -1827,6 +1832,7 @@ class MyProcessList(QThread):
 
         if self.process_type == "export":
             if self.export_hdf5_mode:
+                self.export_finished = False
                 self.load_data_and_append_export_process()
 
             self.all_process_runned = False
@@ -1836,11 +1842,12 @@ class MyProcessList(QThread):
                     print("start", i, self.process_list[i][0].name)
             print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
             self.all_process_runned = True
-            # self.check_all_export_produced()
+            self.check_all_export_produced()
 
     def stop_plot_production(self):
         #print("stop_plot_production")
         self.plot_production_stoped = True
+        self.plot_finished = True
 
     def stop_export_production(self):
         self.export_production_stoped = True
@@ -1874,6 +1881,7 @@ class MyProcessList(QThread):
                     #print(self.process_list[i][0].name, "terminate !!")
                     self.process_list[i][0].terminate()
             self.thread_started = False
+            self.export_finished = True
             self.process_list = []
 
     def check_all_plot_produced(self):
@@ -1918,31 +1926,6 @@ class MyProcessList(QThread):
                                     continue
                             break
         self.plot_finished = True
-
-
-    # def check_all_export_produced(self):
-    #     self.nb_finished = 0
-    #     self.nb_export_total = len(self.process_list)
-    #     state_list = []
-    #     for i in range(len(self.process_list)):
-    #         state = self.process_list[i][1].value
-    #         state_list.append(state)
-    #         if state == 1:
-    #             self.nb_finished = self.nb_finished + 1
-    #             self.progress_signal.emit(self.nb_finished)
-    #             #print("emit")
-    #         if state == 0:
-    #             if i == self.nb_export_total - 1:  # last of all plot
-    #                 while 0 in state_list:
-    #                     for j in [k for k, l in enumerate(state_list) if l == 0]:
-    #                         state = self.process_list[j][1].value
-    #                         state_list[j] = state
-    #                         if state == 1:
-    #                             self.nb_finished = self.nb_finished + 1
-    #                             self.progress_signal.emit(self.nb_finished)
-    #                             #print("emit")
-    #                     if self.export_production_stoped:
-    #                         break
 
     def check_all_export_produced(self):
         print("check_all_export_produced")

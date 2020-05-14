@@ -709,27 +709,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.plot_progressbar.setValue(0)
             self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
-    def show_prog(self):
-        # RUNNING
-        print("show_prog", self.process_list.plot_finished, self.process_list.nb_finished,
-                                                             self.process_list.nb_plot_total)
-        if not self.process_list.plot_finished:
-            # self.process_list.nb_finished
-            self.plot_progressbar.setValue(int(self.process_list.nb_finished))
-            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
-                                                                      self.process_list.nb_plot_total))
-        else:
-            self.plot_progressbar.setValue(int(self.process_list.nb_finished))
-            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
-                                                                      self.process_list.nb_plot_total))
-            self.timer.stop()
-            # activate
-            self.plot_button.setText(self.tr("run"))
-            #self.plot_button.setChecked(True)
-            if not self.plot_production_stoped:
-                # log
-                self.send_log.emit(self.tr("Figure(s) done."))
-
     def collect_data_from_gui(self):
         """
         Get selected values by user
@@ -905,10 +884,8 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         if types_hdf5 and names_hdf5 and self.hvum.user_target_list and plot_attr.reach and plot_attr.units and plot_attr.plot_type:
             # disable
             self.plot_button.setText("stop")
-            # self.plot_button.setChecked(False)
 
             # active stop button
-            # self.plot_stop_button.setEnabled(True)
             self.plot_production_stoped = False
             self.process_list.export_production_stoped = False
 
@@ -922,13 +899,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # check plot process done
             if self.process_list.check_all_process_closed():
                 self.process_list.new_plots()
+                self.process_list.nb_plot_total = self.nb_plot
             else:
-                self.process_list.add_plots()
-
-            # progress bar
-            self.plot_progressbar.setValue(0)
-            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
-            QCoreApplication.processEvents()
+                self.process_list.add_plots(self.nb_plot)
 
             # loop on all desired hdf5 file
             for name_hdf5 in names_hdf5:
@@ -936,6 +909,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     self.process_list.set_plot_hdf5_mode(self.path_prj, name_hdf5, plot_attr, project_preferences)
                     # start thread
                     self.process_list.start()
+
+
+            # progress bar
+            self.plot_progressbar.setRange(0, self.process_list.nb_plot_total)
+            self.plot_progressbar.setValue(self.process_list.nb_finished)
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.process_list.nb_plot_total))
+            QCoreApplication.processEvents()
 
             # for error management and figures
             print("self.timer.start(100)")
@@ -956,6 +936,27 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # self.process_list.wait()
         # log
         self.send_log.emit(self.tr("Figure(s) production stoped by user."))
+
+    def show_prog(self):
+        # RUNNING
+        print("show_prog", self.process_list.plot_finished, self.process_list.nb_finished,
+                                                             self.process_list.nb_plot_total)
+        if not self.process_list.plot_finished:
+            # self.process_list.nb_finished
+            self.plot_progressbar.setValue(int(self.process_list.nb_finished))
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                      self.process_list.nb_plot_total))
+        else:
+            self.plot_progressbar.setValue(int(self.process_list.nb_finished))
+            self.plot_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                      self.process_list.nb_plot_total))
+            self.timer.stop()
+            # activate
+            self.plot_button.setText(self.tr("run"))
+            self.plot_button.setChecked(True)
+            if not self.plot_production_stoped:
+                # log
+                self.send_log.emit(self.tr("Figure(s) done."))
 
 
 class DataExporterGroup(QGroupBoxCollapsible):
@@ -1268,29 +1269,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progressbar.setValue(0)
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
-    def show_prog(self):
-        # RUNNING
-        print("show_prog", self.process_list.export_finished, self.data_exporter_run_pushbutton.isChecked(),
-                                                            self.process_list.nb_finished,
-                                                             self.process_list.nb_export_total)
-        # RUNNING
-        if not self.data_exporter_run_pushbutton.isChecked():
-            # self.process_list.nb_finished
-            self.data_exporter_progressbar.setValue(int(self.process_list.nb_finished))
-            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished, self.process_list.nb_export_total))
-        else:
-            self.timer.stop()
-            self.data_exporter_progressbar.setValue(int(self.process_list.nb_finished))
-            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished, self.process_list.nb_export_total))
-            # activate
-            self.data_exporter_run_pushbutton.setText(self.tr("run"))
-            self.data_exporter_run_pushbutton.setEnabled(True)
-            # disable stop button
-            # self.data_exporter_stop_pushbutton.setEnabled(False)
-            if not self.export_production_stoped:
-                # log
-                self.send_log.emit(self.tr("Export(s) done."))
-
     def start_stop_export(self):
         print("start_stop_export", self.data_exporter_run_pushbutton.isChecked())
         # CHECKED ==> START
@@ -1357,6 +1335,29 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.process_list.terminate()
         # log
         self.send_log.emit(self.tr("Export(s) stoped by user."))
+
+    def show_prog(self):
+        print("show_prog", self.process_list.export_finished, self.data_exporter_run_pushbutton.isChecked(),
+                                                            self.process_list.nb_finished,
+                                                             self.process_list.nb_export_total)
+        # RUNNING
+        if not self.process_list.export_finished:
+            # self.process_list.nb_finished
+            self.data_exporter_progressbar.setValue(int(self.process_list.nb_finished))
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                               self.process_list.nb_export_total))
+        # NOT RUNNING
+        else:
+            self.timer.stop()
+            self.data_exporter_progressbar.setValue(int(self.process_list.nb_finished))
+            self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                               self.process_list.nb_export_total))
+            self.data_exporter_run_pushbutton.setText(self.tr("run"))
+            self.data_exporter_run_pushbutton.setChecked(True)
+            # FINISHED
+            if not self.export_production_stoped:
+                # log
+                self.send_log.emit(self.tr("Export(s) done."))
 
 
 class HabitatValueRemover(QGroupBoxCollapsible):
