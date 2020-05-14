@@ -309,7 +309,6 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             data_node_list_unit = []
             for unit_num in range(len(self.timestep_name_wish_list_index)):
                 h_unit.append(h_reach[:, unit_num])
-                h_unit.append(h_reach[:, unit_num])
                 # v_unit.append(v_reach[:, unit_num])
                 # shear_stress_unit.append(shear_stress_reach[:, unit_num])
                 data_node_list_unit.append(data_node_pd[unit_num])
