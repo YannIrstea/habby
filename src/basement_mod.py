@@ -89,9 +89,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         #             self.valid_file = False
 
         # first result_file ?
-        if not "RESULTS" in self.results_data_file.keys():
-            self.warning_list.append('Error: The file is not ' + self.model_type + ' results type.')
-            self.valid_file = False
+
+        if self.results_data_file:
+            if not "RESULTS" in self.results_data_file.keys():
+                self.warning_list.append('Error: The file is not ' + self.model_type + ' results type.')
+                self.valid_file = False
 
         # is extension ok ?
         if os.path.splitext(self.filename)[1] not in self.extensions_list:

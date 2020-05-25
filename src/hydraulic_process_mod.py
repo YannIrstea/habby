@@ -163,14 +163,17 @@ class HydraulicSimulationResultsAnalyzer:
                     unit_type = hsr.timestep_unit
                     if self.model_type == 'RUBAR20':  # remove extension
                         filename, _ = os.path.splitext(filename)
-
+                    if self.model_type == "basement2d":
+                        hdf5_name = hsr.simulation_name + ".hyd"
+                    else:
+                        hdf5_name = os.path.splitext(filename)[0].replace(".", "_") + ".hyd"
                 # two cases
                 self.hydrau_description_list = [dict(path_prj=self.path_prj,
                                                     name_prj=self.name_prj,
                                                     hydrau_case=self.hydrau_case,
                                                     filename_source=filename,
                                                     path_filename_source=self.folder_path,
-                                                    hdf5_name=os.path.splitext(filename)[0].replace(".", "_") + ".hyd",
+                                                    hdf5_name=hdf5_name,
                                                     model_type=self.model_type,
                                                     model_dimension=str(self.nb_dim),
                                                     epsg_code=epsg_code,
@@ -396,6 +399,9 @@ class HydraulicSimulationResultsAnalyzer:
                     reach_name = "unknown"
 
                 variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                if self.model_type == "basement2d":
+                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["unit_list"] = data_index_file[headers[discharge_index]]

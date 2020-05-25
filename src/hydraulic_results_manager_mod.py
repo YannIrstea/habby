@@ -121,6 +121,8 @@ class HydraulicSimulationResultsBase:
             self.warning_list.append("Error: The file does not exist.")
             self.valid_file = False
 
+        self.results_data_file = None
+
         # reach_num
         self.multi_reach = False
         self.reach_num = 1
