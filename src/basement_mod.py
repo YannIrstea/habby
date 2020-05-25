@@ -49,6 +49,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
                                                     attribute_list=["always z"],
                                                     position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["always z"],
+                                                    position="mesh")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
                                                     attribute_list=["always depth"],
                                                     position="mesh")
