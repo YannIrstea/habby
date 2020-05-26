@@ -312,7 +312,7 @@ class Data2d(list):
 
                     # change all node dataframe
                     # velocity_ok = velocity[ipt_iklenew_unique]
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
                         ipt_iklenew_unique]
 
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
@@ -328,12 +328,11 @@ class Data2d(list):
                         self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = temp_ok
 
                 else:
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[
-                        ipt_iklenew_unique]
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
 
                 # erase old data
                 if not self[reach_num][unit_num]["mesh"]["data"].empty:
-                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].loc[ind_whole]
+                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[ind_whole]
                 self[reach_num][unit_num]["mesh"]["tin"] = iklekeep
                 self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
                 self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
@@ -428,9 +427,9 @@ class UnitDict(dict):
     """ mesh """
     # mean from node variable
     def c_mesh_mean_from_node_values(self, node_variable_name):
-        mesh_values = np.mean([self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 0]],
-                               self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 1]],
-                               self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 2]]], axis=0)
+        mesh_values = np.mean([self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 0]],
+                               self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 1]],
+                               self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 2]]], axis=0)
         return mesh_values
 
     def c_mesh_elevation(self):
