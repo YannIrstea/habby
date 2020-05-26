@@ -37,26 +37,24 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.file_type = "hdf5"
         # simulation attributes
         self.equation_type = ["FV"]
+        self.morphology_available = True
+        self.second_file_suffix = "_aux"
         # reach
         self.multi_reach = False # ?
         self.reach_num = 1
         self.reach_name_list = ["unknown"]
-
-        self.morphology_available = True
-        self.second_file_suffix = "_aux"
-
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
-                                                    attribute_list=["always z"],
+                                                    attribute_list=["Coordnts"],
                                                     position="node")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
-                                                    attribute_list=["always z"],
+                                                    attribute_list=["BottomEl"],
                                                     position="mesh")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
-                                                    attribute_list=["always depth"],
+                                                    attribute_list=["always h"],
                                                     position="mesh")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
-                                                    attribute_list=["always velocity"],
+                                                    attribute_list=["always v"],
                                                     position="mesh")
         # readable file ?
         try:
@@ -118,7 +116,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
 
         # get list from source
-        varnames = ["always z", "always depth", "always velocity"]
+        varnames = ["Coordnts", "BottomEl", "always h", "always v"]
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)
@@ -226,24 +224,17 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             data_mesh_pd_t_list = []
             for timestep_name_wish_index in range(self.timestep_wish_nb):
                 data_mesh_pd = pd.DataFrame()
+                data_mesh_pd[self.hvum.h.name] = mesh_h[:, timestep_name_wish_index]
                 data_mesh_pd[self.hvum.v.name] = mesh_v[:, timestep_name_wish_index]
                 data_mesh_pd_t_list.append(data_mesh_pd)
             data_mesh_pd_r_list.append(data_mesh_pd_t_list)
 
         # finite_volume_to_finite_element_triangularxy
         mesh_tin = np.column_stack([mesh_tin, np.ones(len(mesh_tin), dtype=mesh_tin[0].dtype) * -1])  # add -1 column
-        mesh_tin, node_xyz, node_h, data_node_pd = manage_grid_mod.finite_volume_to_finite_element_triangularxy(mesh_tin,
+        mesh_tin, node_xyz, node_h, data_node_list = manage_grid_mod.finite_volume_to_finite_element_triangularxy(mesh_tin,
                                                                                                           node_xyz,
                                                                                                           mesh_h,
-                                                                                                          # mesh_v,
                                                                                                           data_mesh_pd_r_list[0])
-
-        # return to list
-        node_h_list = []
-        data_node_list_unit = []
-        for unit_num in range(self.timestep_wish_nb):
-            node_h_list.append(node_h[:, unit_num])
-            data_node_list_unit.append(data_node_pd[unit_num])
 
         # prepare original and computed data for data_2d
         for reach_num in range(self.reach_num):  # for each reach
@@ -266,7 +257,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                             variables_wish.data[reach_num].append(node_h[:, timestep_index].astype(variables_wish.dtype))
                         else:
                             var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(variables_wish.name)
-                            variables_wish.data[reach_num].append(data_node_pd[timestep_index][:, var_node_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num].append(data_node_list[timestep_index][:, var_node_index].astype(variables_wish.dtype))
 
             # coord
             self.hvum.xy.data[reach_num] = [node_xy] * self.timestep_wish_nb

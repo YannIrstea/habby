@@ -91,10 +91,10 @@ class HydraulicSimulationResultsAnalyzer:
 
             # more_than_one_file_selected_by_user
             if self.more_than_one_file_selected_by_user:
-                if self.model_type == 'RUBAR20':  # change mode and remove one of them
+                if self.model_type == 'rubar2d':  # change mode and remove one of them
                     self.more_than_one_file_selected_by_user = False
-                    self.filename = self.filename[0]
-                    self.filename_path = self.filename_path[0]
+                    self.filename_list = self.filename_list[0]
+                    self.filename_path_list = self.filename_path_list[0]
                 else:
                     for i, file in enumerate(self.filename_path_list):
                         # get units name from file
@@ -128,7 +128,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                                 index_hydrau="False"))  # continuous flow
 
             # one file selected_by_user
-            if not self.more_than_one_file_selected_by_user:  # don't set elif (because if rubar20 more_than_one_file_selected_by_user set to False)
+            if not self.more_than_one_file_selected_by_user:  # don't set elif (because if rubar2d more_than_one_file_selected_by_user set to False)
                 # get units name from file
                 if self.model_type == 'ASCII':
                     ascii_description = ascii_mod.get_ascii_model_description(self.filename_path)
@@ -161,7 +161,7 @@ class HydraulicSimulationResultsAnalyzer:
                     unit_number = str(hsr.timestep_nb)
                     unit_list_tf = [True] * hsr.timestep_nb
                     unit_type = hsr.timestep_unit
-                    if self.model_type == 'RUBAR20':  # remove extension
+                    if self.model_type == 'rubar2d':  # remove extension
                         filename, _ = os.path.splitext(filename)
                     if self.model_type == "basement2d":
                         hdf5_name = hsr.simulation_name + ".hyd"
@@ -217,12 +217,12 @@ class HydraulicSimulationResultsAnalyzer:
                     for index, column_name in enumerate(headers):
                         data_index_file[column_name].append(line.split("\t")[index])
 
-            if self.model_type == 'RUBAR20':
+            if self.model_type == 'rubar2d':
                 self.more_than_one_file_selected_by_user = False
                 selectedfiles_textfiles_match = [True] * 2
-                if type(self.filename) == list:
-                    self.filename = self.filename[0]
-                    self.filename_path = self.filename_path[0]
+                if type(self.filename_list) == list:
+                    self.filename_list = self.filename_list[0]
+                    self.filename_path_list = self.filename_path_list[0]
 
             elif not self.index_hydrau_file_selected:  # from file
                 # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
@@ -315,12 +315,10 @@ class HydraulicSimulationResultsAnalyzer:
                 if not self.index_hydrau_file_selected:  # from file
                     namefile = self.filename_list[0]  # source file name
                     name_hdf5 = os.path.splitext(namefile)[0].replace(".", "_") + ".hyd"
-                    # if model_type == 'RUBAR20':
-                    #     namefile = os.path.splitext(namefile)[0]
                 if self.index_hydrau_file_selected:  # from indexHYDRAU.txt
                     namefile = data_index_file["filename"][0]  # source file name
                     name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_") + ".hyd"
-            if self.model_type == 'RUBAR20':
+            if self.model_type == 'rubar2d':
                 data_index_file[headers[0]] = [namefile]
 
             # self.hydrau_description_list
@@ -524,6 +522,9 @@ class HydraulicSimulationResultsAnalyzer:
 
                 variable_name_unit_dict = hsr.hvum.software_detected_list
 
+                if self.model_type == "basement2d":
+                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
+
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
                 self.hydrau_description_list[0]["unit_list"] = hsr.timestep_name_list
@@ -578,6 +579,9 @@ class HydraulicSimulationResultsAnalyzer:
                     reach_name = "unknown"
 
                 variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                if self.model_type == "basement2d":
+                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])

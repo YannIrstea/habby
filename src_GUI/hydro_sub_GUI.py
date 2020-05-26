@@ -1190,6 +1190,10 @@ class Rubar2D(SubHydroW):
         reach_name_title_label = QLabel(self.tr('Reach name'))
         self.reach_name_label = QLabel(self.tr('unknown'))
 
+        # usefull variables
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
+        self.usefull_variable_label = QLabel(self.tr('unknown'))
+
         # unit type
         units_name_title_label = QLabel(self.tr('Unit(s) type'))
         self.units_name_label = QLabel(self.tr('unknown'))
@@ -1242,19 +1246,21 @@ class Rubar2D(SubHydroW):
         self.layout_rubar20.addWidget(self.h2d_b, 0, 2)
         self.layout_rubar20.addWidget(reach_name_title_label, 1, 0)
         self.layout_rubar20.addWidget(self.reach_name_label, 1, 1)
-        self.layout_rubar20.addWidget(units_name_title_label, 2, 0)
-        self.layout_rubar20.addWidget(self.units_name_label, 2, 1)
-        self.layout_rubar20.addWidget(l2, 3, 0)
-        self.layout_rubar20.addWidget(self.number_timstep_label, 3, 1)
-        self.layout_rubar20.addWidget(l_selecttimestep, 4, 0)
-        self.layout_rubar20.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
-        self.layout_rubar20.addWidget(epsgtitle_rubar20_label, 5, 0)
-        self.layout_rubar20.addWidget(self.epsg_label, 5, 1)
-        self.layout_rubar20.addWidget(lh, 6, 0)
-        self.layout_rubar20.addWidget(self.hname, 6, 1)
-        self.layout_rubar20.addWidget(self.load_b, 6, 2)
-        self.layout_rubar20.addWidget(self.last_hydraulic_file_label, 7, 0)
-        self.layout_rubar20.addWidget(self.last_hydraulic_file_name_label, 7, 1)
+        self.layout_rubar20.addWidget(usefull_variable_label_title, 2, 0)
+        self.layout_rubar20.addWidget(self.usefull_variable_label, 2, 1)
+        self.layout_rubar20.addWidget(units_name_title_label, 3, 0)
+        self.layout_rubar20.addWidget(self.units_name_label, 3, 1)
+        self.layout_rubar20.addWidget(l2, 4, 0)
+        self.layout_rubar20.addWidget(self.number_timstep_label, 4, 1)
+        self.layout_rubar20.addWidget(l_selecttimestep, 5, 0)
+        self.layout_rubar20.addWidget(self.units_QListWidget, 5, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_rubar20.addWidget(epsgtitle_rubar20_label, 6, 0)
+        self.layout_rubar20.addWidget(self.epsg_label, 6, 1)
+        self.layout_rubar20.addWidget(lh, 7, 0)
+        self.layout_rubar20.addWidget(self.hname, 7, 1)
+        self.layout_rubar20.addWidget(self.load_b, 7, 2)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_label, 8, 0)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_name_label, 8, 1)
         [self.layout_rubar20.setRowMinimumHeight(i, 30) for i in range(self.layout_rubar20.rowCount())]
 
         self.setLayout(self.layout_rubar20)
