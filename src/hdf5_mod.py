@@ -356,8 +356,8 @@ class Hdf5Management:
 
         # variables attrs
         data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        print("node data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.nodes().names_gui()))
-        print("mesh data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.meshs().names_gui()))
+        # print("node data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.nodes().names_gui()))
+        # print("mesh data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.meshs().names_gui()))
         self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
         self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
         self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()

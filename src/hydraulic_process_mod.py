@@ -720,8 +720,8 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[hydrau_description_index]["unit_type"] = \
                 self.hydrau_description_list[hydrau_description_index]["unit_type"].replace("m3/s", "m<sup>3</sup>/s")
 
-        print("------------------------------------------------")
-        print("self.hydrau_case, " + self.hydrau_case)
+        #print("------------------------------------------------")
+        #print("self.hydrau_case, " + self.hydrau_case)
         # print(self.hydrau_description_list[0]["unit_list"])
         # print(self.hydrau_description_list[0]["unit_list_tf"])
         # print(self.hydrau_description_list[0]["unit_number"])
@@ -1835,8 +1835,8 @@ class MyProcessList(QThread):
                 if not self.plot_production_stoped:
                     if self.process_list[i][1].value == 0 and not self.process_list[i][0].is_alive():
                         self.process_list[i][0].start()
-                        print("start", i, self.process_list[i][0].name)
-            print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
+                        # print("start", i, self.process_list[i][0].name)
+            # print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
             self.all_process_runned = True
             self.check_all_plot_produced()
 
@@ -1849,8 +1849,8 @@ class MyProcessList(QThread):
             for i in range(len(self.process_list)):
                 if not self.export_production_stoped:
                     self.process_list[i][0].start()
-                    print("start", i, self.process_list[i][0].name)
-            print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
+            #         print("start", i, self.process_list[i][0].name)
+            # print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
             self.all_process_runned = True
             self.check_all_export_produced()
 

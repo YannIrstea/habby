@@ -403,9 +403,9 @@ class HydraulicVariableUnitManagement:
         """
         load hdf5 or compute ? Depend on user wish selection
         """
-        print("######################################")
-        print("target nodes : ", user_target_list.nodes().names())
-        print("target meshs : ", user_target_list.meshs().names())
+        # print("######################################")
+        # print("target nodes : ", user_target_list.nodes().names())
+        # print("target meshs : ", user_target_list.meshs().names())
 
         # wish hdf5 (node and mesh)
         for variable_wish in user_target_list.hdf5s():
@@ -545,9 +545,10 @@ class HydraulicVariableUnitManagement:
                         self.h.hdf5 = True
                         self.all_final_variable_list.append(self.h)
                     if self.z.name not in self.all_final_variable_list.hdf5s().meshs().names():
-                        self.z.position = "mesh"
-                        self.z.hdf5 = True
-                        self.all_final_variable_list.append(self.z)
+                        if self.z.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                            self.z.position = "mesh"
+                            self.z.hdf5 = True
+                            self.all_final_variable_list.append(self.z)
                 else:
                     # compute mean from node (need h node)
                     if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
@@ -662,9 +663,9 @@ class HydraulicVariableUnitManagement:
             # all cases
             self.all_final_variable_list.append(variable_wish)
 
-        # print final names
-        print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes().names())
-        print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs().names())
-        print("computed nodes : ", self.all_final_variable_list.to_compute().nodes().names())
-        print("computed meshs : ", self.all_final_variable_list.to_compute().meshs().names())
+        # # print final names
+        # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes().names())
+        # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs().names())
+        # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes().names())
+        # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs().names())
 
