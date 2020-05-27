@@ -642,12 +642,6 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
 
     # not all_polygon_triangle_tf
     else:
-        # to pass attrbiutes index to triangulate() method
-        terms = tr.tri.terms
-        terms = terms + (('triangleattributelist', 'triangle_attributes'),)
-        tr.tri.translate_frw = {_0: _1 for _0, _1 in terms}
-        tr.tri.translate_inv = {_1: _0 for _0, _1 in terms}
-
         # Extract list of points and segments from shp
         vertices_array = []  # point
         segments_array = []  # segment index or connectivity table
