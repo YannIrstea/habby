@@ -117,9 +117,11 @@ class HydraulicSimulationResultsBase:
         # hydraulic attributes
         self.model_type = model_type
         # exist ?
-        if not os.path.isfile(self.filename_path):
+        if not os.path.isfile(self.filename_path) and os.path.splitext(self.filename_path)[1]:
             self.warning_list.append("Error: The file does not exist.")
             self.valid_file = False
+
+        self.results_data_file = None
 
         # reach_num
         self.multi_reach = False
@@ -154,7 +156,6 @@ class HydraulicSimulationResultsBase:
         data_2d.hvum = self.hvum
         self.hvum.hdf5_and_computable_list.sort_by_names_gui()
         node_list = self.hvum.hdf5_and_computable_list.nodes()
-        mesh_list = self.hvum.hdf5_and_computable_list.meshs()
         mesh_list = self.hvum.hdf5_and_computable_list.meshs()
 
         for reach_num in range(len(self.reach_name_list)):

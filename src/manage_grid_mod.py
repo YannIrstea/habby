@@ -1642,8 +1642,8 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
     nbnodes0 = nodes.shape[0]
     nbmesh = ikle.shape[0]
     nbunit = hmesh.shape[1]
-    # Building the new ikle by spliting each quadrangle to 4 triangles adding the center of the quadrangle to the node list
-    # transforming   a set of triangles and 4angles into only triangles
+    # Building the new ikle by spliting each quadrangle to 4 triangles adding the center of the quadrangle
+    # to the node list transforming   a set of triangles and 4angles into only triangles
     ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
     ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
     ikle2 = np.copy(ikle3[:, 0:3])
@@ -1651,8 +1651,8 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
     if len(ikle4):  # partitionning each 4angles in 4 triangles
         nbnodes = nodes.shape[0]
         if bsub:
-            sub4 = sub[np.where(ikle[:, [3]] != -1)[0]]
-            sub = sub[np.where(ikle[:, [3]] == -1)[0]]
+            sub4 = sub[np.where(ikle[:, [3]] != -1)[0]]  # quadrangular
+            sub = sub[np.where(ikle[:, [3]] == -1)[0]]  # triangular
         for i in range(len(ikle4)):
             nbnodes += 1
             q0, q1, q2, q3 = ikle4[i][0], ikle4[i][1], ikle4[i][2], ikle4[i][3]
@@ -1673,14 +1673,9 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
     p4 = nodes[ikle[:, 3], :] * t
     xyzmesh34 = np.sum(np.hstack((p1, p2, p3, p4)).reshape(nbmesh, 4, 3), axis=1) / (t + 3)
 
-    # hnodes2all, vnodes2all, shear_stressnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64), np.empty(
-    #     (nodes2.shape[0], nbunit), dtype=np.float64), np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
     hnodes2all = np.empty((nodes2.shape[0], nbunit), dtype=np.float64)
     hzmeshall = hmesh + xyzmesh34[:, 2].reshape(nbmesh, 1)
     data_nodes2all = [[]] * nbunit
-
-    # vmesh = np.abs(vmesh)  # as we are not interpolating in vectors (we have lose the directionnal information) TODO ?
-    # shear_stressmesh = np.abs(shear_stressmesh)
 
     # hvmeshall =hmesh* vmesh
     nbnodes2 = nodes2.shape[0]
@@ -1701,105 +1696,65 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
         wetikle = ikle[hmesh[:, i] > 0]  # the wet ikle
         iwetikle = np.where(hmesh[:, i] > 0)[0]
         awetikle = hznodes2[wetikle]
-        awetikle[:, 3][np.where(wetikle[:, [3]] == -1)[
-            0]] = -1  # a matrix of the wet meshes(each line) and th information about the 3 (& -1)or four nodes wiht nan values if their z+hw have not been calculated
-        aawetikle = np.sum(awetikle,
-                           axis=1)  # a column of wet meshes with the information if there is or not (nan) at least one nan nodes defining the mesh
+        # a matrix of the wet meshes(each line) and th information about the 3 (& -1)or four nodes wiht nan values
+        # if their z+hw have not been calculated
+        awetikle[:, 3][np.where(wetikle[:, [3]] == -1)[0]] = -1
+        # a column of wet meshes with the information if there is or not (nan) at least one nan nodes defining the mesh
+        aawetikle = np.sum(awetikle, axis=1)
         for j in range(len(aawetikle)):
             if np.isnan(aawetikle[j]):
                 for k, l in enumerate(awetikle[j, :]):
                     if np.isnan(l):
-                        if np.isnan(hznodes2[wetikle[j][
-                            k]]):  # TODO the mean value can be better here we just take the first mesh on the river side
-                            hznodes2[wetikle[j][k]] = hzmeshall[:, i][iwetikle[
-                                j]]  # giving the h+z value of the mesh center to the contouring node that we imagine on the river side
+                        # TODO the mean value can be better here we just take the first mesh on the river side
+                        if np.isnan(hznodes2[wetikle[j][k]]):
+                            # giving the h+z value of the mesh center to the contouring node that we
+                            # imagine on the river side
+                            hznodes2[wetikle[j][k]] = hzmeshall[:, i][iwetikle[j]]
         hnodes2 = hznodes2 - nodes2[:, 2]
         hnodes2[np.isnan(hznodes2)] = 0
         hnodes2[hnodes2 <= 0] = 0
 
-        # for a given unit : considering the  surface of the elementary flow (h*v) to  find  v for nodes is too risky in a mesh with a node having a very small value the velocity at this node can be calculated as infinite
-        # so interpolating velocity values
+        # for a given unit : considering the  surface of the elementary flow (h*v) to  find  v for nodes
+        # is too risky in a mesh with a node having a very small value the velocity at this node can be calculated
+        # as infinite, so interpolating velocity values
         if data_mesh_pd.shape[0] > 2:  # at least we need one triangle for griddata
             data_pd_nodes2 = griddata(points=xyzmesh34[:, (0, 1)],
-                               values=data_mesh_pd,
-                               xi=nodes2[:, (0, 1)],
-                               method='linear')
+                                      values=data_mesh_pd,
+                                      xi=nodes2[:, (0, 1)],
+                                      method='linear')
         else:
             data_pd_nodes2 = np.full(nbnodes2, np.nan)
-        # # so interpolating velocity values
-        # if vmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
-        #     vnodes2 = griddata(points=xyzmesh34[:, (0, 1)],
-        #                        values=vmesh[:, i],
-        #                        xi=nodes2[:, (0, 1)],
-        #                        method='linear')
-        # else:
-        #     vnodes2 = np.full(nbnodes2, np.nan)
-        # # shear_stress
-        # if shear_stressmesh[:, i].shape[0] > 2:  # at least we need one triangle for griddata
-        #     shear_stressnode2 = griddata(points=xyzmesh34[:, (0, 1)],
-        #                                  values=shear_stressmesh[:, i],
-        #                                  xi=nodes2[:, (0, 1)],
-        #                                  method='linear')
-        # else:
-        #     shear_stressnode2 = np.full(nbnodes2, np.nan)
 
         # Get the NaN from outer nodes and replace with the nearest values
         data_pd_nodes2_nan = np.isnan(data_pd_nodes2[:, 0])
         nodes2nan = nodes2[:, (0, 1)][data_pd_nodes2_nan]
         data_pd_nodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
-                                   values=data_mesh_pd,
-                                   xi=nodes2nan,
-                                   method='nearest')
+                                          values=data_mesh_pd,
+                                          xi=nodes2nan,
+                                          method='nearest')
         data_pd_nodes2[data_pd_nodes2_nan] = data_pd_nodes2_new_nan
         data_pd_nodes2[hnodes2 == 0] = 0  # get realistic
 
-        # vnodes2_nan = np.isnan(vnodes2)
-        # nodes2nan = nodes2[:, (0, 1)][vnodes2_nan]
-        # vnodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
-        #                            values=vmesh[:, i],
-        #                            xi=nodes2nan,
-        #                            method='nearest')
-        # vnodes2[vnodes2_nan] = vnodes2_new_nan
-        # vnodes2[hnodes2 == 0] = 0  # get realistic
-        #
-        # # shear_stress
-        # shear_stressnode2_nan = np.isnan(shear_stressnode2)
-        # nodes2nan = nodes2[:, (0, 1)][shear_stressnode2_nan]
-        # shear_stressnodes2_new_nan = griddata(points=xyzmesh34[:, (0, 1)],
-        #                                       values=shear_stressmesh[:, i],
-        #                                       xi=nodes2nan,
-        #                                       method='nearest')
-        # shear_stressnode2[vnodes2_nan] = shear_stressnodes2_new_nan
-        # shear_stressnode2[hnodes2 == 0] = 0  # get realistic
-
         data_nodes2all[i] = data_pd_nodes2
         hnodes2all[:, i] = hnodes2
-        # hnodes2all[:, i], vnodes2all[:, i], shear_stressnodes2all[:, i] = hnodes2, vnodes2, shear_stressnode2
 
     # giving the exact values of depth and velocity in the quadrangular mesh centers nodes
     # TODO not to do previously this job  above TAKE CARE that if you got just one quadrangle or similar situation
     # only the following part will give the correct result
     if len(ikle4):
+        # V2
         hnodes4all = hmesh[np.where(ikle[:, [3]] != -1)[0]]
-        # vnodes4all = vmesh[np.where(ikle[:, [3]] != -1)[0]]
-        # shear_stressnodes4all = shear_stressmesh[np.where(ikle[:, [3]] != -1)[0]]
-        data_nodes4all = data_mesh_pd[np.where(ikle[:, [3]] != -1)[0]]
-
         hnodes4all[hnodes4all <= 0] = 0
-        # vnodes4all[hnodes4all == 0] = 0
-        # shear_stressnodes4all[hnodes4all == 0] = 0
-        data_nodes4all[hnodes4all == 0] = 0
-
         hnodes2all[nbnodes0:nbnodes2, :] = hnodes4all
-        # vnodes2all[nbnodes0:nbnodes2, :] = vnodes4all
-        # shear_stressnodes2all[nbnodes0:nbnodes2, :] = shear_stressnodes4all
-        data_nodes2all[nbnodes0:nbnodes2, :] = data_nodes4all
+
+        for i in range(nbunit):
+            nodes4all = data_mesh_pd_t_list[i].iloc[np.where(ikle[:, [3]] != -1)[0]]
+            nodes4all.iloc[hnodes4all[:, i] == 0] = 0
+            data_nodes2all[i][nbnodes0:nbnodes2, :] = nodes4all
 
     if bsub:
-        # return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all, sub
         return ikle2, nodes2, hnodes2all, data_nodes2all, sub
     else:
-        # return ikle2, nodes2, hnodes2all, vnodes2all, shear_stressnodes2all
         return ikle2, nodes2, hnodes2all, data_nodes2all
 
 
@@ -2197,3 +2152,77 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim=True, divgiv=[
 
     return mid_point_x, mid_point_y
 
+
+def get_triangular_grid(ikle, coord_c, xy, h, v, z):
+    """
+    In Rubar, it is possible to have non-triangular cells. It is possible to have a grid composed of a mix
+    of pentagonal, 4-sided and triangualr cells. This function transform the "mixed" grid to a triangular grid. For this,
+    it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
+    center of the cell). A similar function exists in hec-ras2D.py, but, as there is only one reach in rubar
+    and because ikle is different in hec-ras, it was hard to marge both functions together.
+
+    :param ikle: the connectivity table (list)
+    :param coord_c: the coordinate of the centroid of the cell (list)
+    :param xy: the points of the grid (np.array)
+    :param h: data on water height
+    :param v: data on velocity
+    :param z: data on bottom levels
+    :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)
+    """
+
+    # this is important for speed. np.array are slow to append value
+    xy = xy.tolist()
+    ikle = ikle.tolist()
+    coord_c = coord_c.tolist()
+    h2 = []
+    v2 = []
+    z2 = z.tolist()
+    nbtime = v.shape[1]
+    for t in range(0, nbtime):
+        h2.append(list(h[:, t]))
+        v2.append(list(v[:, t]))
+
+    # now create the triangular grid
+    for c in range(0, len(ikle)):
+        ikle_c = ikle[c]
+        if len(ikle_c) == 0:
+            del ikle[c]
+        elif len(ikle_c) < 3:
+            print('Error: A cell with an area of 0 is found.\n')
+            print(ikle_c)
+            return [-99], [-99], [-99], [-99], [-99]
+        elif len(ikle_c) > 3:
+            if -1 in ikle_c:
+                ikle[c] = ikle[c][:-1]
+            else:
+                # the new cell is compose of triangle where one point is the centroid and two points are side of
+                # the polygon which composed the cells before. The first new triangular cell take the place of the old one
+                # (to avoid changing the order of ikle), the other are added at the end
+                # no change to v and h for the first triangular data, change afterwards
+                xy.append(coord_c[c])
+                # add new value for the bottom level
+                z2.append(np.mean(np.array(z2)[ikle[c]]))
+                # first triangular cell
+                ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
+                p1 = xy[len(xy) - 1]
+                coord_c[c] = (np.array(xy[ikle_c[0]]) + np.array(xy[ikle_c[1]]) + p1) / 3
+                # next triangular cell
+                for s in range(1, len(ikle_c) - 1):
+                    ikle.append([ikle_c[s], ikle_c[s + 1], len(xy) - 1])
+                    coord_c.append((np.array(xy[ikle_c[s]]) + np.array(xy[ikle_c[s + 1]]) + p1) / 3)
+                    for t in range(0, nbtime):
+                        v2[t].append(v[c, t])
+                        h2[t].append(h[c, t])
+                # last triangular cells
+                ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
+                coord_c.append((np.array(xy[ikle_c[-1]]) + np.array(xy[ikle_c[0]]) + p1) / 3)
+                for t in range(0, nbtime):
+                    v2[t].append(v[c, t])
+                    h2[t].append(h[c, t])
+    xy = np.array(xy)
+    ikle = np.array(ikle)
+    v = np.array(v2).T
+    h = np.array(h2).T
+    z2 = np.array(z2)
+
+    return ikle, coord_c, xy, v, h, z2

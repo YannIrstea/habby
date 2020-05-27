@@ -312,7 +312,7 @@ class Data2d(list):
 
                     # change all node dataframe
                     # velocity_ok = velocity[ipt_iklenew_unique]
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
                         ipt_iklenew_unique]
 
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
@@ -328,12 +328,11 @@ class Data2d(list):
                         self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = temp_ok
 
                 else:
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].loc[
-                        ipt_iklenew_unique]
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
 
                 # erase old data
                 if not self[reach_num][unit_num]["mesh"]["data"].empty:
-                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].loc[ind_whole]
+                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[ind_whole]
                 self[reach_num][unit_num]["mesh"]["tin"] = iklekeep
                 self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
                 self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
@@ -362,7 +361,7 @@ class Data2d(list):
         for reach_num in range(0, self.reach_num):
             # for all units
             for unit_num in range(0, self.unit_num):
-                print("--- compute_variables unit", str(unit_num), " ---")
+                #print("--- compute_variables unit", str(unit_num), " ---")
                 """ node """
                 if node_variable_list:
                     for node_variable in node_variable_list:
@@ -428,30 +427,25 @@ class UnitDict(dict):
     """ mesh """
     # mean from node variable
     def c_mesh_mean_from_node_values(self, node_variable_name):
-        mesh_values = np.mean([self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 0]],
-                               self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 1]],
-                               self["node"]["data"][node_variable_name][self["mesh"]["tin"][:, 2]]], axis=0)
+        mesh_values = np.mean([self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 0]],
+                               self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 1]],
+                               self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 2]]], axis=0)
         return mesh_values
 
     def c_mesh_elevation(self):
-        print("c_mesh_elevation")
         self["mesh"]["data"][self.hvum.z.name] = self.c_mesh_mean_from_node_values(self.hvum.z.name)
 
     def c_mesh_height(self):
-        print("c_mesh_height")
         self["mesh"]["data"][self.hvum.h.name] = self.c_mesh_mean_from_node_values(self.hvum.h.name)
 
     def c_mesh_velocity(self):
-        print("c_mesh_velocity")
         self["mesh"]["data"][self.hvum.v.name] = self.c_mesh_mean_from_node_values(self.hvum.v.name)
 
     def c_mesh_shear_stress(self):
-        print("c_mesh_shear_stress")
         self["mesh"]["data"][self.hvum.shear_stress.name] = self.c_mesh_mean_from_node_values(self.hvum.shear_stress.name)
 
     # compute from node variable
     def c_mesh_shear_stress_beta(self):
-        print("c_mesh_shear_stress_beta")
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
         z1 = self["node"]["data"][self.hvum.z.name].to_numpy()[self["mesh"]["tin"][:, 0]]
         h1 = self["node"]["data"][self.hvum.h.name].to_numpy()[self["mesh"]["tin"][:, 0]]
@@ -485,7 +479,6 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.shear_stress_beta.name] = shear_stress
 
     def c_mesh_max_slope_bottom(self):
-        print("c_mesh_max_slope_bottom")
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
         z1 = self["node"]["data"]["z"].to_numpy()[self["mesh"]["tin"][:, 0]]
         xy2 = self["node"]["xy"][self["mesh"]["tin"][:, 1]]
@@ -511,7 +504,6 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.max_slope_bottom.name] = max_slope_bottom
 
     def c_mesh_max_slope_energy(self):
-        print("c_mesh_max_slope_energy")
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
         z1 = self["node"]["data"][self.hvum.z.name].to_numpy()[self["mesh"]["tin"][:, 0]]
         h1 = self["node"]["data"][self.hvum.h.name].to_numpy()[self["mesh"]["tin"][:, 0]]
@@ -544,7 +536,6 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.max_slope_energy.name] = max_slope_energy
 
     def c_mesh_froude(self):
-        print("c_mesh_froude")
         mesh_colnames = self["mesh"]["data"].columns.tolist()
         # if v and h mesh existing
         if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
@@ -560,7 +551,6 @@ class UnitDict(dict):
             self["mesh"]["data"][self.hvum.froude.name] = self.c_mesh_mean_from_node_values(self.hvum.froude.name)
 
     def c_mesh_hydraulic_head(self):
-        print("c_mesh_hydraulic_head")
         mesh_colnames = self["mesh"]["data"].columns.tolist()
         # if v and h mesh existing
         if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
@@ -572,7 +562,6 @@ class UnitDict(dict):
             self["mesh"]["data"][self.hvum.hydraulic_head.name] = self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head.name)
 
     def c_mesh_conveyance(self):
-        print("c_mesh_conveyance")
         mesh_colnames = self["mesh"]["data"].columns.tolist()
         # if v and h mesh existing
         if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
@@ -583,7 +572,6 @@ class UnitDict(dict):
             self["mesh"]["data"][self.hvum.conveyance.name] = self.c_mesh_mean_from_node_values(self.hvum.conveyance.name)
 
     def c_mesh_water_level(self):
-        print("c_mesh_water_level")
         mesh_colnames = self["mesh"]["data"].columns.tolist()
         # if z and h mesh existing
         if self.hvum.h.name in mesh_colnames and self.hvum.z.name in mesh_colnames:
@@ -595,7 +583,6 @@ class UnitDict(dict):
             self["mesh"]["data"][self.hvum.level.name] = self.c_mesh_mean_from_node_values(self.hvum.level.name)
 
     def c_mesh_area(self, tin, xy):
-        print("c_mesh_area")
         # get points coord
         pa = xy[tin[:, 0]]
         pb = xy[tin[:, 1]]
@@ -609,27 +596,22 @@ class UnitDict(dict):
 
     """ node """
     def c_node_shear_stress(self):
-        print("c_node_shear_stress")
         self["node"]["data"][self.hvum.shear_stress.name] = (self["node"]["data"][self.hvum.v_frict.name] ** 2) * self.hvum.ro.value
 
     def c_node_froude(self):
-        print("c_node_froude")
         # compute froude
         self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.v.name] / np.sqrt(self.hvum.g.value * self["node"]["data"][self.hvum.h.name])
         with pd.option_context('mode.use_inf_as_na', True):
             self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(0)  # divid by 0 return Nan
 
     def c_node_hydraulic_head(self):
-        print("c_node_hydraulic_head")
         # TODO: add z for 3d pvd
         # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
         self["node"]["data"][self.hvum.hydraulic_head.name] = self["node"]["data"][self.hvum.h.name] + ((self["node"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
 
     def c_node_conveyance(self):
-        print("c_node_conveyance")
         self["node"]["data"][self.hvum.conveyance.name] = self["node"]["data"][self.hvum.h.name] * self["node"]["data"][self.hvum.v.name]
 
     def c_node_water_level(self):
-        print("c_node_water_level")
         self["node"]["data"][self.hvum.level.name] = self["node"]["data"][self.hvum.z.name] + self["node"]["data"][self.hvum.h.name]
 

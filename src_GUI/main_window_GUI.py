@@ -501,7 +501,7 @@ class MainWindows(QMainWindow):
         change_specific_properties(self.path_prj,
                                    preference_names=["language"],
                                    preference_values=[self.lang])
-        print("self.central_widget.setFocus()")
+        #print("self.central_widget.setFocus()")
         self.central_widget.setFocus()
 
         self.central_widget.write_log(self.tr('Project created.'))
@@ -545,7 +545,7 @@ class MainWindows(QMainWindow):
         self.central_widget.name_prj = self.name_prj
 
         # recreate new widget
-        print("recreate_tabs_attributes1")
+        #print("recreate_tabs_attributes1")
         self.recreate_tabs_attributes()
 
         # update estimhab and stathab
@@ -713,7 +713,7 @@ class MainWindows(QMainWindow):
         self.central_widget.tab_widget.removeTab(0)
 
         # recreate new widget
-        print("recreate_tabs_attributes2")
+        #print("recreate_tabs_attributes2")
         self.recreate_tabs_attributes()
 
         # add_all_tab
@@ -929,7 +929,7 @@ class MainWindows(QMainWindow):
         self.app.installTranslator(self.languageTranslator)
 
         # recreate new widget
-        print("recreate_tabs_attributes3")
+        #print("recreate_tabs_attributes3")
         self.recreate_tabs_attributes()
         if self.central_widget.tab_widget.count() == 1:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
