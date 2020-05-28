@@ -22,9 +22,10 @@ from copy import deepcopy
 import numpy as np
 import triangle
 import matplotlib.pyplot as plt
+
 from src import hdf5_mod
 from src.tools_mod import get_translator
-
+from src.plot_mod import plot_to_check_mesh_merging
 
 def quadrangles_to_triangles(ikle4, xy, z, h, v):
     """
@@ -211,9 +212,20 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
     for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
         merge_description[attribute_name] = attribute_value
 
+    plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[0][0]["node"]["xy"],
+                               hyd_tin=hdf5_hydro.data_2d[0][0]["mesh"]["tin"],
+
+                               sub_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
+                               sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
+                               sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy(),
+
+                               merge_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
+                               merge_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
+                               merge_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy())
+
     # data_2d_merge and data_2d_whole_merge
-    data_2d_merge = dict(hdf5_hydro.data_2d)
-    data_2d_whole_merge = dict(hdf5_hydro.data_2d_whole)
+    data_2d_merge = hdf5_hydro.data_2d
+    data_2d_whole_merge = hdf5_hydro.data_2d_whole
 
     # CONSTANT CASE
     if hdf5_sub.data_description["sub_mapping_method"] == "constant":  # set default value to all mesh
@@ -921,16 +933,17 @@ def set_constant_values_to_merge_data(hdf5_hydro, hdf5_sub, data_2d_merge, data_
         for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
             try:
                 default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
-                sub_array = np.repeat([default_data], len(data_2d_merge["mesh"]["tin"][reach_num][unit_num]), 0)
+                sub_array = np.repeat([default_data], len(data_2d_merge[reach_num][unit_num]["mesh"]["tin"]), 0)
             except ValueError or TypeError:
                 print('Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
                 return False, False
             sub_array_by_unit.append(sub_array)
+            data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub"] = sub_array[:, 0]
 
             # get points coord
-            pa = data_2d_merge["node"]["xy"][reach_num][unit_num][data_2d_merge["mesh"]["tin"][reach_num][unit_num][:, 0]]
-            pb = data_2d_merge["node"]["xy"][reach_num][unit_num][data_2d_merge["mesh"]["tin"][reach_num][unit_num][:, 1]]
-            pc = data_2d_merge["node"]["xy"][reach_num][unit_num][data_2d_merge["mesh"]["tin"][reach_num][unit_num][:, 2]]
+            pa = data_2d_merge[reach_num][unit_num]["node"]["xy"][data_2d_merge[reach_num][unit_num]["mesh"]["tin"][:, 0]]
+            pb = data_2d_merge[reach_num][unit_num]["node"]["xy"][data_2d_merge[reach_num][unit_num]["mesh"]["tin"][:, 1]]
+            pc = data_2d_merge[reach_num][unit_num]["node"]["xy"][data_2d_merge[reach_num][unit_num]["mesh"]["tin"][:, 2]]
             # get area2
             area = 0.5 * abs(
                 (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))

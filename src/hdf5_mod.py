@@ -211,12 +211,13 @@ class Hdf5Management:
 
             # substrate constant ==> nothing to plot
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
-                self.variables = []
+                self.hvum.get_original_computable_mesh_and_node_from_hdf5(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
+                                                                          hdf5_attributes_dict["node_variable_original_name_list"].tolist())
 
             # substrate polygon/point
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] != "constant":
-                pass
-
+                self.hvum.get_original_computable_mesh_and_node_from_hdf5(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
+                                                                          hdf5_attributes_dict["node_variable_original_name_list"].tolist())
             # habitat
             else:
                 # get fish list
@@ -356,8 +357,6 @@ class Hdf5Management:
 
         # variables attrs
         data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        # print("node data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.nodes().names_gui()))
-        # print("mesh data :", ", ".join(data_2d.hvum.hdf5_and_computable_list.meshs().names_gui()))
         self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
         self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
         self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()
@@ -672,6 +671,13 @@ class Hdf5Management:
         for attribute_name, attribute_value in list(sub_description_system.items()):
             self.file_object.attrs[attribute_name] = attribute_value
 
+        # variables attrs
+        data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
+        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
+        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
+        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()
+        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().units()
+
         # POLYGON or POINT
         if sub_description_system["sub_mapping_method"] in ("polygon", "point"):
             # create specific attributes
@@ -687,36 +693,31 @@ class Hdf5Management:
             # data_2d
             data_group = self.file_object.create_group('data_2d')
             # REACH GROUP
-            for reach_num in range(data_2d["nb_reach"]):
+            for reach_num in range(data_2d.reach_num):
                 reach_group = data_group.create_group('reach_' + str(reach_num))
                 # UNIT GROUP
-                for unit_num in range(data_2d["nb_unit"]):
+                for unit_num in range(data_2d.unit_num):
                     unit_group = reach_group.create_group('unit_' + str(unit_num))
                     # MESH GROUP
                     mesh_group = unit_group.create_group('mesh')
-                    mesh_data_group = mesh_group.create_group('data')
                     mesh_group.create_dataset(name="tin",
-                                              shape=[len(data_2d["mesh"]["tin"][reach_num][unit_num]), 3],
-                                              data=data_2d["mesh"]["tin"][reach_num][unit_num])
-                    # mesh_data_group.create_dataset(name="sub",
-                    #                           shape=[data_2d["sub"][unit_num].shape[0],
-                    #                                  data_2d["sub"][unit_num].shape[1]],
-                    #                           data=data_2d["sub"][unit_num])
-                    for mesh_variable in data_2d["mesh"]["data"].keys():
-                        mesh_data_group.create_dataset(name=mesh_variable,
-                                                       shape=data_2d["mesh"]["data"][mesh_variable][reach_num][
-                                                           unit_num].shape,
-                                                       data=data_2d["mesh"]["data"][mesh_variable][reach_num][unit_num])
+                                              shape=[len(data_2d[reach_num][unit_num]["mesh"]["tin"]), 3],
+                                              data=data_2d[reach_num][unit_num]["mesh"]["tin"])
+                    rec_array = data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
+                    mesh_group.create_dataset(name="data",
+                                              shape=rec_array.shape,
+                                              data=rec_array,
+                                              dtype=rec_array.dtype)
 
                     # NODE GROUP
-                    xMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
-                    xMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 0]))
-                    yMin.append(min(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
-                    yMax.append(max(data_2d["node"]["xy"][reach_num][unit_num][:, 1]))
+                    xMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
+                    xMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
+                    yMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
+                    yMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
                     node_group = unit_group.create_group('node')
                     node_group.create_dataset(name="xy",
-                                              shape=[len(data_2d["node"]["xy"][reach_num][unit_num]), 2],
-                                              data=data_2d["node"]["xy"][reach_num][unit_num])
+                                              shape=data_2d[reach_num][unit_num]["node"]["xy"].shape,
+                                              data=data_2d[reach_num][unit_num]["node"]["xy"])
 
             # get extent
             xMin = min(xMin)
@@ -765,49 +766,68 @@ class Hdf5Management:
             sub_description_system[attribute_name] = attribute_value
 
         # DATA 2D
-        sub_mesh_variables_list = ["sub"]
-        data_2d = create_empty_data_2d_dict(1,
-                                            mesh_variables=sub_mesh_variables_list)
+        data_2d = Data2d()
 
         if sub_description_system["sub_mapping_method"] == "constant":
-            data_2d["mesh"]["data"]["sub"] = self.file_object["sub"][:].tolist()[0]
+            # unit_dict
+            unit_dict = UnitDict()
+            unit_dict["mesh"]["data"] = self.file_object["sub"][:].tolist()[0]
+            data_2d.append(unit_dict)
 
-        if sub_description_system["sub_mapping_method"] != "constant":
-            data_2d["nb_unit"] = int(self.file_object.attrs['sub_unit_number'])
-            data_2d["nb_reach"] = int(self.file_object.attrs['sub_reach_number'])
+        elif sub_description_system["sub_mapping_method"] != "constant":
             data_group = 'data_2d'
-            # for all reach
-            for reach_num in range(0, data_2d["nb_reach"]):
+            reach_list = list(self.file_object[data_group].keys())
+            # for each reach
+            for reach_num, reach_group_name in enumerate(reach_list):
+                unit_list = []
                 reach_group = data_group + "/reach_" + str(reach_num)
-                # for all unit
-                for t in range(0, data_2d["nb_unit"]):
-                    unit_group = reach_group + "/unit_" + str(t)
+                available_unit_list = list(self.file_object[reach_group].keys())
+                # for each desired_units
+                for unit_num, unit_group_name in enumerate(available_unit_list):
+                    unit_group = reach_group + "/unit_" + str(unit_num)
                     mesh_group = unit_group + "/mesh"
-                    mesh_data_group = mesh_group + "/data"
                     node_group = unit_group + "/node"
                     try:
-                        # mesh
-                        data_2d["mesh"]["tin"][reach_num].append(self.file_object[mesh_group + "/tin"][:])
+                        # # mesh
+                        # data_2d[reach_num]["mesh"]["tin"].append(self.file_object[mesh_group + "/tin"][:])
+                        #
+                        # # mesh data
+                        # for mesh_variable in sub_mesh_variables_list:
+                        #     if mesh_variable == "sub":
+                        #         if convert_to_coarser_dom and sub_description_system["sub_classification_method"] != "coarser-dominant":
+                        #             sub_array = self.file_object[mesh_data_group + "/sub"][:]
+                        #             sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
+                        #             data_2d[reach_num]["mesh"]["data"]["sub"].append(np.array(list(zip(sub_coarser, sub_dominant))))
+                        #
+                        #         else:
+                        #             data_2d[reach_num]["mesh"]["data"]["sub"].append(self.file_object[mesh_data_group + "/sub"][:])
+                        #     else:
+                        #         data_2d[reach_num]["mesh"]["data"][mesh_variable].append(self.file_object[mesh_data_group + "/" + mesh_variable][:])
+                        #
+                        # # node
+                        # data_2d["node"]["xy"][reach_num].append(self.file_object[node_group + "/xy"][:])
 
-                        # mesh data
-                        for mesh_variable in sub_mesh_variables_list:
-                            if mesh_variable == "sub":
-                                if convert_to_coarser_dom and sub_description_system["sub_classification_method"] != "coarser-dominant":
-                                    sub_array = self.file_object[mesh_data_group + "/sub"][:]
-                                    sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
-                                    data_2d["mesh"]["data"]["sub"][reach_num].append(np.array(list(zip(sub_coarser, sub_dominant))))
+                        # unit_dict
+                        unit_dict = UnitDict()
+                        unit_dict["node"] = dict(data=None,
+                                                 xy=self.file_object[node_group + "/xy"][:])
+                        tin = self.file_object[mesh_group + "/tin"][:]
+                        unit_dict["mesh"] = dict(data=None,
+                                                 i_whole_profile=np.arange(0,
+                                                                           tin.shape[0]),
+                                                 tin=tin)
+                        # data (always ?)
+                        unit_dict["mesh"]["data"] = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
 
-                                else:
-                                    data_2d["mesh"]["data"]["sub"][reach_num].append(self.file_object[mesh_data_group + "/sub"][:])
-                            else:
-                                data_2d["mesh"]["data"][mesh_variable][reach_num].append(self.file_object[mesh_data_group + "/" + mesh_variable][:])
+                        unit_list.append(unit_dict)
 
-                        # node
-                        data_2d["node"]["xy"][reach_num].append(self.file_object[node_group + "/xy"][:])
+
                     except Exception as e:
                         print('Error: ' + qt_tr.translate("hdf5_mod", 'load_hdf5_sub : ') + str(e) + "\n")
                         self.file_object.close()
                         return
+                # append by reach
+                data_2d.append(unit_list)
 
         self.file_object.close()
         self.file_object = None

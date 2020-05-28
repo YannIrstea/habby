@@ -293,9 +293,6 @@ class DataExplorerFrame(QFrame):
                             mesh_item.setData(Qt.UserRole, mesh)
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
-                                # item_font = mesh_item.font()
-                                # item_font.setItalic(True)
-                                # mesh_item.setFont(item_font)
                                 mesh_item.setToolTip("computable")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
                     if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
@@ -304,9 +301,6 @@ class DataExplorerFrame(QFrame):
                             node_item.setData(Qt.UserRole, node)
                             if not node.hdf5:
                                 node_item.setText(node_item.text() + " *")
-                                # item_font = node_item.font()
-                                # item_font.setItalic(True)
-                                # node_item.setFont(item_font)
                                 node_item.setToolTip("computable")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
@@ -322,8 +316,18 @@ class DataExplorerFrame(QFrame):
                 # substrat
                 if self.types_hdf5_QComboBox.currentIndex() == 2:
                     self.set_substrate_layout()
-                    if hdf5.variables:  # if not False (from constant substrate) add items else nothing
-                        self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
+                    if hdf5.hvum.hdf5_and_computable_list.meshs().hdf5s().names_gui():  # only hdf5 variables
+                        if hdf5.hvum.hdf5_and_computable_list.meshs().hdf5s().names_gui():
+                            for mesh in hdf5.hvum.hdf5_and_computable_list.hdf5s().meshs():
+                                mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
+                                mesh_item.setData(Qt.UserRole, mesh)
+                                self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
+                        if hdf5.hvum.hdf5_and_computable_list.nodes().hdf5s().names_gui():
+                            for node in hdf5.hvum.hdf5_and_computable_list.hdf5s().nodes():
+                                node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
+                                node_item.setData(Qt.UserRole, node)
+                                self.plot_group.node_variable_QListWidget.addItem(node_item)
+
                         if hdf5.reach_name:
                             self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                             if len(hdf5.reach_name) == 1:

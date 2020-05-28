@@ -28,9 +28,12 @@ from osgeo import osr
 from osgeo.ogr import GetDriverByName
 from osgeo.osr import SpatialReference
 from scipy.spatial import Voronoi
+import pandas as pd
 
 from src import hdf5_mod
 from src.tools_mod import polygon_type_values, point_type_values
+from src.data_2d_mod import Data2d, UnitDict
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -75,14 +78,16 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         sub_description["name_hdf5"] = sub_description["name_hdf5"] + ".sub"
 
     # load specific sub
-    if sub_description["sub_mapping_method"] == "polygon":
-        data_2d = load_sub_sig(sub_description, progress_value)
-
-    if sub_description["sub_mapping_method"] == "point":
-        data_2d = load_sub_txt(sub_description, progress_value)
-
     if sub_description["sub_mapping_method"] == "constant":
         data_2d = load_sub_cst(sub_description, progress_value)
+    elif sub_description["sub_mapping_method"] == "polygon":
+        data_2d = load_sub_sig(sub_description, progress_value)
+    elif sub_description["sub_mapping_method"] == "point":
+        data_2d = load_sub_txt(sub_description, progress_value)
+
+    data_2d.hvum = HydraulicVariableUnitManagement()
+    data_2d.hvum.detect_variable_from_sub_description(sub_description)
+    data_2d.rename_substrate_column_data()
 
     # save hdf5
     if data_2d:
@@ -537,16 +542,19 @@ def load_sub_sig(sub_description, progress_value):
                         xy.append(p_all[j])
                 tin.append(tin_i)
 
-            # get data
-            data_2d = dict()
-            data_2d["mesh"] = dict()
-            data_2d["mesh"]["data"] = dict()
-            data_2d["node"] = dict()
-            data_2d["mesh"]["tin"] = [[np.array(tin)]]
-            data_2d["node"]["xy"] = [[np.array(xy)]]
-            data_2d["mesh"]["data"]["sub"] = [[sub_array]]
-            data_2d["nb_unit"] = 1
-            data_2d["nb_reach"] = 1
+            # data_2d
+            data_2d = Data2d()
+            unit_dict = UnitDict()
+            unit_dict["node"] = dict(data=None,
+                                     xy=np.array(xy))
+            unit_dict["mesh"] = dict(data=None,
+                                     tin=np.array(tin))
+            unit_dict["mesh"]["data"] = pd.DataFrame()
+
+            # TODO: be carefull of header order
+            for header_num, header in enumerate(header_list):
+                unit_dict["mesh"]["data"][header] = sub_array[:, header_num]
+            data_2d.append([unit_dict])
 
     return data_2d
 

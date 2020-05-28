@@ -16,6 +16,7 @@ https://github.com/YannIrstea/habby
 """
 from copy import deepcopy
 import numpy as np
+from inspect import currentframe, getframeinfo
 
 
 class HydraulicVariable:
@@ -30,6 +31,7 @@ class HydraulicVariable:
         self.data = [[]]
         self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
         self.hdf5 = False  # hdf5 or computable
+        self.sub = False  # False: hydraulic (default) True: substrate
         self.habitat = False  # False: hydraulic and substrate (default) True: Habitat
         self.index_gui = index_gui  # position index in gui
 
@@ -96,6 +98,20 @@ class HydraulicVariableUnitList(list):
                 mesh_list.append(hvu)
         return mesh_list
 
+    def subs(self):
+        sub_list = HydraulicVariableUnitList()
+        for hvu in self:
+            if hvu.sub:
+                sub_list.append(hvu)
+        return sub_list
+
+    def no_subs(self):
+        no_sub_list = HydraulicVariableUnitList()
+        for hvu in self:
+            if not hvu.sub:
+                no_sub_list.append(hvu)
+        return no_sub_list
+
     def habs(self):
         hab_list = HydraulicVariableUnitList()
         for hvu in self:
@@ -161,98 +177,178 @@ class HydraulicVariableUnitManagement:
                                    name="z",
                                    name_gui="elevation",
                                    dtype=np.float64,
-                                   index_gui=0)
-        # usefull variable values
+                                   index_gui=getframeinfo(currentframe()).lineno)
+        # hyd variable minimum
         self.h = HydraulicVariable(value=None,
                                    unit="m",
                                    name="h",
                                    name_gui="water depth",
                                    dtype=np.float64,
-                                   index_gui=1)
+                                   index_gui=getframeinfo(currentframe()).lineno)
         self.v = HydraulicVariable(value=None,
                                    unit="m/s",
                                    name="v",
                                    name_gui="water velocity",
                                    dtype=np.float64,
-                                   index_gui=2)
-        self.sub = HydraulicVariable(value=None,
+                                   index_gui=getframeinfo(currentframe()).lineno)
+        # sub variable
+        self.sub_coarser = HydraulicVariable(value=None,
                                      unit="",
-                                     name="sub",
-                                     name_gui="substrate",
+                                     name="sub_coarser",
+                                     name_gui="sub coarser",
                                      dtype=np.int64,
-                                     index_gui=3)
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_dom = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_dom",
+                                     name_gui="sub dominant",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s1 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s1",
+                                     name_gui="sub S1",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s2 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s2",
+                                     name_gui="sub S2",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s3 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s3",
+                                     name_gui="sub S3",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s4 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s4",
+                                     name_gui="sub S4",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s5 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s5",
+                                     name_gui="sub S5",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s6 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s6",
+                                     name_gui="sub S6",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s7 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s7",
+                                     name_gui="sub S7",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s8 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s8",
+                                     name_gui="sub S8",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s9 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s9",
+                                     name_gui="sub S9",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s10 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s10",
+                                     name_gui="sub S10",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s11 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s11",
+                                     name_gui="sub S11",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        self.sub_s12 = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="sub_s12",
+                                     name_gui="sub S12",
+                                     dtype=np.int64,
+                                     index_gui=getframeinfo(currentframe()).lineno)
+        # hyd variable other
         self.v_x = HydraulicVariable(value=None,
                                      unit="m/s",
                                      name="v_x",
                                      name_gui="water velocity x",
                                      dtype=np.float64,
-                                     index_gui=4)
+                                     index_gui=getframeinfo(currentframe()).lineno)
         self.v_y = HydraulicVariable(value=None,
                                      unit="m/s",
                                      name="v_y",
                                      name_gui="water velocity y",
                                      dtype=np.float64,
-                                     index_gui=5)
+                                     index_gui=getframeinfo(currentframe()).lineno)
         self.v_frict = HydraulicVariable(value=None,
                                          unit="m/s",
                                          name="v_frict",
                                          name_gui="water velocity friction",
                                          dtype=np.float64,
-                                         index_gui=6)
+                                         index_gui=getframeinfo(currentframe()).lineno)
         self.shear_stress = HydraulicVariable(value=None,
                                               unit="N/m²",
                                               name="shear_stress",
                                               name_gui="shear stress",
                                               dtype=np.float64,
-                                              index_gui=7)
+                                              index_gui=getframeinfo(currentframe()).lineno)
         self.shear_stress_beta = HydraulicVariable(value=None,
                                                    unit="N/m²",
                                                    name="shear_stress_beta",
                                                    name_gui="shear stress beta",
                                                    dtype=np.float64,
-                                                   index_gui=8)
+                                                   index_gui=getframeinfo(currentframe()).lineno)
         self.level = HydraulicVariable(value=None,
                                        unit="m",
                                        name="level",
                                        name_gui="water level",
                                        dtype=np.float64,
-                                       index_gui=9)
+                                       index_gui=getframeinfo(currentframe()).lineno)
         self.froude = HydraulicVariable(value=None,
                                         unit="",
                                         name="froude",
                                         name_gui="froude number",
                                         dtype=np.float64,
-                                        index_gui=10)
+                                        index_gui=getframeinfo(currentframe()).lineno)
         self.hydraulic_head = HydraulicVariable(value=None,
                                                 unit="m",
                                                 name="hydraulic_head",
                                                 name_gui="hydraulic head",
                                                 dtype=np.float64,
-                                                index_gui=11)
+                                                index_gui=getframeinfo(currentframe()).lineno)
         self.conveyance = HydraulicVariable(value=None,
                                             unit="m²/s",
                                             name="conveyance",
                                             name_gui="conveyance",
                                             dtype=np.float64,
-                                            index_gui=12)
+                                            index_gui=getframeinfo(currentframe()).lineno)
         self.max_slope_bottom = HydraulicVariable(value=None,
                                                   unit="m/m",
                                                   name="max_slope_bottom",
                                                   name_gui="max slope bottom",
                                                   dtype=np.float64,
-                                                  index_gui=13)
+                                                  index_gui=getframeinfo(currentframe()).lineno)
         self.max_slope_energy = HydraulicVariable(value=None,
                                                   unit="m/m",
                                                   name="max_slope_energy",
                                                   name_gui="max slope energy",
                                                   dtype=np.float64,
-                                                  index_gui=14)
+                                                  index_gui=getframeinfo(currentframe()).lineno)
         self.temp = HydraulicVariable(value=None,
                                       unit="",
                                       name="temp",
                                       name_gui="temperature",
                                       dtype=np.float64,
-                                      index_gui=15)
+                                      index_gui=getframeinfo(currentframe()).lineno)
 
         # all_available_variables_list
         self.all_sys_variable_list = HydraulicVariableUnitList()
@@ -313,6 +409,34 @@ class HydraulicVariableUnitManagement:
             else:
                 self.v.precomputable_tohdf5 = False
             self.hdf5_and_computable_list.append(self.v)
+
+    def detect_variable_from_sub_description(self, sub_description):
+        sub_class_number = 2
+        if sub_description["sub_classification_method"] == 'coarser-dominant':
+            # coarser
+            self.sub_coarser.position = "mesh"
+            self.sub_coarser.hdf5 = True
+            self.sub_coarser.unit = sub_description["sub_classification_code"]
+            self.sub_coarser.sub = True
+            self.hdf5_and_computable_list.append(self.sub_coarser)
+            # dominant
+            self.sub_dom.position = "mesh"
+            self.sub_dom.hdf5 = True
+            self.sub_dom.unit = sub_description["sub_classification_code"]
+            self.sub_dom.sub = True
+            self.hdf5_and_computable_list.append(self.sub_dom)
+        elif sub_description["sub_classification_method"] == 'percentage':
+            if sub_description["sub_classification_code"] == "Cemagref":
+                sub_class_number = 8
+            elif sub_description["sub_classification_code"] == "Sandre":
+                sub_class_number = 12
+            for i in range(1, sub_class_number + 1):
+                sub_sx = getattr(self, "sub_s" + str(i))
+                sub_sx.position = "mesh"
+                sub_sx.hdf5 = True
+                sub_sx.unit = sub_description["sub_classification_code"]
+                sub_sx.sub = True
+                self.hdf5_and_computable_list.append(sub_sx)
 
     def get_original_computable_mesh_and_node_from_hdf5(self, mesh_variable_original_name_list, node_variable_original_name_list):
         # hdf5

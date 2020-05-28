@@ -35,6 +35,10 @@ class Data2d(list):
         if self.reach_num:
             self.unit_num = len(self[self.reach_num - 1])
 
+    def append(self, hydraulic_variable):
+        super(Data2d, self).append(hydraulic_variable)
+        self.get_informations()
+
     def add_reach(self, data_2d_new, reach_num):
         self.append(data_2d_new[reach_num])
 
@@ -109,6 +113,11 @@ class Data2d(list):
         for reach_num in range(self.reach_num):
             self[reach_num] = [self[reach_num][0]]
         self.get_informations()
+
+    def rename_substrate_column_data(self):
+        for reach_num in range(self.reach_num):
+            for unit_num in range(self.unit_num):
+                self[reach_num][unit_num]["mesh"]["data"].columns = self.hvum.hdf5_and_computable_list.subs().names()
 
     def cut_2d(self, unit_list, progress_value, delta_file, CutMeshPartialyDry, min_height):
         """
