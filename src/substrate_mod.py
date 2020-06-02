@@ -89,18 +89,16 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     data_2d.hvum.detect_variable_from_sub_description(sub_description)
     data_2d.rename_substrate_column_data()
 
-    # save hdf5
-    if data_2d:
-        # security if point case
-        sub_description["sub_path_source"] = sub_path_source
-        sub_description["sub_filename_source"] = sub_filename_source
+    # security if point case
+    sub_description["sub_path_source"] = sub_path_source
+    sub_description["sub_filename_source"] = sub_filename_source
 
-        hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"],
-                                       sub_description["name_hdf5"])
-        hdf5.create_hdf5_sub(sub_description, data_2d)
+    hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"],
+                                   sub_description["name_hdf5"])
+    hdf5.create_hdf5_sub(sub_description, data_2d)
 
-        # prog
-        progress_value.value = 100
+    # prog
+    progress_value.value = 100
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -565,14 +563,13 @@ def load_sub_cst(sub_description, progress_value):
     # prog
     progress_value.value = 10
 
-    # create data_2d dict
-    constant_values_list = sub_description["sub_default_values"].split(",")
-    sub_array = [[] for _ in range(len(constant_values_list))]
-    for i, value in enumerate(constant_values_list):
-        sub_array[i] = int(value.strip())
-    data_2d = dict(sub=[sub_array],
-                nb_unit=1,
-                nb_reach=1)
+    sub_constant_values = sub_description["sub_default_values"].split(",")
+
+    # data_2d
+    data_2d = Data2d()
+    for i, value in enumerate(sub_constant_values):
+        sub_constant_values[i] = int(value.strip())  # clean string and convert to int
+    data_2d.sub_constant_values = np.array(sub_constant_values, dtype=np.int64)
 
     # prog
     progress_value.value = 90

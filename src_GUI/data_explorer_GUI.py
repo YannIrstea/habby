@@ -316,18 +316,24 @@ class DataExplorerFrame(QFrame):
                 # substrat
                 if self.types_hdf5_QComboBox.currentIndex() == 2:
                     self.set_substrate_layout()
-                    if hdf5.hvum.hdf5_and_computable_list.meshs().hdf5s().names_gui():  # only hdf5 variables
-                        if hdf5.hvum.hdf5_and_computable_list.meshs().hdf5s().names_gui():
-                            for mesh in hdf5.hvum.hdf5_and_computable_list.hdf5s().meshs():
-                                mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                                mesh_item.setData(Qt.UserRole, mesh)
-                                self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                        if hdf5.hvum.hdf5_and_computable_list.nodes().hdf5s().names_gui():
-                            for node in hdf5.hvum.hdf5_and_computable_list.hdf5s().nodes():
-                                node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                                node_item.setData(Qt.UserRole, node)
-                                self.plot_group.node_variable_QListWidget.addItem(node_item)
+                    if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
+                        for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
+                            mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
+                            mesh_item.setData(Qt.UserRole, mesh)
+                            if not mesh.hdf5:
+                                mesh_item.setText(mesh_item.text() + " *")
+                                mesh_item.setToolTip("computable")
+                            self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
+                    if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
+                        for node in hdf5.hvum.hdf5_and_computable_list.nodes():
+                            node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
+                            node_item.setData(Qt.UserRole, node)
+                            if not node.hdf5:
+                                node_item.setText(node_item.text() + " *")
+                                node_item.setToolTip("computable")
+                            self.plot_group.node_variable_QListWidget.addItem(node_item)
 
+                    if hdf5.sub_mapping_method != "constant":
                         if hdf5.reach_name:
                             self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                             if len(hdf5.reach_name) == 1:
@@ -368,9 +374,6 @@ class DataExplorerFrame(QFrame):
             height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(hdf5.hdf5_attributes_name_text) + 1)
             self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
             self.file_information_group.toggle_group(self.file_information_group.isChecked())
-
-
-
 
         # count plot
         self.plot_group.count_plot()
@@ -913,7 +916,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     self.process_list.set_plot_hdf5_mode(self.path_prj, name_hdf5, plot_attr, project_preferences)
                     # start thread
                     self.process_list.start()
-
 
             # progress bar
             self.plot_progressbar.setRange(0, self.process_list.nb_plot_total)

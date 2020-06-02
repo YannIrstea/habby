@@ -425,6 +425,12 @@ class Data2d(list):
                         # compute max_slope_energy
                         elif mesh_variable.name == self.hvum.max_slope_energy.name:
                             self[reach_num][unit_num].c_mesh_max_slope_energy()
+                        # compute coarser
+                        elif mesh_variable.name == self.hvum.sub_coarser.name:
+                            self[reach_num][unit_num].c_mesh_sub_coarser()
+                        # compute dominant
+                        elif mesh_variable.name == self.hvum.sub_dom.name:
+                            self[reach_num][unit_num].c_mesh_sub_dom()
 
 
 class UnitDict(dict):
@@ -602,6 +608,105 @@ class UnitDict(dict):
                 pb[:, 1] - pa[:, 1]))
 
         return area
+
+    def c_mesh_sub_coarser(self):
+        if self.hvum.sub_s12.name in self["mesh"]["data"].columns:
+            sub_percent = np.array([self["mesh"]["data"][self.hvum.sub_s1.name],
+                                    self["mesh"]["data"][self.hvum.sub_s2.name],
+                                    self["mesh"]["data"][self.hvum.sub_s3.name],
+                                    self["mesh"]["data"][self.hvum.sub_s4.name],
+                                    self["mesh"]["data"][self.hvum.sub_s5.name],
+                                    self["mesh"]["data"][self.hvum.sub_s6.name],
+                                    self["mesh"]["data"][self.hvum.sub_s7.name],
+                                    self["mesh"]["data"][self.hvum.sub_s8.name],
+                                    self["mesh"]["data"][self.hvum.sub_s9.name],
+                                    self["mesh"]["data"][self.hvum.sub_s10.name],
+                                    self["mesh"]["data"][self.hvum.sub_s11.name],
+                                    self["mesh"]["data"][self.hvum.sub_s12.name],
+                                    ]).T
+        else:
+            sub_percent = np.array([self["mesh"]["data"][self.hvum.sub_s1.name],
+                                    self["mesh"]["data"][self.hvum.sub_s2.name],
+                                    self["mesh"]["data"][self.hvum.sub_s3.name],
+                                    self["mesh"]["data"][self.hvum.sub_s4.name],
+                                    self["mesh"]["data"][self.hvum.sub_s5.name],
+                                    self["mesh"]["data"][self.hvum.sub_s6.name],
+                                    self["mesh"]["data"][self.hvum.sub_s7.name],
+                                    self["mesh"]["data"][self.hvum.sub_s8.name]
+                                    ]).T
+
+        len_sub = len(sub_percent)
+        sub_pg = np.empty(len_sub, dtype=np.int64)
+        warn = True
+
+        for e in range(0, len_sub):
+            record_all_i = sub_percent[e]
+            if sum(record_all_i) != 100 and warn:
+                print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
+                warn = False
+
+            # let find the coarser (the last one not equal to zero)
+            ind = np.where(record_all_i[record_all_i != 0])[0]
+            if len(ind) > 1:
+                sub_pg[e] = ind[-1] + 1
+            elif ind:  # just a float
+                sub_pg[e] = ind + 1
+            else:  # no zeros
+                sub_pg[e] = len(record_all_i)
+
+        self["mesh"]["data"][self.hvum.sub_coarser.name] = sub_pg
+
+    def c_mesh_sub_dom(self):
+        if self.hvum.sub_s12.name in self["mesh"]["data"].columns:
+            sub_percent = np.array([self["mesh"]["data"][self.hvum.sub_s1.name],
+                                    self["mesh"]["data"][self.hvum.sub_s2.name],
+                                    self["mesh"]["data"][self.hvum.sub_s3.name],
+                                    self["mesh"]["data"][self.hvum.sub_s4.name],
+                                    self["mesh"]["data"][self.hvum.sub_s5.name],
+                                    self["mesh"]["data"][self.hvum.sub_s6.name],
+                                    self["mesh"]["data"][self.hvum.sub_s7.name],
+                                    self["mesh"]["data"][self.hvum.sub_s8.name],
+                                    self["mesh"]["data"][self.hvum.sub_s9.name],
+                                    self["mesh"]["data"][self.hvum.sub_s10.name],
+                                    self["mesh"]["data"][self.hvum.sub_s11.name],
+                                    self["mesh"]["data"][self.hvum.sub_s12.name],
+                                    ]).T
+        else:
+            sub_percent = np.array([self["mesh"]["data"][self.hvum.sub_s1.name],
+                                    self["mesh"]["data"][self.hvum.sub_s2.name],
+                                    self["mesh"]["data"][self.hvum.sub_s3.name],
+                                    self["mesh"]["data"][self.hvum.sub_s4.name],
+                                    self["mesh"]["data"][self.hvum.sub_s5.name],
+                                    self["mesh"]["data"][self.hvum.sub_s6.name],
+                                    self["mesh"]["data"][self.hvum.sub_s7.name],
+                                    self["mesh"]["data"][self.hvum.sub_s8.name]
+                                    ]).T
+
+        dominant_case = 1
+        len_sub = len(sub_percent)
+        sub_dom = np.empty(len_sub, dtype=np.int64)
+        warn = True
+
+        for e in range(0, len_sub):
+            record_all_i = sub_percent[e]
+            if sum(record_all_i) != 100 and warn:
+                print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
+                warn = False
+            # let find the dominant
+            # we cannot use argmax as we need all maximum value, not only the first
+            inds = list(np.argwhere(record_all_i == np.max(record_all_i)).flatten())
+            if len(inds) > 1:
+                # if we have the same percentage for two dominant we send back the function to the GUI to ask the
+                # user. It is called again with the arg dominant_case
+                if dominant_case == 1:
+                    sub_dom[e] = inds[-1] + 1
+                elif dominant_case == -1:
+                    # sub_dom[e] = int(attribute_name_all[inds[0]][0][1])
+                    sub_dom[e] = inds[0] + 1
+            else:
+                sub_dom[e] = inds[0] + 1
+
+        self["mesh"]["data"][self.hvum.sub_dom.name] = sub_dom
 
     """ node """
     def c_node_shear_stress(self):

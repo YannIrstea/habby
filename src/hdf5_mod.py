@@ -87,6 +87,9 @@ class Hdf5Management:
             self.hdf5_type = "habitat"
             if "ESTIMHAB" in self.filename:
                 self.hdf5_type = "ESTIMHAB"
+        # hdf5 data attrbutes
+        self.sub_constant_values = None
+        self.sub_mapping_method = None
 
     def open_hdf5_file(self, new=False):
         # get mode
@@ -194,11 +197,13 @@ class Hdf5Management:
             else:
                 hdf5_attributes_name_text.append(attribute_name.replace("_", " "))
                 hdf5_attributes_info_text.append(str(hdf5_attributes_dict[attribute_name]))
+                # to attributes
+                setattr(self, attribute_name, hdf5_attributes_dict[attribute_name])
         for attribute_name in attributes_to_the_end:  # set general attributes to the end
             hdf5_attributes_name_text.extend([attribute_name.replace("_", " ")])
             hdf5_attributes_info_text.extend([hdf5_attributes_dict[attribute_name]])
 
-        # to attributes
+        # to attributes (GUI)
         self.hdf5_attributes_name_text = hdf5_attributes_name_text
         self.hdf5_attributes_info_text = hdf5_attributes_info_text
 
@@ -211,13 +216,18 @@ class Hdf5Management:
 
             # substrate constant ==> nothing to plot
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
-                self.hvum.get_original_computable_mesh_and_node_from_hdf5(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                                                                          hdf5_attributes_dict["node_variable_original_name_list"].tolist())
-
+                # recreate dict
+                sub_description = dict(sub_mapping_method=hdf5_attributes_dict["sub_mapping_method"],
+                                       sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
+                                       sub_classification_method=hdf5_attributes_dict["sub_classification_method"])
+                self.hvum.detect_variable_from_sub_description(sub_description)
             # substrate polygon/point
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] != "constant":
-                self.hvum.get_original_computable_mesh_and_node_from_hdf5(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                                                                          hdf5_attributes_dict["node_variable_original_name_list"].tolist())
+                # recreate dict
+                sub_description = dict(sub_mapping_method=hdf5_attributes_dict["sub_mapping_method"],
+                                       sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
+                                       sub_classification_method=hdf5_attributes_dict["sub_classification_method"])
+                self.hvum.detect_variable_from_sub_description(sub_description)
             # habitat
             else:
                 # get fish list
@@ -733,16 +743,16 @@ class Hdf5Management:
             # create attributes
             self.file_object.attrs['sub_constant_values'] = sub_description_system["sub_default_values"]
 
-            # add the constant value of substrate
-            if sub_description_system["sub_classification_method"] == 'coarser-dominant':
-                sub_class_number = 2
-            if sub_description_system["sub_classification_method"] == 'percentage' and sub_description_system["sub_classification_code"] == "Cemagref":
-                sub_class_number = 8
-            if sub_description_system["sub_classification_method"] == 'percentage' and sub_description_system["sub_classification_code"] == "Sandre":
-                sub_class_number = 12
-            self.file_object.create_dataset(name="sub",
-                                            shape=[1, sub_class_number],
-                                            data=data_2d["sub"][0])
+            # # add the constant value of substrate
+            # if sub_description_system["sub_classification_method"] == 'coarser-dominant':
+            #     sub_class_number = 2
+            # if sub_description_system["sub_classification_method"] == 'percentage' and sub_description_system["sub_classification_code"] == "Cemagref":
+            #     sub_class_number = 8
+            # if sub_description_system["sub_classification_method"] == 'percentage' and sub_description_system["sub_classification_code"] == "Sandre":
+            #     sub_class_number = 12
+            self.file_object.create_dataset(name="sub_constant_values",
+                                            shape=data_2d.sub_constant_values.shape,
+                                            data=data_2d.sub_constant_values)
 
         # close file
         self.file_object.close()
@@ -756,9 +766,20 @@ class Hdf5Management:
         # save XML
         self.save_xml("SUBSTRATE", sub_description_system["sub_path_source"])
 
-    def load_hdf5_sub(self, convert_to_coarser_dom=False):
+    def load_hdf5_sub(self, user_target_list="defaut"):
         # open an hdf5
         self.open_hdf5_file(new=False)
+
+        # variables
+        if user_target_list == "defaut":  # when hdf5 is created (by project preferences)
+            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+                                                                       hdf5_type=self.hdf5_type)
+        elif type(user_target_list) == dict:  # project_preferences
+            self.project_preferences = user_target_list
+            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+                                                                       hdf5_type=self.hdf5_type)
+        else:
+            self.hvum.get_final_variable_list_from_wish(user_target_list)
 
         # get attributes
         sub_description_system = dict()
@@ -769,11 +790,7 @@ class Hdf5Management:
         data_2d = Data2d()
 
         if sub_description_system["sub_mapping_method"] == "constant":
-            # unit_dict
-            unit_dict = UnitDict()
-            unit_dict["mesh"]["data"] = self.file_object["sub"][:].tolist()[0]
-            data_2d.append(unit_dict)
-
+            data_2d.sub_constant_values = self.file_object["sub_constant_values"][:]
         elif sub_description_system["sub_mapping_method"] != "constant":
             data_group = 'data_2d'
             reach_list = list(self.file_object[data_group].keys())
@@ -821,7 +838,6 @@ class Hdf5Management:
 
                         unit_list.append(unit_dict)
 
-
                     except Exception as e:
                         print('Error: ' + qt_tr.translate("hdf5_mod", 'load_hdf5_sub : ') + str(e) + "\n")
                         self.file_object.close()
@@ -829,8 +845,13 @@ class Hdf5Management:
                 # append by reach
                 data_2d.append(unit_list)
 
+        # close
         self.file_object.close()
         self.file_object = None
+
+        # compute ?
+        if self.hvum.all_final_variable_list.to_compute():
+            data_2d.compute_variables(self.hvum.all_final_variable_list.to_compute())
 
         # to attributes
         self.data_2d = data_2d

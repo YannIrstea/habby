@@ -417,6 +417,7 @@ class HydraulicVariableUnitManagement:
             self.hdf5_and_computable_list.append(self.v)
 
     def detect_variable_from_sub_description(self, sub_description):
+        self.hdf5_and_computable_list = HydraulicVariableUnitList()
         sub_class_number = 2
         if sub_description["sub_classification_method"] == 'coarser-dominant':
             # coarser
@@ -443,6 +444,18 @@ class HydraulicVariableUnitManagement:
                 sub_sx.unit = sub_description["sub_classification_code"]
                 sub_sx.sub = True
                 self.hdf5_and_computable_list.append(sub_sx)
+            # computable coarser
+            self.sub_coarser.position = "mesh"
+            self.sub_coarser.hdf5 = False
+            self.sub_coarser.unit = sub_description["sub_classification_code"]
+            self.sub_coarser.sub = True
+            self.hdf5_and_computable_list.append(self.sub_coarser)
+            # computable dominant
+            self.sub_dom.position = "mesh"
+            self.sub_dom.hdf5 = False
+            self.sub_dom.unit = sub_description["sub_classification_code"]
+            self.sub_dom.sub = True
+            self.hdf5_and_computable_list.append(self.sub_dom)
 
     def get_original_computable_mesh_and_node_from_hdf5(self, mesh_variable_original_name_list, node_variable_original_name_list):
         # hdf5
@@ -648,6 +661,25 @@ class HydraulicVariableUnitManagement:
                             self.v_frict.position = "node"
                             self.v_frict.hdf5 = True
                             self.all_final_variable_list.append(self.v_frict)
+            # subtrate
+            elif variable_wish.name == self.sub_coarser.name or variable_wish.name == self.sub_dom.name:
+                # is percentage data or coarser/dom data ?
+                if not variable_wish.hdf5:
+                    # load all sub percentage to compute coarser/dom
+                    self.hdf5_and_computable_list.names()
+                    # class_nb
+                    if self.sub_s12.name in self.hdf5_and_computable_list.names():  # Sandre
+                        class_nb = 12
+                    else:  # Cemagref
+                        class_nb = 8
+                    for class_num in range(1, class_nb + 1):
+                        class_variable = getattr(self, "sub_s" + str(class_num))
+                        class_variable.position = "mesh"
+                        class_variable.hdf5 = True
+                        self.all_final_variable_list.append(class_variable)
+                else:
+                    # load hdf5 coarser/dom data
+                    pass
 
             # variables never in hdf
 

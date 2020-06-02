@@ -1333,9 +1333,7 @@ class MyProcessList(QThread):
         if self.hdf5.hdf5_type == "hydraulic":
             self.hdf5.load_hdf5_hyd(units_index=units_index,
                                user_target_list=self.hvum.user_target_list,
-                               whole_profil=True)  #
-            # compute variables
-            # hdf5.data_2d.compute_variables(variable_computable_list=self.hvum.all_available_variable_list)
+                               whole_profil=True)
             # data_description
             data_description = dict(self.hdf5.data_description)
             data_description["reach_list"] = self.hdf5.data_description["hyd_reach_list"].split(", ")
@@ -1345,8 +1343,8 @@ class MyProcessList(QThread):
             data_description["units_index"] = units_index
             data_description["name_hdf5"] = self.hdf5.data_description["hyd_filename"]
         # load substrate data
-        if self.hdf5.hdf5_type == "substrate":
-            self.hdf5.load_hdf5_sub(convert_to_coarser_dom=True)
+        elif self.hdf5.hdf5_type == "substrate":
+            self.hdf5.load_hdf5_sub(user_target_list=self.hvum.user_target_list)
             # data_description
             data_description = dict(self.hdf5.data_description)
             data_description["reach_list"] = self.hdf5.data_description["sub_reach_list"].split(", ")
@@ -1356,14 +1354,11 @@ class MyProcessList(QThread):
             data_description["name_hdf5"] = self.hdf5.data_description["sub_filename"]
             data_description["sub_classification_code"] = self.hdf5.data_description["sub_classification_code"]
         # load habitat data
-        if self.hdf5.hdf5_type == "habitat":
+        elif self.hdf5.hdf5_type == "habitat":
             self.hdf5.load_hdf5_hab(units_index=units_index,
                                fish_names=self.hvum.user_target_list.habs(),
                                whole_profil=False,
                                convert_to_coarser_dom=True)
-            # # compute variables
-            # hdf5.compute_variables(mesh_variable_list=variables_mesh,
-            #                        node_variable_list=variables_node)
             # data_description
             data_description = dict(self.hdf5.data_description)
             data_description["reach_list"] = self.hdf5.data_description["hyd_reach_list"].split(", ")
@@ -1818,7 +1813,6 @@ class MyProcessList(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    @profileit
     def run(self):
         self.thread_started = True
         self.plot_production_stoped = False
