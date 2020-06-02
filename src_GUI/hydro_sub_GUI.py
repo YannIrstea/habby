@@ -4308,7 +4308,7 @@ class SubstrateW(SubHydroW):
         self.layout_polygon.addWidget(self.polygon_hname, 5, 1)  # 5 line
         self.layout_polygon.addWidget(self.load_polygon_substrate, 5, 2)  # 5 line
         [self.layout_polygon.setRowMinimumHeight(i, 30) for i in range(self.layout_polygon.rowCount())]
-        self.polygon_group = QGroupBox(self.tr('Polygons'))
+        self.polygon_group = QGroupBox(self.tr('From polygons'))
         self.polygon_group.setLayout(self.layout_polygon)
 
         # POINT GROUP
@@ -4328,7 +4328,7 @@ class SubstrateW(SubHydroW):
         self.layout_point.addWidget(self.point_hname, 5, 1)  # 5 line
         self.layout_point.addWidget(self.load_point_substrate, 5, 2)  # 5 line
         [self.layout_point.setRowMinimumHeight(i, 30) for i in range(self.layout_point.rowCount())]
-        self.point_group = QGroupBox(self.tr('Points'))
+        self.point_group = QGroupBox(self.tr('From points'))
         self.point_group.setLayout(self.layout_point)
 
         # CONSTANT GROUP
@@ -4348,7 +4348,7 @@ class SubstrateW(SubHydroW):
         self.layout_constant.addWidget(self.constant_hname, 5, 1)  # 5 line
         self.layout_constant.addWidget(self.load_constant_substrate, 5, 2)  # 5 line
         [self.layout_constant.setRowMinimumHeight(i, 30) for i in range(self.layout_constant.rowCount())]
-        self.constant_group = QGroupBox(self.tr('Constant values'))
+        self.constant_group = QGroupBox(self.tr('From constant values'))
         self.constant_group.setLayout(self.layout_constant)
 
         # SUBSTRATE GROUP

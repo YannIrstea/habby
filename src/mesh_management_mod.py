@@ -25,7 +25,8 @@ import matplotlib.pyplot as plt
 
 from src import hdf5_mod
 from src.tools_mod import get_translator
-from src.plot_mod import plot_to_check_mesh_merging
+# from src.plot_mod import plot_to_check_mesh_merging
+
 
 def quadrangles_to_triangles(ikle4, xy, z, h, v):
     """
@@ -212,16 +213,16 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
     for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
         merge_description[attribute_name] = attribute_value
 
-    plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[0][0]["node"]["xy"],
-                               hyd_tin=hdf5_hydro.data_2d[0][0]["mesh"]["tin"],
-
-                               sub_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
-                               sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
-                               sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy(),
-
-                               merge_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
-                               merge_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
-                               merge_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy())
+    # plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[0][0]["node"]["xy"],
+    #                            hyd_tin=hdf5_hydro.data_2d[0][0]["mesh"]["tin"],
+    #
+    #                            sub_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
+    #                            sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
+    #                            sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy(),
+    #
+    #                            merge_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
+    #                            merge_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
+    #                            merge_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy())
 
     # data_2d_merge and data_2d_whole_merge
     data_2d_merge = hdf5_hydro.data_2d

@@ -1053,7 +1053,7 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
     """
     fig, axs = plt.subplots(2, 2, sharex=True, sharey=True)
 
-    linewidth = 2
+    linewidth = 0.2
     hyd_edgecolor = "blue"
     sub_edgecolor = "orange"
     merge_edgecolor = "black"

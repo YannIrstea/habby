@@ -20,10 +20,13 @@ from inspect import currentframe, getframeinfo
 
 
 class HydraulicVariable:
+    """
+    Represent one Hydraulic, substrate and habitat variable or value.
+    """
     def __init__(self, value, unit, name, name_gui, dtype, index_gui=0):
         self.name = name  # to manage them
         self.name_gui = name_gui  # to gui
-        self.unit = unit
+        self.unit = unit  # string unit
         self.dtype = dtype  # float64 or int64
         self.software_attributes_list = []  # software string names list to link with them
         self.position = None  # node, mesh, (possible face ?)
@@ -37,6 +40,9 @@ class HydraulicVariable:
 
 
 class HydraulicVariableUnitList(list):
+    """
+    Represent one Hydraulic, substrate and habitat variable or value.
+    """
     def __init__(self):
         super().__init__()
 
