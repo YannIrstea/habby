@@ -202,7 +202,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
 
     # load hdf5 sub
     hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub)
-    hdf5_sub.load_hdf5_sub(convert_to_coarser_dom=False)
+    hdf5_sub.load_hdf5_sub()
 
     # merge_description
     merge_description = dict()
@@ -226,17 +226,13 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
 
     # data_2d_merge and data_2d_whole_merge
     data_2d_merge = hdf5_hydro.data_2d
+    data_2d_merge.hvum = hdf5_hydro.hvum
     data_2d_whole_merge = hdf5_hydro.data_2d_whole
 
     # CONSTANT CASE
     if hdf5_sub.data_description["sub_mapping_method"] == "constant":  # set default value to all mesh
         merge_description["hab_epsg_code"] = merge_description["hyd_epsg_code"]
-        data_2d_merge, data_2d_whole_merge = set_constant_values_to_merge_data(hdf5_hydro,
-                                                                               hdf5_sub,
-                                                                               data_2d_merge,
-                                                                               data_2d_whole_merge)
-        if not any([data_2d_merge, data_2d_whole_merge]):
-            return failload
+        data_2d_merge.set_sub_cst_value(hdf5_sub)
 
     # POLYGON AND POINTS CASES
     if hdf5_sub.data_description["sub_mapping_method"] != "constant":
@@ -286,12 +282,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             pass
 
         if not extent_intersect:  # set default value to all mesh
-            data_2d_merge, data_2d_whole_merge = set_constant_values_to_merge_data(hdf5_hydro,
-                                                                                   hdf5_sub,
-                                                                                   data_2d_merge,
-                                                                                   data_2d_whole_merge)
-            if not any([data_2d_merge, data_2d_whole_merge]):
-                return failload
+            data_2d_merge.set_sub_cst_value(hdf5_sub)
 
         if extent_intersect:
             # defaut data
@@ -921,43 +912,6 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
     data_crossing = [el_cross, point_cross_el, point_cross, side_point_cross, sub_point_in_cross, sub_point_in_el,
                      hydro_el]
     return ikle_sub, coord_p_sub, data_sub, data_crossing, sub_cell
-
-
-def set_constant_values_to_merge_data(hdf5_hydro, hdf5_sub, data_2d_merge, data_2d_whole_merge):
-    # for each reach
-    sub_array_by_reach = []
-    area_array_by_reach = []
-    for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
-        # for each unit
-        sub_array_by_unit = []
-        area_array_by_unit = []
-        for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
-            try:
-                default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
-                sub_array = np.repeat([default_data], len(data_2d_merge[reach_num][unit_num]["mesh"]["tin"]), 0)
-            except ValueError or TypeError:
-                print('Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
-                return False, False
-            sub_array_by_unit.append(sub_array)
-            data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub"] = sub_array[:, 0]
-
-            # get points coord
-            pa = data_2d_merge[reach_num][unit_num]["node"]["xy"][data_2d_merge[reach_num][unit_num]["mesh"]["tin"][:, 0]]
-            pb = data_2d_merge[reach_num][unit_num]["node"]["xy"][data_2d_merge[reach_num][unit_num]["mesh"]["tin"][:, 1]]
-            pc = data_2d_merge[reach_num][unit_num]["node"]["xy"][data_2d_merge[reach_num][unit_num]["mesh"]["tin"][:, 2]]
-            # get area2
-            area = 0.5 * abs(
-                (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-            area_array_by_unit.append(np.sum(area))
-
-        sub_array_by_reach.append(sub_array_by_unit)
-        area_array_by_reach.append(area_array_by_unit)
-
-    # add sub data to dict
-    data_2d_merge["total_wet_area"] = area_array_by_reach
-    data_2d_merge["mesh"]["data"]["sub"] = sub_array_by_reach
-    #data_2d_whole_merge["mesh"]["sub"] = sub_array_by_reach
-    return data_2d_merge, data_2d_whole_merge
 
 
 def inside_trigon(pt, p0, p1, p2):

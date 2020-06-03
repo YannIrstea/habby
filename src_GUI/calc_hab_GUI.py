@@ -706,7 +706,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             required_dict["z_presence_ok"] = True  # TODO : always True ??
             if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
                 required_dict["percentage_ok"] = True
-            required_dict["fish_list"] = hdf5.fish_list
+            required_dict["fish_list"] = hdf5.hvum.hdf5_and_computable_list.meshs().habs().names()
 
             self.current_hab_informations_dict = required_dict
 
