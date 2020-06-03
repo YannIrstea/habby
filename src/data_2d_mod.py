@@ -147,10 +147,10 @@ class Data2d(list):
             for unit_num, unit_name in enumerate(unit_list):
                 # get data from dict
                 ikle = self[reach_num][unit_num]["mesh"]["tin"]
-                point_all = np.column_stack((self[reach_num][unit_num]["node"]["xy"],
-                                 self[reach_num][unit_num]["node"]["data"]["z"].to_numpy()))
-                water_height = self[reach_num][unit_num]["node"]["data"]["h"].to_numpy()
-                # velocity = self[reach_num][unit_num]["node"]["data"]["v"].to_numpy()
+                point_all = np.column_stack((self[reach_num][unit_num]["node"][self.hvum.xy.name],
+                                 self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
+                water_height = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name].to_numpy()
+                velocity = self[reach_num][unit_num]["node"]["data"][self.hvum.v.name].to_numpy()
 
                 # is_duplicates_mesh_and_point_on_one_unit?
                 if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
@@ -180,8 +180,9 @@ class Data2d(list):
                     iklekeep = ikle
                     point_all_ok = point_all
                     water_height_ok = water_height
-                    # velocity_ok = velocity
+                    velocity_ok = velocity
                     ind_whole = ind_whole  # TODO: full whole profile
+                    i_split = np.repeat(0, ind_whole.shape[0])
                 # all meshes are entirely dry
                 elif not True in mikle_keep2:
                     print("Warning: The mesh of unit " + unit_name + " is entirely dry.")
@@ -191,6 +192,7 @@ class Data2d(list):
                     mikle_keep = ikle_type != 0
                     iklekeep = ikle[mikle_keep, ...]
                     ind_whole = ind_whole[mikle_keep, ...]
+                    i_split = np.repeat(0, ind_whole.shape[0])
                 # we cut  the dry meshes and  the partially ones
                 else:
                     jpn = jpn0
@@ -267,6 +269,7 @@ class Data2d(list):
                         mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
                     ind_whole = ind_whole[mikle_keep, ...]
                     ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
+                    i_split = np.repeat(0, ind_whole.shape[0])
 
                 # all cases
                 ipt_iklenew_unique = np.unique(iklekeep)
@@ -277,6 +280,7 @@ class Data2d(list):
 
                 point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
                 water_height_ok = water_height[ipt_iklenew_unique]
+                velocity_ok = velocity[ipt_iklenew_unique]
 
                 ipt_old_new = np.array([-1] * len(point_all), dtype=typeikle)
                 for i, point_index in enumerate(ipt_iklenew_unique):
@@ -288,6 +292,7 @@ class Data2d(list):
                     point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
                     lpns = len(point_new_single)
                     ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
+                    i_split = np.append(np.repeat(0, iklekeep.shape[0]), np.repeat(1, ipt_old_new[iklenew].shape[0]), axis=0)
                     iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
                     point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
                     # beware that some new points can be doubles of  original ones
@@ -307,23 +312,20 @@ class Data2d(list):
                         print("Warning: The mesh of unit " + unit_name + " is not loaded.")
                         continue
 
-                    # all the new points added have water_height,velocity=0,0
+                    # all the new points added have water_height,velocity=0,0   # TODO: v=0 is applicable to torrential flows ?
                     water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
-                    # velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
+                    velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
 
                     # temp
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         # inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
-                        temp_data = griddata(points=self[reach_num][unit_num]["node"]["xy"],
+                        temp_data = griddata(points=self[reach_num][unit_num]["node"][self.hvum.xy.name],
                                  values=self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name].to_numpy(),
                                  xi=point_new_single[:, :2],
                                  method="linear")
 
                     # change all node dataframe
-                    # velocity_ok = velocity[ipt_iklenew_unique]
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
-                        ipt_iklenew_unique]
-
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         temp_ok = np.append(self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name], temp_data, axis=0)
 
@@ -331,23 +333,29 @@ class Data2d(list):
                     nan_pd = pd.DataFrame(np.nan, index=np.arange(lpns - nbdouble),
                                  columns=self[reach_num][unit_num]["node"]["data"].columns.values)
                     self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].append(nan_pd)
-                    self[reach_num][unit_num]["node"]["data"]["h"] = water_height_ok
-                    self[reach_num][unit_num]["node"]["data"]["z"] = point_all_ok[:, 2]
+                    self[reach_num][unit_num]["node"]["data"][self.hvum.h.name] = water_height_ok
+                    self[reach_num][unit_num]["node"]["data"][self.hvum.v.name] = velocity_ok
+                    self[reach_num][unit_num]["node"]["data"][self.hvum.z.name] = point_all_ok[:, 2]
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = temp_ok
-
                 else:
                     self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
 
-                # erase old data
+                # mesh data
                 if not self[reach_num][unit_num]["mesh"]["data"].empty:
                     self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[ind_whole]
-                self[reach_num][unit_num]["mesh"]["tin"] = iklekeep
-                self[reach_num][unit_num]["mesh"]["i_whole_profile"] = ind_whole
-                self[reach_num][unit_num]["node"]["xy"] = point_all_ok[:, :2]
+                self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
+                self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = ind_whole  # i_whole_profile
+                self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_whole_profile.name] = ind_whole
+                self.hvum.i_whole_profile.position = "mesh"
+                self.hvum.hdf5_and_computable_list.append(self.hvum.i_whole_profile)
+                self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
+                self.hvum.i_split.position = "mesh"
+                self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
-                # fillna with 0
-                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].fillna(0)
+                # node data
+                self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
+                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].fillna(0)  # fillna with 0
 
                 #  unit_list_cuted
                 self.unit_list_cuted[reach_num].append(unit_name)
@@ -356,6 +364,39 @@ class Data2d(list):
                 progress_value.value += int(deltaunit)
 
         self.get_informations()
+
+    def set_sub_cst_value(self, hdf5_sub):
+        # mixing variables
+        self.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)
+
+        # for each reach
+        for reach_num in range(self.reach_num):
+            # for each unit
+            for unit_num in range(self.unit_num):
+                try:
+                    default_data = np.array(list(map(int, hdf5_sub.sub_default_values.split(", "))))
+                    sub_array = np.repeat([default_data], self[reach_num][unit_num]["mesh"]["tin"].shape[0], 0)
+                except ValueError or TypeError:
+                    print(
+                        'Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
+                    return False, False
+                # add sub data to dict
+                for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.names()):
+                    self[reach_num][unit_num]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
+
+                # get points coord
+                pa = self[reach_num][unit_num]["node"]["xy"][
+                    self[reach_num][unit_num]["mesh"]["tin"][:, 0]]
+                pb = self[reach_num][unit_num]["node"]["xy"][
+                    self[reach_num][unit_num]["mesh"]["tin"][:, 1]]
+                pc = self[reach_num][unit_num]["node"]["xy"][
+                    self[reach_num][unit_num]["mesh"]["tin"][:, 2]]
+
+                # get area2
+                area = 0.5 * abs(
+                    (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
+                # area_array_by_unit.append(np.sum(area))
+                self[reach_num][unit_num]["total_wet_area"] = np.sum(area)
 
     def compute_variables(self, variable_computable_list):
         """

@@ -23,20 +23,21 @@ class HydraulicVariable:
     """
     Represent one Hydraulic, substrate and habitat variable or value.
     """
-    def __init__(self, value, unit, name, name_gui, dtype, index_gui=0):
+    def __init__(self, name="", name_gui="", dtype=None, unit="", position="", value=None, hdf5=False,
+                 sub=False, habitat=False, index_gui=-1):
         self.name = name  # to manage them
         self.name_gui = name_gui  # to gui
         self.unit = unit  # string unit
         self.dtype = dtype  # float64 or int64
-        self.software_attributes_list = []  # software string names list to link with them
-        self.position = None  # node, mesh, (possible face ?)
+        self.position = position  # node, mesh, (possible face ?)
         self.value = value  # for ro, g, .. (constant but possible varying ?)
-        self.data = [[]]
-        self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
-        self.hdf5 = False  # hdf5 or computable
-        self.sub = False  # False: hydraulic (default) True: substrate
-        self.habitat = False  # False: hydraulic and substrate (default) True: Habitat
+        self.hdf5 = hdf5  # hdf5 or computable
+        self.sub = sub  # False: hydraulic (default) True: substrate
+        self.habitat = habitat  # False: hydraulic and substrate (default) True: Habitat
         self.index_gui = index_gui  # position index in gui
+        self.data = [[]]
+        self.software_attributes_list = []  # software string names list to link with them
+        self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
 
 
 class HydraulicVariableUnitList(list):
@@ -167,6 +168,17 @@ class HydraulicVariableUnitManagement:
                                    name="g",
                                    name_gui="gravity",
                                    dtype=np.float64)
+        # struct
+        self.i_whole_profile = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="i_whole_profile",
+                                     name_gui="i_whole_profile",
+                                     dtype=np.int64)
+        self.i_split = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="i_split",
+                                     name_gui="i_split",
+                                     dtype=np.int64)
         # coordinate variables
         self.tin = HydraulicVariable(value=None,
                                      unit="",
@@ -456,6 +468,19 @@ class HydraulicVariableUnitManagement:
             self.sub_dom.unit = sub_description["sub_classification_code"]
             self.sub_dom.sub = True
             self.hdf5_and_computable_list.append(self.sub_dom)
+
+    def detect_variable_habitat(self, varnames):
+        varnames.sort(key=str.lower)  # sort alphanumeric
+        # detect_variable_from_software_attribute
+        for varname_index, varname in enumerate(varnames):
+            variable = HydraulicVariable(value=None,
+                                       unit="HSI",
+                                       name=varname,
+                                       name_gui=varname,
+                                       dtype=np.float64,
+                                       index_gui=-1)
+            variable.habitat = True
+            self.hdf5_and_computable_list.append(variable)
 
     def get_original_computable_mesh_and_node_from_hdf5(self, mesh_variable_original_name_list, node_variable_original_name_list):
         # hdf5
