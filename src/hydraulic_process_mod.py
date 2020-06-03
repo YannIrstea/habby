@@ -1210,6 +1210,7 @@ class MyProcessList(QThread):
         self.process_type = type  # cal or plot or export
         self.process_list = []
         self.save_process = []
+        self.plot_hdf5_mode = False
         self.export_hdf5_mode = False
 
     def set_export_hdf5_mode(self, path_prj, name_hdf5, export_dict, project_preferences):
