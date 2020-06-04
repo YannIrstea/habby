@@ -47,6 +47,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def __init__(self, path_prj, name_prj, lang='French'):
         super().__init__()
+
         self.tab_name = "calc hab"
         self.lang = lang
         self.path_prj = path_prj
@@ -265,6 +266,32 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         self.presence_qtablewidget.setColumnWidth(0, self.exist_title_label.width())
         self.presence_qtablewidget.setFixedWidth(self.exist_title_label.width())
+
+    def send_err_log(self, check_ok=False):
+        """
+        This function sends the errors and the warnings to the logs.
+        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
+
+        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
+        """
+        error = False
+
+        max_send = 100
+        if self.mystdout is not None:
+            str_found = self.mystdout.getvalue()
+        else:
+            return
+        str_found = str_found.split('\n')
+        for i in range(0, min(len(str_found), max_send)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+            if i == max_send - 1:
+                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+            if 'Error' in str_found[i] and check_ok:
+                error = True
+        if check_ok:
+            return error
 
     def change_scroll_position(self, index):
         self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue(index)
@@ -810,10 +837,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         We should not add a comma in the name of the selected fish.
         """
-
         # disable the button
         self.runhab.setDisabled(True)
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
+
 
         # get the figure options and the type of output to be created
         project_preferences = load_project_properties(self.path_prj)
@@ -919,7 +946,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         this function create the 1d figure for the HABBY GUI.
         """
 
-        # say in the Stauts bar that the processus is alive
+        # RUNNING
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # send the message
@@ -927,45 +954,53 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                self.tr("'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             self.nativeParentWidget().kill_process.setVisible(True)
+        else:
+            # FINISH (but can have known errors)
+            if not self.q4.empty():
+                self.timer.stop()
+                self.mystdout = self.q4.get()
+                error = self.send_err_log(True)
 
-        # when the loading is finished
-        if not self.q4.empty():
-            self.timer.stop()
-            self.mystdout = self.q4.get()
-            self.send_err_log()
+                # known errors
+                if error:
+                    self.send_log.emit("clear status bar")
+                    self.running_time = 0
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    # give the possibility of sending a new simulation
+                    self.runhab.setDisabled(False)
+                else:
+                    # give the possibility of sending a new simulation
+                    self.runhab.setDisabled(False)
 
-            # give the possibility of sending a new simulation
-            self.runhab.setDisabled(False)
+                    self.send_log.emit(self.tr('Habitat computation is finished (computation time = ') + str(
+                        round(self.running_time)) + " s).")
+                    self.send_log.emit(self.tr("Outputs data can be displayed and exported from 'Data explorer' tab."))
 
-            self.send_log.emit(self.tr('Habitat computation is finished (computation time = ') + str(
-                round(self.running_time)) + " s).")
-            self.send_log.emit(self.tr("Outputs data can be displayed and exported from 'Data explorer' tab."))
+                    # put the timer back to zero and clear status bar
+                    self.running_time = 0
+                    self.send_log.emit("clear status bar")
+                    self.plot_new = False
+                    # refresh plot gui list file
+                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
+                    self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
+                    self.running_time = 0
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    # check_uncheck_allmodels_presence
+                    self.check_uncheck_allmodels_presence()
 
-            # put the timer back to zero and clear status bar
-            self.running_time = 0
-            self.send_log.emit("clear status bar")
-            self.plot_new = False
-            # refresh plot gui list file
-            self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
-            self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
-            self.running_time = 0
-            self.nativeParentWidget().kill_process.setVisible(False)
-            # check_uncheck_allmodels_presence
-            self.check_uncheck_allmodels_presence()
-
-        if not self.p.is_alive():
-            # enable the button to call this functin directly again
-            self.timer.stop()
-
-            # give the possibility of sending a new simulation
-            self.runhab.setDisabled(False)
-            self.nativeParentWidget().kill_process.setVisible(False)
-
-            # put the timer back to zero
-            self.running_time = 0
-            self.send_log.emit("clear status bar")
-            # check_uncheck_allmodels_presence
-            self.check_uncheck_allmodels_presence()
+            # CLEANING GUI
+            if not self.p.is_alive() and self.q4.empty():
+                # enable the button to call this functin directly again
+                self.timer.stop()
+                self.send_log.emit("clear status bar")
+                self.nativeParentWidget().kill_process.setVisible(False)
+                self.running_time = 0
+                self.runhab.setDisabled(False)
+                # check_uncheck_allmodels_presence
+                self.check_uncheck_allmodels_presence()
+                # CRASH
+                if self.p.exitcode == 1:
+                    self.send_log.emit(self.tr("Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
 
 
 if __name__ == '__main__':

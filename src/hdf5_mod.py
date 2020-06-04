@@ -211,8 +211,8 @@ class Hdf5Management:
             """ get_2D_variables """
             # hydraulic
             if self.hdf5_type == "hydraulic":
-                self.hvum.get_original_computable_mesh_and_node_from_hdf5(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                                                                          hdf5_attributes_dict["node_variable_original_name_list"].tolist())
+                self.hvum.get_original_computable_mesh_and_node_from_hyd(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
+                                                                         hdf5_attributes_dict["node_variable_original_name_list"].tolist())
 
             # substrate constant ==> nothing to plot
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
@@ -231,15 +231,15 @@ class Hdf5Management:
             # habitat
             else:
                 # hyd
-                self.hvum.get_original_computable_mesh_and_node_from_hdf5(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                                                                          hdf5_attributes_dict["node_variable_original_name_list"].tolist())
-                # sub
+                self.hvum.get_original_computable_mesh_and_node_from_hyd(hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
+                                                                         hdf5_attributes_dict["node_variable_original_name_list"].tolist())
+                # # sub
                 sub_description = dict(sub_mapping_method=hdf5_attributes_dict["sub_mapping_method"],
                                        sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
                                        sub_classification_method=hdf5_attributes_dict["sub_classification_method"])
                 self.hvum.detect_variable_from_sub_description(sub_description)
-                # hab
-                self.hvum.detect_variable_habitat(hdf5_attributes_dict["hab_fish_list"].split(", "))
+                # # hab
+                # self.hvum.detect_variable_habitat(hdf5_attributes_dict["hab_fish_list"].split(", "))
 
             """ get_hdf5_reach_name """
             # units name
@@ -367,125 +367,123 @@ class Hdf5Management:
 
         # variables attrs
         data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
-        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
-        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()
-        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().units()
+        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
+        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
+        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
+        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
 
-        # data by type of model (2D)
-        if int(hyd_description["hyd_model_dimension"]) <= 2:
-            # dataset for unit_list
-            self.file_object.create_dataset(name="unit_by_reach",
-                                            shape=[len(hyd_description["hyd_unit_list"][0]),
-                                                   len(hyd_description["hyd_unit_list"])],
-                                            data=np.array(hyd_description["hyd_unit_list"],
-                                                          dtype=h5py.string_dtype(encoding='utf-8')).transpose())
-            # dataset for unit_list
-            self.file_object.create_dataset(name="unit_correspondence",
-                                            shape=[len(hyd_description["unit_correspondence"][0]),
-                                                   len(hyd_description["unit_correspondence"])],
-                                            data=np.array(hyd_description["unit_correspondence"]).astype(
-                                                np.int).transpose())
+        # dataset for unit_list
+        self.file_object.create_dataset(name="unit_by_reach",
+                                        shape=[len(hyd_description["hyd_unit_list"][0]),
+                                               len(hyd_description["hyd_unit_list"])],
+                                        data=np.array(hyd_description["hyd_unit_list"],
+                                                      dtype=h5py.string_dtype(encoding='utf-8')).transpose())
+        # dataset for unit_list
+        self.file_object.create_dataset(name="unit_correspondence",
+                                        shape=[len(hyd_description["unit_correspondence"][0]),
+                                               len(hyd_description["unit_correspondence"])],
+                                        data=np.array(hyd_description["unit_correspondence"]).astype(
+                                            np.int).transpose())
 
-            # whole_profile
-            data_whole_profile_group = self.file_object.create_group('data_2d_whole_profile')
-            whole_profile_unit_corresp = []
-            for reach_num in range(int(hyd_description["hyd_reach_number"])):
-                whole_profile_unit_corresp.append([])
-                reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
+        # whole_profile
+        data_whole_profile_group = self.file_object.create_group('data_2d_whole_profile')
+        whole_profile_unit_corresp = []
+        for reach_num in range(int(hyd_description["hyd_reach_number"])):
+            whole_profile_unit_corresp.append([])
+            reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
 
-                unit_list = list(set(hyd_description["unit_correspondence"][reach_num]))
-                unit_list.sort()
-                # UNIT GROUP
-                for unit_index, unit_num in enumerate(unit_list):
-                    # hyd_varying_mesh==False
-                    if unit_list == [0]:  # one whole profile for all units
-                        group_name = 'unit_all'
-                    # hyd_varying_mesh==True
-                    else:
-                        if unit_index == len(unit_list) - 1:  # last
-                            group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(int(hyd_description["hyd_unit_number"]) - 1)
-                        else:  # all case
-                            group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(unit_list[unit_index + 1] - 1)
+            unit_list = list(set(hyd_description["unit_correspondence"][reach_num]))
+            unit_list.sort()
+            # UNIT GROUP
+            for unit_index, unit_num in enumerate(unit_list):
+                # hyd_varying_mesh==False
+                if unit_list == [0]:  # one whole profile for all units
+                    group_name = 'unit_all'
+                # hyd_varying_mesh==True
+                else:
+                    if unit_index == len(unit_list) - 1:  # last
+                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(int(hyd_description["hyd_unit_number"]) - 1)
+                    else:  # all case
+                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(unit_list[unit_index + 1] - 1)
 
-                    unit_group = reach_group.create_group(group_name)
-                    whole_profile_unit_corresp[reach_num].extend([group_name] * hyd_description["unit_correspondence"][reach_num].count(unit_num))
+                unit_group = reach_group.create_group(group_name)
+                whole_profile_unit_corresp[reach_num].extend([group_name] * hyd_description["unit_correspondence"][reach_num].count(unit_num))
 
-                    # MESH GROUP
-                    mesh_group = unit_group.create_group('mesh')
-                    mesh_group.create_dataset(name="tin",
-                                              shape=data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"].shape,
-                                              data=data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"])
-                    # NODE GROUP
-                    node_group = unit_group.create_group('node')
-                    node_group.create_dataset(name="xy",
-                                              shape=data_2d_whole_profile[reach_num][unit_num]["node"]["xy"].shape,
-                                              data=data_2d_whole_profile[reach_num][unit_num]["node"]["xy"])
-                    if hyd_description["hyd_unit_z_equal"]:
-                        node_group.create_dataset(name="z",
-                                                  shape=data_2d_whole_profile[reach_num][0]["node"]["z"].shape,
-                                                  data=data_2d_whole_profile[reach_num][0]["node"]["z"])
-                    else:
-                        if not hyd_description["hyd_varying_mesh"]:
-                            for unit_num2 in range(int(hyd_description["hyd_unit_number"])):
-                                unit_group = reach_group.create_group('unit_' + str(unit_num2))
-                                node_group = unit_group.create_group('node')
-                                node_group.create_dataset(name="z",
-                                                          shape=data_2d_whole_profile[reach_num][unit_num2]["node"]["z"].shape,
-                                                          data=data_2d_whole_profile[reach_num][unit_num2]["node"]["z"])
-                        else:
+                # MESH GROUP
+                mesh_group = unit_group.create_group('mesh')
+                mesh_group.create_dataset(name="tin",
+                                          shape=data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"].shape,
+                                          data=data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"])
+                # NODE GROUP
+                node_group = unit_group.create_group('node')
+                node_group.create_dataset(name="xy",
+                                          shape=data_2d_whole_profile[reach_num][unit_num]["node"]["xy"].shape,
+                                          data=data_2d_whole_profile[reach_num][unit_num]["node"]["xy"])
+                if hyd_description["hyd_unit_z_equal"]:
+                    node_group.create_dataset(name="z",
+                                              shape=data_2d_whole_profile[reach_num][0]["node"]["z"].shape,
+                                              data=data_2d_whole_profile[reach_num][0]["node"]["z"])
+                else:
+                    if not hyd_description["hyd_varying_mesh"]:
+                        for unit_num2 in range(int(hyd_description["hyd_unit_number"])):
+                            unit_group = reach_group.create_group('unit_' + str(unit_num2))
+                            node_group = unit_group.create_group('node')
                             node_group.create_dataset(name="z",
-                                                      shape=data_2d_whole_profile[reach_num][unit_num]["node"]["z"].shape,
-                                                      data=data_2d_whole_profile[reach_num][unit_num]["node"]["z"])
+                                                      shape=data_2d_whole_profile[reach_num][unit_num2]["node"]["z"].shape,
+                                                      data=data_2d_whole_profile[reach_num][unit_num2]["node"]["z"])
+                    else:
+                        node_group.create_dataset(name="z",
+                                                  shape=data_2d_whole_profile[reach_num][unit_num]["node"]["z"].shape,
+                                                  data=data_2d_whole_profile[reach_num][unit_num]["node"]["z"])
 
-            # get extent
-            xMin = []
-            xMax = []
-            yMin = []
-            yMax = []
+        # get extent
+        xMin = []
+        xMax = []
+        yMin = []
+        yMax = []
 
-            # data_2d
-            data_group = self.file_object.create_group('data_2d')
-            # REACH GROUP
-            for reach_num in range(data_2d.reach_num):
-                reach_group = data_group.create_group('reach_' + str(reach_num))
-                # UNIT GROUP
-                for unit_num in range(data_2d.unit_num):
-                    # extent
-                    xMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
-                    xMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
-                    yMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
-                    yMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
+        # data_2d
+        data_group = self.file_object.create_group('data_2d')
+        # REACH GROUP
+        for reach_num in range(data_2d.reach_num):
+            reach_group = data_group.create_group('reach_' + str(reach_num))
+            # UNIT GROUP
+            for unit_num in range(data_2d.unit_num):
+                # extent
+                xMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
+                xMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 0]))
+                yMin.append(min(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
+                yMax.append(max(data_2d[reach_num][unit_num]["node"]["xy"][:, 1]))
 
-                    unit_group = reach_group.create_group('unit_' + str(unit_num))
-                    unit_group.attrs["whole_profile_corresp"] = whole_profile_unit_corresp[reach_num][unit_num]
+                unit_group = reach_group.create_group('unit_' + str(unit_num))
+                unit_group.attrs["whole_profile_corresp"] = whole_profile_unit_corresp[reach_num][unit_num]
 
-                    # MESH GROUP
-                    mesh_group = unit_group.create_group('mesh')
-                    mesh_group.create_dataset(name="tin",
-                                              shape=data_2d[reach_num][unit_num]["mesh"]["tin"].shape,
-                                              data=data_2d[reach_num][unit_num]["mesh"]["tin"])
-                    mesh_group.create_dataset(name="i_whole_profile",
-                                              shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
-                                              data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
-                    if data_2d.hvum.hdf5_and_computable_list.meshs():
-                        rec_array = data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
-                        mesh_group.create_dataset(name="data",
-                                                  shape=rec_array.shape,
-                                                  data=rec_array,
-                                                  dtype=rec_array.dtype)
+                # MESH GROUP
+                mesh_group = unit_group.create_group('mesh')
+                mesh_group.create_dataset(name="tin",
+                                          shape=data_2d[reach_num][unit_num]["mesh"]["tin"].shape,
+                                          data=data_2d[reach_num][unit_num]["mesh"]["tin"])
+                mesh_group.create_dataset(name="i_whole_profile",
+                                          shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
+                                          data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
+                if data_2d.hvum.hdf5_and_computable_list.meshs():
+                    rec_array = data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
+                    mesh_group.create_dataset(name="data",
+                                              shape=rec_array.shape,
+                                              data=rec_array,
+                                              dtype=rec_array.dtype)
 
-                    # NODE GROUP
-                    node_group = unit_group.create_group('node')
-                    node_group.create_dataset(name="xy",
-                                              shape=data_2d[reach_num][unit_num]["node"]["xy"].shape,
-                                              data=data_2d[reach_num][unit_num]["node"]["xy"])
-                    if data_2d.hvum.hdf5_and_computable_list.nodes():
-                        rec_array = data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
-                        node_group.create_dataset(name="data",
-                                                  shape=rec_array.shape,
-                                                  data=rec_array,
-                                                dtype=rec_array.dtype)
+                # NODE GROUP
+                node_group = unit_group.create_group('node')
+                node_group.create_dataset(name="xy",
+                                          shape=data_2d[reach_num][unit_num]["node"]["xy"].shape,
+                                          data=data_2d[reach_num][unit_num]["node"]["xy"])
+                if data_2d.hvum.hdf5_and_computable_list.nodes():
+                    rec_array = data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
+                    node_group.create_dataset(name="data",
+                                              shape=rec_array.shape,
+                                              data=rec_array,
+                                            dtype=rec_array.dtype)
 
         # get extent
         xMin = min(xMin)
@@ -545,39 +543,39 @@ class Hdf5Management:
             self.units_index = list(range(nb_t))
 
         # get attributes
-        hyd_description = dict()
+        data_description = dict()
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
             if type(attribute_value) == str:
                 if attribute_value == "True" or attribute_value == "False":
-                    hyd_description[attribute_name] = eval(attribute_value)
+                    data_description[attribute_name] = eval(attribute_value)
                 else:
-                    hyd_description[attribute_name] = attribute_value
+                    data_description[attribute_name] = attribute_value
             if type(attribute_value) == np.array:
-                hyd_description[attribute_name] = attribute_value.tolist()
+                data_description[attribute_name] = attribute_value.tolist()
             else:
-                hyd_description[attribute_name] = attribute_value
+                data_description[attribute_name] = attribute_value
 
         # dataset for unit_list
-        hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
-        hyd_description["unit_correspondence"] = self.file_object["unit_correspondence"][:].transpose().tolist()
+        data_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
+        data_description["unit_correspondence"] = self.file_object["unit_correspondence"][:].transpose().tolist()
 
         """ WHOLE PROFIL """
         if whole_profil:
             # create dict
             data_2d_whole_profile = Data2d()
             data_2d_whole_profile_group = 'data_2d_whole_profile'
-            hyd_description["unit_name_whole_profile"] = []
+            data_description["unit_name_whole_profile"] = []
 
             # for each reach
             reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
             for reach_num, reach_group_name in enumerate(reach_list):
-                hyd_description["unit_name_whole_profile"].append([])
+                data_description["unit_name_whole_profile"].append([])
                 reach_group = data_2d_whole_profile_group + "/" + reach_group_name
                 unit_list = []
                 # for each desired_units
                 available_unit_list = list(self.file_object[reach_group].keys())
                 for unit_group_name in available_unit_list:
-                    hyd_description["unit_name_whole_profile"][reach_num].append(unit_group_name)
+                    data_description["unit_name_whole_profile"][reach_num].append(unit_group_name)
                     unit_group = reach_group + "/" + unit_group_name
                     mesh_group = unit_group + "/mesh"
                     node_group = unit_group + "/node"
@@ -664,7 +662,7 @@ class Hdf5Management:
 
         # to attributes
         self.data_2d = data_2d
-        self.data_description = hyd_description
+        self.data_description = data_description
         if whole_profil:
             self.data_2d_whole = data_2d_whole_profile
 
@@ -679,10 +677,10 @@ class Hdf5Management:
 
         # variables attrs
         data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
-        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
-        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()
-        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().units()
+        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
+        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
+        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
+        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
 
         # POLYGON or POINT
         if sub_description_system["sub_mapping_method"] in ("polygon", "point"):
@@ -889,14 +887,6 @@ class Hdf5Management:
             'z' : list by reach, sub list by units and sub list of numpy array type float
             (one value by node : bottom elevation)
         """
-
-        # validity, error = check_data_2d_dict_validity(data_2d,
-        #                             int(merge_description["hyd_reach_number"]),
-        #                             int(merge_description["hyd_unit_number"]))
-        # if not validity:
-        #     print(error)
-        #     return
-
         attributes_to_remove = (
         "hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type",
         "hdf5_type")
@@ -920,10 +910,10 @@ class Hdf5Management:
 
         # variables attrs
         data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().names()
-        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().names()
-        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.meshs().units()
-        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.nodes().units()
+        self.file_object.attrs["mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
+        self.file_object.attrs["node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
+        self.file_object.attrs["mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
+        self.file_object.attrs["node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
 
         self.file_object.attrs["hab_fish_list"] = ", ".join([])
         self.file_object.attrs["hab_fish_number"] = str(0)
@@ -1105,13 +1095,20 @@ class Hdf5Management:
         else:
             self.hvum.get_final_variable_list_from_wish(user_target_list)
 
+        # attributes
+        if self.units_index == "all":
+            # load the number of time steps
+            nb_t = int(self.file_object.attrs['hyd_unit_number'])
+            self.units_index = list(range(nb_t))
+
         # get hab attributes
         data_description = dict()
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
-            if attribute_value == "True" or attribute_value == "False":
-                data_description[attribute_name] = eval(attribute_value)
-            else:
-                data_description[attribute_name] = attribute_value
+            if type(attribute_value) == str:
+                if attribute_value == "True" or attribute_value == "False":
+                    data_description[attribute_name] = eval(attribute_value)
+                else:
+                    data_description[attribute_name] = attribute_value
 
         # dataset for unit_list
         data_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
@@ -1148,7 +1145,6 @@ class Hdf5Management:
 
             data_2d_whole_profile.get_informations()
 
-        # # DATA 2D
         # hyd_mesh_variables_list = data_description["hyd_mesh_variables_list"].split(", ")
         # if hyd_mesh_variables_list == ['']:
         #     hyd_mesh_variables_list = ["sub"]  # always sub in .hab

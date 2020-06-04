@@ -348,9 +348,11 @@ class Data2d(list):
                 self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = ind_whole  # i_whole_profile
                 self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_whole_profile.name] = ind_whole
                 self.hvum.i_whole_profile.position = "mesh"
+                self.hvum.i_whole_profile.hdf5 = True
                 self.hvum.hdf5_and_computable_list.append(self.hvum.i_whole_profile)
                 self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
                 self.hvum.i_split.position = "mesh"
+                self.hvum.i_split.hdf5 = True
                 self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
                 # node data
@@ -379,23 +381,28 @@ class Data2d(list):
                 except ValueError or TypeError:
                     print(
                         'Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
-                    return False, False
                 # add sub data to dict
-                for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.names()):
+                for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
                     self[reach_num][unit_num]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
 
-                # get points coord
-                pa = self[reach_num][unit_num]["node"]["xy"][
-                    self[reach_num][unit_num]["mesh"]["tin"][:, 0]]
-                pb = self[reach_num][unit_num]["node"]["xy"][
-                    self[reach_num][unit_num]["mesh"]["tin"][:, 1]]
-                pc = self[reach_num][unit_num]["node"]["xy"][
-                    self[reach_num][unit_num]["mesh"]["tin"][:, 2]]
+                # area ?
+                if self.hvum.area.name not in self[reach_num][unit_num]["mesh"]["data"].columns:
+                    pa = self[reach_num][unit_num]["node"]["xy"][
+                        self[reach_num][unit_num]["mesh"]["tin"][:, 0]]
+                    pb = self[reach_num][unit_num]["node"]["xy"][
+                        self[reach_num][unit_num]["mesh"]["tin"][:, 1]]
+                    pc = self[reach_num][unit_num]["node"]["xy"][
+                        self[reach_num][unit_num]["mesh"]["tin"][:, 2]]
+                    area = 0.5 * abs(
+                        (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) -
+                        (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))  # get area2
+                    self[reach_num][unit_num]["mesh"]["data"]["area"] = area
+                    # variable
+                    self.hvum.area.hdf5 = True
+                    self.hvum.hdf5_and_computable_list.append(self.hvum.area)
+                else:
+                    area = self[reach_num][unit_num]["mesh"]["data"][self.hvum.area.name].to_numpy()
 
-                # get area2
-                area = 0.5 * abs(
-                    (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-                # area_array_by_unit.append(np.sum(area))
                 self[reach_num][unit_num]["total_wet_area"] = np.sum(area)
 
     def compute_variables(self, variable_computable_list):

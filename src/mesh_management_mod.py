@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 from src import hdf5_mod
 from src.tools_mod import get_translator
-# from src.plot_mod import plot_to_check_mesh_merging
+from src.plot_mod import plot_to_check_mesh_merging
 
 
 def quadrangles_to_triangles(ikle4, xy, z, h, v):
@@ -235,7 +235,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
         data_2d_merge.set_sub_cst_value(hdf5_sub)
 
     # POLYGON AND POINTS CASES
-    if hdf5_sub.data_description["sub_mapping_method"] != "constant":
+    elif hdf5_sub.data_description["sub_mapping_method"] != "constant":
         # check if EPSG are integer and if TRUE they must be equal
         epsg_hyd = hdf5_hydro.data_description["hyd_epsg_code"]
         epsg_sub = hdf5_sub.data_description["sub_epsg_code"]
@@ -412,7 +412,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             data_2d_merge["node"]["z"] = z_all_both
             data_2d_merge["node"]["data"]["v"] = vel_all_both
             data_2d_merge["node"]["data"]["h"] = height_all_both
-            #data_2d_merge["mesh"]["area"] = area_both
+            # data_2d_merge["mesh"]["area"] = area_both
             data_2d_merge["total_wet_area"] = area_reach_both
 
     return data_2d_merge, data_2d_whole_merge, merge_description

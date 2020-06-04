@@ -26,6 +26,7 @@ from src import bio_info_mod
 from src.project_properties_mod import load_project_properties
 from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 from src.tools_mod import get_translator
+from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariable
 
 
 def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -96,7 +97,6 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
 
     # load data and get variable to compute
     hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5")), hab_filename)
-    hdf5.load_hdf5_hab()
     variable_mesh = ["area", "water_height", "water_velocity"]
     HEM_computation = False
     if "invertebrate" in run_choice["aquatic_animal_type_list"]:
@@ -124,8 +124,27 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
             run_choice["hyd_opt"].pop(i)
             run_choice["sub_opt"].pop(i)
 
-    # compute_variables
-    hdf5.compute_variables(mesh_variable_list=variable_mesh)
+    # create user_target_list with hvum
+    for fish_num in range(len(run_choice["pref_file_list"])):
+        name = run_choice["code_alternative_list"][fish_num] + "_" + \
+               run_choice["stage_list"][fish_num] + "_" + \
+               run_choice["hyd_opt"][fish_num] + "_" + \
+               run_choice["sub_opt"][fish_num]
+        variable = HydraulicVariable(value=None,
+                                     unit="HSI",
+                                     name=name,
+                                     name_gui=name,
+                                     hdf5=False,
+                                     position="mesh",
+                                     dtype=np.float64,
+                                     index_gui=-1,
+                                     sub=True,
+                                     habitat=True)
+        hdf5.hvum.user_target_list.append(variable)
+
+    # load specific data with hvum
+    hdf5.load_hdf5_hab(user_target_list=hdf5.hvum.user_target_list)
+    hdf5.data_2d.hvum = hdf5.hvum
 
     # fig options
     if not project_preferences:
@@ -321,30 +340,29 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
 
     # progress
     prog = progress_value.value
-    delta_reach = delta / len(data_2d["node"]["data"]["h"])
+    delta_reach = delta / data_2d.reach_num
 
     # for each reach
-    for reach_num in range(len(data_2d["mesh"]["tin"])):
+    for reach_num in range(data_2d.reach_num):
         vh_all = []
         area_c_all = []
         spu_all = []
 
         # progress
-        delta_unit = delta_reach / len(data_2d["node"]["data"]["h"][reach_num])
+        delta_unit = delta_reach / data_2d.unit_num
         warning_range_list = []
 
         if aquatic_animal_type_select == "invertebrate":
             warning_shearstress_list = []
 
         # for each unit
-        for unit_num in range(len(data_2d["node"]["data"]["h"][reach_num])):
-            height_t = data_2d["mesh"]["data"]["h"][reach_num][unit_num]
-            vel_t = data_2d["mesh"]["data"]["v"][reach_num][unit_num]
+        for unit_num in range(data_2d.unit_num):
+            height_t = data_2d[reach_num][unit_num]["mesh"]["data"][data_2d.hvum.h.name]
+            vel_t = data_2d[reach_num][unit_num]["mesh"]["data"][data_2d.hvum.v.name]
             if aquatic_animal_type_select == "invertebrate":
-                shear_stress_t = data_2d["mesh"]["data"]["shear_stress"][reach_num][unit_num]
-            sub_t = data_2d["mesh"]["data"]["sub"][reach_num][unit_num]
-            ikle_t = data_2d["mesh"]["tin"][reach_num][unit_num]
-            area = data_2d["mesh"]["data"]["area"][reach_num][unit_num]
+                shear_stress_t = data_2d[reach_num][unit_num]["mesh"]["data"][data_2d.hvum.shear_stress.name]
+            ikle_t = data_2d[reach_num][unit_num]["mesh"]["tin"]
+            area = data_2d[reach_num][unit_num]["mesh"]["data"]["area"]
             if len(ikle_t) == 0:
                 print('Warning: ' + qt_tr.translate("calcul_hab_mod", 'The connectivity table was not well-formed for one reach (1) \n'))
                 vh = [-99]
@@ -396,10 +414,15 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                         """ substrate pref """
                         # Neglect
                         if sub_opt == "Neglect":
-                            s_pref_c = np.array([1] * len(sub_t))
+                            s_pref_c = np.array([1] * ikle_t.shape[0])
                         else:
                             # convert classification code sandre to cemagref
                             # TODO: no input data conversion if pref curve is sandre or antoher
+
+                            sub_t = np.empty(shape=(ikle_t.shape[0], len(data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())))
+                            for sub_class_num, sub_class_name in enumerate(data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()):
+                                sub_t[:, sub_class_num] = data_2d[reach_num][unit_num]["mesh"]["data"][sub_class_name]
+
                             if hab_description["sub_classification_code"] == "Sandre":
                                 if hab_description["sub_classification_method"] == "percentage":
                                     sub_t = sandre_to_cemagref_by_percentage_array(sub_t)

@@ -1058,6 +1058,8 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
     sub_edgecolor = "orange"
     merge_edgecolor = "black"
 
+    data_min = min(min(sub_data),min(merge_data))
+    data_max = max(max(sub_data), max(merge_data))
     # hyd
     axs[0, 0].set_title("hydraulic")
     xlist = []
@@ -1087,8 +1089,8 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
     # sub
     axs[0, 1].set_title("substrate")
     masked_array = np.ma.array(sub_data, mask=np.isnan(sub_data))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
+    # data_min = masked_array.min()
+    # data_max = masked_array.max()
     cmap = mpl.cm.get_cmap("jet")
     cmap.set_bad(color='black', alpha=1.0)
     n = len(sub_data)
@@ -1136,8 +1138,8 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
     # mesh with color
     axs[1, 1].set_title("merge (with color)")
     masked_array = np.ma.array(merge_data, mask=np.isnan(merge_data))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
+    # data_min = masked_array.min()
+    # data_max = masked_array.max()
     cmap = mpl.cm.get_cmap("jet")
     cmap.set_bad(color='black', alpha=1.0)
     n = len(merge_data)

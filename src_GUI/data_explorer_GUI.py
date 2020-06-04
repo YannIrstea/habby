@@ -346,10 +346,25 @@ class DataExplorerFrame(QFrame):
                 # habitat
                 if self.types_hdf5_QComboBox.currentIndex() == 3:
                     self.set_habitat_layout()
-                    self.plot_group.mesh_variable_QListWidget.addItems(hdf5.variables)
+                    if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
+                        for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
+                            mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
+                            mesh_item.setData(Qt.UserRole, mesh)
+                            if not mesh.hdf5:
+                                mesh_item.setText(mesh_item.text() + " *")
+                                mesh_item.setToolTip("computable")
+                            self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
+                    if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
+                        for node in hdf5.hvum.hdf5_and_computable_list.nodes():
+                            node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
+                            node_item.setData(Qt.UserRole, node)
+                            if not node.hdf5:
+                                node_item.setText(node_item.text() + " *")
+                                node_item.setToolTip("computable")
+                            self.plot_group.node_variable_QListWidget.addItem(node_item)
+
                     if hdf5.reach_name:
                         self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                        self.habitatvalueremover_group.existing_animal_QListWidget.addItems(hdf5.fish_list)
                         if len(hdf5.reach_name) == 1:
                             self.plot_group.reach_QListWidget.selectAll()
                             if hdf5.nb_unit == 1:
