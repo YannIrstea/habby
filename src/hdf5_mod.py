@@ -3062,6 +3062,11 @@ def simple_export(data,format):
                                    variables_mesh=data.hyd_variables_computed_mesh)
             data.export_paraview()
 
+        if format in ["txt","all"]:
+            data.export_detailled_mesh_txt()
+            data.export_detailled_point_txt()
+
+
     elif data.extension==".hab":
         #TODO: Write specific code for exporting habitat files
         pass
