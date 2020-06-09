@@ -1210,6 +1210,7 @@ class MyProcessList(QThread):
         self.process_type = type  # cal or plot or export
         self.process_list = []
         self.save_process = []
+        self.plot_hdf5_mode = False
         self.export_hdf5_mode = False
 
     def set_export_hdf5_mode(self, path_prj, name_hdf5, export_dict, project_preferences):
@@ -1226,103 +1227,6 @@ class MyProcessList(QThread):
         self.plot_attr = plot_attr
         self.hvum = plot_attr.hvum
 
-    def load_data_and_append_export_process(self):
-        # hydraulic
-        if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
-            self.hdf5.load_hdf5_hyd(whole_profil=True, user_target_list=self.project_preferences)
-            total_gpkg_export = sum(
-                [self.export_dict["mesh_whole_profile_hyd"], self.export_dict["point_whole_profile_hyd"],
-                 self.export_dict["mesh_units_hyd"], self.export_dict["point_units_hyd"]])
-            if self.export_dict["mesh_whole_profile_hyd"] or self.export_dict["point_whole_profile_hyd"] or \
-                    self.export_dict["mesh_units_hyd"] or self.export_dict["point_units_hyd"]:
-                # append fake first
-                for fake_num in range(1, total_gpkg_export):
-                    self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
-                state = Value("i", 0)
-                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
-                                              args=(state,),
-                                              name="export_gpkg")
-                self.process_list.append([export_gpkg_process, state])
-            if self.export_dict["elevation_whole_profile_hyd"]:
-                state = Value("i", 0)
-                export_stl_process = Process(target=self.hdf5.export_stl,
-                                             args=(state,),
-                                             name="export_stl")
-                self.process_list.append([export_stl_process, state])
-            if self.export_dict["variables_units_hyd"]:
-                state = Value("i", 0)
-                export_paraview_process = Process(target=self.hdf5.export_paraview,
-                                                  args=(state,),
-                                                  name="export_paraview")
-                self.process_list.append([export_paraview_process, state])
-            if self.export_dict["detailled_text_hyd"]:
-                state = Value("i", 0)
-                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
-                                                            args=(state,),
-                                                            name="export_detailled_txt")
-                self.process_list.append([export_detailled_mesh_txt_process, state])
-
-        # substrate
-        elif self.hdf5.hdf5_type == "substrate":  # load substrate data
-            self.hdf5.load_hdf5_sub()
-
-        # habitat
-        elif self.hdf5.hdf5_type == "habitat":  # load habitat data
-            self.hdf5.load_hdf5_hab(whole_profil=True)
-            self.hdf5.project_preferences = self.project_preferences
-            total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
-            if self.export_dict["mesh_units_hab"] or self.export_dict["point_units_hab"]:
-                # append fake first
-                for fake_num in range(1, total_gpkg_export):
-                    self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
-                state = Value("i", 0)
-                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
-                                              args=(state,),
-                                              name="export_gpkg")
-                self.process_list.append([export_gpkg_process, state])
-            if self.export_dict["elevation_whole_profile_hab"]:
-                state = Value("i", 0)
-                export_stl_process = Process(target=self.hdf5.export_stl,
-                                             args=(state,),
-                                             name="export_stl")
-                self.process_list.append([export_stl_process, state])
-            if self.export_dict["variables_units_hab"]:
-                state = Value("i", 0)
-                export_paraview_process = Process(target=self.hdf5.export_paraview,
-                                                  args=(state,),
-                                                  name="export_paraview")
-                self.process_list.append([export_paraview_process, state])
-            if self.export_dict["habitat_text_hab"]:
-                state = Value("i", 0)
-                export_spu_txt_process = Process(target=self.hdf5.export_spu_txt,
-                                                 args=(state,),
-                                                 name="export_spu_txt")
-                self.process_list.append([export_spu_txt_process, state])
-            if self.export_dict["detailled_text_hab"]:
-                state = Value("i", 0)
-                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
-                                                            args=(state,),
-                                                            name="export_detailled_txt")
-                self.process_list.append([export_detailled_mesh_txt_process, state])
-            if self.export_dict["fish_information_hab"]:
-                if self.hdf5.fish_list:
-                    state = Value("i", 0)
-                    export_pdf_process = Process(target=self.hdf5.export_report,
-                                                 args=(state,),
-                                                 name="export_report")
-                    self.process_list.append([export_pdf_process, state])
-                else:
-                    # append fake first
-                    self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
-                    print('Warning: ' + 'No habitat data in this .hab file to export Fish informations report.')
-        #
-        # # start thread
-        # self.process_list.start()
-
-        # while progress_value.value != process_list.nb_export_total:
-        #     progress_value.value = process_list.nb_finished
-        # process_list.terminate()
-
     def load_data_and_append_plot_process(self):
         reach = self.plot_attr.reach
         plot_type = self.plot_attr.plot_type
@@ -1333,9 +1237,7 @@ class MyProcessList(QThread):
         if self.hdf5.hdf5_type == "hydraulic":
             self.hdf5.load_hdf5_hyd(units_index=units_index,
                                user_target_list=self.hvum.user_target_list,
-                               whole_profil=True)  #
-            # compute variables
-            # hdf5.data_2d.compute_variables(variable_computable_list=self.hvum.all_available_variable_list)
+                               whole_profil=True)
             # data_description
             data_description = dict(self.hdf5.data_description)
             data_description["reach_list"] = self.hdf5.data_description["hyd_reach_list"].split(", ")
@@ -1345,8 +1247,8 @@ class MyProcessList(QThread):
             data_description["units_index"] = units_index
             data_description["name_hdf5"] = self.hdf5.data_description["hyd_filename"]
         # load substrate data
-        if self.hdf5.hdf5_type == "substrate":
-            self.hdf5.load_hdf5_sub(convert_to_coarser_dom=True)
+        elif self.hdf5.hdf5_type == "substrate":
+            self.hdf5.load_hdf5_sub(user_target_list=self.hvum.user_target_list)
             # data_description
             data_description = dict(self.hdf5.data_description)
             data_description["reach_list"] = self.hdf5.data_description["sub_reach_list"].split(", ")
@@ -1356,14 +1258,10 @@ class MyProcessList(QThread):
             data_description["name_hdf5"] = self.hdf5.data_description["sub_filename"]
             data_description["sub_classification_code"] = self.hdf5.data_description["sub_classification_code"]
         # load habitat data
-        if self.hdf5.hdf5_type == "habitat":
+        elif self.hdf5.hdf5_type == "habitat":
             self.hdf5.load_hdf5_hab(units_index=units_index,
-                               fish_names=self.hvum.user_target_list.habs(),
-                               whole_profil=False,
-                               convert_to_coarser_dom=True)
-            # # compute variables
-            # hdf5.compute_variables(mesh_variable_list=variables_mesh,
-            #                        node_variable_list=variables_node)
+                               user_target_list=self.hvum.user_target_list,
+                               whole_profil=False)
             # data_description
             data_description = dict(self.hdf5.data_description)
             data_description["reach_list"] = self.hdf5.data_description["hyd_reach_list"].split(", ")
@@ -1801,6 +1699,103 @@ class MyProcessList(QThread):
                 #         self.process_list.append([gif_map_process, state])
         self.nb_plot_total = len(self.process_list)
 
+    def load_data_and_append_export_process(self):
+        # hydraulic
+        if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
+            self.hdf5.load_hdf5_hyd(whole_profil=True, user_target_list=self.project_preferences)
+            total_gpkg_export = sum(
+                [self.export_dict["mesh_whole_profile_hyd"], self.export_dict["point_whole_profile_hyd"],
+                 self.export_dict["mesh_units_hyd"], self.export_dict["point_units_hyd"]])
+            if self.export_dict["mesh_whole_profile_hyd"] or self.export_dict["point_whole_profile_hyd"] or \
+                    self.export_dict["mesh_units_hyd"] or self.export_dict["point_units_hyd"]:
+                # append fake first
+                for fake_num in range(1, total_gpkg_export):
+                    self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
+                state = Value("i", 0)
+                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
+                                              args=(state,),
+                                              name="export_gpkg")
+                self.process_list.append([export_gpkg_process, state])
+            if self.export_dict["elevation_whole_profile_hyd"]:
+                state = Value("i", 0)
+                export_stl_process = Process(target=self.hdf5.export_stl,
+                                             args=(state,),
+                                             name="export_stl")
+                self.process_list.append([export_stl_process, state])
+            if self.export_dict["variables_units_hyd"]:
+                state = Value("i", 0)
+                export_paraview_process = Process(target=self.hdf5.export_paraview,
+                                                  args=(state,),
+                                                  name="export_paraview")
+                self.process_list.append([export_paraview_process, state])
+            if self.export_dict["detailled_text_hyd"]:
+                state = Value("i", 0)
+                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
+                                                            args=(state,),
+                                                            name="export_detailled_txt")
+                self.process_list.append([export_detailled_mesh_txt_process, state])
+
+        # substrate
+        elif self.hdf5.hdf5_type == "substrate":  # load substrate data
+            self.hdf5.load_hdf5_sub()
+
+        # habitat
+        elif self.hdf5.hdf5_type == "habitat":  # load habitat data
+            self.hdf5.load_hdf5_hab(whole_profil=True)
+            self.hdf5.project_preferences = self.project_preferences
+            total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
+            if self.export_dict["mesh_units_hab"] or self.export_dict["point_units_hab"]:
+                # append fake first
+                for fake_num in range(1, total_gpkg_export):
+                    self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
+                state = Value("i", 0)
+                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
+                                              args=(state,),
+                                              name="export_gpkg")
+                self.process_list.append([export_gpkg_process, state])
+            if self.export_dict["elevation_whole_profile_hab"]:
+                state = Value("i", 0)
+                export_stl_process = Process(target=self.hdf5.export_stl,
+                                             args=(state,),
+                                             name="export_stl")
+                self.process_list.append([export_stl_process, state])
+            if self.export_dict["variables_units_hab"]:
+                state = Value("i", 0)
+                export_paraview_process = Process(target=self.hdf5.export_paraview,
+                                                  args=(state,),
+                                                  name="export_paraview")
+                self.process_list.append([export_paraview_process, state])
+            if self.export_dict["habitat_text_hab"]:
+                state = Value("i", 0)
+                export_spu_txt_process = Process(target=self.hdf5.export_spu_txt,
+                                                 args=(state,),
+                                                 name="export_spu_txt")
+                self.process_list.append([export_spu_txt_process, state])
+            if self.export_dict["detailled_text_hab"]:
+                state = Value("i", 0)
+                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
+                                                            args=(state,),
+                                                            name="export_detailled_txt")
+                self.process_list.append([export_detailled_mesh_txt_process, state])
+            if self.export_dict["fish_information_hab"]:
+                if self.hdf5.fish_list:
+                    state = Value("i", 0)
+                    export_pdf_process = Process(target=self.hdf5.export_report,
+                                                 args=(state,),
+                                                 name="export_report")
+                    self.process_list.append([export_pdf_process, state])
+                else:
+                    # append fake first
+                    self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
+                    print('Warning: ' + 'No habitat data in this .hab file to export Fish informations report.')
+        #
+        # # start thread
+        # self.process_list.start()
+
+        # while progress_value.value != process_list.nb_export_total:
+        #     progress_value.value = process_list.nb_finished
+        # process_list.terminate()
+
     def new_plots(self):
         self.nb_finished = 0
         self.add_plots_state = False
@@ -1818,7 +1813,6 @@ class MyProcessList(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    @profileit
     def run(self):
         self.thread_started = True
         self.plot_production_stoped = False
