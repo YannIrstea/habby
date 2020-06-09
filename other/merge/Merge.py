@@ -447,8 +447,6 @@ def build_hyd_sub_mesh(bshow,nbpointhyd,nbpointsub,seedhyd=None,seedsub=None,rec
     rectangles=np.array(rectangles)
     vertices=rectangles[:,0:2]
     shapes=rectangles[:,2:4]
-
-
     # xyhyd = np.random.rand(nbpointhyd, 2)*100 #pavé [0,100[X[0,100[
     ##divide nbpointhyd and nbpointsub proportionate to rectangle area
     rectangle_areas=np.prod(shapes,axis=1)

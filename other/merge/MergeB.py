@@ -11,23 +11,23 @@ import plot_merge_check
 
 
 
-def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub ,defautsub,coeffgrid):
+def merge (hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default, coeffgrid):
     '''
     merging  an hydraulic TIN (Triangular Irregular Network) and the substrate TIN to obtain a merge TIN(based on the hydraulic one)
     by partitionning each hydraulic triangle/mesh if necessary into smaller triangles/meshes that contain a substrate from the substrate TIN or a default substrate
     addditional nodes inside or on the edges of an hydraulic mesh will be given hydraulic data by interpolation of the hydraulic data from the hydraulic mesh nodes
     using numpy arrays as entry and returning numpy arrays
-    :param xyhyd:the x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
-    :param hyd_data: the hydraulic data of the hydraulic nodes (eg : z, wather depth, mean velocity...)
-    :param iklehyd: the hydraulic TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
+    :param hyd_xy:the x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
+    :param hyd_data_node: the hydraulic data of the hydraulic nodes (eg : z, wather depth, mean velocity...)
+    :param hyd_tin: the hydraulic TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
     :param iwholeprofile: a two columns numpy array describing each hydraulic mesh:
             first column an index corresponding to the original hydraulic TIN (before taking away the dry part for instance)
-            2nd column icut 0 if the hydraulic original mesh have never been partitioned, 1 if it has been partioned by taking away a dry part
-    :param hyd_data_c: hydraulic data affected to each hydraulic mesh
-    :param xysub: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
-    :param iklesub: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
-    :param datasub: substrate data affected to each substrate mesh
-    :param defautsub: substrate data given by default to a merge mesh if no substrate
+            2nd column icut 0 if the hydraulic original mesh have never been partitioned, 1 if it has been partitioned by taking away a dry part
+    :param hyd_data_mesh: hydraulic data affected to each hydraulic mesh
+    :param sub_xy: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
+    :param sub_tin: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
+    :param sub_data: substrate data affected to each substrate mesh
+    :param sub_default: substrate data given by default to a merge mesh if no substrate
     :param coeffgrid: a special coefficient for defining a grid build in  the area surrounding the TINs  and used for the grid algorithm
             this grid is used to select substrate meshes that are just in the surrounding of an hydraulic mesh in order to define all the segments from hydraulix substrate edges that are intersecting the hydraulic mesh considered
     :return:
@@ -38,10 +38,10 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
             merge_data_c : hydraulic data affected to each merge mesh
             datasubmerge : substrate data affected to each merge mesh
     '''
-    gridelt=griddef(xyhyd, xysub,iklehyd,iklesub,coeffgrid) #building the grid
+    gridelt=griddef(hyd_xy, sub_xy, hyd_tin, sub_tin, coeffgrid) #building the grid
     # print(gridelt)
     # print ("titi")
-    celltriangleindexsub,celltrianglelistsub=gridikle(xysub, iklesub, gridelt) #indexing the substrate ikle (list of mesh/triangles) in reference to the grid
+    celltriangleindexsub,celltrianglelistsub=gridikle(sub_xy, sub_tin, gridelt) #indexing the substrate ikle (list of mesh/triangles) in reference to the grid
     decalnewpointmerge=0
     xymerge=[]
     iklemerge=[]
@@ -49,8 +49,8 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
     xymergepointlinkstohydr=[]
     iwholeprofilemerge, merge_data_c=[],[]
     #merging each hydraulic mesh/triangle with the substrate mesh/triangles that can be found in the same part of the grid
-    for i in range(iklehyd.size // 3):  # even if one single triangle for iklehyd
-        xyo,xya,xyb=xyhyd[iklehyd[i][0]], xyhyd[iklehyd[i][1]], xyhyd[iklehyd[i][2]]
+    for i in range(hyd_tin.size // 3):  # even if one single triangle for hyd_tin
+        xyo,xya,xyb= hyd_xy[hyd_tin[i][0]], hyd_xy[hyd_tin[i][1]], hyd_xy[hyd_tin[i][2]]
         axy,bxy=xya-xyo,xyb-xyo
         deta=bxy[1]*axy[0]-bxy[0]*axy[1]
 
@@ -74,9 +74,9 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
         listofsubedgesindex=[] # the list of substrate mesh indexes corresponding to substrate edges
         for isub in setofmeshsubindex:
             # eliminating substrate mesh out of the very surrounding of the hydraulic mesh
-            xymeshsub=np.vstack((xysub[iklesub[isub][0]],xysub[iklesub[isub][1]],xysub[iklesub[isub][2]]))
+            xymeshsub=np.vstack((sub_xy[sub_tin[isub][0]], sub_xy[sub_tin[isub][1]], sub_xy[sub_tin[isub][2]]))
             if not((np.min(xymeshsub,axis=0)>xymeshydmax).any() or (np.max(xymeshsub,axis=0)<xymeshydmin).any()):
-                listofsubedges.extend([[iklesub[isub][0],iklesub[isub][1]],[iklesub[isub][1],iklesub[isub][2]],[iklesub[isub][2],iklesub[isub][0]]])
+                listofsubedges.extend([[sub_tin[isub][0], sub_tin[isub][1]], [sub_tin[isub][1], sub_tin[isub][2]], [sub_tin[isub][2], sub_tin[isub][0]]])
                 listofsubedgesindex.extend([isub,isub,isub])
         if len(listofsubedgesindex) != 0:
             subedges = np.array(listofsubedges) #array of substrate edges in the surrounding of the hydraulic mesh/triangle
@@ -107,13 +107,13 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
             lsubmeshin=[]#list of list of substrate mesh wich are in the hydraulic triangle (to flatten and duplicates have to be eliminated)
             #the vertices of our hydraulic triangle are stored because we will used them for segment definition given to Triangle library
             xynewpoint.extend ([xyo, xya, xyb])
-            xynewpointlinkstohydr.extend ([[iklehyd[i][0], -1, -1], [iklehyd[i][1], -1, -1], [iklehyd[i][2], -1, -1]])
+            xynewpointlinkstohydr.extend ([[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
             inewpoint += 3
 
             # seaching for each substrate segment if we can extract a sub-segment inside the hydraulic triangle
             sidecontact1,sidecontact2,sidecontact4=[],[],[]
             for j in range(len(subedgesunique)):
-                xyp, xyq = xysub[subedgesunique[j][0]], xysub[subedgesunique[j][1]]
+                xyp, xyq = sub_xy[subedgesunique[j][0]], sub_xy[subedgesunique[j][1]]
                 xyaffp = [(bxy[1] * (xyp[0] - xyo[0]) - bxy[0] * (xyp[1] - xyo[1])) / deta,
                           (-axy[1] * (xyp[0] - xyo[0]) + axy[0] * (xyp[1] - xyo[1])) / deta]
                 xyaffq = [(bxy[1] * (xyq[0] - xyo[0]) - bxy[0] * (xyq[1] - xyo[1])) / deta,
@@ -129,7 +129,7 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
                 # both points of the substrate segment are inside the hydraulic triangle
                 if sidecontact[0]==0 and sidecontact[1]==0 :
                     xynewpoint.extend([xyp,xyq])
-                    xynewpointlinkstohydr.extend([[iklehyd[i][0], iklehyd[i][1], iklehyd[i][2]],[iklehyd[i][0], iklehyd[i][1], iklehyd[i][2]]])
+                    xynewpointlinkstohydr.extend([[hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]], [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]]])
                     segin.append([inewpoint + 1, inewpoint + 2])
                     inewpoint += 2
                     lsubmeshin.append(lsubedgesuniqueindex[j])
@@ -139,7 +139,7 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
                     kin,kout=0,1 #index of the xypq coordinates of the points defining the segment that are inside and outside the hydraulic triangle
                     if sidecontact[1] == 0:
                         kin,kout=1,0
-                    xynewpointlinkstohydr.append([iklehyd[i][0], iklehyd[i][1], iklehyd[i][2]])
+                    xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]])
                     bok1, bok2,bok4=False,False,False
                     if sidecontact[kout] == 1:
                         bok1,xycontact1,distsqr1 =intersection2segmentsdistsquare(xyo,xya,xyp, xyq)
@@ -161,15 +161,15 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
                         print("Mathematical problem please contact a programmer")
                     else:
                         if bok1:
-                            xynewpointlinkstohydr.append([iklehyd[i][0], iklehyd[i][1], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
                             sidecontact1.append([distsqr1,inewpoint + 2])
                             xynewpoint.extend([xypq[kin], xycontact1])
                         elif bok2:
-                            xynewpointlinkstohydr.append([iklehyd[i][0], iklehyd[i][2], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
                             sidecontact2.append([distsqr2, inewpoint + 2])
                             xynewpoint.extend([xypq[kin], xycontact2])
                         elif bok4:
-                            xynewpointlinkstohydr.append([iklehyd[i][1], iklehyd[i][2], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
                             sidecontact4.append([distsqr4, inewpoint + 2])
                             xynewpoint.extend([xypq[kin], xycontact4])
                     segin.append([inewpoint + 1, inewpoint + 2])
@@ -187,20 +187,20 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
                     if bok1 + bok2+bok4 ==2:
                         if bok1 and bok2 :
                             xynewpoint.extend([xycontact1, xycontact2])
-                            xynewpointlinkstohydr.append([iklehyd[i][0], iklehyd[i][1], -1])
-                            xynewpointlinkstohydr.append([iklehyd[i][0], iklehyd[i][2], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
                             sidecontact1.append([distsqr1, inewpoint + 1])
                             sidecontact2.append([distsqr2, inewpoint + 2])
                         if bok1 and bok4 :
                             xynewpoint.extend([xycontact1, xycontact4])
-                            xynewpointlinkstohydr.append([iklehyd[i][0], iklehyd[i][1], -1])
-                            xynewpointlinkstohydr.append([iklehyd[i][1], iklehyd[i][2], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
                             sidecontact1.append([distsqr1, inewpoint + 1])
                             sidecontact4.append([distsqr4, inewpoint + 2])
                         if bok4 and bok2 :
                             xynewpoint.extend([xycontact4, xycontact2])
-                            xynewpointlinkstohydr.append([iklehyd[i][1], iklehyd[i][2], -1])
-                            xynewpointlinkstohydr.append([iklehyd[i][0], iklehyd[i][2], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
+                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
                             sidecontact4.append([distsqr4, inewpoint + 1])
                             sidecontact2.append([distsqr2, inewpoint + 2])
                         segin.append([inewpoint + 1, inewpoint + 2])
@@ -231,7 +231,7 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
                 #eliminating duplicate points for using Triangle library
                 nxynewpoint=np.array(xynewpoint) #[xypq[kin], xycontact,......])
                 nsegin=np.array(segin)#[inewpoint + 1, inewpoint + 2]
-                nxynewpointlinkstohydr=np.array(xynewpointlinkstohydr) #[iklehyd[i][0], iklehyd[i][1], iklehyd[i][2]],[iklehyd[i][0], iklehyd[i][1], -1],.
+                nxynewpointlinkstohydr=np.array(xynewpointlinkstohydr) #[hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]],[hyd_tin[i][0], hyd_tin[i][1], -1],.
 
                 try:
                     nxynewpoint2, indices2 = np.unique(nxynewpoint, axis=0 ,return_inverse=True)
@@ -254,7 +254,7 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
                 nxynewpoint, iklenew = t['vertices'], t['triangles']
                 newpointtrianglevalidate=len(t['vertices'])-len(nxynewpoint2)
                 if newpointtrianglevalidate!=0: #Triangle library has added new points at the end of our original list of 'vertices'
-                    nxynewpointlinkstohydr=np.vstack(nxynewpointlinkstohydr2 ,np.array ([iklehyd[i][0], iklehyd[i][1], iklehyd[i][2]]*newpointtrianglevalidate))
+                    nxynewpointlinkstohydr=np.vstack(nxynewpointlinkstohydr2, np.array ([hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate))
                 else:
                     nxynewpointlinkstohydr = nxynewpointlinkstohydr2
 
@@ -262,31 +262,31 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
                 ssubmeshin2 = set([item for sublist in lsubmeshin for item in
                                    sublist])  # set of substrate mesh that can be in the hydraulic triangle
                 # testing meshes merge centers regarding substrate mesh  to affect substrate values to meshes merge
-                datasubnew = [defautsub.tolist()]*(iklenew.size // 3) # even if one single triangle for iklenew
+                datasubnew = [sub_default.tolist()] * (iklenew.size // 3) # even if one single triangle for iklenew
                 for ii,ikle in enumerate(iklenew):
                     xyc=(nxynewpoint[ikle[0]]+nxynewpoint[ikle[1]]+nxynewpoint[ikle[2]])/3
                     for jj in ssubmeshin2:
-                            if point_inside_polygon(xyc[0],xyc[1],[xysub[iklesub[jj][0]].tolist(),xysub[iklesub[jj][1]].tolist(),xysub[iklesub[jj][2]].tolist()]):
-                                datasubnew[ii]=datasub[jj].tolist()
+                            if point_inside_polygon(xyc[0], xyc[1], [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(), sub_xy[sub_tin[jj][2]].tolist()]):
+                                datasubnew[ii]=sub_data[jj].tolist()
                                 break
 
             else: #no substrate edges in the hydraulic triangle
                 nxynewpoint=np.array([xyo, xya, xyb])
-                nxynewpointlinkstohydr=np.array([[iklehyd[i][0], -1, -1], [iklehyd[i][1], -1, -1], [iklehyd[i][2], -1, -1]])
+                nxynewpointlinkstohydr=np.array([[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
                 iklenew=np.array([[0,1,2]])
-                datasubnew=[defautsub.tolist()]
+                datasubnew=[sub_default.tolist()]
                 # checking if a substrate mesh contain the hydraulic mesh
                 xyc = (xyo+ xya+ xyb) / 3
                 for jj in setofmeshsubindex:
-                    if point_inside_polygon(xyc[0], xyc[1], [xysub[iklesub[jj][0]].tolist(),xysub[iklesub[jj][1]].tolist(),xysub[iklesub[jj][2]].tolist()]):
-                        datasubnew[0] = datasub[jj]
+                    if point_inside_polygon(xyc[0], xyc[1], [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(), sub_xy[sub_tin[jj][2]].tolist()]):
+                        datasubnew[0] = sub_data[jj]
                         break
         else: #no substrate mesh around the hydraulic triangle
             nxynewpoint = np.array([xyo, xya, xyb])
             nxynewpointlinkstohydr = np.array(
-                [[iklehyd[i][0], -1, -1], [iklehyd[i][1], -1, -1], [iklehyd[i][2], -1, -1]])
+                [[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
             iklenew = np.array([[0, 1, 2]])
-            datasubnew = [defautsub.tolist()]
+            datasubnew = [sub_default.tolist()]
 
         # merges accumulation
         nbmeshmergeadd=len(iklenew)
@@ -297,7 +297,7 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
         if nbmeshmergeadd !=1:
             lwp[1]+=2 #marking the second column of iwholprofile with +2 that indicates that the merge operation have partitionned a hydraulic mesh
         iwholeprofilemerge.extend([lwp]*nbmeshmergeadd)
-        merge_data_c.extend([hyd_data_c[i].tolist()] * nbmeshmergeadd)
+        merge_data_c.extend([hyd_data_mesh[i].tolist()] * nbmeshmergeadd)
         xymergepointlinkstohydr.extend(nxynewpointlinkstohydr.tolist())
         decalnewpointmerge += len(nxynewpoint)
     #get rid of duplicate points
@@ -309,18 +309,18 @@ def merge (xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub
     nxymerge1, indices3 = np.unique(nxymerge, axis=0, return_index=True)  # nxynewpoint2 doesnt change
     nxymergepointlinkstohydr1 = nxymergepointlinkstohydr[indices3]
     #++++interpolate datahyd
-    nbline,nbcol=len(nxymerge1),hyd_data.shape[1]
+    nbline,nbcol= len(nxymerge1), hyd_data_node.shape[1]
     merge_data=np.zeros((nbline,nbcol),dtype=np.float64)
     col1=nxymergepointlinkstohydr1[:,1]==-1
     col2 = nxymergepointlinkstohydr1[:, 2] == -1
-    # merge_data[not(col1+col2)]=hyd_data[nxymergepointlinkstohydr1[not(col1+col2)]]
+    # merge_data[not(col1+col2)]=hyd_data_node[nxymergepointlinkstohydr1[not(col1+col2)]]
     for i in range(nbline):
         if col1[i] and col2[i]:
-            merge_data[i] = hyd_data[nxymergepointlinkstohydr1[i][0]]
+            merge_data[i] = hyd_data_node[nxymergepointlinkstohydr1[i][0]]
         elif col2[i]:
-            merge_data[i]=linear_interpolation_segment(nxymerge1[i],xyhyd[nxymergepointlinkstohydr1[i][0:2]],hyd_data[nxymergepointlinkstohydr1[i][0:2]])
+            merge_data[i]=linear_interpolation_segment(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i][0:2]], hyd_data_node[nxymergepointlinkstohydr1[i][0:2]])
         else:
-            merge_data[i] = finite_element_interpolation(nxymerge1[i], xyhyd[nxymergepointlinkstohydr1[i]], hyd_data[nxymergepointlinkstohydr1[i]])
+            merge_data[i] = finite_element_interpolation(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i]], hyd_data_node[nxymergepointlinkstohydr1[i]])
 
 
 
@@ -417,7 +417,7 @@ def gridikle(xysub,iklesub,gridelt):
             celltrianglelist :  a two columns sorted list by grid cell index  first column a grid cell index second column a substrate index mesh
     '''
     table0= []
-    for i in range(iklesub.size//3): # even if one single triangle for iklesub
+    for i in range(iklesub.size//3): # even if one single triangle for sub_tin
         xymesh = np.vstack((xysub[iklesub[i][0]], xysub[iklesub[i][1]], xysub[iklesub[i][2]]))
         listcells=intragridcells(xymesh, gridelt)
         for j in listcells:
@@ -503,10 +503,10 @@ def griddef(xyhyd,xysub,iklehyd,iklesub,coeffgrid):
     nbgrid = math.ceil(max(densityhyd, densitysub) *totalarea* coeffgrid)
 
 
-    # nbmeshhyd,nbmeshsub=iklehyd.size // 3,iklesub.size // 3
+    # nbmeshhyd,nbmeshsub=hyd_tin.size // 3,sub_tin.size // 3
     # nbgrid=math.ceil(max(nbmeshhyd,nbmeshsub)*coeffgrid)
 
-    #nbgrid = math.ceil(math.sqrt(63 + 0.0005 * (len(xyhyd) + len(xysub)) / 2))
+    #nbgrid = math.ceil(math.sqrt(63 + 0.0005 * (len(hyd_xy) + len(sub_xy)) / 2))
 
 
     if nbgrid==0 :
@@ -555,30 +555,55 @@ def tinareadensity(xy,ikle):
     total_area=np.sum(0.5*(np.abs((xy[ikle[:,1]][:,0] - xy[ikle[:,0]][:,0]) * (xy[ikle[:,2]][:,1] - xy[ikle[:,0]][:,1])- (xy[ikle[:,2]][:,0] - xy[ikle[:,0]][:,0]) * (xy[ikle[:,1]][:,1] - xy[ikle[:,0]][:,1]))))
     return total_area, total_area/(ikle.size//3)
 
+def baricenter(triangle,xyvertices):
+    """
+    :param triangle: the 3-element 1D numpy array containing the index of the vertices
+    :param xyvertices: the N×2 numpy array containing the (x,y) positions of all the vertices in the mesh
+    :return: the (x,y) coordinate of the triangle's baricenter
+    """
+    vertices=np.vstack(xyvertices[triangle.T])
+    return np.sum(vertices,axis=0)/3
+
+
 
 
 ####################################TEST PART ########################################################################################
-def build_hyd_sub_mesh(bshow,nbpointhyd,nbpointsub,seedhyd=None,seedsub=None):
+def build_hyd_sub_mesh(bshow,nbpointhyd,nbpointsub,seedhyd=None,seedsub=None,vertex=(0,0),shape=(100,100)):
+    '''
+    Building 2 TIN (Triangular Irregular Network) one hydraulic the other substrate
+    :param bshow: if True show using
+    :param nbpointhyd: a given number of hydraulic nodes/points
+    :param nbpointsub: a given number of substrate nodes/points
+    :param seedhyd: a fixed seed for randomisation of hydraulic nodes
+    :param seedsub:  a fixed seed for randomisation of substrate nodes
+    :return:
+        x,y for hydraulic nodes/points,
+        TIN description of hydraulic meshes (3 indexes of nodes per line defining a mesh) ,
+        x,y for substrate nodes/points,
+        TIN description of substrate meshes (3 indexes of nodes per line defining a mesh) ,
+        sub_data: substrate data for each substrate mesh
+    '''
     if seedhyd!=None:
         np.random.seed(seedhyd)
-    xyhyd = np.random.rand(nbpointhyd, 2)*100 #pavé [0,100[X[0,100[
+    vertex,shape=np.array(vertex),np.array(shape)
+    xyhyd = vertex + np.random.rand(nbpointhyd, 2)*shape #rectangle with dimensions of shape
     # print('seedhyd', np.random.get_state()[1][0])
     # TODO supprimer les doublons
     A = dict(vertices=xyhyd)  # A['vertices'].shape  : (4, 2)
     B = tr.triangulate(A)  # type(B)     class 'dict'>
-    # eventuellement check si xyhyd a changé.....
+    # eventuellement check si hyd_xy a changé.....
     if bshow:
         tr.compare(plt, A, B)
         plt.show()
 
     if seedsub!=None:
         np.random.seed(seedsub)
-    xysub=np.random.rand(nbpointsub,2)*100 #pavé [0,100[X[0,100[
+    xysub = vertex + np.random.rand(nbpointsub,2)*shape #rectangle with dimensions of shape
     # print('seedsub', np.random.get_state()[1][0])
     # TODO supprimer les doublons
     C = dict(vertices=xysub)
     D = tr.triangulate(C)
-    # eventuellement check si xysub a changé.....
+    # eventuellement check si sub_xy a changé.....
     if bshow:
         tr.compare(plt, C, D)
         plt.show()
@@ -589,9 +614,87 @@ def build_hyd_sub_mesh(bshow,nbpointhyd,nbpointsub,seedhyd=None,seedsub=None):
 
     return B['vertices'],B['triangles'],D['vertices'],D['triangles'],datasub
 
-def build_hyd_data(xyhyd,iklehyd,seedhyd1,seedhyd2,seedhyd3 ):
-    nbnode=xyhyd.size//2
-    nbmesh = iklehyd.size // 3
+# def build_hyd_sub_mesh_in_area(bshow,nbpointhyd,nbpointsub,seedhyd=None,seedsub=None,rectangles=((0,0,100,100),),contour=((0,0),(100,0),(100,100),(0,100))):
+#     if seedhyd!=None:
+#         np.random.seed(seedhyd)
+#     rectangles=np.array(rectangles)
+#     vertices=rectangles[:,0:2]
+#     shapes=rectangles[:,2:4]
+#     rectangle_areas = np.prod(shapes, axis=1)
+#     totalarea = np.sum(rectangle_areas)
+#
+#     xyhyd = vertices[0] + np.random.rand(int((rectangle_areas[0] / totalarea) * nbpointhyd), 2) * shapes[0]
+#     for i in range(1, len(rectangles)):
+#         xyhydi = vertices[i] + np.random.rand(int((rectangle_areas[i] / totalarea) * nbpointhyd), 2) * shapes[i]
+#         xyhyd = np.concatenate((xyhyd, xyhydi), axis=0)
+#     # xyhyd=np.vstack(vertices+np.random.rand(rectangle_areas/totalarea*nbpointhyd,2)*shapes)
+#     A=dict(vertices=xyhyd)
+#     B=tr.triangulate(A)
+#     if bshow:
+#         tr.compare(plt, A, B)
+#         plt.show()
+#     ntriangles=len(B["triangles"])
+#     for i in range(1,ntriangles+1):
+#         triangle=B["triangles"][ntriangles-i]
+#         center=baricenter(triangle,xyhyd)
+#         if not point_inside_polygon(center[0],center[1],contour):
+#             print("Ei! (hyd)")
+#             np.delete(B["triangles"],ntriangles-i,axis=0)
+#
+#
+#
+#
+#
+#
+#
+#     if seedsub!=None:
+#         np.random.seed(seedsub)
+#     # xysub=np.random.rand(nbpointsub,2)*100 #pavé [0,100[X[0,100[
+#     # print('seedsub', np.random.get_state()[1][0])
+#     xysub = vertices[0] + np.random.rand(int((rectangle_areas[0] / totalarea) * nbpointsub), 2) * shapes[0]
+#     for i in range(1, len(rectangles)):
+#         xysubi = vertices[i] + np.random.rand(int((rectangle_areas[i] / totalarea) * nbpointsub), 2) * shapes[i]
+#         xysub = np.concatenate((xysub, xysubi), axis=0)
+#     # TODO supprimer les doublons
+#     C = dict(vertices=xysub)
+#     D = tr.triangulate(C)
+#     ntriangles = len(D["triangles"])
+#     for i in range(1, ntriangles + 1):
+#         triangle = D["triangles"][ntriangles - i]
+#         center = baricenter(triangle, xysub)
+#         if not point_inside_polygon(center[0], center[1], contour):
+#             print("ei! (sub)")
+#             np.delete(D["triangles"], ntriangles - i, axis=0)
+#     # eventuellement check si sub_xy a changé.....
+#     if bshow:
+#         tr.compare(plt, C, D)
+#         plt.show()
+#     if seedsub!=None:
+#         np.random.seed(seedsub)
+#     datasub= np.random.randint(2,9, size=(len(D['triangles']), 1))
+#     datasub=np.hstack((datasub, datasub))
+#
+#     return B['vertices'],B['triangles'],D['vertices'],D['triangles'],datasub
+
+
+
+def build_hyd_data(hyd_xy, hyd_tin, seedhyd1, seedhyd2, seedhyd3):
+    '''
+    Building hydraulic data for a hydraulic TIN (Triangular Irregular Network)
+    :param hyd_xy: x,y for hydraulic nodes/points
+    :param hyd_tin: TIN description of hydraulic meshes (3 indexes of nodes per line defining a mesh) ,
+    :param seedhyd1: a fixed seed for randomisation of hydraulic nodes
+    :param seedhyd2: a fixed seed for randomisation of hydraulic nodes
+    :param seedhyd3: a fixed seed for randomisation of hydraulic nodes
+    :return:
+            hyd_data_node : hydraulic data for each node/point
+            iwholeprofile : iwholeprofile: a two columns numpy array describing each hydraulic mesh:
+                first column an index corresponding to the original hydraulic TIN (before taking away the dry part for instance)
+                2nd column icut 0 if the hydraulic original mesh have never been partitioned, 1 if it has been partitioned by taking away a dry part
+            hyd_data_mesh : hydraulic data for each mesh
+    '''
+    nbnode= hyd_xy.size // 2
+    nbmesh = hyd_tin.size // 3
     iwholeprofile = np.zeros((nbmesh, 2), dtype=np.int64)
     hyd_data_c=np.zeros((nbmesh,2),dtype=np.float64)
     hyd_data=np.zeros((nbnode,3),dtype=np.float64)
@@ -614,64 +717,78 @@ def build_hyd_data(xyhyd,iklehyd,seedhyd1,seedhyd2,seedhyd3 ):
     return hyd_data,iwholeprofile,hyd_data_c
 
 if __name__ == '__main__':
-    t=0
-    if t==0: #aleatoire
+    '''
+    testing the merge program
+    '''
+    t=8 # regarding this value different tests can be launched
+    if t==0: #random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
         nbpointhyd, nbpointsub, seedhyd , seedsub = 5000,7000, 9, 32
-        xyhyd,iklehyd,xysub,iklesub,datasub =build_hyd_sub_mesh(False,nbpointhyd, nbpointsub, seedhyd , seedsub)
-    elif t==1:
-        xyhyd=np.array([[4,1],[5,4],[6,1] ])
-        iklehyd=np.array([[0,1,2]])
-        xysub=np.array([[3,3],[3,5],[6,3] ])
-        iklesub=np.array([[0,1,2]])
-        datasub=np.array([[2,2]])
-    elif t==2:
-        xyhyd=np.array([[4,1],[5,4],[6,1] ])
-        iklehyd=np.array([[0,1,2]])
-        xysub=np.array([[3,3],[3,5],[6,3],[3,1] ])
-        iklesub=np.array([[0,1,2],[3,0,2]])
-        datasub=np.array([[2,2],[3,3]])
-    elif t==3:
-        xyhyd=np.array([[4,1],[5,4],[6,1],[14,11],[15,14],[16,11] ])
-        iklehyd=np.array([[0,1,2],[3,4,5]])
-        xysub=np.array([[3,3],[3,5],[6,3],[3,1],[13,13],[13,15],[16,13],[13,11] ])
-        iklesub=np.array([[0,1,2],[3,0,2],[4,5,6],[7,4,6]])
-        datasub=np.array([[2,2],[3,3],[4,4],[5,5]])
-    elif t==4:
-        xyhyd=np.array([[8,5],[10,5],[8,7]])
-        iklehyd=np.array([[0,1,2]])
-        xysub=np.array([[7,4],[12,4],[7,10]])
-        iklesub=np.array([[0,1,2]])
-        datasub=np.array([[7,7]])
-    elif t==5:
-        xyhyd=np.array([[4,1],[5,4],[6,1] ])
-        iklehyd=np.array([[0,1,2]])
-        xysub=np.array([[4,5],[6,5],[5,2]])
-        iklesub=np.array([[0,1,2]])
-        datasub=np.array([[2,2]])
-    elif t==6:
-        xyhyd=np.array([[4,1],[5,4],[6,1],[14,11],[15,14],[16,11] ])
-        iklehyd=np.array([[0,1,2],[3,4,5]])
-        xysub=np.array([[4,5],[6,5],[5,2],[14,15],[16,15],[15,12]])
-        iklesub=np.array([[0,1,2],[3,4,5]])
-        datasub=np.array([[2,2],[3,3]])
+        hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data =build_hyd_sub_mesh(False, nbpointhyd, nbpointsub, seedhyd, seedsub)
+    elif t==1: # 1 hydraulic mesh  VS 1 substrate mesh
+        hyd_xy=np.array([[4, 1], [5, 4], [6, 1]])
+        hyd_tin=np.array([[0, 1, 2]])
+        sub_xy=np.array([[3, 3], [3, 5], [6, 3]])
+        sub_tin=np.array([[0, 1, 2]])
+        sub_data=np.array([[2, 2]])
+    elif t==2: # 1 hydraulic mesh  VS 2 substrate mesh
+        hyd_xy=np.array([[4, 1], [5, 4], [6, 1]])
+        hyd_tin=np.array([[0, 1, 2]])
+        sub_xy=np.array([[3, 3], [3, 5], [6, 3], [3, 1]])
+        sub_tin=np.array([[0, 1, 2], [3, 0, 2]])
+        sub_data=np.array([[2, 2], [3, 3]])
+    elif t==3: # 2 hydraulic mesh  VS 4 substrate mesh
+        hyd_xy=np.array([[4, 1], [5, 4], [6, 1], [14, 11], [15, 14], [16, 11]])
+        hyd_tin=np.array([[0, 1, 2], [3, 4, 5]])
+        sub_xy=np.array([[3, 3], [3, 5], [6, 3], [3, 1], [13, 13], [13, 15], [16, 13], [13, 11]])
+        sub_tin=np.array([[0, 1, 2], [3, 0, 2], [4, 5, 6], [7, 4, 6]])
+        sub_data=np.array([[2, 2], [3, 3], [4, 4], [5, 5]])
+    elif t==4: # 1 hydraulic mesh  VS 1 substrate mesh containing the hydraulic mesh
+        hyd_xy=np.array([[8, 5], [10, 5], [8, 7]])
+        hyd_tin=np.array([[0, 1, 2]])
+        sub_xy=np.array([[7, 4], [12, 4], [7, 10]])
+        sub_tin=np.array([[0, 1, 2]])
+        sub_data=np.array([[7, 7]])
+    elif t==5: # 1 hydraulic mesh  VS 1 substrate mesh 1 substrate node inside the hydraulic mesh
+        hyd_xy=np.array([[4, 1], [5, 4], [6, 1]])
+        hyd_tin=np.array([[0, 1, 2]])
+        sub_xy=np.array([[4, 5], [6, 5], [5, 2]])
+        sub_tin=np.array([[0, 1, 2]])
+        sub_data=np.array([[2, 2]])
+    elif t==6: # 2 hydraulic mesh  VS 2 substrate mesh 1 substrate node inside each hydraulic mesh
+        hyd_xy=np.array([[4, 1], [5, 4], [6, 1], [14, 11], [15, 14], [16, 11]])
+        hyd_tin=np.array([[0, 1, 2], [3, 4, 5]])
+        sub_xy=np.array([[4, 5], [6, 5], [5, 2], [14, 15], [16, 15], [15, 12]])
+        sub_tin=np.array([[0, 1, 2], [3, 4, 5]])
+        sub_data=np.array([[2, 2], [3, 3]])
+    elif t==7:
+        nbpointhyd, nbpointsub, seedhyd, seedsub = 500, 700, 9, 32
+        hull = [[0, 0], [0, 40], [60, 40], [60, 100], [160, 100], [160, 60], [100, 60], [100, 0]]
+        rectangles = ((0, 0, 100, 40), (60, 40, 40, 60), (100, 60, 60, 40))
+        hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data = build_hyd_sub_mesh_in_area(False, nbpointhyd, nbpointsub, seedhyd, seedsub,rectangles,hull)
+    elif t==8:
+        nbpointhyd, nbpointsub, seedhyd, seedsub, vertex, shape = 500, 700, 9, 32, (50,50), (100,15)
+        hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data = build_hyd_sub_mesh(False, nbpointhyd, nbpointsub, seedhyd, seedsub,vertex,shape)
+
     defautsub=np.array([1,1])
     coeffgrid=1/2  # plus coeffgrid est grand plus la grille  de reperage sera fine
 
-    hyd_data,iwholeprofile,hyd_data_c=build_hyd_data(xyhyd, iklehyd, 7, 22, 33)
+    hyd_data,iwholeprofile,hyd_data_c=build_hyd_data(hyd_xy, hyd_tin, 7, 22, 33)
     ti = datetime.now()
-    nxymerge1,niklemerge1,iwholeprofilemerge,merge_data_c,datasubmerge=merge(xyhyd,hyd_data,iklehyd,iwholeprofile,hyd_data_c,xysub,iklesub,datasub ,defautsub,coeffgrid)
+    nxymerge1,niklemerge1,iwholeprofilemerge,merge_data_c,datasubmerge=merge(hyd_xy, hyd_data, hyd_tin, iwholeprofile, hyd_data_c, sub_xy, sub_tin, sub_data, defautsub, coeffgrid)
 
-    # areahyd,densityhyd=tinareadensity(xyhyd,iklehyd)
+    # areahyd,densityhyd=tinareadensity(hyd_xy,hyd_tin)
     # areamerge, densitymerge = tinareadensity(nxymerge1,niklemerge1)
     # print(areahyd,densityhyd,areamerge, densitymerge)
 
     # print(nxymerge1,niklemerge1,datasubmerge)
 
-    # print(datasub[:,0])
+    # print(sub_data[:,0])
     # print(np.array(datasubmerge)[:,0])
 
     tf = datetime.now()
     print('finish', tf - ti)
 
-    plot_merge_check.plot_to_check_mesh_merging(xyhyd,iklehyd,xysub,iklesub,datasub[:,0], nxymerge1,niklemerge1,datasubmerge[:,0])
+    plot_merge_check.plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data[:, 0], nxymerge1, niklemerge1, datasubmerge[:, 0])
+
+
 
