@@ -24,10 +24,20 @@ from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 class Data2d(list):
-    def __init__(self):
+    def __init__(self, reach_num=0, unit_num=0):
         super().__init__()
-        self.reach_num = 0
-        self.unit_num = 0
+        self.reach_num = reach_num
+        self.unit_num = unit_num
+        if self.reach_num and self.unit_num:
+            for reach_num in range(self.reach_num):
+                unit_list = []
+                for unit_num in range(self.unit_num):
+                    unit_dict = UnitDict()
+                    unit_dict["mesh"] = dict(tin=None)
+                    unit_dict["node"] = dict(xy=None,
+                                             z=None)
+                    unit_list.append(unit_dict)
+                self.append(unit_list)
         self.hvum = HydraulicVariableUnitManagement()
 
     def get_informations(self):

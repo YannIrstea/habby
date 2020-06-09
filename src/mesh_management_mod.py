@@ -22,9 +22,12 @@ from copy import deepcopy
 import numpy as np
 import triangle
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 from src import hdf5_mod
 from src.tools_mod import get_translator
+from src.MergeB import merge
+from src.data_2d_mod import Data2d, UnitDict
 from src.plot_mod import plot_to_check_mesh_merging
 
 
@@ -213,19 +216,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
     for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
         merge_description[attribute_name] = attribute_value
 
-    # plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[0][0]["node"]["xy"],
-    #                            hyd_tin=hdf5_hydro.data_2d[0][0]["mesh"]["tin"],
-    #
-    #                            sub_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
-    #                            sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
-    #                            sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy(),
-    #
-    #                            merge_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
-    #                            merge_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
-    #                            merge_data=hdf5_sub.data_2d[0][0]["mesh"]["data"]["sub_coarser"].to_numpy())
-
     # data_2d_merge and data_2d_whole_merge
-    data_2d_merge = hdf5_hydro.data_2d
+    data_2d_merge = deepcopy(hdf5_hydro.data_2d)
     data_2d_merge.hvum = hdf5_hydro.hvum
     data_2d_whole_merge = hdf5_hydro.data_2d_whole
 
@@ -284,136 +276,81 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
         if not extent_intersect:  # set default value to all mesh
             data_2d_merge.set_sub_cst_value(hdf5_sub)
 
-        if extent_intersect:
-            # defaut data
-            default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
-            """ data_2d_whole """
-            data_2d_whole_merge = hdf5_hydro.data_2d_whole
-            """ data_2d """
+        elif extent_intersect:
             # prog
             delta = 80 / int(hdf5_hydro.data_description["hyd_unit_number"])
             prog = progress_value.value
-            warn_inter = True
-            ikle_both = []
-            area_reach_both = []
-            point_all_both = []
-            vel_all_both = []
-            height_all_both = []
-            z_all_both = []
-            sub_data_all_t = []
+
+            data_2d_merge = Data2d(reach_num=int(hdf5_hydro.data_description["hyd_reach_number"]),
+                                   unit_num=int(hdf5_hydro.data_description["hyd_unit_number"]))  # new
+
+            # mixing variables
+            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_hydro.hvum.hdf5_and_computable_list)
+            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)
+
             # for each reach
             for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
-                sub_array_by_unit = []
-                vel_by_unit = []
-                height_by_unit = []
-                ikle_all_by_unit = []
-                area_reach_unit = []
-                point_all_by_unit = []
-                point_z_all_by_unit = []
                 # for each unit
                 for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
-                    first_time = False
-                    point_before = np.array(hdf5_hydro.data_2d["node"]["xy"][reach_num][unit_num])
-                    point_z_before = np.array(hdf5_hydro.data_2d["node"]["z"][reach_num][unit_num])
-                    ikle_before = np.array(hdf5_hydro.data_2d["mesh"]["tin"][reach_num][unit_num])
-                    vel_before = hdf5_hydro.data_2d["node"]["data"]["v"][reach_num][unit_num]
-                    height_before = hdf5_hydro.data_2d["node"]["data"]["h"][reach_num][unit_num]
+                    # stack i_whole_profile and i_split
+                    iwholeprofile = np.column_stack([hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["data"]["i_whole_profile"].to_numpy(),
+                                                    hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["data"]["i_split"].to_numpy()])
 
-                    # find intersection betweeen hydrology and substrate
-                    [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
-                        find_sub_and_cross(hdf5_sub.data_2d["mesh"]["tin"][reach_num][0],
-                                           hdf5_sub.data_2d["node"]["xy"][reach_num][0],
-                                           hdf5_sub.data_2d["mesh"]["data"]["sub"][reach_num][0],
-                                           hdf5_hydro.data_2d["mesh"]["tin"][reach_num][unit_num],
-                                           hdf5_hydro.data_2d["node"]["xy"][reach_num][unit_num],
-                                           progress_value, delta,
-                                           first_time)
-
-                    # if no intersection found at t==0
-                    if len(data_crossing[0]) < 1:
-                        if warn_inter:
-                            print('Warning: No intersection between the grid and the substrate for one reach for'
-                                  ' one or more time steps.\n')
-                            warn_inter = False
-                        try:
-                            # sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
-                            sub_data_here = default_data
-                        except ValueError:
-                            print('Error: no float in substrate. (only float accepted for now).\n')
-                            return failload
-                        sub_array_by_unit.append(sub_data_here)
-                        vel_before[vel_before < 0] = 0  # set negative values to 0
-                        vel_before[height_before == 0] = 0  # set all velocity to 0 if height ==0
-                        vel_by_unit.append(vel_before)
-                        height_by_unit.append(height_before)
-                        ikle_all_by_unit.append(ikle_before)
-                        point_all_by_unit.append(point_before)
-                        point_z_all_by_unit.append(point_z_before)
-                    else:
-
-                        # create the new grid based on intersection found
-                        [ikle_here, point_all_here, new_data_sub, vel_new, height_new, z_values_new] = \
-                            create_merge_grid(ikle_before,
-                                              point_before,
-                                              data_sub,
-                                              vel_before,
-                                              height_before,
-                                              point_z_before,
-                                              ikle_sub,
-                                              default_data,
-                                              data_crossing,
-                                              sub_cell)
-
-                        # check that each triangle of the grid is clock-wise (useful for shapefile)
-                        ikle_here = check_clockwise(ikle_here, point_all_here)
-                        sub_array_by_unit.append(new_data_sub)
-                        # TODO: invalid mesh create negatives values
-                        height_new[height_new < 0] = 0  # set negative values to 0
-                        vel_new[height_new == 0] = 0  # set all velocity to 0 if height ==0
-                        vel_by_unit.append(vel_new)
-                        height_by_unit.append(height_new)
-                        ikle_all_by_unit.append(ikle_here)
-                        point_all_by_unit.append(point_all_here)
-                        point_z_all_by_unit.append(z_values_new)
-                        # max_slope_bottom_all_by_unit.append(max_slope_bottom)
-                        # max_slope_energy_all_by_unit.append(max_slope_energy)
-                        # shear_stress_all_by_unit.append(shear_stress)
+                    # merge
+                    # TODO : node_data_merge
+                    node_data_merge = None
+                    xy_merge, tin_merge, i_whole_profile_merge, merge_data, data_sub_merge = merge(
+                        hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
+                        hyd_data_node=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["data"].to_numpy(),
+                        hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                        iwholeprofile=iwholeprofile,
+                        hyd_data_mesh=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["data"].to_numpy(),
+                        sub_xy=hdf5_sub.data_2d[reach_num][unit_num]["node"]["xy"],
+                        sub_tin=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                        sub_data=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["data"].to_numpy(),
+                        sub_default=np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
+                        coeffgrid=1/2)
 
                     # get points coord
-                    pa = point_all_by_unit[unit_num][ikle_here[:, 0]][:, [0, 1]]
-                    pb = point_all_by_unit[unit_num][ikle_here[:, 1]][:, [0, 1]]
-                    pc = point_all_by_unit[unit_num][ikle_here[:, 2]][:, [0, 1]]
+                    pa = xy_merge[tin_merge[:, 0]][:, [0, 1]]
+                    pb = xy_merge[tin_merge[:, 1]][:, [0, 1]]
+                    pc = xy_merge[tin_merge[:, 2]][:, [0, 1]]
 
-                    # get area2
+                    # get area
                     area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-                    area_reach = np.sum(area)
-                    area_reach_unit.append(area_reach)
-                    #area_all_by_unit.append(area)
+                    data_2d_merge[reach_num][unit_num]["total_wet_area"] = np.sum(area)
+                    data_2d_merge.hvum.area.hdf5 = True  # variable
+                    data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.area)
 
-                ikle_both.append(ikle_all_by_unit)
-                point_all_both.append(point_all_by_unit)
-                sub_data_all_t.append(sub_array_by_unit)
-                height_all_both.append(height_by_unit)
-                vel_all_both.append(vel_by_unit)
-                z_all_both.append(point_z_all_by_unit)
-                # max_slope_bottom_both.append(max_slope_bottom_all_by_unit)
-                # max_slope_energy_both.append(max_slope_energy_all_by_unit)
-                # shear_stress_both.append(shear_stress_all_by_unit)
-                #area_both.append(area_all_by_unit)
-                area_reach_both.append(area_reach_unit)
+                    # get mesh data
+                    data_2d_merge[reach_num][unit_num]["mesh"]["tin"] = tin_merge
+                    data_2d_merge[reach_num][unit_num]["mesh"]["data"] = merge_data
+
+                    # get mesh sub data
+                    for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
+                        data_2d_merge[reach_num][unit_num]["mesh"]["data"][sub_class_name] = data_sub_merge[:, sub_class_num]
+
+                    # get node data
+                    data_2d_merge[reach_num][unit_num]["node"]["xy"] = xy_merge
+                    data_2d_merge[reach_num][unit_num]["node"]["data"] = node_data_merge
+
+                    # plot_to_check_mesh_merging
+                    plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
+                                               hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
+
+                                               sub_xy=hdf5_sub.data_2d[reach_num][unit_num]["node"]["xy"],
+                                               sub_tin=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                               sub_data=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy(),
+
+                                               merge_xy=data_2d_merge[reach_num][unit_num]["node"]["xy"],
+                                               merge_tin=data_2d_merge[reach_num][unit_num]["mesh"]["tin"],
+                                               merge_data=data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy())
+
                 # progress
                 prog += delta
                 progress_value.value = int(prog)
 
-            # add sub data to dict
-            data_2d_merge["mesh"]["tin"] = ikle_both
-            data_2d_merge["mesh"]["data"]["sub"] = sub_data_all_t
-            data_2d_merge["node"]["xy"] = point_all_both
-            data_2d_merge["node"]["z"] = z_all_both
-            data_2d_merge["node"]["data"]["v"] = vel_all_both
-            data_2d_merge["node"]["data"]["h"] = height_all_both
-            # data_2d_merge["mesh"]["area"] = area_both
-            data_2d_merge["total_wet_area"] = area_reach_both
+            data_2d_whole_merge = data_2d_merge.get_only_mesh()
 
     return data_2d_merge, data_2d_whole_merge, merge_description
 
