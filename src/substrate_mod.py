@@ -32,7 +32,7 @@ import pandas as pd
 
 from src import hdf5_mod
 from src.tools_mod import polygon_type_values, point_type_values
-from src.data_2d_mod import Data2d, UnitDict
+from src.data_2d_mod import Data2d
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
@@ -541,18 +541,17 @@ def load_sub_sig(sub_description, progress_value):
                 tin.append(tin_i)
 
             # data_2d
-            data_2d = Data2d()
-            unit_dict = UnitDict()
-            unit_dict["node"] = dict(data=None,
+            data_2d = Data2d(reach_num=1,
+                             unit_num=1)
+            data_2d[0][0]["node"] = dict(data=None,
                                      xy=np.array(xy))
-            unit_dict["mesh"] = dict(data=None,
+            data_2d[0][0]["mesh"] = dict(data=None,
                                      tin=np.array(tin))
-            unit_dict["mesh"]["data"] = pd.DataFrame()
+            data_2d[0][0]["mesh"]["data"] = pd.DataFrame()
 
             # TODO: be carefull of header order
             for header_num, header in enumerate(header_list):
-                unit_dict["mesh"]["data"][header] = sub_array[:, header_num]
-            data_2d.append([unit_dict])
+                data_2d[0][0]["mesh"]["data"][header] = sub_array[:, header_num]
 
     return data_2d
 

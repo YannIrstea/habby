@@ -27,7 +27,7 @@ from copy import deepcopy
 from src import hdf5_mod
 from src.tools_mod import get_translator
 from src.MergeB import merge
-from src.data_2d_mod import Data2d, UnitDict
+from src.data_2d_mod import Data2d
 from src.plot_mod import plot_to_check_mesh_merging
 
 

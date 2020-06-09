@@ -30,13 +30,12 @@ import sys
 from pandas import DataFrame
 
 from src import bio_info_mod
-from src import substrate_mod
 from src import plot_mod
 from src import hl_mod
 from src import paraview_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
-from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, create_empty_data_2d_dict, copy_shapefiles, create_empty_data_2d_whole_profile_dict
-from src.data_2d_mod import Data2d, UnitDict
+from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
+from src.data_2d_mod import Data2d
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 from habby import HABBY_VERSION_STR
@@ -325,14 +324,6 @@ class Hdf5Management:
         'hyd_varying_mesh' : boolean
         'hyd_unit_z_equal' : boolean if all z are egual between units, 'False' if the bottom values vary
         """
-        # #
-        # validity, error = check_data_2d_dict_validity(data_2d,
-        #                             int(hyd_description["hyd_reach_number"]),
-        #                             int(hyd_description["hyd_unit_number"]))
-        # if not validity:
-        #     print(error)
-        #     return
-
         # create a new hdf5
         self.open_hdf5_file(new=True)
 
@@ -562,47 +553,45 @@ class Hdf5Management:
         """ WHOLE PROFIL """
         if whole_profil:
             # create dict
-            data_2d_whole_profile = Data2d()
             data_2d_whole_profile_group = 'data_2d_whole_profile'
+            reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
+
+            data_2d_whole_profile = Data2d(reach_num=len(reach_list),
+                             unit_num=len(reach_list[0]))  # new
+
             data_description["unit_name_whole_profile"] = []
 
             # for each reach
-            reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
             for reach_num, reach_group_name in enumerate(reach_list):
                 data_description["unit_name_whole_profile"].append([])
                 reach_group = data_2d_whole_profile_group + "/" + reach_group_name
-                unit_list = []
                 # for each desired_units
                 available_unit_list = list(self.file_object[reach_group].keys())
-                for unit_group_name in available_unit_list:
+                for unit_num, unit_group_name in enumerate(available_unit_list):
                     data_description["unit_name_whole_profile"][reach_num].append(unit_group_name)
                     unit_group = reach_group + "/" + unit_group_name
                     mesh_group = unit_group + "/mesh"
                     node_group = unit_group + "/node"
-                    unit_dict = UnitDict()
-                    unit_dict["mesh"] = dict(tin=self.file_object[mesh_group + "/tin"][:])
-                    unit_dict["node"] = dict(xy=self.file_object[node_group + "/xy"][:],
-                                            z=self.file_object[node_group + "/z"][:])
-                    # append by unit
-                    unit_list.append(unit_dict)
-                # append by reach
-                data_2d_whole_profile.append(unit_list)
-
-            data_2d_whole_profile.get_informations()
+                    # data_2d_whole_profile
+                    data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"] = self.file_object[mesh_group + "/tin"][:]
+                    data_2d_whole_profile[reach_num][unit_num]["node"]["xy"] = self.file_object[node_group + "/xy"][:]
+                    data_2d_whole_profile[reach_num][unit_num]["node"]["z"] = self.file_object[node_group + "/z"][:]
 
         """ DATA 2D """
-        data_2d = Data2d()
         data_2d_group = 'data_2d'
-        # for each reach
         reach_list = list(self.file_object[data_2d_group].keys())
+
+        data_2d = Data2d(reach_num=len(reach_list),
+                         unit_num=len(self.units_index))  # new
+
+        # for each reach
         for reach_num, reach_group_name in enumerate(reach_list):
             # group name
             reach_group = data_2d_group + "/" + reach_group_name
-            unit_list = []
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
             desired_units_list = [available_unit_list[unit_index] for unit_index in self.units_index]  # get only desired_units
-            for unit_group_name in desired_units_list:
+            for unit_num, unit_group_name in enumerate(desired_units_list):
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
 
@@ -622,6 +611,10 @@ class Hdf5Management:
                             mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][mesh_variable.name]
                     else:
                         mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
+                # data_2d
+                data_2d[reach_num][unit_num]["mesh"]["data"] = mesh_dataframe
+                data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = i_whole_profile
+                data_2d[reach_num][unit_num]["mesh"]["tin"] = tin
 
                 """ node """
                 # group
@@ -637,20 +630,9 @@ class Hdf5Management:
                             node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][node_variable.name]
                     else:
                         node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
-
-                """ unit_dict """
-                unit_dict = UnitDict()
-                unit_dict["mesh"] = dict(data=mesh_dataframe,
-                                           i_whole_profile=i_whole_profile,
-                                           tin=tin)
-                unit_dict["node"] = dict(data=node_dataframe,
-                                           xy=xy)
-                # append by unit
-                unit_list.append(unit_dict)
-            # append by reach
-            data_2d.append(unit_list)
-
-        data_2d.get_informations()
+                # data_2d
+                data_2d[reach_num][unit_num]["node"]["data"] = node_dataframe
+                data_2d[reach_num][unit_num]["node"]["xy"] = xy
 
         # close file
         self.file_object.close()
@@ -780,17 +762,21 @@ class Hdf5Management:
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
             sub_description_system[attribute_name] = attribute_value
 
-        # DATA 2D
-        data_2d = Data2d()
-
+        # constant ?
         if sub_description_system["sub_mapping_method"] == "constant":
+            # data_2d
+            data_2d = Data2d()
             data_2d.sub_constant_values = self.file_object["sub_constant_values"][:]
         elif sub_description_system["sub_mapping_method"] != "constant":
             data_group = 'data_2d'
             reach_list = list(self.file_object[data_group].keys())
+
+            # data_2d
+            data_2d = Data2d(reach_num=len(reach_list),
+                             unit_num=len(list(self.file_object[data_group + "/reach_0"].keys())))
+
             # for each reach
             for reach_num, reach_group_name in enumerate(reach_list):
-                unit_list = []
                 reach_group = data_group + "/reach_" + str(reach_num)
                 available_unit_list = list(self.file_object[reach_group].keys())
                 # for each desired_units
@@ -799,45 +785,16 @@ class Hdf5Management:
                     mesh_group = unit_group + "/mesh"
                     node_group = unit_group + "/node"
                     try:
-                        # # mesh
-                        # data_2d[reach_num]["mesh"]["tin"].append(self.file_object[mesh_group + "/tin"][:])
-                        #
-                        # # mesh data
-                        # for mesh_variable in sub_mesh_variables_list:
-                        #     if mesh_variable == "sub":
-                        #         if convert_to_coarser_dom and sub_description_system["sub_classification_method"] != "coarser-dominant":
-                        #             sub_array = self.file_object[mesh_data_group + "/sub"][:]
-                        #             sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
-                        #             data_2d[reach_num]["mesh"]["data"]["sub"].append(np.array(list(zip(sub_coarser, sub_dominant))))
-                        #
-                        #         else:
-                        #             data_2d[reach_num]["mesh"]["data"]["sub"].append(self.file_object[mesh_data_group + "/sub"][:])
-                        #     else:
-                        #         data_2d[reach_num]["mesh"]["data"][mesh_variable].append(self.file_object[mesh_data_group + "/" + mesh_variable][:])
-                        #
-                        # # node
-                        # data_2d["node"]["xy"][reach_num].append(self.file_object[node_group + "/xy"][:])
-
-                        # unit_dict
-                        unit_dict = UnitDict()
-                        unit_dict["node"] = dict(data=None,
-                                                 xy=self.file_object[node_group + "/xy"][:])
-                        tin = self.file_object[mesh_group + "/tin"][:]
-                        unit_dict["mesh"] = dict(data=None,
-                                                 i_whole_profile=np.arange(0,
-                                                                           tin.shape[0]),
-                                                 tin=tin)
-                        # data (always ?)
-                        unit_dict["mesh"]["data"] = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
-
-                        unit_list.append(unit_dict)
-
+                        # data_2d
+                        data_2d[reach_num][unit_num]["node"]["xy"] = self.file_object[node_group + "/xy"][:]
+                        data_2d[reach_num][unit_num]["mesh"]["data"] = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
+                        data_2d[reach_num][unit_num]["mesh"]["tin"] = self.file_object[mesh_group + "/tin"][:]
+                        data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = np.arange(0,
+                                                                                            data_2d[reach_num][unit_num]["mesh"]["tin"] .shape[0])
                     except Exception as e:
                         print('Error: ' + qt_tr.translate("hdf5_mod", 'load_hdf5_sub : ') + str(e) + "\n")
                         self.file_object.close()
                         return
-                # append by reach
-                data_2d.append(unit_list)
 
         # close
         self.file_object.close()
@@ -1117,16 +1074,18 @@ class Hdf5Management:
         """ WHOLE PROFIL """
         if whole_profil:
             # create dict
-            data_2d_whole_profile = Data2d()
             data_2d_whole_profile_group = 'data_2d_whole_profile'
+            reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
+
+            data_2d_whole_profile = Data2d(reach_num=len(reach_list),
+                             unit_num=len(list(self.file_object[data_2d_whole_profile_group + "/" + reach_list[0]].keys())))  # new
+
             data_description["unit_name_whole_profile"] = []
 
             # for each reach
-            reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
             for reach_num, reach_group_name in enumerate(reach_list):
                 data_description["unit_name_whole_profile"].append([])
                 reach_group = data_2d_whole_profile_group + "/" + reach_group_name
-                unit_list = []
                 # for each desired_units
                 available_unit_list = list(self.file_object[reach_group].keys())
                 for unit_group_name in available_unit_list:
@@ -1134,113 +1093,26 @@ class Hdf5Management:
                     unit_group = reach_group + "/" + unit_group_name
                     mesh_group = unit_group + "/mesh"
                     node_group = unit_group + "/node"
-                    unit_dict = UnitDict()
-                    unit_dict["mesh"] = dict(tin=self.file_object[mesh_group + "/tin"][:])
-                    unit_dict["node"] = dict(xy=self.file_object[node_group + "/xy"][:],
-                                            z=self.file_object[node_group + "/z"][:])
-                    # append by unit
-                    unit_list.append(unit_dict)
-                # append by reach
-                data_2d_whole_profile.append(unit_list)
-
-            data_2d_whole_profile.get_informations()
-
-        # hyd_mesh_variables_list = data_description["hyd_mesh_variables_list"].split(", ")
-        # if hyd_mesh_variables_list == ['']:
-        #     hyd_mesh_variables_list = ["sub"]  # always sub in .hab
-        # hyd_node_variables_list = data_description["hyd_node_variables_list"].split(", ")
-        # if hyd_node_variables_list == ['']:
-        #     hyd_node_variables_list = []
-        # data_2d = create_empty_data_2d_dict(int(data_description['hyd_reach_number']),
-        #                                     mesh_variables=hyd_mesh_variables_list,
-        #                                     node_variables=hyd_node_variables_list)
-        # data_2d["total_wet_area"] = [[] for _ in range(int(data_description['hyd_reach_number']))]
-        # data_description["total_wet_area"] = [[] for _ in range(int(data_description['hyd_reach_number']))]
-        #
-        # # fish dict
-        # if fish_names == "all":  # "all"
-        #     fish_names_total_list = self.file_object.attrs["hab_fish_list"].split(", ")
-        #     if fish_names_total_list == ['']:
-        #         fish_names_total_list = []
-        # elif not fish_names:  # list of fish
-        #     fish_names_total_list = []
-        # else:  # fish presence
-        #     fish_names_total_list = fish_names
-        # if fish_names_total_list:
-        #     data_2d["mesh"]["hv_data"] = dict()
-        #     data_description["total_HV_area"] = dict()
-        #     data_description["total_WUA_area"] = dict()
-        #     data_description["percent_area_unknown"] = dict()
-        #     data_description["total_wet_area"] = [[] for _ in range(int(data_description['hyd_reach_number']))]
-        #     for fish_name in fish_names_total_list:
-        #         data_2d["mesh"]["hv_data"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
-        #         data_description["total_HV_area"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
-        #         data_description["total_WUA_area"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
-        #         data_description["percent_area_unknown"][fish_name] = [[] for _ in range(int(data_description['hyd_reach_number']))]
-        #
-        # data_group = 'data_2d'
-        # # for all reach
-        # for reach_num in range(0, int(data_description['hyd_reach_number'])):
-        #     reach_group = data_group + "/reach_" + str(reach_num)
-        #     # for all unit
-        #     for unit_index, unit_num in enumerate(units_index):
-        #         unit_group = reach_group + "/unit_" + str(unit_num)
-        #         mesh_group = unit_group + "/mesh"
-        #         mesh_data_group = mesh_group + "/data"
-        #         mesh_hv_data_group = mesh_group + "/hv_data"
-        #         node_group = unit_group + "/node"
-        #         node_data_group = node_group + "/data"
-        #
-        #         try:
-        #             # unit
-        #             data_2d["total_wet_area"][reach_num].append(self.file_object[unit_group].attrs['total_wet_area'])
-        #             data_description["total_wet_area"][reach_num].append(self.file_object[unit_group].attrs['total_wet_area'])
-        #             # mesh
-        #             data_2d["mesh"]["tin"][reach_num].append(self.file_object[mesh_group + "/tin"][:])
-        #             data_2d["mesh"]["i_whole_profile"][reach_num].append(self.file_object[mesh_group + "/i_whole_profile"][:])
-        #             # mesh data
-        #             for mesh_variable in hyd_mesh_variables_list:
-        #                 if mesh_variable == "sub":
-        #                     if convert_to_coarser_dom and data_description["sub_classification_method"] != "coarser-dominant":
-        #                         sub_array = self.file_object[mesh_data_group + "/sub"][:]
-        #                         sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
-        #                         data_2d["mesh"]["data"]["sub"][reach_num].append(np.array(list(zip(sub_coarser, sub_dominant))))
-        #
-        #                     else:
-        #                         data_2d["mesh"]["data"]["sub"][reach_num].append(self.file_object[mesh_data_group + "/sub"][:])
-        #                 else:
-        #                     data_2d["mesh"]["data"][mesh_variable][reach_num].append(self.file_object[mesh_data_group + "/" + mesh_variable][:])
-        #
-        #             if fish_names_total_list:
-        #                 for fish_name in fish_names_total_list:
-        #                     data_2d["mesh"]["hv_data"][fish_name][reach_num].append(self.file_object[mesh_hv_data_group + "/" + fish_name][:])
-        #                     data_description["total_HV_area"][fish_name][reach_num].append(float(self.file_object[mesh_hv_data_group + "/" + fish_name].attrs["HV"]))
-        #                     data_description["total_WUA_area"][fish_name][reach_num].append(self.file_object[mesh_hv_data_group + "/" + fish_name].attrs["WUA"])
-        #                     data_description["percent_area_unknown"][fish_name][reach_num].append(float(self.file_object[mesh_hv_data_group + "/" + fish_name].attrs["percent_area_unknown [%m2]"]))
-        #             # node
-        #             data_2d["node"]["xy"][reach_num].append(self.file_object[node_group + "/xy"][:])
-        #             data_2d["node"]["z"][reach_num].append(self.file_object[node_group + "/z"][:])
-        #             # node data
-        #             for node_variable in hyd_node_variables_list:
-        #                 data_2d["node"]["data"][node_variable][reach_num].append(self.file_object[node_data_group + "/" + node_variable][:])
-        #         except KeyError:
-        #             print('Warning: ' + qt_tr.translate("hdf5_mod", "Can't read hdf5 dataset for one or more units."))
-        #             self.file_object.close()
-        #             return
+                    # data_2d_whole_profile
+                    data_2d_whole_profile[reach_num][unit_num]["mesh"]["tin"] = self.file_object[mesh_group + "/tin"][:]
+                    data_2d_whole_profile[reach_num][unit_num]["node"]["xy"] = self.file_object[node_group + "/xy"][:]
+                    data_2d_whole_profile[reach_num][unit_num]["node"]["z"] = self.file_object[node_group + "/z"][:]
 
         """ DATA 2D """
-        data_2d = Data2d()
         data_2d_group = 'data_2d'
-        # for each reach
         reach_list = list(self.file_object[data_2d_group].keys())
+
+        data_2d = Data2d(reach_num=len(reach_list),
+                         unit_num=len(self.units_index))  # new
+
+        # for each reach
         for reach_num, reach_group_name in enumerate(reach_list):
             # group name
             reach_group = data_2d_group + "/" + reach_group_name
-            unit_list = []
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
             desired_units_list = [available_unit_list[unit_index] for unit_index in self.units_index]  # get only desired_units
-            for unit_group_name in desired_units_list:
+            for unit_num, unit_group_name in enumerate(desired_units_list):
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
 
@@ -1251,7 +1123,6 @@ class Hdf5Management:
                 i_whole_profile = self.file_object[mesh_group + "/i_whole_profile"][:]
                 # tin
                 tin = self.file_object[mesh_group + "/tin"][:]
-
                 # data (always ?)
                 mesh_dataframe = DataFrame()
                 if mesh_group + "/data" in self.file_object:
@@ -1260,6 +1131,10 @@ class Hdf5Management:
                             mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][mesh_variable.name]
                     else:
                         mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
+                # data_2d
+                data_2d[reach_num][unit_num]["mesh"]["data"] = mesh_dataframe
+                data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = i_whole_profile
+                data_2d[reach_num][unit_num]["mesh"]["tin"] = tin
 
                 """ node """
                 # group
@@ -1275,20 +1150,9 @@ class Hdf5Management:
                             node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][node_variable.name]
                     else:
                         node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
-
-                """ unit_dict """
-                unit_dict = UnitDict()
-                unit_dict["mesh"] = dict(data=mesh_dataframe,
-                                           i_whole_profile=i_whole_profile,
-                                           tin=tin)
-                unit_dict["node"] = dict(data=node_dataframe,
-                                           xy=xy)
-                # append by unit
-                unit_list.append(unit_dict)
-            # append by reach
-            data_2d.append(unit_list)
-
-        data_2d.get_informations()
+                # data_2d
+                data_2d[reach_num][unit_num]["node"]["data"] = node_dataframe
+                data_2d[reach_num][unit_num]["node"]["xy"] = xy
 
         # close file
         self.file_object.close()

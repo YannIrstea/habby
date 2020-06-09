@@ -22,7 +22,7 @@ import numpy as np
 # import trimesh
 # from mayavi import mlab
 
-from src.data_2d_mod import Data2d, UnitDict
+from src.data_2d_mod import Data2d
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
@@ -152,7 +152,8 @@ class HydraulicSimulationResultsBase:
 
     def get_data_2d(self):
         # create empty list
-        data_2d = Data2d()
+        data_2d = Data2d(reach_num=len(self.reach_name_list),
+                         unit_num=len(self.timestep_name_wish_list))
         data_2d.hvum = self.hvum
         self.hvum.hdf5_and_computable_list.sort_by_names_gui()
         node_list = self.hvum.hdf5_and_computable_list.nodes()
@@ -162,36 +163,27 @@ class HydraulicSimulationResultsBase:
             unit_list = []
 
             for unit_num in range(len(self.timestep_name_wish_list)):
-                # unit_dict
-                unit_dict = UnitDict()
-                unit_dict["node"] = dict(data=None,
-                                         xy=self.hvum.xy.data[reach_num][unit_num])
-                unit_dict["mesh"] = dict(data=None,
-                                         i_whole_profile=np.arange(0,
-                                                                   self.hvum.tin.data[reach_num][unit_num].shape[0]),
-                                         tin=self.hvum.tin.data[reach_num][unit_num])
                 # node
-                unit_dict["node"]["data"] = pd.DataFrame()
+                data_2d[reach_num][unit_num]["node"]["xy"] = self.hvum.xy.data[reach_num][unit_num]
+                data_2d[reach_num][unit_num]["node"]["data"] = pd.DataFrame()
                 if node_list:
                     for node_variable in node_list:
                         try:
-                            unit_dict["node"]["data"][node_variable.name] = node_variable.data[reach_num][unit_num]
+                            data_2d[reach_num][unit_num]["node"]["data"][node_variable.name] = node_variable.data[reach_num][unit_num]
                         except IndexError:
                             print("Error: node data not found : " + node_variable.name + " in get_data_2d.")
+
                 # mesh
-                unit_dict["mesh"]["data"] = pd.DataFrame()
+                data_2d[reach_num][unit_num]["mesh"]["tin"] = self.hvum.tin.data[reach_num][unit_num]
+                data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = np.arange(0,
+                                                                   self.hvum.tin.data[reach_num][unit_num].shape[0])
+                data_2d[reach_num][unit_num]["mesh"]["data"] = pd.DataFrame()
                 if mesh_list:
                     for mesh_variable in mesh_list:
                         try:
-                            unit_dict["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_num][unit_num]
+                            data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_num][unit_num]
                         except IndexError:
                             print("Error: mesh data not found : " + mesh_variable.name + " in get_data_2d.")
-                # append by unit
-                unit_list.append(unit_dict)
-            # append by reach
-            data_2d.append(unit_list)
-
-        data_2d.get_informations()
 
         # description telemac data_2d dict
         description_from_file = dict()
