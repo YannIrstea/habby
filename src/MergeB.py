@@ -4,7 +4,6 @@ import triangle as tr
 import math
 from datetime import datetime
 
-
 from src.plot_mod import plot_to_check_mesh_merging
 
 
@@ -35,316 +34,326 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
     mesh in order to define all the segments from hydraulix substrate edges that are intersecting the hydraulic mesh
     considered.
     :return:
-            nxymerge1 : the x,y nodes coordinates of a hydraulic TIN
-            niklemerge1 : the merge TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a
+            merge_xy1 : the x,y nodes coordinates of a hydraulic TIN
+            merge_data_node : the hydraulic data of the merge nodes (eg : z, wather depth, mean velocity...)
+            merge_tin1 : the merge TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a
                         mesh/triangle
             iwholeprofilemerge : similar to iwholeprofile describing each hydraulic mesh
                            icut can also have the values :  2 if the mesh has been partioned by the merge : 3  if the mesh has been partioned previously by taking away a dry part and also a second time by the merge
-            merge_data_c : hydraulic data affected to each merge mesh
-            datasubmerge : substrate data affected to each merge mesh
+            merge_data_mesh : hydraulic data affected to each merge mesh
+            merge_data_sub_mesh : substrate data affected to each merge mesh
     """
     gridelt = griddef(hyd_xy, sub_xy, hyd_tin, sub_tin, coeffgrid)  # building the grid
     # print(gridelt)
     # print ("titi")
-    celltriangleindexsub, celltrianglelistsub = gridikle(sub_xy, sub_tin,
-                                                         gridelt)  # indexing the substrate ikle (list of mesh/triangles) in reference to the grid
+    celltriangleindexsub, celltrianglelistsub = gridtin(sub_xy, sub_tin,
+                                                        gridelt,
+                                                        True)  # indexing the substrate ikle (list of mesh/triangles) in reference to the grid
     decalnewpointmerge = 0
     xymerge = []
     iklemerge = []
-    datasubmerge = []
+    merge_data_sub_mesh = []
     xymergepointlinkstohydr = []
-    iwholeprofilemerge, merge_data_c = [], []
+    iwholeprofilemerge, merge_data_mesh = [], []
     # merging each hydraulic mesh/triangle with the substrate mesh/triangles that can be found in the same part of the grid
     for i in range(hyd_tin.size // 3):  # even if one single triangle for hyd_tin
         xyo, xya, xyb = hyd_xy[hyd_tin[i][0]], hyd_xy[hyd_tin[i][1]], hyd_xy[hyd_tin[i][2]]
         axy, bxy = xya - xyo, xyb - xyo
         deta = bxy[1] * axy[0] - bxy[0] * axy[1]
+        if deta == 0:
+            print('before merging an hydraulic triangle have an area=0 ')
+        else:
 
-        xymesh = np.vstack((xyo, xya, xyb))
-        xymeshydmax, xymeshydmin = np.max(xymesh, axis=0), np.min(xymesh, axis=0)
-        listcells = intragridcells(xymesh,
-                                   gridelt)  # list of the grid cells containing the surrounding of the hydraulic mesh/triangle
+            xymesh = np.vstack((xyo, xya, xyb))
+            xymeshydmax, xymeshydmin = np.max(xymesh, axis=0), np.min(xymesh, axis=0)
+            listcells = intragridcells(xymesh,
+                                       gridelt)  # list of the grid cells containing the surrounding of the hydraulic mesh/triangle
 
-        # finding the edges of substrate mesh/triangles able to be in the hydraulic triangle or to cut it eliminating duplicate edges
-        # determining the list of substrate mesh that are in the same grid area of the hydraulic triangle
-        setofmeshsubindex = set()  # the list of substrate mesh that are in the same grid area of the hydraulic triangle
-        for c in listcells:
-            if celltriangleindexsub[c][
-                0] != -1:  # the surrounding of a substrate mesh/triangle is in a grid cell (that is surrounding our hydraulic mesh)
-                for k in range(celltriangleindexsub[c][0], celltriangleindexsub[c][1] + 1):
-                    isub = celltrianglelistsub[k][1]
-                    setofmeshsubindex.add(isub)
+            # finding the edges of substrate mesh/triangles able to be in the hydraulic triangle or to cut it eliminating duplicate edges
+            # determining the list of substrate mesh that are in the same grid area of the hydraulic triangle
+            setofmeshsubindex = set()  # the list of substrate mesh that are in the same grid area of the hydraulic triangle
+            for c in listcells:
+                if celltriangleindexsub[c][
+                    0] != -1:  # the surrounding of a substrate mesh/triangle is in a grid cell (that is surrounding our hydraulic mesh)
+                    for k in range(celltriangleindexsub[c][0], celltriangleindexsub[c][1] + 1):
+                        isub = celltrianglelistsub[k][1]
+                        setofmeshsubindex.add(isub)
 
-        listofsubedges = []  # the list of substrate edges in the surrounding of the hydraulic mesh/triangle
-        listofsubedgesindex = []  # the list of substrate mesh indexes corresponding to substrate edges
-        for isub in setofmeshsubindex:
-            # eliminating substrate mesh out of the very surrounding of the hydraulic mesh
-            xymeshsub = np.vstack((sub_xy[sub_tin[isub][0]], sub_xy[sub_tin[isub][1]], sub_xy[sub_tin[isub][2]]))
-            if not ((np.min(xymeshsub, axis=0) > xymeshydmax).any() or (np.max(xymeshsub, axis=0) < xymeshydmin).any()):
-                listofsubedges.extend([[sub_tin[isub][0], sub_tin[isub][1]], [sub_tin[isub][1], sub_tin[isub][2]],
-                                       [sub_tin[isub][2], sub_tin[isub][0]]])
-                listofsubedgesindex.extend([isub, isub, isub])
-        if len(listofsubedgesindex) != 0:
-            subedges = np.array(
-                listofsubedges)  # array of substrate edges in the surrounding of the hydraulic mesh/triangle
-            subedgesindex = np.array(
-                listofsubedgesindex)  # array of substrate mesh indexes corresponding to substrate edges
-            # removing duplicate edges
-            subedges.sort(
-                axis=1)  # in order to be able in the following : to consider (1,4) and (4,1) as the same edge (we have here at least 3 edges)
-            subedgesunique, indices = np.unique(subedges, axis=0,
-                                                return_inverse=True)  # subedgesunique the edges of substrate mesh/triangles able to be in the hydraulic triangle or to cut it whith no duplicates
-            subedgesuniqueindex = np.stack((indices, subedgesindex), axis=-1)
-            subedgesuniqueindex = subedgesuniqueindex[subedgesuniqueindex[:, 0].argsort()]
-            lsubedgesuniqueindex = []
-            j0 = -3
-            for j in range(len(indices)):
-                if subedgesuniqueindex[j][0] != j0:
-                    if j0 != -3:
-                        lsubedgesuniqueindex.append(l)
-                    l = [subedgesuniqueindex[j][1]]
-                    j0 = subedgesuniqueindex[j][0]
-                else:
-                    l.append(subedgesuniqueindex[j][1])
-            lsubedgesuniqueindex.append(
-                l)  # we have now for each edge of subedgesunique a corresponding list of substrate mesh/triangles (lsubedgesuniqueindex) wich are using that edge one edge can belong to two substrate mesh
-
-            # finding the edges of substrate mesh/triangles that are inside the hydraulic triangle
-            xynewpoint = []  # the points we are creating
-            xynewpointlinkstohydr = []  # for each point of xynewpoint a sublist of 2 or 3 hydraulic points indexes in order to interpolate hydraulics values
-            inewpoint = -1
-            segin = []  # list of segments by reference to two newpoint index that are in
-            # checking if points defining the substrate segment are inside or not in the hydraulic triangle and what exact edge of this triangle can be crossed
-            lsubmeshin = []  # list of list of substrate mesh wich are in the hydraulic triangle (to flatten and duplicates have to be eliminated)
-            # the vertices of our hydraulic triangle are stored because we will used them for segment definition given to Triangle library
-            xynewpoint.extend([xyo, xya, xyb])
-            xynewpointlinkstohydr.extend([[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
-            inewpoint += 3
-
-            # seaching for each substrate segment if we can extract a sub-segment inside the hydraulic triangle
-            sidecontact1, sidecontact2, sidecontact4 = [], [], []
-            for j in range(len(subedgesunique)):
-                xyp, xyq = sub_xy[subedgesunique[j][0]], sub_xy[subedgesunique[j][1]]
-                xyaffp = [(bxy[1] * (xyp[0] - xyo[0]) - bxy[0] * (xyp[1] - xyo[1])) / deta,
-                          (-axy[1] * (xyp[0] - xyo[0]) + axy[0] * (xyp[1] - xyo[1])) / deta]
-                xyaffq = [(bxy[1] * (xyq[0] - xyo[0]) - bxy[0] * (xyq[1] - xyo[1])) / deta,
-                          (-axy[1] * (xyq[0] - xyo[0]) + axy[0] * (xyq[1] - xyo[1])) / deta]
-                sidecontact = [0,
-                               0]  # 2 numbers defining the position regarding the hydraulic triangle of repectively  P and Q (the points defining the subtrate segment )
-                for k, xyaff in enumerate([xyaffp, xyaffq]):
-                    if xyaff[1] <= 0:
-                        sidecontact[k] += 1
-                    if xyaff[0] <= 0:
-                        sidecontact[k] += 2
-                    if xyaff[1] >= -xyaff[0] + 1:
-                        sidecontact[k] += 4
-                # both points of the substrate segment are inside the hydraulic triangle
-                if sidecontact[0] == 0 and sidecontact[1] == 0:
-                    xynewpoint.extend([xyp, xyq])
-                    xynewpointlinkstohydr.extend(
-                        [[hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]], [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]]])
-                    segin.append([inewpoint + 1, inewpoint + 2])
-                    inewpoint += 2
-                    lsubmeshin.append(lsubedgesuniqueindex[j])
-                # one point of the substrate segment is inside the hydraulic triangle
-                elif (sidecontact[0] != 0 and sidecontact[1] == 0) or (sidecontact[1] != 0 and sidecontact[0] == 0):
-                    xypq = [xyp, xyq]
-                    kin, kout = 0, 1  # index of the xypq coordinates of the points defining the segment that are inside and outside the hydraulic triangle
-                    if sidecontact[1] == 0:
-                        kin, kout = 1, 0
-                    xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]])
-                    bok1, bok2, bok4 = False, False, False
-                    if sidecontact[kout] == 1:
-                        bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
-                    elif sidecontact[kout] == 2:
-                        bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
-                    elif sidecontact[kout] == 4:
-                        bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+            listofsubedges = []  # the list of substrate edges in the surrounding of the hydraulic mesh/triangle
+            listofsubedgesindex = []  # the list of substrate mesh indexes corresponding to substrate edges
+            for isub in setofmeshsubindex:
+                # eliminating substrate mesh out of the very surrounding of the hydraulic mesh
+                xymeshsub = np.vstack((sub_xy[sub_tin[isub][0]], sub_xy[sub_tin[isub][1]], sub_xy[sub_tin[isub][2]]))
+                if not ((np.min(xymeshsub, axis=0) > xymeshydmax).any() or (
+                        np.max(xymeshsub, axis=0) < xymeshydmin).any()):
+                    listofsubedges.extend([[sub_tin[isub][0], sub_tin[isub][1]], [sub_tin[isub][1], sub_tin[isub][2]],
+                                           [sub_tin[isub][2], sub_tin[isub][0]]])
+                    listofsubedgesindex.extend([isub, isub, isub])
+            if len(listofsubedgesindex) != 0:
+                subedges = np.array(
+                    listofsubedges)  # array of substrate edges in the surrounding of the hydraulic mesh/triangle
+                subedgesindex = np.array(
+                    listofsubedgesindex)  # array of substrate mesh indexes corresponding to substrate edges
+                # removing duplicate edges
+                subedges.sort(
+                    axis=1)  # in order to be able in the following : to consider (1,4) and (4,1) as the same edge (we have here at least 3 edges)
+                subedgesunique, indices = np.unique(subedges, axis=0,
+                                                    return_inverse=True)  # subedgesunique the edges of substrate mesh/triangles able to be in the hydraulic triangle or to cut it whith no duplicates
+                subedgesuniqueindex = np.stack((indices, subedgesindex), axis=-1)
+                subedgesuniqueindex = subedgesuniqueindex[subedgesuniqueindex[:, 0].argsort()]
+                lsubedgesuniqueindex = []
+                j0 = -3
+                for j in range(len(indices)):
+                    if subedgesuniqueindex[j][0] != j0:
+                        if j0 != -3:
+                            lsubedgesuniqueindex.append(l)
+                        l = [subedgesuniqueindex[j][1]]
+                        j0 = subedgesuniqueindex[j][0]
                     else:
-                        if sidecontact[kout] == 3:
-                            bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
-                            bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
-                        elif sidecontact[kout] == 5:
-                            bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
-                            bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
-                        elif sidecontact[kout] == 6:
-                            bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
-                            bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
-                    if bok1 + bok2 + bok4 != 1:
-                        print("Mathematical problem please contact a programmer")
-                    else:
-                        if bok1:
-                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
-                            sidecontact1.append([distsqr1, inewpoint + 2])
-                            xynewpoint.extend([xypq[kin], xycontact1])
-                        elif bok2:
-                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
-                            sidecontact2.append([distsqr2, inewpoint + 2])
-                            xynewpoint.extend([xypq[kin], xycontact2])
-                        elif bok4:
-                            xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
-                            sidecontact4.append([distsqr4, inewpoint + 2])
-                            xynewpoint.extend([xypq[kin], xycontact4])
-                    segin.append([inewpoint + 1, inewpoint + 2])
-                    inewpoint += 2
-                    lsubmeshin.append(lsubedgesuniqueindex[j])
+                        l.append(subedgesuniqueindex[j][1])
+                lsubedgesuniqueindex.append(
+                    l)  # we have now for each edge of subedgesunique a corresponding list of substrate mesh/triangles (lsubedgesuniqueindex) wich are using that edge one edge can belong to two substrate mesh
 
-                    # print(subedgesunique[j])
+                # finding the edges of substrate mesh/triangles that are inside the hydraulic triangle
+                xynewpoint = []  # the points we are creating
+                xynewpointlinkstohydr = []  # for each point of xynewpoint a sublist of 2 or 3 hydraulic points indexes in order to interpolate hydraulics values
+                inewpoint = -1
+                segin = []  # list of segments by reference to two newpoint index that are in
+                # checking if points defining the substrate segment are inside or not in the hydraulic triangle and what exact edge of this triangle can be crossed
+                lsubmeshin = []  # list of list of substrate mesh wich are in the hydraulic triangle (to flatten and duplicates have to be eliminated)
+                # the vertices of our hydraulic triangle are stored because we will used them for segment definition given to Triangle library
+                xynewpoint.extend([xyo, xya, xyb])
+                xynewpointlinkstohydr.extend(
+                    [[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
+                inewpoint += 3
 
-                # seaching if the substrate segment cut 2 edges of the the hydraulic triangle
-                else:
-                    bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
-                    bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
-                    bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
-                    if bok1 + bok2 + bok4 == 2:
-                        if bok1 and bok2:
-                            xynewpoint.extend([xycontact1, xycontact2])
-                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
-                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
-                            sidecontact1.append([distsqr1, inewpoint + 1])
-                            sidecontact2.append([distsqr2, inewpoint + 2])
-                        if bok1 and bok4:
-                            xynewpoint.extend([xycontact1, xycontact4])
-                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
-                            xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
-                            sidecontact1.append([distsqr1, inewpoint + 1])
-                            sidecontact4.append([distsqr4, inewpoint + 2])
-                        if bok4 and bok2:
-                            xynewpoint.extend([xycontact4, xycontact2])
-                            xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
-                            xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
-                            sidecontact4.append([distsqr4, inewpoint + 1])
-                            sidecontact2.append([distsqr2, inewpoint + 2])
+                # seaching for each substrate segment if we can extract a sub-segment inside the hydraulic triangle
+                sidecontact1, sidecontact2, sidecontact4 = [], [], []
+                for j in range(len(subedgesunique)):
+                    xyp, xyq = sub_xy[subedgesunique[j][0]], sub_xy[subedgesunique[j][1]]
+                    xyaffp = [(bxy[1] * (xyp[0] - xyo[0]) - bxy[0] * (xyp[1] - xyo[1])) / deta,
+                              (-axy[1] * (xyp[0] - xyo[0]) + axy[0] * (xyp[1] - xyo[1])) / deta]
+                    xyaffq = [(bxy[1] * (xyq[0] - xyo[0]) - bxy[0] * (xyq[1] - xyo[1])) / deta,
+                              (-axy[1] * (xyq[0] - xyo[0]) + axy[0] * (xyq[1] - xyo[1])) / deta]
+                    sidecontact = [0,
+                                   0]  # 2 numbers defining the position regarding the hydraulic triangle of repectively  P and Q (the points defining the subtrate segment )
+                    for k, xyaff in enumerate([xyaffp, xyaffq]):
+                        if xyaff[1] <= 0:
+                            sidecontact[k] += 1
+                        if xyaff[0] <= 0:
+                            sidecontact[k] += 2
+                        if xyaff[1] >= -xyaff[0] + 1:
+                            sidecontact[k] += 4
+                    # both points of the substrate segment are inside the hydraulic triangle
+                    if sidecontact[0] == 0 and sidecontact[1] == 0:
+                        xynewpoint.extend([xyp, xyq])
+                        xynewpointlinkstohydr.extend(
+                            [[hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]],
+                             [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]]])
+                        segin.append([inewpoint + 1, inewpoint + 2])
+                        inewpoint += 2
+                        lsubmeshin.append(lsubedgesuniqueindex[j])
+                    # one point of the substrate segment is inside the hydraulic triangle
+                    elif (sidecontact[0] != 0 and sidecontact[1] == 0) or (sidecontact[1] != 0 and sidecontact[0] == 0):
+                        xypq = [xyp, xyq]
+                        kin, kout = 0, 1  # index of the xypq coordinates of the points defining the segment that are inside and outside the hydraulic triangle
+                        if sidecontact[1] == 0:
+                            kin, kout = 1, 0
+                        xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]])
+                        bok1, bok2, bok4 = False, False, False
+                        if sidecontact[kout] == 1:
+                            bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
+                        elif sidecontact[kout] == 2:
+                            bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
+                        elif sidecontact[kout] == 4:
+                            bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+                        else:
+                            if sidecontact[kout] == 3:
+                                bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
+                                bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
+                            elif sidecontact[kout] == 5:
+                                bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
+                                bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+                            elif sidecontact[kout] == 6:
+                                bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+                                bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
+                        if bok1 + bok2 + bok4 != 1:
+                            print("Mathematical problem please contact a programmer")
+                        else:
+                            if bok1:
+                                xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
+                                sidecontact1.append([distsqr1, inewpoint + 2])
+                                xynewpoint.extend([xypq[kin], xycontact1])
+                            elif bok2:
+                                xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
+                                sidecontact2.append([distsqr2, inewpoint + 2])
+                                xynewpoint.extend([xypq[kin], xycontact2])
+                            elif bok4:
+                                xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
+                                sidecontact4.append([distsqr4, inewpoint + 2])
+                                xynewpoint.extend([xypq[kin], xycontact4])
                         segin.append([inewpoint + 1, inewpoint + 2])
                         inewpoint += 2
                         lsubmeshin.append(lsubedgesuniqueindex[j])
 
-            # using Triangle library to build a triangular mesh based on substrate segments inside the hydraulic triangle
-            if inewpoint != 2:
-                # adding all partials segments along the edges of the hydraulical triangle
-                if len(sidecontact1) != 0:
-                    sidecontact1.sort()
-                    sidecontact1 = [y[1] for y in sidecontact1]
-                if len(sidecontact2) != 0:
-                    sidecontact2.sort()
-                    sidecontact2 = [y[1] for y in sidecontact2]
-                if len(sidecontact4) != 0:
-                    sidecontact4.sort()
-                    sidecontact4 = [y[1] for y in sidecontact4]
-                sidecontact1 = [0] + sidecontact1 + [1]
-                sidecontact2 = [2] + sidecontact2 + [0]
-                sidecontact4 = [1] + sidecontact4 + [2]
-                for sidecontactx in (sidecontact1, sidecontact2, sidecontact4):
-                    for y in range(len(sidecontactx) - 1):
-                        segin.append([sidecontactx[y], sidecontactx[y + 1]])
+                        # print(subedgesunique[j])
 
-                # A = {'vertices': xynewpoint, 'segments': segin}
+                    # seaching if the substrate segment cut 2 edges of the the hydraulic triangle
+                    else:
+                        bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
+                        bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
+                        bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+                        if bok1 + bok2 + bok4 == 2:
+                            if bok1 and bok2:
+                                xynewpoint.extend([xycontact1, xycontact2])
+                                xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
+                                xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
+                                sidecontact1.append([distsqr1, inewpoint + 1])
+                                sidecontact2.append([distsqr2, inewpoint + 2])
+                            if bok1 and bok4:
+                                xynewpoint.extend([xycontact1, xycontact4])
+                                xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
+                                xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
+                                sidecontact1.append([distsqr1, inewpoint + 1])
+                                sidecontact4.append([distsqr4, inewpoint + 2])
+                            if bok4 and bok2:
+                                xynewpoint.extend([xycontact4, xycontact2])
+                                xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
+                                xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][2], -1])
+                                sidecontact4.append([distsqr4, inewpoint + 1])
+                                sidecontact2.append([distsqr2, inewpoint + 2])
+                            segin.append([inewpoint + 1, inewpoint + 2])
+                            inewpoint += 2
+                            lsubmeshin.append(lsubedgesuniqueindex[j])
 
-                # eliminating duplicate points for using Triangle library
-                nxynewpoint = np.array(xynewpoint)  # [xypq[kin], xycontact,......])
-                nsegin = np.array(segin)  # [inewpoint + 1, inewpoint + 2]
-                nxynewpointlinkstohydr = np.array(
-                    xynewpointlinkstohydr)  # [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]],[hyd_tin[i][0], hyd_tin[i][1], -1],.
+                # using Triangle library to build a triangular mesh based on substrate segments inside the hydraulic triangle
+                if inewpoint != 2:
+                    # adding all partials segments along the edges of the hydraulical triangle
+                    if len(sidecontact1) != 0:
+                        sidecontact1.sort()
+                        sidecontact1 = [y[1] for y in sidecontact1]
+                    if len(sidecontact2) != 0:
+                        sidecontact2.sort()
+                        sidecontact2 = [y[1] for y in sidecontact2]
+                    if len(sidecontact4) != 0:
+                        sidecontact4.sort()
+                        sidecontact4 = [y[1] for y in sidecontact4]
+                    sidecontact1 = [0] + sidecontact1 + [1]
+                    sidecontact2 = [2] + sidecontact2 + [0]
+                    sidecontact4 = [1] + sidecontact4 + [2]
+                    for sidecontactx in (sidecontact1, sidecontact2, sidecontact4):
+                        for y in range(len(sidecontactx) - 1):
+                            segin.append([sidecontactx[y], sidecontactx[y + 1]])
 
-                try:
-                    nxynewpoint2, indices2 = np.unique(nxynewpoint, axis=0, return_inverse=True)
-                except TypeError:
-                    aa = 1
+                    # A = {'vertices': xynewpoint, 'segments': segin}
 
-                nsegin2 = indices2[nsegin]
-                nxynewpoint2, indices3 = np.unique(nxynewpoint, axis=0, return_index=True)  # nxynewpoint2 doesnt change
-                nxynewpointlinkstohydr2 = nxynewpointlinkstohydr[indices3]
-                # Using Triangle library to build a mesh from our segments
-                A = {'vertices': nxynewpoint2, 'segments': nsegin2}
-                t = tr.triangulate(A, 'p')
+                    # eliminating duplicate points for using Triangle library
+                    nxynewpoint = np.array(xynewpoint)  # [xypq[kin], xycontact,......])
+                    nsegin = np.array(segin)  # [inewpoint + 1, inewpoint + 2]
+                    nxynewpointlinkstohydr = np.array(
+                        xynewpointlinkstohydr)  # [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]],[hyd_tin[i][0], hyd_tin[i][1], -1],.
 
-                # tr.compare(plt, A, t)
-                # plt.show()
-                # print(nxynewpoint2)
-                # print(t['vertices'],t['triangles'])
+                    try:
+                        nxynewpoint2, indices2 = np.unique(nxynewpoint, axis=0, return_inverse=True)
+                    except TypeError:
+                        aa = 1
 
-                # check if Triangle library has added new points at the end of our original list of 'vertices'
-                nxynewpoint, iklenew = t['vertices'], t['triangles']
-                newpointtrianglevalidate = len(t['vertices']) - len(nxynewpoint2)
-                if newpointtrianglevalidate != 0:  # Triangle library has added new points at the end of our original list of 'vertices'
-                    nxynewpointlinkstohydr = np.vstack(nxynewpointlinkstohydr2, np.array(
-                        [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate))
-                else:
-                    nxynewpointlinkstohydr = nxynewpointlinkstohydr2
+                    nsegin2 = indices2[nsegin]
+                    nxynewpoint2, indices3 = np.unique(nxynewpoint, axis=0,
+                                                       return_index=True)  # nxynewpoint2 doesnt change
+                    nxynewpointlinkstohydr2 = nxynewpointlinkstohydr[indices3]
+                    # Using Triangle library to build a mesh from our segments
+                    A = {'vertices': nxynewpoint2, 'segments': nsegin2}
+                    t = tr.triangulate(A, 'p')
 
-                # affecting substrate values to meshes merge
-                ssubmeshin2 = set([item for sublist in lsubmeshin for item in
-                                   sublist])  # set of substrate mesh that can be in the hydraulic triangle
-                # testing meshes merge centers regarding substrate mesh  to affect substrate values to meshes merge
-                datasubnew = [sub_default.tolist()] * (iklenew.size // 3)  # even if one single triangle for iklenew
-                for ii, ikle in enumerate(iklenew):
-                    xyc = (nxynewpoint[ikle[0]] + nxynewpoint[ikle[1]] + nxynewpoint[ikle[2]]) / 3
-                    for jj in ssubmeshin2:
+                    # tr.compare(plt, A, t)
+                    # plt.show()
+                    # print(nxynewpoint2)
+                    # print(t['vertices'],t['triangles'])
+
+                    # check if Triangle library has added new points at the end of our original list of 'vertices'
+                    nxynewpoint, iklenew = t['vertices'], t['triangles']
+                    newpointtrianglevalidate = len(t['vertices']) - len(nxynewpoint2)
+                    if newpointtrianglevalidate != 0:  # Triangle library has added new points at the end of our original list of 'vertices'
+                        nxynewpointlinkstohydr = np.vstack(nxynewpointlinkstohydr2, np.array(
+                            [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate))
+                    else:
+                        nxynewpointlinkstohydr = nxynewpointlinkstohydr2
+
+                    # affecting substrate values to meshes merge
+                    ssubmeshin2 = set([item for sublist in lsubmeshin for item in
+                                       sublist])  # set of substrate mesh that can be in the hydraulic triangle
+                    # testing meshes merge centers regarding substrate mesh  to affect substrate values to meshes merge
+                    datasubnew = [sub_default.tolist()] * (iklenew.size // 3)  # even if one single triangle for iklenew
+                    for ii, ikle in enumerate(iklenew):
+                        xyc = (nxynewpoint[ikle[0]] + nxynewpoint[ikle[1]] + nxynewpoint[ikle[2]]) / 3
+                        for jj in ssubmeshin2:
+                            if point_inside_polygon(xyc[0], xyc[1],
+                                                    [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(),
+                                                     sub_xy[sub_tin[jj][2]].tolist()]):
+                                datasubnew[ii] = sub_data[jj].tolist()
+                                break
+
+                else:  # no substrate edges in the hydraulic triangle
+                    nxynewpoint = np.array([xyo, xya, xyb])
+                    nxynewpointlinkstohydr = np.array(
+                        [[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
+                    iklenew = np.array([[0, 1, 2]])
+                    datasubnew = [sub_default.tolist()]
+                    # checking if a substrate mesh contain the hydraulic mesh
+                    xyc = (xyo + xya + xyb) / 3
+                    for jj in setofmeshsubindex:
                         if point_inside_polygon(xyc[0], xyc[1],
                                                 [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(),
                                                  sub_xy[sub_tin[jj][2]].tolist()]):
-                            datasubnew[ii] = sub_data[jj].tolist()
+                            datasubnew[0] = sub_data[jj]
                             break
-
-            else:  # no substrate edges in the hydraulic triangle
+            else:  # no substrate mesh around the hydraulic triangle
                 nxynewpoint = np.array([xyo, xya, xyb])
                 nxynewpointlinkstohydr = np.array(
                     [[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
                 iklenew = np.array([[0, 1, 2]])
                 datasubnew = [sub_default.tolist()]
-                # checking if a substrate mesh contain the hydraulic mesh
-                xyc = (xyo + xya + xyb) / 3
-                for jj in setofmeshsubindex:
-                    if point_inside_polygon(xyc[0], xyc[1],
-                                            [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(),
-                                             sub_xy[sub_tin[jj][2]].tolist()]):
-                        datasubnew[0] = sub_data[jj]
-                        break
-        else:  # no substrate mesh around the hydraulic triangle
-            nxynewpoint = np.array([xyo, xya, xyb])
-            nxynewpointlinkstohydr = np.array(
-                [[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
-            iklenew = np.array([[0, 1, 2]])
-            datasubnew = [sub_default.tolist()]
 
-        # merges accumulation
-        nbmeshmergeadd = len(iklenew)
-        xymerge.extend(nxynewpoint.tolist())
-        iklemerge.extend((iklenew + decalnewpointmerge).tolist())
-        datasubmerge.extend(datasubnew)
-        lwp = iwholeprofile[i].tolist()
-        if nbmeshmergeadd != 1:
-            lwp[
-                1] += 2  # marking the second column of iwholprofile with +2 that indicates that the merge operation have partitionned a hydraulic mesh
-        iwholeprofilemerge.extend([lwp] * nbmeshmergeadd)
-        merge_data_c.extend([hyd_data_mesh[i].tolist()] * nbmeshmergeadd)
-        xymergepointlinkstohydr.extend(nxynewpointlinkstohydr.tolist())
-        decalnewpointmerge += len(nxynewpoint)
+            # merges accumulation
+            nbmeshmergeadd = len(iklenew)
+            xymerge.extend(nxynewpoint.tolist())
+            iklemerge.extend((iklenew + decalnewpointmerge).tolist())
+            merge_data_sub_mesh.extend(datasubnew)
+            lwp = iwholeprofile[i].tolist()
+            if nbmeshmergeadd != 1:
+                lwp[
+                    1] += 2  # marking the second column of iwholprofile with +2 that indicates that the merge operation have partitionned a hydraulic mesh
+            iwholeprofilemerge.extend([lwp] * nbmeshmergeadd)
+            merge_data_mesh.extend([hyd_data_mesh[i].tolist()] * nbmeshmergeadd)
+            xymergepointlinkstohydr.extend(nxynewpointlinkstohydr.tolist())
+            decalnewpointmerge += len(nxynewpoint)
     # get rid of duplicate points
-    nxymerge = np.array(xymerge)
-    niklemerge = np.array(iklemerge)
-    nxymergepointlinkstohydr = np.array(xymergepointlinkstohydr)
-    nxymerge1, indices2 = np.unique(nxymerge, axis=0, return_inverse=True)
-    niklemerge1 = indices2[niklemerge]
-    nxymerge1, indices3 = np.unique(nxymerge, axis=0, return_index=True)  # nxynewpoint2 doesnt change
-    nxymergepointlinkstohydr1 = nxymergepointlinkstohydr[indices3]
+    merge_xy = np.array(xymerge)
+    merge_tin = np.array(iklemerge)
+    merge_xypointlinkstohydr = np.array(xymergepointlinkstohydr)
+    merge_xy1, indices2 = np.unique(merge_xy, axis=0, return_inverse=True)
+    merge_tin1 = indices2[merge_tin]
+    merge_xy1, indices3 = np.unique(merge_xy, axis=0, return_index=True)  # nxynewpoint2 doesnt change
+    merge_xypointlinkstohydr1 = merge_xypointlinkstohydr[indices3]
     # ++++interpolate datahyd
-    nbline, nbcol = len(nxymerge1), hyd_data_node.shape[1]
-    merge_data = np.zeros((nbline, nbcol), dtype=np.float64)
-    col1 = nxymergepointlinkstohydr1[:, 1] == -1
-    col2 = nxymergepointlinkstohydr1[:, 2] == -1
-    # merge_data[not(col1+col2)]=hyd_data_node[nxymergepointlinkstohydr1[not(col1+col2)]]
+    nbline, nbcol = len(merge_xy1), hyd_data_node.shape[1]
+    merge_data_node = np.zeros((nbline, nbcol), dtype=np.float64)
+    col1 = merge_xypointlinkstohydr1[:, 1] == -1
+    col2 = merge_xypointlinkstohydr1[:, 2] == -1
+    # merge_data_node[not(col1+col2)]=hyd_data_node[merge_xypointlinkstohydr1[not(col1+col2)]]
     for i in range(nbline):
         if col1[i] and col2[i]:
-            merge_data[i] = hyd_data_node[nxymergepointlinkstohydr1[i][0]]
+            merge_data_node[i] = hyd_data_node[merge_xypointlinkstohydr1[i][0]]
         elif col2[i]:
-            merge_data[i] = linear_interpolation_segment(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i][0:2]],
-                                                         hyd_data_node[nxymergepointlinkstohydr1[i][0:2]])
+            merge_data_node[i] = linear_interpolation_segment(merge_xy1[i], hyd_xy[merge_xypointlinkstohydr1[i][0:2]],
+                                                              hyd_data_node[merge_xypointlinkstohydr1[i][0:2]])
         else:
-            merge_data[i] = finite_element_interpolation(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i]],
-                                                         hyd_data_node[nxymergepointlinkstohydr1[i]])
+            merge_data_node[i] = finite_element_interpolation(merge_xy1[i], hyd_xy[merge_xypointlinkstohydr1[i]],
+                                                              hyd_data_node[merge_xypointlinkstohydr1[i]])
 
-    return nxymerge1, niklemerge1, np.array(iwholeprofilemerge), np.array(merge_data_c), np.array(datasubmerge)
+    return merge_xy1, merge_data_node, merge_tin1, np.array(iwholeprofilemerge), np.array(merge_data_mesh), np.array(
+        merge_data_sub_mesh)
 
 
 def finite_element_interpolation(xyp, xypmesh, datamesh):
@@ -421,15 +430,16 @@ def intersection2segmentsdistsquare(xya, xyb, xyc, xyd):
     return bok, xycontact, dist_square_to_a
 
 
-def gridikle(xysub, iklesub, gridelt):
+def gridtin(sub_xy, sub_tin, gridelt, bnoflat):  # sub_xy, sub_tin
     '''
     building the table : for each cell of the grid  determining the list of meshes from the substrate TIN that have at least a part in the cell
-    :param xysub: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
-    :param iklesub: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
+    :param sub_xy: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
+    :param sub_tin: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
     :param gridelt a dictionary
             : xymax,xymin : respectively the xy maximum and minimum coordinates of the rectangle defining the limits of the grid
             : deltagrid : the measure of grid cell edge
             :nbcell : the total number of the cells in the grid
+    :param bnoflat if True we do not take into account flat triangle
     :return:
             celltriangleindex : a two columns list corresponding for each line to a grid cell
                                 for a cell index (a line)
@@ -440,11 +450,18 @@ def gridikle(xysub, iklesub, gridelt):
             celltrianglelist :  a two columns sorted list by grid cell index  first column a grid cell index second column a substrate index mesh
     '''
     table0 = []
-    for i in range(iklesub.size // 3):  # even if one single triangle for sub_tin
-        xymesh = np.vstack((xysub[iklesub[i][0]], xysub[iklesub[i][1]], xysub[iklesub[i][2]]))
-        listcells = intragridcells(xymesh, gridelt)
-        for j in listcells:
-            table0.append([j, i])
+
+    area2 = (sub_xy[sub_tin[:, 1]][:, 0] - sub_xy[sub_tin[:, 0]][:, 0]) * (
+                sub_xy[sub_tin[:, 2]][:, 1] - sub_xy[sub_tin[:, 0]][:, 1]) - (
+                    sub_xy[sub_tin[:, 2]][:, 0] - sub_xy[sub_tin[:, 0]][:, 0]) * (
+                        sub_xy[sub_tin[:, 1]][:, 1] - sub_xy[sub_tin[:, 0]][:, 1])
+
+    for i in range(sub_tin.size // 3):  # even if one single triangle for sub_tin
+        if area2[i] != 0 and bnoflat:  # not take into account flat triangle
+            xymesh = np.vstack((sub_xy[sub_tin[i][0]], sub_xy[sub_tin[i][1]], sub_xy[sub_tin[i][2]]))
+            listcells = intragridcells(xymesh, gridelt)
+            for j in listcells:
+                table0.append([j, i])
     # print(table0)
     celltrianglelist = np.array(
         table0)  # to avoid topoligical problem  eventually set(table0) if orignal ikle contains double ....
@@ -507,13 +524,13 @@ def intragridcells(xymesh, gridelt):
     return listcells
 
 
-def griddef(xyhyd, xysub, iklehyd, iklesub, coeffgrid):
+def griddef(xyhyd, sub_xy, iklehyd, sub_tin, coeffgrid):
     '''
     defining the grid that will be  used to select substrate meshes that are just in the surrounding of an hydraulic mesh to minimize the computing time
     :param xyhyd:the x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
-    :param xysub: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
+    :param sub_xy: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
     :param iklehyd: the hydraulic TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
-    :param iklesub: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
+    :param sub_tin: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
     :param coeffgrid: a special coefficient for defining a grid build in  the area surrounding the TINs  and used for the grid algorithm  is define
     :return: gridelt a dictionary
             : xymax,xymin : respectively the xy maximum and minimum coordinates of the rectangle defining the limits of the grid
@@ -521,7 +538,7 @@ def griddef(xyhyd, xysub, iklehyd, iklesub, coeffgrid):
             :nbcell : the total number of the cells in the grid
     '''
     gridelt = {}
-    xyall = np.concatenate((xyhyd, xysub), axis=0)
+    xyall = np.concatenate((xyhyd, sub_xy), axis=0)
     xymax0 = np.ceil(
         np.max(xyall, axis=0) + 0.1)  # +0.1 to avoid point with xmax or ymax beign out of the constructed grid
     xymin = np.floor(np.min(xyall, axis=0))
@@ -529,7 +546,7 @@ def griddef(xyhyd, xysub, iklehyd, iklesub, coeffgrid):
     totalarea = dxygrid[0] * dxygrid[1]
 
     areahyd, densityhyd = tinareadensity(xyhyd, iklehyd)
-    areasub, densitysub = tinareadensity(xysub, iklesub)
+    areasub, densitysub = tinareadensity(sub_xy, sub_tin)
     nbgrid = math.ceil(max(densityhyd, densitysub) * totalarea * coeffgrid)
 
     # nbmeshhyd,nbmeshsub=hyd_tin.size // 3,sub_tin.size // 3
@@ -582,7 +599,7 @@ def tinareadensity(xy, ikle):
     '''
     total_area = np.sum(0.5 * (np.abs(
         (xy[ikle[:, 1]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 2]][:, 1] - xy[ikle[:, 0]][:, 1]) - (
-                    xy[ikle[:, 2]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 1]][:, 1] - xy[ikle[:, 0]][:, 1]))))
+                xy[ikle[:, 2]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 1]][:, 1] - xy[ikle[:, 0]][:, 1]))))
     return total_area, total_area / (ikle.size // 3)
 
 
@@ -616,10 +633,10 @@ def build_hyd_sub_mesh(bshow, nbpointhyd, nbpointsub, seedhyd=None, seedsub=None
 
     if seedsub != None:
         np.random.seed(seedsub)
-    xysub = np.random.rand(nbpointsub, 2) * 100  # pavé [0,100[X[0,100[
+    sub_xy = np.random.rand(nbpointsub, 2) * 100  # pavé [0,100[X[0,100[
     # print('seedsub', np.random.get_state()[1][0])
     # TODO supprimer les doublons
-    C = dict(vertices=xysub)
+    C = dict(vertices=sub_xy)
     D = tr.triangulate(C)
     # eventuellement check si sub_xy a changé.....
     if bshow:
@@ -718,22 +735,28 @@ if __name__ == '__main__':
 
     hyd_data, iwholeprofile, hyd_data_c = build_hyd_data(hyd_xy, hyd_tin, 7, 22, 33)
     ti = datetime.now()
-    nxymerge1, niklemerge1, iwholeprofilemerge, merge_data_c, datasubmerge = merge(hyd_xy, hyd_data, hyd_tin,
-                                                                                   iwholeprofile, hyd_data_c, sub_xy,
-                                                                                   sub_tin, sub_data, defautsub,
-                                                                                   coeffgrid)
+    merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, merge_data_mesh, merge_data_sub_mesh = merge(hyd_xy,
+                                                                                                             hyd_data,
+                                                                                                             hyd_tin,
+                                                                                                             iwholeprofile,
+                                                                                                             hyd_data_c,
+                                                                                                             sub_xy,
+                                                                                                             sub_tin,
+                                                                                                             sub_data,
+                                                                                                             defautsub,
+                                                                                                             coeffgrid)
 
     # areahyd,densityhyd=tinareadensity(hyd_xy,hyd_tin)
-    # areamerge, densitymerge = tinareadensity(nxymerge1,niklemerge1)
+    # areamerge, densitymerge = tinareadensity(merge_xy1,merge_tin1)
     # print(areahyd,densityhyd,areamerge, densitymerge)
 
-    # print(nxymerge1,niklemerge1,datasubmerge)
+    # print(merge_xy1,merge_tin1,merge_data_sub_mesh)
 
     # print(sub_data[:,0])
-    # print(np.array(datasubmerge)[:,0])
+    # print(np.array(merge_data_sub_mesh)[:,0])
 
     tf = datetime.now()
     print('finish', tf - ti)
 
-    plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data[:, 0], nxymerge1,
-                                                niklemerge1, datasubmerge[:, 0])
+    plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data[:, 0], merge_xy1,
+                               merge_tin1, merge_data_sub_mesh[:, 0])
