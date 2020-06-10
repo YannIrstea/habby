@@ -1,9 +1,24 @@
+"""
+This file is part of the free software:
+ _   _   ___  ______________   __
+| | | | / _ \ | ___ \ ___ \ \ / /
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
+
+Copyright (c) IRSTEA-EDF-AFB 2017-2018
+
+Licence CeCILL v2.1
+
+https://github.com/YannIrstea/habby
+
+"""
 import time
 import numpy as np
 import os.path
 
 from src.MergeL import build_hyd_sub_mesh, merge, build_hyd_data
-from src.plot_mod import plot_to_check_mesh_merging
 
 
 def run_test(nbpointhyd, nbpointsub, seedhyd=6, seedsub=42, rectangles=np.array([[0, 0, 100, 100], ]),
