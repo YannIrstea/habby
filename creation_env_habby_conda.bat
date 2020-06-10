@@ -34,6 +34,7 @@ pip install lxml==4.5.0
 pip install scipy==1.4.1
 pip install mplcursors==0.3
 pip install pillow==7.0.0
+pip install pandas==1.0.3
 
 :::::::::::::::::::::::::::: RUN HABBY :::::::::::::::
 python %habby_path%\habby.py
