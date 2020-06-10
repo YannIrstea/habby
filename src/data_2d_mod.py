@@ -357,9 +357,10 @@ class Data2d(list):
                 self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
                 self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack([ind_whole, i_split])
                 self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
-                self.hvum.i_split.position = "mesh"
-                self.hvum.i_split.hdf5 = True
-                self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
+                if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
+                    self.hvum.i_split.position = "mesh"
+                    self.hvum.i_split.hdf5 = True
+                    self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
                 # node data
                 self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
