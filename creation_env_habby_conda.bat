@@ -22,10 +22,11 @@ call conda create --prefix %envir_virtuels_path%\%envir_virtuel_name% python=3.6
 call conda activate %envir_virtuels_path%\%envir_virtuel_name%
 call conda install -c conda-forge numpy conda-forge::blas=*=openblas --yes 
 call conda install pyinstaller=3.6 --yes
-call conda install gdal=3.0.2 --yes
+::call conda install gdal=3.0.2 --yes
 call conda install pyqt=5.9.2 --yes
 ::call conda install triangle=20170429 --yes
 call conda install h5py=2.10.0 --yes
+pip install "C:\habby_dev\dependence\GDAL-2.4.1-cp36-cp36m-win_amd64.whl"
 pip install git+git://github.com/drufat/triangle@master
 pip install appdirs==1.4.3
 pip install qdarkstyle==2.8
