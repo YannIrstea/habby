@@ -3,7 +3,7 @@
 
 :::::::::::::::::::::::::::: CREATION ENVIRONNEMENT VIRTUEL POUR HABBY :::::::::::::::
 SET python_source_path=%USERPROFILE%\AppData\Local\Programs\Python\Python36\python.exe
-SET envir_virtuel_path=C:\habby_dev\env_virtuels\env_habby_dev2
+SET envir_virtuel_path=C:\habby_dev\env_virtuels\env_habby_dev
 SET habby_path=C:\habby_dev\habby
 
 :::::::::::::::::::::::::::: CREATION ENVIRONNEMENT VIRTUEL POUR HABBY :::::::::::::::
@@ -26,7 +26,7 @@ SET habby_path=C:\habby_dev\habby
 :: pour triangle : avoir prealablement installer ca : "go.microsoft.com/fwlink/?LinkId=691126&fixForIE=.exe." ou via la .whl
 ::%envir_virtuel_path%/Scripts/pip install triangle==20170429  
 ::%envir_virtuel_path%/Scripts/pip install %envir_virtuel_path%/packages_python_wheel/GDAL-2.4.1-cp36-cp36m-win_amd64.whl
-%envir_virtuel_path%/Scripts/pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
+::%envir_virtuel_path%/Scripts/pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
 ::%envir_virtuel_path%/Scripts/pip install cx_Freeze==5.1.1
 
 
