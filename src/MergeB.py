@@ -275,8 +275,8 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                     nxynewpoint, iklenew = t['vertices'], t['triangles']
                     newpointtrianglevalidate = len(t['vertices']) - len(nxynewpoint2)
                     if newpointtrianglevalidate != 0:  # Triangle library has added new points at the end of our original list of 'vertices'
-                        nxynewpointlinkstohydr = np.vstack(nxynewpointlinkstohydr2, np.array(
-                            [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate))
+                        nxynewpointlinkstohydr = np.vstack([nxynewpointlinkstohydr2, np.array(
+                            [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate)])
                     else:
                         nxynewpointlinkstohydr = nxynewpointlinkstohydr2
 

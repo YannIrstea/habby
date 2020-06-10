@@ -23,6 +23,7 @@ import numpy as np
 import triangle
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from pandas import DataFrame
 
 from src import hdf5_mod
 from src.tools_mod import get_translator
@@ -292,63 +293,70 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
                 # for each unit
                 for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
-                    # stack i_whole_profile and i_split
-                    iwholeprofile = np.column_stack([hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["data"]["i_whole_profile"].to_numpy(),
-                                                    hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["data"]["i_split"].to_numpy()])
-
                     # merge
-                    # TODO : node_data_merge
-                    node_data_merge = None
-                    xy_merge, tin_merge, i_whole_profile_merge, merge_data, data_sub_merge = merge(
+                    merge_xy, merge_data_node, merge_tin, merge_i_whole_profile, merge_data_mesh, merge_data_sub = merge(
                         hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
                         hyd_data_node=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["data"].to_numpy(),
                         hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                        iwholeprofile=iwholeprofile,
+                        iwholeprofile=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"],
                         hyd_data_mesh=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["data"].to_numpy(),
-                        sub_xy=hdf5_sub.data_2d[reach_num][unit_num]["node"]["xy"],
-                        sub_tin=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                        sub_data=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["data"].to_numpy(),
+                        sub_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
+                        sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
+                        sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"].to_numpy(),
                         sub_default=np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
                         coeffgrid=1/2)
 
                     # get points coord
-                    pa = xy_merge[tin_merge[:, 0]][:, [0, 1]]
-                    pb = xy_merge[tin_merge[:, 1]][:, [0, 1]]
-                    pc = xy_merge[tin_merge[:, 2]][:, [0, 1]]
+                    pa = merge_xy[merge_tin[:, 0]][:, [0, 1]]
+                    pb = merge_xy[merge_tin[:, 1]][:, [0, 1]]
+                    pc = merge_xy[merge_tin[:, 2]][:, [0, 1]]
 
                     # get area
                     area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))
-                    data_2d_merge[reach_num][unit_num]["total_wet_area"] = np.sum(area)
-                    data_2d_merge.hvum.area.hdf5 = True  # variable
-                    data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.area)
 
                     # get mesh data
-                    data_2d_merge[reach_num][unit_num]["mesh"]["tin"] = tin_merge
-                    data_2d_merge[reach_num][unit_num]["mesh"]["data"] = merge_data
+                    data_2d_merge[reach_num][unit_num]["mesh"]["tin"] = merge_tin
+                    data_2d_merge[reach_num][unit_num]["mesh"]["data"] = DataFrame()
+                    for colname_num, colname in enumerate(hdf5_hydro.data_2d[0][0]["mesh"]["data"].columns):
+                        if colname == "i_whole_profile":
+                            data_2d_merge[reach_num][unit_num]["mesh"]["data"][colname] = merge_i_whole_profile[:, 0]
+                        elif colname == "i_split":
+                            data_2d_merge[reach_num][unit_num]["mesh"]["data"][colname] = merge_i_whole_profile[:, 1]
+                        else:
+                            data_2d_merge[reach_num][unit_num]["mesh"]["data"][colname] = merge_data_mesh[:, colname_num]
+                    data_2d_merge[reach_num][unit_num]["mesh"]["i_whole_profile"] = merge_i_whole_profile
+                    data_2d_merge[reach_num][unit_num]["mesh"]["data"]["area"] = area
+                    data_2d_merge[reach_num][unit_num]["total_wet_area"] = np.sum(area)
+
+                    if not data_2d_merge.hvum.area.name in data_2d_merge.hvum.hdf5_and_computable_list.names():
+                        data_2d_merge.hvum.area.hdf5 = True  # variable
+                        data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.area)
 
                     # get mesh sub data
                     for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
-                        data_2d_merge[reach_num][unit_num]["mesh"]["data"][sub_class_name] = data_sub_merge[:, sub_class_num]
+                        data_2d_merge[reach_num][unit_num]["mesh"]["data"][sub_class_name] = merge_data_sub[:, sub_class_num]
 
                     # get node data
-                    data_2d_merge[reach_num][unit_num]["node"]["xy"] = xy_merge
-                    data_2d_merge[reach_num][unit_num]["node"]["data"] = node_data_merge
+                    data_2d_merge[reach_num][unit_num]["node"]["xy"] = merge_xy
+                    data_2d_merge[reach_num][unit_num]["node"]["data"] = DataFrame()
+                    for colname_num, colname in enumerate(hdf5_hydro.data_2d[0][0]["node"]["data"].columns):
+                        data_2d_merge[reach_num][unit_num]["node"]["data"][colname] = merge_data_node[:, colname_num]
 
-                    # plot_to_check_mesh_merging
-                    plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
-                                               hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                    # # plot_to_check_mesh_merging
+                    # plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
+                    #                            hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                    #
+                    #                            sub_xy=hdf5_sub.data_2d[reach_num][unit_num]["node"]["xy"],
+                    #                            sub_tin=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                    #                            sub_data=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy(),
+                    #
+                    #                            merge_xy=data_2d_merge[reach_num][unit_num]["node"]["xy"],
+                    #                            merge_tin=data_2d_merge[reach_num][unit_num]["mesh"]["tin"],
+                    #                            merge_data_mesh=data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy())
 
-                                               sub_xy=hdf5_sub.data_2d[reach_num][unit_num]["node"]["xy"],
-                                               sub_tin=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                               sub_data=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy(),
-
-                                               merge_xy=data_2d_merge[reach_num][unit_num]["node"]["xy"],
-                                               merge_tin=data_2d_merge[reach_num][unit_num]["mesh"]["tin"],
-                                               merge_data=data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy())
-
-                # progress
-                prog += delta
-                progress_value.value = int(prog)
+                    # progress
+                    prog += delta
+                    progress_value.value = int(prog)
 
             data_2d_whole_merge = data_2d_merge.get_only_mesh()
 

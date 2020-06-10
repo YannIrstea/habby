@@ -1088,7 +1088,7 @@ class Hdf5Management:
                 reach_group = data_2d_whole_profile_group + "/" + reach_group_name
                 # for each desired_units
                 available_unit_list = list(self.file_object[reach_group].keys())
-                for unit_group_name in available_unit_list:
+                for unit_num, unit_group_name in enumerate(available_unit_list):
                     data_description["unit_name_whole_profile"][reach_num].append(unit_group_name)
                     unit_group = reach_group + "/" + unit_group_name
                     mesh_group = unit_group + "/mesh"
