@@ -10,11 +10,12 @@ from src.plot_mod import plot_to_check_mesh_merging
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
           coeffgrid):
     """
-    Merging an hydraulic TIN (Triangular Irregular Network) and the substrate TIN to obtain a merge TIN
+    Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
-    triangles/meshes that contain a substrate from the substrate TIN or a default substrate addditional nodes inside
+    triangles/meshes that contain a substrate from the substrate TIN or a default substrate. Additional nodes inside
     or on the edges of an hydraulic mesh will be given hydraulic data by interpolation of the hydraulic data from the
-    hydraulic mesh nodes using numpy arrays as entry and returning numpy arrays.
+    hydraulic mesh nodes.Flat hydraulic or substrates triangles will not been taken inot account.
+     Using numpy arrays as entry and returning numpy arrays.
     :param hyd_xy: The x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
     :param hyd_data_node: The hydraulic data of the hydraulic nodes (eg : z, wather depth, mean velocity...)
     :param hyd_tin: The hydraulic TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a
@@ -275,8 +276,8 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                     nxynewpoint, iklenew = t['vertices'], t['triangles']
                     newpointtrianglevalidate = len(t['vertices']) - len(nxynewpoint2)
                     if newpointtrianglevalidate != 0:  # Triangle library has added new points at the end of our original list of 'vertices'
-                        nxynewpointlinkstohydr = np.vstack([nxynewpointlinkstohydr2, np.array(
-                            [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate)])
+                        nxynewpointlinkstohydr = np.vstack((nxynewpointlinkstohydr2, np.array(
+                            [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate)))
                     else:
                         nxynewpointlinkstohydr = nxynewpointlinkstohydr2
 
@@ -690,7 +691,7 @@ if __name__ == '__main__':
     '''
     testing the merge program
     '''
-    t = 0  # regarding this value different tests can be launched
+    t = 7  # regarding this value different tests can be launched
     if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
         nbpointhyd, nbpointsub, seedhyd, seedsub = 5000, 7000, 9, 32
         hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data = build_hyd_sub_mesh(False, nbpointhyd, nbpointsub, seedhyd, seedsub)
@@ -730,6 +731,18 @@ if __name__ == '__main__':
         sub_xy = np.array([[4, 5], [6, 5], [5, 2], [14, 15], [16, 15], [15, 12]])
         sub_tin = np.array([[0, 1, 2], [3, 4, 5]])
         sub_data = np.array([[2, 2], [3, 3]])
+    elif t == 7:  # Special case : 2 hydraulic mesh  VS 2 substrate mesh superimposed on the hydraulic ones
+        hyd_xy = np.array([[4, 1], [5, 4], [6, 1], [14, 11], [15, 14], [16, 11]])
+        hyd_tin = np.array([[0, 1, 2], [3, 4, 5]])
+        sub_xy =  np.array([[4, 1], [5, 4], [6, 1], [14, 11], [15, 14], [16, 11]])
+        sub_tin = np.array([[0, 1, 2], [3, 4, 5]])
+        sub_data = np.array([[2, 2], [3, 3]])
+    elif t == 8:  # Specials cases : 3 hydraulic mesh  VS 3 substrate mesh : some points in common
+        hyd_xy = np.array([[4, 1], [5, 4], [6, 1],[9, 1], [10, 4], [11, 1], [14, 11], [15, 14], [16, 11]])
+        hyd_tin = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+        sub_xy =  np.array([[5, 4], [5, 7], [7, 4],[10, 1], [10, 4], [12, 1], [15, 11], [15, 14], [16, 11]])
+        sub_tin = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+        sub_data = np.array([[2, 2], [3, 3],[4, 4]])
     defautsub = np.array([1, 1])
     coeffgrid = 1 / 2  # plus coeffgrid est grand plus la grille  de reperage sera fine
 
