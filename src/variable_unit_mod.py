@@ -34,6 +34,7 @@ class HydraulicVariable:
         self.hdf5 = hdf5  # hdf5 or computable
         self.sub = sub  # False: hydraulic (default) True: substrate
         self.habitat = habitat  # False: hydraulic and substrate (default) True: Habitat
+        self.spu = None
         self.index_gui = index_gui  # position index in gui
         self.data = [[]]
         self.software_attributes_list = []  # software string names list to link with them
@@ -440,10 +441,12 @@ class HydraulicVariableUnitManagement:
         if self.h.name not in node_names:
             self.h.position = "node"
             self.h.precomputable_tohdf5 = True
+            self.h.hdf5 = True
             self.hdf5_and_computable_list.append(self.h)
         # always v but computed_node_velocity or original ?
         if self.v.name not in node_names:
             self.v.position = "node"
+            self.v.hdf5 = True
             if self.v_x.name in node_names and self.v_y.name in node_names:
                 self.v.precomputable_tohdf5 = True
             else:

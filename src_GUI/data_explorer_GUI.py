@@ -16,16 +16,13 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Value, Queue
-from PyQt5.QtGui import QFont
+from multiprocessing import Value
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel, QTimer
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
     QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QProgressBar, QListWidgetItem
 
 from src import hdf5_mod
-from src import plot_mod
-from src.tools_mod import create_map_plot_string_dict
 from src.hydraulic_process_mod import MyProcessList
 from src.project_properties_mod import load_project_properties
 from src.tools_mod import QHLine, DoubleClicOutputGroup
@@ -926,11 +923,10 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 self.process_list.add_plots(self.nb_plot)
 
             # loop on all desired hdf5 file
-            for name_hdf5 in names_hdf5:
-                if not self.plot_production_stoped:  # stop loop with button
-                    self.process_list.set_plot_hdf5_mode(self.path_prj, name_hdf5, plot_attr, project_preferences)
-                    # start thread
-                    self.process_list.start()
+            if not self.plot_production_stoped:  # stop loop with button
+                self.process_list.set_plot_hdf5_mode(self.path_prj, names_hdf5, plot_attr, project_preferences)
+                # start thread
+                self.process_list.start()
 
             # progress bar
             self.plot_progressbar.setRange(0, self.process_list.nb_plot_total)
@@ -1320,26 +1316,25 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.process_list = MyProcessList("export")
 
             # loop on all desired hdf5 file
-            for name_hdf5 in names_hdf5:
-                if not self.export_production_stoped:  # stop loop with button
-                    # fake temporary project_preferences
-                    if self.current_type == 1:  # hydraulic
-                        index_dict = 0
-                    else:
-                        index_dict = 1
+            if not self.export_production_stoped:  # stop loop with button
+                # fake temporary project_preferences
+                if self.current_type == 1:  # hydraulic
+                    index_dict = 0
+                else:
+                    index_dict = 1
 
-                    # set to False all export before setting specific export to True
-                    for key in self.all_export_keys_available:
-                        project_preferences[key][index_dict] = False
+                # set to False all export before setting specific export to True
+                for key in self.all_export_keys_available:
+                    project_preferences[key][index_dict] = False
 
-                    # setting specific export to True
-                    for key in export_dict.keys():
-                        project_preferences[key[:-4]][index_dict] = export_dict[key]
+                # setting specific export to True
+                for key in export_dict.keys():
+                    project_preferences[key[:-4]][index_dict] = export_dict[key]
 
-                    export_dict["nb_export"] = self.nb_export
+                export_dict["nb_export"] = self.nb_export
 
-                    self.process_list.set_export_hdf5_mode(self.path_prj, name_hdf5, export_dict, project_preferences)
-                    self.process_list.start()
+                self.process_list.set_export_hdf5_mode(self.path_prj, names_hdf5, export_dict, project_preferences)
+                self.process_list.start()
 
             # for error management and figures
             #print("self.timer.start(100)")

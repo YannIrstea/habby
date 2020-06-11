@@ -557,7 +557,7 @@ class Hdf5Management:
             reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
 
             data_2d_whole_profile = Data2d(reach_num=len(reach_list),
-                             unit_num=len(reach_list[0]))  # new
+                             unit_num=len(self.file_object[data_2d_whole_profile_group + "/" + reach_list[0]].keys()))  # new
 
             data_description["unit_name_whole_profile"] = []
 
@@ -1219,17 +1219,19 @@ class Hdf5Management:
                 total_wet_area = unit_group.attrs["total_wet_area"]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
-                mesh_hv_data_group = mesh_group["hv_data"]
+                mesh_hv_dataset = mesh_group.create_dataset("hv_data",
+                                                          shape=vh_cell[fish_num][reach_num][unit_num].shape,
+                                                          data=vh_cell[fish_num][reach_num][unit_num])
                 # HV by celle for each fish
                 for fish_num, fish_name in enumerate(code_alternative_list):
-                    if fish_name in mesh_hv_data_group:  # if exist erase it
-                        del mesh_hv_data_group[fish_name]
-                        fish_data_set = mesh_hv_data_group.create_dataset(name=fish_name,
+                    if fish_name in mesh_hv_dataset:  # if exist erase it
+                        del mesh_hv_dataset[fish_name]
+                        fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
                                                                   shape=vh_cell[fish_num][reach_num][unit_num].shape,
                                                                   data=vh_cell[fish_num][reach_num][unit_num])
                         fish_replaced.append(fish_name)
                     else:  # if not exist create it
-                        fish_data_set = mesh_hv_data_group.create_dataset(name=fish_name,
+                        fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
                                                                   shape=vh_cell[fish_num][reach_num][unit_num].shape,
                                                                   data=vh_cell[fish_num][reach_num][unit_num])
                     fish_data_set.attrs['pref_file'] = pref_file_list[fish_num]
@@ -1252,7 +1254,7 @@ class Hdf5Management:
                     fish_data_set.attrs['percent_area_unknown [%m2]'] = str(percent_area_unknown)
 
         # get all fish names and total number
-        fish_names_total_list = list(mesh_hv_data_group.keys())
+        fish_names_total_list = list(mesh_hv_dataset.keys())
         if "i_whole_profile" in fish_names_total_list:
             fish_names_total_list.remove("i_whole_profile")
         if "tin" in fish_names_total_list:
@@ -1268,10 +1270,10 @@ class Hdf5Management:
         names_short = []
         aquatic_animal_type_list = []
         for fish_ind, fish_name in enumerate(fish_names_total_list):
-            xml_names.append(mesh_hv_data_group[fish_name].attrs['pref_file'])
-            stage_names.append(mesh_hv_data_group[fish_name].attrs['stage'])
-            names_short.append(mesh_hv_data_group[fish_name].attrs['short_name'])
-            aquatic_animal_type_list.append(mesh_hv_data_group[fish_name].attrs['aquatic_animal_type_list'])
+            xml_names.append(mesh_hv_dataset[fish_name].attrs['pref_file'])
+            stage_names.append(mesh_hv_dataset[fish_name].attrs['stage'])
+            names_short.append(mesh_hv_dataset[fish_name].attrs['short_name'])
+            aquatic_animal_type_list.append(mesh_hv_dataset[fish_name].attrs['aquatic_animal_type_list'])
 
         # set to attributes
         self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
@@ -1461,7 +1463,8 @@ class Hdf5Management:
                 fish_names = []
 
         # Mapping between OGR and Python data types
-        OGRTypes_dict = {np.int64: ogr.OFTInteger,
+        OGRTypes_dict = {int: ogr.OFTInteger,
+                         np.int64: ogr.OFTInteger64,
                          np.float64: ogr.OFTReal}
 
         # CRS
@@ -1708,8 +1711,12 @@ class Hdf5Management:
 
                             # variables
                             for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
-                                feat.SetField(mesh_variable.name_gui,
-                                              self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][mesh_variable.name][mesh_num])
+                                if mesh_variable.dtype == np.int64:
+                                    data_field = int(self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][mesh_variable.name][mesh_num])
+                                else:
+                                    data_field = self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][mesh_variable.name][mesh_num]
+
+                                feat.SetField(mesh_variable.name_gui,  data_field)
 
                             if self.hdf5_type == "habitat":
                                 # area

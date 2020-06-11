@@ -161,11 +161,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     data_2d_merge, data_2d_whole_profile, data_description = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
                                                                                   path_prj, progress_value)
 
-    if not any([data_2d_merge, data_2d_whole_profile, data_description]) and not print_cmd:
-        if q:
-            q.put(mystdout)
-            return
-
     # progress
     progress_value.value = 90
 
