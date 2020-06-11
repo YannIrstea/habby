@@ -310,21 +310,37 @@ def merge (hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy,
     nxymergepointlinkstohydr1 = nxymergepointlinkstohydr[indices3]
     #++++interpolate datahyd
     nbline,nbcol= len(nxymerge1), hyd_data_node.shape[1]
+
     merge_data=np.zeros((nbline,nbcol),dtype=np.float64)
     col1=nxymergepointlinkstohydr1[:,1]==-1
     col2 = nxymergepointlinkstohydr1[:, 2] == -1
-    # merge_data[not(col1+col2)]=hyd_data_node[nxymergepointlinkstohydr1[not(col1+col2)]]
-    for i in range(nbline):
-        if col1[i] and col2[i]:
-            merge_data[i] = hyd_data_node[nxymergepointlinkstohydr1[i][0]]
-        elif col2[i]:
-            merge_data[i]=linear_interpolation_segment(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i][0:2]], hyd_data_node[nxymergepointlinkstohydr1[i][0:2]])
-        else:
-            merge_data[i] = finite_element_interpolation(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i]], hyd_data_node[nxymergepointlinkstohydr1[i]])
+
+
+    nhyd_xy=np.array(hyd_xy)
+    nhyd_data_node=np.array(hyd_data_node)
+
+    merge_data=np.stack(general_interpolation(nxymerge1,nxymergepointlinkstohydr1,hyd_xy,hyd_data_node,col1,col2))
+
+    # for i in range(nbline):
+    #     if col1[i] and col2[i]:
+    #         merge_data[i] = hyd_data_node[nxymergepointlinkstohydr1[i][0]]
+    #     elif col2[i]:
+    #         merge_data[i]=linear_interpolation_segment(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i][0:2]], hyd_data_node[nxymergepointlinkstohydr1[i][0:2]])
+    #     else:
+    #         merge_data[i] = finite_element_interpolation(nxymerge1[i], hyd_xy[nxymergepointlinkstohydr1[i]], hyd_data_node[nxymergepointlinkstohydr1[i]])
 
 
 
     return nxymerge1,niklemerge1,np.array(iwholeprofilemerge),np.array(merge_data_c),np.array(datasubmerge)
+
+def general_interpolation(nxymergeline,indicesline,hyd_xy,data_node,col1,col2):
+    if col1 and col2:
+        return data_node[indicesline[0]]
+    elif col2:
+        return linear_interpolation_segment(nxymergeline,hyd_xy[indicesline[0:2]],data_node[indicesline[0:2]])
+    else:
+        return finite_element_interpolation(nxymergeline,hyd_xy[indicesline],data_node[indicesline])
+
 
 def finite_element_interpolation(xyp, xypmesh, datamesh):
     """
@@ -720,7 +736,7 @@ if __name__ == '__main__':
     '''
     testing the merge program
     '''
-    t=8 # regarding this value different tests can be launched
+    t=1 # regarding this value different tests can be launched
     if t==0: #random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
         nbpointhyd, nbpointsub, seedhyd , seedsub = 5000,7000, 9, 32
         hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data =build_hyd_sub_mesh(False, nbpointhyd, nbpointsub, seedhyd, seedsub)
