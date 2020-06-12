@@ -168,18 +168,31 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                             bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
                         elif sidecontact[kout] == 4:
                             bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
-                        else:
-                            if sidecontact[kout] == 3:
-                                bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
-                                bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
-                            elif sidecontact[kout] == 5:
-                                bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
-                                bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+                        elif sidecontact[kout] == 3:
+                            bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
+                            bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
+                        elif sidecontact[kout] == 5:
+                            bok1, xycontact1, distsqr1 = intersection2segmentsdistsquare(xyo, xya, xyp, xyq)
+                            bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+                        elif sidecontact[kout] == 6:
+                            bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
+                            bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
+                        if bok1 + bok2 + bok4 != 1: #numerical problem the intersection point  is just close to a node but out of the hydraulic triangle
+                            print("Numerical problems doing for the best")
+                            bsolve=True
+                            if sidecontact[kout] ==1 or sidecontact[kout] ==2 or sidecontact[kout] ==4:
+                                bsolve,relativeindexhyd=intersection2doitesaffines(sidecontact[kout], xyaffp, xyaffq)
+                            elif sidecontact[kout] == 3:
+                                relativeindexhyd=0
+                            elif sidecontact[kout] ==5:
+                                relativeindexhyd = 1
                             elif sidecontact[kout] == 6:
-                                bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
-                                bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
-                        if bok1 + bok2 + bok4 != 1:
-                            print("Mathematical problem please contact a programmer")
+                                relativeindexhyd = 2
+                            if bsolve:
+                                xynewpointlinkstohydr.append([hyd_tin[i][relativeindexhyd], -1, -1])
+                                xynewpoint.extend([xypq[kin]])
+                                segin.append([inewpoint + 1, relativeindexhyd])
+                                inewpoint += 1
                         else:
                             if bok1:
                                 xynewpointlinkstohydr.append([hyd_tin[i][0], hyd_tin[i][1], -1])
@@ -193,8 +206,8 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                                 xynewpointlinkstohydr.append([hyd_tin[i][1], hyd_tin[i][2], -1])
                                 sidecontact4.append([distsqr4, inewpoint + 2])
                                 xynewpoint.extend([xypq[kin], xycontact4])
-                        segin.append([inewpoint + 1, inewpoint + 2])
-                        inewpoint += 2
+                            segin.append([inewpoint + 1, inewpoint + 2])
+                            inewpoint += 2
                         lsubmeshin.append(lsubedgesuniqueindex[j])
 
                         # print(subedgesunique[j])
@@ -253,12 +266,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                     nsegin = np.array(segin)  # [inewpoint + 1, inewpoint + 2]
                     nxynewpointlinkstohydr = np.array(
                         xynewpointlinkstohydr)  # [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]],[hyd_tin[i][0], hyd_tin[i][1], -1],.
-
-                    try:
-                        nxynewpoint2, indices2 = np.unique(nxynewpoint, axis=0, return_inverse=True)
-                    except TypeError:
-                        aa = 1
-
+                    nxynewpoint2, indices2 = np.unique(nxynewpoint, axis=0, return_inverse=True)
                     nsegin2 = indices2[nsegin]
                     nxynewpoint2, indices3 = np.unique(nxynewpoint, axis=0,
                                                        return_index=True)  # nxynewpoint2 doesnt change
@@ -276,8 +284,9 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                     nxynewpoint, iklenew = t['vertices'], t['triangles']
                     newpointtrianglevalidate = len(t['vertices']) - len(nxynewpoint2)
                     if newpointtrianglevalidate != 0:  # Triangle library has added new points at the end of our original list of 'vertices'
-                        nxynewpointlinkstohydr = np.vstack((nxynewpointlinkstohydr2, np.array(
-                            [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]] * newpointtrianglevalidate)))
+                        nxynewpointlinkstohydr = np.vstack([nxynewpointlinkstohydr2, np.repeat(
+                            [[hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]]], newpointtrianglevalidate, axis=0)])
+
                     else:
                         nxynewpointlinkstohydr = nxynewpointlinkstohydr2
 
@@ -403,6 +412,27 @@ def linear_interpolation_segment(xyM, xyAB, data):
         vm = (1 - dam) * va + dam * vb
     return vm
 
+def intersection2doitesaffines(sidecontactaffine,  xyc, xyd):
+    if sidecontactaffine==1:
+        xya, xyb,ka,kb=[0,0],[1,0],0,1
+    elif sidecontactaffine == 2:
+        xya, xyb,ka,kb = [0, 0], [0, 1],0,2
+    elif sidecontactaffine == 4:
+        xya, xyb,ka,kb = [1, 0], [0, 1],1,2
+    u1, u2 = xyb[1] - xya[1], xyd[1] - xyc[1]
+    v1, v2 = xya[0] - xyb[0], xyc[0] - xyd[0]
+    w1, w2 = xya[1] * xyb[0] - xya[0] * xyb[1], xyc[1] * xyd[0] - xyc[0] * xyd[1]
+    det = u1 * v2 - u2 * v1
+    bok,nodeindex = False,-1
+    if det != 0:
+        bok = True
+        xycontact = [(-w1 * v2 + w2 * v1) / det, (-u1 * w2 + u2 * w1) / det]
+        dist_square_to_a = (xycontact[0] - xya[0]) ** 2 + (xycontact[1] - xya[1]) ** 2
+        if dist_square_to_a<0.1:
+            nodeindex=ka
+        else:
+            nodeindex = kb
+    return bok,nodeindex
 
 def intersection2segmentsdistsquare(xya, xyb, xyc, xyd):
     '''
@@ -414,12 +444,11 @@ def intersection2segmentsdistsquare(xya, xyb, xyc, xyd):
             dist_square_to_a :  the square distance from A of the instersection point
     '''
     bok = False
-    xycontact = [0, 0]
+    xycontact = [None, None]
     dist_square_to_a = 0
     u1, u2 = xyb[1] - xya[1], xyd[1] - xyc[1]
     v1, v2 = xya[0] - xyb[0], xyc[0] - xyd[0]
     w1, w2 = xya[1] * xyb[0] - xya[0] * xyb[1], xyc[1] * xyd[0] - xyc[0] * xyd[1]
-    xycontact = [None, None]
     det = u1 * v2 - u2 * v1
     if det != 0:
         # valeur 0 acceptée car l'on admet que l'un des points A,B,C,D peut être sur les 2 segments
@@ -691,7 +720,7 @@ if __name__ == '__main__':
     '''
     testing the merge program
     '''
-    t = 7  # regarding this value different tests can be launched
+    t = 5  # regarding this value different tests can be launched
     if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
         nbpointhyd, nbpointsub, seedhyd, seedsub = 5000, 7000, 9, 32
         hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data = build_hyd_sub_mesh(False, nbpointhyd, nbpointsub, seedhyd, seedsub)
@@ -743,6 +772,12 @@ if __name__ == '__main__':
         sub_xy =  np.array([[5, 4], [5, 7], [7, 4],[10, 1], [10, 4], [12, 1], [15, 11], [15, 14], [16, 11]])
         sub_tin = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
         sub_data = np.array([[2, 2], [3, 3],[4, 4]])
+    elif t == 9:  # Special case : 1 hydraulic mesh  VS 2 substrate mesh with a numerical problem
+        hyd_xy = np.array([[1430257.89333269, 7216692.15461854],[1430257.89333269, 7216691.46664975],[1430258.11039261, 7216692.24958983]])
+        hyd_tin = np.array([[0, 1, 2]])
+        sub_xy =  np.array([[1430258.1087, 7216692.248 ],[1430258.2823, 7216688.978 ],[1430259.067 , 7216692.7716],[1430258.1087, 7216692.248 ],[1430259.067 , 7216692.7716],[1430256.2278, 7216692.0946]])
+        sub_tin = np.array([[0, 1, 2], [3, 4, 5]])
+        sub_data = np.array([[2, 2], [3, 3]])
     defautsub = np.array([1, 1])
     coeffgrid = 1 / 2  # plus coeffgrid est grand plus la grille  de reperage sera fine
 
