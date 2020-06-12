@@ -551,7 +551,7 @@ def griddef(xyhyd, sub_xy, iklehyd, sub_tin, coeffgrid, gridmethod=0):
     if gridmethod==0:
         nbgrid = math.ceil(max(densityhyd, densitysub) * totalarea * coeffgrid)
     elif gridmethod==1:
-        nbgrid = math.ceil(totalarea/max(densityhyd,densitysub)*coeffgrid)
+        nbgrid = math.ceil(max(densityhyd, densitysub) * totalarea * coeffgrid)
     # elif gridmethod==1:
     #     nbgrid = math.ceil(densityhyd * totalarea * coeffgrid)
     # elif gridmethod==2:
@@ -615,7 +615,7 @@ def tinareadensity(xy, ikle):
     total_area = np.sum(0.5 * (np.abs(
         (xy[ikle[:, 1]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 2]][:, 1] - xy[ikle[:, 0]][:, 1]) - (
                 xy[ikle[:, 2]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 1]][:, 1] - xy[ikle[:, 0]][:, 1]))))
-    return total_area, total_area / (ikle.size // 3)
+    return total_area, (ikle.size // 3)/total_area
 
 
 ####################################TEST PART ########################################################################################
