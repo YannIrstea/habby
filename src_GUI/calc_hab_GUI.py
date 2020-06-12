@@ -31,6 +31,7 @@ from src.project_properties_mod import load_project_properties, load_specific_pr
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
+from src.variable_unit_mod import HydraulicVariableUnitList, HydraulicVariable
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -856,7 +857,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         sub_opt_list = []
         name_fish_sel = ''  # for the xml project file
         aquatic_animal_type_list = []
-        xmlfiles = []
+
+        user_target_list = HydraulicVariableUnitList()
+
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # check if not exist
             if not self.presence_qtablewidget.cellWidget(i, 0).layout().itemAt(0).widget().isChecked():
@@ -870,21 +873,19 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if hyd_opt == "Neglect" and sub_opt == "Neglect":
                     self.send_log.emit('Warning: ' + fish_item_text + self.tr(" model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed."))
                     continue
-
-                name_fish_sel += fish_item_text + ","
-                code_alternative_list.append(code_bio_model)
                 index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
-                pref_file_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
-                stage_list.append(stage)
-                # name_fish_sel += name_fish + ','
-                xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
-                # get info from 2 list widget
-                hyd_opt_list.append(hyd_opt)
-                # get info from 3 list widget
-                sub_opt_list.append(sub_opt)
-                aquatic_animal_type_list.append(user_preferences.biological_models_dict["aquatic_animal_type"][index_fish])
+                name_fish_sel += fish_item_text + ","
 
-        if xmlfiles:
+                # append_new_habitat_variable
+                user_target_list.append_new_habitat_variable(code_bio_model,
+                                                            stage,
+                                                             hyd_opt,
+                                                             sub_opt,
+                                                             user_preferences.biological_models_dict["aquatic_animal_type"][index_fish],
+                                                             user_preferences.biological_models_dict["model_type"],
+                                                             user_preferences.biological_models_dict["path_xml"][index_fish])
+
+        if user_target_list:
             # get the name of the merged file
             path_hdf5 = self.find_path_hdf5_est()
             ind = self.m_all.currentIndex()
@@ -900,12 +901,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().progress_bar.setValue(0)
             self.nativeParentWidget().progress_bar.setVisible(True)
 
-            # get the type of option choosen for the habitat calculation
-            run_choice = dict(pref_file_list=pref_file_list,
-                              stage_list=stage_list,
-                              hyd_opt=hyd_opt_list,
-                              sub_opt=sub_opt_list)
-
             # only useful if we want to also show the 2d figure in the GUI
             self.hdf5_file = hab_filename
             self.path_hdf5 = path_hdf5
@@ -915,7 +910,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.q4 = Queue()
             self.progress_value = Value("i", 0)
             self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
-                             args=(hab_filename, run_choice, self.progress_value, self.q4, False, project_preferences))
+                             args=(hab_filename, user_target_list, self.progress_value, self.q4, False, project_preferences))
             self.p.name = "Habitat calculation"
             self.p.start()
 
@@ -924,7 +919,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.send_log.emit("py    path1= os.path.join(path_prj, 'hdf5')")
             self.send_log.emit("py    pref_file_list= ['" + "', '".join(pref_file_list) + "']")
             self.send_log.emit("py    stages= ['" + "', '".join(stage_list) + "']")
-            self.send_log.emit("py    type=" + str(run_choice))
+            # self.send_log.emit("py    type=" + str(run_choice))
             self.send_log.emit("py    name_fish1 = ['" + "', '".join(name_fish) + "']")
             self.send_log.emit(
                 "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_file_list, stages, name_fish1, name_fish2, type, "
@@ -933,7 +928,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.send_log.emit("restart    file1: " + hab_filename)
             self.send_log.emit("restart    list of preference file: " + ",".join(pref_file_list))
             self.send_log.emit("restart    stages chosen: " + ",".join(stage_list))
-            self.send_log.emit("restart    type of calculation: " + str(run_choice))
+            # self.send_log.emit("restart    type of calculation: " + str(run_choice))
         else:
             # disable the button
             self.runhab.setDisabled(False)

@@ -61,7 +61,31 @@ class HydraulicVariableUnitList(list):
         without copy
         """
         super(HydraulicVariableUnitList, self).extend(hydraulic_variable_list)
-        #self.sort_by_names_gui()
+        # self.sort_by_names_gui()
+
+    def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, aquatic_animal_type, model_type, pref_file):
+        # animal name
+        name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt
+        # create variable
+        hab_variable = HydraulicVariable(value=None,
+                                     unit="HSI",
+                                     name=name,
+                                     name_gui=name,
+                                     hdf5=False,
+                                     position="mesh",
+                                     dtype=np.float64,
+                                     index_gui=-1,
+                                     habitat=True)
+        # extra attributes
+        hab_variable.pref_file = pref_file
+        hab_variable.aquatic_animal_type = aquatic_animal_type
+        hab_variable.model_type = model_type
+        hab_variable.code_alternative = code_bio_model
+        hab_variable.stage = stage
+        hab_variable.hyd_opt = hyd_opt
+        hab_variable.sub_opt = sub_opt
+        # append
+        super(HydraulicVariableUnitList, self).append(hab_variable)
 
     def sort_by_names_gui(self):
         self.sort(key=lambda el: el.index_gui)  # , reverse=True
@@ -652,280 +676,281 @@ class HydraulicVariableUnitManagement:
                 self.area.hdf5 = True
                 self.all_final_variable_list.append(self.area)
 
-        """ node """
-        # for each wish node variables, need hdf5 variable to be computed ?
-        for variable_wish in user_target_list.to_compute().nodes():
-            # shear_stress node ==> need v_frict node
-            if variable_wish.name == self.shear_stress.name:
-                if self.v_frict.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.v_frict.position = variable_wish.position
-                    self.v_frict.hdf5 = True
-                    self.all_final_variable_list.append(self.v_frict)
+        else:
+            """ node """
+            # for each wish node variables, need hdf5 variable to be computed ?
+            for variable_wish in user_target_list.to_compute().nodes():
+                # shear_stress node ==> need v_frict node
+                if variable_wish.name == self.shear_stress.name:
+                    if self.v_frict.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.v_frict.position = variable_wish.position
+                        self.v_frict.hdf5 = True
+                        self.all_final_variable_list.append(self.v_frict)
 
-            # variables never in hdf
+                # variables never in hdf
 
-            # level node ==> need h node
-            elif variable_wish.name == self.level.name:
-                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.h.position = variable_wish.position
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.z.position = variable_wish.position
-                    self.z.hdf5 = True
-                    self.all_final_variable_list.append(self.z)
-            # froud node ==> need h and v node
-            elif variable_wish.name == self.froude.name:
-                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.h.position = variable_wish.position
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.v.position = variable_wish.position
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
-            # hydraulic head node ==> need h and v node
-            elif variable_wish.name == self.hydraulic_head.name:
-                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.h.position = variable_wish.position
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.v.position = variable_wish.position
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
-            # conveyance node ==> need h and v node
-            elif variable_wish.name == self.conveyance.name:
-                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.h.position = variable_wish.position
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.v.position = variable_wish.position
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
+                # level node ==> need h node
+                elif variable_wish.name == self.level.name:
+                    if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.h.position = variable_wish.position
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                    if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.z.position = variable_wish.position
+                        self.z.hdf5 = True
+                        self.all_final_variable_list.append(self.z)
+                # froud node ==> need h and v node
+                elif variable_wish.name == self.froude.name:
+                    if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.h.position = variable_wish.position
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                    if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.v.position = variable_wish.position
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
+                # hydraulic head node ==> need h and v node
+                elif variable_wish.name == self.hydraulic_head.name:
+                    if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.h.position = variable_wish.position
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                    if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.v.position = variable_wish.position
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
+                # conveyance node ==> need h and v node
+                elif variable_wish.name == self.conveyance.name:
+                    if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.h.position = variable_wish.position
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                    if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.v.position = variable_wish.position
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
 
-            # all cases
-            self.all_final_variable_list.append(variable_wish)
+                # all cases
+                self.all_final_variable_list.append(variable_wish)
 
-        """ mesh """
-        # for each wish mesh variables, need hdf5 variable to be computed ?
-        for variable_wish in user_target_list.to_compute().meshs():
-            # z
-            if variable_wish.name == self.z.name:
-                # hec-ras ?
-                if self.z.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                    pass
-                else:
-                    # already added?
+            """ mesh """
+            # for each wish mesh variables, need hdf5 variable to be computed ?
+            for variable_wish in user_target_list.to_compute().meshs():
+                # z
+                if variable_wish.name == self.z.name:
+                    # hec-ras ?
+                    if self.z.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                        pass
+                    else:
+                        # already added?
+                        if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                            self.z.position = "node"
+                            self.z.hdf5 = True
+                            self.all_final_variable_list.append(self.z)
+                # v mesh ==> need first : v mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.v.name:
+                    # (FinitVolume)
+                    if self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
+                        self.v.position = "mesh"
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
+                    # compute mean from node
+                    elif self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.v.position = "node"
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
+                # h mesh ==> need first : h mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.h.name:
+                    # (FinitVolume)
+                    if self.h.name in self.all_final_variable_list.hdf5s().meshs().names():
+                        self.h.position = "mesh"
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                    # compute mean from node
+                    elif self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.h.position = "node"
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                # shear_stress mesh ==> need first : h mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.shear_stress.name:
+                    # shear_stress at mesh ?
+                    if self.shear_stress.name not in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                        if self.v_frict.name in self.hdf5_and_computable_list.hdf5s().nodes().names():
+                            if self.shear_stress.name not in self.all_final_variable_list.to_compute().nodes().names():
+                                self.shear_stress.position = "node"
+                                self.shear_stress.hdf5 = False
+                                self.all_final_variable_list.append(self.shear_stress)
+                            if self.v_frict.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                                self.v_frict.position = "node"
+                                self.v_frict.hdf5 = True
+                                self.all_final_variable_list.append(self.v_frict)
+                # subtrate
+                elif variable_wish.name == self.sub_coarser.name or variable_wish.name == self.sub_dom.name:
+                    # is percentage data or coarser/dom data ?
+                    if not variable_wish.hdf5:
+                        # load all sub percentage to compute coarser/dom
+                        self.hdf5_and_computable_list.names()
+                        # class_nb
+                        if self.sub_s12.name in self.hdf5_and_computable_list.names():  # Sandre
+                            class_nb = 12
+                        else:  # Cemagref
+                            class_nb = 8
+                        for class_num in range(1, class_nb + 1):
+                            class_variable = getattr(self, "sub_s" + str(class_num))
+                            class_variable.position = "mesh"
+                            class_variable.hdf5 = True
+                            self.all_final_variable_list.append(class_variable)
+                    else:
+                        # load hdf5 coarser/dom data
+                        pass
+
+                # variables never in hdf
+
+                # shear_stress_beta mesh ==> need first : h mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.shear_stress_beta.name:
                     if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
                         self.z.position = "node"
                         self.z.hdf5 = True
                         self.all_final_variable_list.append(self.z)
-            # v mesh ==> need first : v mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.v.name:
-                # (FinitVolume)
-                if self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
-                    self.v.position = "mesh"
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
-                # compute mean from node
-                elif self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.v.position = "node"
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
-            # h mesh ==> need first : h mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.h.name:
-                # (FinitVolume)
-                if self.h.name in self.all_final_variable_list.hdf5s().meshs().names():
-                    self.h.position = "mesh"
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                # compute mean from node
-                elif self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.h.position = "node"
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-            # shear_stress mesh ==> need first : h mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.shear_stress.name:
-                # shear_stress at mesh ?
-                if self.shear_stress.name not in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                    if self.v_frict.name in self.hdf5_and_computable_list.hdf5s().nodes().names():
-                        if self.shear_stress.name not in self.all_final_variable_list.to_compute().nodes().names():
-                            self.shear_stress.position = "node"
-                            self.shear_stress.hdf5 = False
-                            self.all_final_variable_list.append(self.shear_stress)
-                        if self.v_frict.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                            self.v_frict.position = "node"
-                            self.v_frict.hdf5 = True
-                            self.all_final_variable_list.append(self.v_frict)
-            # subtrate
-            elif variable_wish.name == self.sub_coarser.name or variable_wish.name == self.sub_dom.name:
-                # is percentage data or coarser/dom data ?
-                if not variable_wish.hdf5:
-                    # load all sub percentage to compute coarser/dom
-                    self.hdf5_and_computable_list.names()
-                    # class_nb
-                    if self.sub_s12.name in self.hdf5_and_computable_list.names():  # Sandre
-                        class_nb = 12
-                    else:  # Cemagref
-                        class_nb = 8
-                    for class_num in range(1, class_nb + 1):
-                        class_variable = getattr(self, "sub_s" + str(class_num))
-                        class_variable.position = "mesh"
-                        class_variable.hdf5 = True
-                        self.all_final_variable_list.append(class_variable)
-                else:
-                    # load hdf5 coarser/dom data
-                    pass
-
-            # variables never in hdf
-
-            # shear_stress_beta mesh ==> need first : h mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.shear_stress_beta.name:
-                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.z.position = "node"
-                    self.z.hdf5 = True
-                    self.all_final_variable_list.append(self.z)
-                if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.v.position = "node"
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
-                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.h.position = "node"
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-
-            # level mesh ==> need first : h mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.level.name:
-                # (FinitVolume)
-                if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                    if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names():
-                        self.h.position = "mesh"
-                        self.h.hdf5 = True
-                        self.all_final_variable_list.append(self.h)
-                    if self.z.name not in self.all_final_variable_list.hdf5s().meshs().names():
-                        if self.z.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                            self.z.position = "mesh"
-                            self.z.hdf5 = True
-                            self.all_final_variable_list.append(self.z)
-                else:
-                    # compute mean from node (need h node)
+                    if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.v.position = "node"
+                        self.v.hdf5 = True
+                        self.all_final_variable_list.append(self.v)
                     if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
                         self.h.position = "node"
                         self.h.hdf5 = True
                         self.all_final_variable_list.append(self.h)
+
+                # level mesh ==> need first : h mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.level.name:
+                    # (FinitVolume)
+                    if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                        if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names():
+                            self.h.position = "mesh"
+                            self.h.hdf5 = True
+                            self.all_final_variable_list.append(self.h)
+                        if self.z.name not in self.all_final_variable_list.hdf5s().meshs().names():
+                            if self.z.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                                self.z.position = "mesh"
+                                self.z.hdf5 = True
+                                self.all_final_variable_list.append(self.z)
+                    else:
+                        # compute mean from node (need h node)
+                        if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                            self.h.position = "node"
+                            self.h.hdf5 = True
+                            self.all_final_variable_list.append(self.h)
+                        if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                            self.z.position = "node"
+                            self.z.hdf5 = True
+                            self.all_final_variable_list.append(self.z)
+                        # compute mean from node (need level node)
+                        if self.level.name not in self.all_final_variable_list.to_compute().nodes().names():
+                            self.level.position = "node"
+                            self.level.hdf5 = False
+                            self.all_final_variable_list.append(self.level)
+                # froude mesh ==> need first : h and v mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.froude.name:
+                    # FinitVolume ?
+                    if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                        # already added?
+                        if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
+                            self.h.position = "mesh"
+                            self.h.hdf5 = True
+                            self.all_final_variable_list.append(self.h)
+                            self.v.position = "mesh"
+                            self.v.hdf5 = True
+                            self.all_final_variable_list.append(self.v)
+                    else:
+                        # compute at node
+                        if self.froude.name not in self.all_final_variable_list.to_compute().nodes().names():
+                            self.froude.position = "node"
+                            self.froude.hdf5 = False
+                            self.all_final_variable_list.append(self.froude)
+                            if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                                self.h.position = "node"
+                                self.h.hdf5 = True
+                                self.all_final_variable_list.append(self.h)
+                                self.v.position = "node"
+                                self.v.hdf5 = True
+                                self.all_final_variable_list.append(self.v)
+                # hydraulic_head mesh ==> need first : h and v mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.hydraulic_head.name:
+                    # FinitVolume ?
+                    if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                        # already added?
+                        if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
+                            self.h.position = "mesh"
+                            self.h.hdf5 = True
+                            self.all_final_variable_list.append(self.h)
+                            self.v.position = "mesh"
+                            self.v.hdf5 = True
+                            self.all_final_variable_list.append(self.v)
+                    else:
+                        # compute at node
+                        if self.hydraulic_head.name not in self.all_final_variable_list.to_compute().nodes().names():
+                            self.hydraulic_head.position = "node"
+                            self.hydraulic_head.hdf5 = False
+                            self.all_final_variable_list.append(self.hydraulic_head)
+                            if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                                self.h.position = "node"
+                                self.h.hdf5 = True
+                                self.all_final_variable_list.append(self.h)
+                                self.v.position = "node"
+                                self.v.hdf5 = True
+                                self.all_final_variable_list.append(self.v)
+                # conveyance mesh ==> need first : h and v mesh hdf5 (FinitVolume)
+                elif variable_wish.name == self.conveyance.name:
+                    # FinitVolume ?
+                    if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                        # already added?
+                        if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
+                            self.h.position = "mesh"
+                            self.h.hdf5 = True
+                            self.all_final_variable_list.append(self.h)
+                            self.v.position = "mesh"
+                            self.v.hdf5 = True
+                            self.all_final_variable_list.append(self.v)
+                    else:
+                        # compute at node
+                        if self.conveyance.name not in self.all_final_variable_list.to_compute().nodes().names():
+                            self.conveyance.position = "node"
+                            self.conveyance.hdf5 = False
+                            self.all_final_variable_list.append(self.conveyance)
+                            if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                                self.h.position = "node"
+                                self.h.hdf5 = True
+                                self.all_final_variable_list.append(self.h)
+                                self.v.position = "node"
+                                self.v.hdf5 = True
+                                self.all_final_variable_list.append(self.v)
+                # max_slope_bottom mesh ==> need : z
+                elif variable_wish.name == self.max_slope_bottom.name:
                     if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
                         self.z.position = "node"
                         self.z.hdf5 = True
                         self.all_final_variable_list.append(self.z)
-                    # compute mean from node (need level node)
-                    if self.level.name not in self.all_final_variable_list.to_compute().nodes().names():
-                        self.level.position = "node"
-                        self.level.hdf5 = False
-                        self.all_final_variable_list.append(self.level)
-            # froude mesh ==> need first : h and v mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.froude.name:
-                # FinitVolume ?
-                if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                    # already added?
-                    if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
-                        self.h.position = "mesh"
+                # max_slope_energy mesh ==> need first : h and v node hdf5 (FinitVolume)
+                elif variable_wish.name == self.max_slope_energy.name:
+                    if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.h.position = "node"
                         self.h.hdf5 = True
                         self.all_final_variable_list.append(self.h)
-                        self.v.position = "mesh"
+                    if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.v.position = "node"
                         self.v.hdf5 = True
                         self.all_final_variable_list.append(self.v)
-                else:
-                    # compute at node
-                    if self.froude.name not in self.all_final_variable_list.to_compute().nodes().names():
-                        self.froude.position = "node"
-                        self.froude.hdf5 = False
-                        self.all_final_variable_list.append(self.froude)
-                        if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                            self.h.position = "node"
-                            self.h.hdf5 = True
-                            self.all_final_variable_list.append(self.h)
-                            self.v.position = "node"
-                            self.v.hdf5 = True
-                            self.all_final_variable_list.append(self.v)
-            # hydraulic_head mesh ==> need first : h and v mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.hydraulic_head.name:
-                # FinitVolume ?
-                if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                    # already added?
-                    if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
-                        self.h.position = "mesh"
-                        self.h.hdf5 = True
-                        self.all_final_variable_list.append(self.h)
-                        self.v.position = "mesh"
-                        self.v.hdf5 = True
-                        self.all_final_variable_list.append(self.v)
-                else:
-                    # compute at node
-                    if self.hydraulic_head.name not in self.all_final_variable_list.to_compute().nodes().names():
-                        self.hydraulic_head.position = "node"
-                        self.hydraulic_head.hdf5 = False
-                        self.all_final_variable_list.append(self.hydraulic_head)
-                        if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                            self.h.position = "node"
-                            self.h.hdf5 = True
-                            self.all_final_variable_list.append(self.h)
-                            self.v.position = "node"
-                            self.v.hdf5 = True
-                            self.all_final_variable_list.append(self.v)
-            # conveyance mesh ==> need first : h and v mesh hdf5 (FinitVolume)
-            elif variable_wish.name == self.conveyance.name:
-                # FinitVolume ?
-                if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names() and self.v.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
-                    # already added?
-                    if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names() and not self.v.name in self.all_final_variable_list.hdf5s().meshs().names():
-                        self.h.position = "mesh"
-                        self.h.hdf5 = True
-                        self.all_final_variable_list.append(self.h)
-                        self.v.position = "mesh"
-                        self.v.hdf5 = True
-                        self.all_final_variable_list.append(self.v)
-                else:
-                    # compute at node
-                    if self.conveyance.name not in self.all_final_variable_list.to_compute().nodes().names():
-                        self.conveyance.position = "node"
-                        self.conveyance.hdf5 = False
-                        self.all_final_variable_list.append(self.conveyance)
-                        if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                            self.h.position = "node"
-                            self.h.hdf5 = True
-                            self.all_final_variable_list.append(self.h)
-                            self.v.position = "node"
-                            self.v.hdf5 = True
-                            self.all_final_variable_list.append(self.v)
-            # max_slope_bottom mesh ==> need : z
-            elif variable_wish.name == self.max_slope_bottom.name:
-                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.z.position = "node"
-                    self.z.hdf5 = True
-                    self.all_final_variable_list.append(self.z)
-            # max_slope_energy mesh ==> need first : h and v node hdf5 (FinitVolume)
-            elif variable_wish.name == self.max_slope_energy.name:
-                if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.h.position = "node"
-                    self.h.hdf5 = True
-                    self.all_final_variable_list.append(self.h)
-                if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.v.position = "node"
-                    self.v.hdf5 = True
-                    self.all_final_variable_list.append(self.v)
-                if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
-                    self.z.position = "node"
-                    self.z.hdf5 = True
-                    self.all_final_variable_list.append(self.z)
+                    if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.z.position = "node"
+                        self.z.hdf5 = True
+                        self.all_final_variable_list.append(self.z)
 
-            # all cases
-            self.all_final_variable_list.append(variable_wish)
+                # all cases
+                self.all_final_variable_list.append(variable_wish)
 
-        # # print final names
-        # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes().names())
-        # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs().names())
-        # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes().names())
-        # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs().names())
+            # # print final names
+            # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes().names())
+            # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs().names())
+            # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes().names())
+            # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs().names())
 
