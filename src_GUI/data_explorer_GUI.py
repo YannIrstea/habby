@@ -935,7 +935,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             QCoreApplication.processEvents()
 
             # for error management and figures
-            #print("self.timer.start(100)")
             self.timer.start(100)
 
     def stop_plot(self):
@@ -956,8 +955,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
     def show_prog(self):
         # RUNNING
-        # print("show_prog", self.process_list.plot_finished, self.process_list.nb_finished,
-        #                                                      self.process_list.nb_plot_total)
         if not self.process_list.plot_finished:
             # self.process_list.nb_finished
             self.plot_progressbar.setValue(int(self.process_list.nb_finished))
@@ -1287,7 +1284,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def start_stop_export(self):
-        print("start_stop_export", self.data_exporter_run_pushbutton.isChecked())
         # CHECKED ==> START
         if not self.data_exporter_run_pushbutton.isChecked():
             self.start_export()
@@ -1337,7 +1333,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
                 self.process_list.start()
 
             # for error management and figures
-            #print("self.timer.start(100)")
             self.timer.start(100)
 
     def stop_export(self):
@@ -1353,9 +1348,6 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.send_log.emit(self.tr("Export(s) stoped by user."))
 
     def show_prog(self):
-        # print("show_prog", self.process_list.export_finished, self.data_exporter_run_pushbutton.isChecked(),
-        #                                                     self.process_list.nb_finished,
-        #                                                      self.process_list.nb_export_total)
         # RUNNING
         if not self.process_list.export_finished:
             # self.process_list.nb_finished

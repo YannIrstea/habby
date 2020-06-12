@@ -1658,18 +1658,18 @@ class Hdf5Management:
 
                         defn = layer.GetLayerDefn()
                         if self.hdf5_type == "habitat":
-                            layer.CreateField(ogr.FieldDefn('area', ogr.OFTReal))
-                            # sub
-                            if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                                layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))
-                                layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))
-                            if self.data_description["sub_classification_method"] == 'percentage':
-                                if self.data_description["sub_classification_code"] == "Cemagref":
-                                    sub_class_number = 8
-                                if self.data_description["sub_classification_code"] == "Sandre":
-                                    sub_class_number = 12
-                                for i in range(sub_class_number):
-                                    layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))
+                            # layer.CreateField(ogr.FieldDefn('area', ogr.OFTReal))
+                            # # sub
+                            # if self.data_description["sub_classification_method"] == 'coarser-dominant':
+                            #     layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))
+                            #     layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))
+                            # if self.data_description["sub_classification_method"] == 'percentage':
+                            #     if self.data_description["sub_classification_code"] == "Cemagref":
+                            #         sub_class_number = 8
+                            #     if self.data_description["sub_classification_code"] == "Sandre":
+                            #         sub_class_number = 12
+                            #     for i in range(sub_class_number):
+                            #         layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))
                             # fish
                             if fish_names:
                                 for fish_num, fish_name in enumerate(fish_names):
@@ -1690,8 +1690,6 @@ class Hdf5Management:
                                 self.data_2d[reach_num][unit_num]["node"]["data"]["z"][node3]])
                             # data attrbiutes
                             if self.hdf5_type == "habitat":
-                                area = self.data_2d[reach_num][unit_num]["mesh"]["data"]["area"][mesh_num]
-                                sub = self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][mesh_num].tolist()
                                 if fish_names:
                                     fish_data = []
                                     for fish_name in fish_names:
@@ -1719,15 +1717,6 @@ class Hdf5Management:
                                 feat.SetField(mesh_variable.name_gui,  data_field)
 
                             if self.hdf5_type == "habitat":
-                                # area
-                                feat.SetField("area", area)
-                                # sub
-                                if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                                    feat.SetField('coarser', sub[0])
-                                    feat.SetField('dominant', sub[1])
-                                if self.data_description["sub_classification_method"] == 'percentage':
-                                    for i in range(sub_class_number):
-                                        feat.SetField('S' + str(i + 1), sub[i])
                                 # fish
                                 if fish_names:
                                     for fish_num, fish_name in enumerate(fish_names):
@@ -2119,12 +2108,7 @@ class Hdf5Management:
             if not os.path.exists(path_txt):
                 print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
-            if self.hdf5_type == "habitat":
-                fish_names = self.data_description["hab_fish_list"].split(", ")
-                if fish_names != ['']:
-                    fish_names = self.data_description["hab_fish_list"].split(", ")
-                else:
-                    fish_names = []
+            animal_list = self.hvum.hdf5_and_computable_list.meshs().habs()
 
             # for all reach
             for reach_num in range(self.data_2d.reach_num):
@@ -2146,7 +2130,7 @@ class Hdf5Management:
                     # open text to write
                     with open(name, 'wt', encoding='utf-8') as f:
                         # hyd variables mesh
-                        text_to_write_str_list = self.hvum.hdf5_and_computable_list.meshs().names()
+                        text_to_write_str_list = self.hvum.hdf5_and_computable_list.meshs().no_habs().names()
 
                         # header 1
                         text_to_write_str_list.extend([
@@ -2154,35 +2138,19 @@ class Hdf5Management:
                                        qt_tr.translate("hdf5_mod", "node2"),
                                        qt_tr.translate("hdf5_mod", "node3")])
                         text_to_write_str = "\t".join(text_to_write_str_list)
-                        if self.hdf5_type == "habitat":
-                            # sub
-                            if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                                text_to_write_str += '\tsubstrate_coarser\tsubstrate_dominant'
-                                sub_class_number = 2
-                            if self.data_description["sub_classification_method"] == 'percentage':
-                                if self.data_description["sub_classification_code"] == "Cemagref":
-                                    sub_class_number = 8
-                                if self.data_description["sub_classification_code"] == "Sandre":
-                                    sub_class_number = 12
-                                for i in range(sub_class_number):
-                                    text_to_write_str += '\tsub_S' + str(i + 1)
-
+                        if animal_list:
                             if self.project_preferences['language'] == 0:
-                                text_to_write_str += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                                text_to_write_str += "".join(['\tHV' + str(i) for i in range(len(animal_list))])
                             else:
-                                text_to_write_str += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                                text_to_write_str += "".join(['\tVH' + str(i) for i in range(len(animal_list))])
                         text_to_write_str += '\n'
                         f.write(text_to_write_str)
 
                         # header 2
                         text_to_write_str = "["
-                        text_to_write_str += ']\t['.join(self.hvum.hdf5_and_computable_list.meshs().units())
+                        text_to_write_str += ']\t['.join(self.hvum.hdf5_and_computable_list.meshs().no_habs().units())
                         text_to_write_str += ']\t[]\t[]\t[]'
 
-                        if self.hdf5_type == "habitat" and fish_names:
-                            text_to_write_str += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
-                                              range(sub_class_number))
-                            text_to_write_str += "".join(['\t[' + fish + ']' for fish in fish_names])
                         f.write(text_to_write_str)
 
                         # data
@@ -2195,15 +2163,12 @@ class Hdf5Management:
                             text_to_write_str += '\n'
                             data_list = []
                             for mesh_variable_name in self.hvum.hdf5_and_computable_list.meshs().names():
-                                data_list.append("[" + str(self.data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable_name][mesh_num]) + "]")
+                                data_list.append(str(self.data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable_name][mesh_num]))
                             text_to_write_str += "\t".join(data_list)
                             text_to_write_str += f"\t{str(node1)}\t{str(node2)}\t{str(node3)}"
-                            if self.hdf5_type == "habitat":
-                                sub = self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][mesh_num]
-                                text_to_write_str += "\t" + "\t".join(str(e) for e in sub.tolist())
-                                if fish_names:
-                                    for fish_name in fish_names:
-                                        text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['hv_data'][fish_name][mesh_num])}"
+                            if animal_list:
+                                for animal in animal_list:
+                                    text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['hv_data'][animal.name][mesh_num])}"
 
                         # change decimal point
                         locale = QLocale()

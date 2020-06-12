@@ -1742,8 +1742,7 @@ class MyProcessList(QThread):
 
         # habitat
         elif self.hdf5.hdf5_type == "habitat":  # load habitat data
-            self.hdf5.load_hdf5_hab(whole_profil=True)
-            self.hdf5.project_preferences = self.project_preferences
+            self.hdf5.load_hdf5_hab(whole_profil=True, user_target_list=self.project_preferences)
             total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
             if self.export_dict["mesh_units_hab"] or self.export_dict["point_units_hab"]:
                 # append fake first
@@ -1779,7 +1778,7 @@ class MyProcessList(QThread):
                                                             name="export_detailled_txt")
                 self.process_list.append([export_detailled_mesh_txt_process, state])
             if self.export_dict["fish_information_hab"]:
-                if self.hdf5.fish_list:
+                if self.hdf5.hvum.hdf5_and_computable_list.habs():
                     state = Value("i", 0)
                     export_pdf_process = Process(target=self.hdf5.export_report,
                                                  args=(state,),
