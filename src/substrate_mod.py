@@ -524,7 +524,8 @@ def load_sub_sig(sub_description, progress_value):
             layer = ds.GetLayer(layer_num)
 
             # get point coordinates and connectivity table in two lists
-            sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+            sub_array = np.empty(shape=(len(layer), len(header_list)),
+                                 dtype=HydraulicVariableUnitManagement().sub_dom.dtype)
             for feature_ind, feature in enumerate(layer):
                 sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
                 shape_geom = feature.geometry()

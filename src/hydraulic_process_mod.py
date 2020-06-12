@@ -1213,19 +1213,20 @@ class MyProcessList(QThread):
         self.plot_hdf5_mode = False
         self.export_hdf5_mode = False
 
-    def set_export_hdf5_mode(self, path_prj, name_hdf5, export_dict, project_preferences):
-        self.export_hdf5_mode = True
-        self.hdf5 = Hdf5Management(path_prj, name_hdf5)
+    def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
+        self.path_prj = path_prj
+        self.names_hdf5 = names_hdf5
         self.project_preferences = project_preferences
+        self.export_hdf5_mode = True
         self.export_dict = export_dict
         self.nb_export_total = export_dict["nb_export"]
 
-    def set_plot_hdf5_mode(self, path_prj, name_hdf5, plot_attr, project_preferences):
-        self.plot_hdf5_mode = True
-        self.hdf5 = Hdf5Management(path_prj, name_hdf5)
+    def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_preferences):
+        self.path_prj = path_prj
+        self.names_hdf5 = names_hdf5
         self.project_preferences = project_preferences
+        self.plot_hdf5_mode = True
         self.plot_attr = plot_attr
-        self.hvum = plot_attr.hvum
 
     def load_data_and_append_plot_process(self):
         reach = self.plot_attr.reach
@@ -1817,34 +1818,32 @@ class MyProcessList(QThread):
         self.thread_started = True
         self.plot_production_stoped = False
         if self.process_type == "plot":
-
-            if self.plot_hdf5_mode:
-                self.plot_finished = False
-                self.load_data_and_append_plot_process()
-
-            # Process mod
+            self.plot_finished = False
             self.all_process_runned = False
-
+            if self.plot_hdf5_mode:  # from hdf5 data
+                for name_hdf5 in self.names_hdf5:
+                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5)
+                    self.hvum = self.plot_attr.hvum
+                    self.load_data_and_append_plot_process()
+            # Process mod
             for i in range(len(self.process_list)):
                 if not self.plot_production_stoped:
                     if self.process_list[i][1].value == 0 and not self.process_list[i][0].is_alive():
                         self.process_list[i][0].start()
-                        # print("start", i, self.process_list[i][0].name)
-            # print("!!!!!!!!!!! all plot started !!!!!!!!!!!")
             self.all_process_runned = True
             self.check_all_plot_produced()
 
         if self.process_type == "export":
-            if self.export_hdf5_mode:
-                self.export_finished = False
-                self.load_data_and_append_export_process()
-
+            self.export_finished = False
             self.all_process_runned = False
+            if self.export_hdf5_mode:
+                for name_hdf5 in self.names_hdf5:
+                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5)
+                    self.load_data_and_append_export_process()
+            # Process mod
             for i in range(len(self.process_list)):
                 if not self.export_production_stoped:
                     self.process_list[i][0].start()
-            #         print("start", i, self.process_list[i][0].name)
-            # print("!!!!!!!!!!! all exports started !!!!!!!!!!!")
             self.all_process_runned = True
             self.check_all_export_produced()
 

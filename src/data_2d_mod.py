@@ -170,15 +170,13 @@ class Data2d(list):
                     print("Warning: The mesh of unit " + unit_name + " is not loaded")
                     continue
 
-                typeikle = ikle.dtype
-                typepoint = point_all.dtype
-                point_new = np.empty((0, 3), dtype=typepoint)
+                point_new = np.empty((0, 3), dtype=self.hvum.xy.dtype)
                 jpn0 = len(point_all) - 1
-                iklenew = np.empty((0, 3), dtype=typeikle)
-                ind_whole = np.arange(len(ikle), dtype=typeikle)
+                iklenew = np.empty((0, 3), dtype=self.hvum.i_whole_profile.dtype)
+                ind_whole = np.arange(len(ikle), dtype=self.hvum.i_whole_profile.dtype)
 
                 water_height[water_height < min_height] = 0  # correcting the height of water  hw<0 or hw <min_height=> hw=0
-                bhw = (water_height > 0).astype(np.int)
+                bhw = (water_height > 0).astype(self.hvum.i_whole_profile.dtype)
                 ikle_bit = bhw[ikle]
                 ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
                 mikle_keep = ikle_type == 3
@@ -192,7 +190,7 @@ class Data2d(list):
                     water_height_ok = water_height
                     velocity_ok = velocity
                     ind_whole = ind_whole  # TODO: full whole profile
-                    i_split = np.repeat(0, ind_whole.shape[0])
+                    i_split = np.repeat(0, ind_whole.shape[0], dtype=np.int64)
                 # all meshes are entirely dry
                 elif not True in mikle_keep2:
                     print("Warning: The mesh of unit " + unit_name + " is entirely dry.")
@@ -202,7 +200,7 @@ class Data2d(list):
                     mikle_keep = ikle_type != 0
                     iklekeep = ikle[mikle_keep, ...]
                     ind_whole = ind_whole[mikle_keep, ...]
-                    i_split = np.repeat(0, ind_whole.shape[0])
+                    i_split = np.repeat(0, ind_whole.shape[0]).astype(np.int64)
                 # we cut  the dry meshes and  the partially ones
                 else:
                     jpn = jpn0
@@ -278,21 +276,21 @@ class Data2d(list):
                     iklekeep = ikle[
                         mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
                     ind_whole = ind_whole[mikle_keep, ...]
-                    ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
-                    i_split = np.repeat(0, ind_whole.shape[0])
+                    ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=self.hvum.tin.dtype), axis=0)
+                    i_split = np.repeat(0, ind_whole.shape[0]).astype(self.hvum.i_split.dtype)
 
                 # all cases
                 ipt_iklenew_unique = np.unique(iklekeep)
 
                 if ipt_all_ok_wetdry:  # presence of partially wet/dry meshes cutted that we want
-                    ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry, dtype=typeikle), axis=0)
+                    ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry, dtype=self.hvum.tin.dtype), axis=0)
                     ipt_iklenew_unique = np.unique(ipt_iklenew_unique)
 
                 point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
                 water_height_ok = water_height[ipt_iklenew_unique]
                 velocity_ok = velocity[ipt_iklenew_unique]
 
-                ipt_old_new = np.array([-1] * len(point_all), dtype=typeikle)
+                ipt_old_new = np.array([-1] * len(point_all), dtype=self.hvum.tin.dtype)
                 for i, point_index in enumerate(ipt_iklenew_unique):
                     ipt_old_new[point_index] = i
                 iklekeep2 = ipt_old_new[ikle]
@@ -302,7 +300,9 @@ class Data2d(list):
                     point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
                     lpns = len(point_new_single)
                     ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
-                    i_split = np.append(np.repeat(0, iklekeep.shape[0]), np.repeat(1, ipt_old_new[iklenew].shape[0]), axis=0)
+                    i_split = np.append(np.repeat(0, iklekeep.shape[0]).astype(self.hvum.i_split.dtype),
+                                        np.repeat(1, ipt_old_new[iklenew].shape[0]).astype(self.hvum.i_split.dtype),
+                                        axis=0)
                     iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
                     point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
                     # beware that some new points can be doubles of  original ones
@@ -383,7 +383,8 @@ class Data2d(list):
             # for each unit
             for unit_num in range(self.unit_num):
                 try:
-                    default_data = np.array(list(map(int, hdf5_sub.sub_default_values.split(", "))))
+                    default_data = np.array(list(map(int, hdf5_sub.sub_default_values.split(", "))),
+                                            dtype=self.hvum.sub_dom.dtype)
                     sub_array = np.repeat([default_data], self[reach_num][unit_num]["mesh"]["tin"].shape[0], 0)
                 except ValueError or TypeError:
                     print(

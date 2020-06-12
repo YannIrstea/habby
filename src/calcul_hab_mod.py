@@ -19,6 +19,7 @@ import numpy as np
 import sys
 from io import StringIO
 from scipy.interpolate import interp1d, griddata
+from pandas import DataFrame
 
 import src.tools_mod
 from src import hdf5_mod
@@ -150,6 +151,13 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
     if not project_preferences:
         project_preferences = load_project_properties(hdf5.path_prj)
 
+    # name fish with stage
+    for fish_ind, fish_name in enumerate(run_choice["code_alternative_list"]):
+        stage_i = run_choice["stage_list"][fish_ind]
+        hyd_opt_i = run_choice["hyd_opt"][fish_ind]
+        sub_opt_i = run_choice["sub_opt"][fish_ind]
+        run_choice["code_alternative_list"][fish_ind] = fish_name + "_" + stage_i + "_" + hyd_opt_i + "_" + sub_opt_i
+
     # progress
     progress_value.value = 20
 
@@ -169,13 +177,6 @@ def calc_hab_and_output(hab_filename, run_choice, progress_value, q=[], print_cm
             return
         else:
             return
-
-    # name fish with stage
-    for fish_ind, fish_name in enumerate(run_choice["code_alternative_list"]):
-        stage_i = run_choice["stage_list"][fish_ind]
-        hyd_opt_i = run_choice["hyd_opt"][fish_ind]
-        sub_opt_i = run_choice["sub_opt"][fish_ind]
-        run_choice["code_alternative_list"][fish_ind] = fish_name + "_" + stage_i + "_" + hyd_opt_i + "_" + sub_opt_i
 
     # progress
     progress_value.value = 90
@@ -419,7 +420,8 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                             # convert classification code sandre to cemagref
                             # TODO: no input data conversion if pref curve is sandre or antoher
 
-                            sub_t = np.empty(shape=(ikle_t.shape[0], len(data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())))
+                            sub_t = np.empty(shape=(ikle_t.shape[0], len(data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())),
+                                             dtype=np.int64)
                             for sub_class_num, sub_class_name in enumerate(data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()):
                                 sub_t[:, sub_class_num] = data_2d[reach_num][unit_num]["mesh"]["data"][sub_class_name]
 
@@ -507,9 +509,15 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
 
                 spu_reach = np.nansum(vh * area)
 
-            vh_all.append(vh)
-            area_c_all.append(area)
-            spu_all.append(spu_reach)
+            # vh_all.append(vh)
+            # area_c_all.append(area)
+            # spu_all.append(spu_reach)
+            # get mesh datadata_2d
+            if not "hv_data" in data_2d[reach_num][unit_num]["mesh"].keys():
+                data_2d[reach_num][unit_num]["mesh"]["hv_data"] = DataFrame()
+            data_2d[reach_num][unit_num]["mesh"]["hv_data"][""]
+            animal_variable.spu = spu_reach
+            data_2d[reach_num][unit_num]["mesh"]["hv_data"][""]
 
             # progress
             prog += delta_unit
@@ -518,6 +526,8 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
         vh_all_t.append(vh_all)
         spu_all_t.append(spu_all)
         area_c_all_t.append(area_c_all)
+
+        # WARNINGS
         if warning_range_list:
             warning_range_list = list(set(warning_range_list))
             warning_range_list.sort()
@@ -527,7 +537,7 @@ def calc_hab_norm(data_2d, hab_description, name_fish, pref_vel, pref_height, pr
                 unit_names.append(hab_description["hyd_unit_list"][reach_num][warning_unit_num])
             print(f"Warning: " + qt_tr.translate("calcul_hab_mod", "Unknown habitat values produced for ") + name_fish + qt_tr.translate("calcul_hab_mod", ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
                   ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod", " of reach : ") + hab_description["hyd_reach_list"])
-        # HEM
+        # WARNINGS HEM
         if aquatic_animal_type_select == "invertebrate":
             if warning_shearstress_list:
                 warning_shearstress_list.sort()
