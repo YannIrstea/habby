@@ -630,7 +630,7 @@ def tinareadensity(xy, ikle):
     total_area = np.sum(0.5 * (np.abs(
         (xy[ikle[:, 1]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 2]][:, 1] - xy[ikle[:, 0]][:, 1]) - (
                 xy[ikle[:, 2]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 1]][:, 1] - xy[ikle[:, 0]][:, 1]))))
-    return total_area, total_area / (ikle.size // 3)
+    return total_area,  (ikle.size // 3)/total_area
 
 
 ####################################TEST PART ########################################################################################
@@ -720,7 +720,7 @@ if __name__ == '__main__':
     '''
     testing the merge program
     '''
-    t = 5  # regarding this value different tests can be launched
+    t = 0  # regarding this value different tests can be launched
     if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
         nbpointhyd, nbpointsub, seedhyd, seedsub = 5000, 7000, 9, 32
         hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data = build_hyd_sub_mesh(False, nbpointhyd, nbpointsub, seedhyd, seedsub)
