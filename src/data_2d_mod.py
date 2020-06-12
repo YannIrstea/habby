@@ -119,7 +119,7 @@ class Data2d(list):
                         hyd_varying_z_index[reach_num].append(it_equality)  # diff
         return hyd_varying_xy_index, hyd_varying_z_index
 
-    def reduce_to_one_unit_by_reach(self):
+    def reduce_to_first_unit_by_reach(self):
         for reach_num in range(self.reach_num):
             self[reach_num] = [self[reach_num][0]]
         self.get_informations()

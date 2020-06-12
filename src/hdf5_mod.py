@@ -1913,28 +1913,6 @@ class Hdf5Management:
 
                     cellData = {}
 
-                    # fish
-                    if self.extension == ".hab":
-                        if name_fish:
-                            for fish_name in self.data_description["hab_fish_list"].split(", "):
-                                newkey = "HV " + fish_name
-                                cellData[newkey] = self.data_2d[reach_num][unit_num]["mesh"]["hv_data"][fish_name]
-                        # sub
-                        if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            cellData["substrate_coarser"] = np.ascontiguousarray(
-                                self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, 0])
-                            cellData["substrate_dominant"] = np.ascontiguousarray(
-                                self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, 1])
-
-                        if self.data_description["sub_classification_method"] == 'percentage':
-                            if self.data_description["sub_classification_code"] == "Cemagref":
-                                sub_class_number = 8
-                            if self.data_description["sub_classification_code"] == "Sandre":
-                                sub_class_number = 12
-                            for i in range(sub_class_number):
-                                cellData['S' + str(i + 1)] = np.ascontiguousarray(
-                                    self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, i])
-
                     # hyd variables mesh
                     for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
                         cellData[mesh_variable.name_gui] = self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][mesh_variable.name].to_numpy()
