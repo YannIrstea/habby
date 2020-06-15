@@ -366,20 +366,18 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
         else:
             merge_data_node[i] = finite_element_interpolation(merge_xy1[i], hyd_xy[merge_xypointlinkstohydr1[i]],
                                                               hyd_data_node[merge_xypointlinkstohydr1[i]])
-<<<<<<< HEAD:src/MergeB.py
+
     #marking  in iwholeprofilemerge the mesh containing defautsub in third column
     # iwholeprofilemerge=np.array(iwholeprofilemerge)
     merge_data_sub_mesh=np.array(merge_data_sub_mesh)
-    (np.sum(merge_data_sub_mesh == defautsub, axis=1) // 2).reshape((merge_data_sub_mesh.size//defautsub.size, 1))
-    iwholeprofilemerge=np.hstack((iwholeprofilemerge, (np.sum(merge_data_sub_mesh == defautsub, axis=1) // 2).reshape(merge_data_sub_mesh.size//defautsub.size, 1)))
-    return merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, np.array(merge_data_mesh),merge_data_sub_mesh
-=======
+    iwholeprofilemerge=np.hstack((iwholeprofilemerge, (np.sum(merge_data_sub_mesh == defautsub, axis=1) // defautsub.size).reshape(merge_data_sub_mesh.size//defautsub.size, 1)))
+
+
     merge_xy1 +=translationxy
     hyd_xy +=translationxy
     sub_xy +=translationxy
-    return merge_xy1, merge_data_node, merge_tin1, np.array(iwholeprofilemerge), np.array(merge_data_mesh), np.array(
-        merge_data_sub_mesh)
->>>>>>> f6a965265525026aed21b9946832aa651c3dede5:src/merge.py
+    return merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, np.array(merge_data_mesh),merge_data_sub_mesh
+
 
 
 def finite_element_interpolation(xyp, xypmesh, datamesh):
