@@ -22,7 +22,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             mesh/triangle
     :param iwholeprofile: A two columns numpy array describing each hydraulic mesh:
             first column an index corresponding to the original hydraulic TIN (before taking away the dry part for
-            instance) 2nd column icut 0 if the hydraulic original mesh have never been partitioned, 1 if it has been
+            instance) 2nd column i_split 0 if the hydraulic original mesh have never been partitioned, 1 if it has been
             partitioned by taking away a dry part
     :param hyd_data_mesh: hydraulic data affected to each hydraulic mesh
     :param sub_xy: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
@@ -40,7 +40,8 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             merge_tin1 : the merge TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a
                         mesh/triangle
             iwholeprofilemerge : similar to iwholeprofile describing each hydraulic mesh
-                           icut can also have the values :  2 if the mesh has been partioned by the merge : 3  if the mesh has been partioned previously by taking away a dry part and also a second time by the merge
+                           i_split can also have the values :  2 if the mesh has been partioned by the merge : 3  if the mesh has been partioned previously by taking away a dry part and also a second time by the merge
+                           a third column is added i_subdefaut marking by the value 1 when the defaut substrate has been assigned to the mesh, 0 otherwise
             merge_data_mesh : hydraulic data affected to each merge mesh
             merge_data_sub_mesh : substrate data affected to each merge mesh
     """
@@ -361,9 +362,12 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
         else:
             merge_data_node[i] = finite_element_interpolation(merge_xy1[i], hyd_xy[merge_xypointlinkstohydr1[i]],
                                                               hyd_data_node[merge_xypointlinkstohydr1[i]])
-
-    return merge_xy1, merge_data_node, merge_tin1, np.array(iwholeprofilemerge), np.array(merge_data_mesh), np.array(
-        merge_data_sub_mesh)
+    #marking  in iwholeprofilemerge the mesh containing defautsub in third column
+    # iwholeprofilemerge=np.array(iwholeprofilemerge)
+    merge_data_sub_mesh=np.array(merge_data_sub_mesh)
+    (np.sum(merge_data_sub_mesh == defautsub, axis=1) // 2).reshape((merge_data_sub_mesh.size//defautsub.size, 1))
+    iwholeprofilemerge=np.hstack((iwholeprofilemerge, (np.sum(merge_data_sub_mesh == defautsub, axis=1) // 2).reshape(merge_data_sub_mesh.size//defautsub.size, 1)))
+    return merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, np.array(merge_data_mesh),merge_data_sub_mesh
 
 
 def finite_element_interpolation(xyp, xypmesh, datamesh):
@@ -692,7 +696,7 @@ def build_hyd_data(hyd_xy, hyd_tin, seedhyd1, seedhyd2, seedhyd3):
             hyd_data_node : hydraulic data for each node/point
             iwholeprofile : iwholeprofile: a two columns numpy array describing each hydraulic mesh:
                 first column an index corresponding to the original hydraulic TIN (before taking away the dry part for instance)
-                2nd column icut 0 if the hydraulic original mesh have never been partitioned, 1 if it has been partitioned by taking away a dry part
+                2nd column i_split 0 if the hydraulic original mesh have never been partitioned, 1 if it has been partitioned by taking away a dry part
             hyd_data_mesh : hydraulic data for each mesh
     '''
     nbnode = hyd_xy.size // 2
@@ -720,7 +724,7 @@ if __name__ == '__main__':
     '''
     testing the merge program
     '''
-    t = 5  # regarding this value different tests can be launched
+    t = 0  # regarding this value different tests can be launched
     if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
         nbpointhyd, nbpointsub, seedhyd, seedsub = 5000, 7000, 9, 32
         hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data = build_hyd_sub_mesh(False, nbpointhyd, nbpointsub, seedhyd, seedsub)
