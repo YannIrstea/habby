@@ -27,7 +27,7 @@ from pandas import DataFrame
 
 from src import hdf5_mod
 from src.tools_mod import get_translator
-from src.MergeB import merge
+from src.merge import merge
 from src.data_2d_mod import Data2d
 from src.plot_mod import plot_to_check_mesh_merging
 
@@ -337,6 +337,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                     for colname_num, colname in enumerate(hdf5_hydro.data_2d[0][0]["node"]["data"].columns):
                         data_2d_merge[reach_num][unit_num]["node"]["data"][colname] = merge_data_node[:, colname_num]
 
+                    # post process merge
+                    if data_2d_merge[reach_num][unit_num]["node"]["data"][data_2d_merge.hvum.h.name].min() < 0:
+                        print("Error: negative water height values detected after merging with substrate.")
+
                     # # plot_to_check_mesh_merging
                     # plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
                     #                            hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
@@ -353,7 +357,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                     prog += delta
                     progress_value.value = int(prog)
 
-            data_2d_whole_merge = data_2d_merge.get_only_mesh()
+            data_2d_whole_merge = hdf5_hydro.data_2d_whole
 
     return data_2d_merge, data_2d_whole_merge, merge_description
 

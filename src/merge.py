@@ -15,6 +15,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
     triangles/meshes that contain a substrate from the substrate TIN or a default substrate. Additional nodes inside
     or on the edges of an hydraulic mesh will be given hydraulic data by interpolation of the hydraulic data from the
     hydraulic mesh nodes.Flat hydraulic or substrates triangles will not been taken inot account.
+    TAKE CARE during the merge a translation is done to minimise numericals problems 
      Using numpy arrays as entry and returning numpy arrays.
     :param hyd_xy: The x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
     :param hyd_data_node: The hydraulic data of the hydraulic nodes (eg : z, wather depth, mean velocity...)
@@ -45,6 +46,9 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             merge_data_mesh : hydraulic data affected to each merge mesh
             merge_data_sub_mesh : substrate data affected to each merge mesh
     """
+    translationxy = np.min(np.vstack((hyd_xy, sub_xy)), axis=0)
+    hyd_xy -= translationxy
+    sub_xy -= translationxy
     gridelt = griddef(hyd_xy, sub_xy, hyd_tin, sub_tin, coeffgrid)  # building the grid
     # print(gridelt)
     # print ("titi")
@@ -182,7 +186,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                             print("Numerical problems doing for the best")
                             bsolve=True
                             if sidecontact[kout] ==1 or sidecontact[kout] ==2 or sidecontact[kout] ==4:
-                                bsolve,relativeindexhyd=intersection2doitesaffines(sidecontact[kout], xyaffp, xyaffq)
+                                bsolve,relativeindexhyd=intersectionspecial(sidecontact[kout], xyaffp, xyaffq)
                             elif sidecontact[kout] == 3:
                                 relativeindexhyd=0
                             elif sidecontact[kout] ==5:
@@ -362,12 +366,20 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
         else:
             merge_data_node[i] = finite_element_interpolation(merge_xy1[i], hyd_xy[merge_xypointlinkstohydr1[i]],
                                                               hyd_data_node[merge_xypointlinkstohydr1[i]])
+<<<<<<< HEAD:src/MergeB.py
     #marking  in iwholeprofilemerge the mesh containing defautsub in third column
     # iwholeprofilemerge=np.array(iwholeprofilemerge)
     merge_data_sub_mesh=np.array(merge_data_sub_mesh)
     (np.sum(merge_data_sub_mesh == defautsub, axis=1) // 2).reshape((merge_data_sub_mesh.size//defautsub.size, 1))
     iwholeprofilemerge=np.hstack((iwholeprofilemerge, (np.sum(merge_data_sub_mesh == defautsub, axis=1) // 2).reshape(merge_data_sub_mesh.size//defautsub.size, 1)))
     return merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, np.array(merge_data_mesh),merge_data_sub_mesh
+=======
+    merge_xy1 +=translationxy
+    hyd_xy +=translationxy
+    sub_xy +=translationxy
+    return merge_xy1, merge_data_node, merge_tin1, np.array(iwholeprofilemerge), np.array(merge_data_mesh), np.array(
+        merge_data_sub_mesh)
+>>>>>>> f6a965265525026aed21b9946832aa651c3dede5:src/merge.py
 
 
 def finite_element_interpolation(xyp, xypmesh, datamesh):
@@ -416,7 +428,7 @@ def linear_interpolation_segment(xyM, xyAB, data):
         vm = (1 - dam) * va + dam * vb
     return vm
 
-def intersection2doitesaffines(sidecontactaffine,  xyc, xyd):
+def intersectionspecial(sidecontactaffine,  xyc, xyd):
     if sidecontactaffine==1:
         xya, xyb,ka,kb=[0,0],[1,0],0,1
     elif sidecontactaffine == 2:
@@ -558,10 +570,10 @@ def intragridcells(xymesh, gridelt):
     return listcells
 
 
-def griddef(xyhyd, sub_xy, iklehyd, sub_tin, coeffgrid):
+def griddef(hyd_xy, sub_xy, iklehyd, sub_tin, coeffgrid):
     '''
     defining the grid that will be  used to select substrate meshes that are just in the surrounding of an hydraulic mesh to minimize the computing time
-    :param xyhyd:the x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
+    :param hyd_xy:the x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
     :param sub_xy: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
     :param iklehyd: the hydraulic TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
     :param sub_tin: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
@@ -572,14 +584,14 @@ def griddef(xyhyd, sub_xy, iklehyd, sub_tin, coeffgrid):
             :nbcell : the total number of the cells in the grid
     '''
     gridelt = {}
-    xyall = np.concatenate((xyhyd, sub_xy), axis=0)
+    xyall = np.concatenate((hyd_xy, sub_xy), axis=0)
     xymax0 = np.ceil(
         np.max(xyall, axis=0) + 0.1)  # +0.1 to avoid point with xmax or ymax beign out of the constructed grid
     xymin = np.floor(np.min(xyall, axis=0))
     dxygrid = xymax0 - xymin
     totalarea = dxygrid[0] * dxygrid[1]
 
-    areahyd, densityhyd = tinareadensity(xyhyd, iklehyd)
+    areahyd, densityhyd = tinareadensity(hyd_xy, iklehyd)
     areasub, densitysub = tinareadensity(sub_xy, sub_tin)
     nbgrid = math.ceil(max(densityhyd, densitysub) * totalarea * coeffgrid)
 
@@ -634,7 +646,7 @@ def tinareadensity(xy, ikle):
     total_area = np.sum(0.5 * (np.abs(
         (xy[ikle[:, 1]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 2]][:, 1] - xy[ikle[:, 0]][:, 1]) - (
                 xy[ikle[:, 2]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 1]][:, 1] - xy[ikle[:, 0]][:, 1]))))
-    return total_area, total_area / (ikle.size // 3)
+    return total_area,  (ikle.size // 3)/total_area
 
 
 ####################################TEST PART ########################################################################################
@@ -655,10 +667,10 @@ def build_hyd_sub_mesh(bshow, nbpointhyd, nbpointsub, seedhyd=None, seedsub=None
     '''
     if seedhyd != None:
         np.random.seed(seedhyd)
-    xyhyd = np.random.rand(nbpointhyd, 2) * 100  # pavé [0,100[X[0,100[
+    hyd_xy = np.random.rand(nbpointhyd, 2) * 100  # pavé [0,100[X[0,100[
     # print('seedhyd', np.random.get_state()[1][0])
     # TODO supprimer les doublons
-    A = dict(vertices=xyhyd)  # A['vertices'].shape  : (4, 2)
+    A = dict(vertices=hyd_xy)  # A['vertices'].shape  : (4, 2)
     B = tr.triangulate(A)  # type(B)     class 'dict'>
     # eventuellement check si hyd_xy a changé.....
     if bshow:

@@ -1168,7 +1168,7 @@ class Hdf5Management:
         if whole_profil:
             self.data_2d_whole = data_2d_whole_profile
 
-    def add_fish_hab(self, vh_cell, area_c_all, spu_all, code_alternative_list, pref_file_list, stage_list, aquatic_animal_type_list, project_preferences):
+    def add_fish_hab(self, animal_variable_list):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -1182,12 +1182,6 @@ class Hdf5Management:
         """
         # open an hdf5
         self.open_hdf5_file(new=False)
-
-        # save dict to attribute
-        self.project_preferences = project_preferences
-
-        # create name_fish_sh
-        name_fish_sh = [code_alternative_list[fish_num] + "_" + stage_list[fish_num] for fish_num in range(len(code_alternative_list))]
 
         fish_replaced = []
 
@@ -1219,69 +1213,81 @@ class Hdf5Management:
                 total_wet_area = unit_group.attrs["total_wet_area"]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
-                mesh_hv_dataset = mesh_group.create_dataset("hv_data",
-                                                          shape=vh_cell[fish_num][reach_num][unit_num].shape,
-                                                          data=vh_cell[fish_num][reach_num][unit_num])
-                # HV by celle for each fish
-                for fish_num, fish_name in enumerate(code_alternative_list):
-                    if fish_name in mesh_hv_dataset:  # if exist erase it
-                        del mesh_hv_dataset[fish_name]
-                        fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
-                                                                  shape=vh_cell[fish_num][reach_num][unit_num].shape,
-                                                                  data=vh_cell[fish_num][reach_num][unit_num])
-                        fish_replaced.append(fish_name)
-                    else:  # if not exist create it
-                        fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
-                                                                  shape=vh_cell[fish_num][reach_num][unit_num].shape,
-                                                                  data=vh_cell[fish_num][reach_num][unit_num])
-                    fish_data_set.attrs['pref_file'] = pref_file_list[fish_num]
-                    fish_data_set.attrs['stage'] = stage_list[fish_num]
-                    fish_data_set.attrs['short_name'] = name_fish_sh[fish_num]
-                    fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
-                    fish_data_set.attrs['aquatic_animal_type_list'] = aquatic_animal_type_list[fish_num]
+                if not "hv_data" in mesh_group.keys():
+                    rec_array = self.data_2d[reach_num][unit_num]["mesh"]["hv_data"].to_records(index=False)
+                    mesh_group.create_dataset(name="hv_data",
+                                              shape=rec_array.shape,
+                                              data=rec_array,
+                                              dtype=rec_array.dtype)
+                    #self.hvum.all_final_variable_list.habs().names()
+                else:
+                    aa=1
+                # # HV by celle for each fish
+                # for fish_num, fish_name in enumerate(code_alternative_list):
+                #     if fish_name in mesh_hv_dataset:  # if exist erase it
+                #         del mesh_hv_dataset[fish_name]
+                #         fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
+                #                                                   shape=vh_cell[fish_num][reach_num][unit_num].shape,
+                #                                                   data=vh_cell[fish_num][reach_num][unit_num])
+                #         fish_replaced.append(fish_name)
+                #     else:  # if not exist create it
+                #         fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
+                #                                                   shape=vh_cell[fish_num][reach_num][unit_num].shape,
+                #                                                   data=vh_cell[fish_num][reach_num][unit_num])
+                #     fish_data_set.attrs['pref_file'] = pref_file_list[fish_num]
+                #     fish_data_set.attrs['stage'] = stage_list[fish_num]
+                #     fish_data_set.attrs['short_name'] = name_fish_sh[fish_num]
+                #     fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
+                #     fish_data_set.attrs['aquatic_animal_type_list'] = aquatic_animal_type_list[fish_num]
+                #
+                #     if any(np.isnan(vh_cell[fish_num][reach_num][unit_num])):
+                #         area = np.sum(area_c_all[reach_num][unit_num][
+                #                           np.argwhere(~np.isnan(vh_cell[fish_num][reach_num][unit_num]))])
+                #         HV = spu_all[fish_num][reach_num][unit_num] / area
+                #         percent_area_unknown = (1 - (
+                #                     area / total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
+                #     else:
+                #         HV = spu_all[fish_num][reach_num][unit_num] / total_wet_area
+                #         percent_area_unknown = 0.0
+                #
+                #     fish_data_set.attrs['HV'] = str(HV)
+                #     fish_data_set.attrs['percent_area_unknown [%m2]'] = str(percent_area_unknown)
 
-                    if any(np.isnan(vh_cell[fish_num][reach_num][unit_num])):
-                        area = np.sum(area_c_all[reach_num][unit_num][
-                                          np.argwhere(~np.isnan(vh_cell[fish_num][reach_num][unit_num]))])
-                        HV = spu_all[fish_num][reach_num][unit_num] / area
-                        percent_area_unknown = (1 - (
-                                    area / total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
-                    else:
-                        HV = spu_all[fish_num][reach_num][unit_num] / total_wet_area
-                        percent_area_unknown = 0.0
+        # # get all fish names and total number
+        # fish_names_total_list = list(mesh_hv_dataset.keys())
+        # if "i_whole_profile" in fish_names_total_list:
+        #     fish_names_total_list.remove("i_whole_profile")
+        # if "tin" in fish_names_total_list:
+        #     fish_names_total_list.remove("tin")
+        # if "sub" in fish_names_total_list:
+        #     fish_names_total_list.remove("sub")
+        # if "area" in fish_names_total_list:
+        #     fish_names_total_list.remove("area")
 
-                    fish_data_set.attrs['HV'] = str(HV)
-                    fish_data_set.attrs['percent_area_unknown [%m2]'] = str(percent_area_unknown)
-
-        # get all fish names and total number
-        fish_names_total_list = list(mesh_hv_dataset.keys())
-        if "i_whole_profile" in fish_names_total_list:
-            fish_names_total_list.remove("i_whole_profile")
-        if "tin" in fish_names_total_list:
-            fish_names_total_list.remove("tin")
-        if "sub" in fish_names_total_list:
-            fish_names_total_list.remove("sub")
-        if "area" in fish_names_total_list:
-            fish_names_total_list.remove("area")
-
-        # get xml and stage fish
-        xml_names = []
-        stage_names = []
-        names_short = []
-        aquatic_animal_type_list = []
-        for fish_ind, fish_name in enumerate(fish_names_total_list):
-            xml_names.append(mesh_hv_dataset[fish_name].attrs['pref_file'])
-            stage_names.append(mesh_hv_dataset[fish_name].attrs['stage'])
-            names_short.append(mesh_hv_dataset[fish_name].attrs['short_name'])
-            aquatic_animal_type_list.append(mesh_hv_dataset[fish_name].attrs['aquatic_animal_type_list'])
+        # # get xml and stage fish
+        # xml_names = []
+        # stage_names = []
+        # names_short = []
+        # aquatic_animal_type_list = []
+        # for fish_ind, fish_name in enumerate(fish_names_total_list):
+        #     xml_names.append(mesh_hv_dataset[fish_name].attrs['pref_file'])
+        #     stage_names.append(mesh_hv_dataset[fish_name].attrs['stage'])
+        #     names_short.append(mesh_hv_dataset[fish_name].attrs['short_name'])
+        #     aquatic_animal_type_list.append(mesh_hv_dataset[fish_name].attrs['aquatic_animal_type_list'])
 
         # set to attributes
-        self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
-        self.file_object.attrs["hab_fish_number"] = str(len(fish_names_total_list))
-        self.file_object.attrs["hab_fish_pref_list"] = ", ".join(xml_names)
-        self.file_object.attrs["hab_fish_stage_list"] = ", ".join(stage_names)
-        self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(names_short)
-        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(aquatic_animal_type_list)
+        # self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
+        # self.file_object.attrs["hab_fish_number"] = str(len(fish_names_total_list))
+        # self.file_object.attrs["hab_fish_pref_list"] = ", ".join(xml_names)
+        # self.file_object.attrs["hab_fish_stage_list"] = ", ".join(stage_names)
+        # self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(names_short)
+        # self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(aquatic_animal_type_list)
+
+
+        self.file_object.attrs["mesh_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
+        self.file_object.attrs["node_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
+        self.file_object.attrs["mesh_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
+        self.file_object.attrs["node_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
 
         if fish_replaced:
             fish_replaced = set(fish_replaced)
@@ -1292,8 +1298,6 @@ class Hdf5Management:
         self.file_object.close()
 
         # reload to add new data to attributes
-        self.load_hdf5_hab(convert_to_coarser_dom=False, whole_profil=True)
-        self.get_variables_from_dict_and_compute()
         self.export_gpkg()
         self.export_paraview()
         self.export_spu_txt()
@@ -1658,18 +1662,18 @@ class Hdf5Management:
 
                         defn = layer.GetLayerDefn()
                         if self.hdf5_type == "habitat":
-                            layer.CreateField(ogr.FieldDefn('area', ogr.OFTReal))
-                            # sub
-                            if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                                layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))
-                                layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))
-                            if self.data_description["sub_classification_method"] == 'percentage':
-                                if self.data_description["sub_classification_code"] == "Cemagref":
-                                    sub_class_number = 8
-                                if self.data_description["sub_classification_code"] == "Sandre":
-                                    sub_class_number = 12
-                                for i in range(sub_class_number):
-                                    layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))
+                            # layer.CreateField(ogr.FieldDefn('area', ogr.OFTReal))
+                            # # sub
+                            # if self.data_description["sub_classification_method"] == 'coarser-dominant':
+                            #     layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))
+                            #     layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))
+                            # if self.data_description["sub_classification_method"] == 'percentage':
+                            #     if self.data_description["sub_classification_code"] == "Cemagref":
+                            #         sub_class_number = 8
+                            #     if self.data_description["sub_classification_code"] == "Sandre":
+                            #         sub_class_number = 12
+                            #     for i in range(sub_class_number):
+                            #         layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))
                             # fish
                             if fish_names:
                                 for fish_num, fish_name in enumerate(fish_names):
@@ -1690,8 +1694,6 @@ class Hdf5Management:
                                 self.data_2d[reach_num][unit_num]["node"]["data"]["z"][node3]])
                             # data attrbiutes
                             if self.hdf5_type == "habitat":
-                                area = self.data_2d[reach_num][unit_num]["mesh"]["data"]["area"][mesh_num]
-                                sub = self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][mesh_num].tolist()
                                 if fish_names:
                                     fish_data = []
                                     for fish_name in fish_names:
@@ -1719,15 +1721,6 @@ class Hdf5Management:
                                 feat.SetField(mesh_variable.name_gui,  data_field)
 
                             if self.hdf5_type == "habitat":
-                                # area
-                                feat.SetField("area", area)
-                                # sub
-                                if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                                    feat.SetField('coarser', sub[0])
-                                    feat.SetField('dominant', sub[1])
-                                if self.data_description["sub_classification_method"] == 'percentage':
-                                    for i in range(sub_class_number):
-                                        feat.SetField('S' + str(i + 1), sub[i])
                                 # fish
                                 if fish_names:
                                     for fish_num, fish_name in enumerate(fish_names):
@@ -1924,28 +1917,6 @@ class Hdf5Management:
 
                     cellData = {}
 
-                    # fish
-                    if self.extension == ".hab":
-                        if name_fish:
-                            for fish_name in self.data_description["hab_fish_list"].split(", "):
-                                newkey = "HV " + fish_name
-                                cellData[newkey] = self.data_2d[reach_num][unit_num]["mesh"]["hv_data"][fish_name]
-                        # sub
-                        if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            cellData["substrate_coarser"] = np.ascontiguousarray(
-                                self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, 0])
-                            cellData["substrate_dominant"] = np.ascontiguousarray(
-                                self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, 1])
-
-                        if self.data_description["sub_classification_method"] == 'percentage':
-                            if self.data_description["sub_classification_code"] == "Cemagref":
-                                sub_class_number = 8
-                            if self.data_description["sub_classification_code"] == "Sandre":
-                                sub_class_number = 12
-                            for i in range(sub_class_number):
-                                cellData['S' + str(i + 1)] = np.ascontiguousarray(
-                                    self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][:, i])
-
                     # hyd variables mesh
                     for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
                         cellData[mesh_variable.name_gui] = self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][mesh_variable.name].to_numpy()
@@ -2119,12 +2090,7 @@ class Hdf5Management:
             if not os.path.exists(path_txt):
                 print('Error: ' + qt_tr.translate("hdf5_mod", 'The path to the text file is not found. Text files not created \n'))
 
-            if self.hdf5_type == "habitat":
-                fish_names = self.data_description["hab_fish_list"].split(", ")
-                if fish_names != ['']:
-                    fish_names = self.data_description["hab_fish_list"].split(", ")
-                else:
-                    fish_names = []
+            animal_list = self.hvum.hdf5_and_computable_list.meshs().habs()
 
             # for all reach
             for reach_num in range(self.data_2d.reach_num):
@@ -2146,7 +2112,7 @@ class Hdf5Management:
                     # open text to write
                     with open(name, 'wt', encoding='utf-8') as f:
                         # hyd variables mesh
-                        text_to_write_str_list = self.hvum.hdf5_and_computable_list.meshs().names()
+                        text_to_write_str_list = self.hvum.hdf5_and_computable_list.meshs().no_habs().names()
 
                         # header 1
                         text_to_write_str_list.extend([
@@ -2154,35 +2120,19 @@ class Hdf5Management:
                                        qt_tr.translate("hdf5_mod", "node2"),
                                        qt_tr.translate("hdf5_mod", "node3")])
                         text_to_write_str = "\t".join(text_to_write_str_list)
-                        if self.hdf5_type == "habitat":
-                            # sub
-                            if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                                text_to_write_str += '\tsubstrate_coarser\tsubstrate_dominant'
-                                sub_class_number = 2
-                            if self.data_description["sub_classification_method"] == 'percentage':
-                                if self.data_description["sub_classification_code"] == "Cemagref":
-                                    sub_class_number = 8
-                                if self.data_description["sub_classification_code"] == "Sandre":
-                                    sub_class_number = 12
-                                for i in range(sub_class_number):
-                                    text_to_write_str += '\tsub_S' + str(i + 1)
-
+                        if animal_list:
                             if self.project_preferences['language'] == 0:
-                                text_to_write_str += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                                text_to_write_str += "".join(['\tHV' + str(i) for i in range(len(animal_list))])
                             else:
-                                text_to_write_str += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                                text_to_write_str += "".join(['\tVH' + str(i) for i in range(len(animal_list))])
                         text_to_write_str += '\n'
                         f.write(text_to_write_str)
 
                         # header 2
                         text_to_write_str = "["
-                        text_to_write_str += ']\t['.join(self.hvum.hdf5_and_computable_list.meshs().units())
+                        text_to_write_str += ']\t['.join(self.hvum.hdf5_and_computable_list.meshs().no_habs().units())
                         text_to_write_str += ']\t[]\t[]\t[]'
 
-                        if self.hdf5_type == "habitat" and fish_names:
-                            text_to_write_str += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in
-                                              range(sub_class_number))
-                            text_to_write_str += "".join(['\t[' + fish + ']' for fish in fish_names])
                         f.write(text_to_write_str)
 
                         # data
@@ -2195,15 +2145,12 @@ class Hdf5Management:
                             text_to_write_str += '\n'
                             data_list = []
                             for mesh_variable_name in self.hvum.hdf5_and_computable_list.meshs().names():
-                                data_list.append("[" + str(self.data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable_name][mesh_num]) + "]")
+                                data_list.append(str(self.data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable_name][mesh_num]))
                             text_to_write_str += "\t".join(data_list)
                             text_to_write_str += f"\t{str(node1)}\t{str(node2)}\t{str(node3)}"
-                            if self.hdf5_type == "habitat":
-                                sub = self.data_2d[reach_num][unit_num]["mesh"]["data"]["sub"][mesh_num]
-                                text_to_write_str += "\t" + "\t".join(str(e) for e in sub.tolist())
-                                if fish_names:
-                                    for fish_name in fish_names:
-                                        text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['hv_data'][fish_name][mesh_num])}"
+                            if animal_list:
+                                for animal in animal_list:
+                                    text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['hv_data'][animal.name][mesh_num])}"
 
                         # change decimal point
                         locale = QLocale()

@@ -1104,7 +1104,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         for reach_num in range(len(hyd_varying_xy_index)):
             if len(set(hyd_varying_xy_index[reach_num])) == 1:  # one tin for all unit
                 hyd_varying_mesh = False
-                data_2d_whole_profile.reduce_to_one_unit_by_reach()
+                data_2d_whole_profile.reduce_to_first_unit_by_reach()
             else:
                 hyd_varying_mesh = True
             # hyd_unit_z_equal ?
@@ -1742,8 +1742,7 @@ class MyProcessList(QThread):
 
         # habitat
         elif self.hdf5.hdf5_type == "habitat":  # load habitat data
-            self.hdf5.load_hdf5_hab(whole_profil=True)
-            self.hdf5.project_preferences = self.project_preferences
+            self.hdf5.load_hdf5_hab(whole_profil=True, user_target_list=self.project_preferences)
             total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
             if self.export_dict["mesh_units_hab"] or self.export_dict["point_units_hab"]:
                 # append fake first
@@ -1779,7 +1778,7 @@ class MyProcessList(QThread):
                                                             name="export_detailled_txt")
                 self.process_list.append([export_detailled_mesh_txt_process, state])
             if self.export_dict["fish_information_hab"]:
-                if self.hdf5.fish_list:
+                if self.hdf5.hvum.hdf5_and_computable_list.habs():
                     state = Value("i", 0)
                     export_pdf_process = Process(target=self.hdf5.export_report,
                                                  args=(state,),
