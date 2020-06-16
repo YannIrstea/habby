@@ -204,6 +204,11 @@ class HydraulicVariableUnitManagement:
                                      name="i_split",
                                      name_gui="i_split",
                                      dtype=np.int64)
+        self.i_sub_defaut = HydraulicVariable(value=None,
+                                     unit="",
+                                     name="i_sub_defaut",
+                                     name_gui="i_sub_defaut",
+                                     dtype=np.int64)
         # coordinate variables
         self.tin = HydraulicVariable(value=None,
                                      unit="",

@@ -367,10 +367,10 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             merge_data_node[i] = finite_element_interpolation(merge_xy1[i], hyd_xy[merge_xypointlinkstohydr1[i]],
                                                               hyd_data_node[merge_xypointlinkstohydr1[i]])
 
-    #marking  in iwholeprofilemerge the mesh containing defautsub in third column
+    #marking  in iwholeprofilemerge the mesh containing sub_default in third column
     # iwholeprofilemerge=np.array(iwholeprofilemerge)
     merge_data_sub_mesh=np.array(merge_data_sub_mesh)
-    iwholeprofilemerge=np.hstack((iwholeprofilemerge, (np.sum(merge_data_sub_mesh == defautsub, axis=1) // defautsub.size).reshape(merge_data_sub_mesh.size//defautsub.size, 1)))
+    iwholeprofilemerge=np.hstack((iwholeprofilemerge, (np.sum(merge_data_sub_mesh == sub_default, axis=1) // sub_default.size).reshape(merge_data_sub_mesh.size//sub_default.size, 1)))
 
 
     merge_xy1 +=translationxy

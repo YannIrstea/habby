@@ -322,6 +322,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                     data_2d_merge[reach_num][unit_num]["mesh"]["i_whole_profile"] = merge_i_whole_profile
                     data_2d_merge[reach_num][unit_num]["mesh"]["data"]["area"] = area
                     data_2d_merge[reach_num][unit_num]["total_wet_area"] = np.sum(area)
+                    # sub_defaut
+                    data_2d_merge[reach_num][unit_num]["mesh"]["data"][data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
+                    data_2d_merge.hvum.i_sub_defaut.position = "mesh"
+                    data_2d_merge.hvum.i_sub_defaut.hdf5 = True
+                    data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.i_sub_defaut)
 
                     if not data_2d_merge.hvum.area.name in data_2d_merge.hvum.hdf5_and_computable_list.names():
                         data_2d_merge.hvum.area.hdf5 = True  # variable
