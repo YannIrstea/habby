@@ -5,7 +5,7 @@ import math
 from datetime import datetime
 
 # from src.plot_mod import plot_to_check_mesh_merging
-from plot_merge_check import plot_to_check_mesh_merging #TODO fix this to import from actual HABBY library
+from plot_merge_check import plot_to_check_mesh_merging  # TODO fix this to import from actual HABBY library
 
 
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
@@ -453,9 +453,9 @@ def gridtin(sub_xy, sub_tin, gridelt, bnoflat):  # sub_xy, sub_tin
     table0 = []
 
     area2 = (sub_xy[sub_tin[:, 1]][:, 0] - sub_xy[sub_tin[:, 0]][:, 0]) * (
-                sub_xy[sub_tin[:, 2]][:, 1] - sub_xy[sub_tin[:, 0]][:, 1]) - (
+            sub_xy[sub_tin[:, 2]][:, 1] - sub_xy[sub_tin[:, 0]][:, 1]) - (
                     sub_xy[sub_tin[:, 2]][:, 0] - sub_xy[sub_tin[:, 0]][:, 0]) * (
-                        sub_xy[sub_tin[:, 1]][:, 1] - sub_xy[sub_tin[:, 0]][:, 1])
+                    sub_xy[sub_tin[:, 1]][:, 1] - sub_xy[sub_tin[:, 0]][:, 1])
 
     for i in range(sub_tin.size // 3):  # even if one single triangle for sub_tin
         if area2[i] != 0 and bnoflat:  # not take into account flat triangle
@@ -548,10 +548,18 @@ def griddef(xyhyd, sub_xy, iklehyd, sub_tin, coeffgrid, gridmethod=0):
 
     areahyd, densityhyd = tinareadensity(xyhyd, iklehyd)
     areasub, densitysub = tinareadensity(sub_xy, sub_tin)
-    if gridmethod==0:
+    if gridmethod == 0:
         nbgrid = math.ceil(max(densityhyd, densitysub) * totalarea * coeffgrid)
-    elif gridmethod==1:
-        nbgrid = math.ceil(max(densityhyd, densitysub) * totalarea * coeffgrid)
+    elif gridmethod == 1:
+        nbgrid = math.ceil(min(densityhyd, densitysub) * totalarea * coeffgrid)
+    elif gridmethod == 2:
+        nbgrid = math.ceil((densityhyd + densitysub) / 2 * totalarea * coeffgrid)
+    elif gridmethod == 3:
+        nbgrid = math.ceil(densityhyd * totalarea * coeffgrid)
+    elif gridmethod == 4:
+        nbgrid = math.ceil(densitysub * totalarea * coeffgrid)
+    else:
+        raise ValueError
     # elif gridmethod==1:
     #     nbgrid = math.ceil(densityhyd * totalarea * coeffgrid)
     # elif gridmethod==2:
@@ -560,9 +568,6 @@ def griddef(xyhyd, sub_xy, iklehyd, sub_tin, coeffgrid, gridmethod=0):
     #     nbgrid = math.ceil((densityhyd+densityhyd)/2 * totalarea * coeffgrid)
     # elif gridmethod==4:
     #     nbgrid = math.ceil(min(densityhyd, densitysub) * totalarea * coeffgrid)
-
-
-
 
     # nbmeshhyd,nbmeshsub=hyd_tin.size // 3,sub_tin.size // 3
     # nbgrid=math.ceil(max(nbmeshhyd,nbmeshsub)*coeffgrid)
@@ -615,7 +620,7 @@ def tinareadensity(xy, ikle):
     total_area = np.sum(0.5 * (np.abs(
         (xy[ikle[:, 1]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 2]][:, 1] - xy[ikle[:, 0]][:, 1]) - (
                 xy[ikle[:, 2]][:, 0] - xy[ikle[:, 0]][:, 0]) * (xy[ikle[:, 1]][:, 1] - xy[ikle[:, 0]][:, 1]))))
-    return total_area, (ikle.size // 3)/total_area
+    return total_area, (ikle.size // 3) / total_area
 
 
 ####################################TEST PART ########################################################################################
