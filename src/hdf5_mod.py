@@ -181,6 +181,7 @@ class Hdf5Management:
 
     # GET HDF5 INFORMATIONS
     def get_hdf5_attributes(self):
+        self.hvum = HydraulicVariableUnitManagement()
         # get attributes
         hdf5_attributes_dict = dict(self.file_object.attrs.items())
 
@@ -1115,6 +1116,7 @@ class Hdf5Management:
             for unit_num, unit_group_name in enumerate(desired_units_list):
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
+                data_2d[reach_num][unit_num]["total_wet_area"] = self.file_object[unit_group].attrs['total_wet_area']
 
                 """ mesh """
                 # group
@@ -1127,7 +1129,7 @@ class Hdf5Management:
                 mesh_dataframe = DataFrame()
                 if mesh_group + "/data" in self.file_object:
                     if user_target_list != "defaut":
-                        for mesh_variable in self.hvum.all_final_variable_list.hdf5s().meshs():
+                        for mesh_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().meshs():
                             mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][mesh_variable.name]
                     else:
                         mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
@@ -1146,7 +1148,7 @@ class Hdf5Management:
                 node_dataframe = DataFrame()
                 if node_group + "/data" in self.file_object:
                     if user_target_list != "defaut":
-                        for node_variable in self.hvum.all_final_variable_list.hdf5s().nodes():
+                        for node_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().nodes():
                             node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][node_variable.name]
                     else:
                         node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
@@ -1180,37 +1182,21 @@ class Hdf5Management:
         :param spu_all: total SPU by reach
         :param fish_name: the name of the fish (with the stage in it)
         """
-        # open an hdf5
+        # # open an hdf5
         self.open_hdf5_file(new=False)
 
+        self.hvum.hdf5_and_computable_list.extend(animal_variable_list)
+
         fish_replaced = []
-
-        # load the number of reach
-        try:
-            nb_r = int(self.file_object.attrs["hyd_reach_number"])
-        except KeyError:
-            print(
-                'Error: the number of time step is missing from :' + self.filename)
-            self.file_object.close()
-            return
-
-        # load the number of time steps
-        try:
-            nb_t = int(self.file_object.attrs["hyd_unit_number"])
-        except KeyError:
-            print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from : ') + self.filename)
-            self.file_object.close()
-            return
 
         # data_2d
         data_group = self.file_object['data_2d']
         # REACH GROUP
-        for reach_num in range(nb_r):
+        for reach_num in range(self.data_2d.reach_num):
             reach_group = data_group["reach_" + str(reach_num)]
             # UNIT GROUP
-            for unit_num in range(nb_t):
+            for unit_num in range(self.data_2d.unit_num):
                 unit_group = reach_group["unit_" + str(unit_num)]
-                total_wet_area = unit_group.attrs["total_wet_area"]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
                 if not "hv_data" in mesh_group.keys():
@@ -2033,9 +2019,9 @@ class Hdf5Management:
                 header += '\n'
                 f.write(header)
 
-                for reach_num in range(0, len(self.data_2d["total_wet_area"])):
-                    for unit_num in range(0, len(self.data_2d["total_wet_area"][reach_num])):
-                        area_reach = self.data_2d["total_wet_area"][reach_num][unit_num]
+                for reach_num in range(self.data_2d.reach_num):
+                    for unit_num in range(self.data_2d.unit_num):
+                        area_reach = self.data_2d[reach_num][unit_num]["total_wet_area"]
                         if not sim_name:
                             data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
                         else:

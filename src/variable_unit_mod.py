@@ -71,7 +71,7 @@ class HydraulicVariableUnitList(list):
                                      unit="HSI",
                                      name=name,
                                      name_gui=name,
-                                     hdf5=False,
+                                     hdf5=True,
                                      position="mesh",
                                      dtype=np.float64,
                                      index_gui=-1,
@@ -531,6 +531,8 @@ class HydraulicVariableUnitManagement:
                                        unit="HSI",
                                        name=varname,
                                        name_gui=varname,
+                                         position="mesh",
+                                         hdf5=True,
                                        dtype=np.float64,
                                        index_gui=-1)
             variable.habitat = True
@@ -540,11 +542,16 @@ class HydraulicVariableUnitManagement:
         # hdf5
         """ mesh """
         for mesh_variable_original_name in mesh_variable_original_name_list:
-            variable_mesh = getattr(self, mesh_variable_original_name)
-            variable_mesh.position = "mesh"
-            variable_mesh.hdf5 = True
-            if not variable_mesh.sub:
-                self.hdf5_and_computable_list.append(variable_mesh)
+            # unknown ==> habitat
+            if mesh_variable_original_name not in self.all_sys_variable_list.names():
+                self.detect_variable_habitat([mesh_variable_original_name])
+            # known ==> others
+            else:
+                variable_mesh = getattr(self, mesh_variable_original_name)
+                variable_mesh.position = "mesh"
+                variable_mesh.hdf5 = True
+                if not variable_mesh.sub:
+                    self.hdf5_and_computable_list.append(variable_mesh)
 
         """ node """
         for node_variable_original_name in node_variable_original_name_list:

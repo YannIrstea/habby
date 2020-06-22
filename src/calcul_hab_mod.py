@@ -24,10 +24,8 @@ from pandas import DataFrame
 import src.tools_mod
 from src import hdf5_mod
 from src import bio_info_mod
-from src.project_properties_mod import load_project_properties
 from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 from src.tools_mod import get_translator
-from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariable
 
 
 def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -346,13 +344,13 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     # copy xml curves to input project folder
     names = []
     paths = []
-    for i in range(len(run_choice["pref_file_list"])):
-        if "INRAE_EDF_OFB" in os.path.dirname(run_choice["pref_file_list"][i]):  # user case
-            name_xml = os.path.basename(run_choice["pref_file_list"][i])
-            name_png = os.path.splitext(os.path.basename(run_choice["pref_file_list"][i]))[0] + ".png"
+    for animal_variable in animal_variable_list:
+        if "INRAE_EDF_OFB" in os.path.dirname(animal_variable.pref_file):  # user case
+            name_xml = os.path.basename(animal_variable.pref_file)
+            name_png = os.path.splitext(os.path.basename(animal_variable.pref_file))[0] + ".png"
             names.append(name_xml)
             names.append(name_png)
-            path = os.path.dirname(run_choice["pref_file_list"][i])
+            path = os.path.dirname(animal_variable.pref_file)
             paths.append(path)
             paths.append(path)
     if names:
