@@ -34,7 +34,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
     :param coeffgrid: a special coefficient for defining a grid build in  the area surrounding the TINs  and used for
     the grid algorithm this grid is used to select substrate meshes that are just in the surrounding of an hydraulic
     mesh in order to define all the segments from hydraulix substrate edges that are intersecting the hydraulic mesh
-    considered.
+    considered. At first approach 10 is a optimal value  according to Leonardo DA COSTA LIMA XAVIER MENDONCA the more the  coeffgrid is high the more the grid is dense
     :return:
             merge_xy1 : the x,y nodes coordinates of a hydraulic TIN
             merge_data_node : the hydraulic data of the merge nodes (eg : z, wather depth, mean velocity...)
@@ -576,6 +576,7 @@ def griddef(hyd_xy, sub_xy, iklehyd, sub_tin, coeffgrid):
     :param iklehyd: the hydraulic TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
     :param sub_tin: the substrate TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a mesh/triangle
     :param coeffgrid: a special coefficient for defining a grid build in  the area surrounding the TINs  and used for the grid algorithm  is define
+            at first approach 10 is a optimal value  according to Leonardo DA COSTA LIMA XAVIER MENDONCA the more the  coeffgrid is high the more the grid is dense
     :return: gridelt a dictionary
             : xymax,xymin : respectively the xy maximum and minimum coordinates of the rectangle defining the limits of the grid
             : deltagrid : the measure of grid cell edge
@@ -592,11 +593,6 @@ def griddef(hyd_xy, sub_xy, iklehyd, sub_tin, coeffgrid):
     areahyd, densityhyd = tinareadensity(hyd_xy, iklehyd)
     areasub, densitysub = tinareadensity(sub_xy, sub_tin)
     nbgrid = math.ceil(max(densityhyd, densitysub) * totalarea * coeffgrid)
-
-    # nbmeshhyd,nbmeshsub=hyd_tin.size // 3,sub_tin.size // 3
-    # nbgrid=math.ceil(max(nbmeshhyd,nbmeshsub)*coeffgrid)
-
-    # nbgrid = math.ceil(math.sqrt(63 + 0.0005 * (len(hyd_xy) + len(sub_xy)) / 2))
 
     if nbgrid == 0:
         return False  # TODO Gerer ce cas ou les maillages sont vides
@@ -793,7 +789,7 @@ if __name__ == '__main__':
         sub_tin = np.array([[0, 1, 2], [3, 4, 5]])
         sub_data = np.array([[2, 2], [3, 3]])
     defautsub = np.array([1, 1])
-    coeffgrid = 1 / 2  # plus coeffgrid est grand plus la grille  de reperage sera fine
+    coeffgrid = 10  # at first approach 10 is a optimal value  according to Leonardo DA COSTA LIMA XAVIER MENDONCA the more the  coeffgrid is high the more the grid is dense
 
     hyd_data, iwholeprofile, hyd_data_c = build_hyd_data(hyd_xy, hyd_tin, 7, 22, 33)
     ti = datetime.now()
