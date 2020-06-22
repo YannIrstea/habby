@@ -175,6 +175,7 @@ class Data2d(list):
                                                             unit_num=unit_num,
                                                             case="before the deletion of dry mesh"):
                     print("Warning: The mesh of unit " + unit_name + " is not loaded")
+                    unit_to_remove_list.append(unit_num)
                     continue
 
                 point_new = np.empty((0, 3), dtype=self.hvum.xy.dtype)
@@ -278,6 +279,7 @@ class Data2d(list):
                                 else:
                                     print(
                                         "Error: Impossible case during the cutting of mesh partially wet on the unit " + unit_name + ".")
+                                    unit_to_remove_list.append(unit_num)
                                     continue
                                 jpn += 2
 
@@ -328,6 +330,7 @@ class Data2d(list):
                                                                 unit_num=unit_num,
                                                                 case="after the cutting of mesh partially wet", checkpoint=False):
                         print("Warning: The mesh of unit " + unit_name + " is not loaded.")
+                        unit_to_remove_list.append(unit_num)
                         continue
 
                     # all the new points added have water_height,velocity=0,0   # TODO: v=0 is applicable to torrential flows ?

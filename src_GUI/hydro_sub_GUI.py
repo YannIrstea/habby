@@ -30,6 +30,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
     QHBoxLayout
 from lxml import etree as ET
 
+import src.merge
 import src.substrate_mod
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
 from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
@@ -4814,7 +4815,7 @@ class SubstrateW(SubHydroW):
         # run the function
         self.q = Queue()
         self.progress_value = Value("i", 0)
-        self.p = Process(target=mesh_management_mod.merge_grid_and_save,
+        self.p = Process(target=src.merge.merge_grid_and_save,
                          args=(hdf5_name_hyd,
                                hdf5_name_sub,
                                self.name_hdf5,
