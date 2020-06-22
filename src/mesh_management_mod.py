@@ -299,7 +299,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                         sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
                         sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"].to_numpy(),
                         sub_default=np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
-                        coeffgrid=1/2)
+                        coeffgrid=10)
 
                     # get points coord
                     pa = merge_xy[merge_tin[:, 0]][:, [0, 1]]
