@@ -61,7 +61,7 @@ class HydraulicVariableUnitList(list):
         without copy
         """
         super(HydraulicVariableUnitList, self).extend(hydraulic_variable_list)
-        # self.sort_by_names_gui()
+        self.sort_by_names_gui()
 
     def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, aquatic_animal_type, model_type, pref_file):
         # animal name
@@ -531,11 +531,11 @@ class HydraulicVariableUnitManagement:
                                        unit="HSI",
                                        name=varname,
                                        name_gui=varname,
-                                         position="mesh",
-                                         hdf5=True,
+                                       hdf5=True,
+                                       position="mesh",
                                        dtype=np.float64,
-                                       index_gui=-1)
-            variable.habitat = True
+                                       index_gui=-1,
+                                       habitat=True)
             self.hdf5_and_computable_list.append(variable)
 
     def get_original_computable_mesh_and_node_from_hyd(self, mesh_variable_original_name_list, node_variable_original_name_list):

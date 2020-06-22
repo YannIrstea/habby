@@ -1199,15 +1199,7 @@ class Hdf5Management:
                 unit_group = reach_group["unit_" + str(unit_num)]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
-                if not "hv_data" in mesh_group.keys():
-                    rec_array = self.data_2d[reach_num][unit_num]["mesh"]["hv_data"].to_records(index=False)
-                    mesh_group.create_dataset(name="hv_data",
-                                              shape=rec_array.shape,
-                                              data=rec_array,
-                                              dtype=rec_array.dtype)
-                    #self.hvum.all_final_variable_list.habs().names()
-                else:
-                    aa=1
+
                 # # HV by celle for each fish
                 # for fish_num, fish_name in enumerate(code_alternative_list):
                 #     if fish_name in mesh_hv_dataset:  # if exist erase it
@@ -1268,7 +1260,6 @@ class Hdf5Management:
         # self.file_object.attrs["hab_fish_stage_list"] = ", ".join(stage_names)
         # self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(names_short)
         # self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(aquatic_animal_type_list)
-
 
         self.file_object.attrs["mesh_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
         self.file_object.attrs["node_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
