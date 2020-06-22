@@ -129,6 +129,11 @@ class Data2d(list):
             for unit_num in range(self.unit_num):
                 self[reach_num][unit_num]["mesh"]["data"].columns = self.hvum.hdf5_and_computable_list.subs().names()
 
+    def remove_unit_from_unit_list(self, unit_to_remove_list):
+        for reach_num in range(self.reach_num):
+            for unit_to_remove in reversed(unit_to_remove_list):
+                self[reach_num].pop(unit_to_remove)
+
     def cut_2d(self, unit_list, progress_value, delta_file, CutMeshPartialyDry, min_height):
         """
         This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
@@ -148,6 +153,8 @@ class Data2d(list):
         self.get_informations()
         # prog
         deltaunit = delta_file / len(unit_list)
+
+        unit_to_remove_list = []
 
         # for each reach
         self.unit_list_cuted = []
@@ -194,6 +201,7 @@ class Data2d(list):
                 # all meshes are entirely dry
                 elif not True in mikle_keep2:
                     print("Warning: The mesh of unit " + unit_name + " is entirely dry.")
+                    unit_to_remove_list.append(unit_num)
                     continue
                 # only the dry meshes are cut (but not the partially ones)
                 elif not CutMeshPartialyDry:
@@ -357,10 +365,6 @@ class Data2d(list):
                 self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
                 self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack([ind_whole, i_split])
                 self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
-                if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
-                    self.hvum.i_split.position = "mesh"
-                    self.hvum.i_split.hdf5 = True
-                    self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
                 # node data
                 self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
@@ -371,6 +375,15 @@ class Data2d(list):
 
                 # progress
                 progress_value.value += int(deltaunit)
+
+        if unit_to_remove_list:
+            self.remove_unit_from_unit_list(unit_to_remove_list)
+
+        if self.hvum.i_split.name in self[0][0]["mesh"]["data"].columns:
+            if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
+                self.hvum.i_split.position = "mesh"
+                self.hvum.i_split.hdf5 = True
+                self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
         self.get_informations()
 
