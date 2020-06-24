@@ -20,7 +20,7 @@ from scipy.interpolate import griddata
 import sys
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
-from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
 
 
 class Data2d(list):
@@ -436,6 +436,10 @@ class Data2d(list):
         :param mesh_variable_list:
         :return:
         """
+        if not type(variable_computable_list) == HydraulicVariableUnitList and type(variable_computable_list) == list:
+            variable_computable_list2 = HydraulicVariableUnitList()
+            variable_computable_list2.extend(variable_computable_list)
+            variable_computable_list = variable_computable_list2
         node_variable_list = variable_computable_list.nodes()
         mesh_variable_list = variable_computable_list.meshs()
         # for all reach
@@ -468,7 +472,7 @@ class Data2d(list):
                         if mesh_variable.name == self.hvum.z.name:
                             self[reach_num][unit_num].c_mesh_elevation()
                         # compute height
-                        if mesh_variable.name == self.hvum.h.name:
+                        elif mesh_variable.name == self.hvum.h.name:
                             self[reach_num][unit_num].c_mesh_height()
                         # compute velocity
                         elif mesh_variable.name == self.hvum.v.name:
@@ -503,6 +507,9 @@ class Data2d(list):
                         # compute dominant
                         elif mesh_variable.name == self.hvum.sub_dom.name:
                             self[reach_num][unit_num].c_mesh_sub_dom()
+                        # area
+                        elif mesh_variable.name == self.hvum.area.name:
+                            self[reach_num][unit_num].c_mesh_area()
 
 
 class UnitDict(dict):
@@ -669,17 +676,18 @@ class UnitDict(dict):
             # mesh_water_level
             self["mesh"]["data"][self.hvum.level.name] = self.c_mesh_mean_from_node_values(self.hvum.level.name)
 
-    def c_mesh_area(self, tin, xy):
-        # get points coord
-        pa = xy[tin[:, 0]]
-        pb = xy[tin[:, 1]]
-        pc = xy[tin[:, 2]]
+    def c_mesh_area(self):
+        xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
+        xy2 = self["node"]["xy"][self["mesh"]["tin"][:, 1]]
+        xy3 = self["node"]["xy"][self["mesh"]["tin"][:, 2]]
 
         # compute area
-        area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (
-                pb[:, 1] - pa[:, 1]))
+        area = 0.5 * abs((xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy3[:, 0] - xy1[:, 0]) * (
+                xy2[:, 1] - xy1[:, 1]))
 
-        return area
+        self["mesh"]["data"][self.hvum.area.name] = area
+        self["mesh"]["data"]["area"] = area
+        self["total_wet_area"] = np.sum(area)
 
     def c_mesh_sub_coarser(self):
         if self.hvum.sub_s12.name in self["mesh"]["data"].columns:
