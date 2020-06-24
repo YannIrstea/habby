@@ -183,7 +183,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                         sub_default=np.array(
                             list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
                         coeffgrid=10)
-
+                    print("test")
                     # get points coord
                     pa = merge_xy[merge_tin[:, 0]][:, [0, 1]]
                     pb = merge_xy[merge_tin[:, 1]][:, [0, 1]]
