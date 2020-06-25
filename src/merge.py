@@ -183,7 +183,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                         sub_default=np.array(
                             list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
                         coeffgrid=10)
-                    print("test from pc bureau")
+
                     # get mesh data
                     data_2d_merge[reach_num][unit_num]["mesh"]["tin"] = merge_tin
                     data_2d_merge[reach_num][unit_num]["mesh"]["data"] = DataFrame()
@@ -197,11 +197,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                                                                                           colname_num]
                     data_2d_merge[reach_num][unit_num]["mesh"]["i_whole_profile"] = merge_i_whole_profile
                     # sub_defaut
-                    data_2d_merge[reach_num][unit_num]["mesh"]["data"][
-                        data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
-                    data_2d_merge.hvum.i_sub_defaut.position = "mesh"
-                    data_2d_merge.hvum.i_sub_defaut.hdf5 = True
-                    data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.i_sub_defaut)
+                    data_2d_merge[reach_num][unit_num]["mesh"]["data"][data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
 
                     # get mesh sub data
                     for sub_class_num, sub_class_name in enumerate(
@@ -219,15 +215,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     if data_2d_merge[reach_num][unit_num]["node"]["data"][data_2d_merge.hvum.h.name].min() < 0:
                         print("Error: negative water height values detected after merging with substrate.")
 
-                    # compute area (always after merge)
-                    data_2d_merge.hvum.area.hdf5 = False
-                    data_2d_merge.hvum.area.position = "mesh"
-                    data_2d_merge.hvum.all_final_variable_list.append(data_2d_merge.hvum.area)
-                    data_2d_merge.compute_variables(data_2d_merge.hvum.all_final_variable_list.to_compute())
-                    if not data_2d_merge.hvum.area.name in data_2d_merge.hvum.hdf5_and_computable_list.names():
-                        data_2d_merge.hvum.area.hdf5 = True
-                        data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.area)
-
                     # # plot_to_check_mesh_merging
                     # plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
                     #                            hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
@@ -238,13 +225,27 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     #
                     #                            merge_xy=data_2d_merge[reach_num][unit_num]["node"]["xy"],
                     #                            merge_tin=data_2d_merge[reach_num][unit_num]["mesh"]["tin"],
-                    #                            merge_data_mesh=data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy())
+                    #                            merge_data=data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy())
 
                     # progress
                     prog += delta
                     progress_value.value = int(prog)
 
             data_2d_whole_merge = hdf5_hydro.data_2d_whole
+
+            # new variables
+            data_2d_merge.hvum.i_sub_defaut.position = "mesh"
+            data_2d_merge.hvum.i_sub_defaut.hdf5 = True
+            data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.i_sub_defaut)
+
+            # compute area (always after merge)
+            data_2d_merge.hvum.area.hdf5 = False
+            data_2d_merge.hvum.area.position = "mesh"
+            data_2d_merge.hvum.all_final_variable_list.append(data_2d_merge.hvum.area)
+            data_2d_merge.compute_variables(data_2d_merge.hvum.all_final_variable_list.to_compute())
+            if not data_2d_merge.hvum.area.name in data_2d_merge.hvum.hdf5_and_computable_list.names():
+                data_2d_merge.hvum.area.hdf5 = True
+                data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.area)
 
     # progress
     progress_value.value = 90

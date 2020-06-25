@@ -898,11 +898,11 @@ class UnitDict(dict):
             # update tin
             self["mesh"][self.hvum.tin.name] = self["mesh"][self.hvum.tin.name][~index_to_remove]
 
-            # update mesh data
-            self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
-
             # update i_whole_profile
             self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][~index_to_remove]
+
+            # update mesh data
+            self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
 
             print("Warning: " + str(np.sum(index_to_remove)) + " hydraulic triangle(s) "
                     "detected with a null surface in unit " + str(self.unit_num) + ". This is removed.")
