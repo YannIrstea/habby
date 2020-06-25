@@ -1158,6 +1158,12 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         # progress
         progress_value.value = 90
 
+        data_2d.hvum.area.precomputable_tohdf5 = True
+        data_2d.hvum.area.hdf5 = True
+        data_2d.hvum.area.position = "mesh"
+        data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
+        data_2d.compute_variables([data_2d.hvum.area])
+
         # hyd description
         hyd_description = dict()
         hyd_description["hyd_filename_source"] = hydrau_description[hdf5_file_index]["filename_source"]
