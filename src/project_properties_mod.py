@@ -201,7 +201,7 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
 def save_project_properties(path_prj, project_preferences):
     name_prj = os.path.basename(path_prj)
 
-    with open(os.path.join(path_prj, name_prj + '.habby'), "wt") as write_file:
+    with open(os.path.join(path_prj, name_prj + '.habby'), "w") as write_file:
         json.dump(project_preferences, write_file, indent=4)
 
 

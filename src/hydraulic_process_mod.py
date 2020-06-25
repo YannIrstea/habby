@@ -1149,11 +1149,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         # progress
         progress_value.value = 90
 
-        """ compute area """
+        """ re compute area """
         if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
             data_2d.hvum.area.hdf5 = True  # variable
-            data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
-        data_2d.compute_variables(data_2d.hvum.hdf5_and_computable_list)
+        data_2d.compute_variables([data_2d.hvum.area])
 
         """ remove null area """
         data_2d.remove_null_area()
