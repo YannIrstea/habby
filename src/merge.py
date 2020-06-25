@@ -318,6 +318,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
     xymerge = []
     iklemerge = []
     merge_data_sub_mesh = []
+    merge_mark_sub_default=[] # marking for each mesh merged 0 or 1 depending on whether the substrate  by default have been applied
     xymergepointlinkstohydr = []
     iwholeprofilemerge, merge_data_mesh = [], []
     # merging each hydraulic mesh/triangle with the substrate mesh/triangles that can be found in the same part of the grid
@@ -559,6 +560,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                                        sublist])  # set of substrate mesh that can be in the hydraulic triangle
                     # testing meshes merge centers regarding substrate mesh  to affect substrate values to meshes merge
                     datasubnew = [sub_default.tolist()] * (iklenew.size // 3)  # even if one single triangle for iklenew
+                    marksubdefaultnew=[1] * (iklenew.size // 3)  # even if one single triangle for iklenew
                     for ii, ikle in enumerate(iklenew):
                         xyc = (nxynewpoint[ikle[0]] + nxynewpoint[ikle[1]] + nxynewpoint[ikle[2]]) / 3
                         for jj in ssubmeshin2:
@@ -566,6 +568,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                                                     [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(),
                                                      sub_xy[sub_tin[jj][2]].tolist()]):
                                 datasubnew[ii] = sub_data[jj].tolist()
+                                marksubdefaultnew[ii]=0
                                 break
 
                 else:  # no substrate edges in the hydraulic triangle
@@ -574,6 +577,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                         [[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
                     iklenew = np.array([[0, 1, 2]])
                     datasubnew = [sub_default.tolist()]
+                    marksubdefaultnew = [1]
                     # checking if a substrate mesh contain the hydraulic mesh
                     xyc = (xyo + xya + xyb) / 3
                     for jj in setofmeshsubindex:
@@ -581,6 +585,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                                                 [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(),
                                                  sub_xy[sub_tin[jj][2]].tolist()]):
                             datasubnew[0] = sub_data[jj]
+                            marksubdefaultnew=[0]
                             break
             else:  # no substrate mesh around the hydraulic triangle
                 nxynewpoint = np.array([xyo, xya, xyb])
@@ -588,12 +593,13 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
                     [[hyd_tin[i][0], -1, -1], [hyd_tin[i][1], -1, -1], [hyd_tin[i][2], -1, -1]])
                 iklenew = np.array([[0, 1, 2]])
                 datasubnew = [sub_default.tolist()]
-
+                marksubdefaultnew = [1]
             # merges accumulation
             nbmeshmergeadd = len(iklenew)
             xymerge.extend(nxynewpoint.tolist())
             iklemerge.extend((iklenew + decalnewpointmerge).tolist())
             merge_data_sub_mesh.extend(datasubnew)
+            merge_mark_sub_default.extend(marksubdefaultnew)
             lwp = iwholeprofile[i].tolist()
             if nbmeshmergeadd != 1:
                 lwp[
@@ -629,9 +635,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
     # marking  in iwholeprofilemerge the mesh containing sub_default in third column
     # iwholeprofilemerge=np.array(iwholeprofilemerge)
     merge_data_sub_mesh = np.array(merge_data_sub_mesh)
-    iwholeprofilemerge = np.hstack((iwholeprofilemerge,
-                                    (np.sum(merge_data_sub_mesh == sub_default, axis=1) // sub_default.size).reshape(
-                                        merge_data_sub_mesh.size // sub_default.size, 1)))
+    iwholeprofilemerge = np.hstack((iwholeprofilemerge,np.array(merge_mark_sub_default).reshape(len(merge_mark_sub_default),1)))
 
     merge_xy1 += translationxy
     hyd_xy += translationxy
@@ -1038,6 +1042,7 @@ if __name__ == '__main__':
         sub_tin = np.array([[0, 1, 2], [3, 4, 5]])
         sub_data = np.array([[2, 2], [3, 3]])
     elif t == 8:  # Specials cases : 3 hydraulic mesh  VS 3 substrate mesh : some points in common
+        # TODO this case doesn't function the default substrate is applied.....
         hyd_xy = np.array([[4, 1], [5, 4], [6, 1], [9, 1], [10, 4], [11, 1], [14, 11], [15, 14], [16, 11]])
         hyd_tin = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
         sub_xy = np.array([[5, 4], [5, 7], [7, 4], [10, 1], [10, 4], [12, 1], [15, 11], [15, 14], [16, 11]])
