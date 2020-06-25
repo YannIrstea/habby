@@ -1131,15 +1131,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         """ remove_dry_mesh """
         data_2d.remove_dry_mesh()
 
-        """ compute area """
-        if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
-            data_2d.hvum.area.hdf5 = True  # variable
-            data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
-        data_2d.compute_variables(data_2d.hvum.hdf5_and_computable_list)
-
-        """ remove null area """
-        data_2d.remove_null_area()
-
         """ semi_wetted_mesh_cutting """
         if project_preferences["cut_mesh_partialy_dry"]:
             data_2d.semi_wetted_mesh_cutting(hydrau_description[hdf5_file_index]["unit_list"],
@@ -1158,11 +1149,14 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         # progress
         progress_value.value = 90
 
-        data_2d.hvum.area.precomputable_tohdf5 = True
-        data_2d.hvum.area.hdf5 = True
-        data_2d.hvum.area.position = "mesh"
-        data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
-        data_2d.compute_variables([data_2d.hvum.area])
+        """ compute area """
+        if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
+            data_2d.hvum.area.hdf5 = True  # variable
+            data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
+        data_2d.compute_variables(data_2d.hvum.hdf5_and_computable_list)
+
+        """ remove null area """
+        data_2d.remove_null_area()
 
         # hyd description
         hyd_description = dict()

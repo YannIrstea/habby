@@ -176,27 +176,11 @@ class Data2d(list):
             # for each unit
             for unit_num in range(self.unit_num):
                 """ node (always) """
-                dry_node_index = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name] < min_height
-                # save original_temp
-                if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
-                    original_temp = self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name]
-                # set to 0 all specific nodes
-                self[reach_num][unit_num]["node"]["data"][dry_node_index] = 0.0
-                # re set original_temp
-                if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
-                    self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = original_temp
+                self[reach_num][unit_num]["node"]["data"].loc[self[reach_num][unit_num]["node"]["data"][self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.nodes().depend_on_hs().names()] = 0.0
 
                 """ mesh """
                 if self.hvum.h.name in self.hvum.hdf5_and_computable_list.meshs().names():
-                    dry_mesh_index = self[reach_num][unit_num]["mesh"]["data"][self.hvum.h.name] < min_height
-                    # save original_temp
-                    if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.meshs().names():
-                        original_temp = self[reach_num][unit_num]["mesh"]["data"][self.hvum.temp.name]
-                    # set to 0 all specific nodes
-                    self[reach_num][unit_num]["mesh"]["data"][dry_mesh_index] = 0.0
-                    # re set original_temp
-                    if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.meshs().names():
-                        self[reach_num][unit_num]["mesh"]["data"][self.hvum.temp.name] = original_temp
+                    self[reach_num][unit_num]["mesh"]["data"].loc[self[reach_num][unit_num]["mesh"]["data"][self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.meshs().depend_on_hs().names()] = 0.0
 
     def remove_dry_mesh(self):
         self.get_informations()
@@ -225,7 +209,7 @@ class Data2d(list):
                     unit_to_remove_list.append(unit_num)
                     continue
 
-                # only the dry meshes are cut (but not the partially ones)
+                # only the wet meshes (and the partially ones)
                 iklekeep = ikle[mikle_keep, ...]
                 ind_whole = ind_whole[mikle_keep, ...]
                 ipt_iklenew_unique = np.unique(iklekeep)
@@ -238,10 +222,10 @@ class Data2d(list):
                 iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
 
                 # mesh data
-                if not self[reach_num][unit_num]["mesh"]["data"].empty:
-                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[mikle_keep]
                 self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
                 self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
+                if not self[reach_num][unit_num]["mesh"]["data"].empty:
+                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[mikle_keep]
 
                 # node data
                 self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
@@ -270,9 +254,7 @@ class Data2d(list):
         unit_to_remove_list = []
 
         # for each reach
-        self.unit_list_cuted = []
         for reach_num in range(self.reach_num):
-            self.unit_list_cuted.append([])
             # for each unit
             for unit_num, unit_name in enumerate(unit_list):
                 # get data from dict
@@ -281,15 +263,6 @@ class Data2d(list):
                                  self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
                 water_height = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name].to_numpy()
                 velocity = self[reach_num][unit_num]["node"]["data"][self.hvum.v.name].to_numpy()
-
-                # is_duplicates_mesh_and_point_on_one_unit?
-                if is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle,
-                                                            xyz_array=point_all,
-                                                            unit_num=unit_num,
-                                                            case="before the deletion of dry mesh"):
-                    print("Warning: The mesh of unit " + unit_name + " is not loaded")
-                    unit_to_remove_list.append(unit_num)
-                    continue
 
                 point_new = np.empty((0, 3), dtype=self.hvum.xy.dtype)
                 jpn0 = len(point_all) - 1
@@ -300,13 +273,12 @@ class Data2d(list):
                 ikle_bit = bhw[ikle]
                 ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
                 mikle_keep = ikle_type == 3
-                mikle_keep2 = ikle_type != 0
                 ipt_all_ok_wetdry = []
                 # all meshes are entirely wet
                 if all(mikle_keep):
                     print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
                     pass
-                # we cut  the dry meshes and  the partially ones
+                # we cut the dry meshes and  the partially ones
                 else:
                     jpn = jpn0
                     ind_whole2 = []
@@ -437,18 +409,21 @@ class Data2d(list):
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         # inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
                         temp_data = griddata(points=self[reach_num][unit_num]["node"][self.hvum.xy.name],
-                                 values=self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name].to_numpy(),
-                                 xi=point_new_single[:, :2],
-                                 method="linear")
+                                             values=self[reach_num][unit_num]["node"]["data"][
+                                                 self.hvum.temp.name].to_numpy(),
+                                             xi=point_new_single[:, :2],
+                                             method="linear")
 
                     # change all node dataframe
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
+                        ipt_iklenew_unique]
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
-                        temp_ok = np.append(self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name], temp_data, axis=0)
+                        temp_ok = np.append(self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name], temp_data,
+                                            axis=0)
 
                     # new pandas dataframe (to be added to the end)
                     nan_pd = pd.DataFrame(np.nan, index=np.arange(lpns - nbdouble),
-                                 columns=self[reach_num][unit_num]["node"]["data"].columns.values)
+                                          columns=self[reach_num][unit_num]["node"]["data"].columns.values)
                     self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].append(nan_pd)
                     self[reach_num][unit_num]["node"]["data"][self.hvum.h.name] = water_height_ok
                     self[reach_num][unit_num]["node"]["data"][self.hvum.v.name] = velocity_ok
@@ -456,21 +431,26 @@ class Data2d(list):
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = temp_ok
                 else:
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
+                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
+                        ipt_iklenew_unique]
 
                 # mesh data
                 if not self[reach_num][unit_num]["mesh"]["data"].empty:
-                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[ind_whole]
+                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[
+                        ind_whole]
                 self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
-                self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack([ind_whole, i_split])
+                self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack(
+                    [ind_whole, i_split])
                 self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
+                if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
+                    self.hvum.i_split.position = "mesh"
+                    self.hvum.i_split.hdf5 = True
+                    self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
                 # node data
                 self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
-                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].fillna(0)  # fillna with 0
-
-                #  unit_list_cuted
-                self.unit_list_cuted[reach_num].append(unit_name)
+                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].fillna(
+                    0)  # fillna with 0
 
                 # progress
                 progress_value.value += int(deltaunit)
