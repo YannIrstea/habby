@@ -183,7 +183,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                         sub_default=np.array(
                             list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
                         coeffgrid=10)
-
+                    print("test from pc bureau")
                     # get mesh data
                     data_2d_merge[reach_num][unit_num]["mesh"]["tin"] = merge_tin
                     data_2d_merge[reach_num][unit_num]["mesh"]["data"] = DataFrame()
