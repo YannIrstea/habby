@@ -23,6 +23,7 @@ from copy import deepcopy
 import matplotlib
 import numpy as np
 
+import src.merge
 import src.substrate_mod
 
 matplotlib.use("qt5agg")
@@ -1589,7 +1590,7 @@ def cli_merge(arguments, project_preferences):
     # run the function
     q = Queue()
     progress_value = Value("i", 0)
-    p = Process(target=mesh_management_mod.merge_grid_and_save,
+    p = Process(target=src.merge.merge_grid_and_save,
                 args=(hdf5_name_hyd,
                       hdf5_name_sub,
                       outputfilename,

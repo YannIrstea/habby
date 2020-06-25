@@ -1099,7 +1099,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 # data_2d_whole_profile
                 data_2d_whole_profile.add_unit(data_2d_source.get_only_mesh(), reach_num)
 
-        # varying mesh ?
+        """ set unit_names """
+        data_2d.set_unit_names([hydrau_description[hdf5_file_index]["unit_list"]])
+
+        """ varying mesh """
         hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
         for reach_num in range(len(hyd_varying_xy_index)):
             if len(set(hyd_varying_xy_index[reach_num])) == 1:  # one tin for all unit
@@ -1119,25 +1122,41 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             else:
                 hydrau_description[hdf5_file_index]["unit_correspondence"].append(hyd_varying_xy_index[reach_num])
 
-        """ cut_2d """
-        data_2d.cut_2d(hydrau_description[hdf5_file_index]["unit_list"],
-                       progress_value,
-                       delta_file,
-                       project_preferences["cut_mesh_partialy_dry"],
-                       project_preferences['min_height_hyd'])
-        hydrau_description[hdf5_file_index]["unit_list"] = data_2d.unit_list_cuted
-        hydrau_description[hdf5_file_index]["unit_number"] = len(data_2d.unit_list_cuted)
+        """ check_validity """
+        data_2d.check_validity()
 
-        if len(data_2d.unit_list_cuted[0]) == 0:
+        """ set_min_height_to_0 """
+        data_2d.set_min_height_to_0(project_preferences['min_height_hyd'])
+
+        """ remove_dry_mesh """
+        data_2d.remove_dry_mesh()
+
+        """ semi_wetted_mesh_cutting """
+        if project_preferences["cut_mesh_partialy_dry"]:
+            data_2d.semi_wetted_mesh_cutting(hydrau_description[hdf5_file_index]["unit_list"],
+                                             progress_value,
+                                             delta_file)
+
+        # refresh unit
+        hydrau_description[hdf5_file_index]["unit_list"] = data_2d.unit_name_list
+        hydrau_description[hdf5_file_index]["unit_number"] = len(data_2d.unit_name_list)
+
+        if len(hydrau_description[hdf5_file_index]["unit_list"]) == 0:
             print("Error: All selected units or timestep are not hydraulically operable.")
             q.put(mystdout)
             return
-        # elif data_2d_whole_profile.unit_num != len(data_2d.unit_list_cuted[0]):
-        #     aa= 1
-
 
         # progress
         progress_value.value = 90
+
+        """ compute area """
+        if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
+            data_2d.hvum.area.hdf5 = True  # variable
+            data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
+        data_2d.compute_variables(data_2d.hvum.hdf5_and_computable_list)
+
+        """ remove null area """
+        data_2d.remove_null_area()
 
         # hyd description
         hyd_description = dict()

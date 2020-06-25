@@ -297,9 +297,9 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 spu_reach = np.nansum(vh * area)
 
                 # append
-                if not "hv_data" in hdf5.data_2d[reach_num][unit_num]["mesh"].keys():
-                    hdf5.data_2d[reach_num][unit_num]["mesh"]["hv_data"] = DataFrame()
-                hdf5.data_2d[reach_num][unit_num]["mesh"]["hv_data"][animal_variable.name] = vh
+                # if not "hv_data" in hdf5.data_2d[reach_num][unit_num]["mesh"].keys():
+                #     hdf5.data_2d[reach_num][unit_num]["mesh"]["hv_data"] = DataFrame()
+                hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][animal_variable.name] = vh
                 animal_variable.spu = spu_reach
 
                 # WARNINGS
