@@ -32,7 +32,8 @@ class Data2d(list):
             for reach_num in range(self.reach_num):
                 unit_list = []
                 for unit_num in range(self.unit_num):
-                    unit_dict = UnitDict()
+                    unit_dict = UnitDict(reach_num,
+                                         unit_num)
                     unit_dict["mesh"] = dict(tin=None)
                     unit_dict["node"] = dict(xy=None,
                                              z=None)
@@ -44,6 +45,11 @@ class Data2d(list):
         self.reach_num = len(self)
         if self.reach_num:
             self.unit_num = len(self[self.reach_num - 1])
+
+        for reach_num in range(self.reach_num):
+            for unit_num in range(self.unit_num):
+                self[reach_num][unit_num].reach_num = reach_num
+                self[reach_num][unit_num].unit_num = unit_num
 
     def append(self, hydraulic_variable):
         super(Data2d, self).append(hydraulic_variable)
@@ -65,7 +71,6 @@ class Data2d(list):
 
         # TODO: check if same units number and name
 
-        # update attrs
         self.get_informations()
         self.hvum = data_2d_new.hvum
 
@@ -77,7 +82,8 @@ class Data2d(list):
         for reach_num in range(self.reach_num):
             unit_list = []
             for unit_num in range(self.unit_num):
-                unit_dict = UnitDict()
+                unit_dict = UnitDict(reach_num,
+                                     unit_num)
                 unit_dict["mesh"] = dict(tin=self[reach_num][unit_num]["mesh"]["tin"])
                 unit_dict["node"] = dict(xy=self[reach_num][unit_num]["node"]["xy"],
                                          z=self[reach_num][unit_num]["node"]["data"][self.hvum.z.name])
@@ -127,14 +133,121 @@ class Data2d(list):
     def rename_substrate_column_data(self):
         for reach_num in range(self.reach_num):
             for unit_num in range(self.unit_num):
-                self[reach_num][unit_num]["mesh"]["data"].columns = self.hvum.hdf5_and_computable_list.subs().names()
+                self[reach_num][unit_num]["mesh"]["data"].columns = self.hvum.hdf5_and_computable_list.hdf5s().subs().names()
 
-    def remove_unit_from_unit_list(self, unit_to_remove_list):
+    def set_unit_names(self, unit_name_list):
+        self.unit_name_list = unit_name_list
         for reach_num in range(self.reach_num):
-            for unit_to_remove in reversed(unit_to_remove_list):
-                self[reach_num].pop(unit_to_remove)
+            for unit_num in range(self.unit_num):
+                self[reach_num][unit_num].unit_name = self.unit_name_list[reach_num][unit_num]
 
-    def cut_2d(self, unit_list, progress_value, delta_file, CutMeshPartialyDry, min_height):
+    def remove_unit_from_unit_list(self, unit_index_to_remove_list):
+        # unit_dict removed
+        for reach_num in range(self.reach_num):
+            for unit_index_to_remove in reversed(unit_index_to_remove_list):
+                self[reach_num].pop(unit_index_to_remove)
+                # unit_name_list updated
+                self.unit_name_list[reach_num].pop(unit_index_to_remove)
+
+    def check_validity(self):
+        unit_to_remove_list = []
+        # for each reach
+        for reach_num in range(self.reach_num):
+            # for each unit
+            for unit_num in range(self.unit_num):
+                # is_duplicates_mesh_and_point_on_one_unit?
+                if is_duplicates_mesh_and_point_on_one_unit(tin_array=self[reach_num][unit_num]["mesh"]["tin"],
+                                                            xyz_array=np.column_stack(
+                                                                (self[reach_num][unit_num]["node"][self.hvum.xy.name],
+                                                                 self[reach_num][unit_num]["node"]["data"][
+                                                                     self.hvum.z.name].to_numpy())),
+                                                            unit_num=unit_num,
+                                                            case="at reading."):
+                    print("Warning: The mesh of unit " + str(unit_num) + " is not loaded.")
+                    unit_to_remove_list.append(unit_num)
+                    continue
+
+        # remove_unit_from_unit_list
+        self.remove_unit_from_unit_list(unit_to_remove_list)
+
+    def set_min_height_to_0(self, min_height):
+        # for each reach
+        for reach_num in range(self.reach_num):
+            # for each unit
+            for unit_num in range(self.unit_num):
+                """ node (always) """
+                dry_node_index = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name] < min_height
+                # save original_temp
+                if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
+                    original_temp = self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name]
+                # set to 0 all specific nodes
+                self[reach_num][unit_num]["node"]["data"][dry_node_index] = 0.0
+                # re set original_temp
+                if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
+                    self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = original_temp
+
+                """ mesh """
+                if self.hvum.h.name in self.hvum.hdf5_and_computable_list.meshs().names():
+                    dry_mesh_index = self[reach_num][unit_num]["mesh"]["data"][self.hvum.h.name] < min_height
+                    # save original_temp
+                    if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.meshs().names():
+                        original_temp = self[reach_num][unit_num]["mesh"]["data"][self.hvum.temp.name]
+                    # set to 0 all specific nodes
+                    self[reach_num][unit_num]["mesh"]["data"][dry_mesh_index] = 0.0
+                    # re set original_temp
+                    if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.meshs().names():
+                        self[reach_num][unit_num]["mesh"]["data"][self.hvum.temp.name] = original_temp
+
+    def remove_dry_mesh(self):
+        self.get_informations()
+
+        unit_to_remove_list = []
+
+        # for each reach
+        for reach_num in range(self.reach_num):
+            # for each unit
+            for unit_num in range(self.unit_num):
+                # get data from dict
+                ikle = self[reach_num][unit_num]["mesh"]["tin"]
+                point_all = np.column_stack((self[reach_num][unit_num]["node"][self.hvum.xy.name],
+                                 self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
+                water_height = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name].to_numpy()
+                ind_whole = self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name]
+
+                bhw = (water_height > 0).astype(self.hvum.i_whole_profile.dtype)
+                ikle_bit = bhw[ikle]
+                ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
+                mikle_keep = ikle_type != 0
+
+                # all meshes are entirely dry
+                if not True in mikle_keep:
+                    print("Warning: The mesh of unit n°" + unit_num + " is entirely dry.")
+                    unit_to_remove_list.append(unit_num)
+                    continue
+
+                # only the dry meshes are cut (but not the partially ones)
+                iklekeep = ikle[mikle_keep, ...]
+                ind_whole = ind_whole[mikle_keep, ...]
+                ipt_iklenew_unique = np.unique(iklekeep)
+                point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
+
+                ipt_old_new = np.array([-1] * len(point_all), dtype=self.hvum.tin.dtype)
+                for i, point_index in enumerate(ipt_iklenew_unique):
+                    ipt_old_new[point_index] = i
+                iklekeep2 = ipt_old_new[ikle]
+                iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
+
+                # mesh data
+                if not self[reach_num][unit_num]["mesh"]["data"].empty:
+                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[mikle_keep]
+                self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
+                self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
+
+                # node data
+                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
+                self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
+
+    def semi_wetted_mesh_cutting(self, unit_list, progress_value, delta_file):
         """
         This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
         with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
@@ -183,7 +296,6 @@ class Data2d(list):
                 iklenew = np.empty((0, 3), dtype=self.hvum.i_whole_profile.dtype)
                 ind_whole = np.arange(len(ikle), dtype=self.hvum.i_whole_profile.dtype)
 
-                water_height[water_height < min_height] = 0  # correcting the height of water  hw<0 or hw <min_height=> hw=0
                 bhw = (water_height > 0).astype(self.hvum.i_whole_profile.dtype)
                 ikle_bit = bhw[ikle]
                 ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
@@ -193,23 +305,7 @@ class Data2d(list):
                 # all meshes are entirely wet
                 if all(mikle_keep):
                     print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
-                    iklekeep = ikle
-                    point_all_ok = point_all
-                    water_height_ok = water_height
-                    velocity_ok = velocity
-                    ind_whole = ind_whole  # TODO: full whole profile
-                    i_split = np.repeat(0, ind_whole.shape[0], dtype=np.int64)
-                # all meshes are entirely dry
-                elif not True in mikle_keep2:
-                    print("Warning: The mesh of unit " + unit_name + " is entirely dry.")
-                    unit_to_remove_list.append(unit_num)
-                    continue
-                # only the dry meshes are cut (but not the partially ones)
-                elif not CutMeshPartialyDry:
-                    mikle_keep = ikle_type != 0
-                    iklekeep = ikle[mikle_keep, ...]
-                    ind_whole = ind_whole[mikle_keep, ...]
-                    i_split = np.repeat(0, ind_whole.shape[0]).astype(np.int64)
+                    pass
                 # we cut  the dry meshes and  the partially ones
                 else:
                     jpn = jpn0
@@ -382,12 +478,6 @@ class Data2d(list):
         if unit_to_remove_list:
             self.remove_unit_from_unit_list(unit_to_remove_list)
 
-        if self.hvum.i_split.name in self[0][0]["mesh"]["data"].columns:
-            if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
-                self.hvum.i_split.position = "mesh"
-                self.hvum.i_split.hdf5 = True
-                self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
-
         self.get_informations()
 
     def set_sub_cst_value(self, hdf5_sub):
@@ -497,6 +587,9 @@ class Data2d(list):
                         # compute max_slope_energy
                         elif mesh_variable.name == self.hvum.max_slope_energy.name:
                             self[reach_num][unit_num].c_mesh_max_slope_energy()
+                        # compute area
+                        elif mesh_variable.name == self.hvum.area.name:
+                            self[reach_num][unit_num].c_mesh_area()
                         # compute coarser
                         elif mesh_variable.name == self.hvum.sub_coarser.name:
                             self[reach_num][unit_num].c_mesh_sub_coarser()
@@ -504,12 +597,21 @@ class Data2d(list):
                         elif mesh_variable.name == self.hvum.sub_dom.name:
                             self[reach_num][unit_num].c_mesh_sub_dom()
 
+    def remove_null_area(self):
+        # for all reach
+        for reach_num in range(0, self.reach_num):
+            # for all units
+            for unit_num in range(0, self.unit_num):
+                self[reach_num][unit_num].remove_null_area()
+
 
 class UnitDict(dict):
-    def __init__(self):
+    def __init__(self, reach_num, unit_num):
         super().__init__()
         # HydraulicVariableUnit
         self.hvum = HydraulicVariableUnitManagement()
+        self.reach_num = reach_num
+        self.unit_num = unit_num
 
     """ mesh """
     # mean from node variable
@@ -669,17 +771,17 @@ class UnitDict(dict):
             # mesh_water_level
             self["mesh"]["data"][self.hvum.level.name] = self.c_mesh_mean_from_node_values(self.hvum.level.name)
 
-    def c_mesh_area(self, tin, xy):
+    def c_mesh_area(self):
         # get points coord
-        pa = xy[tin[:, 0]]
-        pb = xy[tin[:, 1]]
-        pc = xy[tin[:, 2]]
+        pa = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
+        pb = self["node"]["xy"][self["mesh"]["tin"][:, 1]]
+        pc = self["node"]["xy"][self["mesh"]["tin"][:, 2]]
 
         # compute area
         area = 0.5 * abs((pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) - (pc[:, 0] - pa[:, 0]) * (
                 pb[:, 1] - pa[:, 1]))
 
-        return area
+        self["mesh"]["data"][self.hvum.area.name] = area
 
     def c_mesh_sub_coarser(self):
         if self.hvum.sub_s12.name in self["mesh"]["data"].columns:
@@ -801,3 +903,19 @@ class UnitDict(dict):
     def c_node_water_level(self):
         self["node"]["data"][self.hvum.level.name] = self["node"]["data"][self.hvum.z.name] + self["node"]["data"][self.hvum.h.name]
 
+    """ other """
+    def remove_null_area(self):
+        index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() == 0.0
+
+        if True in index_to_remove:
+            # update tin
+            self["mesh"][self.hvum.tin.name] = self["mesh"][self.hvum.tin.name][~index_to_remove]
+
+            # update mesh data
+            self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
+
+            # update i_whole_profile
+            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][~index_to_remove]
+
+            print("Warning: " + str(np.sum(index_to_remove)) + " hydraulic triangle(s) "
+                    "detected with a null surface in unit " + str(self.unit_num) + ". This is removed.")

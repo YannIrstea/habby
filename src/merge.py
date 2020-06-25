@@ -331,7 +331,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
         axy, bxy = xya - xyo, xyb - xyo
         deta = bxy[1] * axy[0] - bxy[0] * axy[1]
         if deta == 0:
-            print('Warning: before merging an hydraulic triangle have an area=0 ')
+            print('Warning: Before merging, a hydraulic triangle has a null surface. This is removed.')
         else:
 
             xymesh = np.vstack((xyo, xya, xyb))

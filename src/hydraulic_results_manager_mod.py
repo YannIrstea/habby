@@ -160,30 +160,35 @@ class HydraulicSimulationResultsBase:
         mesh_list = self.hvum.hdf5_and_computable_list.meshs()
 
         for reach_num in range(len(self.reach_name_list)):
-            unit_list = []
 
             for unit_num in range(len(self.timestep_name_wish_list)):
                 # node
                 data_2d[reach_num][unit_num]["node"]["xy"] = self.hvum.xy.data[reach_num][unit_num]
                 data_2d[reach_num][unit_num]["node"]["data"] = pd.DataFrame()
-                if node_list:
-                    for node_variable in node_list:
-                        try:
-                            data_2d[reach_num][unit_num]["node"]["data"][node_variable.name] = node_variable.data[reach_num][unit_num]
-                        except IndexError:
-                            print("Error: node data not found : " + node_variable.name + " in get_data_2d.")
+                for node_variable in node_list:
+                    try:
+                        data_2d[reach_num][unit_num]["node"]["data"][node_variable.name] = node_variable.data[reach_num][unit_num]
+                    except IndexError:
+                        print("Error: node data not found : " + node_variable.name + " in get_data_2d.")
 
                 # mesh
                 data_2d[reach_num][unit_num]["mesh"]["tin"] = self.hvum.tin.data[reach_num][unit_num]
-                data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = np.arange(0,
-                                                                   self.hvum.tin.data[reach_num][unit_num].shape[0])
+                data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = np.column_stack([
+                                    np.arange(0, self.hvum.tin.data[reach_num][unit_num].shape[0], dtype=self.hvum.i_whole_profile.dtype),
+                                    np.repeat(0, self.hvum.tin.data[reach_num][unit_num].shape[0]).astype(self.hvum.i_split.dtype)])
                 data_2d[reach_num][unit_num]["mesh"]["data"] = pd.DataFrame()
-                if mesh_list:
-                    for mesh_variable in mesh_list:
-                        try:
-                            data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_num][unit_num]
-                        except IndexError:
-                            print("Error: mesh data not found : " + mesh_variable.name + " in get_data_2d.")
+                # i_split
+                data_2d[reach_num][unit_num]["mesh"]["data"][self.hvum.i_split.name] = data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"][:, 1]
+                for mesh_variable in mesh_list:
+                    try:
+                        data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_num][unit_num]
+                    except IndexError:
+                        print("Error: mesh data not found : " + mesh_variable.name + " in get_data_2d.")
+
+        # i_split
+        self.hvum.i_split.position = "mesh"
+        self.hvum.i_split.hdf5 = True
+        self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
         # description telemac data_2d dict
         description_from_file = dict()
