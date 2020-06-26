@@ -29,6 +29,7 @@ from src import hdf5_mod
 from src.data_2d_mod import Data2d
 from src.plot_mod import plot_to_check_mesh_merging
 from src.tools_mod import get_translator
+from src.dev_tools import profileit
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False,
@@ -264,7 +265,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             return
         else:
             return
-
 
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
           coeffgrid):
@@ -739,6 +739,7 @@ def intersection2segmentsdistsquare(xya, xyb, xyc, xyd):
     return bok, xycontact, dist_square_to_a
 
 
+@profileit
 def gridtin(sub_xy, sub_tin, gridelt, bnoflat):  # sub_xy, sub_tin
     '''
     building the table : for each cell of the grid  determining the list of meshes from the substrate TIN that have at least a part in the cell

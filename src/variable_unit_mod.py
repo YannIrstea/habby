@@ -33,13 +33,16 @@ class HydraulicVariable:
         self.value = value  # for ro, g, .. (constant but possible varying ?)
         self.hdf5 = hdf5  # hdf5 or computable
         self.sub = sub  # False: hydraulic (default) True: substrate
-        self.habitat = habitat  # False: hydraulic and substrate (default) True: Habitat
-        self.spu = None
         self.index_gui = index_gui  # position index in gui
         self.data = [[]]
         self.software_attributes_list = []  # software string names list to link with them
         self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
         self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
+        # hab data
+        self.habitat = habitat  # False: hydraulic and substrate (default) True: Habitat
+        self.wua = [[]]
+        self.hv = [[]]
+        self.percent_area_unknown = [[]]
 
     def __str__(self):
         return self.name
@@ -78,12 +81,12 @@ class HydraulicVariableUnitList(list):
                                      unit="HSI",
                                      name=name,
                                      name_gui=name,
-                                     hdf5=True,
                                      position="mesh",
                                      dtype=np.float64,
                                      index_gui=-1,
                                      habitat=True)
         # extra attributes
+        hab_variable.precomputable_tohdf5 = True
         hab_variable.pref_file = pref_file
         hab_variable.aquatic_animal_type = aquatic_animal_type
         hab_variable.model_type = model_type
@@ -121,6 +124,27 @@ class HydraulicVariableUnitList(list):
         for hvu in self:
             units_list.append(hvu.unit)
         return units_list
+
+    def pref_files(self):
+        pref_files_list = []
+        for hvu in self:
+            if hvu.habitat:
+                pref_files_list.append(hvu.pref_file)
+        return pref_files_list
+
+    def stages(self):
+        stages_list = []
+        for hvu in self:
+            if hvu.habitat:
+                stages_list.append(hvu.stage)
+        return stages_list
+
+    def aquatic_animal_types(self):
+        aquatic_animal_types_list = []
+        for hvu in self:
+            if hvu.habitat:
+                aquatic_animal_types_list.append(hvu.aquatic_animal_type)
+        return aquatic_animal_types_list
 
     """ filters """
     def nodes(self):
@@ -221,18 +245,21 @@ class HydraulicVariableUnitManagement:
                                      name="i_whole_profile",
                                      name_gui="i_whole_profile",
                                      dtype=np.int64,
-                                   depend_on_h=False)
+                                     index_gui=getframeinfo(currentframe()).lineno,
+                                     depend_on_h=False)
         self.i_split = HydraulicVariable(value=None,
                                      unit="",
                                      name="i_split",
                                      name_gui="i_split",
                                      dtype=np.int64,
-                                   depend_on_h=False)
+                                     index_gui=getframeinfo(currentframe()).lineno,
+                                     depend_on_h=False)
         self.i_sub_defaut = HydraulicVariable(value=None,
                                      unit="",
                                      name="i_sub_defaut",
                                      name_gui="i_sub_defaut",
-                                     dtype=np.int64,
+                                  index_gui=getframeinfo(currentframe()).lineno,
+                                  dtype=np.int64,
                                    depend_on_h=False)
         # coordinate variables
         self.tin = HydraulicVariable(value=None,
@@ -584,21 +611,18 @@ class HydraulicVariableUnitManagement:
             self.hdf5_and_computable_list.append(variable)
 
     def get_original_computable_mesh_and_node_from_hyd(self, mesh_variable_original_name_list, node_variable_original_name_list):
-        # hdf5
-        """ mesh """
+        """
+        no hab.
+        """
+        # hdf5 mesh
         for mesh_variable_original_name in mesh_variable_original_name_list:
-            # unknown ==> habitat
-            if mesh_variable_original_name not in self.all_sys_variable_list.names():
-                self.detect_variable_habitat([mesh_variable_original_name])
-            # known ==> others
-            else:
-                variable_mesh = getattr(self, mesh_variable_original_name)
-                variable_mesh.position = "mesh"
-                variable_mesh.hdf5 = True
-                if not variable_mesh.sub:
-                    self.hdf5_and_computable_list.append(variable_mesh)
+            variable_mesh = getattr(self, mesh_variable_original_name)
+            variable_mesh.position = "mesh"
+            variable_mesh.hdf5 = True
+            if not variable_mesh.sub:
+                self.hdf5_and_computable_list.append(variable_mesh)
 
-        """ node """
+        # hdf5 node
         for node_variable_original_name in node_variable_original_name_list:
             variable_node = getattr(self, node_variable_original_name)
             variable_node.position = "node"
@@ -606,8 +630,7 @@ class HydraulicVariableUnitManagement:
             if not variable_node.sub:
                 self.hdf5_and_computable_list.append(variable_node)
 
-        # computable
-        """ mesh """
+        # computable mesh
         computable_mesh_list = [self.v, self.h, self.z, self.level, self.froude, self.hydraulic_head,
                                 self.conveyance, self.max_slope_bottom, self.max_slope_energy]
         # shear_stress
@@ -621,7 +644,7 @@ class HydraulicVariableUnitManagement:
                 computed_mesh.hdf5 = False
                 self.hdf5_and_computable_list.append(computed_mesh)
 
-        """ node """
+        # computable node
         computable_node_list = [self.level, self.froude, self.hydraulic_head, self.conveyance]
         if self.v_frict.name in self.hdf5_and_computable_list.names():
             self.shear_stress.position = "node"

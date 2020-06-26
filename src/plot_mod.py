@@ -444,7 +444,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
 
     name_fish_origin = list(name_fish)
     for id, n in enumerate(name_fish):
-        name_fish[id] = n.replace('_', ' ')
+        name_fish[id] = n.name.replace('_', ' ')
 
     # one time step - bar
     if len(unit_name) == 1:

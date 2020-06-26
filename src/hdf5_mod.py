@@ -238,8 +238,8 @@ class Hdf5Management:
                                        sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
                                        sub_classification_method=hdf5_attributes_dict["sub_classification_method"])
                 self.hvum.detect_variable_from_sub_description(sub_description)
-                # # hab
-                # self.hvum.detect_variable_habitat(hdf5_attributes_dict["hab_fish_list"].split(", "))
+                # hab
+                self.hvum.detect_variable_habitat(hdf5_attributes_dict["hab_fish_list"].split(", "))
 
             """ get_hdf5_reach_name """
             # units name
@@ -971,6 +971,7 @@ class Hdf5Management:
 
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
+                mesh_group.create_group("hv_data")  # always an empty group for futur calc hab
                 mesh_group.create_dataset(name="tin",
                                           shape=data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name].shape,
                                           data=data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])
@@ -1105,7 +1106,7 @@ class Hdf5Management:
 
         data_2d = Data2d(reach_num=len(reach_list),
                          unit_num=len(self.units_index))  # new
-
+        data_description["total_wet_area"] = []
         # for each reach
         for reach_num, reach_group_name in enumerate(reach_list):
             # group name
@@ -1113,10 +1114,11 @@ class Hdf5Management:
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
             desired_units_list = [available_unit_list[unit_index] for unit_index in self.units_index]  # get only desired_units
+            data_description["total_wet_area"].append([])
             for unit_num, unit_group_name in enumerate(desired_units_list):
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
-                data_2d[reach_num][unit_num]["total_wet_area"] = self.file_object[unit_group].attrs['total_wet_area']
+                data_description["total_wet_area"][reach_num].append(self.file_object[unit_group].attrs['total_wet_area'])
 
                 """ mesh """
                 # group
@@ -1137,6 +1139,26 @@ class Hdf5Management:
                 data_2d[reach_num][unit_num]["mesh"]["data"] = mesh_dataframe
                 data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = i_whole_profile
                 data_2d[reach_num][unit_num]["mesh"]["tin"] = tin
+
+                # HV by celle for each fish
+                mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
+                for animal_num, animal in enumerate(self.hvum.all_final_variable_list.hdf5s().meshs().habs()):
+                    # get dataset
+                    fish_data_set = mesh_hv_data_group[animal.name]
+
+                    # get data
+                    data_2d[reach_num][unit_num]["mesh"]["data"][animal.name] = fish_data_set[:]
+
+                    # get summary data
+                    animal.wua[reach_num].append(fish_data_set.attrs['wua'])
+                    animal.hv[reach_num].append(fish_data_set.attrs['hv'])
+                    animal.percent_area_unknown[reach_num].append(fish_data_set.attrs['percent_area_unknown [%m2]'])
+
+                    # add dataset attributes
+                    animal.pref_file = fish_data_set.attrs['pref_file']
+                    animal.stage = fish_data_set.attrs['stage']
+                    animal.name = fish_data_set.attrs['short_name']
+                    animal.aquatic_animal_type = fish_data_set.attrs['aquatic_animal_type_list']
 
                 """ node """
                 # group
@@ -1180,14 +1202,13 @@ class Hdf5Management:
         :param vh_cell: the habitat value by cell
         :param area_all: total wet area by reach
         :param spu_all: total SPU by reach
-        :param fish_name: the name of the fish (with the stage in it)
+        :param animal: the name of the fish (with the stage in it)
         """
-        # # open an hdf5
+        # open an hdf5
         self.open_hdf5_file(new=False)
 
+        # add variables
         self.hvum.hdf5_and_computable_list.extend(animal_variable_list)
-
-        fish_replaced = []
 
         # data_2d
         data_group = self.file_object['data_2d']
@@ -1199,77 +1220,38 @@ class Hdf5Management:
                 unit_group = reach_group["unit_" + str(unit_num)]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
+                mesh_hv_data_group = mesh_group["hv_data"]
 
-                # # HV by celle for each fish
-                # for fish_num, fish_name in enumerate(code_alternative_list):
-                #     if fish_name in mesh_hv_dataset:  # if exist erase it
-                #         del mesh_hv_dataset[fish_name]
-                #         fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
-                #                                                   shape=vh_cell[fish_num][reach_num][unit_num].shape,
-                #                                                   data=vh_cell[fish_num][reach_num][unit_num])
-                #         fish_replaced.append(fish_name)
-                #     else:  # if not exist create it
-                #         fish_data_set = mesh_hv_dataset.create_dataset(name=fish_name,
-                #                                                   shape=vh_cell[fish_num][reach_num][unit_num].shape,
-                #                                                   data=vh_cell[fish_num][reach_num][unit_num])
-                #     fish_data_set.attrs['pref_file'] = pref_file_list[fish_num]
-                #     fish_data_set.attrs['stage'] = stage_list[fish_num]
-                #     fish_data_set.attrs['short_name'] = name_fish_sh[fish_num]
-                #     fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
-                #     fish_data_set.attrs['aquatic_animal_type_list'] = aquatic_animal_type_list[fish_num]
-                #
-                #     if any(np.isnan(vh_cell[fish_num][reach_num][unit_num])):
-                #         area = np.sum(area_c_all[reach_num][unit_num][
-                #                           np.argwhere(~np.isnan(vh_cell[fish_num][reach_num][unit_num]))])
-                #         HV = spu_all[fish_num][reach_num][unit_num] / area
-                #         percent_area_unknown = (1 - (
-                #                     area / total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
-                #     else:
-                #         HV = spu_all[fish_num][reach_num][unit_num] / total_wet_area
-                #         percent_area_unknown = 0.0
-                #
-                #     fish_data_set.attrs['HV'] = str(HV)
-                #     fish_data_set.attrs['percent_area_unknown [%m2]'] = str(percent_area_unknown)
-
-        # # get all fish names and total number
-        # fish_names_total_list = list(mesh_hv_dataset.keys())
-        # if "i_whole_profile" in fish_names_total_list:
-        #     fish_names_total_list.remove("i_whole_profile")
-        # if "tin" in fish_names_total_list:
-        #     fish_names_total_list.remove("tin")
-        # if "sub" in fish_names_total_list:
-        #     fish_names_total_list.remove("sub")
-        # if "area" in fish_names_total_list:
-        #     fish_names_total_list.remove("area")
-
-        # # get xml and stage fish
-        # xml_names = []
-        # stage_names = []
-        # names_short = []
-        # aquatic_animal_type_list = []
-        # for fish_ind, fish_name in enumerate(fish_names_total_list):
-        #     xml_names.append(mesh_hv_dataset[fish_name].attrs['pref_file'])
-        #     stage_names.append(mesh_hv_dataset[fish_name].attrs['stage'])
-        #     names_short.append(mesh_hv_dataset[fish_name].attrs['short_name'])
-        #     aquatic_animal_type_list.append(mesh_hv_dataset[fish_name].attrs['aquatic_animal_type_list'])
+                # HV by celle for each fish
+                for animal_num, animal in enumerate(self.hvum.hdf5_and_computable_list.meshs().habs()):
+                    # check if exist
+                    if animal.name in mesh_hv_data_group.keys():  # if exist erase it
+                        del mesh_hv_data_group[animal.name]  # del dataset
+                    # create
+                    fish_data_set = mesh_hv_data_group.create_dataset(name=animal.name,
+                                                              shape=self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name].shape,
+                                                              data=self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name].to_numpy())
+                    # add dataset attributes
+                    fish_data_set.attrs['pref_file'] = animal.pref_file
+                    fish_data_set.attrs['stage'] = animal.stage
+                    fish_data_set.attrs['short_name'] = animal.name
+                    fish_data_set.attrs['aquatic_animal_type_list'] = animal.aquatic_animal_type
+                    fish_data_set.attrs['wua'] = str(animal.wua[reach_num][unit_num])
+                    fish_data_set.attrs['hv'] = str(animal.hv[reach_num][unit_num])
+                    fish_data_set.attrs['percent_area_unknown [%m2]'] = str(animal.percent_area_unknown[reach_num][unit_num])
 
         # set to attributes
-        # self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
-        # self.file_object.attrs["hab_fish_number"] = str(len(fish_names_total_list))
-        # self.file_object.attrs["hab_fish_pref_list"] = ", ".join(xml_names)
-        # self.file_object.attrs["hab_fish_stage_list"] = ", ".join(stage_names)
-        # self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(names_short)
-        # self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(aquatic_animal_type_list)
+        self.file_object.attrs["hab_fish_list"] = ", ".join(self.hvum.hdf5_and_computable_list.meshs().habs().names())
+        self.file_object.attrs["hab_fish_number"] = str(len(self.hvum.hdf5_and_computable_list.meshs().habs()))
+        self.file_object.attrs["hab_fish_pref_list"] = ", ".join(self.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
+        self.file_object.attrs["hab_fish_stage_list"] = ", ".join(self.hvum.hdf5_and_computable_list.meshs().habs().stages())
+        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(self.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
+        # all variable
         self.file_object.attrs["mesh_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
         self.file_object.attrs["node_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
         self.file_object.attrs["mesh_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
         self.file_object.attrs["node_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
-
-        if fish_replaced:
-            fish_replaced = set(fish_replaced)
-            fish_replaced = "; ".join(fish_replaced)
-            print(f'Warning: fish(s) information replaced in hdf5 file ({fish_replaced}).\n')
 
         # close file
         self.file_object.close()

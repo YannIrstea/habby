@@ -647,7 +647,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
         if types_hdf5 and names_hdf5 and self.hvum.user_target_list and reach and units and plot_type:
             # total_variables_number
-            total_variables_number = self.hvum.user_target_list.__len__()
+            total_variables_number = self.hvum.user_target_list.no_habs().__len__()
             # is fish ?
             total_habitat_variable_number = self.hvum.user_target_list.habs().__len__()
             # for GIF
@@ -665,11 +665,11 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     self.nb_plot = 0
                 if plot_type == ["map"]:
                     self.nb_plot = len(names_hdf5) * total_variables_number * len(reach) * len(units)
-                    if self.gif_export:
+                    if self.gif_export and self.nb_plot > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
                 if plot_type == ["map", "result"]:
                     self.nb_plot = len(names_hdf5) * total_variables_number * len(reach) * len(units)
-                    if self.gif_export:
+                    if self.gif_export and self.nb_plot > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
 
             # one fish
@@ -679,7 +679,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 else:
                     # one map by fish by unit
                     nb_map = len(names_hdf5) * total_habitat_variable_number * len(reach) * len(units)
-                    if self.gif_export:
+                    if self.gif_export and nb_map > 1:
                         nb_map = nb_map + total_habitat_variable_number * len(reach) + total_variables_number * len(reach)
                 if len(units) == 1:
                     if plot_type == ["map"]:
@@ -702,18 +702,18 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 if plot_type == ["map"]:
                     # one map by fish by unit
                     nb_map = total_habitat_variable_number * len(reach) * len(units)
-                    if self.gif_export:
+                    if self.gif_export and nb_map > 1:
                         nb_map = nb_map + total_habitat_variable_number * len(reach)
                     self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map
-                    if self.gif_export:
+                    if self.gif_export and nb_map > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
                 if plot_type == ["map", "result"]:
                     # one map by fish by unit
                     nb_map = total_habitat_variable_number * len(reach) * len(units)
-                    if self.gif_export:
+                    if self.gif_export and nb_map > 1:
                         nb_map = nb_map + total_habitat_variable_number * len(reach)
                     self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map + 1
-                    if self.gif_export:
+                    if self.gif_export and nb_map > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
             # set prog
             if self.nb_plot != 0:

@@ -1317,7 +1317,7 @@ class MyProcessList(QThread):
                 for unit_num, t in enumerate(units_index):
                     # string_tr
                     string_tr = [self.tr("reach"), self.tr("unit")]
-                    # # 3d
+                    # """ 3D """
                     # if self.plot_3d_QCheckBox.isChecked():
                     #     state = Value("i", 0)
                     #     process = Process(target=plot_mod.view_mayavi,
@@ -1334,31 +1334,58 @@ class MyProcessList(QThread):
                     #     process.start()
                     #     self.process_list.append([process, state])
                     # else:
-                    # plot
-                    for variable in self.hvum.user_target_list.no_habs():
-                        if not self.plot_production_stoped:
-                            if self.plot_attr.plot_map_QCheckBoxisChecked:
-                                plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                                                               reach_name,
-                                                                               units[unit_num],
-                                                                               unit_type,
-                                                                               self.tr(variable.name_gui),
-                                                                               variable.unit,
-                                                                               string_tr)
-                                state = Value("i", 0)
-                                process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
-                                                           args=(
-                                                               state,
-                                                               self.hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
-                                                               self.hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                                               self.hdf5.data_2d[reach_num][unit_num][variable.position]["data"][variable.name].to_numpy(),
-                                                               plot_string_dict,
-                                                               data_description,
-                                                               self.project_preferences
-                                                           ),
-                                                           name=variable.name)
-                                self.process_list.append([process, state])
+                    """ MAP """
+                    if self.plot_attr.plot_map_QCheckBoxisChecked:
+                        # plot
+                        for variable in self.hvum.user_target_list.no_habs():
+                            if not self.plot_production_stoped:
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   self.tr(variable.name_gui),
+                                                                                   variable.unit,
+                                                                                   string_tr)
+                                    state = Value("i", 0)
+                                    process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
+                                                               args=(
+                                                                   state,
+                                                                   self.hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                                   self.hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                   self.hdf5.data_2d[reach_num][unit_num][variable.position]["data"][variable.name].to_numpy(),
+                                                                   plot_string_dict,
+                                                                   data_description,
+                                                                   self.project_preferences
+                                                               ),
+                                                               name=variable.name)
+                                    self.process_list.append([process, state])
 
+                        # plot fish map
+                        for variable in self.hvum.user_target_list.habs():
+                            if not self.plot_production_stoped:
+                                # map by fish
+                                for fish_index, fish_name in enumerate(habitat_variable_list):
+                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                                   reach_name,
+                                                                                   units[unit_num],
+                                                                                   unit_type,
+                                                                                   fish_name,
+                                                                               "",
+                                                                                   string_tr,
+                                                                                   self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %")
+                                    state = Value("i", 0)
+                                    habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
+                                                                  args=(
+                                                                      state,
+                                                                      hdf5.data_2d["node"]["xy"][reach_num][unit_num],
+                                                                      hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
+                                                                      hdf5.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num],
+                                                                      plot_string_dict,
+                                                                      data_description,
+                                                                      project_preferences
+                                                                  ),
+                                                                  name="plot_map_fish_habitat")
+                                    self.process_list.append([habitat_map_process, state])
 
                     # # water_velocity
                     # if "water_velocity" in variables and not self.plot_production_stoped:
@@ -1651,31 +1678,6 @@ class MyProcessList(QThread):
                     #                                name="plot_substrate_dominant")
                     #     self.process_list.append([susbtrat_process, state])
                     #
-                    # # fish map
-                    # if habitat_variable_list and not self.plot_production_stoped:  # habitat data (maps)
-                    #     # map by fish
-                    #     for fish_index, fish_name in enumerate(habitat_variable_list):
-                    #         plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                    #                                                        reach_name,
-                    #                                                        units[unit_num],
-                    #                                                        unit_type,
-                    #                                                        fish_name,
-                    #                                                    "",
-                    #                                                        string_tr,
-                    #                                                        self.tr('HSI = ') + '{0:3.2f}'.format(data_description["total_HV_area"][fish_name][reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(data_description["percent_area_unknown"][fish_name][reach_num][unit_num]) + " %")
-                    #         state = Value("i", 0)
-                    #         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
-                    #                                       args=(
-                    #                                           state,
-                    #                                           hdf5.data_2d["node"]["xy"][reach_num][unit_num],
-                    #                                           hdf5.data_2d["mesh"]["tin"][reach_num][unit_num],
-                    #                                           hdf5.data_2d["mesh"]["hv_data"][fish_name][reach_num][unit_num],
-                    #                                           plot_string_dict,
-                    #                                           data_description,
-                    #                                           project_preferences
-                    #                                       ),
-                    #                                       name="plot_map_fish_habitat")
-                    #         self.process_list.append([habitat_map_process, state])
 
                     # # elevation
                     # if "elevation" in variables and not self.plot_production_stoped:
