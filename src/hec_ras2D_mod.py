@@ -35,7 +35,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.extensions_list = [".hdf", ".h5"]
         self.file_type = "hdf5"
         # simulation attributes
-        self.equation_type = ["FV"]
+        self.equation_type = "FV"
         self.morphology_available = True  # TODO ?
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,

@@ -94,13 +94,11 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
         merge_description[attribute_name] = attribute_value
 
-    # data_2d_merge and data_2d_whole_merge
-    data_2d_merge = deepcopy(hdf5_hydro.data_2d)
-    data_2d_merge.hvum = hdf5_hydro.hvum
-    data_2d_whole_merge = hdf5_hydro.data_2d_whole
-
     # CONSTANT CASE
     if hdf5_sub.data_description["sub_mapping_method"] == "constant":  # set default value to all mesh
+        data_2d_merge = hdf5_hydro.data_2d
+        data_2d_merge.hvum = hdf5_hydro.hvum
+        data_2d_whole_merge = hdf5_hydro.data_2d_whole
         merge_description["hab_epsg_code"] = merge_description["hyd_epsg_code"]
         data_2d_merge.set_sub_cst_value(hdf5_sub)
 
@@ -153,6 +151,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             pass
 
         if not extent_intersect:  # set default value to all mesh
+            data_2d_merge = hdf5_hydro.data_2d
+            data_2d_merge.hvum = hdf5_hydro.hvum
+            data_2d_whole_merge = hdf5_hydro.data_2d_whole
             data_2d_merge.set_sub_cst_value(hdf5_sub)
 
         elif extent_intersect:
@@ -162,10 +163,10 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
 
             data_2d_merge = Data2d(reach_num=int(hdf5_hydro.data_description["hyd_reach_number"]),
                                    unit_num=int(hdf5_hydro.data_description["hyd_unit_number"]))  # new
-
-            # mixing variables
-            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_hydro.hvum.hdf5_and_computable_list)
-            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)
+            data_2d_whole_merge = hdf5_hydro.data_2d_whole
+            data_2d_merge.equation_type = hdf5_hydro.data_2d.equation_type
+            data_2d_merge.hvum = hdf5_hydro.hvum  # hyd variables
+            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)  # sub variables
 
             # for each reach
             for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
@@ -231,8 +232,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     # progress
                     prog += delta
                     progress_value.value = int(prog)
-
-            data_2d_whole_merge = hdf5_hydro.data_2d_whole
 
             # new variables
             data_2d_merge.hvum.i_sub_defaut.position = "mesh"

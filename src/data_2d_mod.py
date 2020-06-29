@@ -45,6 +45,7 @@ class Data2d(list):
         self.data_extent = None
         self.data_height = None
         self.data_width = None
+        self.equation_type = "unknown"
 
     def get_informations(self):
         self.reach_num = len(self)
@@ -78,6 +79,7 @@ class Data2d(list):
 
         self.get_informations()
         self.hvum = data_2d_new.hvum
+        self.equation_type = data_2d_new.equation_type
 
     def get_dimension(self):
         # get extent

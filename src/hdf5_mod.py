@@ -390,13 +390,10 @@ class Hdf5Management:
         self.file_object.attrs["data_extent"] = data_2d.data_extent
         self.file_object.attrs["data_height"] = data_2d.data_height
         self.file_object.attrs["data_width"] = data_2d.data_width
+        self.file_object.attrs["hyd_equation_type"] = data_2d.equation_type
 
-        # data_2d
-        data_group = self.file_object['data_2d']
         # for each reach
         for reach_num in range(data_2d.reach_num):
-            reach_group = self.file_object["data_2d/reach_" + str(reach_num)]
-
             # for each unit
             for unit_num in range(data_2d.unit_num):
                 """ unit info """
@@ -495,6 +492,12 @@ class Hdf5Management:
         self.load_data_2d_info()
 
     def load_data_2d_info(self):
+        # global
+        self.data_2d.data_extent = self.file_object.attrs["data_extent"]
+        self.data_2d.data_height = self.file_object.attrs["data_height"]
+        self.data_2d.data_width = self.file_object.attrs["data_width"]
+        self.data_2d.equation_type = self.file_object.attrs["hyd_equation_type"]
+
         data_2d_group = 'data_2d'
         reach_list = list(self.file_object[data_2d_group].keys())
         # for each reach
@@ -1019,7 +1022,7 @@ class Hdf5Management:
                 mesh_hv_data_group = mesh_group["hv_data"]
 
                 # HV by celle for each fish
-                for animal_num, animal in enumerate(self.hvum.hdf5_and_computable_list.meshs().habs()):
+                for animal_num, animal in enumerate(self.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
                     # check if exist
                     if animal.name in mesh_hv_data_group.keys():  # if exist erase it
                         del mesh_hv_data_group[animal.name]  # del dataset
@@ -1044,10 +1047,10 @@ class Hdf5Management:
         self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(self.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
         # all variable
-        self.file_object.attrs["mesh_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
-        self.file_object.attrs["node_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
-        self.file_object.attrs["mesh_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
-        self.file_object.attrs["node_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
+        self.file_object.attrs["mesh_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().names()
+        self.file_object.attrs["node_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().names()
+        self.file_object.attrs["mesh_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
+        self.file_object.attrs["node_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
 
         # close file
         self.file_object.close()
@@ -1068,7 +1071,6 @@ class Hdf5Management:
         # get actual attributes (hab_fish_list, hab_fish_number, hab_fish_pref_list, hab_fish_shortname_list, hab_fish_stage_list)
         hab_fish_list_before = self.file_object.attrs["hab_fish_list"].split(", ")
         hab_fish_pref_list_before = self.file_object.attrs["hab_fish_pref_list"].split(", ")
-        hab_fish_shortname_list_before = self.file_object.attrs["hab_fish_shortname_list"].split(", ")
         hab_fish_stage_list_before = self.file_object.attrs["hab_fish_stage_list"].split(", ")
         hab_aquatic_animal_type_list = self.file_object.attrs["hab_aquatic_animal_type_list"].split(", ")
 
@@ -1083,7 +1085,6 @@ class Hdf5Management:
         for index in reversed(fish_index_to_remove_list):
             hab_fish_list_before.pop(index)
             hab_fish_pref_list_before.pop(index)
-            hab_fish_shortname_list_before.pop(index)
             hab_fish_stage_list_before.pop(index)
             hab_aquatic_animal_type_list.pop(index)
 
@@ -1091,7 +1092,6 @@ class Hdf5Management:
         self.file_object.attrs["hab_fish_number"] = str(len(hab_fish_list_before))
         self.file_object.attrs["hab_fish_list"] = ", ".join(hab_fish_list_before)
         self.file_object.attrs["hab_fish_pref_list"] = ", ".join(hab_fish_pref_list_before)
-        self.file_object.attrs["hab_fish_shortname_list"] = ", ".join(hab_fish_shortname_list_before)
         self.file_object.attrs["hab_fish_stage_list"] = ", ".join(hab_fish_stage_list_before)
         self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(hab_aquatic_animal_type_list)
 

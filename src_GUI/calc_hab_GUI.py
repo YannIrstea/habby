@@ -847,7 +847,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab.setDisabled(True)
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
-
         # get the figure options and the type of output to be created
         project_preferences = load_project_properties(self.path_prj)
 

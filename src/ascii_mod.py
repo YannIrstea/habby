@@ -172,7 +172,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_filename_source"] = data_description["filename_source"]
     hyd_description["hyd_path_filename_source"] = data_description["path_filename_source"]
     hyd_description["hyd_model_type"] = data_description["model_type"]
-    hyd_description["hyd_2D_numerical_method"] = data_description["2D_numerical_method"]
+    hyd_description["hyd_equation_type"] = data_2d.equation_type
     hyd_description["hyd_model_dimension"] = data_description["model_dimension"]
     hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_from_ascii["mesh"]["data"].keys()))
     hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_from_ascii["node"]["data"].keys()))
@@ -675,9 +675,9 @@ def load_ascii_model(filename, path_prj, user_pref_temp_path):
                             epsg_code=epsgcode)
     # data_description
     if bfvm:
-        data_description["2D_numerical_method"] = "FiniteVolumeMethod"
+        data_description["hyd_equation_type"] = "FV"
     else:
-        data_description["2D_numerical_method"] = "FiniteElementMethod"
+        data_description["hyd_equation_type"] = "FE"
     data_description["unit_list"] = lunitall
     data_description["unit_list_full"] = lunitall
     data_description["unit_list_tf"] = []

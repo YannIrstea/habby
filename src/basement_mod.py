@@ -36,7 +36,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.extensions_list = [".h5"]
         self.file_type = "hdf5"
         # simulation attributes
-        self.equation_type = ["FV"]
+        self.equation_type = "FV"
         self.morphology_available = True
         self.second_file_suffix = "_aux"
         # reach
