@@ -302,9 +302,9 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 if any(np.isnan(hv)):
                     area = np.sum(hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.hvum.area.name][~np.isnan(hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name])])
                     global_hv = wua / area
-                    percent_area_unknown = (1 - (area / hdf5.data_2d[reach_num][unit_num]["total_wet_area"])) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
+                    percent_area_unknown = (1 - (area / hdf5.data_2d[reach_num][unit_num].total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
                 else:
-                    global_hv = wua / hdf5.data_2d[reach_num][unit_num]["total_wet_area"]
+                    global_hv = wua / hdf5.data_2d[reach_num][unit_num].total_wet_area
                     percent_area_unknown = 0.0
 
                 # get data

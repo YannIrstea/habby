@@ -43,6 +43,9 @@ class HydraulicVariable:
         self.wua = [[]]
         self.hv = [[]]
         self.percent_area_unknown = [[]]
+        self.pref_file = ""
+        self.stage = ""
+        self.aquatic_animal_type = ""
 
     def __str__(self):
         return self.name
@@ -62,9 +65,20 @@ class HydraulicVariableUnitList(list):
         """
         with copy
         """
-        hydraulic_variable = deepcopy(hydraulic_variable)
-        super(HydraulicVariableUnitList, self).append(hydraulic_variable)
-        #self.sort_by_names_gui()
+        if hydraulic_variable:
+            hydraulic_variable2 = deepcopy(hydraulic_variable)
+            # set manually attr
+            hydraulic_variable2.wua = hydraulic_variable.wua
+            hydraulic_variable2.hv = hydraulic_variable.hv
+            hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
+            hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
+            hydraulic_variable2.pref_file = hydraulic_variable.pref_file
+            hydraulic_variable2.stage = hydraulic_variable.stage
+            hydraulic_variable2.name = hydraulic_variable.name
+            hydraulic_variable2.aquatic_animal_type = hydraulic_variable.aquatic_animal_type
+
+            super(HydraulicVariableUnitList, self).append(hydraulic_variable2)
+            #self.sort_by_names_gui()
 
     def extend(self, hydraulic_variable_list):
         """
@@ -711,8 +725,8 @@ class HydraulicVariableUnitManagement:
             self.all_final_variable_list.append(variable_wish)
 
         """ hab """
-        # for each wish mesh variables, need hdf5 variable to be computed ?
-        if user_target_list.habs():
+        # for each wish mesh variables, witch hdf5 variable to be computed ?
+        if user_target_list.habs().to_compute():
             # h and v mesh available
             if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
                 if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names():

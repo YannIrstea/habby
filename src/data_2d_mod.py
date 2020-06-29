@@ -39,7 +39,12 @@ class Data2d(list):
                                              z=None)
                     unit_list.append(unit_dict)
                 self.append(unit_list)
+        # hvum
         self.hvum = HydraulicVariableUnitManagement()
+        # data
+        self.data_extent = None
+        self.data_height = None
+        self.data_width = None
 
     def get_informations(self):
         self.reach_num = len(self)
@@ -73,6 +78,32 @@ class Data2d(list):
 
         self.get_informations()
         self.hvum = data_2d_new.hvum
+
+    def get_dimension(self):
+        # get extent
+        xMin = []
+        xMax = []
+        yMin = []
+        yMax = []
+
+        # for each reach
+        for reach_num in range(self.reach_num):
+            # for each unit
+            for unit_num in range(self.unit_num):
+                # extent
+                xMin.append(min(self[reach_num][unit_num]["node"]["xy"][:, 0]))
+                xMax.append(max(self[reach_num][unit_num]["node"]["xy"][:, 0]))
+                yMin.append(min(self[reach_num][unit_num]["node"]["xy"][:, 1]))
+                yMax.append(max(self[reach_num][unit_num]["node"]["xy"][:, 1]))
+
+        # get extent
+        xMin = min(xMin)
+        xMax = max(xMax)
+        yMin = min(yMin)
+        yMax = max(yMax)
+        self.data_extent = str(xMin) + ", " + str(yMin) + ", " + str(xMax) + ", " + str(yMax)
+        self.data_height = xMax - xMin
+        self.data_width = yMax - yMin
 
     def get_only_mesh(self):
         """
@@ -497,7 +528,7 @@ class Data2d(list):
                 else:
                     area = self[reach_num][unit_num]["mesh"]["data"][self.hvum.area.name].to_numpy()
 
-                self[reach_num][unit_num]["total_wet_area"] = np.sum(area)
+                self[reach_num][unit_num].total_wet_area = np.sum(area)
 
     def compute_variables(self, variable_computable_list):
         """
@@ -599,6 +630,12 @@ class UnitDict(dict):
         self.hvum = HydraulicVariableUnitManagement()
         self.reach_num = reach_num
         self.unit_num = unit_num
+        self.unit_name = ""
+        # data
+        self.total_wet_area = None
+        self.data_extent = None
+        self.data_height = None
+        self.data_width = None
 
     """ mesh """
     # mean from node variable
@@ -768,7 +805,7 @@ class UnitDict(dict):
                 xy2[:, 1] - xy1[:, 1]))
 
         self["mesh"]["data"][self.hvum.area.name] = area
-        self["total_wet_area"] = np.sum(area)
+        self.total_wet_area = np.sum(area)
 
     def c_mesh_sub_coarser(self):
         if self.hvum.sub_s12.name in self["mesh"]["data"].columns:

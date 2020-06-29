@@ -248,6 +248,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                 data_2d_merge.hvum.area.hdf5 = True
                 data_2d_merge.hvum.hdf5_and_computable_list.append(data_2d_merge.hvum.area)
 
+            # get_dimension
+            data_2d_merge.get_dimension()
+
     # progress
     progress_value.value = 90
 
