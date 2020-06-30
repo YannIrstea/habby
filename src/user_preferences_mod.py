@@ -59,7 +59,16 @@ class UserPreferences(AppDataFolders):
 
     # GENERAL
     def create_user_preferences_structure(self):
-        #print("create_user_preferences_structure")
+        # check if code is started from habby.py wd or another wd path
+        splited_path = os.getcwd().split("\\")
+        if "habby" in splited_path:
+            if splited_path.index("habby") != len(splited_path) - 1:
+                # change wd
+                os.chdir("\\".join(splited_path[:splited_path.index("habby") + 1]))
+                # create_appdata_folders
+                if not os.path.exists(self.user_pref_habby_user_settings_path):
+                    self.create_appdata_folders()
+
         # preferences
         self.create_and_clear_temp_folder()
         self.create_or_load_user_preferences()

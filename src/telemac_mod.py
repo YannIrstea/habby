@@ -37,7 +37,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.extensions_list = [".res", ".slf"]
         self.file_type = "binary"
         # simulation attributes
-        self.equation_type = ["FE"]
+        self.equation_type = "FE"
         # reach
         self.multi_reach = False
         self.reach_num = 1

@@ -729,6 +729,7 @@ class HydraulicVariableUnitManagement:
         if user_target_list.habs().to_compute():
             # h and v mesh available
             if self.h.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
+                # mesh
                 if self.h.name not in self.all_final_variable_list.hdf5s().meshs().names():
                     self.h.position = "mesh"
                     self.h.hdf5 = True
@@ -769,6 +770,14 @@ class HydraulicVariableUnitManagement:
                 self.area.position = "mesh"
                 self.area.hdf5 = True
                 self.all_final_variable_list.append(self.area)
+            # shear_stress
+            for variable_wish in user_target_list:
+                if variable_wish.aquatic_animal_type == "invertebrate":
+                    if self.shear_stress.name not in self.all_final_variable_list.hdf5s().meshs().names():
+                        self.shear_stress.position = "mesh"
+                        self.shear_stress.hdf5 = True
+                        self.all_final_variable_list.append(self.shear_stress)
+                    break
 
         else:
             """ node """

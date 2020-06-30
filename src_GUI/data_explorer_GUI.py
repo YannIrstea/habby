@@ -360,6 +360,16 @@ class DataExplorerFrame(QFrame):
                                 node_item.setToolTip("computable")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
+                    # habitatvalueremover_group
+                    if hdf5.hvum.hdf5_and_computable_list.meshs().habs().names_gui():
+                        for mesh in hdf5.hvum.hdf5_and_computable_list.habs().meshs():
+                            mesh_item = QListWidgetItem(mesh.name_gui, self.habitatvalueremover_group.existing_animal_QListWidget)
+                            mesh_item.setData(Qt.UserRole, mesh)
+                            if not mesh.hdf5:
+                                mesh_item.setText(mesh_item.text() + " *")
+                                mesh_item.setToolTip("computable")
+                            self.habitatvalueremover_group.existing_animal_QListWidget.addItem(mesh_item)
+
                     if hdf5.reach_name:
                         self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
                         if len(hdf5.reach_name) == 1:
@@ -368,6 +378,7 @@ class DataExplorerFrame(QFrame):
                                 self.plot_group.units_QListWidget.selectAll()
                             else:
                                 self.plot_group.units_QListWidget.setCurrentRow(0)
+
 
             # # change unit_type string
             # for element_index, _ in enumerate(hdf5.hdf5_attributes_info_text):
@@ -1414,18 +1425,18 @@ class HabitatValueRemover(QGroupBoxCollapsible):
             return
 
         # selected fish
-        selection = self.existing_animal_QListWidget.selectedItems()
-        fish_names = []
-        for i in range(len(selection)):
-            fish_names.append(selection[i].text())
+        hab_variable_list = []
+        for selection in self.existing_animal_QListWidget.selectedItems():
+            hab_variable_list.append(selection.data(Qt.UserRole).name)
 
         # remove
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
         hdf5.open_hdf5_file(False)
-        hdf5.remove_fish_hab(fish_names)
+        hdf5.remove_fish_hab(hab_variable_list)
 
         # refresh
         self.parent().names_hdf5_change()
+        self.parent().send_log.emit(", ".join(hab_variable_list) + " data has been removed in .hab file.")
 
 
 class FileInformation(QGroupBoxCollapsible):

@@ -620,9 +620,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 else:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_user)
                 item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
-                if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
+                if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"] or not self.current_hab_informations_dict["shear_stress_ok"]:  # not 2d or not z
                     if "HEM" in hydraulic_type_available:
                         item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setEnabled(False)
+                        item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setToolTip(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data.")
+                        self.hyd_mode_qtablewidget.selectRow(hydraulic_type_available.index("Neglect"))
                 item_combobox_hyd.setCurrentIndex(choosen_index)
                 item_combobox_hyd.currentIndexChanged.connect(self.color_hyd_combobox)
                 item_combobox_hyd.activated.connect(self.change_general_hyd_combobox)
@@ -725,6 +727,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             required_dict = dict(
                 dimension_ok=False,
                 z_presence_ok=False,
+                shear_stress_ok=False,
                 percentage_ok=False,
                 fish_list=[])
 
@@ -735,6 +738,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
                 required_dict["percentage_ok"] = True
             required_dict["fish_list"] = hdf5.hvum.hdf5_and_computable_list.meshs().habs().names()
+            if hdf5.hvum.shear_stress.name in hdf5.hvum.hdf5_and_computable_list.names():
+                required_dict["shear_stress_ok"] = True
 
             self.current_hab_informations_dict = required_dict
 
@@ -842,7 +847,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab.setDisabled(True)
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
-
         # get the figure options and the type of output to be created
         project_preferences = load_project_properties(self.path_prj)
 
@@ -852,12 +856,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_file_list = []
         stage_list = []
-        code_alternative_list = []
-        hyd_opt_list = []
-        sub_opt_list = []
         name_fish_sel = ''  # for the xml project file
-        aquatic_animal_type_list = []
-
         user_target_list = HydraulicVariableUnitList()
 
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
@@ -882,7 +881,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                              hyd_opt,
                                                              sub_opt,
                                                              user_preferences.biological_models_dict["aquatic_animal_type"][index_fish],
-                                                             user_preferences.biological_models_dict["model_type"],
+                                                             user_preferences.biological_models_dict["model_type"][index_fish],
                                                              user_preferences.biological_models_dict["path_xml"][index_fish])
 
         if user_target_list:

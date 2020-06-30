@@ -116,6 +116,7 @@ class HydraulicSimulationResultsBase:
         self.index_hydrau_file_path = os.path.join(self.folder_path, self.index_hydrau_file)
         # hydraulic attributes
         self.model_type = model_type
+        self.equation_type = "unknown"
         # exist ?
         if not os.path.isfile(self.filename_path) and os.path.splitext(self.filename_path)[1]:
             self.warning_list.append("Error: The file does not exist.")
@@ -154,6 +155,7 @@ class HydraulicSimulationResultsBase:
         # create empty list
         data_2d = Data2d(reach_num=len(self.reach_name_list),
                          unit_num=len(self.timestep_name_wish_list))
+        data_2d.equation_type = self.equation_type
         data_2d.hvum = self.hvum
         self.hvum.hdf5_and_computable_list.sort_by_names_gui()
         node_list = self.hvum.hdf5_and_computable_list.nodes()
@@ -163,7 +165,7 @@ class HydraulicSimulationResultsBase:
 
             for unit_num in range(len(self.timestep_name_wish_list)):
                 # node
-                data_2d[reach_num][unit_num]["node"]["xy"] = self.hvum.xy.data[reach_num][unit_num]
+                data_2d[reach_num][unit_num]["node"][self.hvum.xy.name] = self.hvum.xy.data[reach_num][unit_num]
                 data_2d[reach_num][unit_num]["node"]["data"] = pd.DataFrame()
                 for node_variable in node_list:
                     try:
@@ -172,8 +174,8 @@ class HydraulicSimulationResultsBase:
                         print("Error: node data not found : " + node_variable.name + " in get_data_2d.")
 
                 # mesh
-                data_2d[reach_num][unit_num]["mesh"]["tin"] = self.hvum.tin.data[reach_num][unit_num]
-                data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = np.column_stack([
+                data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name] = self.hvum.tin.data[reach_num][unit_num]
+                data_2d[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack([
                                     np.arange(0, self.hvum.tin.data[reach_num][unit_num].shape[0], dtype=self.hvum.i_whole_profile.dtype),
                                     np.repeat(0, self.hvum.tin.data[reach_num][unit_num].shape[0]).astype(self.hvum.i_split.dtype)])
                 data_2d[reach_num][unit_num]["mesh"]["data"] = pd.DataFrame()

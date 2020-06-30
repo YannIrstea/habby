@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -24,11 +24,13 @@ from pandas import DataFrame
 import src.tools_mod
 from src import hdf5_mod
 from src import bio_info_mod
-from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
+from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, \
+    pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 from src.tools_mod import get_translator
 
 
-def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False, project_preferences={}):
+def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False,
+                        project_preferences={}):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
@@ -86,13 +88,13 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     # progress
     progress_value.value = 20
 
-    warning_range_list = []
-
     # progress
     delta_reach = (90 - progress_value.value) / hdf5.data_2d.reach_num
 
     # for each reach
     for reach_num in range(hdf5.data_2d.reach_num):
+        warning_shearstress_list = []
+        warning_range_list = []
         # progress
         delta_unit = delta_reach / hdf5.data_2d.unit_num
         # for each unit
@@ -101,11 +103,13 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             delta_animal = delta_unit / len(animal_variable_list)
             # for each animal
             for animal in animal_variable_list:
+                """ get bio model """
                 # information_model_dict
                 information_model_dict = bio_info_mod.get_biomodels_informations_for_database(animal.pref_file)
                 # load bio data
-                pref_height, pref_vel, pref_sub, sub_code, code_fish, name_fish, stade_bios = bio_info_mod.read_pref(animal.pref_file,
-                                                                                                                       animal.aquatic_animal_type)
+                pref_height, pref_vel, pref_sub, sub_code, code_fish, name_fish, stade_bios = bio_info_mod.read_pref(
+                    animal.pref_file,
+                    animal.aquatic_animal_type)
                 # search stage
                 stage_index = None
                 for i, stade_bio in enumerate(stade_bios):
@@ -121,11 +125,11 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                     # if the last value ends in 0 then change the corresponding value to x at 100 m
                     if animal.model_type != 'bivariate suitability index models':
                         if pref_height[1][-1] == 0:
-                            #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m : ") + name_fish + " " + stade_bio)
+                            # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m : ") + name_fish + " " + stade_bio)
                             pref_height[0].append(1000)
                             pref_height[1].append(0)
                         if pref_vel[1][-1] == 0:
-                            #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x velocity value set to 100m/s : ") + name_fish + " " + stade_bio)
+                            # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x velocity value set to 100m/s : ") + name_fish + " " + stade_bio)
                             pref_vel[0].append(1000)
                             pref_vel[1].append(0)
 
@@ -133,22 +137,19 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 elif animal.aquatic_animal_type == "invertebrate":
                     pref_height = pref_height[stage_index]
                     if pref_height[-1] == 0:
-                        #print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m :") + name_fish + stade_bio)
+                        # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m :") + name_fish + stade_bio)
                         pref_height[-1] = 100
 
-                s_pref_c = 1
+                """ get 2d data """
+                height_t = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.data_2d.hvum.h.name].to_numpy()
+                vel_t = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.data_2d.hvum.v.name].to_numpy()
 
                 if animal.aquatic_animal_type == "invertebrate":
-                    warning_shearstress_list = []
-
-                height_t = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.data_2d.hvum.h.name]
-                vel_t = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.data_2d.hvum.v.name]
-                if animal.aquatic_animal_type == "invertebrate":
-                    shear_stress_t = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][
-                        hdf5.data_2d.hvum.shear_stress.name]
+                    shear_stress_t = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.data_2d.hvum.shear_stress.name].to_numpy()
                 ikle_t = hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"]
-                area = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"]["area"]
+                area = hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.data_2d.hvum.area.name]
 
+                """ compute habitat """
                 # univariate
                 if animal.model_type != 'bivariate suitability index models':
                     # HEM
@@ -238,10 +239,12 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                     s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
                             # Percentage
                             else:
-                                if information_model_dict["substrate_type"][stage_index] == "Dominant":  # dominant curve
+                                if information_model_dict["substrate_type"][
+                                    stage_index] == "Dominant":  # dominant curve
                                     s_pref_c = pref_substrate_dominant_from_percentage_description(
                                         pref_sub[1], sub_t)
-                                if information_model_dict["substrate_type"][stage_index] == "Dominant":  # dominant curve
+                                if information_model_dict["substrate_type"][
+                                    stage_index] == "Dominant":  # dominant curve
                                     s_pref_c = pref_substrate_coarser_from_percentage_description(
                                         pref_sub[1], sub_t)
 
@@ -249,7 +252,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         try:
                             # HV
                             if "H" in animal.hyd_opt and "V" in animal.hyd_opt:
-                                hv = h_pref_c * v_pref_c * s_pref_c
+                                hv = h_pref_c * v_pref_c * 1
                                 hv[h_pref_c == 0] = 0
                                 hv[v_pref_c == 0] = 0
                                 hv[s_pref_c == 0] = 0
@@ -300,9 +303,11 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 # compute summary
                 wua = np.nansum(hv * area)
                 if any(np.isnan(hv)):
-                    area = np.sum(hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.hvum.area.name][~np.isnan(hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name])])
+                    area = np.sum(hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][hdf5.hvum.area.name][
+                                      ~np.isnan(hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name])])
                     global_hv = wua / area
-                    percent_area_unknown = (1 - (area / hdf5.data_2d[reach_num][unit_num].total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
+                    percent_area_unknown = (1 - (area / hdf5.data_2d[reach_num][
+                        unit_num].total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
                 else:
                     global_hv = wua / hdf5.data_2d[reach_num][unit_num].total_wet_area
                     percent_area_unknown = 0.0
@@ -312,38 +317,39 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 animal.hv[reach_num].append(global_hv)
                 animal.percent_area_unknown[reach_num].append(percent_area_unknown)
 
-                # WARNINGS
-                if warning_range_list:
-                    warning_range_list = list(set(warning_range_list))
-                    warning_range_list.sort()
-                    # get unit name
-                    unit_names = []
-                    for warning_unit_num in warning_range_list:
-                        unit_names.append(hdf5.data_description["hyd_unit_list"][reach_num][warning_unit_num])
-                    print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
-                                                         "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
-                        "calcul_hab_mod",
-                        ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
-                          ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
-                                                                                  " of reach : ") + hdf5.data_description[
-                              "hyd_reach_list"])
-                # WARNINGS HEM
-                if animal.aquatic_animal_type == "invertebrate":
-                    if warning_shearstress_list:
-                        warning_shearstress_list.sort()
-                        # get unit name
-                        unit_names = []
-                        for warning_unit_num in warning_shearstress_list:
-                            unit_names.append(hdf5.data_description["hyd_unit_list"][reach_num][warning_unit_num])
-                        print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
-                                                             "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
-                            "calcul_hab_mod", ", the shear stress data present unknown values in unit(s) : ") +
-                              ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
-                                                                                      " of reach : ") +
-                              hdf5.data_description["hyd_reach_list"])
-
                 # progress
                 progress_value.value = int(progress_value.value + delta_animal)
+
+        # WARNINGS
+        if warning_range_list:
+            warning_range_list = list(set(warning_range_list))
+            warning_range_list.sort()
+            # get unit name
+            unit_names = []
+            for warning_unit_num in warning_range_list:
+                unit_names.append(hdf5.data_description["hyd_unit_list"][reach_num][warning_unit_num])
+            print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
+                                                 "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
+                "calcul_hab_mod",
+                ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
+                  ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
+                                                                          " of reach : ") +
+                  hdf5.data_description[
+                      "hyd_reach_list"])
+        # WARNINGS HEM
+        if animal.aquatic_animal_type == "invertebrate":
+            if warning_shearstress_list:
+                warning_shearstress_list.sort()
+                # get unit name
+                unit_names = []
+                for warning_unit_num in warning_shearstress_list:
+                    unit_names.append(hdf5.data_description["hyd_unit_list"][reach_num][warning_unit_num])
+                print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
+                                                     "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
+                    "calcul_hab_mod", ", the shear stress data present unknown values in unit(s) : ") +
+                      ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
+                                                                              " of reach : ") +
+                      hdf5.data_description["hyd_reach_list"])
 
     # progress
     progress_value.value = 90
