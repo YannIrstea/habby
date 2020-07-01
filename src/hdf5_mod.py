@@ -1124,6 +1124,19 @@ class Hdf5Management:
                 for fish_name_to_remove in fish_names_to_remove:
                     del mesh_hv_data_group[fish_name_to_remove]
 
+    # HYDROSIGNATURE
+    def add_hs(self):
+        # # TOTO:
+        # self.data_2d_hs = Data2d(reach_num=len(reach_list),
+        #                       unit_num=len(self.units_index))
+
+        # for each reach
+        for reach_num in range(self.data_2d.reach_num):
+            # for each unit
+            for unit_num in range(self.data_2d.unit_num):
+                aa = 1
+                total_area = self.data_2d[reach_num][unit_num].hs_total_area
+
     # ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
         # create a new hdf5
