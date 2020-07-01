@@ -1,6 +1,6 @@
 import numpy as np
 
-def hydrosignature_calculation(classhv,hyd_xy_node,hyd_tin,hyd_hv_node, hyd_data_node=None,  iwholeprofile=None, hyd_data_mesh=None, hyd_data_sub_mesh=None):
+def hydrosignature_calculation(classhv,hyd_tin,hyd_xy_node,hyd_hv_node, hyd_data_node=None,  iwholeprofile=None, hyd_data_mesh=None, hyd_data_sub_mesh=None):
     """
     Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
@@ -33,18 +33,57 @@ def hydrosignature_calculation(classhv,hyd_xy_node,hyd_tin,hyd_hv_node, hyd_data
             hs_data_mesh : hydraulic data affected to each hs mesh
             hs_data_sub_mesh : substrate data affected to hs merge mesh
     """
+    g = 9.80665 #value of gravitational acceleration on Earth [m**2/s]
     uncertainty=0.01 #a checking parameter for the algorithm
     translationxy = np.min(hyd_xy_node, axis=0)
     hyd_xy_node -= translationxy
 
+    # calculating the global hydraulic part of the hydrosignature
+    #aire_totale	volume_total	hauteur_moyenne	vitesse_moyenne	Froude_moyen	hauteur_min	hauteur_max	vitesse_min	vitesse_max
+    narea=0.5 * (np.abs(
+        (hyd_xy_node[hyd_tin[:, 1]][:, 0] - hyd_xy_node[hyd_tin[:, 0]][:, 0]) * (hyd_xy_node[hyd_tin[:, 2]][:, 1] - hyd_xy_node[hyd_tin[:, 0]][:, 1]) - (
+                hyd_xy_node[hyd_tin[:, 2]][:, 0] - hyd_xy_node[hyd_tin[:, 0]][:, 0]) * (hyd_xy_node[hyd_tin[:, 1]][:, 1] - hyd_xy_node[hyd_tin[:, 0]][:, 1])))
 
+    nhmean=(hyd_hv_node[hyd_tin[:, 0]][:, 0]+hyd_hv_node[hyd_tin[:, 1]][:, 0]+hyd_hv_node[hyd_tin[:, 2]][:, 0])/3
+    nvolume=narea*nhmean
+    nvmean=(hyd_hv_node[hyd_tin[:, 0]][:, 1]+hyd_hv_node[hyd_tin[:, 1]][:, 1]+hyd_hv_node[hyd_tin[:, 2]][:, 1])/3
+    #nfroudemean=np.abs(nvmean)/np.sqrt(np.abs(nhmean)*g)
+    f0=np.abs(hyd_hv_node[hyd_tin[:, 0]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 0]][:, 0]) * g)
+    f1=np.abs(hyd_hv_node[hyd_tin[:, 1]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 1]][:, 0]) * g)
+    f2=np.abs(hyd_hv_node[hyd_tin[:, 2]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 2]][:, 0]) * g)
+    f0[np.isnan(f0)]=0
+    f1[np.isnan(f1)] = 0
+    f2[np.isnan(f2)] = 0
+    nfroudemean = np.mean((f0,f1,f2))
+
+    total_area = np.sum(narea)
+    total_volume = np.sum(nvolume)
+    mean_depth=total_volume/total_area
+    mean_velocity= np.sum(nvolume*np.abs(nvmean))/total_volume
+    mean_froude =np.sum(nvolume*np.abs(nfroudemean))/total_volume
+    nhused=np.hstack((hyd_hv_node[hyd_tin[:, 0]][:, 0],hyd_hv_node[hyd_tin[:, 1]][:, 0],hyd_hv_node[hyd_tin[:, 2]][:, 0]))
+    nvused=np.hstack((hyd_hv_node[hyd_tin[:, 0]][:, 1],hyd_hv_node[hyd_tin[:, 1]][:, 1],hyd_hv_node[hyd_tin[:, 2]][:, 1]))
+    min_depth=np.min(nhused)  #np.min(hyd_hv_node[:, 0]) not used because some node cannot be called by the tin
+    max_depth=np.max(nhused)
+    min_velocity=np.min(nvused)
+    max_velocity=np.max(nvused)
 
 
     hs_xy_node=[]
-    cl_h, cl_v, nb_cl_h, nb_cl_v=checkhydrosigantureclasses(classhv)
+    bok,cl_h, cl_v, nb_cl_h, nb_cl_v=checkhydrosigantureclasses(classhv)
+    #checking wether an hydrosignature can be calculated
+    if bok==False:
+        print("there is a problem in the class definition hydrosignature cannot be calculated")
+        return
+    if min_depth<np.min(cl_h) or max_depth>np.max(cl_h):
+        print("there is a problem in the class definition  fo h some hydraulic values are off the definition hydrosignature cannot be calculated")
+        return
+    if min_velocity<np.min(cl_v) or max_velocity>np.max(cl_v):
+        print("there is a problem in the class definition  fo v some hydraulic values are off the definition hydrosignature cannot be calculated")
+        return
 
-    areameso = np.zeros((nb_cl_h, nb_cl_v), dtype=np.int64)
-    volumemeso = np.zeros((nb_cl_h, nb_cl_v), dtype=np.int64)
+    areameso = np.zeros((nb_cl_h, nb_cl_v), dtype=np.float64)
+    volumemeso = np.zeros((nb_cl_h, nb_cl_v), dtype=np.float64)
 
 
     for i in range(hyd_tin.size // 3):  # even if one single triangle for hyd_tin
@@ -98,10 +137,11 @@ def hydrosignature_calculation(classhv,hyd_xy_node,hyd_tin,hyd_hv_node, hyd_data
                             ib=0
                     if nbeltpoly2>5:
                         print("hydrosignature : polygonation contrary to the YLC theory while in phase poly2 MAJOR BUG !!!")
+                        return
                     elif  nbeltpoly2>=3:
 
                         for k2 in range(1,nbeltpoly2-1):
-                            area2, volume2 = areavolumepoly(poly1, 0, k2, k2+1)
+                            area2, volume2 = areavolumepoly(poly2, 0, k2, k2+1)
                             area12+=area2
                             volume12+=volume2
                             area23, volume23 = 0, 0
@@ -174,6 +214,7 @@ def hydrosignature_calculation(classhv,hyd_xy_node,hyd_tin,hyd_hv_node, hyd_data
                                     if nbeltpoly3 > 5:
                                         print(
                                             "hydrosignature : polygonation contrary to the YLC theory while in phase poly3 MAJOR BUG !!!")
+                                        return
                                     elif nbeltpoly3 >= 3:
                                         for k3 in range(1, nbeltpoly3 - 1):
                                             area3,volume3=areavolumepoly(poly3,0,k3,k3+1)
@@ -195,29 +236,48 @@ def hydrosignature_calculation(classhv,hyd_xy_node,hyd_tin,hyd_hv_node, hyd_data
             if np.abs(volume12 - volume1) / volume1 > uncertainty and volume1 > uncertainty:
                 print('Uncertainty allowed on the volume calculation, exceeded while in phase poly2 BUG ???')
 
+    #calculating percentages
+    hsarea=100*areameso/np.sum(areameso)
+    hsvolume = 100 * volumemeso / np.sum(volumemeso)
 
 
 
 
 
+    hyd_xy_node += translationxy
+
+    #TODO necessary for Horizontal Ramping Rate calculation
+    # hs_xy_node +=translationxy
+    # return hs_xy_node, hs_data_node, hs_tin, iwholeprofilehs, hs_data_mesh,hs_data_sub_mesh
+
+    return total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume
+
+def hscompare(classhv1,hs1,classhv2,hs2):
+    #checking validity of the operation
+    bok = False
+    cl_h1, cl_v1 = classhv1[0], classhv1[1]
+    cl_h2, cl_v2 = classhv2[0], classhv2[1]
+    if len(cl_h1)!=len(cl_h2) or len(cl_h1)!=len(cl_h2):
+        print("hydrosignatures comparison classes definitions must be identical to perform comparison")
+        return
+    if len([i for i, j in zip(cl_h2, cl_h1) if i != j]) != 0 or len([i for i, j in zip(cl_v2, cl_v1) if i != j]) != 0:
+        print("hydrosignatures comparison classes definitions must be identical to perform comparison")
+        return
+    nb_cl_h, nb_cl_v = len(cl_h1) - 1, len(cl_v1) - 1
+    if hs1.shape()!=(nb_cl_h, nb_cl_v ) or hs2.shape()!=(nb_cl_h, nb_cl_v ):
+        print("hydrosignatures comparison at least one of the two hydrosignature to compare is not coherent with the classes definitions impossible to perform comparison")
+        return
+
+    #TODO hsc calculation
+    hsc=0
 
 
-
-
-
-
-
-
-    hs_xy_node +=translationxy
-    hyd_xy_node +=translationxy
-    return hs_xy_node, hs_data_node, hs_tin, iwholeprofilehs, np.array(hs_data_mesh),hs_data_sub_mesh
-
-
-
+    bok = True
+    return bok, hsc
 
 def areavolumepoly(poly,ia,ib,ic):
-    area=np.abs((poly[x][ib]-poly[x][ia])*(poly[y][ic]-poly[y][ia])-(poly[x][ic]-poly[x][ia])*(poly[y][ib]-poly[y][ia]))/2
-    volume=area*np.mean((poly[h][ia],poly[h][ib],poly[h][ic]))
+    area=np.abs((poly['x'][ib]-poly['x'][ia])*(poly['y'][ic]-poly['y'][ia])-(poly['x'][ic]-poly['x'][ia])*(poly['y'][ib]-poly['y'][ia]))/2
+    volume=area*np.mean((poly['h'][ia],poly['h'][ib],poly['h'][ic]))
     return area,volume
 
 
@@ -231,6 +291,7 @@ def checkhydrosigantureclasses(classhv):
     :param classhv: a list of two lists [[h0,h1,...,hn] , [v0,v1,...,vm]] defining the hydrosignature grid
     :return cl_h= [h0,h1,...,hn],cl_v=[v0,v1,...,vm] ,nb_cl_h= n,nb_cl_v=m
     '''
+    bok=True
     if len(classhv) !=2:
         print("hydrosignature : there is not 2 classes h,v found")
     if isinstance(classhv[0], list)==False or isinstance(classhv[1], list)==False:
@@ -240,12 +301,16 @@ def checkhydrosigantureclasses(classhv):
     nb_cl_h,nb_cl_v=len(cl_h)-1,len(cl_v)-1
     if nb_cl_h<1 or nb_cl_v<1:
         print("hydrosignature : a classe h,v found have less than 2 elements")
-    if len(set(cl_h))!=nb_cl_h or len(set(cl_v))!=nb_cl_v:
+        bok = False
+    if len(set(cl_h))-1!=nb_cl_h or len(set(cl_v))-1!=nb_cl_v:
         print("hydrosignature : there are duplicates in the classes  h,v")
+        bok = False
     cl_h2, cl_v2=list(cl_h),list(cl_v)
-    if cl_h2.sort()!=cl_h or cl_v2.sort()!=cl_v:
-        print("hydrosignature : there  the classes  h,v are not sorted")
-    return cl_h,cl_v,nb_cl_h,nb_cl_v
+    cl_h2.sort();cl_v2.sort()
+    if len([i for i,j in zip(cl_h2,cl_h) if i!=j])!=0 or len([i for i,j in zip(cl_v2,cl_v) if i!=j])!=0 :
+        print("hydrosignature : the classes  h,v are not sorted")
+        bok = False
+    return bok,cl_h,cl_v,nb_cl_h,nb_cl_v
 
 
 
@@ -254,3 +319,13 @@ if __name__ == '__main__':
     '''
     testing the hydrosignature program
     '''
+    t = 0  # regarding this value different tests can be launched
+    if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
+        classhv=[[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3],[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5]]
+        hyd_tin=np.array([[0,1,3],[0,3,4],[1,2,3],[3,4,6],[3,6,7],[4,5,6]])
+        hyd_xy_node=np.array([[821128.213280755,1867852.71720679],[821128.302459342,1867853.34262438],[821128.314753232,1867854.93690708],[821131.385434587,1867854.6662084],[821132.187889633,1867852.67553172],[821136.547596803,1867851.73984275],[821136.717311027,1867853.21858062],[821137.825096539,1867853.68]])
+        hyd_hv_node=np.array([[1.076,0.128],[0.889999985694885,0.155],[0,0],[0,0],[0.829999983310699,0.145],[1.127,0.143],[0.600000023841858,0.182],[0,0]])
+
+    total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume=hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
+    print(total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume)
+
