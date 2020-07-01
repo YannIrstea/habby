@@ -252,7 +252,7 @@ def hydrosignature_calculation(classhv,hyd_tin,hyd_xy_node,hyd_hv_node, hyd_data
 
     return total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume
 
-def hscompare(classhv1,hs1,classhv2,hs2):
+def hscomparison(classhv1,hs1,classhv2,hs2,k1=1,k2=1):
     #checking validity of the operation
     bok = False
     cl_h1, cl_v1 = classhv1[0], classhv1[1]
@@ -264,16 +264,53 @@ def hscompare(classhv1,hs1,classhv2,hs2):
         print("hydrosignatures comparison classes definitions must be identical to perform comparison")
         return
     nb_cl_h, nb_cl_v = len(cl_h1) - 1, len(cl_v1) - 1
-    if hs1.shape()!=(nb_cl_h, nb_cl_v ) or hs2.shape()!=(nb_cl_h, nb_cl_v ):
+    if hs1.shape!=(nb_cl_h, nb_cl_v ) or hs2.shape!=(nb_cl_h, nb_cl_v ):
         print("hydrosignatures comparison at least one of the two hydrosignature to compare is not coherent with the classes definitions impossible to perform comparison")
         return
-
-    #TODO hsc calculation
-    hsc=0
+    hsf10 = np.zeros((nb_cl_h+2, nb_cl_v+2), dtype=np.float64)
+    hsf20 = np.zeros((nb_cl_h + 2, nb_cl_v + 2), dtype=np.float64)
+    hsf1 = np.zeros((nb_cl_h+2, nb_cl_v+2), dtype=np.float64)
+    hsf2 = np.zeros((nb_cl_h + 2, nb_cl_v + 2), dtype=np.float64)
+    hsf10[1:nb_cl_h + 1, 1:nb_cl_v + 1] = hs1
+    hsf20[1:nb_cl_h + 1, 1:nb_cl_v + 1] = hs2
+    for ih in range(nb_cl_h+2):
+        for iv in range(nb_cl_v+2):
+            hsf1[ih][iv]=hsf10[ih][iv]*k1;hsf2[ih][iv] = hsf20[ih][iv] * k1
+            if ih > 0 and iv > 0:
+                hsf1[ih][iv] += hsf10[ih - 1][iv - 1] * k2
+                hsf2[ih][iv] += hsf20[ih - 1][iv - 1] * k2
+            if iv > 0:
+                hsf1[ih][iv] += hsf10[ih][iv - 1] * k2
+                hsf2[ih][iv] += hsf20[ih][iv - 1] * k2
+            if ih < nb_cl_h + 1 and iv > 0:
+                hsf1[ih][iv] += hsf10[ih + 1][iv - 1] * k2
+                hsf2[ih][iv] += hsf20[ih + 1][iv - 1] * k2
+            if ih < nb_cl_h + 1:
+                hsf1[ih][iv] += hsf10[ih + 1][iv] * k2
+                hsf2[ih][iv] += hsf20[ih + 1][iv] * k2
+            if ih < nb_cl_h + 1 and iv < nb_cl_v + 1:
+                hsf1[ih][iv] += hsf10[ih + 1][iv + 1] * k2
+                hsf2[ih][iv] += hsf20[ih + 1][iv + 1] * k2
+            if iv < nb_cl_v + 1:
+                hsf1[ih][iv] += hsf10[ih][iv + 1] * k2
+                hsf2[ih][iv] += hsf20[ih][iv + 1] * k2
+            if ih > 0 and iv < nb_cl_v + 1:
+                hsf1[ih][iv] += hsf10[ih - 1][iv + 1] * k2
+                hsf2[ih][iv] += hsf20[ih - 1][iv + 1] * k2
+            if ih > 0:
+                hsf1[ih][iv] += hsf10[ih - 1][iv] * k2
+                hsf2[ih][iv] += hsf20[ih - 1][iv] * k2
+    hsf1 = hsf1 / (k1 + 8 * k2)
+    hsf2 = hsf2 / (k1 + 8 * k2)
+    hsc=np.sum(np.abs(hsf1-hsf2))/2
 
 
     bok = True
     return bok, hsc
+
+def hsexporttxt(pathexport,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume):
+    return
+
 
 def areavolumepoly(poly,ia,ib,ic):
     area=np.abs((poly['x'][ib]-poly['x'][ia])*(poly['y'][ic]-poly['y'][ia])-(poly['x'][ic]-poly['x'][ia])*(poly['y'][ib]-poly['y'][ia]))/2
@@ -328,4 +365,8 @@ if __name__ == '__main__':
 
     total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume=hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
     print(total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume)
+    print()
+    print()
+    bok, hsc=hscomparison(classhv,hsarea,classhv,hsvolume)
+    print(hsc)
 
