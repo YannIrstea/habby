@@ -1363,32 +1363,30 @@ class MyProcessList(QThread):
                                                                name=variable.name)
                                     self.process_list.append([process, state])
 
-                        # plot fish map
-                        for variable in self.hvum.user_target_list.habs():
+                        # plot animal map
+                        for animal_index, animal in enumerate(habitat_variable_list):
                             if not self.plot_production_stoped:
-
-                                for animal_index, animal in enumerate(habitat_variable_list):
-                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
-                                                                                   reach_name,
-                                                                                   units[unit_num],
-                                                                                   unit_type,
-                                                                                   animal.name,
-                                                                               "",
-                                                                                   string_tr,
-                                                                                   self.tr('HSI = ') + '{0:3.2f}'.format(animal.wua[reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_num][unit_num]) + " %")
-                                    state = Value("i", 0)
-                                    habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
-                                                                  args=(
-                                                                      state,
-                                                                      self.hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
-                                                                      self.hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                                                      self.hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name],
-                                                                      plot_string_dict,
-                                                                      data_description,
-                                                                      self.project_preferences
-                                                                  ),
-                                                                  name="plot_map_fish_habitat")
-                                    self.process_list.append([habitat_map_process, state])
+                                plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                                                               reach_name,
+                                                                               units[unit_num],
+                                                                               unit_type,
+                                                                               animal.name,
+                                                                           "",
+                                                                               string_tr,
+                                                                               self.tr('HSI = ') + '{0:3.2f}'.format(animal.hv[reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_num][unit_num]) + " %")
+                                state = Value("i", 0)
+                                habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
+                                                              args=(
+                                                                  state,
+                                                                  self.hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
+                                                                  self.hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                                                  self.hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name],
+                                                                  plot_string_dict,
+                                                                  data_description,
+                                                                  self.project_preferences
+                                                              ),
+                                                              name="plot_map_fish_habitat")
+                                self.process_list.append([habitat_map_process, state])
 
         self.nb_plot_total = len(self.process_list)
 
@@ -1480,13 +1478,6 @@ class MyProcessList(QThread):
                     # append fake first
                     self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
                     print('Warning: ' + 'No habitat data in this .hab file to export Fish informations report.')
-        #
-        # # start thread
-        # self.process_list.start()
-
-        # while progress_value.value != process_list.nb_export_total:
-        #     progress_value.value = process_list.nb_finished
-        # process_list.terminate()
 
     def new_plots(self):
         self.nb_finished = 0
