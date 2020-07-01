@@ -1,4 +1,5 @@
 import numpy as np
+import os.path
 
 def hydrosignature_calculation(classhv,hyd_tin,hyd_xy_node,hyd_hv_node, hyd_data_node=None,  iwholeprofile=None, hyd_data_mesh=None, hyd_data_sub_mesh=None):
     """
@@ -84,7 +85,7 @@ def hydrosignature_calculation(classhv,hyd_tin,hyd_xy_node,hyd_hv_node, hyd_data
 
     areameso = np.zeros((nb_cl_h, nb_cl_v), dtype=np.float64)
     volumemeso = np.zeros((nb_cl_h, nb_cl_v), dtype=np.float64)
-
+    nbmeshhs=0
 
     for i in range(hyd_tin.size // 3):  # even if one single triangle for hyd_tin
         xyo, xya, xyb = hyd_xy_node[hyd_tin[i][0]], hyd_xy_node[hyd_tin[i][1]], hyd_xy_node[hyd_tin[i][2]]
@@ -93,6 +94,7 @@ def hydrosignature_calculation(classhv,hyd_tin,hyd_xy_node,hyd_hv_node, hyd_data
         if deta == 0:
             print('before hs an hydraulic triangle have an area=0 ')
         else:
+            nbmeshhs+=1
             poly1={'x': [hyd_xy_node[hyd_tin[i][0]][0],hyd_xy_node[hyd_tin[i][1]][0],hyd_xy_node[hyd_tin[i][2]][0]] ,
                    'y': [hyd_xy_node[hyd_tin[i][0]][1], hyd_xy_node[hyd_tin[i][1]][1], hyd_xy_node[hyd_tin[i][2]][1]],
                 'h': [hyd_hv_node[hyd_tin[i][0]][0],hyd_hv_node[hyd_tin[i][1]][0],hyd_hv_node[hyd_tin[i][2]][0]] ,
@@ -250,7 +252,7 @@ def hydrosignature_calculation(classhv,hyd_tin,hyd_xy_node,hyd_hv_node, hyd_data
     # hs_xy_node +=translationxy
     # return hs_xy_node, hs_data_node, hs_tin, iwholeprofilehs, hs_data_mesh,hs_data_sub_mesh
 
-    return total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume
+    return nbmeshhs,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume
 
 def hscomparison(classhv1,hs1,classhv2,hs2,k1=1,k2=1):
     #checking validity of the operation
@@ -308,7 +310,41 @@ def hscomparison(classhv1,hs1,classhv2,hs2,k1=1,k2=1):
     bok = True
     return bok, hsc
 
-def hsexporttxt(pathexport,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume):
+def hsexporttxt(pathexport,filename,classhv,unitname,nbmeshhs,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume,no_unit=1,factor=1,mean_width=0):
+    ff=os.path.join(pathexport, filename)
+    f=open(ff, 'w')
+
+    f.write('hydrosignature built by HABBY'+ '\n')
+    cl_h, cl_v = classhv[0], classhv[1]
+    f.write('hw(m)'+ ' '+ ' '.join(str(elem) for elem in cl_h) + '\n')
+    f.write('v(m/s)' + ' ' + ' '.join(str(elem) for elem in cl_v) + '\n')
+    f.write('area_(m2)_volume_(m3)_mean_height_(m)_mean_velocity_(m/s)'+ '\n')
+    f.write('%_of_distribution_in_[height_HW|velocity_V]_combination_classes'+ '\n')
+    f.write('CAUTION_THE_PERCENTAGES_SUMS_DO_NOT_ALWAYS_EXACTLY_MATCH_100'+ '\n')
+    f.write('\n')
+    listhsglobal=['N_Unit','Unit','Factor','mean_width','nbelt_unit','total_area','total_volume','height_mean','velocity_mean','mean_Froude','min_height','max_height','min_velocity','max_velocity']
+    listclassarea=[]
+    listclassvolume = []
+    for kh in range(len(cl_h)-1):
+        for kv in range(len(cl_v)-1):
+            listclassarea.append('Area['+str(cl_h[kh])+'<=HW<'+str(cl_h[kh+1])+'|'+str(cl_v[kv])+'<=V<'+str(cl_v[kv+1])+']')
+            listclassvolume.append(
+                'Volume[' + str(cl_h[kh]) + '<=HW<' + str(cl_h[kh + 1]) + '|' + str(cl_v[kv]) + '<=V<' + str(
+                    cl_v[kv + 1]) + ']')
+
+
+    f.write( '\t'.join(listhsglobal)+ '\t' +'\t'.join(listclassarea)+ '\t' +'\t'.join(listclassvolume) + '\n' )
+    listhsglobalvalue=[no_unit,unitname,factor,mean_width,nbmeshhs,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity]
+
+
+    listclassareavalue=[]
+    listclassvolumevalue = []
+    for kh in range(len(cl_h)-1):
+        for kv in range(len(cl_v)-1):
+            listclassareavalue.append(str(hsarea[kh][kv]))
+            listclassvolumevalue.append(str(hsvolume[kh][kv]))
+    f.write('\t'.join(str(elem) for elem in listhsglobalvalue) + '\t' + '\t'.join(listclassareavalue) + '\t' + '\t'.join(listclassvolumevalue) + '\n')
+    f.close()
     return
 
 
@@ -363,10 +399,15 @@ if __name__ == '__main__':
         hyd_xy_node=np.array([[821128.213280755,1867852.71720679],[821128.302459342,1867853.34262438],[821128.314753232,1867854.93690708],[821131.385434587,1867854.6662084],[821132.187889633,1867852.67553172],[821136.547596803,1867851.73984275],[821136.717311027,1867853.21858062],[821137.825096539,1867853.68]])
         hyd_hv_node=np.array([[1.076,0.128],[0.889999985694885,0.155],[0,0],[0,0],[0.829999983310699,0.145],[1.127,0.143],[0.600000023841858,0.182],[0,0]])
 
-    total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume=hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
-    print(total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume)
+    nbmeshhs,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume=hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
+    print(nbmeshhs,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume)
     print()
     print()
-    bok, hsc=hscomparison(classhv,hsarea,classhv,hsvolume)
-    print(hsc)
+    #Test HSC
+    # bok, hsc=hscomparison(classhv,hsarea,classhv,hsvolume)
+    # print(hsc)
+
+    #Test export file
+    pathexport='C:\w';filename="3HSexport.txt";unitname='XXXXXXX'
+    hsexporttxt(pathexport,filename,classhv,unitname,nbmeshhs,total_area,total_volume,mean_depth,mean_velocity,mean_froude,min_depth,max_depth,min_velocity,max_velocity,hsarea,hsvolume)
 
