@@ -43,6 +43,7 @@ from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 from src_GUI import about_GUI
+from src_GUI import hs_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties,\
     create_project_structure, save_project_properties
@@ -1374,6 +1375,15 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
+            # hs_tab
+            if hasattr(self.central_widget, "hs_tab"):
+                if not self.central_widget.hs_tab:
+                    self.central_widget.hs_tab = hs_GUI.HsTab(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.hs_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.hs_tab = hs_GUI.HsTab(self.path_prj, self.name_prj)
+
             if hasattr(self.central_widget, "statmod_tab"):
                 if not self.central_widget.statmod_tab:
                     self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
@@ -1450,6 +1460,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.insertTab(3, self.central_widget.bioinfo_tab, self.tr("Habitat Calc."))  # 3
                 self.central_widget.tab_widget.insertTab(4, self.central_widget.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.central_widget.tab_widget.insertTab(5, self.central_widget.tools_tab, self.tr("Tools"))  # 5
+                self.central_widget.tab_widget.insertTab(6, self.central_widget.hs_tab, self.tr("Hydrosignature"))  # 5
+
             self.physic_tabs = True
         # save xml
         if self.name_prj:
@@ -1926,6 +1938,7 @@ class CentralW(QWidget):
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
+            self.hs_tab = hs_GUI.HsTab(path_prj, name_prj)
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
@@ -2032,6 +2045,7 @@ class CentralW(QWidget):
                 self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
                 self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
+                self.tab_widget.addTab(self.hs_tab, self.tr("Hydrosignature"))  # 5
             if go_stat:
                 self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 6
                 self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 7
@@ -2102,6 +2116,7 @@ class CentralW(QWidget):
             self.fstress_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
             self.tools_tab.send_log.connect(self.write_log)
+            self.hs_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
