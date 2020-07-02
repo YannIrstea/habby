@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0" language="en_US" sourcelanguage="">
+<!DOCTYPE TS>
+<TS version="2.1" language="pt" sourcelanguage="en">
 <context>
     <name>ASCII</name>
     <message>
@@ -3804,11 +3805,6 @@ Close them and try again.</source>
 <context>
     <name>WelcomeW</name>
     <message>
-        <location filename="Main_windows_1.py" line="2184"/>
-        <source>&lt;b&gt;Start working with HABBY &lt;/b&gt;</source>
-        <translation type="obsolete">&lt;b&gt; HABBY: Start here &lt;/b&gt;</translation>
-    </message>
-    <message>
         <location filename="../src_GUI/welcome_GUI.py" line="95"/>
         <source>Name:</source>
         <translation type="unfinished"></translation>
@@ -4181,7 +4177,7 @@ Close them and try again.</source>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
-    <message encoding="UTF-8">
+    <message>
         <location filename="../src/plot_mod.py" line="244"/>
         <source>HEM [HFST] / shear stress [N/m²]</source>
         <translation type="unfinished"></translation>
@@ -4277,7 +4273,7 @@ Close them and try again.</source>
 []</source>
         <translation type="unfinished"></translation>
     </message>
-    <message encoding="UTF-8">
+    <message>
         <location filename="../src/plot_mod.py" line="862"/>
         <source>WUA by 100 m
 [m²]</source>
