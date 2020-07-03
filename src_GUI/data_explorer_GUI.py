@@ -112,8 +112,9 @@ class DataExplorerFrame(QFrame):
         self.types_hdf5_QComboBox.currentIndexChanged.connect(self.types_hdf5_change)
         self.names_hdf5_QLabel = QLabel(self.tr('filenames'))
         self.names_hdf5_QListWidget = QListWidget()
+        self.names_hdf5_QListWidget.resizeEvent = self.resize_names_hdf5_qlistwidget
         self.names_hdf5_QListWidget.setObjectName("names_hdf5_QListWidget")
-        self.names_hdf5_QListWidget.setFixedHeight(500)
+        self.names_hdf5_QListWidget.setFixedHeight(100)
         # self.names_hdf5_QListWidget.setMaximumHeight(100)
         self.names_hdf5_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.names_hdf5_QListWidget.itemSelectionChanged.connect(self.names_hdf5_change)
@@ -177,26 +178,11 @@ class DataExplorerFrame(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         self.setFrameShape(QFrame.NoFrame)
 
-    def resize_width_lists(self):
-        # names
-        if self.names_hdf5_QListWidget.count() != 0:
-            self.names_hdf5_QListWidget.setFixedWidth(
-                self.names_hdf5_QListWidget.sizeHintForColumn(0) + self.names_hdf5_QListWidget.sizeHintForColumn(
-                    0) * 0.1)
-        if self.names_hdf5_QListWidget.count() == 0:
-            self.names_hdf5_QListWidget.setFixedWidth(150)
-        # variables
-        if self.variable_QListWidget.count() != 0:
-            self.variable_QListWidget.setFixedWidth(
-                self.variable_QListWidget.sizeHintForColumn(0) + self.variable_QListWidget.sizeHintForColumn(0) * 0.1)
-        else:
-            self.variable_QListWidget.setFixedWidth(50)
-        # units
-        if self.units_QListWidget.count() != 0:
-            self.units_QListWidget.setFixedWidth(
-                self.units_QListWidget.sizeHintForColumn(0) + self.units_QListWidget.sizeHintForColumn(0) * 0.1)
-        else:
-            self.units_QListWidget.setFixedWidth(50)
+    def resize_names_hdf5_qlistwidget(self, _):
+        """
+        with qdarkstyle,  names_hdf5_QListWidget height is reduced. GUI improved.
+        """
+        self.names_hdf5_QListWidget.setFixedHeight(100)
 
     def types_hdf5_change(self):
         """
