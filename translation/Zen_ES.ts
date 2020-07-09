@@ -658,57 +658,57 @@ velocity cross grid (Lecoarer 2007).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="136"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="137"/>
         <source>Figure viewer/exporter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="142"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="143"/>
         <source>Data exporter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="148"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="149"/>
         <source>Habitat value remover</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="154"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="155"/>
         <source>File informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="244"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="230"/>
         <source>unit(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="451"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="437"/>
         <source>Remove selected file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="452"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="438"/>
         <source>Remove selected file and refresh solftware informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="454"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="440"/>
         <source>Remove selected files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="455"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="441"/>
         <source>Remove selected files and refresh solftware informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="460"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="446"/>
         <source>Rename selected file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="461"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="447"/>
         <source>Rename selected file and refresh solftware informations</source>
         <translation type="unfinished"></translation>
     </message>
@@ -716,82 +716,82 @@ velocity cross grid (Lecoarer 2007).</source>
 <context>
     <name>DataExporterGroup</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1375"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1361"/>
         <source>run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1155"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1141"/>
         <source>Mesh whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1107"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1093"/>
         <source>Point whole profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1159"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1145"/>
         <source>Mesh units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1149"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1135"/>
         <source>Point units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1131"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1117"/>
         <source>Detailled mesh and points</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1165"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1151"/>
         <source>Global habitat values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1169"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1155"/>
         <source>Detailled habitat values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1174"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1160"/>
         <source>Report (figure extension)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1175"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1161"/>
         <source>Fish informations</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1309"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1295"/>
         <source> No hdf5 type selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1311"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1297"/>
         <source> No hdf5 file selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1313"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1299"/>
         <source> No export choosen.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1323"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1309"/>
         <source>stop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1360"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1346"/>
         <source>Export(s) stoped by user.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1380"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1366"/>
         <source>Export(s) done.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -904,53 +904,8 @@ velocity cross grid (Lecoarer 2007).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="741"/>
-        <source>Some data are empty or not float. Cannot run Estimhab</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="754"/>
-        <source>No fish selected. Cannot run Estimhab.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="757"/>
-        <source>Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="762"/>
-        <source>Target discharge is not between Qmin and Qmax. Cannot run Estimhab.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="766"/>
-        <source>Estimhab needs two differents measured discharges.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="769"/>
-        <source>Estimhab needs two different measured height.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="772"/>
-        <source>Estimhab needs two different measured width.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/estimhab_GUI.py" line="776"/>
         <source>Discharge, width, and height data are not coherent.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="780"/>
-        <source>Negative or zero data found. Could not run estimhab.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="783"/>
-        <source>Substrate is too large. Could not run estimhab.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -959,129 +914,174 @@ velocity cross grid (Lecoarer 2007).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="741"/>
+        <source>Some data are empty or not float. Cannot run ESTIMHAB</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="754"/>
+        <source>No fish selected. Cannot run ESTIMHAB.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="757"/>
+        <source>Minimum discharge bigger or equal to max discharge. Cannot run ESTIMHAB.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="762"/>
+        <source>Target discharge is not between Qmin and Qmax. Cannot run ESTIMHAB.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="766"/>
+        <source>ESTIMHAB needs two differents measured discharges.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="769"/>
+        <source>ESTIMHAB needs two different measured height.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="772"/>
+        <source>ESTIMHAB needs two different measured width.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="780"/>
+        <source>Negative or zero data found. Could not run ESTIMHAB.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/estimhab_GUI.py" line="783"/>
+        <source>Substrate is too large. Could not run ESTIMHAB.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src_GUI/estimhab_GUI.py" line="840"/>
-        <source>Estimhab computation done. Figure and text files created.</source>
+        <source>ESTIMHAB computation done. Figure and text files created.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>FigureProducerGroup</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="536"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="522"/>
         <source>mesh variables</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="543"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="529"/>
         <source>node variables</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="558"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="544"/>
         <source>reach(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="571"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="557"/>
         <source>unit(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="583"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="569"/>
         <source>View or export :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="981"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="967"/>
         <source>run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="607"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="593"/>
         <source>figure type :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="608"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="594"/>
         <source>map</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="614"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="600"/>
         <source>Global habitat values</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="905"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="891"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="863"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="849"/>
         <source>The selected files don&apos;t have same units !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="883"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="869"/>
         <source>No hdf5 type selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="885"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="871"/>
         <source>No hdf5 file selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="887"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="873"/>
         <source>No variable selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="889"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="875"/>
         <source>No reach selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="891"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="877"/>
         <source>No unit selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="893"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="879"/>
         <source>Selected variables and units not corresponding with figure type choices.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="897"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="883"/>
         <source>You cannot display more than 32 habitat values per graph. Current selected : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="897"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="883"/>
         <source>. Only the first 32 will be displayed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="905"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="891"/>
         <source>Displaying a large number of plots may crash HABBY. It is recommended not to exceed a total number of plots greater than 30 at a time. 
 
 Do you still want to display </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="905"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="891"/>
         <source> figures ?
 
 NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="966"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="952"/>
         <source>Figure(s) production stoped by user.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="985"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="971"/>
         <source>Figure(s) done.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1420,17 +1420,17 @@ NB : There is no limit for exports.</source>
 <context>
     <name>HabitatValueRemover</name>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1398"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1384"/>
         <source>Existing aquatic animal habitat values :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1404"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1390"/>
         <source>remove selected animals</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1425"/>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1411"/>
         <source>No file selected.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1679,11 +1679,6 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/tools_GUI.py" line="551"/>
-        <source>There no selected fish.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/tools_GUI.py" line="383"/>
         <source>Select file</source>
         <translation type="unfinished"></translation>
@@ -1709,11 +1704,6 @@ NB : There is no limit for exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/tools_GUI.py" line="557"/>
-        <source>There no .hab selected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/tools_GUI.py" line="497"/>
         <source>You cannot display more than 32 habitat values per graph. Current selected : </source>
         <translation type="unfinished"></translation>
@@ -1736,6 +1726,16 @@ NB : There is no limit for exports.</source>
     <message>
         <location filename="../src_GUI/tools_GUI.py" line="610"/>
         <source>File not exported as it may be opened by another program.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/tools_GUI.py" line="551"/>
+        <source>No fish selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/tools_GUI.py" line="557"/>
+        <source>No .hab selected.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

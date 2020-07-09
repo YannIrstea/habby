@@ -352,7 +352,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # ok
@@ -376,7 +376,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # find the filename based on user choice
@@ -471,14 +471,14 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         if not hdf5name:
-            self.send_log.emit('Error: ' + self.tr('There no .hab selected.'))
+            self.send_log.emit('Error: ' + self.tr('No .hab selected.'))
             return
 
         if self.mytablemodel:
@@ -548,13 +548,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
         if not hdf5name:
-            self.send_log.emit('Error: ' + self.tr('There no .hab selected.'))
+            self.send_log.emit('Error: ' + self.tr('No .hab selected.'))
             return
 
         if self.mytablemodel:

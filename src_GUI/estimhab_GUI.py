@@ -738,7 +738,7 @@ class EstimhabW(StatModUseful):
                     qtarget_values_list.append(float(qtarg_lineedit.text().replace(",", ".")))
             substrate = float(self.esub.text().replace(",", "."))
         except ValueError:
-            self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
+            self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run ESTIMHAB'))
             return
 
         # get the list of xml file
@@ -751,25 +751,25 @@ class EstimhabW(StatModUseful):
             fish_name2.append(fish_item_str)
         # check internal logic
         if not fish_list:
-            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run ESTIMHAB.'))
             return
         if qrange[0] >= qrange[1]:
-            self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
+            self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run ESTIMHAB.'))
             return
         if qtarget_values_list:
             for qtarg in qtarget_values_list:
                 if qtarg < qrange[0] or qtarg > qrange[1]:
                     self.send_log.emit(
-                        'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run Estimhab.'))
+                        'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run ESTIMHAB.'))
                     return
         if q[0] == q[1]:
-            self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
+            self.send_log.emit('Error: ' + self.tr('ESTIMHAB needs two differents measured discharges.'))
             return
         if h[0] == h[1]:
-            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured height.'))
+            self.send_log.emit('Error: ' + self.tr('ESTIMHAB needs two different measured height.'))
             return
         if w[0] == w[1]:
-            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured width.'))
+            self.send_log.emit('Error: ' + self.tr('ESTIMHAB needs two different measured width.'))
             return
         if (q[0] > q[1] and h[0] < h[1]) or (q[0] > q[1] and w[0] < w[1]) or (q[1] > q[0] and h[1] < h[0]) \
                 or (q[1] > q[0] and w[1] < w[0]):
@@ -777,10 +777,10 @@ class EstimhabW(StatModUseful):
             return
         if q[0] <= 0 or q[1] <= 0 or w[0] <= 0 or w[1] <= 0 or h[0] <= 0 or h[1] <= 0 or qrange[0] <= 0 or qrange[1] <= 0 \
                 or substrate <= 0 or q50 <= 0:
-            self.send_log.emit('Error: ' + self.tr('Negative or zero data found. Could not run estimhab.'))
+            self.send_log.emit('Error: ' + self.tr('Negative or zero data found. Could not run ESTIMHAB.'))
             return
         if substrate > 3:
-            self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run estimhab.'))
+            self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run ESTIMHAB.'))
             return
 
         self.send_log.emit(self.tr('# Computing: ESTIMHAB...'))
@@ -838,7 +838,7 @@ class EstimhabW(StatModUseful):
                 self.send_log.emit(str_found[i])
 
         self.send_log.emit(
-            self.tr("Estimhab computation done. Figure and text files created."))
+            self.tr("ESTIMHAB computation done. Figure and text files created."))
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')

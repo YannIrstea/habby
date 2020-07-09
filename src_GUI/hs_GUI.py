@@ -21,7 +21,8 @@ from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVa
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, \
+    QCheckBox, QListWidgetItem
 
 from src.tools_mod import QGroupBoxCollapsible
 from src.hydraulic_process_mod import MyProcessList
@@ -52,6 +53,44 @@ class HsTab(QScrollArea):
     def init_iu(self):
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
+        self.hsframe = HsFrame(self.path_prj, self.name_prj)
+        self.setWidget(self.hsframe)
 
     # load_hydraulic_cut_to_hdf5
 
+
+class HsFrame(QFrame):
+    def __init__(self, path_prj, name_prj):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+
+        self.initUI()
+
+    def initUI(self):
+        self.hsframelayout = QVBoxLayout()
+        cb = QCheckBox('Check the box', self)
+        # cb.move(20, 20)
+        cb.toggle()
+        hsinputlist = HsInputList(self.path_prj, self.name_prj)
+
+        self.hsframelayout.addWidget(cb)
+        self.hsframelayout.addWidget(hsinputlist)
+        self.setLayout(self.hsframelayout)
+
+
+class HsInputList(QListWidget):
+    def __init__(self, path_prj, name_prj):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.setSelectionMode(1)
+        for i in range(6):
+            # self.insertItem(i,["as", "armas", "e", "os", "barões", "assinalados"][i])
+            self.addItem(["as", "armas", "e", "os", "barões", "assinalados"][i])
+        filenames=os.listdir(path_prj+"\\hdf5")
+        self.hydfiles=[s for s in filenames if s.endswith(".hyd")]
+        self.addItems(self.hydfiles)
+        # for i in range(len(hydfiles)-1,-1,-1):
+        #     if not hydfiles[i].endswith("hyd"):
+        #         hydfiles.

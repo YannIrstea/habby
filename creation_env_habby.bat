@@ -2,15 +2,15 @@
 
 
 :::::::::::::::::::::::::::: CREATION ENVIRONNEMENT VIRTUEL POUR HABBY :::::::::::::::
-SET python_source_path=%USERPROFILE%\AppData\Local\Programs\Python\Python36\python.exe
+SET python_source_path=C:\Users\Leonardo\AppData\Local\Programs\Python\Python37-32\python.exe
 SET envir_virtuel_path=C:\habby_dev\env_virtuels\env_habby_dev
 SET habby_path=C:\habby_dev\habby
 
 :::::::::::::::::::::::::::: CREATION ENVIRONNEMENT VIRTUEL POUR HABBY :::::::::::::::
-%python_source_path% -m venv %envir_virtuel_path%
+python -m venv %envir_virtuel_path%
 
 :::::::::::::::::::::::::::: ACTIVATION ENVIRONNEMENT VIRTUEL :::::::::::::::
-::call %envir_virtuel_path%\Scripts\activate.bat
+call %envir_virtuel_path%\Scripts\activate.bat
 ::call %envir_virtuel_path%\Scripts\Deactivate
 
 
