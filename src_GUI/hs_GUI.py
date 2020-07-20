@@ -55,126 +55,128 @@ class HsTab(QScrollArea):
     def init_iu(self):
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
-        self.hsframe = HsFrame(self.path_prj, self.name_prj)
-        self.setWidget(self.hsframe)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.NoFrame)
+        # tools frame
+        tools_frame = QFrame()
+        tools_frame.setFrameShape(QFrame.NoFrame)
+        tools_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    # load_hydraulic_cut_to_hdf5
+        # file_selection
+        self.file_selection_label = QLabel(self.tr("Select a 2D mesh file :"))
+        self.file_selection_listwidget = QListWidget()
+        file_computed_layout = QHBoxLayout()
+        file_computed_label = QLabel(self.tr("HS value computed ?"))
+        self.file_computed_checkbox = QCheckBox()
+        file_computed_layout.addWidget(file_computed_label)
+        file_computed_layout.addWidget(self.file_computed_checkbox)
+        file_selection_layout = QVBoxLayout()
+        file_selection_layout.addWidget(self.file_selection_label)
+        file_selection_layout.addWidget(self.file_selection_listwidget)
+        file_selection_layout.addLayout(file_computed_layout)
 
+        # computing
+        self.computing_group = ComputingGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Computing"))
+        self.computing_group.setChecked(True)
 
-class HsFrame(QFrame):
-    def __init__(self, path_prj, name_prj):
-        super().__init__()
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.classhv = None
-        self.hyd_tin = None
-        self.xy_node = None
-        self.hv_node = None
-        self.nbreaches = 0  # should be an integer
+        # visual
+        self.visual_group = VisualGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Visualisation"))
+        self.visual_group.setChecked(True)
 
-        self.initUI()
+        # vertical layout
+        self.setWidget(tools_frame)
+        global_layout = QVBoxLayout()
+        global_layout.setAlignment(Qt.AlignTop)
+        tools_frame.setLayout(global_layout)
+        global_layout.addLayout(file_selection_layout)
+        global_layout.addWidget(self.computing_group)
+        global_layout.addWidget(self.visual_group)
+        global_layout.addStretch()
 
-    def initUI(self):
-        self.hsframelayout = QGridLayout()
+        # refresh_filenames
+        self.refresh_filenames()
 
-        hsinputlist = HsInputList(self.path_prj, self.name_prj)
-        # select file button
-        scfbutton = SelectFileButton(self.tr("Select class file"), self, "class")
-        shfbutton = SelectFileButton(self.tr("Select hydraulic data file"), self, "xyhv")
-        stfbutton = SelectFileButton(self.tr("Select TIN file"), self, "triangles")
-        self.classfilelabel = QLabel(self.tr("unknown"))
-        self.xyhvfilelabel = QLabel(self.tr("unknown"))
-        self.trianglefilelabel = QLabel(self.tr("unknown"))
-
-        # self.hsframelayout.addWidget(QLabel("available .hyd files"))
-        # self.hsframelayout.addWidget(hsinputlist)
-        self.hsframelayout.addWidget(QLabel(self.tr("Hydraulic classes: ")), 0, 0)
-        self.hsframelayout.addWidget(self.classfilelabel, 0, 1)
-        self.hsframelayout.addWidget(scfbutton, 0, 3)
-        self.hsframelayout.addWidget(QLabel(self.tr("Hydraulic data: ")), 1, 0)
-        self.hsframelayout.addWidget(self.xyhvfilelabel, 1, 1)
-        self.hsframelayout.addWidget(shfbutton, 1, 3)
-        self.hsframelayout.addWidget(QLabel(self.tr("Triangulated Irregular Network: ")), 2, 0)
-        self.hsframelayout.addWidget(self.trianglefilelabel, 2, 1)
-        self.hsframelayout.addWidget(stfbutton, 2, 3)
-        self.setLayout(self.hsframelayout)
+    def refresh_filenames(self):
+        # get list of file name by type
+        hyd_names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
+        hab_names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
+        names = hyd_names + hab_names
+        self.file_selection_listwidget.blockSignals(True)
+        self.file_selection_listwidget.clear()
+        if names:
+            self.file_selection_listwidget.addItems(names)
+        self.file_selection_listwidget.blockSignals(False)
 
     def open_class_file(self):
-        filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select hydraulic class file"),
-                                                  self.path_prj + "\\input", self.tr("Text files") + " (*.txt)")
-        try:
-            self.classhv = hydrosignature.hydraulic_class_from_file(filename)
-            self.classfilelabel.setText(filename.lstrip(self.path_prj))
-        except FileNotFoundError:
-            pass
-
-    def open_xyhv_file(self):
-        filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select hydraulic data file"),
-                                                  self.path_prj + "\\input",
-                                                  self.tr("Text or hdf5 files") + " (*.txt *.hyd *.hab)")
-        if filename.endswith(".txt"):
+            filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select hydraulic class file"),
+                                                      self.path_prj + "\\input", self.tr("Text files") + " (*.txt)")
             try:
-                self.xy_node, self.hv_node = hydrosignature.hydraulic_data_from_file(filename)
-                self.xyhvfilelabel.setText(filename.lstrip(self.path_prj))
-                self.nbreaches = 1
-            except FileNotFoundError:
-                pass
-        elif filename.endswith((".hyd", ".hab")):
-            try:
-                self.xy_node, self.hv_node, self.hyd_tin, self.reach_list = hydrosignature.hs_data_from_hdf5_file(
-                    filename)
-                # TODO write hs_data_from_hdf5_file function
-                self.xyhvfilelabel.setText(filename.lstrip(self.path_prj))
-                self.trianglefilelabel.setText(filename.lstrip(self.path_prj))
-                self.nbreaches = len(self.reach_list)
-
-                pass
-            except FileNotFoundError:
-                pass
-
-    def open_tin_file(self):
-        filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select Triangulated Irregular Network file"),
-                                                  self.path_prj + "\\input",
-                                                  self.tr("Text or hdf5 files") + " (*.txt *.hyd *.hab)")
-        if filename.endswith(".txt"):
-            try:
-                self.hyd_tin = hydrosignature.tin_from_file(filename)
-                # TODO write function to extract data from tin file
-                self.trianglefilelabel.setText(filename.lstrip(self.path_prj))
-            except FileNotFoundError:
-                pass
-        elif filename.endswith((".hyd", ".hab")):
-            try:
-                self.xy_node, self.hv_node, self.hyd_tin = hydrosignature.hs_data_from_hdf5_file(filename)
-                self.xyhvfilelabel.setText(filename.lstrip(self.path_prj))
-                self.trianglefilelabel.setText(filename.lstrip(self.path_prj))
+                self.classhv = hydrosignature.hydraulic_class_from_file(filename)
+                self.classfilelabel.setText(filename.lstrip(self.path_prj))
             except FileNotFoundError:
                 pass
 
 
-class HsInputList(QListWidget):
-    def __init__(self, path_prj, name_prj):
+class ComputingGroup(QGroupBoxCollapsible):
+    """
+    This class is a subclass of class QGroupBox.
+    """
+
+    def __init__(self, path_prj, name_prj, send_log, title):
         super().__init__()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.setSelectionMode(1)
-        filenames = os.listdir(path_prj + "\\hdf5")
-        self.hydfiles = [s for s in filenames if s.endswith(".hyd")]
-        self.addItems(self.hydfiles)
-        # for i in range(len(hydfiles)-1,-1,-1):
-        #     if not hydfiles[i].endswith("hyd"):
-        #         hydfiles.
+        self.send_log = send_log
+        self.path_last_file_loaded = self.path_prj
+        self.setTitle(title)
+        self.init_ui()
+
+    def init_ui(self):
+        input_class_label = QLabel(self.tr("Input class (.txt)"))
+        self.input_class_filename = QLabel(self.tr("..."))
+        self.input_class_pushbutton = QPushButton(self.tr("Select file"))
+        hs_export_txt_label = QLabel(self.tr("Export results (.txt)"))
+        self.hs_export_txt_checkbox = QCheckBox()
+        hs_export_mesh_label = QLabel(self.tr("Export mesh results (.hyd or .hab)"))
+        self.hs_export_mesh_checkbox = QCheckBox()
+        self.computation_pushbutton = QPushButton(self.tr("run"))
+
+        grid_layout = QGridLayout()
+        grid_layout.addWidget(input_class_label, 0, 0)
+        grid_layout.addWidget(self.input_class_filename, 0, 1)
+        grid_layout.addWidget(self.input_class_pushbutton, 0, 2)
+        grid_layout.addWidget(hs_export_txt_label, 1, 0)
+        grid_layout.addWidget(self.hs_export_txt_checkbox, 1, 2, alignment=Qt.AlignCenter)
+        grid_layout.addWidget(hs_export_mesh_label, 2, 0)
+        grid_layout.addWidget(self.hs_export_mesh_checkbox, 2, 2, alignment=Qt.AlignCenter)
+        grid_layout.addWidget(self.computation_pushbutton, 3, 2)
+
+        self.setLayout(grid_layout)
 
 
-class SelectFileButton(QPushButton):
-    def __init__(self, label, frame, filetype):
-        super(SelectFileButton, self).__init__(label, frame)
-        if filetype == "class":
-            self.clicked.connect(frame.open_class_file)
-        elif filetype == "xyhv":
-            self.clicked.connect(frame.open_xyhv_file)
-        elif filetype == "triangles":
-            self.clicked.connect(frame.open_tin_file)
+class VisualGroup(QGroupBoxCollapsible):
+    """
+    This class is a subclass of class QGroupBox.
+    """
 
-    # def select_file(self):
-    #     fileName, _ = QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()", "", "All Files (*);;Python Files (*.py)")
+    def __init__(self, path_prj, name_prj, send_log, title):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.send_log = send_log
+        self.path_last_file_loaded = self.path_prj
+        self.setTitle(title)
+        self.init_ui()
+
+    def init_ui(self):
+        self.input_pushbutton = QPushButton(self.tr("show input classes"))
+        self.output_pushbutton = QPushButton(self.tr("show output results"))
+
+        grid_layout = QGridLayout()
+        grid_layout.addWidget(self.input_pushbutton, 0, 0)
+        grid_layout.addWidget(self.output_pushbutton, 1, 0)
+
+        self.setLayout(grid_layout)
