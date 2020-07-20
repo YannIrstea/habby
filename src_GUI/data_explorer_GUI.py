@@ -42,6 +42,7 @@ class DataExplorerTab(QScrollArea):
     def __init__(self, path_prj, name_prj):
         super().__init__()
         self.tab_name = "data explorer"
+        self.tab_position = 4
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj

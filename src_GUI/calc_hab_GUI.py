@@ -50,6 +50,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         super().__init__()
 
         self.tab_name = "calc hab"
+        self.tab_position = 3
         self.lang = lang
         self.path_prj = path_prj
         self.name_prj = name_prj

@@ -112,6 +112,7 @@ class Hydro2W(QScrollArea):
 
         super(Hydro2W, self).__init__()
         self.tab_name = "hydraulic"
+        self.tab_position = 1
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.hydraulic_model_information = HydraulicModelInformation()
@@ -4142,6 +4143,7 @@ class SubstrateW(SubHydroW):
         super(SubstrateW, self).__init__(path_prj, name_prj)
         # update attribute
         self.tab_name = "substrate"
+        self.tab_position = 2
         self.sub_description = None
         self.attributexml = ['substrate_path', 'att_name']
         self.model_type = 'SUBSTRATE'

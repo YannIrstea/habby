@@ -94,7 +94,7 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION_STR)
-        self.beta = True  # if set to True : GUI beta version mode is runned (block fonctionality)
+        self.beta = False  # if set to True : GUI beta version mode is runned (block fonctionality)
 
         # operating system
         self.operatingsystemactual = operatingsystem()
@@ -1476,12 +1476,24 @@ class MainWindows(QMainWindow):
                     self.physic_tabs = False
         elif not self.physic_tabs:
             if self.name_prj:
-                self.central_widget.tab_widget.insertTab(1, self.central_widget.hydro_tab, self.tr("Hydraulic"))  # 1
-                self.central_widget.tab_widget.insertTab(2, self.central_widget.substrate_tab, self.tr("Substrate"))  # 2
-                self.central_widget.tab_widget.insertTab(3, self.central_widget.bioinfo_tab, self.tr("Habitat Calc."))  # 3
-                self.central_widget.tab_widget.insertTab(4, self.central_widget.data_explorer_tab, self.tr("Data explorer"))  # 4
-                self.central_widget.tab_widget.insertTab(5, self.central_widget.tools_tab, self.tr("Tools"))  # 5
-                self.central_widget.tab_widget.insertTab(6, self.central_widget.hs_tab, self.tr("Hydrosignature"))  # 5
+                self.central_widget.tab_widget.insertTab(self.central_widget.hydro_tab.tab_position,
+                                                         self.central_widget.hydro_tab,
+                                                         self.tr("Hydraulic"))  # 1
+                self.central_widget.tab_widget.insertTab(self.central_widget.substrate_tab.tab_position,
+                                                         self.central_widget.substrate_tab,
+                                                         self.tr("Substrate"))  # 2
+                self.central_widget.tab_widget.insertTab(self.central_widget.bioinfo_tab.tab_position,
+                                                         self.central_widget.bioinfo_tab,
+                                                         self.tr("Habitat Calc."))  # 3
+                self.central_widget.tab_widget.insertTab(self.central_widget.data_explorer_tab.tab_position,
+                                                         self.central_widget.data_explorer_tab,
+                                                         self.tr("Data explorer"))  # 4
+                self.central_widget.tab_widget.insertTab(self.central_widget.tools_tab.tab_position,
+                                                         self.central_widget.tools_tab,
+                                                         self.tr("Tools"))  # 5
+                self.central_widget.tab_widget.insertTab(self.central_widget.hs_tab.tab_position,
+                                                         self.central_widget.hs_tab,
+                                                         self.tr("Hydrosignature"))  # 6
 
             self.physic_tabs = True
         # save xml
@@ -1503,14 +1515,16 @@ class MainWindows(QMainWindow):
                             self.central_widget.tab_widget.removeTab(i)
                     self.stat_tabs = False
         elif not self.stat_tabs:
-            if self.physic_tabs:
-                start_index = 6
-            else:
-                start_index = 1
             if self.name_prj:
-                self.central_widget.tab_widget.insertTab(start_index, self.central_widget.statmod_tab, self.tr("ESTIMHAB"))  # 6
-                self.central_widget.tab_widget.insertTab(start_index + 1, self.central_widget.stathab_tab, self.tr("STATHAB"))  # 7
-                self.central_widget.tab_widget.insertTab(start_index + 2, self.central_widget.fstress_tab, self.tr("FStress"))  # 8
+                self.central_widget.tab_widget.insertTab(self.central_widget.statmod_tab.tab_position,
+                                                         self.central_widget.statmod_tab,
+                                                         self.tr("ESTIMHAB"))  # 6
+                self.central_widget.tab_widget.insertTab(self.central_widget.stathab_tab.tab_position,
+                                                         self.central_widget.stathab_tab,
+                                                         self.tr("STATHAB"))  # 7
+                self.central_widget.tab_widget.insertTab(self.central_widget.fstress_tab.tab_position,
+                                                         self.central_widget.fstress_tab,
+                                                         self.tr("FStress"))  # 8
             self.stat_tabs = True
         # save xml
         if self.name_prj:
@@ -2066,14 +2080,14 @@ class CentralW(QWidget):
                 self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
                 self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
-                self.tab_widget.addTab(self.hs_tab, self.tr("Hydrosignature"))  # 5
+                self.tab_widget.addTab(self.hs_tab, self.tr("Hydrosignature"))  # 6
             if go_stat:
-                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 6
-                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 7
-                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 8
+                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 7
+                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 8
+                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 9
             if go_research:
-                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 9
-                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 10
+                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 10
+                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 11
             self.welcome_tab.current_prj_groupbox.setEnabled(True)
         # if the project do not exist, do not add new tab
         else:
