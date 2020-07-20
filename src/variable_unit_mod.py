@@ -23,10 +23,12 @@ class HydraulicVariable:
     """
     Represent one Hydraulic, substrate and habitat variable or value.
     """
-    def __init__(self, name="", name_gui="", dtype=None, unit="", position="", value=None, hdf5=False,
+
+    def __init__(self, name="", name_gui="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
                  sub=False, habitat=False, index_gui=-1, depend_on_h=True):
         self.name = name  # to manage them
         self.name_gui = name_gui  # to gui
+        self.descr = descr  # description string
         self.unit = unit  # string unit
         self.dtype = dtype  # float64 or int64
         self.position = position  # node, mesh, (possible face ?)
@@ -58,6 +60,7 @@ class HydraulicVariableUnitList(list):
     """
     Represent one Hydraulic, substrate and habitat variable or value.
     """
+
     def __init__(self):
         super().__init__()
 
@@ -78,7 +81,7 @@ class HydraulicVariableUnitList(list):
             hydraulic_variable2.aquatic_animal_type = hydraulic_variable.aquatic_animal_type
 
             super(HydraulicVariableUnitList, self).append(hydraulic_variable2)
-            #self.sort_by_names_gui()
+            # self.sort_by_names_gui()
 
     def extend(self, hydraulic_variable_list):
         """
@@ -87,18 +90,19 @@ class HydraulicVariableUnitList(list):
         super(HydraulicVariableUnitList, self).extend(hydraulic_variable_list)
         self.sort_by_names_gui()
 
-    def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, aquatic_animal_type, model_type, pref_file):
+    def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, aquatic_animal_type, model_type,
+                                    pref_file):
         # animal name
         name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt
         # create variable
         hab_variable = HydraulicVariable(value=None,
-                                     unit="HSI",
-                                     name=name,
-                                     name_gui=name,
-                                     position="mesh",
-                                     dtype=np.float64,
-                                     index_gui=-1,
-                                     habitat=True)
+                                         unit="HSI",
+                                         name=name,
+                                         name_gui=name,
+                                         position="mesh",
+                                         dtype=np.float64,
+                                         index_gui=-1,
+                                         habitat=True)
         # extra attributes
         hab_variable.precomputable_tohdf5 = True
         hab_variable.pref_file = pref_file
@@ -121,6 +125,7 @@ class HydraulicVariableUnitList(list):
         super(HydraulicVariableUnitList, self).pop(index)
 
     """ get attribute list """
+
     def names(self):
         names_list = []
         for hvu in self:
@@ -161,6 +166,7 @@ class HydraulicVariableUnitList(list):
         return aquatic_animal_types_list
 
     """ filters """
+
     def nodes(self):
         node_list = HydraulicVariableUnitList()
         for hvu in self:
@@ -232,6 +238,7 @@ class HydraulicVariableUnitList(list):
         return no_depend_on_h_list
 
     """ select """
+
     def get_from_name(self, name):
         return self[self.names().index(name)]
 
@@ -255,43 +262,49 @@ class HydraulicVariableUnitManagement:
                                    depend_on_h=False)
         # struct
         self.i_whole_profile = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="i_whole_profile",
-                                     name_gui="i_whole_profile",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     depend_on_h=False)
+                                                 unit="",
+                                                 name="i_whole_profile",
+                                                 name_gui="i_whole_profile",
+                                                 descr="mesh whole profile index",
+                                                 dtype=np.int64,
+                                                 index_gui=getframeinfo(currentframe()).lineno,
+                                                 depend_on_h=False)
         self.i_split = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="i_split",
-                                     name_gui="i_split",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     depend_on_h=False)
+                                         unit="",
+                                         name="i_split",
+                                         name_gui="i_split",
+                                         descr="mesh cutting index",
+                                         dtype=np.int64,
+                                         index_gui=getframeinfo(currentframe()).lineno,
+                                         depend_on_h=False)
         self.i_sub_defaut = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="i_sub_defaut",
-                                     name_gui="i_sub_defaut",
-                                  index_gui=getframeinfo(currentframe()).lineno,
-                                  dtype=np.int64,
-                                   depend_on_h=False)
+                                              unit="",
+                                              name="i_sub_defaut",
+                                              name_gui="i_sub_defaut",
+                                              descr="mesh default substrate index",
+                                              index_gui=getframeinfo(currentframe()).lineno,
+                                              dtype=np.int64,
+                                              depend_on_h=False)
         # coordinate variables
         self.tin = HydraulicVariable(value=None,
                                      unit="",
                                      name="tin",
                                      name_gui="tin",
+                                     descr="Triangular Interpolation Network",
                                      dtype=np.int64,
-                                   depend_on_h=False)
+                                     depend_on_h=False)
         self.xy = HydraulicVariable(value=None,
                                     unit="m",
                                     name="xy",
                                     name_gui="xy",
+                                    descr="xy coordinates",
                                     dtype=np.float64,
-                                   depend_on_h=False)
+                                    depend_on_h=False)
         self.z = HydraulicVariable(value=None,
                                    unit="m",
                                    name="z",
                                    name_gui="elevation",
+                                   descr="bottom elevation",
                                    dtype=np.float64,
                                    index_gui=getframeinfo(currentframe()).lineno,
                                    depend_on_h=False)
@@ -309,126 +322,126 @@ class HydraulicVariableUnitManagement:
                                    dtype=np.float64,
                                    index_gui=getframeinfo(currentframe()).lineno)
         self.area = HydraulicVariable(value=None,
-                                   unit="m²",
-                                   name="area",
-                                   name_gui="area",
-                                   dtype=np.float64,
-                                    position="mesh",
-                                   index_gui=getframeinfo(currentframe()).lineno,
-                                   depend_on_h=False)
+                                      unit="m²",
+                                      name="area",
+                                      name_gui="area",
+                                      dtype=np.float64,
+                                      position="mesh",
+                                      index_gui=getframeinfo(currentframe()).lineno,
+                                      depend_on_h=False)
         # sub variable
         self.sub_coarser = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_coarser",
-                                     name_gui="sub coarser",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                             unit="",
+                                             name="sub_coarser",
+                                             name_gui="sub coarser",
+                                             dtype=np.int64,
+                                             index_gui=getframeinfo(currentframe()).lineno,
+                                             sub=True,
+                                             depend_on_h=False)
         self.sub_dom = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_dom",
-                                     name_gui="sub dominant",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                         unit="",
+                                         name="sub_dom",
+                                         name_gui="sub dominant",
+                                         dtype=np.int64,
+                                         index_gui=getframeinfo(currentframe()).lineno,
+                                         sub=True,
+                                         depend_on_h=False)
         self.sub_s1 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s1",
-                                     name_gui="sub S1",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s1",
+                                        name_gui="sub S1",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s2 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s2",
-                                     name_gui="sub S2",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s2",
+                                        name_gui="sub S2",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s3 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s3",
-                                     name_gui="sub S3",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s3",
+                                        name_gui="sub S3",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s4 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s4",
-                                     name_gui="sub S4",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s4",
+                                        name_gui="sub S4",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s5 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s5",
-                                     name_gui="sub S5",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s5",
+                                        name_gui="sub S5",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s6 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s6",
-                                     name_gui="sub S6",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s6",
+                                        name_gui="sub S6",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s7 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s7",
-                                     name_gui="sub S7",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s7",
+                                        name_gui="sub S7",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s8 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s8",
-                                     name_gui="sub S8",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s8",
+                                        name_gui="sub S8",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s9 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s9",
-                                     name_gui="sub S9",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                        unit="",
+                                        name="sub_s9",
+                                        name_gui="sub S9",
+                                        dtype=np.int64,
+                                        index_gui=getframeinfo(currentframe()).lineno,
+                                        sub=True,
+                                        depend_on_h=False)
         self.sub_s10 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s10",
-                                     name_gui="sub S10",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                         unit="",
+                                         name="sub_s10",
+                                         name_gui="sub S10",
+                                         dtype=np.int64,
+                                         index_gui=getframeinfo(currentframe()).lineno,
+                                         sub=True,
+                                         depend_on_h=False)
         self.sub_s11 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s11",
-                                     name_gui="sub S11",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                         unit="",
+                                         name="sub_s11",
+                                         name_gui="sub S11",
+                                         dtype=np.int64,
+                                         index_gui=getframeinfo(currentframe()).lineno,
+                                         sub=True,
+                                         depend_on_h=False)
         self.sub_s12 = HydraulicVariable(value=None,
-                                     unit="",
-                                     name="sub_s12",
-                                     name_gui="sub S12",
-                                     dtype=np.int64,
-                                     index_gui=getframeinfo(currentframe()).lineno,
-                                     sub=True,
-                                   depend_on_h=False)
+                                         unit="",
+                                         name="sub_s12",
+                                         name_gui="sub S12",
+                                         dtype=np.int64,
+                                         index_gui=getframeinfo(currentframe()).lineno,
+                                         sub=True,
+                                         depend_on_h=False)
         # hyd variable other
         self.v_x = HydraulicVariable(value=None,
                                      unit="m/s",
@@ -490,7 +503,7 @@ class HydraulicVariableUnitManagement:
                                                   name_gui="max slope bottom",
                                                   dtype=np.float64,
                                                   index_gui=getframeinfo(currentframe()).lineno,
-                                   depend_on_h=False)
+                                                  depend_on_h=False)
         self.max_slope_energy = HydraulicVariable(value=None,
                                                   unit="m/m",
                                                   name="max_slope_energy",
@@ -503,7 +516,7 @@ class HydraulicVariableUnitManagement:
                                       name_gui="temperature",
                                       dtype=np.float64,
                                       index_gui=getframeinfo(currentframe()).lineno,
-                                   depend_on_h=False)
+                                      depend_on_h=False)
 
         # all_available_variables_list
         self.all_sys_variable_list = HydraulicVariableUnitList()
@@ -614,17 +627,18 @@ class HydraulicVariableUnitManagement:
         # detect_variable_from_software_attribute
         for varname_index, varname in enumerate(varnames):
             variable = HydraulicVariable(value=None,
-                                       unit="HSI",
-                                       name=varname,
-                                       name_gui=varname,
-                                       hdf5=True,
-                                       position="mesh",
-                                       dtype=np.float64,
-                                       index_gui=-1,
-                                       habitat=True)
+                                         unit="HSI",
+                                         name=varname,
+                                         name_gui=varname,
+                                         hdf5=True,
+                                         position="mesh",
+                                         dtype=np.float64,
+                                         index_gui=-1,
+                                         habitat=True)
             self.hdf5_and_computable_list.append(variable)
 
-    def get_original_computable_mesh_and_node_from_hyd(self, mesh_variable_original_name_list, node_variable_original_name_list):
+    def get_original_computable_mesh_and_node_from_hyd(self, mesh_variable_original_name_list,
+                                                       node_variable_original_name_list):
         """
         no hab.
         """
@@ -1056,4 +1070,3 @@ class HydraulicVariableUnitManagement:
             # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs().names())
             # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes().names())
             # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs().names())
-

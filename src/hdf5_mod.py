@@ -312,30 +312,30 @@ class Hdf5Management:
 
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
-                mesh_group.create_dataset(name="tin",
-                                          shape=data_2d_whole[reach_num][unit_num]["mesh"]["tin"].shape,
-                                          data=data_2d_whole[reach_num][unit_num]["mesh"]["tin"])
+                mesh_group.create_dataset(name=self.hvum.tin.name,
+                                          shape=data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name].shape,
+                                          data=data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name])
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
-                node_group.create_dataset(name="xy",
-                                          shape=data_2d_whole[reach_num][unit_num]["node"]["xy"].shape,
-                                          data=data_2d_whole[reach_num][unit_num]["node"]["xy"])
+                node_group.create_dataset(name=self.hvum.xy.name,
+                                          shape=data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name].shape,
+                                          data=data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name])
                 if self.data_description["hyd_unit_z_equal"]:
-                    node_group.create_dataset(name="z",
-                                              shape=data_2d_whole[reach_num][0]["node"]["z"].shape,
-                                              data=data_2d_whole[reach_num][0]["node"]["z"])
+                    node_group.create_dataset(name=self.hvum.z.name,
+                                              shape=data_2d_whole[reach_num][0]["node"][self.hvum.z.name].shape,
+                                              data=data_2d_whole[reach_num][0]["node"][self.hvum.z.name])
                 else:
                     if not self.data_description["hyd_varying_mesh"]:
                         for unit_num2 in range(int(self.data_description["hyd_unit_number"])):
                             unit_group = reach_group.create_group('unit_' + str(unit_num2))
                             node_group = unit_group.create_group('node')
-                            node_group.create_dataset(name="z",
-                                                      shape=data_2d_whole[reach_num][unit_num2]["node"]["z"].shape,
-                                                      data=data_2d_whole[reach_num][unit_num2]["node"]["z"])
+                            node_group.create_dataset(name=self.hvum.z.name,
+                                                      shape=data_2d_whole[reach_num][unit_num2]["node"][self.hvum.z.name].shape,
+                                                      data=data_2d_whole[reach_num][unit_num2]["node"][self.hvum.z.name])
                     else:
-                        node_group.create_dataset(name="z",
-                                                  shape=data_2d_whole[reach_num][unit_num]["node"]["z"].shape,
-                                                  data=data_2d_whole[reach_num][unit_num]["node"]["z"])
+                        node_group.create_dataset(name=self.hvum.z.name,
+                                                  shape=data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name].shape,
+                                                  data=data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name])
 
     def write_data_2d(self, data_2d):
         # data_2d
@@ -352,14 +352,17 @@ class Hdf5Management:
                 if self.extension == ".hab":
                     mesh_group.create_group("hv_data")  # always an empty group for futur calc hab
                 # tin
-                mesh_group.create_dataset(name="tin",
+                tin_dataset = mesh_group.create_dataset(name=self.hvum.tin.name,
                                           shape=data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name].shape,
                                           data=data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])
+                tin_dataset.attrs[self.hvum.tin.name] = self.hvum.tin.descr
                 # i_whole_profile
                 if self.extension == ".hyd" or self.extension == ".hab":
-                    mesh_group.create_dataset(name="i_whole_profile",
-                                              shape=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"].shape,
-                                              data=data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"])
+                    i_whole_profile_dataset = mesh_group.create_dataset(name=self.hvum.i_whole_profile.name,
+                                              shape=data_2d[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name].shape,
+                                              data=data_2d[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name])
+                    i_whole_profile_dataset.attrs[self.hvum.i_whole_profile.name] = self.hvum.i_whole_profile.descr
+
                 # data
                 if data_2d.hvum.hdf5_and_computable_list.meshs():
                     rec_array = data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
@@ -371,9 +374,10 @@ class Hdf5Management:
                 """ node """
                 node_group = unit_group.create_group('node')
                 # xy
-                node_group.create_dataset(name="xy",
-                                          shape=data_2d[reach_num][unit_num]["node"]["xy"].shape,
-                                          data=data_2d[reach_num][unit_num]["node"]["xy"])
+                xy_dataset = node_group.create_dataset(name=self.hvum.xy.name,
+                                          shape=data_2d[reach_num][unit_num]["node"][self.hvum.xy.name].shape,
+                                          data=data_2d[reach_num][unit_num]["node"][self.hvum.xy.name])
+                xy_dataset.attrs[self.hvum.xy.name] = self.hvum.xy.descr
                 # data
                 if data_2d.hvum.hdf5_and_computable_list.nodes():
                     rec_array = data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
@@ -424,9 +428,9 @@ class Hdf5Management:
                 mesh_group = unit_group + "/mesh"
                 node_group = unit_group + "/node"
                 # data_2d_whole_profile
-                self.data_2d_whole[reach_num][unit_num]["mesh"]["tin"] = self.file_object[mesh_group + "/tin"][:]
-                self.data_2d_whole[reach_num][unit_num]["node"]["xy"] = self.file_object[node_group + "/xy"][:]
-                self.data_2d_whole[reach_num][unit_num]["node"]["z"] = self.file_object[node_group + "/z"][:]
+                self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name] = self.file_object[mesh_group + "/tin"][:]
+                self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name] = self.file_object[node_group + "/xy"][:]
+                self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name] = self.file_object[node_group + "/z"][:]
 
     def load_data_2d(self):
         data_2d_group = 'data_2d'
@@ -451,9 +455,9 @@ class Hdf5Management:
                 mesh_group = unit_group + "/mesh"
                 # i_whole_profile
                 if self.extension == ".hyd" or self.extension == ".hab":
-                    self.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = self.file_object[mesh_group + "/i_whole_profile"][:]
+                    self.data_2d[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = self.file_object[mesh_group + "/i_whole_profile"][:]
                 # tin
-                self.data_2d[reach_num][unit_num]["mesh"]["tin"] = self.file_object[mesh_group + "/tin"][:]
+                self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name] = self.file_object[mesh_group + "/tin"][:]
                 # data (always ?)
                 mesh_dataframe = DataFrame()
                 if mesh_group + "/data" in self.file_object:
@@ -477,7 +481,7 @@ class Hdf5Management:
                 # group
                 node_group = unit_group + "/node"
                 # xy
-                self.data_2d[reach_num][unit_num]["node"]["xy"] = self.file_object[node_group + "/xy"][:]
+                self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name] = self.file_object[node_group + "/xy"][:]
                 # data (always ?)
                 node_dataframe = DataFrame()
                 if node_group + "/data" in self.file_object:
@@ -1345,17 +1349,17 @@ class Hdf5Management:
                     layer.StartTransaction()  # faster
 
                     # for each mesh
-                    for mesh_num in range(0, len(self.data_2d_whole[reach_num][unit_num]["mesh"]["tin"])):
-                        node1 = self.data_2d_whole[reach_num][unit_num]["mesh"]["tin"][mesh_num][0]  # node num
-                        node2 = self.data_2d_whole[reach_num][unit_num]["mesh"]["tin"][mesh_num][1]
-                        node3 = self.data_2d_whole[reach_num][unit_num]["mesh"]["tin"][mesh_num][2]
+                    for mesh_num in range(0, len(self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
+                        node1 = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][0]  # node num
+                        node2 = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][1]
+                        node3 = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][2]
                         # data geom (get the triangle coordinates)
-                        p1 = list(self.data_2d_whole[reach_num][unit_num]["node"]["xy"][node1].tolist() + [
-                            self.data_2d_whole[reach_num][unit_num]["node"]["z"][node1]])
-                        p2 = list(self.data_2d_whole[reach_num][unit_num]["node"]["xy"][node2].tolist() + [
-                            self.data_2d_whole[reach_num][unit_num]["node"]["z"][node2]])
-                        p3 = list(self.data_2d_whole[reach_num][unit_num]["node"]["xy"][node3].tolist() + [
-                            self.data_2d_whole[reach_num][unit_num]["node"]["z"][node3]])
+                        p1 = list(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][node1].tolist() + [
+                            self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][node1]])
+                        p2 = list(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][node2].tolist() + [
+                            self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][node2]])
+                        p3 = list(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][node3].tolist() + [
+                            self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][node3]])
                         # Create triangle
                         ring = ogr.Geometry(ogr.wkbLinearRing)
                         ring.AddPoint(*p1)
@@ -1409,7 +1413,7 @@ class Hdf5Management:
                                 layer.CreateField(new_field)
                             # add fish data for each mesh
                             layer.StartTransaction()  # faster
-                            for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"]["tin"])):
+                            for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
                                 feature = layer.GetFeature(mesh_num + 1)  # 1 because gpkg start at 1
                                 for fish_num, fish_name in enumerate(fish_names):
                                     data = self.data_2d[reach_num][unit_num]["mesh"]["hv_data"][fish_name][mesh_num]
@@ -1450,17 +1454,17 @@ class Hdf5Management:
                         layer.StartTransaction()  # faster
 
                         # for each mesh
-                        for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"]["tin"])):
-                            node1 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][0]  # node num
-                            node2 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][1]
-                            node3 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][2]
+                        for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
+                            node1 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][0]  # node num
+                            node2 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][1]
+                            node3 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][2]
                             # data geom (get the triangle coordinates)
-                            p1 = list(self.data_2d[reach_num][unit_num]["node"]["xy"][node1].tolist() + [
-                                self.data_2d[reach_num][unit_num]["node"]["data"]["z"][node1]])
-                            p2 = list(self.data_2d[reach_num][unit_num]["node"]["xy"][node2].tolist() + [
-                                self.data_2d[reach_num][unit_num]["node"]["data"]["z"][node2]])
-                            p3 = list(self.data_2d[reach_num][unit_num]["node"]["xy"][node3].tolist() + [
-                                self.data_2d[reach_num][unit_num]["node"]["data"]["z"][node3]])
+                            p1 = list(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][node1].tolist() + [
+                                self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node1]])
+                            p2 = list(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][node2].tolist() + [
+                                self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node2]])
+                            p3 = list(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][node3].tolist() + [
+                                self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node3]])
                             # data attrbiutes
                             if self.hdf5_type == "habitat":
                                 if fish_names:
@@ -1524,11 +1528,11 @@ class Hdf5Management:
                     layer.StartTransaction()  # faster
 
                     # for each point
-                    for point_num in range(0, len(self.data_2d_whole[reach_num][unit_num]["node"]["xy"])):
+                    for point_num in range(0, len(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name])):
                         # data geom (get the triangle coordinates)
-                        x = self.data_2d_whole[reach_num][unit_num]["node"]["xy"][point_num][0]
-                        y = self.data_2d_whole[reach_num][unit_num]["node"]["xy"][point_num][1]
-                        z = self.data_2d_whole[reach_num][unit_num]["node"]["z"][point_num]
+                        x = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][0]
+                        y = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][1]
+                        z = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][point_num]
                         # Create a point
                         point = ogr.Geometry(ogr.wkbPoint)
                         point.AddPoint(x, y, z)
@@ -1575,11 +1579,11 @@ class Hdf5Management:
                         layer.StartTransaction()  # faster
 
                         # for each point
-                        for point_num in range(0, len(self.data_2d[reach_num][unit_num]["node"]["xy"])):
+                        for point_num in range(0, len(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name])):
                             # data geom (get the triangle coordinates)
-                            x = self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][0]
-                            y = self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][1]
-                            z = self.data_2d[reach_num][unit_num]["node"]["data"]["z"][point_num]
+                            x = self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][0]
+                            y = self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][1]
+                            z = self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][point_num]
 
                             # Create a point
                             point = ogr.Geometry(ogr.wkbPoint)
@@ -1619,9 +1623,9 @@ class Hdf5Management:
                 # for all units
                 for unit_num in range(self.data_2d_whole.unit_num):
                     # get data
-                    xy = self.data_2d_whole[reach_num][unit_num]["node"]["xy"]
-                    z = self.data_2d_whole[reach_num][unit_num]["node"]["z"] * self.project_preferences["vertical_exaggeration"]
-                    tin = self.data_2d_whole[reach_num][unit_num]["mesh"]["tin"]
+                    xy = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name]
+                    z = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name] * self.project_preferences["vertical_exaggeration"]
+                    tin = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name]
                     xyz = np.column_stack([xy, z])
                     # Create the mesh
                     stl_file = mesh.Mesh(np.zeros(tin.shape[0], dtype=mesh.Mesh.dtype))
@@ -1674,14 +1678,14 @@ class Hdf5Management:
                 for unit_num in range(self.data_2d.unit_num):
                     part_timestep_indice.append((reach_num, unit_num))
                     # create one vtu file by time step
-                    x = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"]["xy"][:, 0])
-                    y = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"]["xy"][:, 1])
+                    x = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][:, 0])
+                    y = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][:, 1])
                     z = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"]["data"][pvd_variable_z.name].to_numpy() * self.project_preferences["vertical_exaggeration"])
-                    connectivity = np.reshape(self.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                              (len(self.data_2d[reach_num][unit_num]["mesh"]["tin"]) * 3,))
-                    offsets = np.arange(3, len(self.data_2d[reach_num][unit_num]["mesh"]["tin"]) * 3 + 3, 3)
+                    connectivity = np.reshape(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name],
+                                              (len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name]) * 3,))
+                    offsets = np.arange(3, len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name]) * 3 + 3, 3)
                     offsets = np.array(list(map(int, offsets)), dtype=np.int64)
-                    cell_types = np.zeros(len(self.data_2d[reach_num][unit_num]["mesh"]["tin"]), ) + 5  # triangle
+                    cell_types = np.zeros(len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name]), ) + 5  # triangle
                     cell_types = np.array(list((map(int, cell_types))), dtype=np.int64)
 
                     cellData = {}
@@ -1907,10 +1911,10 @@ class Hdf5Management:
                         # data
                         text_to_write_str = ""
                         # for each mesh
-                        for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"]["tin"])):
-                            node1 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][0]  # node num
-                            node2 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][1]
-                            node3 = self.data_2d[reach_num][unit_num]["mesh"]["tin"][mesh_num][2]
+                        for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
+                            node1 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][0]  # node num
+                            node2 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][1]
+                            node3 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][2]
                             text_to_write_str += '\n'
                             data_list = []
                             for mesh_variable_name in self.hvum.hdf5_and_computable_list.meshs().names():
@@ -1981,11 +1985,11 @@ class Hdf5Management:
                         # data
                         text_to_write_str = ""
                         # for each point
-                        for point_num in range(0, len(self.data_2d[reach_num][unit_num]["node"]["xy"])):
+                        for point_num in range(0, len(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name])):
                             text_to_write_str += '\n'
                             # data geom (get the triangle coordinates)
-                            x = str(self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][0])
-                            y = str(self.data_2d[reach_num][unit_num]["node"]["xy"][point_num][1])
+                            x = str(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][0])
+                            y = str(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][1])
                             text_to_write_str += f"{x}\t{y}"
                             for node_variable_name in self.hvum.hdf5_and_computable_list.nodes().names():
                                 text_to_write_str += "\t" + str(self.data_2d[reach_num][unit_num]["node"]["data"][node_variable_name][point_num])
