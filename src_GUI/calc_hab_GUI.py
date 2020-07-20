@@ -410,6 +410,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
                 default_substrate_type = user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage]
+                if not self.current_hab_informations_dict["sub_mesh_ok"]:
+                    default_substrate_type = "Neglect"
                 # set positon to combobox
                 self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(
                     substrate_type_available.index(default_substrate_type))
@@ -502,6 +504,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         substrate_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
         default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
+        if not self.current_hab_informations_dict["sub_mesh_ok"]:
+            default_choice_index = substrate_type_available.index("Neglect")
         if new_sub_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
         else:
@@ -624,8 +628,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"] or not self.current_hab_informations_dict["shear_stress_ok"]:  # not 2d or not z
                     if "HEM" in hydraulic_type_available:
                         item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setEnabled(False)
-                        item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setToolTip(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data.")
+                        item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setToolTip(
+                            self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
                         self.hyd_mode_qtablewidget.selectRow(hydraulic_type_available.index("Neglect"))
+                        item_combobox_hyd.setToolTip(
+                            self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
                 item_combobox_hyd.setCurrentIndex(choosen_index)
                 item_combobox_hyd.currentIndexChanged.connect(self.color_hyd_combobox)
                 item_combobox_hyd.activated.connect(self.change_general_hyd_combobox)
@@ -648,6 +655,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 item_combobox_sub.addItems(substrate_type_available)
                 choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
                 default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
+                if not self.current_hab_informations_dict["sub_mesh_ok"] and not "HEM" in hydraulic_type_available:
+                    default_choice_index = substrate_type_available.index("Neglect")
+                    item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
+                    item_combobox_sub.model().item(default_choice_index).setToolTip(
+                        self.tr(".hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged."))
+                    item_combobox_sub.setToolTip(
+                        self.tr(
+                            ".hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged."))
+                    if self.general_option_sub_combobox.currentIndex() == 0:
+                        choosen_index = default_choice_index
                 if choosen_index == default_choice_index:
                     item_combobox_sub.setStyleSheet(self.combobox_style_default)
                 else:
@@ -730,6 +747,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 z_presence_ok=False,
                 shear_stress_ok=False,
                 percentage_ok=False,
+                sub_mesh_ok=False,
                 fish_list=[])
 
             if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
@@ -738,6 +756,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             required_dict["z_presence_ok"] = True  # TODO : always True ??
             if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
                 required_dict["percentage_ok"] = True
+            if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub mapping method")] != "constant":
+                required_dict["sub_mesh_ok"] = True
             required_dict["fish_list"] = hdf5.hvum.hdf5_and_computable_list.meshs().habs().names()
             if hdf5.hvum.shear_stress.name in hdf5.hvum.hdf5_and_computable_list.names():
                 required_dict["shear_stress_ok"] = True
