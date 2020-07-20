@@ -88,7 +88,8 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     data_2d.hvum = HydraulicVariableUnitManagement()
     data_2d.hvum.detect_variable_from_sub_description(sub_description)
     data_2d.rename_substrate_column_data()
-    data_2d.get_dimension()
+    if sub_description["sub_mapping_method"] != "constant":
+        data_2d.get_dimension()
 
     # security if point case
     sub_description["sub_path_source"] = sub_path_source
