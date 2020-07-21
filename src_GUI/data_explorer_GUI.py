@@ -192,8 +192,11 @@ class DataExplorerFrame(QFrame):
         index = self.types_hdf5_QComboBox.currentIndex()
         self.names_hdf5_QListWidget.clear()
 
+        if index == 0:
+            self.set_empty_layout()
+
         # hydraulic
-        if index == 1:
+        elif index == 1:
             names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
             if names:
                 # change list widget
@@ -202,7 +205,7 @@ class DataExplorerFrame(QFrame):
                     self.names_hdf5_QListWidget.selectAll()
 
         # substrate
-        if index == 2:
+        elif index == 2:
             names = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
             if names:
                 # change list widget
@@ -211,7 +214,7 @@ class DataExplorerFrame(QFrame):
                     self.names_hdf5_QListWidget.selectAll()
 
         # habitat
-        if index == 3:
+        elif index == 3:
             names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
             if names:
                 # change list widget
@@ -385,6 +388,9 @@ class DataExplorerFrame(QFrame):
             height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(hdf5.hdf5_attributes_name_text) + 1)
             self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
             self.file_information_group.toggle_group(self.file_information_group.isChecked())
+
+        elif len(selection) == 0:
+            self.set_empty_layout()
 
         # count plot
         self.plot_group.count_plot()
