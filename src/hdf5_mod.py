@@ -219,7 +219,11 @@ class Hdf5Management:
                 if "reach_list" in attribute_name:
                     if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
                         if attribute_name[:3] == "hyd":
-                            reach_name = attribute_data.split(", ")
+                            if type(attribute_data) == np.ndarray:
+                                reach_name = attribute_data.tolist()
+                            else:
+                                reach_name = attribute_data.split(", ")
+
                     else:
                         if attribute_name[:3] == "sub":
                             reach_name = attribute_data.split(", ")

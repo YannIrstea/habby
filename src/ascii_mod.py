@@ -25,6 +25,183 @@ from src import manage_grid_mod
 from src import mesh_management_mod
 from src.tools_mod import isstranumber, create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src.project_properties_mod import create_default_project_properties_dict
+from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
+
+
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
+    """
+    """
+    def __init__(self, filename, folder_path, model_type, path_prj):
+        super().__init__(filename, folder_path, model_type, path_prj)
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
+        # file attributes
+        self.extensions_list = [".txt"]
+        self.file_type = "ascii"
+        # simulation attributes
+        self.equation_type = ""  # FE or FV
+        # reach
+        self.multi_reach = True
+        self.reach_num = 1
+        self.reach_name_list = ["unknown"]
+        self.morphology_available = True
+        # # readable file ?
+        # try:
+        #     self.results_data_file = Selafin(self.filename_path)
+        # except OSError:
+        #     self.warning_list.append("Error: The file can not be opened.")
+        #     self.valid_file = False
+
+        # is extension ok ?
+        if os.path.splitext(self.filename)[1] not in self.extensions_list:
+            self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
+            self.valid_file = False
+
+        # if valid get informations
+        if self.valid_file:
+            self.get_ascii_model_description()
+        else:
+            self.warning_list.append("Error: File not valid.")
+
+    def get_ascii_model_description(self):
+        """
+        using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
+        several reaches and units (discharges or times )descriptions are allowed
+
+        WARNING this function is parallel with  load_ascii_model function and some integrity tests are similar
+        :param file_path:
+        :return: the reachname list and the unit description (times or discharges)
+        """
+        kk, self.reach_num = 0, 0
+        msg, unit_type = '', ''
+        lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
+        # or nbreaches elements
+        epsgcode = ''
+        bq_per_reach = False
+        bsub, bmeshconstant = False, True
+        with open(self.filename_path, 'r', encoding='utf8') as fi:
+            for i, ligne in enumerate(fi):
+                ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
+                # print (i,ls)
+                if len(ls) == 0:  # empty line
+                    pass
+                elif ls[0][0] == '#':  # comment line
+                    pass
+                elif ls[0].upper() == 'HABBY':
+                    kk = 1
+                elif 'EPSG' in ls[0].upper():
+                    if kk != 1:
+                        msg = 'EPSG but not HABBY just before'
+                        break
+                    kk = 2
+                    epsgcode = ls[1]
+                elif ls[0][0:2].upper() == 'Q[' or ls[0][0:2].lower() == 't[':
+                    if kk != 2 and kk != 4:
+                        msg = ls[0] + ' but not EPSG just before or REACH before'
+                        break
+                    if len(ls) != 1:
+                        msg = 'unit description ' + ls[0] + '  but not the only one information'
+                        break
+                    if kk == 4:
+                        if ls[0][0:2].lower() == 't[':
+                            msg = ls[
+                                      0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
+                            break
+                        else:
+                            if bq_per_reach == False and self.reach_num != 1:
+                                msg = ls[0] + ' This structure REACH unit description is forbiden '
+                                break
+                            bq_per_reach = True
+                    unit_type = ls[0]
+                    lunit = []
+                    kk = 3
+                elif ls[0].upper() == 'REACH':
+                    if kk != 2 and kk != 3 and kk < 7:
+                        msg = ls[0] + ' but not EPSG  or Q[XXX or t[XXX before'
+                        break
+                    if bq_per_reach and kk == 3:
+                        msg = ls[0] + ' This structure REACH unit description is forbiden '
+                        break
+                    self.reach_num += 1
+                    bmeshconstant = True
+                    if self.reach_num == 1:
+                        lreachname = [('_'.join(ls[1:]))]
+                    else:
+                        if '_'.join(ls[1:]) == lreachname[-1]:
+                            self.reach_num -= 1
+                            bmeshconstant = False
+                        else:
+                            lreachname.append(('_'.join(ls[1:])))
+                    kk = 4
+                # .................
+                elif ls[0].upper() == 'NODES':
+                    if kk != 3 and kk != 4:
+                        msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
+                        break
+                    if bmeshconstant or len(lunit) == 0:
+                        lunitall.append(lunit)
+                    else:
+                        lunitall[-1].extend(lunit)
+                    kk = 5
+                elif ls[0].upper() == 'TIN':
+                    kk = 7
+                elif ls[0].upper() == 'SUBSTRATE':
+                    bsub = True
+                elif kk == 3:
+                    if len(ls) != 1:
+                        msg = 'unit description but not only one information'
+                        break
+                    lunit.append(ls[0])
+
+            if msg != '':
+                print('Error: ligne : ' + str(i) + ' {' + ligne.rstrip() + ' }' + msg)
+
+        self.timestep_name_list = list(map(str, lunitall))
+        self.timestep_nb = len(self.timestep_name_list[0])
+        self.timestep_unit = "time [s]"
+
+        # create dict
+        ascii_description = dict(epsg_code=epsgcode,
+                                 unit_type=unit_type,
+                                 unit_list=lunitall,
+                                 reach_number=self.reach_num,
+                                 reach_list=lreachname,
+                                 sub=bsub)
+
+        # check witch variable is available
+        variable_list = ["z"]
+        self.hvum.detect_variable_from_software_attribute(variable_list)
+
+    def load_hydraulic(self, timestep_name_wish_list):
+        """
+        """
+        self.load_specific_timestep(timestep_name_wish_list)
+
+        # prepare original data for data_2d
+        for reach_num in range(self.reach_num):  # for each reach
+            for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
+                val_all = self.results_data_file.getvalues(timestep_index)
+                for variables_wish in self.hvum.software_detected_list:  # .varunits
+                    if not variables_wish.precomputable_tohdf5:
+                        variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
+
+                # struct
+                self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+
+        # prepare computable data for data_2d
+        if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
+            for reach_num in range(self.reach_num):  # for each reach
+                for timestep_index in range(len(self.timestep_name_wish_list_index)):
+                    # compute from v_x v_y
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
+
+        return self.get_data_2d()
+
+
+
 
 
 def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={},
@@ -740,109 +917,3 @@ def reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub):
                 sub = np.append(sub, np.array([sub4[i, :], ] * 4), axis=0)
     return ikle, nodes, sub
 
-
-def get_ascii_model_description(file_path):
-    """
-    using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
-    several reaches and units (discharges or times )descriptions are allowed
-
-    WARNING this function is parallel with  load_ascii_model function and some integrity tests are similar
-    :param file_path:
-    :return: the reachname list and the unit description (times or discharges)
-    """
-    # file exist ?
-    if not os.path.isfile(file_path):
-        return 'Error: The ascci text file does not exist. Cannot be loaded.'
-    kk, reachnumber = 0, 0
-    msg, unit_type = '', ''
-    lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
-    # or nbreaches elements
-    epsgcode = ''
-    bq_per_reach = False
-    bsub, bmeshconstant = False, True
-    with open(file_path, 'r', encoding='utf8') as fi:
-        for i, ligne in enumerate(fi):
-            ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
-            # print (i,ls)
-            if len(ls) == 0:  # empty line
-                pass
-            elif ls[0][0] == '#':  # comment line
-                pass
-            elif ls[0].upper() == 'HABBY':
-                kk = 1
-            elif 'EPSG' in ls[0].upper():
-                if kk != 1:
-                    msg = 'EPSG but not HABBY just before'
-                    break
-                kk = 2
-                epsgcode = ls[1]
-            elif ls[0][0:2].upper() == 'Q[' or ls[0][0:2].lower() == 't[':
-                if kk != 2 and kk != 4:
-                    msg = ls[0] + ' but not EPSG just before or REACH before'
-                    break
-                if len(ls) != 1:
-                    msg = 'unit description ' + ls[0] + '  but not the only one information'
-                    break
-                if kk == 4:
-                    if ls[0][0:2].lower() == 't[':
-                        msg = ls[
-                                  0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
-                        break
-                    else:
-                        if bq_per_reach == False and reachnumber != 1:
-                            msg = ls[0] + ' This structure REACH unit description is forbiden '
-                            break
-                        bq_per_reach = True
-                unit_type = ls[0]
-                lunit = []
-                kk = 3
-            elif ls[0].upper() == 'REACH':
-                if kk != 2 and kk != 3 and kk < 7:
-                    msg = ls[0] + ' but not EPSG  or Q[XXX or t[XXX before'
-                    break
-                if bq_per_reach and kk == 3:
-                    msg = ls[0] + ' This structure REACH unit description is forbiden '
-                    break
-                reachnumber += 1
-                bmeshconstant = True
-                if reachnumber == 1:
-                    lreachname = [('_'.join(ls[1:]))]
-                else:
-                    if '_'.join(ls[1:]) == lreachname[-1]:
-                        reachnumber -= 1
-                        bmeshconstant = False
-                    else:
-                        lreachname.append(('_'.join(ls[1:])))
-                kk = 4
-            # .................
-            elif ls[0].upper() == 'NODES':
-                if kk != 3 and kk != 4:
-                    msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
-                    break
-                if bmeshconstant or len(lunit) == 0:
-                    lunitall.append(lunit)
-                else:
-                    lunitall[-1].extend(lunit)
-                kk = 5
-            elif ls[0].upper() == 'TIN':
-                kk = 7
-            elif ls[0].upper() == 'SUBSTRATE':
-                bsub = True
-            elif kk == 3:
-                if len(ls) != 1:
-                    msg = 'unit description but not only one information'
-                    break
-                lunit.append(ls[0])
-
-        if msg != '':
-            return 'Error: ligne : ' + str(i) + ' {' + ligne.rstrip() + ' }' + msg
-
-    # create dict
-    ascii_description = dict(epsg_code=epsgcode,
-                             unit_type=unit_type,
-                             unit_list=lunitall,
-                             reach_number=reachnumber,
-                             reach_list=lreachname,
-                             sub=bsub)
-
-    return ascii_description
