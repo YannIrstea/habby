@@ -238,9 +238,9 @@ def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_d
                                     elif nbeltpoly3 >= 3:
                                         for k3 in range(1, nbeltpoly3 - 1):
                                             area3, volume3 = areavolumepoly(poly3, 0, k3, k3 + 1)
-                                            areameso[j2][j3] += area3;
+                                            areameso[j2][j3] += area3
                                             area23 += area3
-                                            volumemeso[j2][j3] += volume3;
+                                            volumemeso[j2][j3] += volume3
                                             volume23 += volume3
                         # checking the partitioning poly3 checking area volume nothing lost by the algorithm
 
@@ -274,7 +274,7 @@ def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_d
 
 
 def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
-                                   hyd_data_mesh=None, hyd_data_sub_mesh=None):
+                                   hyd_data_mesh=None, return_cut_hdf5=False):
     """
     Alternative version of hydrosignature_calculation, made to test variations to change function output and remove duplicates
     """
@@ -340,8 +340,10 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     volumemeso = np.zeros((nb_cl_h, nb_cl_v), dtype=np.float64)
     nbmeshhs = 0
 
-    ##new thing, trying out
+    ##storing node data and triangles of the newer mesh
     hyd_xyhv = []
+    new_tin = []
+    hydrosignatures = []
 
     for i in range(hyd_tin.size // 3):  # even if one single triangle for hyd_tin
         # xyo, xya, xyb = hyd_xy_node[hyd_tin[i][0]], hyd_xy_node[hyd_tin[i][1]], hyd_xy_node[hyd_tin[i][2]]
@@ -356,6 +358,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                      'y': [hyd_xy_node[hyd_tin[i][0]][1], hyd_xy_node[hyd_tin[i][1]][1], hyd_xy_node[hyd_tin[i][2]][1]],
                      'h': [hyd_hv_node[hyd_tin[i][0]][0], hyd_hv_node[hyd_tin[i][1]][0], hyd_hv_node[hyd_tin[i][2]][0]],
                      'v': [hyd_hv_node[hyd_tin[i][0]][1], hyd_hv_node[hyd_tin[i][1]][1], hyd_hv_node[hyd_tin[i][2]][1]]}
+            # TODO add "i" key, containing the original mesh triangle each new node belongs to
             area1, volume1 = areavolumepoly(poly1, 0, 1, 2)
             area12, volume12 = 0, 0
             for j2 in range(nb_cl_h):
@@ -408,7 +411,6 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                         return
                     elif nbeltpoly2 >= 3:
 
-                        # adding to the list of vertices
 
                         for k2 in range(1, nbeltpoly2 - 1):
                             area2, volume2 = areavolumepoly(poly2, 0, k2, k2 + 1)
@@ -486,12 +488,28 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                                             "hydrosignature : polygonation contrary to the YLC theory while in phase poly3 MAJOR BUG !!!")
                                         return
                                     elif nbeltpoly3 >= 3:
+                                        node_indices = []  # the index each node in the present polygon has in the new list of nodes (hyd_xyhv)
+                                        new_point_data = []  # x, y, h, v and i in each node of the present polygon
+                                        # hyd_xyhv.append(poly3["x"][0], poly3)
+                                        for index in range(0, nbeltpoly3):
+                                            new_point_data.append(
+                                                [poly3["x"][index], poly3["y"][index], poly3["h"][index],
+                                                 poly3["v"][index], i])
+
+                                            if new_point_data[index] in hyd_xyhv:
+                                                node_indices.append(hyd_xyhv.index(new_point_data[index]))
+                                            else:
+                                                hyd_xyhv.append(new_point_data[index])
+                                                node_indices.append(len(hyd_xyhv) - 1)
+
                                         for k3 in range(1, nbeltpoly3 - 1):
                                             area3, volume3 = areavolumepoly(poly3, 0, k3, k3 + 1)
-                                            areameso[j2][j3] += area3;
+                                            areameso[j2][j3] += area3
                                             area23 += area3
-                                            volumemeso[j2][j3] += volume3;
+                                            volumemeso[j2][j3] += volume3
                                             volume23 += volume3
+                                            new_tin.append([node_indices[0], node_indices[k3], node_indices[k3 + 1]])
+                                            hydrosignatures.append(index_to_class_number((nb_cl_h, nb_cl_v), (j2, j3)))
 
                                             ##new idea, trying out
 
@@ -500,10 +518,10 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                                             # print("--------------")
                                             # for elem in poly2:
                                             #     print(elem in poly3)
-                                            for index in range(nbeltpoly3):
-                                                hyd_xyhv.append(
-                                                    [poly3["x"][index], poly3["y"][index], poly3["h"][index],
-                                                     poly3["v"][index]])
+                                            # for index in range(nbeltpoly3):
+                                            #     hyd_xyhv.append(
+                                            #         [poly3["x"][index], poly3["y"][index], poly3["h"][index],
+                                            #          poly3["v"][index]])
 
                         # checking the partitioning poly3 checking area volume nothing lost by the algorithm
 
@@ -529,11 +547,17 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     hyd_xyhv = np.array(hyd_xyhv)
     hyd_xyhv[:, 0:2] += translationxy
     hyd_xy_node += translationxy
+    print("TEST")
+    print(len(new_tin), len(hydrosignatures), len(hyd_xyhv))
+    print(new_tin)
+    print(hydrosignatures)
+    print(hyd_xyhv)
+    print("TEST")
 
     # TODO necessary for Horizontal Ramping Rate calculation
     # hs_xy_node +=translationxy
     # return hs_xy_node, hs_data_node, hs_tin, iwholeprofilehs, hs_data_mesh,hs_data_sub_mesh
-
+    ##TODO allow output to an hdf5 file as well
     return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, hyd_xyhv
 
 
@@ -707,6 +731,22 @@ def checkhydrosigantureclasses(classhv):
     return bok, cl_h, cl_v, nb_cl_h, nb_cl_v
 
 
+def index_to_class_number(class_shape, indices):
+    # takes a hydraulic class indicated by a (i,j) tuple of indices and returns the class number according to standard hydrosignature usage
+    '''
+
+    :param class_shape: (m,n) tuple, containing respectively the number of h classes and v classes
+    :param indices: (i,j) tuple, containing respectively the position of a given hydraulic class in h and v
+    :return class_number: the number that indicates the class according to hydrosignature standard, starting at 1 and going through velocity first, then depth
+    '''
+    i, j = indices
+    m, n = class_shape
+    number = i * m + j + 1
+    if i >= m or j >= n:
+        raise IndexError
+    return number
+
+
 if __name__ == '__main__':
     '''
     testing the hydrosignature program
@@ -727,12 +767,9 @@ if __name__ == '__main__':
     #     classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
     nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, hyd_xyhv = hydrosignature_calculation_alt(
         classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
-    print(nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth,
-          min_velocity, max_velocity, hsarea, hsvolume)
-    print()
-    print(hyd_xyhv)
-    print([])
-    print()
+    # print(nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth,
+    #       min_velocity, max_velocity, hsarea, hsvolume)
+
     # Test HSC
     # bok, hsc=hscomparison(classhv,hsarea,classhv,hsvolume)
     # print(hsc)

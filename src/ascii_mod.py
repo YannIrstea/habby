@@ -78,6 +78,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
         # or nbreaches elements
         epsgcode = ''
+
+        bfvm=False # a boolean to indicate whether  we have a finite element model or a finite volume model
+        hyd_var_name_list=[] #list of hydraulic variables names
+        hyd_var_unit_list = [] #list of hydraulic variables units
+
         bq_per_reach = False
         bsub, bmeshconstant = False, True
         with open(self.filename_path, 'r', encoding='utf8') as fi:
@@ -136,6 +141,22 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     kk = 4
                 # .................
                 elif ls[0].upper() == 'NODES':
+                    l1,l2=[],[]
+                    if len(ls)>1:
+                        for j in range(1,len(ls)):
+                            t1,t2 =ls[j].find('['),ls[j].find(']')
+                            if t1==-1 or t2==-1:
+                                msg = ' finite volume method not described properly you need to give hydraulic variables with their units describe between [ ]'
+                                break
+                            hyd_var_name_list.append(ls[j][:t1])
+                            hyd_var_unit_list.append(ls[j][t1+1:t2])
+                        msg2,hyd_var_name_list,hyd_var_unit_list=check_var_name_unit_lists(l1,l2,hyd_var_name_list,hyd_var_unit_list)
+                        if msg2 != '':
+                            msg = msg2
+                            break
+
+
+
                     if kk != 3 and kk != 4:
                         msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
                         break
@@ -144,8 +165,40 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     else:
                         lunitall[-1].extend(lunit)
                     kk = 5
+                elif ls[0].lower() == 'x':
+                    if kk != 5:
+                        msg = 'x but not NODES just before'
+                        break
+                    if ls[1].lower() != 'y':
+                        msg = 'x but not y just after'
+                        break
+                    if ls[2].lower() == 'z':
+                        j = len(ls) - 3
+                        if j == 0:
+                            bfvm = True
+                    kk = 6
                 elif ls[0].upper() == 'TIN':
                     kk = 7
+                elif ls[0].upper() == 'FVM':
+                    kk = 70
+                    if not bfvm:
+                        msg = ' finite volume method not described properly you need to give only x y z for the nodes and velocity and depth for the mesh centers'
+                        break
+                    l1, l2 = [], []
+                    if len(ls) > 1:
+                        for j in range(1, len(ls)):
+                            t1, t2 = ls[j].find('['), ls[j].find(']')
+                            if t1 == -1 or t2 == -1:
+                                msg = ' finite volume method not described properly you need to give hydraulic variables with their units describe between [ ]'
+                                break
+                            hyd_var_name_list.append(ls[j][:t1])
+                            hyd_var_unit_list.append(ls[j][t1 + 1:t2])
+                        msg2, hyd_var_name_list, hyd_var_unit_list = check_var_name_unit_lists(l1, l2,
+                                                                                               hyd_var_name_list,
+                                                                                               hyd_var_unit_list)
+                        if msg2 != '':
+                            msg = msg2
+                            break
                 elif ls[0].upper() == 'SUBSTRATE':
                     bsub = True
                 elif kk == 3:
@@ -153,9 +206,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                         msg = 'unit description but not only one information'
                         break
                     lunit.append(ls[0])
-
+            if len(hyd_var_name_list) == 0 and len(hyd_var_unit_list) == 0:
+                msg='the descriptions for hydraulic variable and their units  is not given'
             if msg != '':
                 print('Error: ligne : ' + str(i) + ' {' + ligne.rstrip() + ' }' + msg)
+
 
         self.timestep_name_list = list(map(str, lunitall))
         self.timestep_nb = len(self.timestep_name_list[0])
@@ -201,7 +256,14 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         return self.get_data_2d()
 
 
-
+def check_var_name_unit_lists(l1,l2,hyd_var_name_list,hyd_var_unit_list):
+    msg2=''
+    if not(l1 == hyd_var_name_list and l2==hyd_var_unit_list):
+        if len(hyd_var_name_list)==0 and len(hyd_var_unit_list)==0:
+            hyd_var_name_list, hyd_var_unit_list= list(l1),list(l2)
+        else:
+            msg2='the descriptions given for hydraulic variable and their units are not strictly identical'
+    return msg2,hyd_var_name_list,hyd_var_unit_list
 
 
 def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={},
