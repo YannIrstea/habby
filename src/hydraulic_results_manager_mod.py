@@ -156,7 +156,7 @@ class HydraulicSimulationResultsBase:
     def get_data_2d(self):
         # create empty list
         data_2d = Data2d(reach_num=len(self.reach_name_list),
-                         unit_num=len(self.timestep_name_wish_list))
+                         unit_num=self.timestep_wish_nb)
         data_2d.equation_type = self.equation_type
         data_2d.hvum = self.hvum
         self.hvum.hdf5_and_computable_list.sort_by_names_gui()
@@ -165,7 +165,7 @@ class HydraulicSimulationResultsBase:
 
         for reach_num in range(len(self.reach_name_list)):
 
-            for unit_num in range(len(self.timestep_name_wish_list)):
+            for unit_num in range(self.timestep_wish_nb):
                 # node
                 data_2d[reach_num][unit_num]["node"][self.hvum.xy.name] = self.hvum.xy.data[reach_num][unit_num]
                 data_2d[reach_num][unit_num]["node"]["data"] = pd.DataFrame()

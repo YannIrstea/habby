@@ -57,9 +57,9 @@ class Data2d(list):
                 self[reach_num][unit_num].reach_num = reach_num
                 self[reach_num][unit_num].unit_num = unit_num
 
-    def append(self, hydraulic_variable):
-        super(Data2d, self).append(hydraulic_variable)
-        self.get_informations()
+    # def append(self, hydraulic_variable):
+    #     super(Data2d, self).append(hydraulic_variable)
+    #     self.get_informations()
 
     def add_reach(self, data_2d_new, reach_num):
         self.append(data_2d_new[reach_num])
@@ -289,7 +289,7 @@ class Data2d(list):
         # for each reach
         for reach_num in range(self.reach_num):
             # for each unit
-            for unit_num, unit_name in enumerate(unit_list):
+            for unit_num, unit_name in enumerate(unit_list[reach_num]):
                 # get data from dict
                 ikle = self[reach_num][unit_num]["mesh"]["tin"]
                 point_all = np.column_stack((self[reach_num][unit_num]["node"][self.hvum.xy.name],
@@ -310,7 +310,7 @@ class Data2d(list):
                 # all meshes are entirely wet
                 if all(mikle_keep):
                     print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
-                    pass
+                    continue
                 # we cut the dry meshes and  the partially ones
                 else:
                     jpn = jpn0
