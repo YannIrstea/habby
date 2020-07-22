@@ -535,7 +535,12 @@ class ModelInfoGroup(QGroupBox):
         if filename_list[0]:
             # disconnect function for multiple file cases
             try:
-                self.h2d_t2.disconnect()
+                self.input_file_combobox.disconnect()
+            except:
+                pass
+
+            try:
+                self.reach_name_combobox.disconnect()
             except:
                 pass
 
@@ -565,6 +570,7 @@ class ModelInfoGroup(QGroupBox):
             if type(hsra_value.hydrau_description_list) == str:
                 self.clean_gui()
                 self.send_log.emit(hsra_value.hydrau_description_list)
+                return
 
             # set to attribute
             self.hydrau_description_list = hsra_value.hydrau_description_list
@@ -589,41 +595,52 @@ class ModelInfoGroup(QGroupBox):
             if len(self.hydrau_description_list[0]["reach_list"]) > 1:
                 self.multi_reach = True
 
-            self.update_model_information()
-            # self.input_file_combobox.currentIndexChanged.connect(self.update_model_information)
+            # get names
+            names = [description["filename_source"] for description in self.hydrau_description_list]
+            # to GUI (first decription)
 
-    def update_model_information(self):
-        self.input_file_combobox.blockSignals(True)
+            # clean GUI
+            self.clean_gui()
 
-        # clean GUI
-        self.clean_gui()
-        # get names
-        names = [description["filename_source"] for description in self.hydrau_description_list]
-        # to GUI (first decription)
-        self.input_file_combobox.addItems(names)
+            self.input_file_combobox.addItems(names)
+
+            self.update_reach_from_input_file()
+            self.input_file_combobox.currentIndexChanged.connect(self.update_reach_from_input_file)
+            self.reach_name_combobox.currentIndexChanged.connect(self.update_unit_from_reach)
+            self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+
+    def update_reach_from_input_file(self):
+        self.reach_name_combobox.blockSignals(True)
+        self.reach_name_combobox.clear()
         self.reach_name_combobox.addItems(self.hydrau_description_list[0]["reach_list"])
         mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].meshs().names_gui())
         node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].nodes().names_gui())
         self.usefull_variable_label.setText("node : " + node_list + "\nmesh : " + mesh_list)
+
         self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
-        self.units_QListWidget.addItems(self.hydrau_description_list[0]["unit_list_full"][self.reach_name_combobox.currentIndex()])
-        if all(self.hydrau_description_list[0]["unit_list_tf"][self.reach_name_combobox.currentIndex()]):
-            self.units_QListWidget.selectAll()
-        else:
-            for i in range(len(self.hydrau_description_list[0]["unit_list_full"][self.reach_name_combobox.currentIndex()])):
-                self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[0]["unit_list_tf"][self.reach_name_combobox.currentIndex()][i])
-                self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+
+        self.update_unit_from_reach()
+
         self.epsg_label.setText(self.hydrau_description_list[0]["epsg_code"])
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[0]["hdf5_name"])  # hdf5 name
         text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" .hyd file")
         if len(self.hydrau_description_list) > 1:
             text_load_button = text_load_button + "s"
         self.create_hdf5_button.setText(text_load_button)
-        self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+        self.reach_name_combobox.blockSignals(False)
+
+    def update_unit_from_reach(self):
+        self.units_QListWidget.blockSignals(True)
+        self.units_QListWidget.clear()
+        self.units_QListWidget.addItems(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_full"][self.reach_name_combobox.currentIndex()])
+        if all(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_tf"][self.reach_name_combobox.currentIndex()]):
+            self.units_QListWidget.selectAll()
+        else:
+            for i in range(len(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_full"][self.reach_name_combobox.currentIndex()])):
+                self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_tf"][self.reach_name_combobox.currentIndex()][i])
+                self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+        self.units_QListWidget.blockSignals(False)
         self.unit_counter()
-
-        self.input_file_combobox.blockSignals(False)
-
 
     def unit_counter(self):
         # count total number items (units)
@@ -717,9 +734,10 @@ class ModelInfoGroup(QGroupBox):
             if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
                 filename_source_list = hydrau_description_multiple[hdf5_num]["filename_source"].split(", ")
                 new_filename_source_list = []
-                for file_num, file in enumerate(filename_source_list):
-                    if hydrau_description_multiple[hdf5_num]["unit_list_tf"][file_num]:
-                        new_filename_source_list.append(filename_source_list[file_num])
+                for reach_num in range(len(hydrau_description_multiple[hdf5_num]["unit_list_tf"])):
+                    for file_num, file in enumerate(filename_source_list):
+                        if hydrau_description_multiple[hdf5_num]["unit_list_tf"][reach_num][file_num]:
+                            new_filename_source_list.append(filename_source_list[file_num])
                 hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
 
         # get minimum water height as we might neglect very low water height
@@ -732,6 +750,8 @@ class ModelInfoGroup(QGroupBox):
         self.save_xml()
 
         # check cases
+        for el in hydrau_description_multiple:
+            print(el["unit_list"])
         self.p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
                          args=(hydrau_description_multiple,
                                self.progress_value,
@@ -817,7 +837,7 @@ class ModelInfoGroup(QGroupBox):
                     # HYDRAULIC
                     else:
                         # unblock button hydraulic
-                        self.load_b.setDisabled(False)  # hydraulic
+                        self.create_hdf5_button.setDisabled(False)  # hydraulic
 
                 elif not error:
                     # MERGE
