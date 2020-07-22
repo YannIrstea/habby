@@ -2815,7 +2815,7 @@ class ASCII(SubHydroW):  # QGroupBox
         # geometry and output data
         l1 = QLabel(self.tr('ASCII hydraulic model file(s)'))
         self.h2d_b = QPushButton(self.tr('Choose file(s) (.txt)'))
-        self.h2d_b.clicked.connect(lambda: self.show_dialog_ascii(0))
+        self.h2d_b.clicked.connect(lambda: self.select_file_and_show_informations_dialog(0))
 
         # reach
         reach_name_title_label = QLabel(self.tr('Reach name'))

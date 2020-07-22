@@ -182,8 +182,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     timestep_to_remove) +
                                          qt_tr.translate("rubar1d2d_mod", ". They will be removed."))
 
-        self.timestep_name_list = timestep_list
-        self.timestep_nb = len(timestep_list)
+        self.timestep_name_list = [timestep_list]
+        self.timestep_nb = len(self.timestep_name_list[0])
         self.timestep_unit = "time [s]"
 
     def load_hydraulic(self, timestep_name_wish_list):

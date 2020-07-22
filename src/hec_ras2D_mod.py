@@ -98,8 +98,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         """
         """
         timestep_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Time Date Stamp"
-        self.timestep_name_list = [t.decode('utf-8') for idx, t in enumerate(list(self.results_data_file[timestep_path]))]
-        self.timestep_nb = len(self.timestep_name_list)
+        self.timestep_name_list = [[t.decode('utf-8') for idx, t in enumerate(list(self.results_data_file[timestep_path]))]]
+        self.timestep_nb = len(self.timestep_name_list[0])
         self.timestep_unit = "Date [d/m/Y h:m:s]"
 
     def get_reach_names(self):

@@ -39,6 +39,8 @@ class HydraulicModelInformation:
         self.class_mod_models_list = []
         self.file_mod_models_list = []
         self.website_models_list = []
+        self.dimensions = []
+        self.extensions = []
         self.filename = os.path.join("model_hydro", "HydraulicModelInformation.txt")
         with open(self.filename, 'r') as f:
             data_read = f.read()
@@ -197,7 +199,7 @@ class HydraulicSimulationResultsBase:
         description_from_file["filename_source"] = self.filename
         description_from_file["model_type"] = self.model_type
         description_from_file["model_dimension"] = str(2)
-        description_from_file["unit_list"] = ", ".join(self.timestep_name_wish_list)
+        description_from_file["unit_list"] = str(self.timestep_name_wish_list)
         description_from_file["unit_number"] = str(self.timestep_wish_nb)
         description_from_file["unit_type"] = "time [s]"
         description_from_file["unit_z_equal"] = self.unit_z_equal

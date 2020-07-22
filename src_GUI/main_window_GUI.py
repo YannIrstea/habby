@@ -36,6 +36,7 @@ mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 from src_GUI import welcome_GUI
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_sub_GUI
+from src_GUI import hydrau_GUI
 from src_GUI import stathab_GUI
 from src_GUI import preferences_GUI
 from src_GUI import data_explorer_GUI
@@ -347,7 +348,7 @@ class MainWindows(QMainWindow):
             if hasattr(self.central_widget, "hydro_tab"):
                 for model_index in range(len(self.central_widget.hydro_tab.hydraulic_model_information.name_models_gui_list)):
                     if not self.central_widget.hydro_tab.hydraulic_model_information.available_models_tf_list[model_index]:
-                        self.central_widget.hydro_tab.mod.model().item(model_index).setEnabled(False)
+                        self.central_widget.hydro_tab.model_list_combobox.model().item(model_index).setEnabled(False)
 
             # disable_model_statistic
             self.statisticmodelaction.setEnabled(False)
@@ -1345,11 +1346,11 @@ class MainWindows(QMainWindow):
 
             if hasattr(self.central_widget, "hydro_tab"):
                 if not self.central_widget.hydro_tab:
-                    self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+                    self.central_widget.hydro_tab = hydrau_GUI.HydrauTab(self.path_prj, self.name_prj)
                 else:
                     self.central_widget.hydro_tab.__init__(self.path_prj, self.name_prj)
             else:
-                self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+                self.central_widget.hydro_tab = hydrau_GUI.HydrauTab(self.path_prj, self.name_prj)
 
             if hasattr(self.central_widget, "substrate_tab"):
                 if not self.central_widget.substrate_tab:
@@ -1447,15 +1448,15 @@ class MainWindows(QMainWindow):
                 if not self.preferences_dialog:
                     self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
                 else:
                     self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
             else:
                 self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
 
             # # run_as_beta_version
             # self.run_as_beta_version()
@@ -1739,18 +1740,7 @@ class MainWindows(QMainWindow):
         method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
         """
         tab_list = [
-            ("hydro_tab", "lammi"),
-            ("hydro_tab", "rubar1d"),
-            ("hydro_tab", "mascaret"),
-            ("hydro_tab", "hecras1d"),
-            ("hydro_tab", "rubar2d"),
-            ("hydro_tab", "telemac"),
-            ("hydro_tab", "basement2d"),
-            ("hydro_tab", "hecras2d"),
-            ("hydro_tab", "iber2d"),
-            ("hydro_tab", "river2d"),
-            ("hydro_tab", "sw2d"),
-            ("hydro_tab", "ascii"),
+            ("hydro_tab", "model_group"),
             "substrate_tab",
             "bioinfo_tab"]
         alive = []
@@ -1968,7 +1958,7 @@ class CentralW(QWidget):
 
         self.welcome_tab = welcome_GUI.WelcomeW(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
+            self.hydro_tab = hydrau_GUI.HydrauTab(path_prj, name_prj)
             self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
@@ -2132,22 +2122,10 @@ class CentralW(QWidget):
 
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.hydro_tab.send_log.connect(self.write_log)
-            self.hydro_tab.hecras1d.send_log.connect(self.write_log)
-            self.hydro_tab.hecras2d.send_log.connect(self.write_log)
-            self.hydro_tab.rubar2d.send_log.connect(self.write_log)
-            self.hydro_tab.rubar1d.send_log.connect(self.write_log)
-            self.hydro_tab.sw2d.send_log.connect(self.write_log)
-            self.hydro_tab.iber2d.send_log.connect(self.write_log)
-            self.hydro_tab.telemac.send_log.connect(self.write_log)
-            self.hydro_tab.basement2d.send_log.connect(self.write_log)
-            self.hydro_tab.ascii.send_log.connect(self.write_log)
             self.substrate_tab.send_log.connect(self.write_log)
             self.statmod_tab.send_log.connect(self.write_log)
             self.stathab_tab.send_log.connect(self.write_log)
-            self.hydro_tab.river2d.send_log.connect(self.write_log)
-            self.hydro_tab.mascaret.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
-            self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
             self.tools_tab.send_log.connect(self.write_log)
@@ -2161,24 +2139,10 @@ class CentralW(QWidget):
 
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
-            self.hydro_tab.hecras1d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.hecras2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.telemac.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.basement2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.ascii.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.rubar2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.rubar1d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.sw2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.iber2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.river2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.mascaret.drop_hydro.connect(self.update_combobox_filenames)
-
-            #self.parent().preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.hydro_tab.set_suffix_no_cut)
-
+            self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-            self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-            self.hydro_tab.ascii.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
         """
@@ -2401,7 +2365,7 @@ class CentralW(QWidget):
     def update_specific_tab(self):
         # hyd
         if self.tab_widget.currentIndex() == 1:
-            self.hydro_tab.mod.setFocus()
+            self.hydro_tab.model_list_combobox.setFocus()
         # calc hab
         if self.tab_widget.currentIndex() == 3:
             self.bioinfo_tab.update_merge_list()
