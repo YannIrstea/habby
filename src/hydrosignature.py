@@ -1,5 +1,6 @@
 import numpy as np
 import os.path
+from h5py import Dataset
 
 
 def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
@@ -274,7 +275,7 @@ def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_d
 
 
 def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
-                                   hyd_data_mesh=None, return_cut_hdf5=False):
+                                   hyd_data_mesh=None, return_cut_mesh=False):
     """
     Alternative version of hydrosignature_calculation, made to test variations to change function output and remove duplicates
     """
@@ -341,10 +342,14 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     nbmeshhs = 0
 
     ##storing node data and triangles of the newer mesh
-    hyd_xyhv = []
-    new_tin = []
-    hydrosignatures = []
 
+    new_xy = []
+    new_hv = []
+    new_tin = []
+    hydro_classes = []
+    original_triangle = []  # the index of the triangle each new node originally belonged to
+    # original_node = [] #the index of each node in the original hyd_xy_node list. Is -1 if node is a new node
+    enclosing_triangle = []  # the original index of the triangle which encloses each smaller triangle in the new mesh
     for i in range(hyd_tin.size // 3):  # even if one single triangle for hyd_tin
         # xyo, xya, xyb = hyd_xy_node[hyd_tin[i][0]], hyd_xy_node[hyd_tin[i][1]], hyd_xy_node[hyd_tin[i][2]]
         # axy, bxy = xya - xyo, xyb - xyo
@@ -410,7 +415,6 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                             "hydrosignature : polygonation contrary to the YLC theory while in phase poly2 MAJOR BUG !!!")
                         return
                     elif nbeltpoly2 >= 3:
-
 
                         for k2 in range(1, nbeltpoly2 - 1):
                             area2, volume2 = areavolumepoly(poly2, 0, k2, k2 + 1)
@@ -489,18 +493,22 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                                         return
                                     elif nbeltpoly3 >= 3:
                                         node_indices = []  # the index each node in the present polygon has in the new list of nodes (hyd_xyhv)
-                                        new_point_data = []  # x, y, h, v and i in each node of the present polygon
+                                        new_point_data = []  # x, y, h, v in each node of the present polygon
                                         # hyd_xyhv.append(poly3["x"][0], poly3)
                                         for index in range(0, nbeltpoly3):
                                             new_point_data.append(
                                                 [poly3["x"][index], poly3["y"][index], poly3["h"][index],
-                                                 poly3["v"][index], i])
+                                                 poly3["v"][index]])
 
-                                            if new_point_data[index] in hyd_xyhv:
-                                                node_indices.append(hyd_xyhv.index(new_point_data[index]))
+                                            # new_point_array=np.array([])
+
+                                            if new_point_data[index][0:2] in new_xy:
+                                                node_indices.append(new_xy.index(new_point_data[index][0:2]))
                                             else:
-                                                hyd_xyhv.append(new_point_data[index])
-                                                node_indices.append(len(hyd_xyhv) - 1)
+                                                new_xy.append(new_point_data[index][0:2])
+                                                new_hv.append(new_point_data[index][2:4])
+                                                original_triangle.append(i)
+                                                node_indices.append(len(new_xy) - 1)
 
                                         for k3 in range(1, nbeltpoly3 - 1):
                                             area3, volume3 = areavolumepoly(poly3, 0, k3, k3 + 1)
@@ -509,19 +517,8 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                                             volumemeso[j2][j3] += volume3
                                             volume23 += volume3
                                             new_tin.append([node_indices[0], node_indices[k3], node_indices[k3 + 1]])
-                                            hydrosignatures.append(index_to_class_number((nb_cl_h, nb_cl_v), (j2, j3)))
-
-                                            ##new idea, trying out
-
-                                            # for elem in poly1:
-                                            #     print(elem in poly3)
-                                            # print("--------------")
-                                            # for elem in poly2:
-                                            #     print(elem in poly3)
-                                            # for index in range(nbeltpoly3):
-                                            #     hyd_xyhv.append(
-                                            #         [poly3["x"][index], poly3["y"][index], poly3["h"][index],
-                                            #          poly3["v"][index]])
+                                            hydro_classes.append(index_to_class_number((nb_cl_h, nb_cl_v), (j2, j3)))
+                                            enclosing_triangle.append(i)
 
                         # checking the partitioning poly3 checking area volume nothing lost by the algorithm
 
@@ -544,21 +541,61 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     # calculating percentages
     hsarea = 100 * areameso / np.sum(areameso)
     hsvolume = 100 * volumemeso / np.sum(volumemeso)
-    hyd_xyhv = np.array(hyd_xyhv)
-    hyd_xyhv[:, 0:2] += translationxy
-    hyd_xy_node += translationxy
-    print("TEST")
-    print(len(new_tin), len(hydrosignatures), len(hyd_xyhv))
-    print(new_tin)
-    print(hydrosignatures)
-    print(hyd_xyhv)
-    print("TEST")
 
-    # TODO necessary for Horizontal Ramping Rate calculation
+    new_xy = np.array(new_xy).astype(np.float64)
+    new_hv = np.array(new_hv).astype(np.float64)
+    original_triangle = np.array(original_triangle).astype(np.int64)
+    enclosing_triangle = np.array(enclosing_triangle).astype(np.int64)
+    new_tin = np.array(new_tin).astype(np.int64)
+    hydro_classes = np.array(hydro_classes)
+
+    new_xy += translationxy
+    hyd_xy_node += translationxy
+    ##making sure every point is unique, as numerical errors can make it not so
+    new_xy_unique, indices, inverse_indices, counts = np.unique(new_xy, axis=0, return_index=True, return_inverse=True,
+                                                                return_counts=True)
+    original_triangle_unique = original_triangle[indices]
+    new_hv_unique = new_hv[indices]
+    new_tin_unique, tin_indices, tin_reverse_indices, tin_counts = np.unique(inverse_indices[new_tin], axis=0,
+                                                                             return_index=True, return_inverse=True,
+                                                                             return_counts=True)
+    hydro_classes_unique = hydro_classes[tin_indices]
+    enclosing_triangle_unique = enclosing_triangle[tin_indices]
+
+    # variables to be altered upon alteration of new_xy:  new_tin; hydro_classes; original_triangle; new_hv
+
+    if return_cut_mesh:
+        ##hyd_data_mesh is assumed to be a dataset with n columns, each cprresponding to a variable, and a dtype attribute which contains n tuples, each one containing the variable name and its numpy datatype
+        # hdf5file=h5py.File()
+        # for varindex in range(len(hyd_data_mesh.dtype)):
+        #     var_name=hyd_data_mesh.dtype[varindex][0]
+        #     data_type=np.dtype(hyd_data_mesh.dtype[varindex][1])
+        #     var_values=[]
+        #     for line in hyd_data_mesh:
+        #         var_values.append(line[varindex])
+        #     var_values=np.array(var_values).astype(data_type)
+        #
+        #     mesh_data_out
+        ##hyd_data_node is assumed to be a np array with n columns, each corresponding to a different variable, and m lines, each corresponding to a point in the original mesh
+
+        new_node_values = np.zeros((new_xy_unique.shape[0], hyd_data_node.shape[1]))
+        for varindex in range(hyd_data_node.shape[1]):
+            original_values = hyd_data_node[:, varindex]
+            new_node_values[:, varindex] = interpolate_from_triangle(new_xy_unique, original_values, hyd_xy_node,
+                                                                     original_triangle_unique, hyd_tin)
+
+        new_mesh_values = np.zeros((new_tin_unique.shape[0], hyd_data_mesh.shape[1]))
+        for varindex in range(hyd_data_mesh.shape[1]):
+            original_values = hyd_data_mesh[:, varindex]
+            new_mesh_values[:, varindex] = original_values[enclosing_triangle_unique]
+
+        return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, new_node_values, new_mesh_values
+
+        # TODO necessary for Horizontal Ramping Rate calculation
     # hs_xy_node +=translationxy
     # return hs_xy_node, hs_data_node, hs_tin, iwholeprofilehs, hs_data_mesh,hs_data_sub_mesh
     ##TODO allow output to an hdf5 file as well
-    return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, hyd_xyhv
+    return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume
 
 
 def hscomparison(classhv1, hs1, classhv2, hs2, k1=1, k2=1):
@@ -700,6 +737,11 @@ def hydraulic_data_from_file(filename):
 
 def interpol0(x, xa, ya, xb, yb):
     return (x - xa) * (yb - ya) / (xb - xa) + ya
+
+
+def interpolate_from_triangle(new_xy_unique, original_values, hyd_xy_node, original_triangle_unique, hyd_tin):
+    # TODO write this function to interpolate node values
+    pass
 
 
 def checkhydrosigantureclasses(classhv):
