@@ -1,6 +1,5 @@
 import numpy as np
 import os.path
-from h5py import Dataset
 
 
 def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
@@ -274,11 +273,20 @@ def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_d
     return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume
 
 
-def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
-                                   hyd_data_mesh=None, return_cut_mesh=False):
+def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, hyd_data_mesh=None,
+                                   return_cut_mesh=False, i_whole_profile=None):
     """
     Alternative version of hydrosignature_calculation, made to test variations to change function output and remove duplicates
+    :param classhv: list containing 2 lists, one with h class limits and the other with v class limits
+    :param hyd_tin: (m,3) int array containing the indices of each vertex in each mesh triangle
+    :param hyd_xy_node: (n,2) array containing the position of each node
+    :param hyd_hv_node: (n,2) array containing respectively depth and velocity in each node
+    :param hyd_data_node: structured (n,) array, consisting of a list of np.void tuples, and a dtype attribute containing (fieldname,datatype) tuples for each variable
+    :param hyd_data_mesh: structured (m,) array of np.void tuples and a dtype attribute containing (fieldname,datatype) for each variable
+    :param return_cut_mesh: boolean indicating whether to return the new mesh created for HS calculation (if True, original data will be interpolated for the new nodes)
+
     """
+
     g = 9.80665  # value of gravitational acceleration on Earth [m**2/s]
     uncertainty = 0.01  # a checking parameter for the algorithm
     translationxy = np.min(hyd_xy_node,
@@ -342,7 +350,6 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     nbmeshhs = 0
 
     ##storing node data and triangles of the newer mesh
-
     new_xy = []
     new_hv = []
     new_tin = []
@@ -562,34 +569,26 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     hydro_classes_unique = hydro_classes[tin_indices]
     enclosing_triangle_unique = enclosing_triangle[tin_indices]
 
-    # variables to be altered upon alteration of new_xy:  new_tin; hydro_classes; original_triangle; new_hv
-
     if return_cut_mesh:
-        ##hyd_data_mesh is assumed to be a dataset with n columns, each cprresponding to a variable, and a dtype attribute which contains n tuples, each one containing the variable name and its numpy datatype
-        # hdf5file=h5py.File()
-        # for varindex in range(len(hyd_data_mesh.dtype)):
-        #     var_name=hyd_data_mesh.dtype[varindex][0]
-        #     data_type=np.dtype(hyd_data_mesh.dtype[varindex][1])
-        #     var_values=[]
-        #     for line in hyd_data_mesh:
-        #         var_values.append(line[varindex])
-        #     var_values=np.array(var_values).astype(data_type)
-        #
-        #     mesh_data_out
-        ##hyd_data_node is assumed to be a np array with n columns, each corresponding to a different variable, and m lines, each corresponding to a point in the original mesh
 
-        new_node_values = np.zeros((new_xy_unique.shape[0], hyd_data_node.shape[1]))
-        for varindex in range(hyd_data_node.shape[1]):
-            original_values = hyd_data_node[:, varindex]
-            new_node_values[:, varindex] = interpolate_from_triangle(new_xy_unique, original_values, hyd_xy_node,
-                                                                     original_triangle_unique, hyd_tin)
+        ##hyd_data_node is assumed to be a structured np array, consisting of a list of np.void tuples, and a dtype attribute containing (fieldname,datatype) tuples for each variable each line in hyd_data_node corresponds to a node in the original mesh
+        if hyd_data_node != None:
+            node_data_out = np.zeros(new_xy_unique.shape[0], dtype=hyd_data_node.dtype)
+            for varname in hyd_data_node.dtype.names:
+                original_values = hyd_data_node[varname]
+                node_data_out[varname] = interpolate_from_triangle(new_xy_unique, hyd_xy_node, original_values, hyd_tin,
+                                                                   original_triangle_unique)
+        else:
+            node_data_out = None
+        if hyd_data_mesh != None:
+            mesh_data_out = np.zeros(new_tin_unique.shape[0], dtype=hyd_data_mesh.dtype)
+            for varname in hyd_data_mesh.dtype.names:
+                original_values = hyd_data_mesh[varname]
+                mesh_data_out[varname] = original_values[enclosing_triangle_unique]
+        else:
+            mesh_data_out = None
 
-        new_mesh_values = np.zeros((new_tin_unique.shape[0], hyd_data_mesh.shape[1]))
-        for varindex in range(hyd_data_mesh.shape[1]):
-            original_values = hyd_data_mesh[:, varindex]
-            new_mesh_values[:, varindex] = original_values[enclosing_triangle_unique]
-
-        return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, new_node_values, new_mesh_values
+        return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_data_out, mesh_data_out
 
         # TODO necessary for Horizontal Ramping Rate calculation
     # hs_xy_node +=translationxy
@@ -739,9 +738,27 @@ def interpol0(x, xa, ya, xb, yb):
     return (x - xa) * (yb - ya) / (xb - xa) + ya
 
 
-def interpolate_from_triangle(new_xy_unique, original_values, hyd_xy_node, original_triangle_unique, hyd_tin):
-    # TODO write this function to interpolate node values
-    pass
+def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_triangle):
+    """
+    Linearly interpolates the value of a variable z inside the mesh elements
+    :param new_xy: (m,2) array
+    :param old_xy: (n,2) array
+    :param old_values: (n,) array containing z-values in each node of original mesh
+    :param old_tin: (l,3) array containing tin of old mesh (referring to old mesh indices)
+    :param original_triangle: (m,) array containing the index of the triangle each new node is inside of
+    :return z: (m,) array of interpolated z-values in the positions of the new nodes
+    """
+    ordered_tin = old_tin[original_triangle]
+    coordinates = old_xy[ordered_tin]
+    x1, x2, x3 = coordinates[:, 0, 0], coordinates[:, 1, 0], coordinates[:, 2, 0]
+    y1, y2, y3 = coordinates[:, 0, 1], coordinates[:, 1, 1], coordinates[:, 2, 1]
+    values = old_values[ordered_tin]
+    z1, z2, z3 = values[:, 0], values[:, 1], values[:, 2]
+    x, y = new_xy[:, 0], new_xy[:, 1]
+    z = z1 + (((x - x1) * ((y2 - y1) * (z2 - z3) - (y2 - y3) * (z2 - z1))) + (
+            (y - y1) * ((x2 - x3) * (z2 - z1) - (x2 - x1) * (z2 - z3)))) / (
+                (x2 - x3) * (y2 - y1) - (x2 - x1) * (y2 - y3))
+    return z
 
 
 def checkhydrosigantureclasses(classhv):
@@ -807,14 +824,14 @@ if __name__ == '__main__':
 
     # nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation(
     #     classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
-    nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, hyd_xyhv = hydrosignature_calculation_alt(
+    nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
         classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
-    # print(nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth,
-    #       min_velocity, max_velocity, hsarea, hsvolume)
+    print(nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth,
+          min_velocity, max_velocity, hsarea, hsvolume)
 
     # Test HSC
-    # bok, hsc=hscomparison(classhv,hsarea,classhv,hsvolume)
-    # print(hsc)
+    bok, hsc = hscomparison(classhv, hsarea, classhv, hsvolume)
+    print(hsc)
 
     # Test export file
     pathexport = 'C:\\habby_dev\\files\\hydrosignature';
