@@ -659,16 +659,7 @@ def hsexporttxt(pathexport, filename, classhv, unitname, nbmeshhs, total_area, t
                 mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, no_unit=1, factor=1,
                 mean_width=0):
     ff = os.path.join(pathexport, filename)
-    f = open(ff, 'w')
-
-    f.write('hydrosignature built by HABBY' + '\n')
     cl_h, cl_v = classhv[0], classhv[1]
-    f.write('hw(m)' + ' ' + ' '.join(str(elem) for elem in cl_h) + '\n')
-    f.write('v(m/s)' + ' ' + ' '.join(str(elem) for elem in cl_v) + '\n')
-    f.write('area_(m2)_volume_(m3)_mean_height_(m)_mean_velocity_(m/s)' + '\n')
-    f.write('%_of_distribution_in_[height_HW|velocity_V]_combination_classes' + '\n')
-    f.write('CAUTION_THE_PERCENTAGES_SUMS_DO_NOT_ALWAYS_EXACTLY_MATCH_100' + '\n')
-    f.write('\n')
     listhsglobal = ['N_Unit', 'Unit', 'Factor', 'mean_width', 'nbelt_unit', 'total_area', 'total_volume', 'height_mean',
                     'velocity_mean', 'mean_Froude', 'min_height', 'max_height', 'min_velocity', 'max_velocity']
     listclassarea = []
@@ -681,11 +672,31 @@ def hsexporttxt(pathexport, filename, classhv, unitname, nbmeshhs, total_area, t
             listclassvolume.append(
                 'Volume[' + str(cl_h[kh]) + '<=HW<' + str(cl_h[kh + 1]) + '|' + str(cl_v[kv]) + '<=V<' + str(
                     cl_v[kv + 1]) + ']')
+    if os.path.isfile(ff):
+        f = open(ff, "r+")
+        current_classes = '\t'.join(listhsglobal) + '\t' + '\t'.join(listclassarea) + '\t' + '\t'.join(
+            listclassvolume) + '\n'
+        file_classes = f.readlines()[7]
+        if not current_classes == file_classes:
+            print(
+                "ERROR: The hydraulic classes in the text file are not the same as those requested. The same file cannot contain two different sets of ")
+            return
+    else:
+        f = open(ff, 'w')
 
-    f.write('\t'.join(listhsglobal) + '\t' + '\t'.join(listclassarea) + '\t' + '\t'.join(listclassvolume) + '\n')
+        f.write('hydrosignature built by HABBY' + '\n')
+
+        f.write('hw(m)' + ' ' + ' '.join(str(elem) for elem in cl_h) + '\n')
+        f.write('v(m/s)' + ' ' + ' '.join(str(elem) for elem in cl_v) + '\n')
+        f.write('area_(m2)_volume_(m3)_mean_height_(m)_mean_velocity_(m/s)' + '\n')
+        f.write('%_of_distribution_in_[height_HW|velocity_V]_combination_classes' + '\n')
+        f.write('CAUTION_THE_PERCENTAGES_SUMS_DO_NOT_ALWAYS_EXACTLY_MATCH_100' + '\n')
+        f.write('\n')
+
+        f.write('\t'.join(listhsglobal) + '\t' + '\t'.join(listclassarea) + '\t' + '\t'.join(listclassvolume) + '\n')
+
     listhsglobalvalue = [no_unit, unitname, factor, mean_width, nbmeshhs, total_area, total_volume, mean_depth,
                          mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity]
-
     listclassareavalue = []
     listclassvolumevalue = []
     for kh in range(len(cl_h) - 1):
