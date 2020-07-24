@@ -1,6 +1,6 @@
 import numpy as np
 import os.path
-
+from src import hdf5_mod
 
 def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
                                hyd_data_mesh=None, hyd_data_sub_mesh=None):
@@ -274,18 +274,21 @@ def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_d
 
 
 def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, hyd_data_mesh=None,
-                                   return_cut_mesh=False, i_whole_profile=None):
+                                   i_whole_profile=None, return_cut_mesh=False):
     """
     Alternative version of hydrosignature_calculation, made to test variations to change function output and remove duplicates
     :param classhv: list containing 2 lists, one with h class limits and the other with v class limits
     :param hyd_tin: (m,3) int array containing the indices of each vertex in each mesh triangle
     :param hyd_xy_node: (n,2) array containing the position of each node
     :param hyd_hv_node: (n,2) array containing respectively depth and velocity in each node
-    :param hyd_data_node: structured (n,) array, consisting of a list of np.void tuples, and a dtype attribute containing (fieldname,datatype) tuples for each variable
-    :param hyd_data_mesh: structured (m,) array of np.void tuples and a dtype attribute containing (fieldname,datatype) for each variable
+    :param hyd_data_node: structured (n,) array, consisting of a list of np.record tuples, and a dtype attribute containing (fieldname,datatype) tuples for each variable
+    :param hyd_data_mesh: structured (m,) array of np.record tuples and a dtype attribute containing (fieldname,datatype) for each variable
     :param return_cut_mesh: boolean indicating whether to return the new mesh created for HS calculation (if True, original data will be interpolated for the new nodes)
 
     """
+
+    # TODO modify iwholeprofile
+    i_whole_profile_out = i_whole_profile
 
     g = 9.80665  # value of gravitational acceleration on Earth [m**2/s]
     uncertainty = 0.01  # a checking parameter for the algorithm
@@ -561,17 +564,18 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     ##making sure every point is unique, as numerical errors can make it not so
     new_xy_unique, indices, inverse_indices, counts = np.unique(new_xy, axis=0, return_index=True, return_inverse=True,
                                                                 return_counts=True)
+    node_xy_out = new_xy_unique
     original_triangle_unique = original_triangle[indices]
     new_hv_unique = new_hv[indices]
     new_tin_unique, tin_indices, tin_reverse_indices, tin_counts = np.unique(inverse_indices[new_tin], axis=0,
                                                                              return_index=True, return_inverse=True,
                                                                              return_counts=True)
+    tin_out = new_tin_unique
     hydro_classes_unique = hydro_classes[tin_indices]
     enclosing_triangle_unique = enclosing_triangle[tin_indices]
 
     if return_cut_mesh:
 
-        ##hyd_data_node is assumed to be a structured np array, consisting of a list of np.void tuples, and a dtype attribute containing (fieldname,datatype) tuples for each variable each line in hyd_data_node corresponds to a node in the original mesh
         if hyd_data_node != None:
             node_data_out = np.zeros(new_xy_unique.shape[0], dtype=hyd_data_node.dtype)
             for varname in hyd_data_node.dtype.names:
@@ -580,15 +584,18 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                                                                    original_triangle_unique)
         else:
             node_data_out = None
+
+        # TODO deal with i_split separately
         if hyd_data_mesh != None:
             mesh_data_out = np.zeros(new_tin_unique.shape[0], dtype=hyd_data_mesh.dtype)
+            # varnames=hyd_data_mesh.dtypes.keys()
             for varname in hyd_data_mesh.dtype.names:
                 original_values = hyd_data_mesh[varname]
                 mesh_data_out[varname] = original_values[enclosing_triangle_unique]
         else:
             mesh_data_out = None
 
-        return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_data_out, mesh_data_out
+        return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out
 
         # TODO necessary for Horizontal Ramping Rate calculation
     # hs_xy_node +=translationxy
@@ -821,7 +828,7 @@ if __name__ == '__main__':
     '''
     testing the hydrosignature program
     '''
-    t = 0  # regarding this value different tests can be launched
+    t = 1  # regarding this value different tests can be launched
     if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
         classhv = [[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3], [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5]]
         hyd_tin = np.array([[0, 1, 3], [0, 3, 4], [1, 2, 3], [3, 4, 6], [3, 6, 7], [4, 5, 6]])
@@ -832,6 +839,19 @@ if __name__ == '__main__':
         hyd_hv_node = np.array(
             [[1.076, 0.128], [0.889999985694885, 0.155], [0, 0], [0, 0], [0.829999983310699, 0.145], [1.127, 0.143],
              [0.600000023841858, 0.182], [0, 0]])
+
+    if t == 1:
+        classhv = [[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3, 100], [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5, 100]]
+        path_prj = "C:\\habby_dev\\Hydrosignature\\project"
+        input_filename = "hydraulic.hyd"
+        oldhdf5 = hdf5_mod.Hdf5Management(path_prj, input_filename)
+        oldhdf5.load_hdf5_hyd()
+        oldhdf5.open_hdf5_file()
+        oldhdf5.load_data_2d()
+        oldhdf5.load_whole_profile()
+        oldhdf5.load_data_2d_info()
+        oldhdf5.add_hs(classhv)
+        # newhdf5=oldhdf5.hydrosignature_new_file(classhv)
 
     # nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation(
     #     classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
