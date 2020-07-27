@@ -1146,12 +1146,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
 
     # for each .hyd (or .hab) to create
     for hdf5_file_index in range(0, len(hydrau_description)):
-        # get filename source (can be several)
         filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
-        # data_2d
-        data_2d = Data2d()
-        # data_2d_whole_profile
-        data_2d_whole_profile = Data2d()
+        data_2d = Data2d()  # data_2d
         hydrau_description[hdf5_file_index]["unit_correspondence"] = []  # always one reach by file ?
         # for each filename source
         for i, file in enumerate(filename_source):
@@ -1169,14 +1165,16 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
                 timestep_wish_list = hydrau_description[hdf5_file_index]["unit_list"]
 
-            print("timestep_wish_list", timestep_wish_list)
             # multi_reach
-            if len(timestep_wish_list) > 1:
+            if len(hydrau_description[hdf5_file_index]["reach_list"]) > 1:
                 # load first reach
-                data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[0])
-                for reach_num in range(1, len(timestep_wish_list)):
-                    data_2d_source2, description_from_source = hsr.load_hydraulic(timestep_wish_list[reach_num])
-                    data_2d_source.add_reach(data_2d_source2, 0)
+                data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
+                # check error
+                if not data_2d_source:
+                    q.put(mystdout)
+                    return
+                data_2d.add_reach(data_2d_source, 0)
+            # one_reach
             else:
                 # load data
                 data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[0])
@@ -1187,8 +1185,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 for reach_num in range(data_2d_source.reach_num):
                     # data_2d
                     data_2d.add_unit(data_2d_source, reach_num)
-                    # data_2d_whole_profile
-                    data_2d_whole_profile.add_unit(data_2d_source.get_only_mesh(), reach_num)
+
+        """ get data_2d_whole_profile """
+        data_2d_whole_profile = data_2d.get_only_mesh()
 
         """ set unit_names """
         data_2d.set_unit_names(hydrau_description[hdf5_file_index]["unit_list"])
@@ -1262,8 +1261,13 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_reach_list"] = hydrau_description[hdf5_file_index]["reach_list"]
         hyd_description["hyd_reach_number"] = hydrau_description[hdf5_file_index]["reach_number"]
         hyd_description["hyd_reach_type"] = hydrau_description[hdf5_file_index]["reach_type"]
-        hyd_description["hyd_unit_list"] = [[unit_name.replace(":", "_").replace(" ", "_") for unit_name in
-                                             hydrau_description[hdf5_file_index]["unit_list"][0]]]
+        reach_unit_list_str = []
+        for reach_num in range(data_2d.reach_num):
+            unit_list_str = []
+            for unit_name in hydrau_description[hdf5_file_index]["unit_list"][reach_num]:
+                unit_list_str.append(unit_name.replace(":", "_").replace(" ", "_"))
+            reach_unit_list_str.append(unit_list_str)
+        hyd_description["hyd_unit_list"] = reach_unit_list_str
         hyd_description["hyd_unit_number"] = str(len(hydrau_description[hdf5_file_index]["unit_list"][0]))
         hyd_description["hyd_unit_type"] = hydrau_description[hdf5_file_index]["unit_type"]
         hyd_description["hyd_varying_mesh"] = hyd_varying_mesh
