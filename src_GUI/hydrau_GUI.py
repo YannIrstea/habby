@@ -186,7 +186,6 @@ class HydrauTab(QScrollArea):
         self.msgi.show()
 
     def set_suffix_no_cut(self, no_cut_bool):
-        print("set_suffix_no_cut")
         if self.hydraulic_model_information.name_models_gui_list[self.model_index]:
             # get class
             current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.model_index].lower())
@@ -263,9 +262,11 @@ class ModelInfoGroup(QGroupBox):
         self.reach_name_combobox = QComboBox()
         self.reach_name_combobox.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Data detected'))
-        self.usefull_variable_label = QLabel(self.tr('unknown'))
+        # unit list
+        unit_select_title_label = QLabel(self.tr('Unit selected'))
+        self.units_QListWidget = QListWidgetClipboard()
+        self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.units_QListWidget.setMinimumHeight(100)
 
         # unit type
         units_name_title_label = QLabel(self.tr('Unit type'))
@@ -275,11 +276,9 @@ class ModelInfoGroup(QGroupBox):
         units_number_title_label = QLabel(self.tr('Unit number'))
         self.unit_number_label = QLabel(self.tr('unknown'))
 
-        # unit list
-        unit_select_title_label = QLabel(self.tr('Unit selected'))
-        self.units_QListWidget = QListWidgetClipboard()
-        self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.units_QListWidget.setMinimumHeight(100)
+        # usefull variables
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
+        self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # epsg
         epsg_title_label = QLabel(self.tr('EPSG code'))
@@ -306,14 +305,14 @@ class ModelInfoGroup(QGroupBox):
         layout_ascii.addWidget(self.select_file_button, 0, 2)
         layout_ascii.addWidget(reach_name_title_label, 1, 0)
         layout_ascii.addWidget(self.reach_name_combobox, 1, 1)
-        layout_ascii.addWidget(usefull_variable_label_title, 2, 0)
-        layout_ascii.addWidget(self.usefull_variable_label, 2, 1)
+        layout_ascii.addWidget(unit_select_title_label, 2, 0)
+        layout_ascii.addWidget(self.units_QListWidget, 2, 1)
         layout_ascii.addWidget(units_name_title_label, 3, 0)
         layout_ascii.addWidget(self.units_name_label, 3, 1)
         layout_ascii.addWidget(units_number_title_label, 4, 0)
         layout_ascii.addWidget(self.unit_number_label, 4, 1)
-        layout_ascii.addWidget(unit_select_title_label, 5, 0)
-        layout_ascii.addWidget(self.units_QListWidget, 5, 1, 1, 1)  # from row, from column, nb row, nb column
+        layout_ascii.addWidget(usefull_variable_label_title, 5, 0)
+        layout_ascii.addWidget(self.usefull_variable_label, 5, 1, 1, 1)  # from row, from column, nb row, nb column
         layout_ascii.addWidget(epsg_title_label, 6, 0)
         layout_ascii.addWidget(self.epsg_label, 6, 1)
         layout_ascii.addWidget(hdf5_name_title_label, 7, 0)
@@ -435,7 +434,6 @@ class ModelInfoGroup(QGroupBox):
             self.last_hydraulic_file_name_label.setText(name)
 
     def set_suffix_no_cut(self, no_cut_bool):
-        print("set_suffix_no_cut")
         if self.hydraulic_model_information.name_models_gui_list[self.mod_act]:
             # get class
             current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.mod_act].lower())
@@ -635,17 +633,17 @@ class ModelInfoGroup(QGroupBox):
         # refresh telemac dictonnary
         unit_list = []
         unit_list_full = []
-        selected_list = []
+        unit_list_tf = []
         for i in range(total):
-            unit_list_full.append(self.units_QListWidget.item(i).text())
-            selected_list.append(self.units_QListWidget.item(i).isSelected())
+            text = self.units_QListWidget.item(i).text()
             if self.units_QListWidget.item(i).isSelected():
-                unit_list.append(self.units_QListWidget.item(i).text())
-
+                unit_list.append(text)
+            unit_list_full.append(text)
+            unit_list_tf.append(self.units_QListWidget.item(i).isSelected())
         # save multi
-        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list"][self.reach_name_combobox.currentIndex()] = unit_list
+        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list"][self.reach_name_combobox.currentIndex()] = list(unit_list)
         self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_full"][self.reach_name_combobox.currentIndex()] = unit_list_full
-        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_tf"][self.reach_name_combobox.currentIndex()] = selected_list
+        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_tf"][self.reach_name_combobox.currentIndex()] = unit_list_tf
         self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_number"] = str(selected)
 
         if not self.project_preferences["cut_mesh_partialy_dry"]:
@@ -669,7 +667,7 @@ class ModelInfoGroup(QGroupBox):
         script_function_name = "LOAD_" + self.hydraulic_model_information.class_gui_models_list[self.model_index]
         cmd_str = self.exe_cmd + ' ' + script_function_name + \
                   ' inputfile="' + os.path.join(self.pathfile[0], self.namefile[0].replace(', ', ',')) + '"' + \
-                  ' unit_list=' + str(self.hydrau_description_list[0]['unit_list']).replace("\'", "'").replace(' ', '') + \
+                  ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list']).replace("\'", "'").replace(' ', '') + \
                   ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
                   ' outputfilename="' + self.name_hdf5 + '"' + \
                   ' path_prj="' + path_prj_script + '"'
@@ -736,6 +734,9 @@ class ModelInfoGroup(QGroupBox):
         # check cases
         for el in hydrau_description_multiple:
             print(el["unit_list"])
+
+        self.q = Queue()
+        self.progress_value = Value("i", 0)
         self.p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
                          args=(hydrau_description_multiple,
                                self.progress_value,
@@ -823,6 +824,7 @@ class ModelInfoGroup(QGroupBox):
                         # unblock button hydraulic
                         self.create_hdf5_button.setDisabled(False)  # hydraulic
 
+                # finished without error
                 elif not error:
                     # MERGE
                     if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
