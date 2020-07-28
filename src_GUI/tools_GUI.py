@@ -18,10 +18,10 @@ import os
 from multiprocessing import Process, Value
 
 from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeySequence
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, QApplication
 
 from src.tools_mod import QGroupBoxCollapsible
 from src.hydraulic_process_mod import MyProcessList
@@ -719,3 +719,18 @@ class LeftHorizontalTabBar(QTabBar):
             painter.translate(-c)
             painter.drawControl(QStyle.CE_TabBarTabLabel, opt)
             painter.restore()
+
+
+class QListWidgetClipboard(QListWidget):
+    def __init__(self):
+        super().__init__()
+
+    def keyPressEvent(self, event):
+        if event.matches(QKeySequence.Copy):
+            clipboard = QApplication.clipboard()
+            string_to_clipboard = ""
+            for item in self.selectedItems():
+                string_to_clipboard = string_to_clipboard + item.text() + "\n"
+            clipboard.setText(string_to_clipboard)
+        else:
+            QListWidget.keyPressEvent(self, event)

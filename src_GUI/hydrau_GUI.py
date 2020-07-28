@@ -16,41 +16,25 @@ https://github.com/YannIrstea/habby
 """
 import os
 import sys
-from io import StringIO
 from multiprocessing import Process, Queue, Value
 import numpy as np
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QPushButton, \
+from PyQt5.QtWidgets import QPushButton, \
     QLabel, QGridLayout, \
-    QLineEdit, QFileDialog, QSpacerItem, QListWidget, \
+    QLineEdit, QFileDialog, \
     QComboBox, QMessageBox, QGroupBox, \
-    QRadioButton, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
+    QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
-from lxml import etree as ET
 
-import src.merge
-import src.substrate_mod
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
 from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
-import src.tools_mod
-from src import ascii_mod
 from src import hdf5_mod
-from src import hec_ras1D_mod
 from src import hydraulic_process_mod
-from src import iber2d_mod
-from src import lammi_mod
-from src import mascaret_mod
-from src import mesh_management_mod
-from src import paraview_mod
-from src import river2d_mod
-from src import rubar1d2d_mod
-from src import substrate_mod
-from src import sw2d_mod
-from src.project_properties_mod import load_project_properties, load_specific_properties, save_project_properties
-from src.tools_mod import QGroupBoxCollapsible
-from src.user_preferences_mod import user_preferences
+
+from src.project_properties_mod import load_project_properties, save_project_properties
+from src_GUI.tools_GUI import QListWidgetClipboard
 np.set_printoptions(threshold=np.inf)
 
 
@@ -293,7 +277,7 @@ class ModelInfoGroup(QGroupBox):
 
         # unit list
         unit_select_title_label = QLabel(self.tr('Unit selected'))
-        self.units_QListWidget = QListWidget()
+        self.units_QListWidget = QListWidgetClipboard()
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.units_QListWidget.setMinimumHeight(100)
 
