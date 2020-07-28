@@ -1,13 +1,16 @@
-available_models_tf_list	name_models_gui_list	attribute_models_list	class_gui_models_list	class_mod_models_list	file_mod_models_list	dimensions	extensions	website_models_list
-False	LAMMI	lammi	LAMMI	LammiResult	lammi_mod	1	.txt	https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847
-False	RubarBE 1D	rubar1d	Rubar1D	Rubar1dResult	rubar1d2d_mod	1	.txt	https://riverhydraulics.inrae.fr/outils/modelisation-numerique/modelisation-1d-avec-evolution-des-fonds-rubarbe/
-False	Mascaret 1D	mascaret	Mascaret	MascaretResult	mascaret_mod	1	.xcas, .geo, .opt, .rub	http://www.openmascaret.org/
-False	HEC-RAS 1D	hecras1d	HEC_RAS1D	HecRas2dResult	hec_ras1D_mod	1	.g*, .G*, .xml, .rep, .sdf	https://www.hec.usace.army.mil/software/hec-ras/
-True	Rubar20 2D	rubar2d	Rubar2D	Rubar2dResult	rubar1d2d_mod	2	.dat, .tps, .txt	http://www.captiven.fr/article/logiciel-rubar-20
-True	TELEMAC 2D	telemac	TELEMAC	TelemacResult	telemac_mod	2	.res, .slf, .srf, .txt	http://www.opentelemac.org/index.php/presentation?id=17
-True	HEC-RAS 2D	hecras2d	HEC_RAS2D	HecRas2dResult	hec_ras2D_mod	2	.hdf, .txt	https://www.hec.usace.army.mil/software/hec-ras/
-False	Iber 2D	iber2d	IBER2D	Iber2dResult	iber2d_mod	2	.dat, .rep, .txt	http://www.iberaula.es/
-False	River 2D	river2d	River2D	River2dResult	river2d_mod	2	.cdg, .txt	http://www.river2d.ualberta.ca/
-False	SW2D	sw2d	SW2D	Sw2dResult	sw2d_mod	2	.geo, .res, .txt	https://sw2d.wordpress.com
-True	BASEMENT 2D	basement2d	Basement2D	BasementResult	basement_mod	2	.h5, .txt	https://basement.ethz.ch/
-True	TXT 1D-2D	ascii	ASCII	AsciiResult	ascii_mod	2	.txt	https://github.com/YannIrstea/habby
+name_models_gui_list	available_models_tf_list	attribute_models_list	class_gui_models_list	class_mod_models_list	file_mod_models_list	dimensions	model_dimension_direction	reach_number	equation	numerical_method	structured_mesh	varying_mesh	mesh_variables	node_variables	nb_point_by_mesh	simulation_condition	sens rotation maille	extensions	version	website_models_list
+LAMMI	False	lammi	LAMMI	LammiResult	lammi_mod	1												.txt		https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847
+RubarBE 1D	False	rubar1d	Rubar1D	Rubar1dResult	rubar1d2d_mod	1												.txt		https://riverhydraulics.inrae.fr/outils/modelisation-numerique/modelisation-1d-avec-evolution-des-fonds-rubarbe/
+Mascaret 1D	False	mascaret	Mascaret	MascaretResult	mascaret_mod	1												.xcas, .geo, .opt, .rub		http://www.openmascaret.org/
+HEC-RAS 1D	False	hecras1d	HEC_RAS1D	HecRas2dResult	hec_ras1D_mod	1												.g*, .G*, .xml, .rep, .sdf		https://www.hec.usace.army.mil/software/hec-ras/
+Rubar20 2D	True	rubar2d	Rubar2D	Rubar2dResult	rubar1d2d_mod	2		1		FV		?	h, v	xy, z	3 or 4		horaire	.dat, .tps, .txt		http://www.captiven.fr/article/logiciel-rubar-20
+TELEMAC 2D	True	telemac	TELEMAC	TelemacResult	telemac_mod	2	horizontal	1	BSV	FE ou FV??		possible	-	xy, z, h, v	3	steady and unsteady	horaire ?	.res, .slf, .srf, .txt		http://www.opentelemac.org/index.php/presentation?id=17
+HEC-RAS 2D	True	hecras2d	HEC_RAS2D	HecRas2dResult	hec_ras2D_mod	2		n		FV implicite		?	z, h, v, shear_stress	xy	3 or 4 or 5 or 6 or 7		anti-horaire	.hdf, .txt		https://www.hec.usace.army.mil/software/hec-ras/
+Iber 2D	False	iber2d	IBER2D	Iber2dResult	iber2d_mod	2	horizontal		BSV	FV explicite	False				3 or 4			.dat, .rep, .txt		http://www.iberaula.es/
+River 2D	False	river2d	River2D	River2dResult	river2d_mod	2												.cdg, .txt		http://www.river2d.ualberta.ca/
+SW2D	False	sw2d	SW2D	Sw2dResult	sw2d_mod	2				FV								.geo, .res, .txt		https://sw2d.wordpress.com
+BASEMENT 2D	True	basement2d	Basement2D	BasementResult	basement_mod	2												.h5, .txt		https://basement.ethz.ch/
+TXT 1D-2D	True	ascii	ASCII	AsciiResult	ascii_mod	2		n									double	.txt		https://github.com/YannIrstea/habby
+FullSWOF	False	fullswof	FullSWOF	FullSwof	fullswof_mod	2														https://sourcesup.renater.fr/projects/fullswof-2d/
+Flood Modeller	False	floodmodeller	Flood Modeller	FloodModeller	floodmodeller_mod	2														https://www.floodmodeller.com/
+Mike 21	False	mike21	Mike 21	Mike21	mike21_mod	2														https://www.mikepoweredbydhi.com/products/mike-21
