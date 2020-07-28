@@ -95,7 +95,7 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION_STR)
-        self.beta = False  # if set to True : GUI beta version mode is runned (block fonctionality)
+        self.beta = True  # if set to True : GUI beta version mode is runned (block fonctionality)
 
         # operating system
         self.operatingsystemactual = operatingsystem()
@@ -348,7 +348,7 @@ class MainWindows(QMainWindow):
             if hasattr(self.central_widget, "hydro_tab"):
                 for model_index in range(len(self.central_widget.hydro_tab.hydraulic_model_information.name_models_gui_list)):
                     if not self.central_widget.hydro_tab.hydraulic_model_information.available_models_tf_list[model_index]:
-                        self.central_widget.hydro_tab.model_list_combobox.model().item(model_index).setEnabled(False)
+                        self.central_widget.hydro_tab.model_list_combobox.model().item(model_index + 1).setEnabled(False)
 
             # disable_model_statistic
             self.statisticmodelaction.setEnabled(False)
