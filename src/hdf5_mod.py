@@ -26,6 +26,7 @@ from osgeo import ogr
 from osgeo import osr
 from stl import mesh
 from multiprocessing import Value
+import shutil
 import sys
 from pandas import DataFrame
 
@@ -92,7 +93,6 @@ class Hdf5Management:
         self.sub_constant_values = None
         self.sub_mapping_method = None
         self.sub_description_system = dict()
-        self.hydrosignature_calculated = False
 
     def open_hdf5_file(self, new=False):
         # get mode
@@ -706,6 +706,9 @@ class Hdf5Management:
                 self.export_detailled_point_txt()
                 break
 
+        # indicates hydrosignature has not been calculated
+        self.hydrosignature_calculated = False
+
     def load_hdf5_hyd(self, units_index="all", user_target_list="defaut", whole_profil=False):
         # open an hdf5
         self.open_hdf5_file(new=False)
@@ -1187,13 +1190,23 @@ class Hdf5Management:
     # HYDROSIGNATURE
     def hydrosignature_new_file(self, classhv):
         newfilename = self.filename[:-4] + "HS" + self.extension
+        shutil.copy(self.absolute_path_file, os.path.join(self.path, newfilename))
         newhdf5 = Hdf5Management(self.path_prj, newfilename)
-        newhdf5.create_hdf5_hyd(data_2d=self.data_2d, data_2d_whole=self.data_2d_whole,
-                                data_description=self.data_description, project_preferences=self.project_preferences)
-        newhdf5.add_hs(classhv)
+        newhdf5.load_hdf5_hyd()
+        newhdf5.open_hdf5_file()
+        newhdf5.load_data_2d()
+        newhdf5.load_whole_profile()
+        newhdf5.load_data_2d_info()
+
+        # newhdf5 = Hdf5Management(self.path_prj, newfilename)
+        #
+        # newhdf5.create_hdf5_hyd(data_2d=self.data_2d, data_2d_whole=self.data_2d_whole,
+        #                         data_description=self.data_description, project_preferences=self.project_preferences)
+
+        newhdf5.add_hs(classhv, alter_mesh=True)
         return newhdf5
 
-    def add_hs(self, classhv):
+    def add_hs(self, classhv, alter_mesh=False):
 
         # # TOTO:
         # self.data_2d_hs = Data2d(reach_num=len(reach_list),
@@ -1214,29 +1227,58 @@ class Hdf5Management:
                 hyd_xy_node = self.data_2d[reach_num][unit_num]["node"]["xy"]
                 # hyd_hv_node = np.concatenate((hyd_data_node["h"], hyd_data_node["v"]), 1)
                 hyd_hv_node = np.array([hyd_data_node["h"], hyd_data_node["v"]]).T
-                # print(hyd_hv_node.shape)
-                nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
-                    classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
-                    return_cut_mesh=True)
-                self.data_2d[reach_num][unit_num].hydrosignature = {"nbmeshhs": nbmeshhs, "total_area": total_area,
-                                                                    "total_volume": total_volume,
-                                                                    "mean_depth": mean_depth,
-                                                                    "mean_velocity": mean_velocity,
-                                                                    "mean_froude": mean_froude,
-                                                                    "min_depth": min_depth,
-                                                                    "max_depth": max_depth,
-                                                                    "min_velocity": min_velocity,
-                                                                    "max_velocity": max_velocity,
-                                                                    "hsarea": hsarea,
-                                                                    "hsvolume": hsvolume}
-                self.data_2d[reach_num][unit_num]["mesh"]["data"] = DataFrame.from_records(mesh_data_out)
-                self.data_2d[reach_num][unit_num]["mesh"]["tin"] = tin_out
-                self.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = i_whole_profile_out
-                self.data_2d[reach_num][unit_num]["node"]["data"] = DataFrame.from_records(node_data_out)
-                self.data_2d[reach_num][unit_num]["node"]["xy"] = node_xy_out
-                print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
+                if alter_mesh:
+                    nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
+                        classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
+                        return_cut_mesh=True)
+                    # TODO save hydrosignature as an attribute of the reach
 
-        self.hydrosignature_calculated = True
+                    # self.data_2d[reach_num][unit_num].hydrosignature = {"nbmeshhs": nbmeshhs, "total_area": total_area,
+                    #                                                     "total_volume": total_volume,
+                    #                                                     "mean_depth": mean_depth,
+                    #                                                     "mean_velocity": mean_velocity,
+                    #                                                     "mean_froude": mean_froude,
+                    #                                                     "min_depth": min_depth,
+                    #                                                     "max_depth": max_depth,
+                    #                                                     "min_velocity": min_velocity,
+                    #                                                     "max_velocity": max_velocity,
+                    #                                                     "hsarea": hsarea,
+                    #                                                     "hsvolume": hsvolume}
+                    # self.data_2d[reach_num][unit_num]["mesh"]["data"] = DataFrame.from_records(mesh_data_out)
+                    self.replace_dataset_in_file(
+                        "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num) + "/mesh/data", mesh_data_out)
+                    self.replace_dataset_in_file(
+                        "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num) + "/mesh/tin", tin_out)
+                    self.replace_dataset_in_file(
+                        "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num) + "/mesh/i_whole_profile",
+                        i_whole_profile_out)
+                    self.replace_dataset_in_file(
+                        "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num) + "/node/data", node_data_out)
+                    self.replace_dataset_in_file(
+                        "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num) + "/node/xy", node_xy_out)
+                    # self.data_2d[reach_num][unit_num]["mesh"]["tin"] = tin_out
+                    # self.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"] = i_whole_profile_out
+                    # self.data_2d[reach_num][unit_num]["node"]["data"] = DataFrame.from_records(node_data_out)
+                    # self.data_2d[reach_num][unit_num]["node"]["xy"] = node_xy_out
+                    print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
+
+        # self.write_data_2d(self.data_2d)
+        # self.hydrosignature_calculated = True
+        #
+        # self.set_hdf5_attributes(("hydrosignature_calculated"),(False))
+        # self.data_2d.attrs.create("hydrosignature_calculated",False)
+
+        self.file_object.attrs.create("hydrosignature_calculated", True)
+        # print(self.file_object.keys())
+        # # self.file_object["data_2d"] = self.data_2d
+        # self.write_data_2d(self.data_2d)
+
+    def replace_dataset_in_file(self, dataset_name, new_dataset):
+        attrs = self.file_object[dataset_name].attrs.items()
+        del self.file_object[dataset_name]
+        self.file_object.create_dataset(dataset_name, new_dataset.shape, new_dataset.dtype, data=new_dataset)
+        for attribute in attrs:
+            self.file_object[dataset_name].attrs.create(attribute[0], attribute[1])
 
     # ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
