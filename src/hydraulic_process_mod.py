@@ -114,8 +114,8 @@ class HydraulicSimulationResultsAnalyzer:
                                                                 hdf5_name=name_hdf5,
                                                                 model_type=self.model_type,
                                                                 model_dimension=str(self.nb_dim),
-                                                                unit_list=list(hsr.timestep_name_list),
-                                                                unit_list_full=list(hsr.timestep_name_list),
+                                                                unit_list=[list(hsr.timestep_name_list)] * hsr.reach_num,
+                                                                unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_num,
                                                                 unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_num,
                                                                 unit_number=str(hsr.timestep_nb),
                                                                 unit_type=hsr.timestep_unit,
@@ -148,8 +148,8 @@ class HydraulicSimulationResultsAnalyzer:
                                                     model_dimension=str(self.nb_dim),
                                                     epsg_code=hsr.epsg_code,
                                                     variable_name_unit_dict=hsr.hvum.software_detected_list,
-                                                    unit_list=list(hsr.timestep_name_list),
-                                                    unit_list_full=list(hsr.timestep_name_list),
+                                                    unit_list=[list(hsr.timestep_name_list)] * hsr.reach_num,
+                                                    unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_num,
                                                     unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_num,
                                                     unit_number=str(hsr.timestep_nb),
                                                     unit_type=hsr.timestep_unit,
@@ -196,7 +196,7 @@ class HydraulicSimulationResultsAnalyzer:
 
             elif not self.index_hydrau_file_selected:  # from file
                 # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
-                if len(data_index_file["filename"]) > 1:
+                if len(list(set(data_index_file["filename"]))) > 1:
                     self.more_than_one_file_selected_by_user = True
                 # textfiles filesexisting matching
                 selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
@@ -211,7 +211,7 @@ class HydraulicSimulationResultsAnalyzer:
                         return
             elif self.index_hydrau_file_selected:  # from indexHYDRAU.txt
                 # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
-                if len(data_index_file["filename"]) > 1:
+                if len(list(set(data_index_file["filename"]))) > 1:
                     self.more_than_one_file_selected_by_user = True
                 # textfiles filesexisting matching
                 selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
@@ -461,9 +461,20 @@ class HydraulicSimulationResultsAnalyzer:
                     self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
                     return
 
+                # multi reach from file cases
+                filename_list = data_index_file[headers[0]]
                 if reach_presence:
-                    reach_name = [data_index_file[headers[reach_index]][0]]
-                if not reach_presence:
+                    reach_name = data_index_file[headers[reach_index]]
+                    # duplicates filename presence +
+                    if len(filename_list) != len(list(set(filename_list))) and len(reach_name) != len(list(set(reach_name))) and \
+                        len(list(set(filename_list))) == len(list(set(reach_name))):
+                        reach_name = list(set(reach_name))
+                        filename_list
+                        list(data_index_file[headers[discharge_index]])
+
+                    else:
+                        reach_name = [data_index_file[headers[reach_index]][0]]
+                else:
                     reach_name = ["unknown"]
 
                 # self.hydrau_description_list
@@ -1117,11 +1128,12 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hydrau_description[hdf5_file_index]["unit_correspondence"] = []  # always one reach by file ?
         # for each filename source
         for i, file in enumerate(filename_source):
-            # get timestep_name_list
+            # get file informations
             hsr = HydraulicSimulationResultsSelector(file,
                                              hydrau_description[hdf5_file_index]["path_filename_source"],
                                              hydrau_description[hdf5_file_index]["model_type"],
                                              hydrau_description[hdf5_file_index]["path_prj"])
+            # get timestep_name_list
             if hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.a", "2.a"}:
                 timestep_wish_list = [hsr.timestep_name_list]
             elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b"}:
@@ -1131,21 +1143,26 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
                 timestep_wish_list = hydrau_description[hdf5_file_index]["unit_list"]
 
-            # multi_reach
-            if len(hydrau_description[hdf5_file_index]["reach_list"]) > 1:
+            # multi_reach from several files
+            if len(hydrau_description[hdf5_file_index]["reach_list"]) > 1 and len(filename_source) > 1:
                 # load first reach
                 data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
                 # check error
-                if not data_2d_source:
+                if not data_2d_source and not print_cmd:
                     q.put(mystdout)
                     return
-                data_2d.add_reach(data_2d_source, 0)
+                data_2d.add_reach(data_2d_source, [0])
+            # multi_reach from one files (HEC-RAS 2d, ASCII, .. ?)
+            elif len(hydrau_description[hdf5_file_index]["reach_list"]) > 1 and len(filename_source) == 1:
+                # load data
+                data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
+                data_2d.add_reach(data_2d_source, list(range(len(hydrau_description[hdf5_file_index]["reach_list"]))))
             # one_reach
             else:
                 # load data
                 data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[0])
                 # check error
-                if not data_2d_source:  # empty data2d list
+                if not data_2d_source and not print_cmd:
                     q.put(mystdout)
                     return
                 for reach_num in range(data_2d_source.reach_num):
@@ -1186,19 +1203,21 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
 
         """ remove_dry_mesh """
         data_2d.remove_dry_mesh()
+        if data_2d.unit_num == 0:
+            print("Error: All selected units or timestep are entirely dry.")
+            if not print_cmd:
+                q.put(mystdout)
+            return
 
         """ semi_wetted_mesh_cutting """
         if project_preferences["cut_mesh_partialy_dry"]:
             data_2d.semi_wetted_mesh_cutting(hydrau_description[hdf5_file_index]["unit_list"],
                                              progress_value,
                                              delta_file)
-
-        # refresh unit
-        hydrau_description[hdf5_file_index]["unit_list"] = data_2d.unit_name_list
-        hydrau_description[hdf5_file_index]["unit_number"] = len(data_2d.unit_name_list)
-
-        if len(hydrau_description[hdf5_file_index]["unit_list"]) == 0:
+        if data_2d.unit_num == 0:
             print("Error: All selected units or timestep are not hydraulically operable.")
+            if not print_cmd:
+                q.put(mystdout)
             return
 
         """ re compute area """

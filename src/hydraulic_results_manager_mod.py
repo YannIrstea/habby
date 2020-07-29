@@ -32,20 +32,14 @@ class HydraulicModelInformation:
         Hydraulic software informations
         """
         # models
-        self.available_models_tf_list = []
-        self.name_models_gui_list = []
-        self.attribute_models_list = []
-        self.class_gui_models_list = []
-        self.class_mod_models_list = []
-        self.file_mod_models_list = []
-        self.website_models_list = []
-        self.dimensions = []
-        self.extensions = []
         self.filename = os.path.join("model_hydro", "HydraulicModelInformation.txt")
         with open(self.filename, 'r') as f:
             data_read = f.read()
         header_list = data_read.splitlines()[0].split("\t")
         data_splited = data_read.splitlines()[1:]
+        # init_list
+        for header_index, header_name in enumerate(header_list):
+            setattr(self, header_name, [])
         for line_index, line in enumerate(data_splited):
             line_splited = line.split("\t")
             for header_index, header_name in enumerate(header_list):
@@ -126,6 +120,9 @@ class HydraulicSimulationResultsBase:
 
         self.results_data_file = None
 
+        self.sub = False
+        self.epsg_code = "unknown"
+
         # reach_num
         self.multi_reach = False
         self.reach_num = 1
@@ -144,10 +141,11 @@ class HydraulicSimulationResultsBase:
 
     def load_specific_timestep(self, timestep_name_wish_list):
         self.timestep_name_wish_list = timestep_name_wish_list
-        for time_step_name_wish in timestep_name_wish_list:
+        for time_step_name_wish in self.timestep_name_wish_list:
             if time_step_name_wish not in self.timestep_name_list:
                 print("Error: timestep " + time_step_name_wish + " not found in " + self.filename +
                       ". Change it in indexHYDRAU.txt and retry.")
+                break
             else:
                 self.timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
         self.timestep_name_wish_list_index.sort()

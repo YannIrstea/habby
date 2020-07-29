@@ -134,8 +134,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         timestep_float_list = list(frange(simulation_dict["SIMULATION"]["TIME"]["start"],
                                simulation_dict["SIMULATION"]["TIME"]["end"],
                                simulation_dict["SIMULATION"]["TIME"]["out"]))
-        self.timestep_name_list = [list(map(str, timestep_float_list))]
-        self.timestep_nb = len(self.timestep_name_list[0])
+        self.timestep_name_list = list(map(str, timestep_float_list))
+        self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "time [s]"
 
     def load_hydraulic(self, timestep_name_wish_list):

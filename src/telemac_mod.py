@@ -104,7 +104,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         get_time_step
         """
         timestep_float_list = self.results_data_file.tags['times']
-        self.timestep_name_list = list(map(str, timestep_float_list))
+        self.timestep_name_list = list(map(str, timestep_float_list))  # always one reach
         self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "time [s]"
 

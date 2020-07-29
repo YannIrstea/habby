@@ -61,8 +61,9 @@ class Data2d(list):
     #     super(Data2d, self).append(hydraulic_variable)
     #     self.get_informations()
 
-    def add_reach(self, data_2d_new, reach_num):
-        self.append(data_2d_new[reach_num])
+    def add_reach(self, data_2d_new, reach_num_list):
+        for reach_num in reach_num_list:
+            self.append(data_2d_new[reach_num_list[reach_num]])
 
         # TODO: check if same units number and name
 
@@ -175,12 +176,16 @@ class Data2d(list):
                 self[reach_num][unit_num].unit_name = self.unit_name_list[reach_num][unit_num]
 
     def remove_unit_from_unit_list(self, unit_index_to_remove_list):
+        # remove duplicates
+        unit_index_to_remove_list = list(set(unit_index_to_remove_list))
+
         # unit_dict removed
         for reach_num in range(self.reach_num):
             for unit_index_to_remove in reversed(unit_index_to_remove_list):
                 self[reach_num].pop(unit_index_to_remove)
                 # unit_name_list updated
                 self.unit_name_list[reach_num].pop(unit_index_to_remove)
+        self.get_informations()
 
     def check_validity(self):
         unit_to_remove_list = []
@@ -196,7 +201,8 @@ class Data2d(list):
                                                                      self.hvum.z.name].to_numpy())),
                                                             unit_num=unit_num,
                                                             case="at reading."):
-                    print("Warning: The mesh of unit " + str(unit_num) + " is not loaded.")
+                    print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
+                        reach_num) + " is not loaded.")
                     unit_to_remove_list.append(unit_num)
                     continue
 
@@ -238,7 +244,7 @@ class Data2d(list):
 
                 # all meshes are entirely dry
                 if not True in mikle_keep:
-                    print("Warning: The mesh of unit n°" + unit_num + " is entirely dry.")
+                    print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(reach_num) + " is entirely dry.")
                     unit_to_remove_list.append(unit_num)
                     continue
 
@@ -263,6 +269,9 @@ class Data2d(list):
                 # node data
                 self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
                 self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
+
+        if unit_to_remove_list:
+            self.remove_unit_from_unit_list(unit_to_remove_list)
 
     def semi_wetted_mesh_cutting(self, unit_list, progress_value, delta_file):
         """
@@ -424,13 +433,15 @@ class Data2d(list):
                         iklekeep = indices2[iklekeep]
                         point_all_ok = point_all_ok2
                         print("Warning: while the cutting of mesh partially wet of the unit n°" + str(
-                            unit_num) + " we have been forced to eliminate " + str(nbdouble) +
+                            unit_num) + " of reach n°" + str(
+                            reach_num) + " we have been forced to eliminate " + str(nbdouble) +
                               " duplicate(s) point(s) ")
                     if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
                                                                 xyz_array=point_all_ok,
                                                                 unit_num=unit_num,
                                                                 case="after the cutting of mesh partially wet", checkpoint=False):
-                        print("Warning: The mesh of unit " + unit_name + " is not loaded.")
+                        print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
+                            reach_num) + " is not loaded.")
                         unit_to_remove_list.append(unit_num)
                         continue
 

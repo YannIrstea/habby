@@ -98,7 +98,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         """
         """
         timestep_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Time Date Stamp"
-        self.timestep_name_list = [[t.decode('utf-8') for idx, t in enumerate(list(self.results_data_file[timestep_path]))]]
+        self.timestep_name_list = [t.decode('utf-8') for idx, t in enumerate(list(self.results_data_file[timestep_path]))]
         self.timestep_nb = len(self.timestep_name_list[0])
         self.timestep_unit = "Date [d/m/Y h:m:s]"
 
@@ -237,9 +237,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             if np.isnan(elev_p).any():
                 # elevation FacePoints
                 faces_facepoint_indexes = reach_name_geometry_group["Faces FacePoint Indexes"][:]
-                face_center_point = np.mean(
-                    [coord_p_all[reach_index][faces_facepoint_indexes[:, 0]], coord_p_all[reach_index][faces_facepoint_indexes[:, 1]]],
-                    axis=0)
+                # face_center_point = np.mean(
+                #     [coord_p_all[reach_index][faces_facepoint_indexes[:, 0]], coord_p_all[reach_index][faces_facepoint_indexes[:, 1]]],
+                #     axis=0)
                 elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
                 for point_index in np.where(np.isnan(elev_p))[0]:  # for point_index in range(len(coord_p_all[reach_index]))
                     first_bool = faces_facepoint_indexes[:, 0] == point_index
@@ -307,31 +307,34 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             h.append(h_unit)
             data_node_reach_list.append(data_node_list_unit)
 
+        # set_variable_data_structure
+        self.hvum.set_variable_data_structure(self.reach_num, self.timestep_wish_nb)
+
         # prepare original and computed data for data_2d
         for reach_num in range(self.reach_num):  # for each reach
             for timestep_index in range(self.timestep_wish_nb):  # for each timestep
                 for variables_wish in self.hvum.hdf5_and_computable_list:  # .varunits
                     if variables_wish.position == "mesh":
                         if variables_wish.name == self.hvum.z.name:
-                            variables_wish.data[reach_num].append(z_all[reach_num][:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num][timestep_index] = z_all[reach_num][:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_num].append(water_depth_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num][timestep_index] = water_depth_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.v.name:
-                            variables_wish.data[reach_num].append(vel_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num][timestep_index] = vel_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.shear_stress.name:
-                            variables_wish.data[reach_num].append(shear_stress_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num][timestep_index] = shear_stress_t_all[reach_num][:, timestep_index].astype(variables_wish.dtype)
                     if variables_wish.position == "node":
                         if variables_wish.name == self.hvum.z.name:
-                            variables_wish.data[reach_num].append(z[reach_num].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num][timestep_index] = z[reach_num].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_num].append(h[reach_num][timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num][timestep_index] = h[reach_num][timestep_index].astype(variables_wish.dtype)
                         else:
                             var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(variables_wish.name)
-                            variables_wish.data[reach_num].append(data_node_reach_list[reach_num][timestep_index][:, var_node_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_num][timestep_index] = data_node_reach_list[reach_num][timestep_index][:, var_node_index].astype(variables_wish.dtype)
 
-            # coord
-            self.hvum.xy.data[reach_num] = [xy[reach_num]] * self.timestep_wish_nb
-            self.hvum.tin.data[reach_num] = [tin[reach_num]] * self.timestep_wish_nb
+                # coord
+                self.hvum.xy.data[reach_num][timestep_index] = xy[reach_num]
+                self.hvum.tin.data[reach_num][timestep_index] = tin[reach_num]
 
         return self.get_data_2d()
 
@@ -355,7 +358,7 @@ def interpolator_test(coord_c_all, elev_c_all, coord_p_all):
     return elev_p
 
 
-def get_discharges(filename_path):
+def get_discharges(filename_path, reach_name="2D_AREA"):
     # open file
     if os.path.isfile(filename_path):
         try:
@@ -364,7 +367,7 @@ def get_discharges(filename_path):
             print("Error: unable to open the hdf file.")
 
     # find discharges
-    discharge_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas/2D_AREA/Boundary Conditions"
+    discharge_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas/" + reach_name + "/Boundary Conditions"
     flow_dataset_names = None
     try:
         boundary_conditions = list(file2D[discharge_path].keys())

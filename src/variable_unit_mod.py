@@ -687,6 +687,24 @@ class HydraulicVariableUnitManagement:
         # sort_by_names_gui
         self.hdf5_and_computable_list.sort_by_names_gui()
 
+    def set_variable_data_structure(self, reach_num, unit_num):
+        # variables
+        for variable in self.hdf5_and_computable_list:
+            variable.data = []
+            for reach_ind in range(reach_num):
+                variable.data.append([])
+                for _ in range(unit_num):
+                    variable.data[reach_ind].append([])
+        # struct
+        self.xy.data = []
+        self.tin.data = []
+        for reach_ind in range(reach_num):
+            self.xy.data.append([])
+            self.tin.data.append([])
+            for _ in range(unit_num):
+                self.xy.data[reach_ind].append([])
+                self.tin.data[reach_ind].append([])
+
     def get_final_variable_list_from_project_preferences(self, project_preferences, hdf5_type):
         """
         Get all variables to compute from dict (project_preferences) for exports.

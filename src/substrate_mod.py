@@ -67,7 +67,8 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         except PermissionError:
             print("Error: Can't remove " + os.path.splitext(sub_filename_source)[0] +
                   " folder in 'input' project folder, as it file(s) opened in another program.")
-            q.put(mystdout)
+            if not print_cmd:
+                q.put(mystdout)
             return
 
     # create folder
@@ -84,6 +85,10 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         data_2d = load_sub_sig(sub_description, progress_value)
     elif sub_description["sub_mapping_method"] == "point":
         data_2d = load_sub_txt(sub_description, progress_value)
+
+    if not data_2d and not print_cmd:
+        q.put(mystdout)
+        return
 
     data_2d.hvum = HydraulicVariableUnitManagement()
     data_2d.hvum.detect_variable_from_sub_description(sub_description)
