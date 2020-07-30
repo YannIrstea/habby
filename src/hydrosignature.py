@@ -4,6 +4,7 @@ import os.path
 from src import hdf5_mod
 import time
 
+
 def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
                                hyd_data_mesh=None, hyd_data_sub_mesh=None):
     """
@@ -290,7 +291,6 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     """
 
     # TODO modify iwholeprofile
-    i_whole_profile_out = i_whole_profile
 
     g = 9.80665  # value of gravitational acceleration on Earth [m**2/s]
     uncertainty = 0.01  # a checking parameter for the algorithm
@@ -362,6 +362,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     original_triangle = []  # the index of the triangle each new node originally belonged to
     # original_node = [] #the index of each node in the original hyd_xy_node list. Is -1 if node is a new node
     enclosing_triangle = []  # the original index of the triangle which encloses each smaller triangle in the new mesh
+    iscut = np.zeros(len(hyd_tin), dtype=bool)  # whether each original triangle has been cut by this function
     for i in range(hyd_tin.size // 3):  # even if one single triangle for hyd_tin
         # xyo, xya, xyb = hyd_xy_node[hyd_tin[i][0]], hyd_xy_node[hyd_tin[i][1]], hyd_xy_node[hyd_tin[i][2]]
         # axy, bxy = xya - xyo, xyb - xyo
@@ -375,7 +376,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                      'y': [hyd_xy_node[hyd_tin[i][0]][1], hyd_xy_node[hyd_tin[i][1]][1], hyd_xy_node[hyd_tin[i][2]][1]],
                      'h': [hyd_hv_node[hyd_tin[i][0]][0], hyd_hv_node[hyd_tin[i][1]][0], hyd_hv_node[hyd_tin[i][2]][0]],
                      'v': [hyd_hv_node[hyd_tin[i][0]][1], hyd_hv_node[hyd_tin[i][1]][1], hyd_hv_node[hyd_tin[i][2]][1]]}
-            # TODO add "i" key, containing the original mesh triangle each new node belongs to
+
             area1, volume1 = areavolumepoly(poly1, 0, 1, 2)
             area12, volume12 = 0, 0
             for j2 in range(nb_cl_h):
@@ -392,6 +393,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                             poly2['v'].append(poly1['v'][ia])
                         if np.sign(cl_h[j2] - poly1['h'][ia]) * np.sign(cl_h[j2] - poly1['h'][ib]) == -1:
                             nbeltpoly2 += 1
+                            iscut[i] = True
                             poly2['x'].append(
                                 interpol0(cl_h[j2], poly1['h'][ia], poly1['x'][ia], poly1['h'][ib], poly1['x'][ib]))
                             poly2['y'].append(
@@ -399,8 +401,10 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                             poly2['h'].append(cl_h[j2])
                             poly2['v'].append(
                                 interpol0(cl_h[j2], poly1['h'][ia], poly1['v'][ia], poly1['h'][ib], poly1['v'][ib]))
+
                         if np.sign(cl_h[j2 + 1] - poly1['h'][ia]) * np.sign(cl_h[j2 + 1] - poly1['h'][ib]) == -1:
                             nbeltpoly2 += 1
+                            iscut[i] = True
                             poly2['x'].append(
                                 interpol0(cl_h[j2 + 1], poly1['h'][ia], poly1['x'][ia], poly1['h'][ib], poly1['x'][ib]))
                             poly2['y'].append(
@@ -449,6 +453,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                                         if np.sign(cl_v[j3] - poly2['v'][ic]) * np.sign(
                                                 cl_v[j3] - poly2['v'][id]) == -1:
                                             nbeltpoly3 += 1
+                                            iscut[i] = True
                                             poly3['x'].append(
                                                 interpol0(cl_v[j3], poly2['v'][ic], poly2['x'][ic], poly2['v'][id],
                                                           poly2['x'][id]))
@@ -462,6 +467,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
                                         if np.sign(cl_v[j3 + 1] - poly2['v'][ic]) * np.sign(
                                                 cl_v[j3 + 1] - poly2['v'][id]) == -1:
                                             nbeltpoly3 += 1
+                                            iscut[i] = True
                                             poly3['x'].append(
                                                 interpol0(cl_v[j3 + 1], poly2['v'][ic], poly2['x'][ic], poly2['v'][id],
                                                           poly2['x'][id]))
@@ -559,8 +565,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     original_triangle = np.array(original_triangle).astype(np.int64)
     enclosing_triangle = np.array(enclosing_triangle).astype(np.int64)
     new_tin = np.array(new_tin).astype(np.int64)
-    hydro_classes = np.array(hydro_classes)
-
+    hydro_classes = np.array(hydro_classes).astype(np.int64)
 
     ##making sure every point is unique, as numerical errors can make it not so
     new_xy_unique, indices, inverse_indices, counts = np.unique(new_xy, axis=0, return_index=True, return_inverse=True,
@@ -573,6 +578,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     tin_out = new_tin_unique
     hydro_classes_unique = hydro_classes[tin_indices]
     enclosing_triangle_unique = enclosing_triangle[tin_indices]
+    iscut_newmesh = iscut[enclosing_triangle_unique]
 
     if return_cut_mesh:
 
@@ -585,18 +591,31 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
         else:
             node_data_out = None
 
-        # TODO deal with i_split separately
         if not hyd_data_mesh is None:
             mesh_data_out = np.zeros(new_tin_unique.shape[0], dtype=hyd_data_mesh.dtype)
             # varnames=hyd_data_mesh.dtypes.keys()
             for varname in hyd_data_mesh.dtype.names:
-                original_values = hyd_data_mesh[varname]
-                mesh_data_out[varname] = original_values[enclosing_triangle_unique]
+                if varname == "i_split":
+                    original_i_split = hyd_data_mesh["i_split"]
+                    mesh_data_out["i_split"] = original_i_split[enclosing_triangle_unique]
+                    mesh_data_out["i_split"] += iscut_newmesh * 5
+
+                    # mesh_data_out["i_split"] += (new_xy_unique[new_tin_unique] != hyd_xy_node[
+                    #     hyd_tin[enclosing_triangle_unique]]).any(axis=(1, 2)) * 5
+                else:
+                    original_values = hyd_data_mesh[varname]
+                    mesh_data_out[varname] = original_values[enclosing_triangle_unique]
             mesh_data_out = np.lib.recfunctions.append_fields(mesh_data_out, "hydraulic_class", hydro_classes_unique,
                                                               usemask=False)
 
         else:
             mesh_data_out = None
+
+        if not i_whole_profile is None:
+            i_whole_profile_out = i_whole_profile[enclosing_triangle_unique]
+            i_whole_profile_out[:, 1] += iscut_newmesh * 5
+        else:
+            i_whole_profile_out = None
 
         new_xy += translationxy
         new_xy_unique += translationxy
