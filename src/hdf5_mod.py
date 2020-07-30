@@ -294,6 +294,9 @@ class Hdf5Management:
                                         unit_num=self.nb_unit)  # with no array data
             self.light_data_2d.hvum = self.hvum
 
+            # hs
+            self.hydrosignature_calculated = eval(hdf5_attributes_dict["hydrosignature_calculated"])
+
     # HYDRAU 2D
     def write_whole_profile(self, data_2d_whole):
         data_whole_profile_group = self.file_object.create_group('data_2d_whole_profile')
@@ -1268,7 +1271,7 @@ class Hdf5Management:
         # self.set_hdf5_attributes(("hydrosignature_calculated"),(False))
         # self.data_2d.attrs.create("hydrosignature_calculated",False)
 
-        self.file_object.attrs.create("hydrosignature_calculated", True)
+        self.file_object.attrs.create("hydrosignature_calculated", "True")
         # print(self.file_object.keys())
         # # self.file_object["data_2d"] = self.data_2d
         # self.write_data_2d(self.data_2d)
@@ -2578,6 +2581,19 @@ def get_filename_by_type_physic(type, path):
                 if not "ESTIMHAB" in file:  # physic
                     filenames.append(file)
             else:
+                filenames.append(file)
+    filenames.sort()
+    return filenames
+
+
+def get_filename_hs(path):
+    filenames = []
+    for file in os.listdir(path):
+        if file.endswith(".hyd") or file.endswith(".hab"):
+            path_prj = os.path.dirname(path)
+            hdf5 = Hdf5Management(path_prj, file)
+            hdf5.open_hdf5_file(False)
+            if hdf5.hydrosignature_calculated:
                 filenames.append(file)
     filenames.sort()
     return filenames

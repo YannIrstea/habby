@@ -17,8 +17,8 @@ https://github.com/YannIrstea/habby
 import os
 from multiprocessing import Process, Value
 
-from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant
-from PyQt5.QtGui import QStandardItemModel, QPixmap
+from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QSize
+from PyQt5.QtGui import QStandardItemModel, QPixmap, QIcon
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, \
@@ -122,8 +122,10 @@ class ComputingGroup(QGroupBoxCollapsible):
         file_selection_label = QLabel(self.tr("Select a 2D mesh file :"))
         self.file_selection_listwidget = QListWidget()
         self.file_selection_listwidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.file_selection_listwidget.itemSelectionChanged.connect(self.names_hdf5_change)
         file_computed_label = QLabel(self.tr("HS value computed ?"))
         self.file_computed_checkbox = QCheckBox()
+        self.file_computed_checkbox.setEnabled(False)
         input_class_label = QLabel(self.tr("Input class (.txt)"))
         self.input_class_filename = QLabel("")
         self.input_class_pushbutton = QPushButton(self.tr("Select file"))
@@ -134,6 +136,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.hs_export_mesh_checkbox = QCheckBox()
         self.computation_pushbutton = QPushButton(self.tr("run"))
         self.computation_pushbutton.clicked.connect(self.compute)
+        self.computation_pushbutton.setEnabled(False)
 
         grid_layout = QGridLayout()
 
@@ -174,8 +177,30 @@ class ComputingGroup(QGroupBoxCollapsible):
             try:
                 self.classhv = hydrosignature.hydraulic_class_from_file(input_class_file)
                 self.input_class_filename.setText(os.path.basename(input_class_file))
+                if self.file_selection_listwidget.selectedItems():
+                    self.computation_pushbutton.setEnabled(True)
             except FileNotFoundError:
                 self.send_log.emit('Error: ' + self.tr('Selected hydraulic input class file is not valid.'))
+        else:
+            self.computation_pushbutton.setEnabled(False)
+
+    def names_hdf5_change(self):
+        selection = self.file_selection_listwidget.selectedItems()
+        if selection:
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[0].text())
+            hdf5.open_hdf5_file(False)
+            if hdf5.hydrosignature_calculated:
+                self.file_computed_checkbox.setChecked(True)
+            else:
+                self.file_computed_checkbox.setChecked(False)
+            # enable run button
+            if self.input_class_filename.text():
+                self.computation_pushbutton.setEnabled(True)
+            else:
+                self.computation_pushbutton.setEnabled(False)
+        else:
+            self.file_computed_checkbox.setChecked(False)
+            self.computation_pushbutton.setEnabled(False)
 
     def select_input_class_dialog(self):
         input_class_file_info = self.read_attribute_xml("HS_input_class")
@@ -243,7 +268,6 @@ class ComputingGroup(QGroupBoxCollapsible):
             project_preferences[attr]["path"] = self.pathfile  # change value
             save_project_properties(self.path_prj, project_preferences)  # save_project_properties
 
-
     def compute(self):
         # compute
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.file_selection_listwidget.currentItem().text())
@@ -271,212 +295,148 @@ class VisualGroup(QGroupBoxCollapsible):
         self.init_ui()
 
     def init_ui(self):
-
+        # file_selection
+        file_selection_label = QLabel(self.tr("HS files :"))
         self.file_selection_listwidget = QListWidget()
         self.file_selection_listwidget.itemSelectionChanged.connect(self.names_hdf5_change)
+        file_selection_layout = QVBoxLayout()
+        file_selection_layout.addWidget(file_selection_label)
+        file_selection_layout.addWidget(self.file_selection_listwidget)
 
+        # reach
+        reach_label = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget = QListWidget()
+        self.reach_QListWidget.itemSelectionChanged.connect(self.reach_hdf5_change)
+        reach_layout = QVBoxLayout()
+        reach_layout.addWidget(reach_label)
+        reach_layout.addWidget(self.reach_QListWidget)
+
+        # units
+        units_label = QLabel(self.tr('unit(s)'))
         self.units_QListWidget = QListWidget()
+        units_layout = QVBoxLayout()
+        units_layout.addWidget(units_label)
+        units_layout.addWidget(self.units_QListWidget)
 
-
-        # axes mod
+        # axe
+        axe_label = QLabel(self.tr("Axe orientation :"))
         self.axe_mod_1_radio = QRadioButton()
         self.axe_mod_1_radio.setChecked(True)  # TODO: save in json default and last choice (to be loaded)
-        self.axe_mod_1_radio.toggled.connect(self.change_axe_mod)
-        self.axe_mod_1_pixmap = QPixmap(r"translation/axe_mod_1.PNG").scaled(75, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # ,
-        axe_mod_1_label = QLabel()
-        axe_mod_1_label.setPixmap(self.axe_mod_1_pixmap)
+        self.axe_mod_1_radio.setIcon(QIcon(r"translation/axe_mod_1.PNG"))
+        self.axe_mod_1_radio.setIconSize(QSize(75, 75))
+        self.axe_mod_1_radio.clicked.connect(self.change_axe_mod)
+
         self.axe_mod_2_radio = QRadioButton()
-        self.axe_mod_2_radio.toggled.connect(self.change_axe_mod)
-        self.axe_mod_2_pixmap = QPixmap(r"translation/axe_mod_2.PNG").scaled(75, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # ,
-        axe_mod_2_label = QLabel()
-        axe_mod_2_label.setPixmap(self.axe_mod_2_pixmap)
+        self.axe_mod_2_radio.setIcon(QIcon(r"translation/axe_mod_2.PNG"))
+        self.axe_mod_2_radio.setIconSize(QSize(75, 75))
+        self.axe_mod_2_radio.clicked.connect(self.change_axe_mod)
+
         self.axe_mod_3_radio = QRadioButton()
-        self.axe_mod_3_radio.toggled.connect(self.change_axe_mod)
-        self.axe_mod_3_pixmap = QPixmap(r"translation/axe_mod_3.PNG").scaled(75, 75, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # ,
-        axe_mod_3_label = QLabel()
-        axe_mod_3_label.setPixmap(self.axe_mod_3_pixmap)
+        self.axe_mod_3_radio.setIcon(QIcon(r"translation/axe_mod_3.PNG"))
+        self.axe_mod_3_radio.setIconSize(QSize(75, 75))
+        self.axe_mod_3_radio.clicked.connect(self.change_axe_mod)
 
         axe_mod_layout = QHBoxLayout()
         axe_mod_layout.addWidget(self.axe_mod_1_radio)
-        axe_mod_layout.addWidget(axe_mod_1_label)
         axe_mod_layout.addWidget(self.axe_mod_2_radio)
-        axe_mod_layout.addWidget(axe_mod_2_label)
         axe_mod_layout.addWidget(self.axe_mod_3_radio)
-        axe_mod_layout.addWidget(axe_mod_3_label)
-
+        axe_layout = QVBoxLayout()
+        axe_layout.addWidget(axe_label)
+        axe_layout.addLayout(axe_mod_layout)
+        axe_layout.addStretch()
         selection_layout = QHBoxLayout()
-        selection_layout.addWidget(self.file_selection_listwidget)
-        selection_layout.addWidget(self.reach_QListWidget)
-        selection_layout.addWidget(self.units_QListWidget)
-        selection_layout.addLayout(axe_mod_layout)
+        selection_layout.addLayout(file_selection_layout)
+        selection_layout.addLayout(reach_layout)
+        selection_layout.addLayout(units_layout)
+        selection_layout.addLayout(axe_layout)
+
+        # input_class
+        input_class_label = QLabel(self.tr("Input class :"))
+        self.input_class_h_lineedit = QLineEdit("")
+        self.input_class_v_lineedit = QLineEdit("")
+        self.input_class_plot_button = QPushButton(self.tr("Show"))
+        input_class_layout = QGridLayout()
+        input_class_layout.addWidget(input_class_label, 0, 0)
+        input_class_layout.addWidget(self.input_class_h_lineedit, 1, 0)
+        input_class_layout.addWidget(self.input_class_v_lineedit, 2, 0)
+        input_class_layout.addWidget(self.input_class_plot_button, 1, 1, 2, 1)  # from row, from column, nb row, nb column
+
+        # result
+        result_label = QLabel(self.tr("Result :"))
+        self.result_tableview = QTableView(self)
+        self.result_tableview.setFrameShape(QFrame.NoFrame)
+        self.result_tableview.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.result_tableview.verticalHeader().setVisible(False)
+        self.result_tableview.horizontalHeader().setVisible(False)
+        self.result_plot_button = QPushButton(self.tr("Show"))
+        result_layout = QGridLayout()
+        result_layout.addWidget(result_label, 0, 0)
+        result_layout.addWidget(self.result_tableview, 1, 0)
+        result_layout.addWidget(self.result_plot_button, 1, 1)
+
+        self.input_result_group = QGroupBox()
+        input_result_layout = QVBoxLayout()
+        input_result_layout.addLayout(input_class_layout)
+        input_result_layout.addLayout(result_layout)
+        self.input_result_group.setLayout(input_result_layout)
+        self.input_result_group.hide()
 
         general_layout = QVBoxLayout()
         general_layout.addLayout(selection_layout)
-
+        general_layout.addWidget(self.input_result_group)
 
         self.setLayout(general_layout)
 
     def update_gui(self):
-        # computing_group
-        hyd_names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
-        hab_names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
-        names = hyd_names + hab_names
+        hs_names = hdf5_mod.get_filename_hs(os.path.join(self.path_prj, "hdf5"))
         self.file_selection_listwidget.blockSignals(True)
         self.file_selection_listwidget.clear()
-        if names:
-            self.file_selection_listwidget.addItems(names)
+        if hs_names:
+            self.file_selection_listwidget.addItems(hs_names)
         self.file_selection_listwidget.blockSignals(False)
 
     def names_hdf5_change(self):
-        """
-        Ajust item list according to hdf5 filename selected by user
-        """
+        self.reach_QListWidget.clear()
+        self.units_QListWidget.clear()
         selection = self.file_selection_listwidget.selectedItems()
-        self.plot_group.mesh_variable_QListWidget.clear()
-        self.plot_group.node_variable_QListWidget.clear()
-        self.plot_group.units_QListWidget.clear()
-        self.plot_group.reach_QListWidget.clear()
-        self.plot_group.units_QLabel.setText(self.tr("unit(s)"))
-        self.habitatvalueremover_group.existing_animal_QListWidget.clear()
-
-        if len(selection) == 1:
-            reach_list = []
-            unit_list = []
-            variable_node_list = []
-            variable_mesh_list = []
-            for selection_el in selection:
-                # read
-                hdf5name = selection_el.text()
-                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-                hdf5.open_hdf5_file(False)
-                # check reach
-                reach_list.append(hdf5.reach_name)
-                # check unit
-                unit_list.append(hdf5.units_name)
-
-            # one file selected
-            self.plot_group.units_QListWidget.clear()
+        if selection:
+            # read
             hdf5name = selection[0].text()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+            # check reach
+            self.reach_QListWidget.addItems(hdf5.reach_name)
+
+            self.input_result_group.show()
+        else:
+            self.input_result_group.hide()
+
+    def reach_hdf5_change(self):
+        selection_file = self.file_selection_listwidget.selectedItems()
+        selection_reach = self.reach_QListWidget.selectedItems()
+        self.units_QListWidget.clear()
+        # one file selected
+        if len(selection_reach) == 1:
+            hdf5name = selection_file[0].text()
 
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file(False)
 
-            # change unit_type
-            if hasattr(hdf5, "unit_type"):
-                hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
-                self.plot_group.units_QLabel.setText(hdf5.unit_type)
-
-            # hydraulic
-            if self.types_hdf5_QComboBox.currentIndex() == 1:
-                self.set_hydraulic_layout()
-                if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                    for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
-                        mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                        mesh_item.setData(Qt.UserRole, mesh)
-                        if not mesh.hdf5:
-                            mesh_item.setText(mesh_item.text() + " *")
-                            mesh_item.setToolTip("computable")
-                        self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                    for node in hdf5.hvum.hdf5_and_computable_list.nodes():
-                        node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                        node_item.setData(Qt.UserRole, node)
-                        if not node.hdf5:
-                            node_item.setText(node_item.text() + " *")
-                            node_item.setToolTip("computable")
-                        self.plot_group.node_variable_QListWidget.addItem(node_item)
-
-                if hdf5.reach_name:
-                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                    if len(hdf5.reach_name) == 1:
-                        self.plot_group.reach_QListWidget.selectAll()
-                        if hdf5.nb_unit == 1:
-                            self.plot_group.units_QListWidget.selectAll()
-                        else:
-                            self.plot_group.units_QListWidget.setCurrentRow(0)
-
-            # substrat
-            if self.types_hdf5_QComboBox.currentIndex() == 2:
-                self.set_substrate_layout()
-                if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                    for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
-                        mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                        mesh_item.setData(Qt.UserRole, mesh)
-                        if not mesh.hdf5:
-                            mesh_item.setText(mesh_item.text() + " *")
-                            mesh_item.setToolTip("computable")
-                        self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                    for node in hdf5.hvum.hdf5_and_computable_list.nodes():
-                        node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                        node_item.setData(Qt.UserRole, node)
-                        if not node.hdf5:
-                            node_item.setText(node_item.text() + " *")
-                            node_item.setToolTip("computable")
-                        self.plot_group.node_variable_QListWidget.addItem(node_item)
-
-                if hdf5.sub_mapping_method != "constant":
-                    if hdf5.reach_name:
-                        self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                        if len(hdf5.reach_name) == 1:
-                            self.plot_group.reach_QListWidget.selectAll()
-                            if hdf5.nb_unit == 1:
-                                self.plot_group.units_QListWidget.selectAll()
-                            else:
-                                self.plot_group.units_QListWidget.setCurrentRow(0)
-
-            # habitat
-            if self.types_hdf5_QComboBox.currentIndex() == 3:
-                self.set_habitat_layout()
-                if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                    for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
-                        mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                        mesh_item.setData(Qt.UserRole, mesh)
-                        if not mesh.hdf5:
-                            mesh_item.setText(mesh_item.text() + " *")
-                            mesh_item.setToolTip("computable")
-                        self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                    for node in hdf5.hvum.hdf5_and_computable_list.nodes():
-                        node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                        node_item.setData(Qt.UserRole, node)
-                        if not node.hdf5:
-                            node_item.setText(node_item.text() + " *")
-                            node_item.setToolTip("computable")
-                        self.plot_group.node_variable_QListWidget.addItem(node_item)
-
-                # habitatvalueremover_group
-                if hdf5.hvum.hdf5_and_computable_list.meshs().habs().names_gui():
-                    for mesh in hdf5.hvum.hdf5_and_computable_list.habs().meshs():
-                        mesh_item = QListWidgetItem(mesh.name_gui, self.habitatvalueremover_group.existing_animal_QListWidget)
-                        mesh_item.setData(Qt.UserRole, mesh)
-                        if not mesh.hdf5:
-                            mesh_item.setText(mesh_item.text() + " *")
-                            mesh_item.setToolTip("computable")
-                        self.habitatvalueremover_group.existing_animal_QListWidget.addItem(mesh_item)
-
-                if hdf5.reach_name:
-                    self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                    if len(hdf5.reach_name) == 1:
-                        self.plot_group.reach_QListWidget.selectAll()
-                        if hdf5.nb_unit == 1:
-                            self.plot_group.units_QListWidget.selectAll()
-                        else:
-                            self.plot_group.units_QListWidget.setCurrentRow(0)
-
-
-
-
-
-        # count plot
-        self.plot_group.count_plot()
-        # count exports
-        self.dataexporter_group.count_export()
+            # add units
+            for item_text in hdf5.units_name[self.reach_QListWidget.currentRow()]:
+                item = QListWidgetItem(item_text)
+                item.setTextAlignment(Qt.AlignRight)
+                self.units_QListWidget.addItem(item)
 
     def change_axe_mod(self):
-        radio = self.sender()
+        if self.axe_mod_1_radio.isChecked():
+            self.axe_mod_choosen = 1
+        elif self.axe_mod_2_radio.isChecked():
+            self.axe_mod_choosen = 2
+        elif self.axe_mod_3_radio.isChecked():
+            self.axe_mod_choosen = 3
+        print("axe_mod_choosen", self.axe_mod_choosen)
 
 
 class CompareGroup(QGroupBoxCollapsible):

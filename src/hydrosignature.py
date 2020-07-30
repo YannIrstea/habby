@@ -313,9 +313,10 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     nvmean = (hyd_hv_node[hyd_tin[:, 0]][:, 1] + hyd_hv_node[hyd_tin[:, 1]][:, 1] + hyd_hv_node[hyd_tin[:, 2]][:,
                                                                                     1]) / 3
     # nfroudemean=np.abs(nvmean)/np.sqrt(np.abs(nhmean)*g)
-    f0 = np.abs(hyd_hv_node[hyd_tin[:, 0]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 0]][:, 0]) * g)
-    f1 = np.abs(hyd_hv_node[hyd_tin[:, 1]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 1]][:, 0]) * g)
-    f2 = np.abs(hyd_hv_node[hyd_tin[:, 2]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 2]][:, 0]) * g)
+    with np.errstate(invalid='ignore'):
+        f0 = np.abs(hyd_hv_node[hyd_tin[:, 0]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 0]][:, 0]) * g)
+        f1 = np.abs(hyd_hv_node[hyd_tin[:, 1]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 1]][:, 0]) * g)
+        f2 = np.abs(hyd_hv_node[hyd_tin[:, 2]][:, 1]) / np.sqrt(np.abs(hyd_hv_node[hyd_tin[:, 2]][:, 0]) * g)
     f0[np.isnan(f0)] = 0
     f1[np.isnan(f1)] = 0
     f2[np.isnan(f2)] = 0
@@ -897,7 +898,7 @@ if __name__ == '__main__':
         # oldhdf5.load_whole_profile()
         # oldhdf5.load_data_2d_info()
         # oldhdf5.add_hs(classhv)
-        newhdf5 = oldhdf5.hydrosignature_new_file(classhv, True)
+        newhdf5 = oldhdf5.hydrosignature_new_file(classhv)
         t1 = time.time()
         print("time: " + str(t1 - t0))
     # nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation(

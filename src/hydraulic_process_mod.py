@@ -1258,6 +1258,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hyd_description["hyd_hydrau_case"] = hydrau_description[hdf5_file_index]["hydrau_case"]
         if hyd_description["hyd_hydrau_case"] in {"1.b", "2.b"}:
             hyd_description["timestep_source_list"] = [hydrau_description[hdf5_file_index]["timestep_list"]]
+        hyd_description["hydrosignature_calculated"] = False
 
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hdf5_file_index]["path_prj"],
