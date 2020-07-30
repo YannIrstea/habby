@@ -93,21 +93,11 @@ class HsTab(QScrollArea):
 
     def refresh_filenames(self):
         # computing_group
-        hyd_names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
-        hab_names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
-        names = hyd_names + hab_names
-        self.computing_group.file_selection_listwidget.blockSignals(True)
-        self.computing_group.file_selection_listwidget.clear()
-        if names:
-            self.computing_group.file_selection_listwidget.addItems(names)
-        self.computing_group.file_selection_listwidget.blockSignals(False)
+        self.computing_group.update_gui()
 
         # visual_group
-        self.visual_group.file_selection_listwidget.blockSignals(True)
-        self.visual_group.file_selection_listwidget.clear()
-        if names:
-            self.visual_group.file_selection_listwidget.addItems(names)
-        self.visual_group.file_selection_listwidget.blockSignals(False)
+        self.visual_group.update_gui()
+
 
         # compare_group
 
@@ -135,7 +125,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         file_computed_label = QLabel(self.tr("HS value computed ?"))
         self.file_computed_checkbox = QCheckBox()
         input_class_label = QLabel(self.tr("Input class (.txt)"))
-        self.input_class_filename = QLabel(self.tr("..."))
+        self.input_class_filename = QLabel("")
         self.input_class_pushbutton = QPushButton(self.tr("Select file"))
         self.input_class_pushbutton.clicked.connect(self.select_input_class_dialog)
         hs_export_txt_label = QLabel(self.tr("Export results (.txt)"))
@@ -166,28 +156,44 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         self.setLayout(grid_layout)
 
+    def update_gui(self):
+        # computing_group
+        hyd_names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
+        hab_names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
+        names = hyd_names + hab_names
+        self.file_selection_listwidget.blockSignals(True)
+        self.file_selection_listwidget.clear()
+        if names:
+            self.file_selection_listwidget.addItems(names)
+        self.file_selection_listwidget.blockSignals(False)
+        input_class_file_info = self.read_attribute_xml("HS_input_class")
+        self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
+
+    def read_input_class(self, input_class_file):
+        if os.path.exists(input_class_file):
+            try:
+                self.classhv = hydrosignature.hydraulic_class_from_file(input_class_file)
+                self.input_class_filename.setText(os.path.basename(input_class_file))
+            except FileNotFoundError:
+                self.send_log.emit('Error: ' + self.tr('Selected hydraulic input class file is not valid.'))
+
     def select_input_class_dialog(self):
+        input_class_file_info = self.read_attribute_xml("HS_input_class")
         # get last path
-        if self.read_attribute_xml("HS_input_class") != self.path_prj and self.read_attribute_xml(
-                "HS_input_class") != "":
-            model_path = self.read_attribute_xml("HS_input_class")  # path spe
+        if input_class_file_info["path"] != self.path_prj and input_class_file_info["path"] != "":
+            model_path = input_class_file_info["path"]  # path spe
         elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
             model_path = self.path_prj  # path proj
 
         filename, _ = QFileDialog.getOpenFileName(self, self.tr("Select hydraulic class file"),
-                                                  model_path + "\\input", self.tr("Text files") + " (*.txt)")
+                                                  model_path, self.tr("Text files") + " (*.txt)")
         if filename:
             self.pathfile = os.path.dirname(filename)  # source file path
             self.namefile = os.path.basename(filename)  # source file name
             self.save_xml("HS_input_class")
-
-            try:
-                self.classhv = hydrosignature.hydraulic_class_from_file(filename)
-                self.input_class_filename.setText(os.path.basename(filename))
-            except FileNotFoundError:
-                self.send_log.emit('Error: ' + self.tr('Selected hydraulic input class file is not valid.'))
+            self.read_input_class(filename)
 
     def read_attribute_xml(self, att_here):
         """
@@ -199,7 +205,7 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
-            if att_here == "path_last_file_loaded":
+            if att_here in {"path_last_file_loaded", "HS_input_class"}:
                 data = load_project_properties(self.path_prj)[att_here]
             else:
                 data = load_project_properties(self.path_prj)[att_here]["path"]
@@ -223,7 +229,6 @@ class ComputingGroup(QGroupBoxCollapsible):
                 instead of remplacing the old name by the new name.
 
         """
-        filename_path_file = self.pathfile
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         # save the name and the path in the xml .prj file
@@ -233,17 +238,22 @@ class ComputingGroup(QGroupBoxCollapsible):
         else:
             # change path_last_file_loaded, model_type (path)
             project_preferences = load_project_properties(self.path_prj)  # load_project_properties
-            project_preferences["path_last_file_loaded"] = filename_path_file  # change value
-            project_preferences[attr]["path"] = filename_path_file  # change value
+            project_preferences["path_last_file_loaded"] = self.pathfile  # change value
+            project_preferences[attr]["file"] = self.namefile  # change value
+            project_preferences[attr]["path"] = self.pathfile  # change value
             save_project_properties(self.path_prj, project_preferences)  # save_project_properties
 
+
     def compute(self):
-        aa = 1
-
-
         # compute
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.file_selection_listwidget.currentItem().text())
-        hdf5.hydrosignature_new_file(self.classhv)
+
+        if self.hs_export_mesh_checkbox.isChecked():
+            hdf5.hydrosignature_new_file(self.classhv)
+        else:
+            hdf5.open_hdf5_file(False)
+            hdf5.load_data_2d()
+            hdf5.add_hs(self.classhv, False)
 
 
 class VisualGroup(QGroupBoxCollapsible):
@@ -306,6 +316,17 @@ class VisualGroup(QGroupBoxCollapsible):
 
 
         self.setLayout(general_layout)
+
+    def update_gui(self):
+        # computing_group
+        hyd_names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
+        hab_names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
+        names = hyd_names + hab_names
+        self.file_selection_listwidget.blockSignals(True)
+        self.file_selection_listwidget.clear()
+        if names:
+            self.file_selection_listwidget.addItems(names)
+        self.file_selection_listwidget.blockSignals(False)
 
     def names_hdf5_change(self):
         """

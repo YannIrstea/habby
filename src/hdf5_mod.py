@@ -1189,7 +1189,7 @@ class Hdf5Management:
 
     # HYDROSIGNATURE
     def hydrosignature_new_file(self, classhv):
-        newfilename = self.filename[:-4] + "HS" + self.extension
+        newfilename = self.filename[:-4] + "_HS" + self.extension
         shutil.copy(self.absolute_path_file, os.path.join(self.path, newfilename))
         newhdf5 = Hdf5Management(self.path_prj, newfilename)
         newhdf5.load_hdf5_hyd()

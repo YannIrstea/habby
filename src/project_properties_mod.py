@@ -51,7 +51,8 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['path_text'] = os.path.join('output', 'text')
     project_preferences['path_gis'] = os.path.join('output', 'GIS')
     project_preferences['path_3d'] = os.path.join('output', '3D')
-    project_preferences['HS_input_class'] = dict(path="")
+    project_preferences['HS_input_class'] = dict(path="",
+                                                 file="")
 
     project_preferences['min_height_hyd'] = 0.001  # node mesh minimum water height consider like dry
     project_preferences['cut_mesh_partialy_dry'] = True  # cut of not mesh partialy wet
