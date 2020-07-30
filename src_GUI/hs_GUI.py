@@ -276,7 +276,6 @@ class ComputingGroup(QGroupBoxCollapsible):
             hdf5.hydrosignature_new_file(self.classhv)
         else:
             hdf5.open_hdf5_file(False)
-            hdf5.load_data_2d()
             hdf5.add_hs(self.classhv, False)
 
 

@@ -649,8 +649,6 @@ class UnitDict(dict):
         self.data_extent = None
         self.data_height = None
         self.data_width = None
-        # hs
-        self.hs_total_area = None
 
     """ mesh """
     # mean from node variable
