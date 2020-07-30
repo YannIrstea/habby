@@ -901,6 +901,13 @@ if __name__ == '__main__':
         newhdf5 = oldhdf5.hydrosignature_new_file(classhv)
         t1 = time.time()
         print("time: " + str(t1 - t0))
+        # newhdf5.load_hydrosignature()
+        newfile = hdf5_mod.Hdf5Management(path_prj, "a1_HS.hyd")
+        newfile.load_hdf5_hyd()
+        newfile.open_hdf5_file()
+        newfile.load_data_2d()
+        newfile.load_hydrosignature()
+        print(newhdf5.light_data_2d)
     # nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation(
     #     classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
 
