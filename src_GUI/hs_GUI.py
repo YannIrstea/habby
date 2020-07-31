@@ -19,7 +19,7 @@ from multiprocessing import Process, Value
 
 from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QSize
 from PyQt5.QtGui import QStandardItemModel, QPixmap, QIcon
-from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QTableWidget, QWidget, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, \
     QCheckBox, QListWidgetItem, QRadioButton
@@ -124,8 +124,25 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.file_selection_listwidget.setSelectionMode(QAbstractItemView.SingleSelection)
         self.file_selection_listwidget.itemSelectionChanged.connect(self.names_hdf5_change)
         file_computed_label = QLabel(self.tr("HS value computed ?"))
-        self.file_computed_checkbox = QCheckBox()
-        self.file_computed_checkbox.setEnabled(False)
+        self.hs_computed_listwidget = QTableWidget()
+        self.hs_computed_listwidget.setColumnCount(1)
+        self.hs_computed_listwidget.horizontalHeader().setStretchLastSection(True)
+        self.hs_computed_listwidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.hs_computed_listwidget.verticalHeader().setVisible(False)
+        self.hs_computed_listwidget.horizontalHeader().setVisible(False)
+        self.presence_scrollbar = self.hs_computed_listwidget.verticalScrollBar()
+        self.hs_computed_listwidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.hs_computed_listwidget.verticalScrollBar().setEnabled(True)
+        self.file_selection_listwidget.verticalScrollBar().valueChanged.connect(self.change_scroll_position)
+
+        file_selection_layout = QGridLayout()
+        file_selection_layout.addWidget(file_selection_label, 0, 0)
+        file_selection_layout.addWidget(self.file_selection_listwidget, 1, 0)
+        file_selection_layout.addWidget(file_computed_label, 0, 1)
+        file_selection_layout.addWidget(self.hs_computed_listwidget, 1, 1)
+        file_selection_layout.setColumnStretch(0, 30)
+        file_selection_layout.setColumnStretch(1, 10)
+
         input_class_label = QLabel(self.tr("Input class (.txt)"))
         self.input_class_filename = QLabel("")
         self.input_class_pushbutton = QPushButton(self.tr("Select file"))
@@ -140,25 +157,25 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.computation_pushbutton.setEnabled(False)
 
         grid_layout = QGridLayout()
-
-        grid_layout.addWidget(file_selection_label, 0, 0)
-        grid_layout.addWidget(self.file_selection_listwidget, 1, 0)
-        grid_layout.addWidget(file_computed_label, 0, 1, alignment=Qt.AlignCenter)
-        grid_layout.addWidget(self.file_computed_checkbox, 1, 1, alignment=Qt.AlignCenter)
         grid_layout.addWidget(input_class_label, 2, 0)
-        grid_layout.addWidget(self.input_class_filename, 2, 1, alignment=Qt.AlignCenter)
+        grid_layout.addWidget(self.input_class_filename, 2, 1)
         grid_layout.addWidget(self.input_class_pushbutton, 2, 2)
         grid_layout.addWidget(hs_export_txt_label, 3, 0)
-        grid_layout.addWidget(self.hs_export_txt_checkbox, 3, 1, alignment=Qt.AlignCenter)
+        grid_layout.addWidget(self.hs_export_txt_checkbox, 3, 1)
         grid_layout.addWidget(hs_export_mesh_label, 4, 0)
-        grid_layout.addWidget(self.hs_export_mesh_checkbox, 4, 1, alignment=Qt.AlignCenter)
+        grid_layout.addWidget(self.hs_export_mesh_checkbox, 4, 1)
         grid_layout.addWidget(self.computation_pushbutton, 5, 2)
 
-        grid_layout.setColumnStretch(0, 1)
+        grid_layout.setColumnStretch(0, 2)
         grid_layout.setColumnStretch(1, 1)
         grid_layout.setColumnStretch(2, 1)
+        grid_layout.setAlignment(Qt.AlignLeft)
 
-        self.setLayout(grid_layout)
+        general_layout = QVBoxLayout()
+        general_layout.addLayout(file_selection_layout)
+        general_layout.addLayout(grid_layout)
+
+        self.setLayout(general_layout)
 
     def update_gui(self):
         # computing_group
@@ -169,9 +186,37 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.file_selection_listwidget.clear()
         if names:
             self.file_selection_listwidget.addItems(names)
+            self.hs_computed_listwidget.setRowCount(len(names))
+            height_row = 10
+            for index, name in enumerate(names):
+                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name)
+                hdf5.open_hdf5_file(False)
+                item_checkbox = QCheckBox()
+                item_checkbox.setFixedHeight(height_row)
+                item_checkbox.setEnabled(False)
+                # check or not
+                if hdf5.hydrosignature_calculated:
+                    item_checkbox.setChecked(True)
+                else:
+                    item_checkbox.setChecked(False)
+                cell_widget = QWidget()
+                cell_widget.setFixedHeight(height_row)
+                lay_out = QHBoxLayout(cell_widget)
+                lay_out.addWidget(item_checkbox)
+                lay_out.setAlignment(Qt.AlignCenter)
+                lay_out.setContentsMargins(0, 0, 0, 0)
+                cell_widget.setLayout(lay_out)
+                # add item_checkbox
+                self.hs_computed_listwidget.setCellWidget(index, 0, cell_widget)
+                self.hs_computed_listwidget.setRowHeight(index, height_row)  #
+
         self.file_selection_listwidget.blockSignals(False)
         input_class_file_info = self.read_attribute_xml("HS_input_class")
         self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
+
+    def change_scroll_position(self, index):
+        self.hs_computed_listwidget.verticalScrollBar().setValue(index)
+        self.hs_computed_listwidget.verticalScrollBar().setValue(index)
 
     def read_input_class(self, input_class_file):
         if os.path.exists(input_class_file):
@@ -529,13 +574,12 @@ class CompareGroup(QGroupBoxCollapsible):
         self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
 
         comp_run_layout = QGridLayout()
-        comp_run_layout.addWidget(self.comp_choice_all_radio, 0, 0)
-        comp_run_layout.addWidget(self.comp_choice_same_radio, 1, 0)
-        comp_run_layout.addWidget(filename_label, 0, 1)
-        comp_run_layout.addWidget(self.filename_lineedit, 1, 1)
-        comp_run_layout.addWidget(self.run_comp_pushbutton, 2, 1)
-        comp_run_layout.setColumnStretch(0, 1)
-        comp_run_layout.setColumnStretch(1, 1)
+        comp_run_layout.addWidget(self.comp_choice_all_radio, 0, 0, Qt.AlignLeft)
+        comp_run_layout.addWidget(self.comp_choice_same_radio, 1, 0, Qt.AlignLeft)
+        comp_run_layout.addWidget(filename_label, 0, 1, Qt.AlignLeft)
+        comp_run_layout.addWidget(self.filename_lineedit, 1, 1, Qt.AlignLeft)
+        comp_run_layout.addWidget(self.run_comp_pushbutton, 2, 1, Qt.AlignLeft)
+        comp_run_layout.setAlignment(Qt.AlignLeft)
 
         #general
         general_layout = QVBoxLayout()
