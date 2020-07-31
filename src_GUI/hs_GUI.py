@@ -98,8 +98,8 @@ class HsTab(QScrollArea):
         # visual_group
         self.visual_group.update_gui()
 
-
         # compare_group
+        self.compare_group.update_gui()
 
 
 class ComputingGroup(QGroupBoxCollapsible):
@@ -135,6 +135,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         hs_export_mesh_label = QLabel(self.tr("Export mesh results (.hyd or .hab)"))
         self.hs_export_mesh_checkbox = QCheckBox()
         self.computation_pushbutton = QPushButton(self.tr("run"))
+        self.computation_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
         self.computation_pushbutton.clicked.connect(self.compute)
         self.computation_pushbutton.setEnabled(False)
 
@@ -354,6 +355,7 @@ class VisualGroup(QGroupBoxCollapsible):
         self.input_class_h_lineedit = QLineEdit("")
         self.input_class_v_lineedit = QLineEdit("")
         self.input_class_plot_button = QPushButton(self.tr("Show"))
+        self.input_class_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
         input_class_layout = QGridLayout()
         input_class_layout.addWidget(input_class_label, 0, 0)
         input_class_layout.addWidget(self.input_class_h_lineedit, 1, 0)
@@ -368,6 +370,7 @@ class VisualGroup(QGroupBoxCollapsible):
         self.result_tableview.verticalHeader().setVisible(False)
         self.result_tableview.horizontalHeader().setVisible(False)
         self.result_plot_button = QPushButton(self.tr("Show"))
+        self.result_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
         result_layout = QGridLayout()
         result_layout.addWidget(result_label, 0, 0)
         result_layout.addWidget(self.result_tableview, 1, 0)
@@ -453,10 +456,176 @@ class CompareGroup(QGroupBoxCollapsible):
         self.init_ui()
 
     def init_ui(self):
+        # file_selection_1
+        file_selection_label_1 = QLabel(self.tr("HS files :"))
+        self.file_selection_listwidget_1 = QListWidget()
+        self.file_selection_listwidget_1.itemSelectionChanged.connect(self.names_hdf5_change_1)
+        file_selection_layout_1 = QVBoxLayout()
+        file_selection_layout_1.addWidget(file_selection_label_1)
+        file_selection_layout_1.addWidget(self.file_selection_listwidget_1)
 
+        # reach_1
+        reach_label_1 = QLabel(self.tr('reach(s)'))
+        self.reach_QListWidget_1 = QListWidget()
+        self.reach_QListWidget_1.itemSelectionChanged.connect(self.reach_hdf5_change_1)
+        reach_layout_1 = QVBoxLayout()
+        reach_layout_1.addWidget(reach_label_1)
+        reach_layout_1.addWidget(self.reach_QListWidget_1)
 
-        grid_layout = QGridLayout()
-        # grid_layout.addWidget(self.input_pushbutton, 0, 0)
-        # grid_layout.addWidget(self.output_pushbutton, 1, 0)
+        # units_1
+        units_label_1 = QLabel(self.tr('unit(s)'))
+        self.units_QListWidget_1 = QListWidget()
+        units_layout_1 = QVBoxLayout()
+        units_layout_1.addWidget(units_label_1)
+        units_layout_1.addWidget(self.units_QListWidget_1)
+        selection_group_1 = QGroupBox()
+        selection_layout_1 = QHBoxLayout()
+        selection_layout_1.addLayout(file_selection_layout_1)
+        selection_layout_1.addLayout(reach_layout_1)
+        selection_layout_1.addLayout(units_layout_1)
+        selection_group_1.setLayout(selection_layout_1)
 
-        self.setLayout(grid_layout)
+        # file_selection_2
+        file_selection_label_2 = QLabel(self.tr("HS files :"))
+        self.file_selection_listwidget_2 = QListWidget()
+        self.file_selection_listwidget_2.itemSelectionChanged.connect(self.names_hdf5_change_2)
+        file_selection_layout_2 = QVBoxLayout()
+        file_selection_layout_2.addWidget(file_selection_label_2)
+        file_selection_layout_2.addWidget(self.file_selection_listwidget_2)
+
+        # reach_2
+        reach_label_2 = QLabel(self.tr('reach(s)'))
+        self.reach_QListWidget_2 = QListWidget()
+        self.reach_QListWidget_2.itemSelectionChanged.connect(self.reach_hdf5_change_2)
+        reach_layout_2 = QVBoxLayout()
+        reach_layout_2.addWidget(reach_label_2)
+        reach_layout_2.addWidget(self.reach_QListWidget_2)
+
+        # units_2
+        units_label_2 = QLabel(self.tr('unit(s)'))
+        self.units_QListWidget_2 = QListWidget()
+        units_layout_2 = QVBoxLayout()
+        units_layout_2.addWidget(units_label_2)
+        units_layout_2.addWidget(self.units_QListWidget_2)
+        selection_group_2 = QGroupBox()
+        selection_layout_2 = QHBoxLayout()
+        selection_layout_2.addLayout(file_selection_layout_2)
+        selection_layout_2.addLayout(reach_layout_2)
+        selection_layout_2.addLayout(units_layout_2)
+        selection_group_2.setLayout(selection_layout_2)
+
+        # comp
+        comp_layout = QHBoxLayout()
+        comp_layout.addWidget(selection_group_1)
+        comp_layout.addWidget(selection_group_2)
+
+        # comp_run
+        self.comp_choice_all_radio = QRadioButton(self.tr("All possibilities"))
+        self.comp_choice_all_radio.setChecked(True)
+        self.comp_choice_same_radio = QRadioButton(self.tr("All same"))
+        filename_label = QLabel(self.tr("Output filename :"))
+        self.filename_lineedit = QLineEdit(self.tr('HS_comp.txt'))
+        self.run_comp_pushbutton = QPushButton(self.tr("run"))
+        self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
+
+        comp_run_layout = QGridLayout()
+        comp_run_layout.addWidget(self.comp_choice_all_radio, 0, 0)
+        comp_run_layout.addWidget(self.comp_choice_same_radio, 1, 0)
+        comp_run_layout.addWidget(filename_label, 0, 1)
+        comp_run_layout.addWidget(self.filename_lineedit, 1, 1)
+        comp_run_layout.addWidget(self.run_comp_pushbutton, 2, 1)
+        comp_run_layout.setColumnStretch(0, 1)
+        comp_run_layout.setColumnStretch(1, 1)
+
+        #general
+        general_layout = QVBoxLayout()
+        general_layout.addLayout(comp_layout)
+        general_layout.addLayout(comp_run_layout)
+
+        self.setLayout(general_layout)
+
+    def update_gui(self):
+        hs_names = hdf5_mod.get_filename_hs(os.path.join(self.path_prj, "hdf5"))
+
+        # 1
+        self.file_selection_listwidget_1.blockSignals(True)
+        self.file_selection_listwidget_1.clear()
+        if hs_names:
+            self.file_selection_listwidget_1.addItems(hs_names)
+        self.file_selection_listwidget_1.blockSignals(False)
+
+        # 2
+        self.file_selection_listwidget_2.blockSignals(True)
+        self.file_selection_listwidget_2.clear()
+        if hs_names:
+            self.file_selection_listwidget_2.addItems(hs_names)
+        self.file_selection_listwidget_2.blockSignals(False)
+
+    def names_hdf5_change_1(self):
+        self.reach_QListWidget_1.clear()
+        self.units_QListWidget_1.clear()
+        selection = self.file_selection_listwidget_1.selectedItems()
+        if selection:
+            # read
+            hdf5name = selection[0].text()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+            # check reach
+            self.reach_QListWidget_1.addItems(hdf5.reach_name)
+
+            # self.input_result_group.show()
+        # else:
+            # self.input_result_group.hide()
+
+    def names_hdf5_change_2(self):
+        self.reach_QListWidget_2.clear()
+        self.units_QListWidget_2.clear()
+        selection = self.file_selection_listwidget_2.selectedItems()
+        if selection:
+            # read
+            hdf5name = selection[0].text()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+            # check reach
+            self.reach_QListWidget_2.addItems(hdf5.reach_name)
+
+        #     self.input_result_group.show()
+        # else:
+        #     self.input_result_group.hide()
+
+    def reach_hdf5_change_1(self):
+        selection_file = self.file_selection_listwidget_1.selectedItems()
+        selection_reach = self.reach_QListWidget_1.selectedItems()
+        self.units_QListWidget_1.clear()
+        # one file selected
+        if len(selection_reach) == 1:
+            hdf5name = selection_file[0].text()
+
+            # create hdf5 class
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+
+            # add units
+            for item_text in hdf5.units_name[self.reach_QListWidget_1.currentRow()]:
+                item = QListWidgetItem(item_text)
+                item.setTextAlignment(Qt.AlignRight)
+                self.units_QListWidget_1.addItem(item)
+
+    def reach_hdf5_change_2(self):
+        selection_file = self.file_selection_listwidget_2.selectedItems()
+        selection_reach = self.reach_QListWidget_2.selectedItems()
+        self.units_QListWidget_2.clear()
+        # one file selected
+        if len(selection_reach) == 1:
+            hdf5name = selection_file[0].text()
+
+            # create hdf5 class
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+
+            # add units
+            for item_text in hdf5.units_name[self.reach_QListWidget_2.currentRow()]:
+                item = QListWidgetItem(item_text)
+                item.setTextAlignment(Qt.AlignRight)
+                self.units_QListWidget_2.addItem(item)
+
