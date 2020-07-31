@@ -591,19 +591,15 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
         # buttons plot_button
         self.plot_button = QPushButton(self.tr("run"))
+        self.plot_button.setStyleSheet("background-color: #47B5E6; color: black")
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
         self.plot_button.setEnabled(False)
-        self.plot_button.setCheckable(True)
-        self.plot_button.toggle()
 
         # type plot
         plot_type_qlabel = QLabel(self.tr("figure type :"))
         self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
         self.plot_map_QCheckBox.setChecked(True)
         self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
-        # self.plot_3d_QCheckBox = QCheckBox(self.tr("3d"))
-        # self.plot_3d_QCheckBox.setChecked(True)
-        # self.plot_3d_QCheckBox.stateChanged.connect(self.count_plot)
         self.plot_result_QCheckBox = QCheckBox(self.tr("Global habitat values"))
         self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
@@ -1073,11 +1069,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
         """ data_exporter widgets """
         self.data_exporter_run_pushbutton = QPushButton(self.tr("run"))
+        self.data_exporter_run_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
         self.data_exporter_run_pushbutton.clicked.connect(self.start_stop_export)
-        self.data_exporter_run_pushbutton.setFixedWidth(110)
         self.data_exporter_run_pushbutton.setEnabled(False)
-        self.data_exporter_run_pushbutton.setCheckable(True)
-        self.data_exporter_run_pushbutton.toggle()
 
         self.data_exporter_progressbar = QProgressBar()
         self.data_exporter_progressbar.setValue(0)
