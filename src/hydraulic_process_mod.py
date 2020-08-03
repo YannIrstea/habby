@@ -1220,6 +1220,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 q.put(mystdout)
             return
 
+        """ bank hydraulic aberations  """
+        # TODO: second pretraitement
+
+
         """ re compute area """
         if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
             data_2d.hvum.area.hdf5 = True  # variable
@@ -1268,6 +1272,44 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         # create_index_hydrau_text_file
         if not hydrau_description[hdf5_file_index]["index_hydrau"]:
             create_index_hydrau_text_file(hydrau_description)
+
+    # prog
+    progress_value.value = 100
+
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
+        if q and not print_cmd:
+            q.put(mystdout)
+            return
+        else:
+            return
+
+
+def hydrosignature_process(hydrosignature_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
+    # minimum water height
+    if not project_preferences:
+        project_preferences = create_default_project_properties_dict()
+
+    # progress
+    progress_value.value = 10
+
+    # compute
+    hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
+                                   hydrosignature_description["hdf5_name"])
+
+    if hydrosignature_description["hs_export_mesh"]:
+        hdf5.hydrosignature_new_file(progress_value,
+                                     hydrosignature_description["classhv"],
+                                     hydrosignature_description["hs_export_txt"])
+    else:
+        hdf5.open_hdf5_file(False)
+        hdf5.add_hs(progress_value,
+                    hydrosignature_description["classhv"],
+                    False,
+                    hydrosignature_description["hs_export_txt"])
 
     # prog
     progress_value.value = 100
@@ -1717,3 +1759,5 @@ class MyProcessList(QThread):
                 #print(self.process_list[i][0].name, "removed from list")
                 self.process_list.pop(i)
         self.nb_plot_total = len(self.process_list)
+
+

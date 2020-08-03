@@ -290,12 +290,13 @@ class Hdf5Management:
                 self.hvum.detect_variable_habitat(hab_variable_list)
 
             # light_data_2d
-            self.light_data_2d = Data2d(reach_num=len(reach_name),
-                                        unit_num=self.nb_unit)  # with no array data
-            self.light_data_2d.hvum = self.hvum
+            self.data_2d = Data2d(reach_num=len(reach_name),
+                                  unit_num=self.nb_unit)  # with no array data
+            self.data_2d.hvum = self.hvum
 
             # hs
-            self.hydrosignature_calculated = eval(hdf5_attributes_dict["hydrosignature_calculated"])
+            if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
+                self.hydrosignature_calculated = eval(hdf5_attributes_dict["hydrosignature_calculated"])
 
     # HYDRAU 2D
     def write_whole_profile(self, data_2d_whole):
@@ -1077,17 +1078,15 @@ class Hdf5Management:
 
                 # HV by celle for each fish
                 for animal_num, animal in enumerate(self.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
-                    # check if exist
-                    if animal.name in mesh_hv_data_group.keys():  # if exist erase it
-                        del mesh_hv_data_group[animal.name]  # del dataset
                     # create
-                    fish_data_set = mesh_hv_data_group.create_dataset(name=animal.name,
+                    fish_data_set = mesh_hv_data_group.require_dataset(name=animal.name,
                                                                       shape=
                                                                       self.data_2d[reach_num][unit_num]["mesh"]["data"][
                                                                           animal.name].shape,
                                                                       data=
                                                                       self.data_2d[reach_num][unit_num]["mesh"]["data"][
-                                                                          animal.name].to_numpy())
+                                                                          animal.name].to_numpy(),
+                                                                      dtype=self.data_2d[reach_num][unit_num]["mesh"]["data"].dtype)
                     # add dataset attributes
                     fish_data_set.attrs['pref_file'] = animal.pref_file
                     fish_data_set.attrs['stage'] = animal.stage
@@ -1191,21 +1190,31 @@ class Hdf5Management:
                     del mesh_hv_data_group[fish_name_to_remove]
 
     # HYDROSIGNATURE
-    def hydrosignature_new_file(self, classhv):
+    def hydrosignature_new_file(self, progress_value, classhv, export_txt=False):
         newfilename = self.filename[:-4] + "_HS" + self.extension
         shutil.copy(self.absolute_path_file, os.path.join(self.path, newfilename))
         newhdf5 = Hdf5Management(self.path_prj, newfilename)
         newhdf5.open_hdf5_file(False)
-        newhdf5.add_hs(classhv, alter_mesh=True)
+        newhdf5.add_hs(progress_value,
+                       classhv,
+                       export_mesh=True,
+                       export_txt=export_txt)
         return newhdf5
 
-    def add_hs(self, classhv, alter_mesh=False):
-        nb_t = int(self.file_object.attrs['hyd_unit_number'])
-        self.units_index = list(range(nb_t))
+    def add_hs(self, progress_value, classhv, export_mesh=False, export_txt=False):
+        self.units_index = list(range(self.data_2d.unit_num))
         self.user_target_list = "defaut"
         self.load_data_2d()
+
+        # progress
+        delta_reach = 90 / self.data_2d.reach_num
+
         # for each reach
         for reach_num in range(self.data_2d.reach_num):
+
+            # progress
+            delta_unit = delta_reach / self.data_2d.unit_num
+
             # for each unit
             for unit_num in range(self.data_2d.unit_num):
                 hyd_data_mesh = self.data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
@@ -1214,39 +1223,57 @@ class Hdf5Management:
                 hyd_data_node = self.data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
                 hyd_xy_node = self.data_2d[reach_num][unit_num]["node"]["xy"]
                 hyd_hv_node = np.array([hyd_data_node["h"], hyd_data_node["v"]]).T
-                if alter_mesh:
+
+                # progress
+                delta_mesh = delta_unit / len(hyd_tin)
+
+                if export_mesh:
                     nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
-                        classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
+                        delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
                         return_cut_mesh=True)
                 else:
                     nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
-                        classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
+                        delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
                         return_cut_mesh=False)
-                    # TODO save hydrosignature as an attribute of the reach
 
-                    hs_dict = {"nbmeshhs": nbmeshhs, "total_area": total_area,
-                                                                        "total_volume": total_volume,
-                                                                        "mean_depth": mean_depth,
-                                                                        "mean_velocity": mean_velocity,
-                                                                        "mean_froude": mean_froude,
-                                                                        "min_depth": min_depth,
-                                                                        "max_depth": max_depth,
-                                                                        "min_velocity": min_velocity,
-                                                                        "max_velocity": max_velocity}
-                    unitpath = "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num)
-                    for attrname in hs_dict.keys():
-                        self.file_object[unitpath].attrs.create(attrname, hs_dict[attrname])
-                    self.file_object[unitpath].create_dataset("hsarea", data=hsarea)
-                    self.file_object[unitpath].create_dataset("hsvolume", data=hsvolume)
+                # hsexporttxt
+                if export_txt:
+                    hsexporttxt(os.path.join(self.path_prj, "output", "text"),
+                            os.path.splitext(self.filename)[0] + "_HSresult.txt",
+                            classhv, self.units_name[reach_num][unit_num],
+                            nbmeshhs, total_area, total_volume, mean_depth, mean_velocity,
+                            mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
 
-                    if alter_mesh:
-                        self.replace_dataset_in_file(unitpath + "/mesh/data", mesh_data_out)
-                        self.replace_dataset_in_file(unitpath + "/mesh/tin", tin_out)
-                        self.replace_dataset_in_file(unitpath + "/mesh/i_whole_profile", i_whole_profile_out)
-                        self.replace_dataset_in_file(unitpath + "/node/data", node_data_out)
-                        self.replace_dataset_in_file(unitpath + "/node/xy", node_xy_out)
+                # all cases
+                hs_dict = {"nbmeshhs": nbmeshhs, "total_area": total_area,
+                                                                    "total_volume": total_volume,
+                                                                    "mean_depth": mean_depth,
+                                                                    "mean_velocity": mean_velocity,
+                                                                    "mean_froude": mean_froude,
+                                                                    "min_depth": min_depth,
+                                                                    "max_depth": max_depth,
+                                                                    "min_velocity": min_velocity,
+                                                                    "max_velocity": max_velocity}
+                unitpath = "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num)
+                for attrname in hs_dict.keys():
+                    self.file_object[unitpath].attrs.create(attrname, hs_dict[attrname])
+                self.file_object[unitpath].require_dataset("hsarea",
+                                                           shape=hsarea.shape,
+                                                           dtype=hsarea.dtype,
+                                                           data=hsarea)
+                self.file_object[unitpath].require_dataset("hsvolume",
+                                                           shape=hsvolume.shape,
+                                                           dtype=hsvolume.dtype,
+                                                           data=hsvolume)
 
-                    print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
+                if export_mesh:
+                    self.replace_dataset_in_file(unitpath + "/mesh/data", mesh_data_out)
+                    self.replace_dataset_in_file(unitpath + "/mesh/tin", tin_out)
+                    self.replace_dataset_in_file(unitpath + "/mesh/i_whole_profile", i_whole_profile_out)
+                    self.replace_dataset_in_file(unitpath + "/node/data", node_data_out)
+                    self.replace_dataset_in_file(unitpath + "/node/xy", node_xy_out)
+
+                # print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
 
         self.file_object.attrs.create("hydrosignature_calculated", "True")
 

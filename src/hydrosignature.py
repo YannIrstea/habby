@@ -1,8 +1,9 @@
 import numpy as np
 import numpy.lib.recfunctions
 import os.path
-from src import hdf5_mod
 import time
+
+from src import hdf5_mod
 
 
 def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, iwholeprofile=None,
@@ -276,7 +277,8 @@ def hydrosignature_calculation(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_d
     return nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume
 
 
-def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node=None, hyd_data_mesh=None,
+def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node,
+                                   hyd_data_node=None, hyd_data_mesh=None,
                                    i_whole_profile=None, return_cut_mesh=False):
     """
     Alternative version of hydrosignature_calculation, made to test variations to change function output and remove duplicates
@@ -289,6 +291,7 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
     :param return_cut_mesh: boolean indicating whether to return the new mesh created for HS calculation (if True, original data will be interpolated for the new nodes)
 
     """
+
 
     # TODO modify iwholeprofile
 
@@ -556,6 +559,9 @@ def hydrosignature_calculation_alt(classhv, hyd_tin, hyd_xy_node, hyd_hv_node, h
         if volume1 != 0:
             if np.abs(volume12 - volume1) / volume1 > uncertainty and volume1 > uncertainty:
                 print('Uncertainty allowed on the volume calculation, exceeded while in phase poly2 BUG ???')
+
+        # progress
+        progress_value.value = progress_value.value + delta_mesh
 
     # calculating percentages
     hsarea = 100 * areameso / np.sum(areameso)
@@ -907,7 +913,7 @@ if __name__ == '__main__':
         newfile.open_hdf5_file()
         newfile.load_data_2d()
         newfile.load_hydrosignature()
-        print(newhdf5.light_data_2d)
+        print(newhdf5.data_2d)
     # nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation(
     #     classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
 

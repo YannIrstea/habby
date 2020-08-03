@@ -1741,6 +1741,7 @@ class MainWindows(QMainWindow):
         """
         tab_list = [
             ("hydro_tab", "model_group"),
+            ("hs_tab", "computing_group"),
             "substrate_tab",
             "bioinfo_tab"]
         alive = []

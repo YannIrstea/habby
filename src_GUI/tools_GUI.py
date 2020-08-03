@@ -31,6 +31,35 @@ from src import tools_mod
 from src.project_properties_mod import load_project_properties
 
 
+def change_button_color(button, color):
+    """change_button_color
+
+        Change a button's color
+    :param button: target button
+    :type button: QPushButton
+    :param color: new color (any format)
+    :type color: str
+    :return: None
+    """
+    style_sheet = button.styleSheet()
+    pairs = [pair.replace(' ', '') for pair in style_sheet.split(';') if pair]
+
+    style_dict = {}
+    for pair in pairs:
+        key, value = pair.split(':')
+        style_dict[key] = value
+
+    style_dict['background-color'] = color
+    style_sheet = '{}'.format(style_dict)
+
+    chars_to_remove = ('{', '}', '\'')
+    for char in chars_to_remove:
+        style_sheet = style_sheet.replace(char, '')
+    style_sheet = style_sheet.replace(',', ';')
+
+    button.setStyleSheet(style_sheet)
+
+
 class ToolsTab(QScrollArea):
     """
     This class contains the tab with Graphic production biological information (the curves of preference).
