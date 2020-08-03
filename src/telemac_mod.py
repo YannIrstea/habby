@@ -20,12 +20,13 @@ from struct import unpack, pack
 from PyQt5.QtCore import QCoreApplication as qt_tr
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
-from src.hydraulic_bases import HydraulicSimulationResults, HydraulicVariableUnitManagement
-from src.tools_mod import create_empty_data_2d_dict
+from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
-class TelemacResult(HydraulicSimulationResults):
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
@@ -36,34 +37,34 @@ class TelemacResult(HydraulicSimulationResults):
         self.extensions_list = [".res", ".slf"]
         self.file_type = "binary"
         # simulation attributes
-        self.equation_type = ["FE"]
+        self.equation_type = "FE"
         # reach
         self.multi_reach = False
         self.reach_num = 1
         self.reach_name_list = ["unknown"]
         self.morphology_available = True
         # hydraulic variables
-        self.hvum.set_existing_attributes_list(name=self.hvum.z.name,
-                                               attribute_list=["BOTTOM", "FOND"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.h.name,
-                                               attribute_list=["WATER DEPT", "HAUTEUR D'EAU"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v.name,
-                                               attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_u.name,
-                                               attribute_list=['VITESSE U', 'VELOCITY U'],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_v.name,
-                                               attribute_list=['VITESSE V', 'VELOCITY V'],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.temp.name,
-                                               attribute_list=["TEMP"],
-                                               position="node")
-        self.hvum.set_existing_attributes_list(name=self.hvum.v_frict.name,
-                                               attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
-                                               position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["BOTTOM", "FOND"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["WATER DEPT", "HAUTEUR D'EAU"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_x.name,
+                                                    attribute_list=['VITESSE U', 'VELOCITY U'],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_y.name,
+                                                    attribute_list=['VITESSE V', 'VELOCITY V'],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.temp.name,
+                                                    attribute_list=["TEMP"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_frict.name,
+                                                    attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
+                                                    position="node")
 
         # readable file ?
         try:
@@ -96,52 +97,43 @@ class TelemacResult(HydraulicSimulationResults):
         varnames = [varname.decode('utf-8') for varname in self.results_data_file.varnames]
 
         # check witch variable is available
-        self.hvum.get_available_variables_from_source(varnames)
+        self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """
         get_time_step
         """
         timestep_float_list = self.results_data_file.tags['times']
-        self.timestep_name_list = list(map(str, timestep_float_list))
-        self.timestep_nb = len(timestep_float_list)
+        self.timestep_name_list = list(map(str, timestep_float_list))  # always one reach
+        self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "time [s]"
 
     def load_hydraulic(self, timestep_name_wish_list):
         """
         """
-        # load specific timestep
-        self.timestep_name_wish_list = timestep_name_wish_list
-        for time_step_name_wish in timestep_name_wish_list:
-            self.timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
-        self.timestep_name_wish_list_index.sort()
-        self.timestep_wish_nb = len(self.timestep_name_wish_list_index)
+        self.load_specific_timestep(timestep_name_wish_list)
 
-        #
+        # prepare original data for data_2d
         for reach_num in range(self.reach_num):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
                 val_all = self.results_data_file.getvalues(timestep_index)
-                for variables_wish in self.hvum.final_variable_list:  # .varunits
-                    if not variables_wish.computed:
-                        variables_wish.data_2d[reach_num].append(val_all[:, variables_wish.varname_index].astype(np.float64))
+                for variables_wish in self.hvum.software_detected_list:  # .varunits
+                    if not variables_wish.precomputable_tohdf5:
+                        variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
-            # compute v ?
-            if self.hvum.v.computed:
+                # struct
+                self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+
+        # prepare computable data for data_2d
+        if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
+            for reach_num in range(self.reach_num):  # for each reach
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.v.data_2d[reach_num].append(np.sqrt(self.hvum.v_u.data_2d[reach_num][timestep_index] ** 2 + self.hvum.v_v.data_2d[reach_num][timestep_index] ** 2))
-                self.hvum.v.position = "node"
-            # compute shear_stress ?
-            if self.hvum.shear_stress.computed:
-                for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    self.hvum.shear_stress.data_2d[reach_num].append((self.hvum.v_frict.data_2d[reach_num][timestep_index] ** 2) * self.hvum.ro.value)
-                self.hvum.shear_stress.position = "node"
+                    # compute from v_x v_y
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
 
-            # coord
-            self.hvum.xy.data_2d[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
-
-            self.hvum.tin.data_2d[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
-
-        return self.get_data_2d_dict()
+        return self.get_data_2d()
 
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):

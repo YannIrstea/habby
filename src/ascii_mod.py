@@ -23,224 +23,255 @@ import numpy as np
 from src import hdf5_mod
 from src import manage_grid_mod
 from src import mesh_management_mod
-from src.tools_mod import isstranumber, c_mesh_area, create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
+from src.tools_mod import isstranumber, create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src.project_properties_mod import create_default_project_properties_dict
+from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
-def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={},
-                            user_pref_temp_path=''):
-    if not print_cmd:
-        sys.stdout = mystdout = StringIO()
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
+    """
+    """
+    def __init__(self, filename, folder_path, model_type, path_prj):
+        super().__init__(filename, folder_path, model_type, path_prj)
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
+        # file attributes
+        self.extensions_list = [".txt"]
+        self.file_type = "ascii"
+        # simulation attributes
+        self.equation_type = ""  # FE or FV
+        # reach
+        self.multi_reach = False
+        self.reach_num = 1
+        self.reach_name_list = ["unknown"]
+        self.morphology_available = True
+        # # readable file ?
+        # try:
+        #     self.results_data_file = Selafin(self.filename_path)
+        # except OSError:
+        #     self.warning_list.append("Error: The file can not be opened.")
+        #     self.valid_file = False
 
-    file_path = os.path.join(hydrau_description["path_filename_source"], hydrau_description["filename_source"])
-    path_prj = hydrau_description["path_prj"]
-    sub_presence = False  # no substrate init
-    # minimum water height
-    if not project_preferences:
-        project_preferences = create_default_project_properties_dict()
-    minwh = project_preferences['min_height_hyd']
+        # is extension ok ?
+        if os.path.splitext(self.filename)[1] not in self.extensions_list:
+            self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
+            self.valid_file = False
 
-    # progress
-    progress_value.value = 10
-
-    # load data from txt file
-    data_2d_from_ascii, data_description = load_ascii_model(file_path, path_prj, user_pref_temp_path)
-    if not data_2d_from_ascii and not data_description:
-        q.put(mystdout)
-        return
-
-    if "sub" in data_2d_from_ascii["mesh"]["data"].keys():
-        sub_presence = True
-
-    # create copy for whole profile
-    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(int(data_description["reach_number"]),  # always one reach
-                                            mesh_variables=[],
-                                            node_variables=["h", "v"])  # always one reach by file
-    data_2d_whole_profile["mesh"]["tin"] = data_2d_from_ascii["mesh"]["tin"]
-    data_2d_whole_profile["node"]["xy"] = data_2d_from_ascii["node"]["xy"]
-    data_2d_whole_profile["node"]["z"] = data_2d_from_ascii["node"]["z"]
-    data_description["unit_correspondence"] = [[]] * int(data_description["reach_number"])  # multi reach by file
-
-    # create empty dict
-    data_2d = create_empty_data_2d_dict(int(data_description["reach_number"]),
-                                        mesh_variables=list(data_2d_from_ascii["mesh"]["data"].keys()),
-                                        node_variables=list(data_2d_from_ascii["node"]["data"].keys()))
-    if sub_presence:
-        data_2d["total_wet_area"] = [[] for _ in range(int(data_description["reach_number"]))]
-
-    # progress from 10 to 90 : from 0 to len(units_index)
-    delta = int(80 / int(data_description["reach_number"]))
-
-    # for each reach
-    for reach_num in range(int(data_description["reach_number"])):
-        # index to remove (from user selection GUI)
-        index_to_remove = []
-
-        # for each units
-        for unit_num in range(len(data_description["unit_list"][reach_num])):
-            # get unit from according to user selection
-            if hydrau_description["unit_list_tf"][reach_num][unit_num]:
-                # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                xy = np.insert(data_2d_from_ascii["node"]["xy"][reach_num][unit_num],
-                               2,
-                               values=data_2d_from_ascii["node"]["z"][reach_num][unit_num],
-                               axis=1)  # Insert values before column 2
-
-                # cut mesh dry and cut partialy dry in option
-                [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(
-                    data_2d_from_ascii["mesh"]["tin"][reach_num][unit_num],
-                    xy,
-                    data_2d_from_ascii["node"]["data"]["h"][reach_num][unit_num],
-                    data_2d_from_ascii["node"]["data"]["v"][reach_num][unit_num],
-                    progress_value,
-                    delta,
-                    project_preferences["cut_mesh_partialy_dry"],
-                    unit_num,
-                    minwh)
-
-                if not isinstance(tin_data, np.ndarray):  # error or warning
-                    if not tin_data:  # error
-                        print("Error: " + "cut_2d_grid")
-                        q.put(mystdout)
-                        return
-                    elif tin_data:  # warning
-                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
-                        continue  # Continue to next iteration.
-
-                # get substrate after cuting mesh
-                if sub_presence:
-                    # compute area reach
-                    area = c_mesh_area(tin_data, xy_cuted[:, :2])
-                    area_reach = np.sum(area)
-                    data_2d["total_wet_area"][reach_num].append(area_reach)
-
-                # get cuted grid
-                data_2d["mesh"]["tin"][reach_num].append(tin_data)
-                data_2d["mesh"]["i_whole_profile"][reach_num].append(i_whole_profile)
-                for mesh_variable in data_2d_from_ascii["mesh"]["data"].keys():
-                    data_2d["mesh"]["data"][mesh_variable][reach_num].append(data_2d_from_ascii["mesh"]["data"][mesh_variable][reach_num][unit_num][i_whole_profile])
-                data_2d["node"]["xy"][reach_num].append(xy_cuted[:, :2])
-                data_2d["node"]["z"][reach_num].append(xy_cuted[:, 2])
-                data_2d["node"]["data"]["h"][reach_num].append(h_data)
-                data_2d["node"]["data"]["v"][reach_num].append(v_data)
-
-            # erase unit in whole_profile
-            else:
-                index_to_remove.append(unit_num)
-
-        # index to remove (from user selection GUI)
-        for index in reversed(index_to_remove):
-            data_2d_whole_profile["mesh"]["tin"][reach_num].pop(index)
-            data_2d_whole_profile["node"]["xy"][reach_num].pop(index)
-            data_2d_whole_profile["node"]["z"][reach_num].pop(index)
-
-    # refresh unit (if warning)
-    for reach_num in reversed(range(int(data_description["reach_number"]))):  # for each reach
-        for unit_num in reversed(range(len(data_description["unit_list"][reach_num]))):
-            if not hydrau_description["unit_list_tf"][reach_num][unit_num]:
-                data_description["unit_list"][reach_num].pop(unit_num)
-    data_description["unit_number"] = str(len(data_description["unit_list"][0]))
-
-    # varying mesh ?
-    for reach_num in range(int(data_description["reach_number"])):
-        temp_list = deepcopy(data_2d_whole_profile["node"]["xy"][reach_num])
-        for i in range(len(temp_list)):
-            temp_list[i].sort(axis=0)
-        # TODO: sort function may be unadapted to check TIN equality between units
-        whole_profil_egual_index = []
-        it_equality = 0
-        for i in range(len(temp_list)):
-            if i == 0:
-                whole_profil_egual_index.append(it_equality)
-            if i > 0:
-                if np.array_equal(temp_list[i], temp_list[it_equality]):  # equal
-                    whole_profil_egual_index.append(it_equality)
-                else:
-                    it_equality = i
-                    whole_profil_egual_index.append(it_equality)  # diff
-            data_description["unit_correspondence"][reach_num] = whole_profil_egual_index
-
-        if len(set(whole_profil_egual_index)) == 1:  # one tin for all unit
-            data_2d_whole_profile["mesh"]["tin"][reach_num] = [data_2d_whole_profile["mesh"]["tin"][reach_num][0]]
-            data_2d_whole_profile["node"]["xy"][reach_num] = [data_2d_whole_profile["node"]["xy"][reach_num][0]]
-
-    # ALL CASE SAVE TO HDF5
-    progress_value.value = 90  # progress
-
-    # hyd description
-    hyd_description = dict()
-    hyd_description["hyd_filename_source"] = data_description["filename_source"]
-    hyd_description["hyd_path_filename_source"] = data_description["path_filename_source"]
-    hyd_description["hyd_model_type"] = data_description["model_type"]
-    hyd_description["hyd_2D_numerical_method"] = data_description["2D_numerical_method"]
-    hyd_description["hyd_model_dimension"] = data_description["model_dimension"]
-    hyd_description["hyd_mesh_variables_list"] = ", ".join(list(data_2d_from_ascii["mesh"]["data"].keys()))
-    hyd_description["hyd_node_variables_list"] = ", ".join(list(data_2d_from_ascii["node"]["data"].keys()))
-    hyd_description["hyd_epsg_code"] = data_description["epsg_code"]
-    hyd_description["hyd_reach_list"] = data_description["reach_list"]
-    hyd_description["hyd_reach_number"] = data_description["reach_number"]
-    hyd_description["hyd_reach_type"] = data_description["reach_type"]
-    hyd_description["hyd_unit_list"] = data_description["unit_list"]
-    hyd_description["hyd_unit_number"] = data_description["unit_number"]
-    hyd_description["hyd_unit_type"] = data_description["unit_type"]
-    hyd_description["hyd_cuted_mesh_partialy_dry"] = str(project_preferences["cut_mesh_partialy_dry"])
-    hyd_description["unit_correspondence"] = data_description["unit_correspondence"]
-
-    # if not project_preferences["CutMeshPartialyDry"]:
-    #     namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
-    #     exthdf5_old = os.path.splitext(data_description["hdf5_name"])[1]
-    #     data_description["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-
-    # change extension of hdf5 to create .hab
-    if sub_presence:
-        hyd_description["sub_filename_source"] = data_description["filename_source"]  # same hyd
-        hyd_description["sub_classification_method"] = data_description["sub_classification_method"]
-        hyd_description["sub_classification_code"] = data_description["sub_classification_code"]
-        hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]
-        hyd_description["hab_epsg_code"] = data_description["epsg_code"]
-        hyd_description["hdf5_name"] = hydrau_description["hdf5_name"]
-        # hyd_varying_mesh ?
-        if len(set(hyd_description["unit_correspondence"][0])) == 1:  # TODO: check varying mesh for each reach
-            hyd_description["hyd_varying_mesh"] = False
+        # if valid get informations
+        if self.valid_file:
+            self.get_ascii_model_description()
         else:
-            hyd_description["hyd_varying_mesh"] = True
+            self.warning_list.append("Error: File not valid.")
 
-        if hyd_description["hyd_varying_mesh"]:
-            hyd_description["hyd_unit_z_equal"] = False
+    def get_ascii_model_description(self):
+        """
+        using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
+        several reaches and units (discharges or times )descriptions are allowed
+
+        WARNING this function is parallel with  load_ascii_model function and some integrity tests are similar
+        :param file_path:
+        :return: the reachname list and the unit description (times or discharges)
+        """
+        kk, self.reach_num = 0, 0
+        msg, unit_type = '', ''
+        lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
+        # or nbreaches elements
+        epsgcode = ''
+
+        bfvm=False # a boolean to indicate whether  we have a finite element model or a finite volume model
+        hyd_var_name_list=[] #list of hydraulic variables names
+        hyd_var_unit_list = [] #list of hydraulic variables units
+
+        bq_per_reach = False
+        bsub, bmeshconstant = False, True
+        with open(self.filename_path, 'r', encoding='utf8') as fi:
+            for i, ligne in enumerate(fi):
+                ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
+                # print (i,ls)
+                if len(ls) == 0:  # empty line
+                    pass
+                elif ls[0][0] == '#':  # comment line
+                    pass
+                elif ls[0].upper() == 'HABBY':
+                    kk = 1
+                elif 'EPSG' in ls[0].upper():
+                    if kk != 1:
+                        msg = 'EPSG but not HABBY just before'
+                        break
+                    kk = 2
+                    epsgcode = ls[1]
+                elif ls[0][0:2].upper() == 'Q[' or ls[0][0:2].lower() == 't[':
+                    if kk != 2 and kk != 4:
+                        msg = ls[0] + ' but not EPSG just before or REACH before'
+                        break
+                    if len(ls) != 1:
+                        msg = 'unit description ' + ls[0] + '  but not the only one information'
+                        break
+                    if kk == 4:
+                        if ls[0][0:2].lower() == 't[':
+                            msg = ls[
+                                      0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
+                            break
+                        else:
+                            if bq_per_reach == False and self.reach_num != 1:
+                                msg = ls[0] + ' This structure REACH unit description is forbiden '
+                                break
+                            bq_per_reach = True
+                    unit_type = ls[0]
+                    lunit = []
+                    kk = 3
+                elif ls[0].upper() == 'REACH':
+                    if kk != 2 and kk != 3 and kk < 7:
+                        msg = ls[0] + ' but not EPSG  or Q[XXX or t[XXX before'
+                        break
+                    if bq_per_reach and kk == 3:
+                        msg = ls[0] + ' This structure REACH unit description is forbiden '
+                        break
+                    self.reach_num += 1
+                    bmeshconstant = True
+                    if self.reach_num == 1:
+                        lreachname = [('_'.join(ls[1:]))]
+                    else:
+                        if '_'.join(ls[1:]) == lreachname[-1]:
+                            self.reach_num -= 1
+                            bmeshconstant = False
+                        else:
+                            lreachname.append(('_'.join(ls[1:])))
+                    kk = 4
+                # .................
+                elif ls[0].upper() == 'NODES':
+                    l1,l2=[],[]
+                    if len(ls)>1:
+                        for j in range(1,len(ls)):
+                            t1,t2 =ls[j].find('['),ls[j].find(']')
+                            if t1==-1 or t2==-1:
+                                msg = ' finite volume method not described properly you need to give hydraulic variables with their units describe between [ ]'
+                                break
+                            l1.append(ls[j][:t1])
+                            l2.append(ls[j][t1+1:t2])
+                        msg2,hyd_var_name_list,hyd_var_unit_list=check_var_name_unit_lists(l1,l2,hyd_var_name_list,hyd_var_unit_list)
+                        if msg2 != '':
+                            msg = msg2
+                            break
+
+
+
+                    if kk != 3 and kk != 4:
+                        msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
+                        break
+                    if bmeshconstant or len(lunit) == 0:
+                        lunitall.append(lunit)
+                    else:
+                        lunitall[-1].extend(lunit)
+                    kk = 5
+                elif ls[0].lower() == 'x':
+                    if kk != 5:
+                        msg = 'x but not NODES just before'
+                        break
+                    if ls[1].lower() != 'y':
+                        msg = 'x but not y just after'
+                        break
+                    if ls[2].lower() == 'z':
+                        j = len(ls) - 3
+                        if j == 0:
+                            bfvm = True
+                    kk = 6
+                elif ls[0].upper() == 'TIN':
+                    kk = 7
+                elif ls[0].upper() == 'FVM':
+                    kk = 70
+                    if not bfvm:
+                        msg = ' finite volume method not described properly you need to give only x y z for the nodes and velocity and depth for the mesh centers'
+                        break
+                    l1, l2 = [], []
+                    if len(ls) > 1:
+                        for j in range(1, len(ls)):
+                            t1, t2 = ls[j].find('['), ls[j].find(']')
+                            if t1 == -1 or t2 == -1:
+                                msg = ' finite volume method not described properly you need to give hydraulic variables with their units describe between [ ]'
+                                break
+                            l1.append(ls[j][:t1])
+                            l2.append(ls[j][t1 + 1:t2])
+                        msg2, hyd_var_name_list, hyd_var_unit_list = check_var_name_unit_lists(l1, l2,
+                                                                                               hyd_var_name_list,
+                                                                                               hyd_var_unit_list)
+                        if msg2 != '':
+                            msg = msg2
+                            break
+                elif ls[0].upper() == 'SUBSTRATE':
+                    bsub = True
+                elif kk == 3:
+                    if len(ls) != 1:
+                        msg = 'unit description but not only one information'
+                        break
+                    lunit.append(ls[0])
+            if len(hyd_var_name_list) == 0 and len(hyd_var_unit_list) == 0:
+                msg='the descriptions for hydraulic variable and their units  is not given'
+            if msg != '':
+                print('Error: ligne : ' + str(i) + ' {' + ligne.rstrip() + ' }' + msg)
+
+        self.timestep_name_list = list(map(str, lunitall))
+        self.timestep_nb = len(self.timestep_name_list[0])
+        self.timestep_unit = unit_type
+
+        # data_description
+        if bfvm:
+            self.equation_type = "FV"
         else:
-            # TODO : check if all z values are equal between units
-            hyd_description["hyd_unit_z_equal"] = True
+            self.equation_type = "FE"
+        if bsub:
+            self.sub = True
+        self.reach_name_list = lreachname
+        self.reach_num = len(self.reach_name_list)
+        if self.reach_num > 1:
+            self.multi_reach = True
+        self.varying_mesh = not bmeshconstant
+        if unit_type.upper()[0] == 'Q':
+            self.flow_type = "continuous flow"
+        else:
+            self.flow_type = "transient flow"
 
-    # check if there is no units clean (all units have warning of cut2dgrid)
-    if hyd_description["hyd_unit_number"] == "0":
-        print("Error: All units have trouble.")
-        q.put(mystdout)
-        return
+        # check witch variable is available
+        variable_list = ["z"]
+        self.hvum.detect_variable_from_software_attribute(variable_list)
 
-    # create hdf5
-    hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
-                                   hydrau_description["hdf5_name"])
-    if not sub_presence:
-        hdf5.create_hdf5_hyd(data_2d,
-                             data_2d_whole_profile,
-                             hyd_description,
-                             project_preferences)
-    if sub_presence:
-        hdf5.create_hdf5_hab(data_2d,
-                             data_2d_whole_profile,
-                             hyd_description,
-                             project_preferences)
+    def load_hydraulic(self, timestep_name_wish_list):
+        """
+        """
+        self.load_specific_timestep(timestep_name_wish_list)
 
-    # progress
-    progress_value.value = 100
+        # prepare original data for data_2d
+        for reach_num in range(self.reach_num):  # for each reach
+            for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
+                val_all = self.results_data_file.getvalues(timestep_index)
+                for variables_wish in self.hvum.software_detected_list:  # .varunits
+                    if not variables_wish.precomputable_tohdf5:
+                        variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
-    if not print_cmd:
-        sys.stdout = sys.__stdout__
-    if q and not print_cmd:
-        q.put(mystdout)
-        return
-    else:
-        return
+                # struct
+                self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+
+        # prepare computable data for data_2d
+        if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
+            for reach_num in range(self.reach_num):  # for each reach
+                for timestep_index in range(len(self.timestep_name_wish_list_index)):
+                    # compute from v_x v_y
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
+
+        return self.get_data_2d()
+
+
+def check_var_name_unit_lists(l1,l2,hyd_var_name_list,hyd_var_unit_list):
+    msg2=''
+    if not(l1 == hyd_var_name_list and l2==hyd_var_unit_list):
+        if len(hyd_var_name_list)==0 and len(hyd_var_unit_list)==0:
+            hyd_var_name_list, hyd_var_unit_list= list(l1),list(l2)
+        else:
+            msg2='the descriptions given for hydraulic variable and their units are not strictly identical'
+    return msg2,hyd_var_name_list,hyd_var_unit_list
 
 
 def load_ascii_model(filename, path_prj, user_pref_temp_path):
@@ -675,9 +706,9 @@ def load_ascii_model(filename, path_prj, user_pref_temp_path):
                             epsg_code=epsgcode)
     # data_description
     if bfvm:
-        data_description["2D_numerical_method"] = "FiniteVolumeMethod"
+        data_description["hyd_equation_type"] = "FV"
     else:
-        data_description["2D_numerical_method"] = "FiniteElementMethod"
+        data_description["hyd_equation_type"] = "FE"
     data_description["unit_list"] = lunitall
     data_description["unit_list_full"] = lunitall
     data_description["unit_list_tf"] = []
@@ -740,109 +771,3 @@ def reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub):
                 sub = np.append(sub, np.array([sub4[i, :], ] * 4), axis=0)
     return ikle, nodes, sub
 
-
-def get_ascii_model_description(file_path):
-    """
-    using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
-    several reaches and units (discharges or times )descriptions are allowed
-
-    WARNING this function is parallel with  load_ascii_model function and some integrity tests are similar
-    :param file_path:
-    :return: the reachname list and the unit description (times or discharges)
-    """
-    # file exist ?
-    if not os.path.isfile(file_path):
-        return 'Error: The ascci text file does not exist. Cannot be loaded.'
-    kk, reachnumber = 0, 0
-    msg, unit_type = '', ''
-    lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
-    # or nbreaches elements
-    epsgcode = ''
-    bq_per_reach = False
-    bsub, bmeshconstant = False, True
-    with open(file_path, 'r', encoding='utf8') as fi:
-        for i, ligne in enumerate(fi):
-            ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
-            # print (i,ls)
-            if len(ls) == 0:  # empty line
-                pass
-            elif ls[0][0] == '#':  # comment line
-                pass
-            elif ls[0].upper() == 'HABBY':
-                kk = 1
-            elif 'EPSG' in ls[0].upper():
-                if kk != 1:
-                    msg = 'EPSG but not HABBY just before'
-                    break
-                kk = 2
-                epsgcode = ls[1]
-            elif ls[0][0:2].upper() == 'Q[' or ls[0][0:2].lower() == 't[':
-                if kk != 2 and kk != 4:
-                    msg = ls[0] + ' but not EPSG just before or REACH before'
-                    break
-                if len(ls) != 1:
-                    msg = 'unit description ' + ls[0] + '  but not the only one information'
-                    break
-                if kk == 4:
-                    if ls[0][0:2].lower() == 't[':
-                        msg = ls[
-                                  0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
-                        break
-                    else:
-                        if bq_per_reach == False and reachnumber != 1:
-                            msg = ls[0] + ' This structure REACH unit description is forbiden '
-                            break
-                        bq_per_reach = True
-                unit_type = ls[0]
-                lunit = []
-                kk = 3
-            elif ls[0].upper() == 'REACH':
-                if kk != 2 and kk != 3 and kk < 7:
-                    msg = ls[0] + ' but not EPSG  or Q[XXX or t[XXX before'
-                    break
-                if bq_per_reach and kk == 3:
-                    msg = ls[0] + ' This structure REACH unit description is forbiden '
-                    break
-                reachnumber += 1
-                bmeshconstant = True
-                if reachnumber == 1:
-                    lreachname = [('_'.join(ls[1:]))]
-                else:
-                    if '_'.join(ls[1:]) == lreachname[-1]:
-                        reachnumber -= 1
-                        bmeshconstant = False
-                    else:
-                        lreachname.append(('_'.join(ls[1:])))
-                kk = 4
-            # .................
-            elif ls[0].upper() == 'NODES':
-                if kk != 3 and kk != 4:
-                    msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
-                    break
-                if bmeshconstant or len(lunit) == 0:
-                    lunitall.append(lunit)
-                else:
-                    lunitall[-1].extend(lunit)
-                kk = 5
-            elif ls[0].upper() == 'TIN':
-                kk = 7
-            elif ls[0].upper() == 'SUBSTRATE':
-                bsub = True
-            elif kk == 3:
-                if len(ls) != 1:
-                    msg = 'unit description but not only one information'
-                    break
-                lunit.append(ls[0])
-
-        if msg != '':
-            return 'Error: ligne : ' + str(i) + ' {' + ligne.rstrip() + ' }' + msg
-
-    # create dict
-    ascii_description = dict(epsg_code=epsgcode,
-                             unit_type=unit_type,
-                             unit_list=lunitall,
-                             reach_number=reachnumber,
-                             reach_list=lreachname,
-                             sub=bsub)
-
-    return ascii_description

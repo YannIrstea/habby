@@ -18,6 +18,8 @@ import numpy as np
 import sys
 import os
 from io import StringIO
+
+import src.manage_grid_mod
 from src import manage_grid_mod
 from src.project_properties_mod import create_default_project_properties_dict
 from src import hdf5_mod
@@ -89,9 +91,9 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
                 return
 
     # get triangular nodes from quadrilateral
-    [ikle_base, coord_c, coord_p, height_cell, vel_cell] = rubar1d2d_mod.get_triangular_grid(listNoNodElem, baryXY, \
+    [ikle_base, coord_c, coord_p, height_cell, vel_cell] = src.manage_grid_mod.get_triangular_grid(listNoNodElem, baryXY, \
                                                                                      nodesXYZ[:, :2], height_cell, \
-                                                                                             vel_cell)
+                                                                                                   vel_cell)
 
     # remove non connected nodes
     triangles = np.asarray(ikle_base)

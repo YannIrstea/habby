@@ -36,6 +36,7 @@ mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 from src_GUI import welcome_GUI
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_sub_GUI
+from src_GUI import hydrau_GUI
 from src_GUI import stathab_GUI
 from src_GUI import preferences_GUI
 from src_GUI import data_explorer_GUI
@@ -43,6 +44,7 @@ from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 from src_GUI import about_GUI
+from src_GUI import hs_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties,\
     create_project_structure, save_project_properties
@@ -122,7 +124,7 @@ class MainWindows(QMainWindow):
         # set up translation
         self.languageTranslator = QTranslator()
         self.path_trans = os.path.abspath('translation')
-        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm']
+        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm', r'Zen_PO.qm']
         try:  # english, french, spanish
             if language_set == "english":
                 self.lang = 0
@@ -130,6 +132,8 @@ class MainWindows(QMainWindow):
                 self.lang = 1
             if language_set == "spanish":
                 self.lang = 2
+            if language_set == "portuguese":
+                self.lang = 3
         except:
             self.lang = 0
         self.app = QApplication.instance()
@@ -164,12 +168,20 @@ class MainWindows(QMainWindow):
             lang_bio = 'English'
         elif self.lang == 1:
             lang_bio = 'French'
+        elif self.lang == 3:
+            lang_bio = 'Portuguese'
         else:
             lang_bio = 'English'
 
         self.central_widget = CentralW(self.path_prj,
                                        self.name_prj,
                                        lang_bio)
+
+        # shortcut to change tab (CTRL+TAB)
+        self.keyboard_change_tab_filter = AltTabPressEater()
+        self.app.installEventFilter(self.keyboard_change_tab_filter)
+        self.keyboard_change_tab_filter.next_signal.connect(self.central_widget.next_tab)
+        self.keyboard_change_tab_filter.previous_signal.connect(self.central_widget.previous_tab)
 
         self.msg2 = QMessageBox()
         # call the normal constructor of QWidget
@@ -336,7 +348,7 @@ class MainWindows(QMainWindow):
             if hasattr(self.central_widget, "hydro_tab"):
                 for model_index in range(len(self.central_widget.hydro_tab.hydraulic_model_information.name_models_gui_list)):
                     if not self.central_widget.hydro_tab.hydraulic_model_information.available_models_tf_list[model_index]:
-                        self.central_widget.hydro_tab.mod.model().item(model_index).setEnabled(False)
+                        self.central_widget.hydro_tab.model_list_combobox.model().item(model_index + 1).setEnabled(False)
 
             # disable_model_statistic
             self.statisticmodelaction.setEnabled(False)
@@ -495,6 +507,8 @@ class MainWindows(QMainWindow):
         change_specific_properties(self.path_prj,
                                    preference_names=["language"],
                                    preference_values=[self.lang])
+        #print("self.central_widget.setFocus()")
+        self.central_widget.setFocus()
 
         self.central_widget.write_log(self.tr('Project created.'))
 
@@ -537,6 +551,7 @@ class MainWindows(QMainWindow):
         self.central_widget.name_prj = self.name_prj
 
         # recreate new widget
+        #print("recreate_tabs_attributes1")
         self.recreate_tabs_attributes()
 
         # update estimhab and stathab
@@ -704,6 +719,7 @@ class MainWindows(QMainWindow):
         self.central_widget.tab_widget.removeTab(0)
 
         # recreate new widget
+        #print("recreate_tabs_attributes2")
         self.recreate_tabs_attributes()
 
         # add_all_tab
@@ -919,6 +935,7 @@ class MainWindows(QMainWindow):
         self.app.installTranslator(self.languageTranslator)
 
         # recreate new widget
+        #print("recreate_tabs_attributes3")
         self.recreate_tabs_attributes()
         if self.central_widget.tab_widget.count() == 1:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
@@ -930,6 +947,9 @@ class MainWindows(QMainWindow):
         elif nb_lang == 1:
             if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'French'
+        elif nb_lang == 3:
+            if hasattr(self.central_widget, "bioinfo_tab"):
+                self.central_widget.bioinfo_tab.lang = 'Portuguese'
         else:
             if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'Spanish'
@@ -975,6 +995,8 @@ class MainWindows(QMainWindow):
             language = "french"
         if self.lang == 2:
             language = "spanish"
+        if self.lang == 3:
+            language = "portuguese"
         if user_preferences.data["language"] != language:
             user_preferences.data["language"] = language
             user_preferences.save_user_preferences_json()
@@ -1079,18 +1101,29 @@ class MainWindows(QMainWindow):
         self.spanish_action = QAction(self.tr('&Spanish'), self, checkable=True)
         self.spanish_action.setStatusTip(self.tr('click here for Spanish'))
         self.spanish_action.triggered.connect(lambda: self.setlangue(2))
+        self.portuguese_action = QAction(self.tr('&Portuguese'), self, checkable=True)
+        self.portuguese_action.setStatusTip(self.tr('click here for Portuguese'))
+        self.portuguese_action.triggered.connect(lambda: self.setlangue(3))
         if self.lang == 0:
             self.english_action.setChecked(True)
             self.french_action.setChecked(False)
             self.spanish_action.setChecked(False)
+            self.portuguese_action.setChecked(False)
         if self.lang == 1:
             self.english_action.setChecked(False)
             self.french_action.setChecked(True)
             self.spanish_action.setChecked(False)
+            self.portuguese_action.setChecked(False)
         if self.lang == 2:
             self.english_action.setChecked(False)
             self.french_action.setChecked(False)
             self.spanish_action.setChecked(True)
+            self.portuguese_action.setChecked(False)
+        if self.lang == 3:
+            self.english_action.setChecked(False)
+            self.french_action.setChecked(False)
+            self.spanish_action.setChecked(False)
+            self.portuguese_action.setChecked(True)
         self.fullscreen_action = QAction(self.tr('Toggle full screen mode'), self, checkable=True)
         self.fullscreen_action.triggered.connect(self.set_unset_fullscreen)
         self.fullscreen_action.setShortcut('F11')
@@ -1159,6 +1192,7 @@ class MainWindows(QMainWindow):
         language_menu.addAction(self.english_action)
         language_menu.addAction(self.french_action)
         language_menu.addAction(self.spanish_action)
+        language_menu.addAction(self.portuguese_action)
 
         # view menu
         view_menu.addAction(self.fullscreen_action)
@@ -1300,7 +1334,6 @@ class MainWindows(QMainWindow):
         self.preferences_dialog.erase_data_label.setMinimumWidth(witdh_for_checkbox_alignement)
 
     def recreate_tabs_attributes(self):
-        #print("recreate_tabs_attributes", self.sender())
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             if hasattr(self.central_widget, "welcome_tab"):
@@ -1313,11 +1346,11 @@ class MainWindows(QMainWindow):
 
             if hasattr(self.central_widget, "hydro_tab"):
                 if not self.central_widget.hydro_tab:
-                    self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+                    self.central_widget.hydro_tab = hydrau_GUI.HydrauTab(self.path_prj, self.name_prj)
                 else:
                     self.central_widget.hydro_tab.__init__(self.path_prj, self.name_prj)
             else:
-                self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+                self.central_widget.hydro_tab = hydrau_GUI.HydrauTab(self.path_prj, self.name_prj)
 
             if hasattr(self.central_widget, "substrate_tab"):
                 if not self.central_widget.substrate_tab:
@@ -1364,6 +1397,15 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
+            # hs_tab
+            if hasattr(self.central_widget, "hs_tab"):
+                if not self.central_widget.hs_tab:
+                    self.central_widget.hs_tab = hs_GUI.HsTab(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.hs_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.hs_tab = hs_GUI.HsTab(self.path_prj, self.name_prj)
+
             if hasattr(self.central_widget, "statmod_tab"):
                 if not self.central_widget.statmod_tab:
                     self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
@@ -1406,15 +1448,15 @@ class MainWindows(QMainWindow):
                 if not self.preferences_dialog:
                     self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
                 else:
                     self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
             else:
                 self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
 
             # # run_as_beta_version
             # self.run_as_beta_version()
@@ -1435,11 +1477,25 @@ class MainWindows(QMainWindow):
                     self.physic_tabs = False
         elif not self.physic_tabs:
             if self.name_prj:
-                self.central_widget.tab_widget.insertTab(1, self.central_widget.hydro_tab, self.tr("Hydraulic"))  # 1
-                self.central_widget.tab_widget.insertTab(2, self.central_widget.substrate_tab, self.tr("Substrate"))  # 2
-                self.central_widget.tab_widget.insertTab(3, self.central_widget.bioinfo_tab, self.tr("Habitat Calc."))  # 3
-                self.central_widget.tab_widget.insertTab(4, self.central_widget.data_explorer_tab, self.tr("Data explorer"))  # 4
-                self.central_widget.tab_widget.insertTab(5, self.central_widget.tools_tab, self.tr("Tools"))  # 5
+                self.central_widget.tab_widget.insertTab(self.central_widget.hydro_tab.tab_position,
+                                                         self.central_widget.hydro_tab,
+                                                         self.tr("Hydraulic"))  # 1
+                self.central_widget.tab_widget.insertTab(self.central_widget.substrate_tab.tab_position,
+                                                         self.central_widget.substrate_tab,
+                                                         self.tr("Substrate"))  # 2
+                self.central_widget.tab_widget.insertTab(self.central_widget.bioinfo_tab.tab_position,
+                                                         self.central_widget.bioinfo_tab,
+                                                         self.tr("Habitat Calc."))  # 3
+                self.central_widget.tab_widget.insertTab(self.central_widget.data_explorer_tab.tab_position,
+                                                         self.central_widget.data_explorer_tab,
+                                                         self.tr("Data explorer"))  # 4
+                self.central_widget.tab_widget.insertTab(self.central_widget.tools_tab.tab_position,
+                                                         self.central_widget.tools_tab,
+                                                         self.tr("Tools"))  # 5
+                self.central_widget.tab_widget.insertTab(self.central_widget.hs_tab.tab_position,
+                                                         self.central_widget.hs_tab,
+                                                         self.tr("Hydrosignature"))  # 6
+
             self.physic_tabs = True
         # save xml
         if self.name_prj:
@@ -1460,14 +1516,16 @@ class MainWindows(QMainWindow):
                             self.central_widget.tab_widget.removeTab(i)
                     self.stat_tabs = False
         elif not self.stat_tabs:
-            if self.physic_tabs:
-                start_index = 6
-            else:
-                start_index = 1
             if self.name_prj:
-                self.central_widget.tab_widget.insertTab(start_index, self.central_widget.statmod_tab, self.tr("ESTIMHAB"))  # 6
-                self.central_widget.tab_widget.insertTab(start_index + 1, self.central_widget.stathab_tab, self.tr("STATHAB"))  # 7
-                self.central_widget.tab_widget.insertTab(start_index + 2, self.central_widget.fstress_tab, self.tr("FStress"))  # 8
+                self.central_widget.tab_widget.insertTab(self.central_widget.statmod_tab.tab_position,
+                                                         self.central_widget.statmod_tab,
+                                                         self.tr("ESTIMHAB"))  # 6
+                self.central_widget.tab_widget.insertTab(self.central_widget.stathab_tab.tab_position,
+                                                         self.central_widget.stathab_tab,
+                                                         self.tr("STATHAB"))  # 7
+                self.central_widget.tab_widget.insertTab(self.central_widget.fstress_tab.tab_position,
+                                                         self.central_widget.fstress_tab,
+                                                         self.tr("FStress"))  # 8
             self.stat_tabs = True
         # save xml
         if self.name_prj:
@@ -1682,18 +1740,8 @@ class MainWindows(QMainWindow):
         method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
         """
         tab_list = [
-            ("hydro_tab", "lammi"),
-            ("hydro_tab", "rubar1d"),
-            ("hydro_tab", "mascaret"),
-            ("hydro_tab", "hecras1d"),
-            ("hydro_tab", "rubar2d"),
-            ("hydro_tab", "telemac"),
-            ("hydro_tab", "basement2d"),
-            ("hydro_tab", "hecras2d"),
-            ("hydro_tab", "iber2d"),
-            ("hydro_tab", "river2d"),
-            ("hydro_tab", "sw2d"),
-            ("hydro_tab", "ascii"),
+            ("hydro_tab", "model_group"),
+            ("hs_tab", "computing_group"),
             "substrate_tab",
             "bioinfo_tab"]
         alive = []
@@ -1911,11 +1959,12 @@ class CentralW(QWidget):
 
         self.welcome_tab = welcome_GUI.WelcomeW(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
+            self.hydro_tab = hydrau_GUI.HydrauTab(path_prj, name_prj)
             self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
+            self.hs_tab = hs_GUI.HsTab(path_prj, name_prj)
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
@@ -1971,13 +2020,6 @@ class CentralW(QWidget):
         # update plot item in plot tab
         self.tab_widget.currentChanged.connect(self.update_specific_tab)
 
-        # shortcut to change tab (CTRL+TAB)
-        self.keyboard_change_tab_filter = AltTabPressEater()
-        self.tab_widget.installEventFilter(self.keyboard_change_tab_filter)
-        self.keyboard_change_tab_filter.next_signal.connect(self.next_tab)
-        self.keyboard_change_tab_filter.previous_signal.connect(self.previous_tab)
-        self.tab_widget.setFocus()
-
         # layout
         self.layoutc = QVBoxLayout()
         self.layoutc.addWidget(self.tab_widget)
@@ -2029,13 +2071,14 @@ class CentralW(QWidget):
                 self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
                 self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
+                self.tab_widget.addTab(self.hs_tab, self.tr("Hydrosignature"))  # 6
             if go_stat:
-                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 6
-                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 7
-                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 8
+                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 7
+                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 8
+                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 9
             if go_research:
-                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 9
-                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 10
+                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 10
+                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 11
             self.welcome_tab.current_prj_groupbox.setEnabled(True)
         # if the project do not exist, do not add new tab
         else:
@@ -2080,25 +2123,14 @@ class CentralW(QWidget):
 
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.hydro_tab.send_log.connect(self.write_log)
-            self.hydro_tab.hecras1d.send_log.connect(self.write_log)
-            self.hydro_tab.hecras2d.send_log.connect(self.write_log)
-            self.hydro_tab.rubar2d.send_log.connect(self.write_log)
-            self.hydro_tab.rubar1d.send_log.connect(self.write_log)
-            self.hydro_tab.sw2d.send_log.connect(self.write_log)
-            self.hydro_tab.iber2d.send_log.connect(self.write_log)
-            self.hydro_tab.telemac.send_log.connect(self.write_log)
-            self.hydro_tab.basement2d.send_log.connect(self.write_log)
-            self.hydro_tab.ascii.send_log.connect(self.write_log)
             self.substrate_tab.send_log.connect(self.write_log)
             self.statmod_tab.send_log.connect(self.write_log)
             self.stathab_tab.send_log.connect(self.write_log)
-            self.hydro_tab.river2d.send_log.connect(self.write_log)
-            self.hydro_tab.mascaret.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
-            self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
             self.tools_tab.send_log.connect(self.write_log)
+            self.hs_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
@@ -2108,22 +2140,10 @@ class CentralW(QWidget):
 
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
-            self.hydro_tab.hecras1d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.hecras2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.telemac.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.basement2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.ascii.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.rubar2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.rubar1d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.sw2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.iber2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.river2d.drop_hydro.connect(self.update_combobox_filenames)
-            self.hydro_tab.mascaret.drop_hydro.connect(self.update_combobox_filenames)
-
+            self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-            self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-            self.hydro_tab.ascii.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
         """
@@ -2308,6 +2328,8 @@ class CentralW(QWidget):
             # data explorer
             self.data_explorer_tab.refresh_type()
 
+            self.hs_tab.refresh_filenames()
+
     def save_info_projet(self):
         """
         This function is used to save the description of the project and the username in the xml project file
@@ -2344,6 +2366,9 @@ class CentralW(QWidget):
         self.old_ind_tab = self.tab_widget.currentIndex()
 
     def update_specific_tab(self):
+        # hyd
+        if self.tab_widget.currentIndex() == 1:
+            self.hydro_tab.model_list_combobox.setFocus()
         # calc hab
         if self.tab_widget.currentIndex() == 3:
             self.bioinfo_tab.update_merge_list()
@@ -2396,14 +2421,13 @@ class AltTabPressEater(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress and event.key() == 16777217:
             self.next_signal.emit()
-            return True # eat alt+tab or alt+shift+tab key
+            return True  # CTRL+TAB
         elif event.type() == QEvent.KeyPress and event.key() == 16777218:
             self.previous_signal.emit()
-            return True  # eat alt+tab or alt+shift+tab key
+            return True  # CTRL+MAJ+TAB
         else:
             # standard event processing
             return QObject.eventFilter(self, obj, event)
-
 
 
 if __name__ == '__main__':

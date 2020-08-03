@@ -17,25 +17,45 @@ https://github.com/YannIrstea/habby
 import os
 import numpy as np
 import h5py
+import pandas as pd
 
-from src.hydraulic_bases import HydraulicSimulationResults
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 from src.tools_mod import create_empty_data_2d_dict, frange
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src import manage_grid_mod
 
 
-class BasementResult(HydraulicSimulationResults):
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
         # file attributes
         self.extensions_list = [".h5"]
         self.file_type = "hdf5"
         # simulation attributes
-        self.equation_type = ["FV"]
+        self.equation_type = "FV"
         self.morphology_available = True
         self.second_file_suffix = "_aux"
-
+        # reach
+        self.multi_reach = False # ?
+        self.reach_num = 1
+        self.reach_name_list = ["unknown"]
+        # hydraulic variables
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["Coordnts"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["BottomEl"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["always h"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["always v"],
+                                                    position="mesh")
         # readable file ?
         try:
             self.results_data_file = h5py.File(self.filename_path, 'r')
@@ -67,9 +87,11 @@ class BasementResult(HydraulicSimulationResults):
         #             self.valid_file = False
 
         # first result_file ?
-        if not "RESULTS" in self.results_data_file.keys():
-            self.warning_list.append('Error: The file is not ' + self.model_type + ' results type.')
-            self.valid_file = False
+
+        if self.results_data_file:
+            if not "RESULTS" in self.results_data_file.keys():
+                self.warning_list.append('Error: The file is not ' + self.model_type + ' results type.')
+                self.valid_file = False
 
         # is extension ok ?
         if os.path.splitext(self.filename)[1] not in self.extensions_list:
@@ -78,15 +100,26 @@ class BasementResult(HydraulicSimulationResults):
 
         # if valid get informations
         if self.valid_file:
+            # get_simulation_info
+            self.get_simulation_info()
             # get_time_step ?
             self.get_time_step()
+            # get hydraulic variables list (mesh and node)
+            self.get_hydraulic_variable_list()
         else:
             self.warning_list.append("Error: File not valid.")
 
+    def get_simulation_info(self):
+        self.simulation_name = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]["simulation_name"]
+
     def get_hydraulic_variable_list(self):
-        #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
-        self.hydraulic_variables_node_list = []
-        self.hydraulic_variables_mesh_list = ["h", "v"]
+        # #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
+
+        # get list from source
+        varnames = ["Coordnts", "BottomEl", "always h", "always v"]
+
+        # check witch variable is available
+        self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """
@@ -102,7 +135,7 @@ class BasementResult(HydraulicSimulationResults):
                                simulation_dict["SIMULATION"]["TIME"]["end"],
                                simulation_dict["SIMULATION"]["TIME"]["out"]))
         self.timestep_name_list = list(map(str, timestep_float_list))
-        self.timestep_nb = len(timestep_float_list)
+        self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "time [s]"
 
     def load_hydraulic(self, timestep_name_wish_list):
@@ -114,11 +147,7 @@ class BasementResult(HydraulicSimulationResults):
         :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
         """
         # load specific timestep
-        timestep_name_wish_list_index = []
-        for time_step_name_wish in timestep_name_wish_list:
-            timestep_name_wish_list_index.append(self.timestep_name_list.index(time_step_name_wish))
-        timestep_name_wish_list_index.sort()
-        timestep_wish_nb = len(timestep_name_wish_list_index)
+        self.load_specific_timestep(timestep_name_wish_list)
 
         # simulation dict
         model_dict = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]
@@ -156,18 +185,19 @@ class BasementResult(HydraulicSimulationResults):
             except KeyError:
                 print("Error: Can't found 'BottomEl' key in " + self.filename + ".")
         if not self.unit_z_equal:
-            mesh_z = np.zeros((mesh_nb, timestep_wish_nb), dtype=np.float64)
+            mesh_z = np.zeros((mesh_nb, self.timestep_wish_nb), dtype=np.float64)
             dataset_name_list = list(RESULTS_group["CellsAll"]["BottomEl"])
             try:
-                for timestep_index, timestep_num in enumerate(timestep_name_wish_list_index):
+                for timestep_index, timestep_num in enumerate(self.timestep_name_wish_list_index):
                     mesh_z[:, timestep_index] = RESULTS_group["CellsAll"]["BottomEl"][dataset_name_list[timestep_num]][:].flatten()
             except KeyError:
                 print("Error: Can't found 'BottomEl' key in " + self.filename + ".")
         # result data
-        mesh_h = np.zeros((mesh_nb, timestep_wish_nb), dtype=np.float64)
-        mesh_v = np.zeros((mesh_nb, timestep_wish_nb), dtype=np.float64)
+        mesh_h = np.zeros((mesh_nb, self.timestep_wish_nb), dtype=np.float64)
+        mesh_v = np.zeros((mesh_nb, self.timestep_wish_nb), dtype=np.float64)
+        data_mesh_pd = pd.DataFrame()
         dataset_name_list = list(RESULTS_group["CellsAll"]["HydState"])
-        for timestep_index, timestep_num in enumerate(timestep_name_wish_list_index):
+        for timestep_index, timestep_num in enumerate(self.timestep_name_wish_list_index):
             result_hyd_array = RESULTS_group["CellsAll"]["HydState"][dataset_name_list[timestep_num]][:]
             # zeau
             mesh_water_level = result_hyd_array[:, 0]
@@ -188,43 +218,53 @@ class BasementResult(HydraulicSimulationResults):
             mesh_h[:, timestep_index] = mesh_water_height
             mesh_v[:, timestep_index] = mesh_velocity
 
+        # transform data to pandas
+        data_mesh_pd_r_list = []
+        for reach_num in range(len(self.reach_name_list)):
+            data_mesh_pd_t_list = []
+            for timestep_name_wish_index in range(self.timestep_wish_nb):
+                data_mesh_pd = pd.DataFrame()
+                data_mesh_pd[self.hvum.h.name] = mesh_h[:, timestep_name_wish_index]
+                data_mesh_pd[self.hvum.v.name] = mesh_v[:, timestep_name_wish_index]
+                data_mesh_pd_t_list.append(data_mesh_pd)
+            data_mesh_pd_r_list.append(data_mesh_pd_t_list)
+
         # finite_volume_to_finite_element_triangularxy
         mesh_tin = np.column_stack([mesh_tin, np.ones(len(mesh_tin), dtype=mesh_tin[0].dtype) * -1])  # add -1 column
-        mesh_tin, node_xyz, node_h, node_v = manage_grid_mod.finite_volume_to_finite_element_triangularxy(mesh_tin,
+        mesh_tin, node_xyz, node_h, data_node_list = manage_grid_mod.finite_volume_to_finite_element_triangularxy(mesh_tin,
                                                                                                           node_xyz,
                                                                                                           mesh_h,
-                                                                                                          mesh_v)
+                                                                                                          data_mesh_pd_r_list[0])
 
-        # return to list
-        node_h_list = []
-        node_v_list = []
-        for unit_num in range(timestep_wish_nb):
-            node_h_list.append(node_h[:, unit_num])
-            node_v_list.append(node_v[:, unit_num])
+        # prepare original and computed data for data_2d
+        for reach_num in range(self.reach_num):  # for each reach
+            for timestep_index in range(self.timestep_wish_nb):  # for each timestep
+                for variables_wish in self.hvum.hdf5_and_computable_list:  # .varunits
+                    if variables_wish.position == "mesh":
+                        if variables_wish.name == self.hvum.z.name:
+                            if self.unit_z_equal:
+                                variables_wish.data[reach_num].append(mesh_z.astype(variables_wish.dtype))
+                            else:
+                                variables_wish.data[reach_num].append(mesh_z[:, timestep_index].astype(variables_wish.dtype))
+                        elif variables_wish.name == self.hvum.h.name:
+                            variables_wish.data[reach_num].append(mesh_h[:, timestep_index].astype(variables_wish.dtype))
+                        elif variables_wish.name == self.hvum.v.name:
+                            variables_wish.data[reach_num].append(mesh_v[:, timestep_index].astype(variables_wish.dtype))
+                    if variables_wish.position == "node":
+                        if variables_wish.name == self.hvum.z.name:
+                            variables_wish.data[reach_num].append(node_z.astype(variables_wish.dtype))
+                        elif variables_wish.name == self.hvum.h.name:
+                            variables_wish.data[reach_num].append(node_h[:, timestep_index].astype(variables_wish.dtype))
+                        else:
+                            var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(variables_wish.name)
+                            variables_wish.data[reach_num].append(data_node_list[timestep_index][:, var_node_index].astype(variables_wish.dtype))
 
-        # description data dict
-        description_from_file = dict()
-        description_from_file["filename_source"] = self.filename
-        description_from_file["model_type"] = self.model_type
-        description_from_file["model_dimension"] = str(2)
-        description_from_file["unit_list"] = ", ".join(list(map(str, timestep_name_wish_list_index)))
-        description_from_file["unit_number"] = str(timestep_wish_nb)
-        description_from_file["unit_type"] = "time [s]"
-        description_from_file["unit_z_equal"] = self.unit_z_equal
-
-        # data 2d dict (one reach by file and varying_mesh==False)
-        data_2d = create_empty_data_2d_dict(reach_number=1,
-                                            node_variables=["h", "v"])
-        data_2d["mesh"]["tin"][0] = [mesh_tin] * timestep_wish_nb
-        data_2d["node"]["xy"][0] = [node_xy] * timestep_wish_nb
-        if self.unit_z_equal:
-            data_2d["node"]["z"][0] = [node_z] * timestep_wish_nb
-        else:
-            data_2d["node"]["z"][0] = node_z
-        data_2d["node"]["data"]["h"][0] = node_h_list
-        data_2d["node"]["data"]["v"][0] = node_v_list
+            # coord
+            self.hvum.xy.data[reach_num] = [node_xy] * self.timestep_wish_nb
+            self.hvum.tin.data[reach_num] = [mesh_tin] * self.timestep_wish_nb
 
         del self.results_data_file
 
-        return data_2d, description_from_file
+        return self.get_data_2d()
+
 

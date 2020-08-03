@@ -1,6 +1,7 @@
 :: activate native conda
 if exist %USERPROFILE%\Miniconda3\Scripts\activate.bat call %USERPROFILE%\Miniconda3\Scripts\activate.bat
 if exist %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat call %USERPROFILE%\AppData\Local\Continuum\miniconda3\Scripts\activate.bat
+if exist C:\ProgramData\Miniconda3\Scripts\activate.bat call C:\ProgramData\Miniconda3\Scripts\activate.bat
 
 :: PATHS
 SET habby_path=C:\habby_dev\habby
@@ -21,10 +22,11 @@ call conda create --prefix %envir_virtuels_path%\%envir_virtuel_name% python=3.6
 call conda activate %envir_virtuels_path%\%envir_virtuel_name%
 call conda install -c conda-forge numpy conda-forge::blas=*=openblas --yes 
 call conda install pyinstaller=3.6 --yes
-call conda install gdal=3.0.2 --yes
+::call conda install gdal=3.0.2 --yes
 call conda install pyqt=5.9.2 --yes
 ::call conda install triangle=20170429 --yes
 call conda install h5py=2.10.0 --yes
+pip install "C:\habby_dev\dependence\GDAL-2.4.1-cp36-cp36m-win_amd64.whl"
 pip install git+git://github.com/drufat/triangle@master
 pip install appdirs==1.4.3
 pip install qdarkstyle==2.8
@@ -34,6 +36,7 @@ pip install lxml==4.5.0
 pip install scipy==1.4.1
 pip install mplcursors==0.3
 pip install pillow==7.0.0
+pip install pandas==1.0.3
 
 :::::::::::::::::::::::::::: RUN HABBY :::::::::::::::
 python %habby_path%\habby.py

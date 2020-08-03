@@ -80,6 +80,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         super().__init__()
 
         self.tab_name = "stathab"
+        self.tab_position = 8
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_im = self.path_prj

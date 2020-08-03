@@ -18,6 +18,8 @@ import numpy as np
 import sys
 import os
 from io import StringIO
+
+import src.manage_grid_mod
 from src import manage_grid_mod
 from src.project_properties_mod import create_default_project_properties_dict
 from src import hdf5_mod
@@ -105,7 +107,7 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
 
     # get triangular nodes from quadrilateral
     [ikle_base, coord_c, coord_p, height_cell, vel_cell] = \
-        rubar1d2d_mod.get_triangular_grid(listNoNodElem, baryXY,
+        src.manage_grid_mod.get_triangular_grid(listNoNodElem, baryXY,
                                   nodesXYZ[:, :2], height_cell, vel_cell)
 
     # remove non connected nodes

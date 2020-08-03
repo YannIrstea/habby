@@ -31,6 +31,7 @@ from src.project_properties_mod import load_project_properties, load_specific_pr
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
+from src.variable_unit_mod import HydraulicVariableUnitList, HydraulicVariable
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -47,7 +48,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def __init__(self, path_prj, name_prj, lang='French'):
         super().__init__()
+
         self.tab_name = "calc hab"
+        self.tab_position = 3
         self.lang = lang
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -266,6 +269,32 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.setColumnWidth(0, self.exist_title_label.width())
         self.presence_qtablewidget.setFixedWidth(self.exist_title_label.width())
 
+    def send_err_log(self, check_ok=False):
+        """
+        This function sends the errors and the warnings to the logs.
+        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
+
+        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
+        """
+        error = False
+
+        max_send = 100
+        if self.mystdout is not None:
+            str_found = self.mystdout.getvalue()
+        else:
+            return
+        str_found = str_found.split('\n')
+        for i in range(0, min(len(str_found), max_send)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+            if i == max_send - 1:
+                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+            if 'Error' in str_found[i] and check_ok:
+                error = True
+        if check_ok:
+            return error
+
     def change_scroll_position(self, index):
         self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue(index)
         self.hyd_mode_qtablewidget.verticalScrollBar().setValue(index)
@@ -381,6 +410,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
                 default_substrate_type = user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage]
+                if not self.current_hab_informations_dict["sub_mesh_ok"]:
+                    default_substrate_type = "Neglect"
                 # set positon to combobox
                 self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(
                     substrate_type_available.index(default_substrate_type))
@@ -473,6 +504,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         substrate_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
         default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
+        if not self.current_hab_informations_dict["sub_mesh_ok"]:
+            default_choice_index = substrate_type_available.index("Neglect")
         if new_sub_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
         else:
@@ -592,9 +625,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 else:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_user)
                 item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
-                if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"]:  # not 2d or not z
+                if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"] or not self.current_hab_informations_dict["shear_stress_ok"]:  # not 2d or not z
                     if "HEM" in hydraulic_type_available:
                         item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setEnabled(False)
+                        item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setToolTip(
+                            self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
+                        self.hyd_mode_qtablewidget.selectRow(hydraulic_type_available.index("Neglect"))
+                        item_combobox_hyd.setToolTip(
+                            self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
                 item_combobox_hyd.setCurrentIndex(choosen_index)
                 item_combobox_hyd.currentIndexChanged.connect(self.color_hyd_combobox)
                 item_combobox_hyd.activated.connect(self.change_general_hyd_combobox)
@@ -617,6 +655,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 item_combobox_sub.addItems(substrate_type_available)
                 choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
                 default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
+                if not self.current_hab_informations_dict["sub_mesh_ok"] and not "HEM" in hydraulic_type_available:
+                    default_choice_index = substrate_type_available.index("Neglect")
+                    item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
+                    item_combobox_sub.model().item(default_choice_index).setToolTip(
+                        self.tr(".hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged."))
+                    item_combobox_sub.setToolTip(
+                        self.tr(
+                            ".hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged."))
+                    if self.general_option_sub_combobox.currentIndex() == 0:
+                        choosen_index = default_choice_index
                 if choosen_index == default_choice_index:
                     item_combobox_sub.setStyleSheet(self.combobox_style_default)
                 else:
@@ -697,7 +745,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             required_dict = dict(
                 dimension_ok=False,
                 z_presence_ok=False,
+                shear_stress_ok=False,
                 percentage_ok=False,
+                sub_mesh_ok=False,
                 fish_list=[])
 
             if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
@@ -706,7 +756,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
             required_dict["z_presence_ok"] = True  # TODO : always True ??
             if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
                 required_dict["percentage_ok"] = True
-            required_dict["fish_list"] = hdf5.fish_list
+            if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub mapping method")] != "constant":
+                required_dict["sub_mesh_ok"] = True
+            required_dict["fish_list"] = hdf5.hvum.hdf5_and_computable_list.meshs().habs().names()
+            if hdf5.hvum.shear_stress.name in hdf5.hvum.hdf5_and_computable_list.names():
+                required_dict["shear_stress_ok"] = True
 
             self.current_hab_informations_dict = required_dict
 
@@ -810,7 +864,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         We should not add a comma in the name of the selected fish.
         """
-
         # disable the button
         self.runhab.setDisabled(True)
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
@@ -824,12 +877,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_file_list = []
         stage_list = []
-        code_alternative_list = []
-        hyd_opt_list = []
-        sub_opt_list = []
         name_fish_sel = ''  # for the xml project file
-        aquatic_animal_type_list = []
-        xmlfiles = []
+        user_target_list = HydraulicVariableUnitList()
+
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # check if not exist
             if not self.presence_qtablewidget.cellWidget(i, 0).layout().itemAt(0).widget().isChecked():
@@ -843,21 +893,19 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if hyd_opt == "Neglect" and sub_opt == "Neglect":
                     self.send_log.emit('Warning: ' + fish_item_text + self.tr(" model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed."))
                     continue
-
-                name_fish_sel += fish_item_text + ","
-                code_alternative_list.append(code_bio_model)
                 index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
-                pref_file_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
-                stage_list.append(stage)
-                # name_fish_sel += name_fish + ','
-                xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
-                # get info from 2 list widget
-                hyd_opt_list.append(hyd_opt)
-                # get info from 3 list widget
-                sub_opt_list.append(sub_opt)
-                aquatic_animal_type_list.append(user_preferences.biological_models_dict["aquatic_animal_type"][index_fish])
+                name_fish_sel += fish_item_text + ","
 
-        if xmlfiles:
+                # append_new_habitat_variable
+                user_target_list.append_new_habitat_variable(code_bio_model,
+                                                            stage,
+                                                             hyd_opt,
+                                                             sub_opt,
+                                                             user_preferences.biological_models_dict["aquatic_animal_type"][index_fish],
+                                                             user_preferences.biological_models_dict["model_type"][index_fish],
+                                                             user_preferences.biological_models_dict["path_xml"][index_fish])
+
+        if user_target_list:
             # get the name of the merged file
             path_hdf5 = self.find_path_hdf5_est()
             ind = self.m_all.currentIndex()
@@ -873,12 +921,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().progress_bar.setValue(0)
             self.nativeParentWidget().progress_bar.setVisible(True)
 
-            # get the type of option choosen for the habitat calculation
-            run_choice = dict(pref_file_list=pref_file_list,
-                              stage_list=stage_list,
-                              hyd_opt=hyd_opt_list,
-                              sub_opt=sub_opt_list)
-
             # only useful if we want to also show the 2d figure in the GUI
             self.hdf5_file = hab_filename
             self.path_hdf5 = path_hdf5
@@ -888,7 +930,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.q4 = Queue()
             self.progress_value = Value("i", 0)
             self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
-                             args=(hab_filename, run_choice, self.progress_value, self.q4, False, project_preferences))
+                             args=(hab_filename, user_target_list, self.progress_value, self.q4, False, project_preferences))
             self.p.name = "Habitat calculation"
             self.p.start()
 
@@ -897,7 +939,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.send_log.emit("py    path1= os.path.join(path_prj, 'hdf5')")
             self.send_log.emit("py    pref_file_list= ['" + "', '".join(pref_file_list) + "']")
             self.send_log.emit("py    stages= ['" + "', '".join(stage_list) + "']")
-            self.send_log.emit("py    type=" + str(run_choice))
+            # self.send_log.emit("py    type=" + str(run_choice))
             self.send_log.emit("py    name_fish1 = ['" + "', '".join(name_fish) + "']")
             self.send_log.emit(
                 "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_file_list, stages, name_fish1, name_fish2, type, "
@@ -906,7 +948,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.send_log.emit("restart    file1: " + hab_filename)
             self.send_log.emit("restart    list of preference file: " + ",".join(pref_file_list))
             self.send_log.emit("restart    stages chosen: " + ",".join(stage_list))
-            self.send_log.emit("restart    type of calculation: " + str(run_choice))
+            # self.send_log.emit("restart    type of calculation: " + str(run_choice))
         else:
             # disable the button
             self.runhab.setDisabled(False)
@@ -919,7 +961,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         this function create the 1d figure for the HABBY GUI.
         """
 
-        # say in the Stauts bar that the processus is alive
+        # RUNNING
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # send the message
@@ -927,45 +969,53 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                self.tr("'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             self.nativeParentWidget().kill_process.setVisible(True)
+        else:
+            # FINISH (but can have known errors)
+            if not self.q4.empty():
+                self.timer.stop()
+                self.mystdout = self.q4.get()
+                error = self.send_err_log(True)
 
-        # when the loading is finished
-        if not self.q4.empty():
-            self.timer.stop()
-            self.mystdout = self.q4.get()
-            self.send_err_log()
+                # known errors
+                if error:
+                    self.send_log.emit("clear status bar")
+                    self.running_time = 0
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    # give the possibility of sending a new simulation
+                    self.runhab.setDisabled(False)
+                else:
+                    # give the possibility of sending a new simulation
+                    self.runhab.setDisabled(False)
 
-            # give the possibility of sending a new simulation
-            self.runhab.setDisabled(False)
+                    self.send_log.emit(self.tr('Habitat computation is finished (computation time = ') + str(
+                        round(self.running_time)) + " s).")
+                    self.send_log.emit(self.tr("Outputs data can be displayed and exported from 'Data explorer' tab."))
 
-            self.send_log.emit(self.tr('Habitat computation is finished (computation time = ') + str(
-                round(self.running_time)) + " s).")
-            self.send_log.emit(self.tr("Outputs data can be displayed and exported from 'Data explorer' tab."))
+                    # put the timer back to zero and clear status bar
+                    self.running_time = 0
+                    self.send_log.emit("clear status bar")
+                    self.plot_new = False
+                    # refresh plot gui list file
+                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
+                    self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
+                    self.running_time = 0
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    # check_uncheck_allmodels_presence
+                    self.check_uncheck_allmodels_presence()
 
-            # put the timer back to zero and clear status bar
-            self.running_time = 0
-            self.send_log.emit("clear status bar")
-            self.plot_new = False
-            # refresh plot gui list file
-            self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
-            self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
-            self.running_time = 0
-            self.nativeParentWidget().kill_process.setVisible(False)
-            # check_uncheck_allmodels_presence
-            self.check_uncheck_allmodels_presence()
-
-        if not self.p.is_alive():
-            # enable the button to call this functin directly again
-            self.timer.stop()
-
-            # give the possibility of sending a new simulation
-            self.runhab.setDisabled(False)
-            self.nativeParentWidget().kill_process.setVisible(False)
-
-            # put the timer back to zero
-            self.running_time = 0
-            self.send_log.emit("clear status bar")
-            # check_uncheck_allmodels_presence
-            self.check_uncheck_allmodels_presence()
+            # CLEANING GUI
+            if not self.p.is_alive() and self.q4.empty():
+                # enable the button to call this functin directly again
+                self.timer.stop()
+                self.send_log.emit("clear status bar")
+                self.nativeParentWidget().kill_process.setVisible(False)
+                self.running_time = 0
+                self.runhab.setDisabled(False)
+                # check_uncheck_allmodels_presence
+                self.check_uncheck_allmodels_presence()
+                # CRASH
+                if self.p.exitcode == 1:
+                    self.send_log.emit(self.tr("Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
 
 
 if __name__ == '__main__':

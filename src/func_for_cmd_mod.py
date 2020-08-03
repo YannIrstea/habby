@@ -24,12 +24,15 @@ import h5py
 import matplotlib
 import numpy as np
 
+import src.merge
+import src.substrate_mod
+
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue
 from shutil import copyfile
 
-from src.hydraulic_bases import HydraulicModelInformation
+from src.hydraulic_results_manager_mod import HydraulicModelInformation
 from src import mascaret_mod
 from src import hec_ras1D_mod
 from src import rubar1d2d_mod
@@ -46,7 +49,7 @@ from src import calcul_hab_mod
 from src import mesh_management_mod
 from src import lammi_mod
 from src import ascii_mod
-from src import input_data_manager_mod
+from src import hydraulic_process_mod
 from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_properties_dict, load_project_properties, change_specific_properties
 
@@ -239,10 +242,10 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         # # get_hydrau_description_from_source
         hydraulic_model_information = HydraulicModelInformation()
-        hsra_value = input_data_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
-                                                        project_preferences["path_prj"],
-                                                        hydraulic_model_information.get_attribute_name_from_class_name("TELEMAC"),
-                                                        2)
+        hsra_value = hydraulic_process_mod.HydraulicSimulationResultsAnalyzer(filename_path,
+                                                                              project_preferences["path_prj"],
+                                                                              hydraulic_model_information.get_attribute_name_from_class_name("TELEMAC"),
+                                                                              2)
 
         # outputfilename
         if outputfilename:
@@ -266,8 +269,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # run process
         progress_value = Value("i", 0)
         q = Queue()
-        p = Process(target=input_data_manager_mod.load_hydraulic_cut_to_hdf5,
-                         args=(hsra_value.hydrau_description_list,
+        p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
+                    args=(hsra_value.hydrau_description_list,
                                progress_value,
                                q,
                                True,
@@ -310,11 +313,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 project_preferences['cut_mesh_partialy_dry'] = cut
 
         # get_hydrau_description_from_source
-        hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_path,
-                                                                                                     project_preferences[
+        hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                    project_preferences[
                                                                                                        "path_prj"],
                                                                                                    "RUBAR20",
-                                                                                                     2)
+                                                                                                    2)
 
         # outputfilename
         if outputfilename:
@@ -394,11 +397,11 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                     unit_list.append(list(map(str, unit_list_base[reach_num])))
 
         # get_hydrau_description_from_source
-        hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_path,
-                                                                                                     project_preferences[
+        hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_path,
+                                                                                                    project_preferences[
                                                                                                        "path_prj"],
                                                                                                    "ASCII",
-                                                                                                     2)
+                                                                                                    2)
 
         # outputfilename
         if outputfilename:
@@ -1702,9 +1705,9 @@ def cli_load_sub(arguments, project_preferences):
         name_hdf5 = os.path.splitext(filename)[0] + ".sub"
 
     # get_sub_description_from_source
-    sub_description, warning_list = input_data_manager_mod.get_sub_description_from_source(abs_path_file,
-                                                                                           substrate_mapping_method,
-                                                                                           project_preferences["path_prj"])
+    sub_description, warning_list = src.substrate_mod.get_sub_description_from_source(abs_path_file,
+                                                                                      substrate_mapping_method,
+                                                                                      project_preferences["path_prj"])
 
     # error
     if not sub_description:
@@ -1764,7 +1767,7 @@ def cli_merge(arguments, project_preferences):
     # run the function
     q = Queue()
     progress_value = Value("i", 0)
-    p = Process(target=mesh_management_mod.merge_grid_and_save,
+    p = Process(target=src.merge.merge_grid_and_save,
                 args=(hdf5_name_hyd,
                       hdf5_name_sub,
                       outputfilename,

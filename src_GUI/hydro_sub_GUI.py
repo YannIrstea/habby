@@ -30,13 +30,15 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
     QHBoxLayout
 from lxml import etree as ET
 
-from src.hydraulic_bases import HydraulicModelInformation
-from src.input_data_manager_mod import HydraulicSimulationResultsAnalyzer
+import src.merge
+import src.substrate_mod
+from src.hydraulic_results_manager_mod import HydraulicModelInformation
+from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
 import src.tools_mod
 from src import ascii_mod
 from src import hdf5_mod
 from src import hec_ras1D_mod
-from src import input_data_manager_mod
+from src import hydraulic_process_mod
 from src import iber2d_mod
 from src import lammi_mod
 from src import mascaret_mod
@@ -110,6 +112,7 @@ class Hydro2W(QScrollArea):
 
         super(Hydro2W, self).__init__()
         self.tab_name = "hydraulic"
+        self.tab_position = 1
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.hydraulic_model_information = HydraulicModelInformation()
@@ -246,6 +249,7 @@ class Hydro2W(QScrollArea):
         self.msgi.show()
 
     def set_suffix_no_cut(self, no_cut_bool):
+        print("set_suffix_no_cut")
         if self.hydraulic_model_information.name_models_gui_list[self.mod_act]:
             # get class
             current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.mod_act].lower())
@@ -265,7 +269,7 @@ class Hydro2W(QScrollArea):
                     # set new name
                     current_model_class.hname.setText(new_hdf5_name)
             # remove no_cut suffix if exist
-            if no_cut_bool:
+            elif no_cut_bool:
                 # check if no_cut suffix exist
                 if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
                     # check if there is extension
@@ -403,7 +407,6 @@ class SubHydroW(QWidget):
 
         sys.stdout = self.mystdout = StringIO()  # out to GUI
         pathname_hdf5 = hdf5_mod.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
-        sys.stdout = sys.__stdout__  # reset to console
         self.send_err_log()
 
         if pathname_hdf5:
@@ -746,7 +749,7 @@ class SubHydroW(QWidget):
             model_path = self.path_prj  # path proj
 
         # find the filename based on user choice
-        filename_list = QFileDialog.getOpenFileNames(self,
+        filename_list = QFileDialog().getOpenFileNames(self,
                                                      self.tr("Select file(s)"),
                                                      model_path,
                                                      filter2)
@@ -814,13 +817,13 @@ class SubHydroW(QWidget):
             self.h2d_t2.clear()
             self.h2d_t2.addItems(names)
             self.reach_name_label.setText(self.hydrau_description_list[0]["reach_list"])
-            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_mesh_detected_list"])
-            node_list = ", ".join(self.hydrau_description_list[0]["variable_node_detected_list"])
+            mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].meshs().names_gui())
+            node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].nodes().names_gui())
             self.usefull_variable_label.setText("node : " + node_list + "\nmesh : " + mesh_list)
             self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
             self.units_QListWidget.clear()
             self.units_QListWidget.addItems(self.hydrau_description_list[0]["unit_list_full"])
-            if not self.hydrau_description_list[0]["unit_list_tf"]:
+            if all(self.hydrau_description_list[0]["unit_list_tf"]):
                 self.units_QListWidget.selectAll()
             else:
                 for i in range(len(self.hydrau_description_list[0]["unit_list_full"])):
@@ -835,6 +838,7 @@ class SubHydroW(QWidget):
                 text_load_button = text_load_button + "s"
             self.load_b.setText(text_load_button)
             self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+            #self.hname.textChanged.connect(self.unit_counter)
             self.unit_counter()
 
     def unit_counter(self):
@@ -858,6 +862,7 @@ class SubHydroW(QWidget):
         self.hydrau_description_list[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
         self.hydrau_description_list[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
         self.hydrau_description_list[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
+        self.hydrau_description_list[self.h2d_t2.currentIndex()]["hdf5_name"] = self.hname.text()
 
         if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
             # preset name hdf5
@@ -882,6 +887,8 @@ class SubHydroW(QWidget):
         text = str(selected) + "/" + str(total)
         self.number_timstep_label.setText(text)  # number units
 
+        self.load_b.setFocus()
+
     def change_gui_when_combobox_name_change(self):
         try:
             self.units_QListWidget.disconnect()
@@ -897,9 +904,12 @@ class SubHydroW(QWidget):
         self.units_QListWidget.clear()
         self.units_QListWidget.addItems(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])
         # change selection items
-        for i in range(len(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])):
-            self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"][i])
-            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+        if all(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"]):
+            self.units_QListWidget.selectAll()
+        else:
+            for i in range(len(self.hydrau_description_list[hydrau_description_index]["unit_list_full"])):
+                self.units_QListWidget.item(i).setSelected(self.hydrau_description_list[hydrau_description_index]["unit_list_tf"][i])
+                self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
         self.epsg_label.setText(self.hydrau_description_list[hydrau_description_index]["epsg_code"])
         if not os.path.splitext(self.hydrau_description_list[hydrau_description_index]["hdf5_name"])[1]:
             self.hydrau_description_list[hydrau_description_index]["hdf5_name"] = self.hydrau_description_list[hydrau_description_index]["hdf5_name"] + ".hyd"
@@ -922,15 +932,10 @@ class SubHydroW(QWidget):
                 self.send_log.emit("Error: " + self.tr("No units selected for : ") + self.hydrau_description_list[i][
                     "filename_source"] + "\n")
                 return
-        # if not self.multi_hdf5:
-        #     selection = self.units_QListWidget.selectedItems()
-        #     if not selection:
-        #         self.send_log.emit("Error: " + self.tr("No units selected. \n"))
-        #         return
-        #     self.hydrau_description["epsg_code"] = self.epsg_label.text()
 
         # check if extension is set by user (one hdf5 case)
         self.name_hdf5 = self.hname.text()
+        self.hydrau_description_list[self.h2d_t2.currentIndex()]["hdf5_name"] = self.name_hdf5
         if self.name_hdf5 == "":
             self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
             return
@@ -947,7 +952,7 @@ class SubHydroW(QWidget):
         self.nativeParentWidget().progress_bar.setVisible(True)
 
         # check if extension is set by user (multi hdf5 case)
-        hydrau_description_multiple = list(self.hydrau_description_list) # create copy to not erase inital choices
+        hydrau_description_multiple = list(self.hydrau_description_list)  # create copy to not erase inital choices
         for hdf5_num in range(len(hydrau_description_multiple)):
             if not os.path.splitext(hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
                 hydrau_description_multiple[hdf5_num]["hdf5_name"] = hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
@@ -970,7 +975,7 @@ class SubHydroW(QWidget):
         self.save_xml(0)
 
         # check cases
-        self.p = Process(target=input_data_manager_mod.load_hydraulic_cut_to_hdf5,
+        self.p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
                          args=(hydrau_description_multiple,
                                self.progress_value,
                                self.q,
@@ -982,7 +987,7 @@ class SubHydroW(QWidget):
 
         # log info
         self.send_log.emit(self.tr('# Loading: ' + self.model_type + ' data...'))
-        self.send_err_log()
+        #self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit(
             "py    selafin_habby1.load_hec_ras2d_and_cut_grid('hydro_hec_ras2d_log', file1, path1, name_prj, "
@@ -1057,7 +1062,7 @@ class SubHydroW(QWidget):
                         # unblock button hydraulic
                         self.load_b.setDisabled(False)  # hydraulic
 
-                if not error:
+                elif not error:
                     # MERGE
                     if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
                         self.send_log.emit(
@@ -1187,6 +1192,10 @@ class Rubar2D(SubHydroW):
         reach_name_title_label = QLabel(self.tr('Reach name'))
         self.reach_name_label = QLabel(self.tr('unknown'))
 
+        # usefull variables
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
+        self.usefull_variable_label = QLabel(self.tr('unknown'))
+
         # unit type
         units_name_title_label = QLabel(self.tr('Unit(s) type'))
         self.units_name_label = QLabel(self.tr('unknown'))
@@ -1239,19 +1248,21 @@ class Rubar2D(SubHydroW):
         self.layout_rubar20.addWidget(self.h2d_b, 0, 2)
         self.layout_rubar20.addWidget(reach_name_title_label, 1, 0)
         self.layout_rubar20.addWidget(self.reach_name_label, 1, 1)
-        self.layout_rubar20.addWidget(units_name_title_label, 2, 0)
-        self.layout_rubar20.addWidget(self.units_name_label, 2, 1)
-        self.layout_rubar20.addWidget(l2, 3, 0)
-        self.layout_rubar20.addWidget(self.number_timstep_label, 3, 1)
-        self.layout_rubar20.addWidget(l_selecttimestep, 4, 0)
-        self.layout_rubar20.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
-        self.layout_rubar20.addWidget(epsgtitle_rubar20_label, 5, 0)
-        self.layout_rubar20.addWidget(self.epsg_label, 5, 1)
-        self.layout_rubar20.addWidget(lh, 6, 0)
-        self.layout_rubar20.addWidget(self.hname, 6, 1)
-        self.layout_rubar20.addWidget(self.load_b, 6, 2)
-        self.layout_rubar20.addWidget(self.last_hydraulic_file_label, 7, 0)
-        self.layout_rubar20.addWidget(self.last_hydraulic_file_name_label, 7, 1)
+        self.layout_rubar20.addWidget(usefull_variable_label_title, 2, 0)
+        self.layout_rubar20.addWidget(self.usefull_variable_label, 2, 1)
+        self.layout_rubar20.addWidget(units_name_title_label, 3, 0)
+        self.layout_rubar20.addWidget(self.units_name_label, 3, 1)
+        self.layout_rubar20.addWidget(l2, 4, 0)
+        self.layout_rubar20.addWidget(self.number_timstep_label, 4, 1)
+        self.layout_rubar20.addWidget(l_selecttimestep, 5, 0)
+        self.layout_rubar20.addWidget(self.units_QListWidget, 5, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_rubar20.addWidget(epsgtitle_rubar20_label, 6, 0)
+        self.layout_rubar20.addWidget(self.epsg_label, 6, 1)
+        self.layout_rubar20.addWidget(lh, 7, 0)
+        self.layout_rubar20.addWidget(self.hname, 7, 1)
+        self.layout_rubar20.addWidget(self.load_b, 7, 2)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_label, 8, 0)
+        self.layout_rubar20.addWidget(self.last_hydraulic_file_name_label, 8, 1)
         [self.layout_rubar20.setRowMinimumHeight(i, 30) for i in range(self.layout_rubar20.rowCount())]
 
         self.setLayout(self.layout_rubar20)
@@ -2268,10 +2279,10 @@ class HEC_RAS1D(SubHydroW):
             # result data
             if i == 1:
                 # get_hydrau_description_from_source
-                hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_list[0],
-                                                                                                             self.path_prj,
-                                                                                                             self.model_type,
-                                                                                                             self.nb_dim)
+                hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                            self.path_prj,
+                                                                                                            self.model_type,
+                                                                                                            self.nb_dim)
 
                 # warnings
                 if warning_list:
@@ -2551,6 +2562,11 @@ class HEC_RAS2D(SubHydroW):
         # reach
         reach_name_title_label = QLabel(self.tr('Reach name'))
         self.reach_name_label = QLabel(self.tr('unknown'))
+        self.reach_name_label = QLabel(self.tr('unknown'))
+
+        # usefull variables
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
+        self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
         units_name_title_label = QLabel(self.tr('Unit(s) type'))
@@ -2595,19 +2611,23 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         self.layout_hec2.addWidget(reach_name_title_label, 1, 0)
         self.layout_hec2.addWidget(self.reach_name_label, 1, 1)
-        self.layout_hec2.addWidget(units_name_title_label, 2, 0)
-        self.layout_hec2.addWidget(self.units_name_label, 2, 1)
-        self.layout_hec2.addWidget(l2, 3, 0)
-        self.layout_hec2.addWidget(self.number_timstep_label, 3, 1)
-        self.layout_hec2.addWidget(l_selecttimestep, 4, 0)
-        self.layout_hec2.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
-        self.layout_hec2.addWidget(epsgtitle_label, 5, 0)
-        self.layout_hec2.addWidget(self.epsg_label, 5, 1)
-        self.layout_hec2.addWidget(lh, 6, 0)
-        self.layout_hec2.addWidget(self.hname, 6, 1)
-        self.layout_hec2.addWidget(self.load_b, 6, 2)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_label, 7, 0)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 7, 1)
+
+        self.layout_hec2.addWidget(usefull_variable_label_title, 2, 0)
+        self.layout_hec2.addWidget(self.usefull_variable_label, 2, 1)
+
+        self.layout_hec2.addWidget(units_name_title_label, 3, 0)
+        self.layout_hec2.addWidget(self.units_name_label, 3, 1)
+        self.layout_hec2.addWidget(l2, 4, 0)
+        self.layout_hec2.addWidget(self.number_timstep_label, 4, 1)
+        self.layout_hec2.addWidget(l_selecttimestep, 5, 0)
+        self.layout_hec2.addWidget(self.units_QListWidget, 5, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_hec2.addWidget(epsgtitle_label, 6, 0)
+        self.layout_hec2.addWidget(self.epsg_label, 6, 1)
+        self.layout_hec2.addWidget(lh, 7, 0)
+        self.layout_hec2.addWidget(self.hname, 7, 1)
+        self.layout_hec2.addWidget(self.load_b, 7, 2)
+        self.layout_hec2.addWidget(self.last_hydraulic_file_label, 8, 0)
+        self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 8, 1)
         [self.layout_hec2.setRowMinimumHeight(i, 30) for i in range(self.layout_hec2.rowCount())]
 
         self.setLayout(self.layout_hec2)
@@ -2681,7 +2701,7 @@ class TELEMAC(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Usefull variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -2711,6 +2731,7 @@ class TELEMAC(SubHydroW):
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
         # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
         #     self.gethdf5_name_gui()
         #     if self.h2d_t2.text()[-4:] in self.extension[0]:
@@ -2720,6 +2741,7 @@ class TELEMAC(SubHydroW):
         self.load_b = QPushButton(self.tr('Create .hyd file'),)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hydraulic_create_hdf5)
+        self.load_b.setDefault(True)
         self.spacer = QSpacerItem(1, 180)
 
         # last hdf5 created
@@ -2793,7 +2815,7 @@ class ASCII(SubHydroW):  # QGroupBox
         # geometry and output data
         l1 = QLabel(self.tr('ASCII hydraulic model file(s)'))
         self.h2d_b = QPushButton(self.tr('Choose file(s) (.txt)'))
-        self.h2d_b.clicked.connect(lambda: self.show_dialog_ascii(0))
+        self.h2d_b.clicked.connect(lambda: self.select_file_and_show_informations_dialog(0))
 
         # reach
         reach_name_title_label = QLabel(self.tr('Reach name'))
@@ -2919,7 +2941,7 @@ class ASCII(SubHydroW):  # QGroupBox
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            hydrau_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(
+            hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(
                 filename_list[0],
                 self.path_prj,
                 self.model_type,
@@ -3558,10 +3580,10 @@ class SW2D(SubHydroW):
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            telemac_description, warning_list = input_data_manager_mod.get_hydrau_description_from_source(filename_list[0],
-                                                                                                          self.path_prj,
-                                                                                                          self.model_type,
-                                                                                                          self.nb_dim)
+            telemac_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                         self.path_prj,
+                                                                                                         self.model_type,
+                                                                                                         self.nb_dim)
 
             # warnings
             if warning_list:
@@ -4007,7 +4029,7 @@ class Basement2D(SubHydroW):
         self.reach_name_label = QLabel(self.tr('unknown'))
 
         # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Usefull variables detected'))
+        usefull_variable_label_title = QLabel(self.tr('Data detected'))
         self.usefull_variable_label = QLabel(self.tr('unknown'))
 
         # unit type
@@ -4121,6 +4143,7 @@ class SubstrateW(SubHydroW):
         super(SubstrateW, self).__init__(path_prj, name_prj)
         # update attribute
         self.tab_name = "substrate"
+        self.tab_position = 2
         self.sub_description = None
         self.attributexml = ['substrate_path', 'att_name']
         self.model_type = 'SUBSTRATE'
@@ -4288,7 +4311,7 @@ class SubstrateW(SubHydroW):
         self.layout_polygon.addWidget(self.polygon_hname, 5, 1)  # 5 line
         self.layout_polygon.addWidget(self.load_polygon_substrate, 5, 2)  # 5 line
         [self.layout_polygon.setRowMinimumHeight(i, 30) for i in range(self.layout_polygon.rowCount())]
-        self.polygon_group = QGroupBox(self.tr('Polygons'))
+        self.polygon_group = QGroupBox(self.tr('From polygons'))
         self.polygon_group.setLayout(self.layout_polygon)
 
         # POINT GROUP
@@ -4308,7 +4331,7 @@ class SubstrateW(SubHydroW):
         self.layout_point.addWidget(self.point_hname, 5, 1)  # 5 line
         self.layout_point.addWidget(self.load_point_substrate, 5, 2)  # 5 line
         [self.layout_point.setRowMinimumHeight(i, 30) for i in range(self.layout_point.rowCount())]
-        self.point_group = QGroupBox(self.tr('Points'))
+        self.point_group = QGroupBox(self.tr('From points'))
         self.point_group.setLayout(self.layout_point)
 
         # CONSTANT GROUP
@@ -4328,7 +4351,7 @@ class SubstrateW(SubHydroW):
         self.layout_constant.addWidget(self.constant_hname, 5, 1)  # 5 line
         self.layout_constant.addWidget(self.load_constant_substrate, 5, 2)  # 5 line
         [self.layout_constant.setRowMinimumHeight(i, 30) for i in range(self.layout_constant.rowCount())]
-        self.constant_group = QGroupBox(self.tr('Constant values'))
+        self.constant_group = QGroupBox(self.tr('From constant values'))
         self.constant_group.setLayout(self.layout_constant)
 
         # SUBSTRATE GROUP
@@ -4489,9 +4512,9 @@ class SubstrateW(SubHydroW):
                     self.msg2.show()
 
             # get_sub_description_from_source
-            sub_description, warning_list = input_data_manager_mod.get_sub_description_from_source(filename_path,
-                                                                                                   substrate_mapping_method,
-                                                                                                   self.path_prj)
+            sub_description, warning_list = src.substrate_mod.get_sub_description_from_source(filename_path,
+                                                                                              substrate_mapping_method,
+                                                                                              self.path_prj)
             # save to attribute
             self.sub_description = sub_description
             # error
@@ -4794,7 +4817,7 @@ class SubstrateW(SubHydroW):
         # run the function
         self.q = Queue()
         self.progress_value = Value("i", 0)
-        self.p = Process(target=mesh_management_mod.merge_grid_and_save,
+        self.p = Process(target=src.merge.merge_grid_and_save,
                          args=(hdf5_name_hyd,
                                hdf5_name_sub,
                                self.name_hdf5,

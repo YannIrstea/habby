@@ -18,16 +18,46 @@ import os
 from multiprocessing import Process, Value
 
 from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeySequence
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, QApplication
 
-from src.tools_mod import MyProcessList, QGroupBoxCollapsible
+from src.tools_mod import QGroupBoxCollapsible
+from src.hydraulic_process_mod import MyProcessList
 from src import hdf5_mod
 from src import plot_mod
 from src import tools_mod
 from src.project_properties_mod import load_project_properties
+
+
+def change_button_color(button, color):
+    """change_button_color
+
+        Change a button's color
+    :param button: target button
+    :type button: QPushButton
+    :param color: new color (any format)
+    :type color: str
+    :return: None
+    """
+    style_sheet = button.styleSheet()
+    pairs = [pair.replace(' ', '') for pair in style_sheet.split(';') if pair]
+
+    style_dict = {}
+    for pair in pairs:
+        key, value = pair.split(':')
+        style_dict[key] = value
+
+    style_dict['background-color'] = color
+    style_sheet = '{}'.format(style_dict)
+
+    chars_to_remove = ('{', '}', '\'')
+    for char in chars_to_remove:
+        style_sheet = style_sheet.replace(char, '')
+    style_sheet = style_sheet.replace(',', ';')
+
+    button.setStyleSheet(style_sheet)
 
 
 class ToolsTab(QScrollArea):
@@ -42,6 +72,7 @@ class ToolsTab(QScrollArea):
     def __init__(self, path_prj, name_prj):
         super().__init__()
         self.tab_name = "tools"
+        self.tab_position = 5
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -195,9 +226,11 @@ class InterpolationGroup(QGroupBoxCollapsible):
         mytablemodel = MyTableModel("", "", "", "")
         self.require_unit_qtableview.setModel(mytablemodel)
         self.plot_chronicle_qpushbutton = QPushButton(self.tr('View interpolate chronicle'))
+        self.plot_chronicle_qpushbutton.setStyleSheet("background-color: #47B5E6; color: black")
         self.plot_chronicle_qpushbutton.clicked.connect(self.plot_chronicle)
         self.plot_chronicle_qpushbutton.setEnabled(False)
         self.export_txt_chronicle_qpushbutton = QPushButton(self.tr('Export interpolate chronicle'))
+        self.export_txt_chronicle_qpushbutton.setStyleSheet("background-color: #47B5E6; color: black")
         self.export_txt_chronicle_qpushbutton.clicked.connect(self.export_chronicle)
         self.export_txt_chronicle_qpushbutton.setEnabled(False)
 
@@ -351,7 +384,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # ok
@@ -375,7 +408,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # find the filename based on user choice
@@ -470,14 +503,14 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         if not hdf5name:
-            self.send_log.emit('Error: ' + self.tr('There no .hab selected.'))
+            self.send_log.emit('Error: ' + self.tr('No .hab selected.'))
             return
 
         if self.mytablemodel:
@@ -547,13 +580,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
         if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('There no selected fish.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
         if not hdf5name:
-            self.send_log.emit('Error: ' + self.tr('There no .hab selected.'))
+            self.send_log.emit('Error: ' + self.tr('No .hab selected.'))
             return
 
         if self.mytablemodel:
@@ -628,6 +661,7 @@ class OtherToolToCreate(QGroupBoxCollapsible):
         hbox_layout = QHBoxLayout()
         spacer = QSpacerItem(1, 50)
         self.qpushbutton_test = QPushButton("Don't click! It's going to crash HABBY !")
+        self.qpushbutton_test.setStyleSheet("background-color: #47B5E6; color: black")
         self.qpushbutton_test.clicked.connect(self.test_function_dev)
         hbox_layout.addItem(spacer)
         hbox_layout.addWidget(self.qpushbutton_test)
@@ -717,3 +751,18 @@ class LeftHorizontalTabBar(QTabBar):
             painter.translate(-c)
             painter.drawControl(QStyle.CE_TabBarTabLabel, opt)
             painter.restore()
+
+
+class QListWidgetClipboard(QListWidget):
+    def __init__(self):
+        super().__init__()
+
+    def keyPressEvent(self, event):
+        if event.matches(QKeySequence.Copy):
+            clipboard = QApplication.clipboard()
+            string_to_clipboard = ""
+            for item in self.selectedItems():
+                string_to_clipboard = string_to_clipboard + item.text() + "\n"
+            clipboard.setText(string_to_clipboard)
+        else:
+            QListWidget.keyPressEvent(self, event)

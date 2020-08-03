@@ -30,6 +30,7 @@ from matplotlib import colors
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import mplcursors
 from PIL import Image
+# from mayavi import mlab
 
 from src import tools_mod
 from src.tools_mod import get_translator
@@ -443,7 +444,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
 
     name_fish_origin = list(name_fish)
     for id, n in enumerate(name_fish):
-        name_fish[id] = n.replace('_', ' ')
+        name_fish[id] = n.name.replace('_', ' ')
 
     # one time step - bar
     if len(unit_name) == 1:
@@ -941,6 +942,247 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     plt.show()
 
 
+# all cases
+def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+    mpl_map_change_parameters(project_preferences)
+
+    # title and filename
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
+
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap.set_bad(color='black', alpha=1.0)
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
+    bounds_nb = 50  # number of bound (color level)
+    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
+    while not np.all(np.diff(bounds) > 0):  # check if constant or null
+        bounds_nb += - 1  # remove one bound
+        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
+    # all values are null
+    if data_min == data_max and bounds_nb == 1:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+    # normal case
+    else:
+        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
+                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+
+    # color_bar
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
+
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+    mpl_map_change_parameters(project_preferences)
+
+    # title and filename
+    title = plot_string_dict["title"]
+    variable_title = plot_string_dict["variable_title"]
+    reach_title = plot_string_dict["reach_title"]
+    unit_title = plot_string_dict["unit_title"]
+    filename = plot_string_dict["filename"]
+    colorbar_label = plot_string_dict["colorbar_label"]
+
+    # data
+    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
+    data_min = masked_array.min()
+    data_max = masked_array.max()
+    decimal_nb = 2
+    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+
+    # colors
+    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap.set_bad(color='black', alpha=1.0)
+
+    # pre_plot_map
+    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
+
+    # ax_map plot
+    n = len(data_plot)
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = data_xy[int(data_tin[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)
+        patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    ax_map.add_collection(data_ploted)
+
+    # color_bar
+    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
+                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar.set_label(colorbar_label)
+
+    # post_plot_map
+    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+
+
+def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge_xy, merge_tin, merge_data):
+    """
+    hyd : hydraulic
+    sub : substrate
+    merge : hyd + sub merging
+    all numpy array
+    xy = coordinates by nodes (2d numpy array of float)
+    tin = connectivity table by mesh (3d numpy array of int)
+    data = data by mesh (1d numpy array)
+    """
+    fig, axs = plt.subplots(2, 2, sharex=True, sharey=True)
+
+    linewidth = 0.2
+    hyd_edgecolor = "blue"
+    sub_edgecolor = "orange"
+    merge_edgecolor = "black"
+
+    data_min = min(min(sub_data),min(merge_data))
+    data_max = max(max(sub_data), max(merge_data))
+    # hyd
+    axs[0, 0].set_title("hydraulic")
+    xlist = []
+    ylist = []
+    for i in range(0, len(hyd_tin)):
+        pi = 0
+        tin_i = hyd_tin[i]
+        if len(tin_i) == 3:
+            while pi < 2:  # we have all sort of xells, max eight sides
+                # The conditions should be tested in this order to avoid to go out of the array
+                p = tin_i[pi]  # we start at 0 in python, careful about -1 or not
+                p2 = tin_i[pi + 1]
+                xlist.extend([hyd_xy[p, 0], hyd_xy[p2, 0]])
+                xlist.append(None)
+                ylist.extend([hyd_xy[p, 1], hyd_xy[p2, 1]])
+                ylist.append(None)
+                pi += 1
+            p = tin_i[pi]
+            p2 = tin_i[0]
+            xlist.extend([hyd_xy[p, 0], hyd_xy[p2, 0]])
+            xlist.append(None)
+            ylist.extend([hyd_xy[p, 1], hyd_xy[p2, 1]])
+            ylist.append(None)
+    axs[0, 0].plot(xlist, ylist, '-b', linewidth=linewidth, color=hyd_edgecolor)
+    axs[0, 0].axis("scaled")  # x and y axes have same proportions
+
+    # sub
+    axs[0, 1].set_title("substrate")
+    masked_array = np.ma.array(sub_data, mask=np.isnan(sub_data))  # create nan mask
+    # data_min = masked_array.min()
+    # data_max = masked_array.max()
+    cmap = mpl.cm.get_cmap("jet")
+    cmap.set_bad(color='black', alpha=1.0)
+    n = len(sub_data)
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = sub_xy[int(sub_tin[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)
+        patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=linewidth, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    data_ploted.set_edgecolor(sub_edgecolor)
+    axs[0, 1].add_collection(data_ploted)
+    axs[0, 1].axis("scaled")  # x and y axes have same proportions
+
+    # merge only mesh
+    axs[1, 0].set_title("merge")
+    xlist = []
+    ylist = []
+    for i in range(0, len(merge_tin)):
+        pi = 0
+        tin_i = merge_tin[i]
+        if len(tin_i) == 3:
+            while pi < 2:  # we have all sort of xells, max eight sides
+                # The conditions should be tested in this order to avoid to go out of the array
+                p = tin_i[pi]  # we start at 0 in python, careful about -1 or not
+                p2 = tin_i[pi + 1]
+                xlist.extend([merge_xy[p, 0], merge_xy[p2, 0]])
+                xlist.append(None)
+                ylist.extend([merge_xy[p, 1], merge_xy[p2, 1]])
+                ylist.append(None)
+                pi += 1
+            p = tin_i[pi]
+            p2 = tin_i[0]
+            xlist.extend([merge_xy[p, 0], merge_xy[p2, 0]])
+            xlist.append(None)
+            ylist.extend([merge_xy[p, 1], merge_xy[p2, 1]])
+            ylist.append(None)
+    axs[1, 0].plot(xlist, ylist, '-b', linewidth=linewidth, color=merge_edgecolor)
+    axs[1, 0].axis("scaled")  # x and y axes have same proportions
+
+    # mesh with color
+    axs[1, 1].set_title("merge (with color)")
+    masked_array = np.ma.array(merge_data, mask=np.isnan(merge_data))  # create nan mask
+    # data_min = masked_array.min()
+    # data_max = masked_array.max()
+    cmap = mpl.cm.get_cmap("jet")
+    cmap.set_bad(color='black', alpha=1.0)
+    n = len(merge_data)
+    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = merge_xy[int(merge_tin[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True)
+        patches.append(polygon)
+    data_ploted = PatchCollection(patches, linewidth=linewidth, norm=norm, cmap=cmap)
+    data_ploted.set_array(masked_array)
+    data_ploted.set_edgecolor(merge_edgecolor)
+    axs[1, 1].add_collection(data_ploted)
+    axs[1, 1].axis("scaled")  # x and y axes have same proportions
+
+    plt.show()
+
+
+# 3d
+def view_mayavi(state, data_2d, data_2d_whole, varname, reach_num, unit_num, data_description, project_preferences):
+    state.value = 1  # process finished
+    # BOTOM
+    bottom_mesh = mlab.triangular_mesh(data_2d_whole[reach_num][unit_num]["node"]["xy"][:, 0],
+                                       data_2d_whole[reach_num][unit_num]["node"]["xy"][:, 1],
+                                       data_2d_whole[reach_num][unit_num]["node"]["z"] * project_preferences["vertical_exaggeration"],
+                                       data_2d_whole[reach_num][unit_num]["mesh"]["tin"],
+                                       representation="surface")  # , scalars=t
+
+    # OTHER
+    other_mesh = mlab.triangular_mesh(data_2d[reach_num][unit_num]["node"]["xy"][:, 0],
+                                       data_2d[reach_num][unit_num]["node"]["xy"][:, 1],
+                                       data_2d[reach_num][unit_num]["node"]["data"][varname].to_numpy() * project_preferences["vertical_exaggeration"],
+                                      data_2d[reach_num][unit_num]["mesh"]["tin"],
+                                      color=(0, 0, 1),
+                                       representation="surface")  # , scalars=t
+
+    # SHOW
+    mlab.show()
+
+
 # map node
 def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
     mpl_map_change_parameters(project_preferences)
@@ -1298,7 +1540,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
 
 
 # map mesh
-def plot_map_mesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
+def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
     mpl_map_change_parameters(project_preferences)
 
     # title and filename
