@@ -2663,3 +2663,75 @@ def get_initial_files(path_hdf5, hdf5_name):
         hydro_ini = ''
     file.close()
     return sub_ini, hydro_ini
+
+
+def get_dataset_names(group):
+    # Receives a h5py._hl.files.File or h5py._hl.group.Group object and returns the full names of the dataset objects
+    # contained inside
+    global dataset_names
+    dataset_names = []
+
+    group.visititems(add_if_dataset)
+    #visititems applies the add_if_dataset function to each object in the group/file and in each subgroup as well
+    return dataset_names
+
+
+def add_if_dataset(name, object):
+    #Function used inside get_dataset_names, called by the visititems routine.
+    #Checks if a certain object is an hdf5 dataset and, if so, adds its name to the list dataset_names
+    global dataset_names
+    if type(object) == h5py._hl.dataset.Dataset:
+        dataset_names += [name]
+
+
+def datasets_are_equal(file1,file2):
+    #Evaluates whether the hdf5 file objects file1 and file2 have the same values
+    """
+    :param file1, file2: h5py._hl.files.File objects whose datasets we want to compare
+    :param dataset_names: list containing the full names of every dataset to be evaluated in both files
+    :return: True if each dataset listed in dataset_names is identical in file1 and file2,  False otherwise
+    """
+
+    dataset_names1=get_dataset_names(file1)
+    dataset_names2=get_dataset_names(file2)
+    if dataset_names1!=dataset_names2:
+        return False
+    else:
+        equal = True
+        for name in dataset_names1:
+            if np.any(file1[name][()] != file2[name][()]):
+                equal = False
+        return equal
+
+
+def simple_export(data,format):
+    # Takes as input the Hdf5management object data and the string format, and exports the data to the output folder
+    # of the project
+    if data.extension==".hyd":
+        data.load_hdf5_hyd(whole_profil=True)
+        for name in data.available_export_list:
+            data.project_preferences[name]=[True,True]
+        data.get_variables_from_dict_and_compute()
+        if format in ["gpkg","all"]:
+            data.export_gpkg()
+
+        if format in ["stl","all"]:
+            data.export_stl()
+
+
+        if format in ["pvd","stu","all"]:
+            data.compute_variables(variables_node=data.hyd_variables_computed_node,
+                                   variables_mesh=data.hyd_variables_computed_mesh)
+            data.export_paraview()
+
+        if format in ["txt","all"]:
+            data.export_detailled_mesh_txt()
+            data.export_detailled_point_txt()
+
+
+    elif data.extension==".hab":
+        #TODO: Write specific code for exporting habitat files
+        pass
+
+    else:
+        raise ValueError
