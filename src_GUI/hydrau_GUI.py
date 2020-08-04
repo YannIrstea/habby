@@ -239,7 +239,7 @@ class ModelInfoGroup(QGroupBox):
         self.running_time = 0
         self.p = Process(target=None)  # second process
         self.q = Queue()
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
         # get cmd
         if sys.argv[0][-3:] == ".py":
             self.exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
@@ -736,7 +736,7 @@ class ModelInfoGroup(QGroupBox):
             print(el["unit_list"])
 
         self.q = Queue()
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
         self.p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
                          args=(hydrau_description_multiple,
                                self.progress_value,

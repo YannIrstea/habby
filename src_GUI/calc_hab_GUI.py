@@ -928,7 +928,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # send the calculation of habitat and the creation of output
             self.timer.start(100)  # to refresh progress info
             self.q4 = Queue()
-            self.progress_value = Value("i", 0)
+            self.progress_value = Value("d", 0)
             self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
                              args=(hab_filename, user_target_list, self.progress_value, self.q4, False, project_preferences))
             self.p.name = "Habitat calculation"

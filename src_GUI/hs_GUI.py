@@ -121,7 +121,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.running_time = 0
         self.p = Process(target=None)  # second process
         self.q = Queue()
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
         self.project_preferences = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()

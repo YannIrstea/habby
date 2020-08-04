@@ -380,7 +380,7 @@ class SubHydroW(QWidget):
         self.polygon_hname = QLineEdit(' ')
         self.p = Process(target=None)  # second process
         self.q = Queue()
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
         self.project_preferences = []
         self.running_time = 0
         super().__init__()
@@ -2432,7 +2432,7 @@ class HEC_RAS1D(SubHydroW):
 
         # load hec_ras data and create the grid in a second thread
         self.q = Queue()
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
 
         self.hydrau_description["interpo_choice"] = self.interpo_choice
         self.hydrau_description["pro_add"] = self.pro_add
@@ -3201,7 +3201,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
         # load the txt data
         self.q = Queue()
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
         # check txt cases
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
@@ -3705,7 +3705,7 @@ class SW2D(SubHydroW):
         # load sw2d, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
         # to be changed
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
         self.p = Process(target=sw2d_mod.load_sw2d_and_modify_grid, args=(self.name_hdf5, self.namefile[0],
                                                                           self.namefile[1], self.pathfile[0],
                                                                           self.pathfile[1], path_im, self.name_prj,
@@ -4658,7 +4658,7 @@ class SubstrateW(SubHydroW):
 
             # load substrate shp (and triangulation)
             self.q = Queue()
-            self.progress_value = Value("i", 0)
+            self.progress_value = Value("d", 0)
             self.p = Process(target=substrate_mod.load_sub,
                              args=(self.sub_description,
                                    self.progress_value,
@@ -4816,7 +4816,7 @@ class SubstrateW(SubHydroW):
 
         # run the function
         self.q = Queue()
-        self.progress_value = Value("i", 0)
+        self.progress_value = Value("d", 0)
         self.p = Process(target=src.merge.merge_grid_and_save,
                          args=(hdf5_name_hyd,
                                hdf5_name_sub,

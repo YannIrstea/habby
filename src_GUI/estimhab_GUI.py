@@ -805,7 +805,7 @@ class EstimhabW(StatModUseful):
                              xml_list=fish_list,
                              fish_list=fish_name2)
 
-        state = Value("i", 0)
+        state = Value("d", 0)
 
         self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
                          args=(estimhab_dict, project_preferences, self.path_prj,

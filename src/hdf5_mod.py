@@ -2250,7 +2250,7 @@ class Hdf5Management:
                 data = bio_info_mod.load_xml_name(path_bio, attributes, [xmlfile])
 
                 # create figure
-                fake_value = Value("i", 0)
+                fake_value = Value("d", 0)
 
                 if information_model_dict["ModelType"] != "bivariate suitability index models":
                     # read pref
@@ -2284,7 +2284,7 @@ class Hdf5Management:
                     [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
                                                                                                                 hab_aquatic_animal_type_list[
                                                                                                                     idx])
-                    state_fake = Value("i", 0)
+                    state_fake = Value("d", 0)
                     plot_mod.plot_suitability_curve_bivariate(state_fake,
                                                               h_all,
                                                               vel_all,

@@ -1421,7 +1421,7 @@ class MyProcessList(QThread):
             reach_num = data_description["reach_list"].index(reach_name)
             # for one or more desired units ==> habitat data (HV and WUA)
             if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stoped:
-                state = Value("i", 0)
+                state = Value("d", 0)
                 plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
                                                    args=(state,
                                                          data_description,

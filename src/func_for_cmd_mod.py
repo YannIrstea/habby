@@ -267,7 +267,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             return
 
         # run process
-        progress_value = Value("i", 0)
+        progress_value = Value("d", 0)
         q = Queue()
         p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
                     args=(hsra_value.hydrau_description_list,
@@ -345,7 +345,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         hydrau_description["unit_list_tf"] = [hydrau_description["unit_list_tf"]]
 
         # run process
-        progress_value = Value("i", 0)
+        progress_value = Value("d", 0)
         q = Queue()
         p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid,
                     args=(hydrau_description,
@@ -434,7 +434,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                         hydrau_description["unit_list"][reach_num].pop(unit_num)
 
         # run process
-        progress_value = Value("i", 0)
+        progress_value = Value("d", 0)
         q = Queue()
         p = Process(target=ascii_mod.load_ascii_and_cut_grid,
                     args=(hydrau_description,
@@ -1730,7 +1730,7 @@ def cli_load_sub(arguments, project_preferences):
 
         # if shape data valid : load and save
         q = Queue()
-        progress_value = Value("i", 0)
+        progress_value = Value("d", 0)
         p = Process(target=substrate_mod.load_sub,
                     args=(sub_description,
                           progress_value,
@@ -1766,7 +1766,7 @@ def cli_merge(arguments, project_preferences):
 
     # run the function
     q = Queue()
-    progress_value = Value("i", 0)
+    progress_value = Value("d", 0)
     p = Process(target=src.merge.merge_grid_and_save,
                 args=(hdf5_name_hyd,
                       hdf5_name_sub,
@@ -1810,7 +1810,7 @@ def cli_calc_hab(arguments, project_preferences):
 
     if hab_filename:
         # run calculation
-        progress_value = Value("i", 0)
+        progress_value = Value("d", 0)
         q = Queue()
         p = Process(target=calcul_hab_mod.calc_hab_and_output,
                     args=(hab_filename,
