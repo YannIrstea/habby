@@ -1829,7 +1829,7 @@ def cli_calc_hab(arguments, project_preferences):
 def cli_start_process_and_print_progress(process, progress_value):
     process.start()
     while process.is_alive():
-        print("Progress : " + str(progress_value.value) + "%\r", end="")
+        print("Progress : " + str(round(progress_value.value, 1)) + "%\r", end="")
     process.join()
     if progress_value.value == 100:
         print("# " + process.name + " finished")

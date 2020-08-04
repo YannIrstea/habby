@@ -290,13 +290,19 @@ class Data2d(list):
                  velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
         """
         self.get_informations()
-        # prog
-        deltaunit = delta_file / len(unit_list)
 
         unit_to_remove_list = []
 
+        # progress
+        delta_reach = delta_file / self.reach_num
+
+
         # for each reach
         for reach_num in range(self.reach_num):
+
+            # progress
+            delta_unit = delta_reach / len(unit_list[reach_num])
+
             # for each unit
             for unit_num, unit_name in enumerate(unit_list[reach_num]):
                 # get data from dict
@@ -497,7 +503,7 @@ class Data2d(list):
                     0)  # fillna with 0
 
                 # progress
-                progress_value.value += int(deltaunit)
+                progress_value.value = progress_value.value + delta_unit
 
         if unit_to_remove_list:
             self.remove_unit_from_unit_list(unit_to_remove_list)
