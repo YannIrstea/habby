@@ -249,24 +249,19 @@ class ModelInfoGroup(QGroupBox):
         self.init_ui()
 
     def init_ui(self):
-        result_file_title_label = QLabel(self.tr('result file(s)'))
+        result_file_title_label = QLabel(self.tr('Result file(s)'))
         self.input_file_combobox = QComboBox()
-        self.input_file_combobox.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # self.input_file_combobox.setToolTip(self.pathfile[0])  # ToolTip to indicated in which folder are the files
         self.select_file_button = QPushButton(self.tr('Choose file(s) (.txt)'))
-        self.select_file_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.select_file_button.clicked.connect(self.select_file_and_show_informations_dialog)
 
         # reach
         reach_name_title_label = QLabel(self.tr('Reach name'))
         self.reach_name_combobox = QComboBox()
-        self.reach_name_combobox.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # unit list
         unit_select_title_label = QLabel(self.tr('Unit selected'))
         self.units_QListWidget = QListWidgetClipboard()
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.units_QListWidget.setMinimumHeight(100)
 
         # unit type
         units_name_title_label = QLabel(self.tr('Unit type'))
@@ -276,9 +271,13 @@ class ModelInfoGroup(QGroupBox):
         units_number_title_label = QLabel(self.tr('Unit number'))
         self.unit_number_label = QLabel(self.tr('unknown'))
 
-        # usefull variables
-        usefull_variable_label_title = QLabel(self.tr('Data detected'))
-        self.usefull_variable_label = QLabel(self.tr('unknown'))
+        # usefull_mesh_variables
+        usefull_mesh_variable_label_title = QLabel(self.tr('Mesh data'))
+        self.usefull_mesh_variable_label = QLabel(self.tr('unknown'))
+
+        # usefull_node_variables
+        usefull_node_variable_label_title = QLabel(self.tr('Node data'))
+        self.usefull_node_variable_label = QLabel(self.tr('unknown'))
 
         # epsg
         epsg_title_label = QLabel(self.tr('EPSG code'))
@@ -287,7 +286,6 @@ class ModelInfoGroup(QGroupBox):
         # hdf5 name
         hdf5_name_title_label = QLabel(self.tr('.hyd file name'))
         self.hdf5_name_lineedit = QLineEdit()
-        self.hdf5_name_lineedit.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # load button
         self.create_hdf5_button = QPushButton(self.tr('Create .hyd file'))
@@ -311,17 +309,18 @@ class ModelInfoGroup(QGroupBox):
         layout_ascii.addWidget(self.units_name_label, 3, 1)
         layout_ascii.addWidget(units_number_title_label, 4, 0)
         layout_ascii.addWidget(self.unit_number_label, 4, 1)
-        layout_ascii.addWidget(usefull_variable_label_title, 5, 0)
-        layout_ascii.addWidget(self.usefull_variable_label, 5, 1, 1, 1)  # from row, from column, nb row, nb column
-        layout_ascii.addWidget(epsg_title_label, 6, 0)
-        layout_ascii.addWidget(self.epsg_label, 6, 1)
-        layout_ascii.addWidget(hdf5_name_title_label, 7, 0)
-        layout_ascii.addWidget(self.hdf5_name_lineedit, 7, 1)
-        layout_ascii.addWidget(self.create_hdf5_button, 7, 2)
-        layout_ascii.addWidget(self.last_hydraulic_file_label, 8, 0)
-        layout_ascii.addWidget(self.last_hydraulic_file_name_label, 8, 1)
-        [layout_ascii.setRowMinimumHeight(i, 30) for i in range(layout_ascii.rowCount())]
-
+        layout_ascii.addWidget(usefull_mesh_variable_label_title, 5, 0)
+        layout_ascii.addWidget(self.usefull_mesh_variable_label, 5, 1, 1, 1)  # from row, from column, nb row, nb column
+        layout_ascii.addWidget(usefull_node_variable_label_title, 6, 0)
+        layout_ascii.addWidget(self.usefull_node_variable_label, 6, 1, 1, 1)  # from row, from column, nb row, nb column
+        layout_ascii.addWidget(epsg_title_label, 7, 0)
+        layout_ascii.addWidget(self.epsg_label, 7, 1)
+        layout_ascii.addWidget(hdf5_name_title_label, 8, 0)
+        layout_ascii.addWidget(self.hdf5_name_lineedit, 8, 1)
+        layout_ascii.addWidget(self.create_hdf5_button, 8, 2)
+        layout_ascii.addWidget(self.last_hydraulic_file_label, 9, 0)
+        layout_ascii.addWidget(self.last_hydraulic_file_name_label, 9, 1)
+        # [layout_ascii.setRowMinimumHeight(i, 30) for i in range(layout_ascii.rowCount()) if i != 2]
         self.setLayout(layout_ascii)
 
     def change_model_type_gui(self, i):
@@ -597,7 +596,8 @@ class ModelInfoGroup(QGroupBox):
         self.reach_name_combobox.addItems(self.hydrau_description_list[0]["reach_list"])
         mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].meshs().names_gui())
         node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].nodes().names_gui())
-        self.usefull_variable_label.setText("node : " + node_list + "\nmesh : " + mesh_list)
+        self.usefull_mesh_variable_label.setText(mesh_list)
+        self.usefull_node_variable_label.setText(node_list)
 
         self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
 

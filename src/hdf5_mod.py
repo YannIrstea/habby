@@ -293,10 +293,16 @@ class Hdf5Management:
             self.data_2d = Data2d(reach_num=len(reach_name),
                                   unit_num=self.nb_unit)  # with no array data
             self.data_2d.hvum = self.hvum
+            self.data_2d.set_unit_names(self.units_name)
+            for reach_num in range(self.data_2d.reach_num):
+                for unit_num in range(self.data_2d.unit_num):
+                    self.data_2d[reach_num][unit_num].reach_name = self.reach_name[reach_num]
 
             # hs
             if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
-                self.hydrosignature_calculated = eval(hdf5_attributes_dict["hydrosignature_calculated"])
+                self.hs_calculated = eval(hdf5_attributes_dict["hs_calculated"])
+                if self.hs_calculated:
+                    self.hs_input_class = eval(hdf5_attributes_dict["hs_input_class"])
 
     # HYDRAU 2D
     def write_whole_profile(self, data_2d_whole):
@@ -461,9 +467,6 @@ class Hdf5Management:
         data_2d_group = 'data_2d'
         reach_list = list(self.file_object[data_2d_group].keys())
 
-        self.data_2d = Data2d(reach_num=len(reach_list),
-                              unit_num=len(self.units_index))  # new
-
         # for each reach
         for reach_num, reach_group_name in enumerate(reach_list):
             # group name
@@ -521,6 +524,12 @@ class Hdf5Management:
                     else:
                         node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
                 self.data_2d[reach_num][unit_num]["node"]["data"] = node_dataframe
+
+        # remove_unused_units
+        all_units_index_list = list(range(len(self.units_name[0])))
+        for unit_index_selected in reversed(self.units_index):
+            all_units_index_list.pop(unit_index_selected)
+        self.data_2d.remove_unit_from_unit_index_list(unit_index_to_remove_list=all_units_index_list)
 
         # load_data_2d_info
         self.load_data_2d_info()
@@ -665,6 +674,14 @@ class Hdf5Management:
             "mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
         self.file_object.attrs[
             "node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
+        self.file_object.attrs[
+            "mesh_variable_original_min_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()
+        self.file_object.attrs[
+            "node_variable_original_min_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()
+        self.file_object.attrs[
+            "mesh_variable_original_max_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()
+        self.file_object.attrs[
+            "node_variable_original_max_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()
 
         # dataset for unit_list
         self.file_object.create_dataset(name="unit_by_reach",
@@ -711,7 +728,7 @@ class Hdf5Management:
                 break
 
         # indicates hydrosignature has not been calculated
-        self.hydrosignature_calculated = False
+        self.hs_calculated = "False"
 
     def load_hdf5_hyd(self, units_index="all", user_target_list="defaut", whole_profil=False):
         # open an hdf5
@@ -1079,7 +1096,9 @@ class Hdf5Management:
                 # HV by celle for each fish
                 for animal_num, animal in enumerate(self.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
                     # create
-                    fish_data_set = mesh_hv_data_group.require_dataset(name=animal.name,
+                    if animal.name in mesh_hv_data_group:
+                        del mesh_hv_data_group[animal.name]
+                    fish_data_set = mesh_hv_data_group.create_dataset(name=animal.name,
                                                                       shape=
                                                                       self.data_2d[reach_num][unit_num]["mesh"]["data"][
                                                                           animal.name].shape,
@@ -1228,11 +1247,11 @@ class Hdf5Management:
                 delta_mesh = delta_unit / len(hyd_tin)
 
                 if export_mesh:
-                    nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
+                    nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
                         delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
                         return_cut_mesh=True)
                 else:
-                    nbmeshhs, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
+                    nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
                         delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
                         return_cut_mesh=False)
 
@@ -1241,11 +1260,11 @@ class Hdf5Management:
                     hsexporttxt(os.path.join(self.path_prj, "output", "text"),
                             os.path.splitext(self.filename)[0] + "_HSresult.txt",
                             classhv, self.units_name[reach_num][unit_num],
-                            nbmeshhs, total_area, total_volume, mean_depth, mean_velocity,
+                            nb_mesh, total_area, total_volume, mean_depth, mean_velocity,
                             mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
 
                 # all cases
-                hs_dict = {"nbmeshhs": nbmeshhs, "total_area": total_area,
+                hs_dict = {"nb_mesh": nb_mesh, "total_area": total_area,
                                                                     "total_volume": total_volume,
                                                                     "mean_depth": mean_depth,
                                                                     "mean_velocity": mean_velocity,
@@ -1257,11 +1276,16 @@ class Hdf5Management:
                 unitpath = "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num)
                 for attrname in hs_dict.keys():
                     self.file_object[unitpath].attrs.create(attrname, hs_dict[attrname])
-                self.file_object[unitpath].require_dataset("hsarea",
+
+                if "hsarea" in self.file_object[unitpath]:
+                    del self.file_object[unitpath]["hsarea"]
+                self.file_object[unitpath].create_dataset("hsarea",
                                                            shape=hsarea.shape,
                                                            dtype=hsarea.dtype,
                                                            data=hsarea)
-                self.file_object[unitpath].require_dataset("hsvolume",
+                if "hsvolume" in self.file_object[unitpath]:
+                    del self.file_object[unitpath]["hsvolume"]
+                self.file_object[unitpath].create_dataset("hsvolume",
                                                            shape=hsvolume.shape,
                                                            dtype=hsvolume.dtype,
                                                            data=hsvolume)
@@ -1275,24 +1299,23 @@ class Hdf5Management:
 
                 # print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
 
-        self.file_object.attrs.create("hydrosignature_calculated", "True")
+        self.file_object.attrs.create("hs_calculated", "True")
+        self.file_object.attrs.create("hs_input_class", str(classhv))
 
     def load_hydrosignature(self):
-        self.data_2d = Data2d(reach_num=len(self.reach_name),
-                                    unit_num=self.nb_unit)
-        for reach_index in range(len(self.reach_name)):
+        for reach_index in range(self.data_2d.reach_num):
             for unit_index in range(self.data_2d.unit_num):
                 unitpath = "data_2d/reach_" + str(reach_index) + "/unit_" + str(unit_index)
-                keylist = ["nbmeshhs", "total_area", "total_volume", "mean_depth", "mean_velocity", "mean_froude",
+                keylist = ["nb_mesh", "total_area", "total_volume", "mean_depth", "mean_velocity", "mean_froude",
                            "min_depth", "max_depth", "min_velocity", "max_velocity"]
                 self.data_2d[reach_index][unit_index].hydrosignature = {}
                 for key in keylist:
                     self.data_2d[reach_index][unit_index].hydrosignature[key] = self.file_object[
                         unitpath].attrs[key]
                 self.data_2d[reach_index][unit_index].hydrosignature["hsarea"] = self.file_object[
-                    unitpath + "/hsarea"]
+                    unitpath + "/hsarea"][:]
                 self.data_2d[reach_index][unit_index].hydrosignature["hsvolume"] = self.file_object[
-                    unitpath + "/hsvolume"]
+                    unitpath + "/hsvolume"][:]
 
     def replace_dataset_in_file(self, dataset_name, new_dataset):
         attrs = self.file_object[dataset_name].attrs.items()
@@ -2609,10 +2632,14 @@ def get_filename_hs(path):
     for file in os.listdir(path):
         if file.endswith(".hyd") or file.endswith(".hab"):
             path_prj = os.path.dirname(path)
-            hdf5 = Hdf5Management(path_prj, file)
-            hdf5.open_hdf5_file(False)
-            if hdf5.hydrosignature_calculated:
-                filenames.append(file)
+            try:
+                hdf5 = Hdf5Management(path_prj, file)
+                hdf5.open_hdf5_file(False)
+                if hdf5.hs_calculated:
+                    filenames.append(file)
+            except:
+               print("Error: " + file + " file seems to be corrupted. Delete it with HABBY or manually.")
+
     filenames.sort()
     return filenames
 

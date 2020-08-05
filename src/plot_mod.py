@@ -328,7 +328,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         plt.show()
 
 
-def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferences):
+def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences):
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
@@ -340,7 +340,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
 
     # title and filename
     title_plot = qt_tr.translate("plot_mod",
-                            'Measurement conditions') + " : " + fishname
+                            'Measurement conditions') + " : " + title
 
     fig = plt.figure(title_plot)
     # cmap should be coherent with text color
@@ -359,9 +359,9 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
         else:
             ax1.text(i, j, np.round(label, 2), ha='center',
                      va='center', color='white')
-    ax1.set_xticks(np.arange(-0.5, 8.5, 1).tolist())
+    ax1.set_xticks(np.arange(-0.5, len(vclass) - 0.5, 1).tolist())
     ax1.set_xticklabels(vclass)
-    ax1.set_yticks(np.arange(-0.5, 8.5, 1).tolist())
+    ax1.set_yticks(np.arange(-0.5, len(hclass) - 0.5, 1).tolist())
     ax1.set_yticklabels(hclass)
     plt.xlabel('Velocity [m/s]')
     plt.ylabel('Height [m]')
@@ -373,7 +373,7 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
 
     # output for plot_GUI
     state.value = 1  # process finished
-    fig.set_size_inches(default_size[0], default_size[1])
+    # fig.set_size_inches(default_size[0], default_size[1])
     plt.show()
 
 

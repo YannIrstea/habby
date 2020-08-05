@@ -37,6 +37,8 @@ class HydraulicVariable:
         self.sub = sub  # False: hydraulic (default) True: substrate
         self.index_gui = index_gui  # position index in gui
         self.data = [[]]
+        self.min = 9999999  # min for all reach and unit
+        self.max = 0  # max for all reach and unit
         self.software_attributes_list = []  # software string names list to link with them
         self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
         self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
@@ -79,7 +81,8 @@ class HydraulicVariableUnitList(list):
             hydraulic_variable2.stage = hydraulic_variable.stage
             hydraulic_variable2.name = hydraulic_variable.name
             hydraulic_variable2.aquatic_animal_type = hydraulic_variable.aquatic_animal_type
-
+            hydraulic_variable2.min = hydraulic_variable.min
+            hydraulic_variable2.max = hydraulic_variable.max
             super(HydraulicVariableUnitList, self).append(hydraulic_variable2)
             # self.sort_by_names_gui()
 
@@ -224,6 +227,7 @@ class HydraulicVariableUnitList(list):
         return to_compute_list
 
     def depend_on_hs(self):
+        """ variable that depends on h """
         depend_on_h_list = HydraulicVariableUnitList()
         for hvu in self:
             if hvu.depend_on_h:
@@ -231,11 +235,24 @@ class HydraulicVariableUnitList(list):
         return depend_on_h_list
 
     def no_depend_on_hs(self):
+        """ variable that does not depend on h """
         no_depend_on_h_list = HydraulicVariableUnitList()
         for hvu in self:
             if not hvu.depend_on_h:
                 no_depend_on_h_list.append(hvu)
         return no_depend_on_h_list
+
+    def min(self):
+        min = []
+        for hvu in self:
+            min.append(hvu.min)
+        return min
+
+    def max(self):
+        max = []
+        for hvu in self:
+            max.append(hvu.max)
+        return max
 
     """ select """
 
