@@ -338,11 +338,7 @@ def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences,
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
 
-    # title and filename
-    title_plot = qt_tr.translate("plot_mod",
-                            'Measurement conditions') + " : " + title
-
-    plt.figure(title_plot)
+    plt.figure(title)
 
     # axe_mod_choosen
     if axe_mod_choosen == 1:
@@ -352,25 +348,27 @@ def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences,
         origin = "lower"
         x_labels_position = "bottom"
 
-    if axe_mod_choosen == 3:
-        data = data.T
+    if data is not None:
+        if axe_mod_choosen == 3:
+            data = data.T
 
-    # cmap should be coherent with text color
-    plt.imshow(data, cmap='Blues',
-               interpolation='nearest',
-               origin=origin)
+        # cmap should be coherent with text color
+        plt.imshow(data, cmap='Blues',
+                   interpolation='nearest',
+                   origin=origin)
     ax1 = plt.gca()
 
-    # add percetage number
-    maxlab = np.max(data)
-    for (j, i), label in np.ndenumerate(data):
-        # text in black or white depending on the data
-        if label < maxlab / 2:
-            ax1.text(i, j, np.round(label, 2), ha='center',
-                     va='center', color='black')
-        else:
-            ax1.text(i, j, np.round(label, 2), ha='center',
-                     va='center', color='white')
+    if data is not None:
+        # add percetage number
+        maxlab = np.max(data)
+        for (j, i), label in np.ndenumerate(data):
+            # text in black or white depending on the data
+            if label < maxlab / 2:
+                ax1.text(i, j, np.round(label, 2), ha='center',
+                         va='center', color='black')
+            else:
+                ax1.text(i, j, np.round(label, 2), ha='center',
+                         va='center', color='white')
 
     if axe_mod_choosen == 1:
         ax1.xaxis.tick_top()
@@ -395,8 +393,9 @@ def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences,
 
     ax1.xaxis.set_label_position(x_labels_position)
     ax1.xaxis.set_label_position(x_labels_position)
-    cbar = plt.colorbar()
-    cbar.ax.set_ylabel('Relative area [%]')
+    if data is not None:
+        cbar = plt.colorbar()
+        cbar.ax.set_ylabel('Relative area [%]')
 
     plt.tight_layout()
     mplcursors.cursor()  # get data with mouse

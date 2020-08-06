@@ -1413,8 +1413,7 @@ class MyProcessList(QThread):
         habitat_variable_list = self.hvum.user_target_list.habs()
 
         # all cases
-        unit_type = data_description["unit_type"][
-                    data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(
+        unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(
                         ']')]
 
         # for each reach

@@ -347,29 +347,30 @@ class ComputingGroup(QGroupBoxCollapsible):
 
     def compute(self):
 
-        self.computation_pushbutton.setEnabled(False)
+        if self.file_selection_listwidget.currentItem():
+            self.computation_pushbutton.setEnabled(False)
 
-        # for error management and figures
-        self.timer.start(100)
+            # for error management and figures
+            self.timer.start(100)
 
-        self.nativeParentWidget().progress_bar.setValue(0)
-        self.nativeParentWidget().progress_bar.setRange(0, 100)
-        self.nativeParentWidget().progress_bar.setVisible(True)
+            self.nativeParentWidget().progress_bar.setValue(0)
+            self.nativeParentWidget().progress_bar.setRange(0, 100)
+            self.nativeParentWidget().progress_bar.setVisible(True)
 
-        hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
-                                          hdf5_name=self.file_selection_listwidget.currentItem().text(),
-                                          hs_export_txt=self.hs_export_mesh_checkbox.isChecked(),
-                                          classhv=self.classhv)
-        self.q = Queue()
-        self.progress_value = Value("d", 0)
-        self.p = Process(target=src.hydraulic_process_mod.hydrosignature_process,
-                         args=(hydrosignature_description,
-                               self.progress_value,
-                               self.q,
-                               False,
-                               self.project_preferences))
-        self.p.name = "hydrosignature computing"
-        self.p.start()
+            hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
+                                              hdf5_name=self.file_selection_listwidget.currentItem().text(),
+                                              hs_export_txt=self.hs_export_mesh_checkbox.isChecked(),
+                                              classhv=self.classhv)
+            self.q = Queue()
+            self.progress_value = Value("d", 0)
+            self.p = Process(target=src.hydraulic_process_mod.hydrosignature_process,
+                             args=(hydrosignature_description,
+                                   self.progress_value,
+                                   self.q,
+                                   False,
+                                   self.project_preferences))
+            self.p.name = "hydrosignature computing"
+            self.p.start()
 
     def show_prog(self):
         # RUNNING
@@ -395,12 +396,12 @@ class ComputingGroup(QGroupBoxCollapsible):
                     self.send_log.emit("clear status bar")
                     self.running_time = 0
                     self.nativeParentWidget().kill_process.setVisible(False)
-                    self.computation_pushbutton.setEnabled(True)
+                    self.update_gui()
 
                 # finished without error
                 elif not error:
                     self.send_log.emit(self.tr("Hydrosignature calculation finished (computation time = ") + str(round(self.running_time)) + " s).")
-                    self.computation_pushbutton.setEnabled(True)
+                    self.update_gui()
                     self.nativeParentWidget().kill_process.setVisible(False)
                     self.send_log.emit("clear status bar")
                     self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
@@ -414,7 +415,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                 self.send_log.emit("clear status bar")
                 self.nativeParentWidget().kill_process.setVisible(False)
                 self.running_time = 0
-                self.computation_pushbutton.setEnabled(True)
+                self.update_gui()
 
                 # CRASH
                 if self.p.exitcode == 1:
@@ -503,6 +504,7 @@ class VisualGroup(QGroupBoxCollapsible):
         input_class_v_label = QLabel(self.tr("v (m)"))
         self.input_class_v_lineedit = QLineEdit("")
         self.input_class_plot_button = QPushButton(self.tr("Show"))
+        self.input_class_plot_button.clicked.connect(self.plot_hs_class)
         self.input_class_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
         input_class_layout = QGridLayout()
         input_class_layout.addWidget(input_class_label, 0, 0, 1, 2)
@@ -522,7 +524,7 @@ class VisualGroup(QGroupBoxCollapsible):
         self.result_tableview.horizontalHeader().setVisible(False)
 
         self.result_plot_button = QPushButton(self.tr("Show"))
-        self.result_plot_button.clicked.connect(self.plot_figure)
+        self.result_plot_button.clicked.connect(self.plot_hs_result)
         self.result_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
         result_layout = QGridLayout()
         result_layout.addWidget(result_label, 0, 0)
@@ -637,7 +639,37 @@ class VisualGroup(QGroupBoxCollapsible):
             mytablemodel = MyTableModel(["", ""])
             self.result_tableview.setModel(mytablemodel)  # set model
 
-    def plot_figure(self):
+    def plot_hs_class(self):
+        # hdf5
+        hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
+
+        # create hdf5 class
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+        hdf5.open_hdf5_file(False)
+        hdf5.load_hydrosignature()
+
+        # check plot process done
+        if self.process_list.check_all_process_closed():
+            self.process_list.new_plots()
+        else:
+            self.process_list.add_plots(1)
+
+        project_preferences = load_project_properties(self.path_prj)
+        state = Value("i", 0)
+        title = "input classes of " + hdf5name
+        hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
+                                         args=(state,
+                                               None,
+                                               hdf5.hs_input_class[1],
+                                               hdf5.hs_input_class[0],
+                                               title,
+                                               project_preferences,
+                                               self.axe_mod_choosen))
+        self.process_list.append((hydrosignature_process, state))
+
+        self.process_list.start()
+
+    def plot_hs_result(self):
         # hdf5
         hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
@@ -666,7 +698,9 @@ class VisualGroup(QGroupBoxCollapsible):
             for unit_num in unit_index_list:
                 project_preferences = load_project_properties(self.path_prj)
                 state = Value("i", 0)
-                title = hdf5.data_2d[reach_num][unit_num].reach_name + " at " + hdf5.data_2d[reach_num][unit_num].unit_name
+                title = "hydrosignature : " + hdf5.data_2d[reach_num][unit_num].reach_name + " at " + \
+                        hdf5.data_2d[reach_num][unit_num].unit_name + " " + hdf5.unit_type[hdf5.unit_type.find('[') + len('['):hdf5.unit_type.find(']')]
+
                 hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                                  args=(state,
                                                        hdf5.data_2d[reach_num][unit_num].hydrosignature["hsarea"],
