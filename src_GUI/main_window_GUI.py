@@ -2109,6 +2109,11 @@ class CentralW(QWidget):
             if hasattr(self.tools_tab, 'interpolation_group'):
                 if hasattr(self.tools_tab.interpolation_group, 'process_list'):
                     self.tools_tab.interpolation_group.process_list.close_all_plot()
+        # tools_tab
+        if hasattr(self, 'hs_tab'):
+            if hasattr(self.hs_tab, 'visual_group'):
+                if hasattr(self.hs_tab.visual_group, 'process_list'):
+                    self.hs_tab.visual_group.process_list.close_all_plot()
         # estimhab
         if hasattr(self, 'statmod_tab'):
             if hasattr(self.statmod_tab, 'process_list'):

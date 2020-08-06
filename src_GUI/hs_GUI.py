@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, \
     QCheckBox, QListWidgetItem, QRadioButton, QListView
+import numpy as np
 
 import src.hydraulic_process_mod
 from src import hydrosignature
@@ -34,6 +35,7 @@ from src import tools_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
 from src import hydrosignature
 from src_GUI.tools_GUI import change_button_color
+from src_GUI.data_explorer_GUI import MyTableModel
 
 
 class HsTab(QScrollArea):
@@ -73,15 +75,16 @@ class HsTab(QScrollArea):
 
         # computing
         self.computing_group = ComputingGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Computing"))
-        self.computing_group.setChecked(True)
+        self.computing_group.setChecked(False)
+        self.computing_group.send_refresh_filenames.connect(self.refresh_filenames)
 
         # visual
         self.visual_group = VisualGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Visualisation"))
-        self.visual_group.setChecked(True)
+        self.visual_group.setChecked(False)
 
         # visual
         self.compare_group = CompareGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Comparison"))
-        self.compare_group.setChecked(True)
+        self.compare_group.setChecked(False)
 
         # vertical layout
         self.setWidget(tools_frame)
@@ -108,6 +111,7 @@ class ComputingGroup(QGroupBoxCollapsible):
     """
     This class is a subclass of class QGroupBox.
     """
+    send_refresh_filenames = pyqtSignal(name='send_refresh_filenames')
 
     def __init__(self, path_prj, name_prj, send_log, title):
         super().__init__()
@@ -202,12 +206,15 @@ class ComputingGroup(QGroupBoxCollapsible):
                 item = QListWidgetItem()
                 item.setText("")
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name)
-                hdf5.open_hdf5_file(False)
-                if hdf5.hydrosignature_calculated:
-                    item.setCheckState(Qt.Checked)
-                else:
-                    item.setCheckState(Qt.Unchecked)
+                try:
+                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name)
+                    hdf5.open_hdf5_file(False)
+                    if hdf5.hs_calculated:
+                        item.setCheckState(Qt.Checked)
+                    else:
+                        item.setCheckState(Qt.Unchecked)
+                except:
+                    self.send_log.emit(self.tr("Error: " + name + " file seems to be corrupted. Delete it with HABBY or manually."))
                 self.hs_computed_listwidget.addItem(item)
                 item.setTextAlignment(Qt.AlignCenter)
 
@@ -222,13 +229,14 @@ class ComputingGroup(QGroupBoxCollapsible):
 
     def read_input_class(self, input_class_file):
         if os.path.exists(input_class_file):
-            try:
-                self.classhv = hydrosignature.hydraulic_class_from_file(input_class_file)
+            self.classhv = hydrosignature.hydraulic_class_from_file(input_class_file)
+            if not self.classhv:
+                self.send_log.emit(self.tr("Error: Input class file : ") + os.path.basename(input_class_file) + self.tr(" is not valid."))
+                self.computation_pushbutton.setEnabled(False)
+            else:
                 self.input_class_filename.setText(os.path.basename(input_class_file))
                 if self.file_selection_listwidget.selectedItems():
                     self.computation_pushbutton.setEnabled(True)
-            except FileNotFoundError:
-                self.send_log.emit('Error: ' + self.tr('Selected hydraulic input class file is not valid.'))
         else:
             self.computation_pushbutton.setEnabled(False)
 
@@ -282,6 +290,32 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         return data
 
+    def send_err_log(self, check_ok=False):
+        """
+        This function sends the errors and the warnings to the logs.
+        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
+
+        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
+        """
+        error = False
+
+        max_send = 100
+        if self.mystdout is not None:
+            str_found = self.mystdout.getvalue()
+        else:
+            return
+        str_found = str_found.split('\n')
+        for i in range(0, min(len(str_found), max_send)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+            if i == max_send - 1:
+                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+            if 'Error' in str_found[i] and check_ok:
+                error = True
+        if check_ok:
+            return error
+
     def save_xml(self, attr):
         """
         A function to save the loaded data in the xml file.
@@ -313,38 +347,32 @@ class ComputingGroup(QGroupBoxCollapsible):
 
     def compute(self):
 
-        # for error management and figures
-        self.timer.start(100)
+        if self.file_selection_listwidget.currentItem():
+            self.computation_pushbutton.setEnabled(False)
 
-        self.nativeParentWidget().progress_bar.setValue(0)
-        self.nativeParentWidget().progress_bar.setRange(0, 100)
-        self.nativeParentWidget().progress_bar.setVisible(True)
+            # for error management and figures
+            self.timer.start(100)
 
-        hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
-                                          hdf5_name=self.file_selection_listwidget.currentItem().text(),
-                                          hs_export_txt=self.hs_export_mesh_checkbox.isChecked(),
-                                          classhv=self.classhv)
-        self.q = Queue()
-        self.progress_value = Value("d", 0)
-        self.p = Process(target=src.hydraulic_process_mod.hydrosignature_process,
-                         args=(hydrosignature_description,
-                               self.progress_value,
-                               self.q,
-                               False,
-                               self.project_preferences))
-        self.p.name = "hydrosignature computing"
-        self.p.start()
+            self.nativeParentWidget().progress_bar.setValue(0)
+            self.nativeParentWidget().progress_bar.setRange(0, 100)
+            self.nativeParentWidget().progress_bar.setVisible(True)
+
+            hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
+                                              hdf5_name=self.file_selection_listwidget.currentItem().text(),
+                                              hs_export_txt=self.hs_export_mesh_checkbox.isChecked(),
+                                              classhv=self.classhv)
+            self.q = Queue()
+            self.progress_value = Value("d", 0)
+            self.p = Process(target=src.hydraulic_process_mod.hydrosignature_process,
+                             args=(hydrosignature_description,
+                                   self.progress_value,
+                                   self.q,
+                                   False,
+                                   self.project_preferences))
+            self.p.name = "hydrosignature computing"
+            self.p.start()
 
     def show_prog(self):
-        """
-        This function is call regularly by the methods which have a second thread (so moslty the function
-        to load the hydrological data). To call this function regularly, the variable self.timer of QTimer type is used.
-        The variable self.timer is connected to this function in the initiation of SubHydroW() and so in the initiation
-        of all class which inherits from SubHydroW().
-
-        This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
-        messages.
-        """
         # RUNNING
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
@@ -361,17 +389,37 @@ class ComputingGroup(QGroupBoxCollapsible):
                 self.timer.stop()
                 queue_back = self.q.get()
                 self.mystdout = queue_back
+                error = self.send_err_log(True)
+
+                # known errors
+                if error:
+                    self.send_log.emit("clear status bar")
+                    self.running_time = 0
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.update_gui()
+
+                # finished without error
+                elif not error:
+                    self.send_log.emit(self.tr("Hydrosignature calculation finished (computation time = ") + str(round(self.running_time)) + " s).")
+                    self.update_gui()
+                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.send_log.emit("clear status bar")
+                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
+                    self.running_time = 0
+
+                self.send_refresh_filenames.emit()
 
             # CLEANING GUI
             if not self.p.is_alive() and self.q.empty():
                 self.timer.stop()
+                self.send_log.emit("clear status bar")
                 self.nativeParentWidget().kill_process.setVisible(False)
                 self.running_time = 0
+                self.update_gui()
 
                 # CRASH
                 if self.p.exitcode == 1:
                     self.send_log.emit(self.tr("Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
-
 
 
 class VisualGroup(QGroupBoxCollapsible):
@@ -385,6 +433,8 @@ class VisualGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
+        self.process_list = MyProcessList("plot")
+        self.axe_mod_choosen = 1
         self.setTitle(title)
         self.init_ui()
 
@@ -400,6 +450,7 @@ class VisualGroup(QGroupBoxCollapsible):
         # reach
         reach_label = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget = QListWidget()
+        self.reach_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.reach_QListWidget.itemSelectionChanged.connect(self.reach_hdf5_change)
         reach_layout = QVBoxLayout()
         reach_layout.addWidget(reach_label)
@@ -408,6 +459,8 @@ class VisualGroup(QGroupBoxCollapsible):
         # units
         units_label = QLabel(self.tr('unit(s)'))
         self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.units_QListWidget.itemSelectionChanged.connect(self.unit_hdf5_change)
         units_layout = QVBoxLayout()
         units_layout.addWidget(units_label)
         units_layout.addWidget(self.units_QListWidget)
@@ -446,24 +499,32 @@ class VisualGroup(QGroupBoxCollapsible):
 
         # input_class
         input_class_label = QLabel(self.tr("Input class :"))
+        input_class_h_label = QLabel(self.tr("h (m)"))
         self.input_class_h_lineedit = QLineEdit("")
+        input_class_v_label = QLabel(self.tr("v (m)"))
         self.input_class_v_lineedit = QLineEdit("")
         self.input_class_plot_button = QPushButton(self.tr("Show"))
+        self.input_class_plot_button.clicked.connect(self.plot_hs_class)
         self.input_class_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
         input_class_layout = QGridLayout()
-        input_class_layout.addWidget(input_class_label, 0, 0)
-        input_class_layout.addWidget(self.input_class_h_lineedit, 1, 0)
-        input_class_layout.addWidget(self.input_class_v_lineedit, 2, 0)
-        input_class_layout.addWidget(self.input_class_plot_button, 1, 1, 2, 1)  # from row, from column, nb row, nb column
+        input_class_layout.addWidget(input_class_label, 0, 0, 1, 2)
+        input_class_layout.addWidget(input_class_h_label, 1, 0)
+        input_class_layout.addWidget(input_class_v_label, 2, 0)
+        input_class_layout.addWidget(self.input_class_h_lineedit, 1, 1)
+        input_class_layout.addWidget(self.input_class_v_lineedit, 2, 1)
+        input_class_layout.addWidget(self.input_class_plot_button, 1, 2, 2, 1)  # from row, from column, nb row, nb column
 
         # result
         result_label = QLabel(self.tr("Result :"))
-        self.result_tableview = QTableView(self)
-        self.result_tableview.setFrameShape(QFrame.NoFrame)
+
+        self.result_tableview = QTableView()
+        # self.result_tableview.setFrameShape(QFrame.NoFrame)
         self.result_tableview.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.result_tableview.verticalHeader().setVisible(False)
         self.result_tableview.horizontalHeader().setVisible(False)
+
         self.result_plot_button = QPushButton(self.tr("Show"))
+        self.result_plot_button.clicked.connect(self.plot_hs_result)
         self.result_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
         result_layout = QGridLayout()
         result_layout.addWidget(result_label, 0, 0)
@@ -491,6 +552,14 @@ class VisualGroup(QGroupBoxCollapsible):
             self.file_selection_listwidget.addItems(hs_names)
         self.file_selection_listwidget.blockSignals(False)
 
+    def change_axe_mod(self):
+        if self.axe_mod_1_radio.isChecked():
+            self.axe_mod_choosen = 1
+        elif self.axe_mod_2_radio.isChecked():
+            self.axe_mod_choosen = 2
+        elif self.axe_mod_3_radio.isChecked():
+            self.axe_mod_choosen = 3
+
     def names_hdf5_change(self):
         self.reach_QListWidget.clear()
         self.units_QListWidget.clear()
@@ -503,7 +572,12 @@ class VisualGroup(QGroupBoxCollapsible):
             # check reach
             self.reach_QListWidget.addItems(hdf5.reach_name)
 
+            self.input_class_h_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[0]))))
+            self.input_class_v_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[1]))))
+
+            self.toggle_group(False)
             self.input_result_group.show()
+            self.toggle_group(True)
         else:
             self.input_result_group.hide()
 
@@ -525,14 +599,119 @@ class VisualGroup(QGroupBoxCollapsible):
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget.addItem(item)
 
-    def change_axe_mod(self):
-        if self.axe_mod_1_radio.isChecked():
-            self.axe_mod_choosen = 1
-        elif self.axe_mod_2_radio.isChecked():
-            self.axe_mod_choosen = 2
-        elif self.axe_mod_3_radio.isChecked():
-            self.axe_mod_choosen = 3
-        print("axe_mod_choosen", self.axe_mod_choosen)
+        if len(selection_reach) > 1:
+            hdf5name = selection_file[0].text()
+
+            # create hdf5 class
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+
+            # add units
+            item = QListWidgetItem("all units")
+            item.setTextAlignment(Qt.AlignRight)
+            self.units_QListWidget.addItem(item)
+            self.units_QListWidget.selectAll()
+
+    def unit_hdf5_change(self):
+        selection_unit = self.units_QListWidget.selectedItems()
+        # one file selected
+        if len(selection_unit) > 0:
+            hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
+
+            # create hdf5 class
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file(False)
+            hdf5.load_hydrosignature()
+
+            if len(selection_unit) == 1 and selection_unit[0].text() == "all units":
+                # get hs data
+                hdf5.data_2d.get_hs_summary_data([element.row() for element in self.reach_QListWidget.selectedIndexes()],
+                                                 list(range(hdf5.nb_unit)))
+            else:
+                # get hs data
+                hdf5.data_2d.get_hs_summary_data([element.row() for element in self.reach_QListWidget.selectedIndexes()],
+                                                 [element.row() for element in self.units_QListWidget.selectedIndexes()])
+
+            # table
+            mytablemodel = MyTableModel(hdf5.data_2d.hs_summary_data)
+            self.result_tableview.setModel(mytablemodel)  # set model
+        else:
+            mytablemodel = MyTableModel(["", ""])
+            self.result_tableview.setModel(mytablemodel)  # set model
+
+    def plot_hs_class(self):
+        # hdf5
+        hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
+
+        # create hdf5 class
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+        hdf5.open_hdf5_file(False)
+        hdf5.load_hydrosignature()
+
+        # check plot process done
+        if self.process_list.check_all_process_closed():
+            self.process_list.new_plots()
+        else:
+            self.process_list.add_plots(1)
+
+        project_preferences = load_project_properties(self.path_prj)
+        state = Value("i", 0)
+        title = "input classes of " + hdf5name
+        hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
+                                         args=(state,
+                                               None,
+                                               hdf5.hs_input_class[1],
+                                               hdf5.hs_input_class[0],
+                                               title,
+                                               project_preferences,
+                                               self.axe_mod_choosen))
+        self.process_list.append((hydrosignature_process, state))
+
+        self.process_list.start()
+
+    def plot_hs_result(self):
+        # hdf5
+        hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
+
+        # create hdf5 class
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+        hdf5.open_hdf5_file(False)
+        hdf5.load_hydrosignature()
+
+        selection_reach = self.reach_QListWidget.selectedItems()
+        selection_unit = self.units_QListWidget.selectedItems()
+        # check plot process done
+        if self.process_list.check_all_process_closed():
+            self.process_list.new_plots()
+        else:
+            self.process_list.add_plots(len(selection_unit))
+
+        if len(selection_reach) > 1:  # all units
+            reach_index_list = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
+            unit_index_list = list(range(hdf5.data_2d.unit_num))
+        else:  # specific reach and unit
+            reach_index_list = [self.reach_QListWidget.currentIndex().row()]
+            unit_index_list = [element.row() for element in self.units_QListWidget.selectedIndexes()]
+
+        # loop
+        for reach_num in reach_index_list:
+            for unit_num in unit_index_list:
+                project_preferences = load_project_properties(self.path_prj)
+                state = Value("i", 0)
+                title = "hydrosignature : " + hdf5.data_2d[reach_num][unit_num].reach_name + " at " + \
+                        hdf5.data_2d[reach_num][unit_num].unit_name + " " + hdf5.unit_type[hdf5.unit_type.find('[') + len('['):hdf5.unit_type.find(']')]
+
+                hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
+                                                 args=(state,
+                                                       hdf5.data_2d[reach_num][unit_num].hydrosignature["hsarea"],
+                                                       hdf5.hs_input_class[1],
+                                                       hdf5.hs_input_class[0],
+                                                       title,
+                                                       project_preferences,
+                                                       self.axe_mod_choosen))
+                self.process_list.append((hydrosignature_process, state))
+
+        self.process_list.start()
 
 
 class CompareGroup(QGroupBoxCollapsible):

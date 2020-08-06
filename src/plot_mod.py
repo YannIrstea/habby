@@ -328,7 +328,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         plt.show()
 
 
-def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferences):
+def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences, axe_mod_choosen=2):
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
@@ -338,42 +338,71 @@ def plot_hydrosignature(state, data, vclass, hclass, fishname, project_preferenc
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
 
-    # title and filename
-    title_plot = qt_tr.translate("plot_mod",
-                            'Measurement conditions') + " : " + fishname
+    plt.figure(title)
 
-    fig = plt.figure(title_plot)
-    # cmap should be coherent with text color
-    plt.imshow(data, cmap='Blues',
-               interpolation='nearest',
-               origin='lower')
+    # axe_mod_choosen
+    if axe_mod_choosen == 1:
+        origin = "upper"
+        x_labels_position = "top"
+    else:
+        origin = "lower"
+        x_labels_position = "bottom"
+
+    if data is not None:
+        if axe_mod_choosen == 3:
+            data = data.T
+
+        # cmap should be coherent with text color
+        plt.imshow(data, cmap='Blues',
+                   interpolation='nearest',
+                   origin=origin)
     ax1 = plt.gca()
 
-    # add percetage number
-    maxlab = np.max(data)
-    for (j, i), label in np.ndenumerate(data):
-        # text in black or white depending on the data
-        if label < maxlab / 2:
-            ax1.text(i, j, np.round(label, 2), ha='center',
-                     va='center', color='black')
-        else:
-            ax1.text(i, j, np.round(label, 2), ha='center',
-                     va='center', color='white')
-    ax1.set_xticks(np.arange(-0.5, 8.5, 1).tolist())
-    ax1.set_xticklabels(vclass)
-    ax1.set_yticks(np.arange(-0.5, 8.5, 1).tolist())
-    ax1.set_yticklabels(hclass)
-    plt.xlabel('Velocity [m/s]')
-    plt.ylabel('Height [m]')
-    cbar = plt.colorbar()
-    cbar.ax.set_ylabel('Relative area [%]')
+    if data is not None:
+        # add percetage number
+        maxlab = np.max(data)
+        for (j, i), label in np.ndenumerate(data):
+            # text in black or white depending on the data
+            if label < maxlab / 2:
+                ax1.text(i, j, np.round(label, 2), ha='center',
+                         va='center', color='black')
+            else:
+                ax1.text(i, j, np.round(label, 2), ha='center',
+                         va='center', color='white')
+
+    if axe_mod_choosen == 1:
+        ax1.xaxis.tick_top()
+
+    if axe_mod_choosen == 3:
+        ax1.set_yticks(np.arange(-0.5, len(vclass) - 0.5, 1).tolist())
+        ax1.set_yticklabels(vclass)
+    else:
+        ax1.set_xticks(np.arange(-0.5, len(vclass) - 0.5, 1).tolist())
+        ax1.set_xticklabels(vclass)
+
+    if axe_mod_choosen == 3:
+        ax1.set_xticks(np.arange(-0.5, len(hclass) - 0.5, 1).tolist())
+        ax1.set_xticklabels(hclass)
+        ax1.set_ylabel('Velocity [m/s]')
+        ax1.set_xlabel('Height [m]')
+    else:
+        ax1.set_yticks(np.arange(-0.5, len(hclass) - 0.5, 1).tolist())
+        ax1.set_yticklabels(hclass)
+        ax1.set_xlabel('Velocity [m/s]')
+        ax1.set_ylabel('Height [m]')
+
+    ax1.xaxis.set_label_position(x_labels_position)
+    ax1.xaxis.set_label_position(x_labels_position)
+    if data is not None:
+        cbar = plt.colorbar()
+        cbar.ax.set_ylabel('Relative area [%]')
 
     plt.tight_layout()
     mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
     state.value = 1  # process finished
-    fig.set_size_inches(default_size[0], default_size[1])
+    # fig.set_size_inches(default_size[0], default_size[1])
     plt.show()
 
 

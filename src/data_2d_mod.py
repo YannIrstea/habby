@@ -46,6 +46,8 @@ class Data2d(list):
         self.data_height = None
         self.data_width = None
         self.equation_type = "unknown"
+        # hs
+        self.hs_summary_data = []
 
     def get_informations(self):
         self.reach_num = len(self)
@@ -56,10 +58,6 @@ class Data2d(list):
             for unit_num in range(self.unit_num):
                 self[reach_num][unit_num].reach_num = reach_num
                 self[reach_num][unit_num].unit_num = unit_num
-
-    # def append(self, hydraulic_variable):
-    #     super(Data2d, self).append(hydraulic_variable)
-    #     self.get_informations()
 
     def add_reach(self, data_2d_new, reach_num_list):
         for reach_num in reach_num_list:
@@ -98,6 +96,13 @@ class Data2d(list):
                 xMax.append(max(self[reach_num][unit_num]["node"]["xy"][:, 0]))
                 yMin.append(min(self[reach_num][unit_num]["node"]["xy"][:, 1]))
                 yMax.append(max(self[reach_num][unit_num]["node"]["xy"][:, 1]))
+                # data min/max
+                for variable in self.hvum.hdf5_and_computable_list:
+                    if variable.hdf5:
+                        if min(self[reach_num][unit_num][variable.position]["data"][variable.name]) < variable.min:
+                            variable.min = min(self[reach_num][unit_num][variable.position]["data"][variable.name])
+                        if max(self[reach_num][unit_num][variable.position]["data"][variable.name]) > variable.max:
+                            variable.max = max(self[reach_num][unit_num][variable.position]["data"][variable.name])
 
         # get extent
         xMin = min(xMin)
@@ -176,7 +181,7 @@ class Data2d(list):
             for unit_num in range(self.unit_num):
                 self[reach_num][unit_num].unit_name = self.unit_name_list[reach_num][unit_num]
 
-    def remove_unit_from_unit_list(self, unit_index_to_remove_list):
+    def remove_unit_from_unit_index_list(self, unit_index_to_remove_list):
         # remove duplicates
         unit_index_to_remove_list = list(set(unit_index_to_remove_list))
 
@@ -207,8 +212,8 @@ class Data2d(list):
                     unit_to_remove_list.append(unit_num)
                     continue
 
-        # remove_unit_from_unit_list
-        self.remove_unit_from_unit_list(unit_to_remove_list)
+        # remove_unit_from_unit_index_list
+        self.remove_unit_from_unit_index_list(unit_to_remove_list)
 
     def set_min_height_to_0(self, min_height):
         # for each reach
@@ -277,7 +282,7 @@ class Data2d(list):
                 self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
 
         if unit_to_remove_list:
-            self.remove_unit_from_unit_list(unit_to_remove_list)
+            self.remove_unit_from_unit_index_list(unit_to_remove_list)
 
     def semi_wetted_mesh_cutting(self, unit_list, progress_value, delta_file):
         """
@@ -520,7 +525,7 @@ class Data2d(list):
                 progress_value.value = progress_value.value + delta_unit
 
         if unit_to_remove_list:
-            self.remove_unit_from_unit_list(unit_to_remove_list)
+            self.remove_unit_from_unit_index_list(unit_to_remove_list)
 
         self.get_informations()
 
@@ -789,6 +794,36 @@ class Data2d(list):
                         node_data.drop(index=node_data.index[node], axis=0, inplace=True)
                         np.delete(self[reach_i][unit_i]["node"]["xy"], node, axis=0)
 
+    def get_hs_summary_data(self, reach_num_list, unit_num_list):
+        # get hs headers
+        self.hs_summary_data = [[]]
+        unit_dict = self[0][0]
+        for key in unit_dict.hydrosignature.keys():
+            element = unit_dict.hydrosignature[key]
+            if type(element) != np.ndarray:
+                self.hs_summary_data[0].append(key)
+        self.hs_summary_data[0].insert(0, "reach")
+        self.hs_summary_data[0].insert(1, "unit")
+
+        for r_model_index in reach_num_list:
+            for u_model_index in unit_num_list:
+                unit_dict = self[r_model_index][u_model_index]
+                key_element_list = []
+                key_element_list.append(unit_dict.reach_name)
+                key_element_list.append(unit_dict.unit_name)
+                for key in unit_dict.hydrosignature.keys():
+                    element = unit_dict.hydrosignature[key]
+                    if type(element) != np.ndarray:
+                        # append key
+                        if isinstance(element, float):  # float
+                            element = "{:.2f}".format(element)
+                        else:  # integer or other
+                            element = str(element)
+
+                        key_element_list.append(element)
+                # key_element_list = list(map(str.format, key_element_list))
+                self.hs_summary_data.append(key_element_list)
+
 
 class UnitDict(dict):
     def __init__(self, reach_num, unit_num):
@@ -796,6 +831,7 @@ class UnitDict(dict):
         # HydraulicVariableUnit
         self.hvum = HydraulicVariableUnitManagement()
         self.reach_num = reach_num
+        self.reach_name = ""
         self.unit_num = unit_num
         self.unit_name = ""
         # data
