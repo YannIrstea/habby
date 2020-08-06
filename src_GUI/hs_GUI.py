@@ -433,6 +433,7 @@ class VisualGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.process_list = MyProcessList("plot")
+        self.axe_mod_choosen = 1
         self.setTitle(title)
         self.init_ui()
 
@@ -556,7 +557,6 @@ class VisualGroup(QGroupBoxCollapsible):
             self.axe_mod_choosen = 2
         elif self.axe_mod_3_radio.isChecked():
             self.axe_mod_choosen = 3
-        print("axe_mod_choosen", self.axe_mod_choosen)
 
     def names_hdf5_change(self):
         self.reach_QListWidget.clear()
@@ -673,7 +673,8 @@ class VisualGroup(QGroupBoxCollapsible):
                                                        hdf5.hs_input_class[1],
                                                        hdf5.hs_input_class[0],
                                                        title,
-                                                       project_preferences))
+                                                       project_preferences,
+                                                       self.axe_mod_choosen))
                 self.process_list.append((hydrosignature_process, state))
 
         self.process_list.start()

@@ -328,7 +328,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         plt.show()
 
 
-def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences):
+def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences, axe_mod_choosen=2):
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
@@ -342,11 +342,23 @@ def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences)
     title_plot = qt_tr.translate("plot_mod",
                             'Measurement conditions') + " : " + title
 
-    fig = plt.figure(title_plot)
+    plt.figure(title_plot)
+
+    # axe_mod_choosen
+    if axe_mod_choosen == 1:
+        origin = "upper"
+        x_labels_position = "top"
+    else:
+        origin = "lower"
+        x_labels_position = "bottom"
+
+    if axe_mod_choosen == 3:
+        data = data.T
+
     # cmap should be coherent with text color
     plt.imshow(data, cmap='Blues',
                interpolation='nearest',
-               origin='lower')
+               origin=origin)
     ax1 = plt.gca()
 
     # add percetage number
@@ -359,12 +371,30 @@ def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences)
         else:
             ax1.text(i, j, np.round(label, 2), ha='center',
                      va='center', color='white')
-    ax1.set_xticks(np.arange(-0.5, len(vclass) - 0.5, 1).tolist())
-    ax1.set_xticklabels(vclass)
-    ax1.set_yticks(np.arange(-0.5, len(hclass) - 0.5, 1).tolist())
-    ax1.set_yticklabels(hclass)
-    plt.xlabel('Velocity [m/s]')
-    plt.ylabel('Height [m]')
+
+    if axe_mod_choosen == 1:
+        ax1.xaxis.tick_top()
+
+    if axe_mod_choosen == 3:
+        ax1.set_yticks(np.arange(-0.5, len(vclass) - 0.5, 1).tolist())
+        ax1.set_yticklabels(vclass)
+    else:
+        ax1.set_xticks(np.arange(-0.5, len(vclass) - 0.5, 1).tolist())
+        ax1.set_xticklabels(vclass)
+
+    if axe_mod_choosen == 3:
+        ax1.set_xticks(np.arange(-0.5, len(hclass) - 0.5, 1).tolist())
+        ax1.set_xticklabels(hclass)
+        ax1.set_ylabel('Velocity [m/s]')
+        ax1.set_xlabel('Height [m]')
+    else:
+        ax1.set_yticks(np.arange(-0.5, len(hclass) - 0.5, 1).tolist())
+        ax1.set_yticklabels(hclass)
+        ax1.set_xlabel('Velocity [m/s]')
+        ax1.set_ylabel('Height [m]')
+
+    ax1.xaxis.set_label_position(x_labels_position)
+    ax1.xaxis.set_label_position(x_labels_position)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel('Relative area [%]')
 
