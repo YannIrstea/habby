@@ -37,8 +37,8 @@ class HydraulicVariable:
         self.sub = sub  # False: hydraulic (default) True: substrate
         self.index_gui = index_gui  # position index in gui
         self.data = [[]]
-        self.min = 9999999  # min for all reach and unit
-        self.max = 0  # max for all reach and unit
+        self.min = 0.0  # min for all reach and unit
+        self.max = 0.0 # max for all reach and unit
         self.software_attributes_list = []  # software string names list to link with them
         self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
         self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
@@ -655,23 +655,31 @@ class HydraulicVariableUnitManagement:
             self.hdf5_and_computable_list.append(variable)
 
     def get_original_computable_mesh_and_node_from_hyd(self, mesh_variable_original_name_list,
-                                                       node_variable_original_name_list):
+                                                       mesh_variable_original_min_list,
+                                                       mesh_variable_original_max_list,
+                                                       node_variable_original_name_list,
+                                                       node_variable_original_min_list,
+                                                       node_variable_original_max_list):
         """
         no hab.
         """
         # hdf5 mesh
-        for mesh_variable_original_name in mesh_variable_original_name_list:
+        for mesh_variable_index, mesh_variable_original_name in enumerate(mesh_variable_original_name_list):
             variable_mesh = getattr(self, mesh_variable_original_name)
             variable_mesh.position = "mesh"
             variable_mesh.hdf5 = True
+            variable_mesh.min = float(mesh_variable_original_min_list[mesh_variable_index])
+            variable_mesh.max = float(mesh_variable_original_max_list[mesh_variable_index])
             if not variable_mesh.sub:
                 self.hdf5_and_computable_list.append(variable_mesh)
 
         # hdf5 node
-        for node_variable_original_name in node_variable_original_name_list:
+        for node_variable_index, node_variable_original_name in enumerate(node_variable_original_name_list):
             variable_node = getattr(self, node_variable_original_name)
             variable_node.position = "node"
             variable_node.hdf5 = True
+            variable_node.min = float(node_variable_original_min_list[node_variable_index])
+            variable_node.max = float(node_variable_original_max_list[node_variable_index])
             if not variable_node.sub:
                 self.hdf5_and_computable_list.append(variable_node)
 

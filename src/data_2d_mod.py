@@ -97,11 +97,12 @@ class Data2d(list):
                 yMin.append(min(self[reach_num][unit_num]["node"]["xy"][:, 1]))
                 yMax.append(max(self[reach_num][unit_num]["node"]["xy"][:, 1]))
                 # data min/max
-                for variable in self.hvum.hdf5_and_computable_list.hdf5s():
-                    if min(self[reach_num][unit_num][variable.position]["data"][variable.name]) < variable.min:
-                        variable.min = min(self[reach_num][unit_num][variable.position]["data"][variable.name])
-                    if max(self[reach_num][unit_num][variable.position]["data"][variable.name]) > variable.max:
-                        variable.max = max(self[reach_num][unit_num][variable.position]["data"][variable.name])
+                for variable in self.hvum.hdf5_and_computable_list:
+                    if variable.hdf5:
+                        if min(self[reach_num][unit_num][variable.position]["data"][variable.name]) < variable.min:
+                            variable.min = min(self[reach_num][unit_num][variable.position]["data"][variable.name])
+                        if max(self[reach_num][unit_num][variable.position]["data"][variable.name]) > variable.max:
+                            variable.max = max(self[reach_num][unit_num][variable.position]["data"][variable.name])
 
         # get extent
         xMin = min(xMin)
@@ -111,14 +112,6 @@ class Data2d(list):
         self.data_extent = str(xMin) + ", " + str(yMin) + ", " + str(xMax) + ", " + str(yMax)
         self.data_height = xMax - xMin
         self.data_width = yMax - yMin
-
-        # get min/max all values
-        for variable_index, variable in enumerate(self.hvum.hdf5_and_computable_list):
-            if variable.hdf5:
-                print(variable.min)
-                self.hvum.hdf5_and_computable_list[variable_index].min = "{0:.1f}".format(variable.min)
-                self.hvum.hdf5_and_computable_list[variable_index].max = "{0:.1f}".format(variable.max)
-                print(variable.min)
 
     def get_only_mesh(self):
         """

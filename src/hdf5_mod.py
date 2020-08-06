@@ -38,7 +38,7 @@ from src.project_properties_mod import load_project_properties, save_project_pro
 from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
 from src.data_2d_mod import Data2d
 from src.variable_unit_mod import HydraulicVariableUnitManagement
-from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt
+from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
 
 from habby import HABBY_VERSION_STR
 
@@ -256,7 +256,11 @@ class Hdf5Management:
             if self.hdf5_type == "hydraulic":
                 self.hvum.get_original_computable_mesh_and_node_from_hyd(
                     hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                    hdf5_attributes_dict["node_variable_original_name_list"].tolist())
+                    hdf5_attributes_dict["mesh_variable_original_min_list"].tolist(),
+                    hdf5_attributes_dict["mesh_variable_original_max_list"].tolist(),
+                    hdf5_attributes_dict["node_variable_original_name_list"].tolist(),
+                    hdf5_attributes_dict["node_variable_original_min_list"].tolist(),
+                    hdf5_attributes_dict["node_variable_original_max_list"].tolist())
 
             # substrate constant ==> nothing to plot
             elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
@@ -277,7 +281,11 @@ class Hdf5Management:
                 # hyd
                 self.hvum.get_original_computable_mesh_and_node_from_hyd(
                     hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                    hdf5_attributes_dict["node_variable_original_name_list"].tolist())
+                    hdf5_attributes_dict["mesh_variable_original_min_list"].tolist(),
+                    hdf5_attributes_dict["mesh_variable_original_max_list"].tolist(),
+                    hdf5_attributes_dict["node_variable_original_name_list"].tolist(),
+                    hdf5_attributes_dict["node_variable_original_min_list"].tolist(),
+                    hdf5_attributes_dict["node_variable_original_max_list"].tolist())
                 # # sub
                 sub_description = dict(sub_mapping_method=hdf5_attributes_dict["sub_mapping_method"],
                                        sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
@@ -525,12 +533,6 @@ class Hdf5Management:
                         node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
                 self.data_2d[reach_num][unit_num]["node"]["data"] = node_dataframe
 
-        # remove_unused_units
-        all_units_index_list = list(range(len(self.units_name[0])))
-        for unit_index_selected in reversed(self.units_index):
-            all_units_index_list.pop(unit_index_selected)
-        self.data_2d.remove_unit_from_unit_index_list(unit_index_to_remove_list=all_units_index_list)
-
         # load_data_2d_info
         self.load_data_2d_info()
 
@@ -675,13 +677,13 @@ class Hdf5Management:
         self.file_object.attrs[
             "node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
         self.file_object.attrs[
-            "mesh_variable_original_min_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()
+            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()]
         self.file_object.attrs[
-            "node_variable_original_min_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()
+            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()]
         self.file_object.attrs[
-            "mesh_variable_original_max_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()
+            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()]
         self.file_object.attrs[
-            "node_variable_original_max_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()
+            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()]
 
         # dataset for unit_list
         self.file_object.create_dataset(name="unit_by_reach",
@@ -809,6 +811,14 @@ class Hdf5Management:
             "mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
         self.file_object.attrs[
             "node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
+        self.file_object.attrs[
+            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()]
+        self.file_object.attrs[
+            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()]
+        self.file_object.attrs[
+            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()]
+        self.file_object.attrs[
+            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()]
 
         # POLYGON or POINT
         if self.data_description["sub_mapping_method"] in ("polygon", "point"):
@@ -954,6 +964,14 @@ class Hdf5Management:
             "mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
         self.file_object.attrs[
             "node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
+        self.file_object.attrs[
+            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()]
+        self.file_object.attrs[
+            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()]
+        self.file_object.attrs[
+            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()]
+        self.file_object.attrs[
+            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()]
 
         self.file_object.attrs["hab_fish_list"] = ", ".join([])
         self.file_object.attrs["hab_fish_number"] = str(0)
@@ -1135,6 +1153,14 @@ class Hdf5Management:
             "mesh_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
         self.file_object.attrs[
             "node_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
+        self.file_object.attrs[
+            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().min()]
+        self.file_object.attrs[
+            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().min()]
+        self.file_object.attrs[
+            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().max()]
+        self.file_object.attrs[
+            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
 
         # close file
         self.file_object.close()
@@ -1225,82 +1251,88 @@ class Hdf5Management:
         self.user_target_list = "defaut"
         self.load_data_2d()
 
-        # progress
-        delta_reach = 90 / self.data_2d.reach_num
-
-        # for each reach
-        for reach_num in range(self.data_2d.reach_num):
-
+        mathing = check_hs_class_match_hydraulic_values(classhv,
+                                              h_min=self.hvum.h.min,
+                                              h_max=self.hvum.h.max,
+                                              v_min=self.hvum.v.min,
+                                              v_max=self.hvum.v.max)
+        if mathing:
             # progress
-            delta_unit = delta_reach / self.data_2d.unit_num
+            delta_reach = 90 / self.data_2d.reach_num
 
-            # for each unit
-            for unit_num in range(self.data_2d.unit_num):
-                hyd_data_mesh = self.data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
-                hyd_tin = self.data_2d[reach_num][unit_num]["mesh"]["tin"]
-                i_whole_profile = self.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"]
-                hyd_data_node = self.data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
-                hyd_xy_node = self.data_2d[reach_num][unit_num]["node"]["xy"]
-                hyd_hv_node = np.array([hyd_data_node["h"], hyd_data_node["v"]]).T
+            # for each reach
+            for reach_num in range(self.data_2d.reach_num):
 
                 # progress
-                delta_mesh = delta_unit / len(hyd_tin)
+                delta_unit = delta_reach / self.data_2d.unit_num
 
-                if export_mesh:
-                    nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
-                        delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
-                        return_cut_mesh=True)
-                else:
-                    nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
-                        delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
-                        return_cut_mesh=False)
+                # for each unit
+                for unit_num in range(self.data_2d.unit_num):
+                    hyd_data_mesh = self.data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
+                    hyd_tin = self.data_2d[reach_num][unit_num]["mesh"]["tin"]
+                    i_whole_profile = self.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"]
+                    hyd_data_node = self.data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
+                    hyd_xy_node = self.data_2d[reach_num][unit_num]["node"]["xy"]
+                    hyd_hv_node = np.array([hyd_data_node["h"], hyd_data_node["v"]]).T
 
-                # hsexporttxt
-                if export_txt:
-                    hsexporttxt(os.path.join(self.path_prj, "output", "text"),
-                            os.path.splitext(self.filename)[0] + "_HSresult.txt",
-                            classhv, self.units_name[reach_num][unit_num],
-                            nb_mesh, total_area, total_volume, mean_depth, mean_velocity,
-                            mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
+                    # progress
+                    delta_mesh = delta_unit / len(hyd_tin)
 
-                # all cases
-                hs_dict = {"nb_mesh": nb_mesh, "total_area": total_area,
-                                                                    "total_volume": total_volume,
-                                                                    "mean_depth": mean_depth,
-                                                                    "mean_velocity": mean_velocity,
-                                                                    "mean_froude": mean_froude,
-                                                                    "min_depth": min_depth,
-                                                                    "max_depth": max_depth,
-                                                                    "min_velocity": min_velocity,
-                                                                    "max_velocity": max_velocity}
-                unitpath = "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num)
-                for attrname in hs_dict.keys():
-                    self.file_object[unitpath].attrs.create(attrname, hs_dict[attrname])
+                    if export_mesh:
+                        nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
+                            delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
+                            return_cut_mesh=True)
+                    else:
+                        nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
+                            delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
+                            return_cut_mesh=False)
 
-                if "hsarea" in self.file_object[unitpath]:
-                    del self.file_object[unitpath]["hsarea"]
-                self.file_object[unitpath].create_dataset("hsarea",
-                                                           shape=hsarea.shape,
-                                                           dtype=hsarea.dtype,
-                                                           data=hsarea)
-                if "hsvolume" in self.file_object[unitpath]:
-                    del self.file_object[unitpath]["hsvolume"]
-                self.file_object[unitpath].create_dataset("hsvolume",
-                                                           shape=hsvolume.shape,
-                                                           dtype=hsvolume.dtype,
-                                                           data=hsvolume)
+                    # hsexporttxt
+                    if export_txt:
+                        hsexporttxt(os.path.join(self.path_prj, "output", "text"),
+                                os.path.splitext(self.filename)[0] + "_HSresult.txt",
+                                classhv, self.units_name[reach_num][unit_num],
+                                nb_mesh, total_area, total_volume, mean_depth, mean_velocity,
+                                mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
 
-                if export_mesh:
-                    self.replace_dataset_in_file(unitpath + "/mesh/data", mesh_data_out)
-                    self.replace_dataset_in_file(unitpath + "/mesh/tin", tin_out)
-                    self.replace_dataset_in_file(unitpath + "/mesh/i_whole_profile", i_whole_profile_out)
-                    self.replace_dataset_in_file(unitpath + "/node/data", node_data_out)
-                    self.replace_dataset_in_file(unitpath + "/node/xy", node_xy_out)
+                    # all cases
+                    hs_dict = {"nb_mesh": nb_mesh, "total_area": total_area,
+                                                                        "total_volume": total_volume,
+                                                                        "mean_depth": mean_depth,
+                                                                        "mean_velocity": mean_velocity,
+                                                                        "mean_froude": mean_froude,
+                                                                        "min_depth": min_depth,
+                                                                        "max_depth": max_depth,
+                                                                        "min_velocity": min_velocity,
+                                                                        "max_velocity": max_velocity}
+                    unitpath = "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num)
+                    for attrname in hs_dict.keys():
+                        self.file_object[unitpath].attrs.create(attrname, hs_dict[attrname])
 
-                # print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
+                    if "hsarea" in self.file_object[unitpath]:
+                        del self.file_object[unitpath]["hsarea"]
+                    self.file_object[unitpath].create_dataset("hsarea",
+                                                               shape=hsarea.shape,
+                                                               dtype=hsarea.dtype,
+                                                               data=hsarea)
+                    if "hsvolume" in self.file_object[unitpath]:
+                        del self.file_object[unitpath]["hsvolume"]
+                    self.file_object[unitpath].create_dataset("hsvolume",
+                                                               shape=hsvolume.shape,
+                                                               dtype=hsvolume.dtype,
+                                                               data=hsvolume)
 
-        self.file_object.attrs.create("hs_calculated", "True")
-        self.file_object.attrs.create("hs_input_class", str(classhv))
+                    if export_mesh:
+                        self.replace_dataset_in_file(unitpath + "/mesh/data", mesh_data_out)
+                        self.replace_dataset_in_file(unitpath + "/mesh/tin", tin_out)
+                        self.replace_dataset_in_file(unitpath + "/mesh/i_whole_profile", i_whole_profile_out)
+                        self.replace_dataset_in_file(unitpath + "/node/data", node_data_out)
+                        self.replace_dataset_in_file(unitpath + "/node/xy", node_xy_out)
+
+                    # print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
+
+            self.file_object.attrs.create("hs_calculated", "True")
+            self.file_object.attrs.create("hs_input_class", str(classhv))
 
     def load_hydrosignature(self):
         for reach_index in range(self.data_2d.reach_num):
