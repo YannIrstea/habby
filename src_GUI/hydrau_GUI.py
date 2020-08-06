@@ -239,6 +239,7 @@ class ModelInfoGroup(QGroupBox):
         self.running_time = 0
         self.p = Process(target=None)  # second process
         self.q = Queue()
+        self.model_index = None
         self.progress_value = Value("d", 0)
         # get cmd
         if sys.argv[0][-3:] == ".py":
@@ -433,37 +434,38 @@ class ModelInfoGroup(QGroupBox):
             self.last_hydraulic_file_name_label.setText(name)
 
     def set_suffix_no_cut(self, no_cut_bool):
-        if self.hydraulic_model_information.name_models_gui_list[self.mod_act]:
-            # get class
-            current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.mod_act].lower())
-            # get hdf5_name
-            current_hdf5_name = current_model_class.hname.text()
-            # add no_cut suffix if not exist
-            if not no_cut_bool:
-                # check if no_cut suffix exist
-                if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                    # check if there is extension
-                    if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                        extension = os.path.splitext(current_hdf5_name)[1]
-                    else:
-                        extension = ""
-                    # create new name
-                    new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
-                    # set new name
-                    current_model_class.hname.setText(new_hdf5_name)
-            # remove no_cut suffix if exist
-            elif no_cut_bool:
-                # check if no_cut suffix exist
-                if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                    # check if there is extension
-                    if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                        extension = os.path.splitext(current_hdf5_name)[1]
-                    else:
-                        extension = ""
-                    # create new name
-                    new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
-                    # set new name
-                    current_model_class.hname.setText(new_hdf5_name)
+        if self.model_index:
+            if self.hydraulic_model_information.name_models_gui_list[self.model_index]:
+                # get class
+                current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.model_index].lower())
+                # get hdf5_name
+                current_hdf5_name = current_model_class.hname.text()
+                # add no_cut suffix if not exist
+                if not no_cut_bool:
+                    # check if no_cut suffix exist
+                    if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                        # check if there is extension
+                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                            extension = os.path.splitext(current_hdf5_name)[1]
+                        else:
+                            extension = ""
+                        # create new name
+                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
+                        # set new name
+                        current_model_class.hname.setText(new_hdf5_name)
+                # remove no_cut suffix if exist
+                elif no_cut_bool:
+                    # check if no_cut suffix exist
+                    if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                        # check if there is extension
+                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                            extension = os.path.splitext(current_hdf5_name)[1]
+                        else:
+                            extension = ""
+                        # create new name
+                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
+                        # set new name
+                        current_model_class.hname.setText(new_hdf5_name)
 
     def clean_gui(self):
         self.input_file_combobox.clear()
