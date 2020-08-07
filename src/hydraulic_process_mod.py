@@ -1121,7 +1121,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
     # progress
     progress_value.value = 10
 
-    delta_file = 90 / len(hydrau_description)
+    delta_file = 80 / len(hydrau_description)
 
     # for each .hyd (or .hab) to create
     for hdf5_file_index in range(0, len(hydrau_description)):

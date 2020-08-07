@@ -730,9 +730,9 @@ class Data2d(list):
                 i_whole_profile = self[reach_i][unit_i]["mesh"]["i_whole_profile"]
                 ##Copies
                 tin = np.sort(unsorted_tin, axis=1)
-                x = self[reach_i][unit_i]["node"]["xy"][:, 0]
+                x = np.array(self[reach_i][unit_i]["node"]["xy"][:, 0])
                 x -= np.mean(x)
-                y = self[reach_i][unit_i]["node"]["xy"][:, 1]
+                y = np.array(self[reach_i][unit_i]["node"]["xy"][:, 1])
                 y -= np.mean(y)
                 phi = np.array((node_data["z"].array - np.min(node_data["z"].array)) + node_data[
                     "h"].array)  # water height relative to a point at the bottom of the river bed
