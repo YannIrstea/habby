@@ -724,11 +724,13 @@ class Data2d(list):
         for reach_i in range(self.reach_num):
             for unit_i in range(self.unit_num):
                 ##Aliases
-                node_data = self[reach_i][unit_i]["node"]["data"]
-                unsorted_tin = self[reach_i][unit_i]["mesh"]["tin"]
-                mesh_data = self[reach_i][unit_i]["mesh"]["data"]  # alias, not copy
-                i_whole_profile = self[reach_i][unit_i]["mesh"]["i_whole_profile"]
+                # node_data = self[reach_i][unit_i]["node"]["data"]
+                # mesh_data = self[reach_i][unit_i]["mesh"]["data"]
                 ##Copies
+                node_data = self[reach_i][unit_i]["node"]["data"].copy()
+                mesh_data = self[reach_i][unit_i]["mesh"]["data"].copy()
+                i_whole_profile = self[reach_i][unit_i]["mesh"]["i_whole_profile"].copy()
+                unsorted_tin = self[reach_i][unit_i]["mesh"]["tin"].copy()
                 tin = np.sort(unsorted_tin, axis=1)
                 x = np.array(self[reach_i][unit_i]["node"]["xy"][:, 0])
                 x -= np.mean(x)
@@ -750,7 +752,7 @@ class Data2d(list):
                     for tri_index in range(len(tin)):
                         if connectedness[tri_index] < connectedness_criterion:
                             triangles_to_remove.append(tri_index)
-                        if neighbour_count[tri_index] == 1:
+                        elif neighbour_count[tri_index] == 1:
                             adjacent_triangle = tin[neighbours[tri_index][0]]
                             x_adj, y_adj, phi_adj = x[adjacent_triangle], y[adjacent_triangle], phi[adjacent_triangle]
                             for node in tin[tri_index]:
@@ -776,23 +778,29 @@ class Data2d(list):
                         #             triangles_to_remove.append(tri_index)
                         #             break
 
-                    np.delete(tin, triangles_to_remove, axis=0)
-                    np.delete(unsorted_tin, triangles_to_remove, axis=0)
-                    # np.delete(mesh_data, triangles_to_remove, axis=0)
-                    np.delete(i_whole_profile, triangles_to_remove, axis=0)
-                    mesh_data.drop(axis=0, index=mesh_data.index, inplace=True)
+                    tin = np.delete(tin, triangles_to_remove, axis=0)
+                    unsorted_tin = np.delete(unsorted_tin, triangles_to_remove, axis=0)
+                    i_whole_profile = np.delete(i_whole_profile, triangles_to_remove, axis=0)
+                    mesh_data = mesh_data[~np.in1d(np.arange(len(mesh_data)), triangles_to_remove)]
+                    # mesh_data.drop(axis=0, labels=mesh_data.index[triangles_to_remove], inplace=True)
                     if len(triangles_to_remove) == 0:
                         passes = npasses  # if no triangles were removed in the loop, stop iterating
                     passes += 1
 
-                # self[reach_i][unit_i]["mesh"]["tin"] = unsorted_tin
-                # self[reach_i][unit_i]["mesh"]["data"] = mesh_data
-                # self[reach_i][unit_i]["i_whole_profile"] = i_whole_profile
+                self[reach_i][unit_i]["mesh"]["tin"] = unsorted_tin
+                self[reach_i][unit_i]["mesh"]["data"] = mesh_data
+                self[reach_i][unit_i]["i_whole_profile"] = i_whole_profile
 
+                nodes_to_delete = []
                 for node in range(node_number):
                     if not node in tin:
-                        node_data.drop(index=node_data.index[node], axis=0, inplace=True)
-                        np.delete(self[reach_i][unit_i]["node"]["xy"], node, axis=0)
+                        nodes_to_delete.append(node)
+                        # node_data.drop(index=node_data.index[node], axis=0, inplace=True)
+                        # node_data=node_data[np.arange(len())
+                self[reach_i][unit_i]["node"]["xy"] = np.delete(self[reach_i][unit_i]["node"]["xy"], nodes_to_delete,
+                                                                axis=0)
+                node_data = node_data[~np.in1d(np.arange(len(node_data)), nodes_to_delete)]
+                self[reach_i][unit_i]["node"]["data"] = node_data
 
     def get_hs_summary_data(self, reach_num_list, unit_num_list):
         # get hs headers
