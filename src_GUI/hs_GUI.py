@@ -732,7 +732,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # file_selection_1
         file_selection_label_1 = QLabel(self.tr("HS files :"))
         self.file_selection_listwidget_1 = QListWidget()
-        self.file_selection_listwidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # self.file_selection_listwidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.file_selection_listwidget_1.itemSelectionChanged.connect(self.names_hdf5_change_1)
         file_selection_layout_1 = QVBoxLayout()
         file_selection_layout_1.addWidget(file_selection_label_1)
@@ -741,7 +741,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # reach_1
         reach_label_1 = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget_1 = QListWidget()
-        self.reach_QListWidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # self.reach_QListWidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.reach_QListWidget_1.itemSelectionChanged.connect(self.reach_hdf5_change_1)
         reach_layout_1 = QVBoxLayout()
         reach_layout_1.addWidget(reach_label_1)
@@ -764,7 +764,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # file_selection_2
         file_selection_label_2 = QLabel(self.tr("HS files :"))
         self.file_selection_listwidget_2 = QListWidget()
-        self.file_selection_listwidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # self.file_selection_listwidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.file_selection_listwidget_2.itemSelectionChanged.connect(self.names_hdf5_change_2)
         file_selection_layout_2 = QVBoxLayout()
         file_selection_layout_2.addWidget(file_selection_label_2)
@@ -773,7 +773,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # reach_2
         reach_label_2 = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget_2 = QListWidget()
-        self.reach_QListWidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # self.reach_QListWidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.reach_QListWidget_2.itemSelectionChanged.connect(self.reach_hdf5_change_2)
         reach_layout_2 = QVBoxLayout()
         reach_layout_2.addWidget(reach_label_2)
@@ -921,8 +921,10 @@ class CompareGroup(QGroupBoxCollapsible):
         unit_index_list_1 = [element.row() for element in self.units_QListWidget_1.selectedIndexes()]
         unit_index_list_2 = [element.row() for element in self.units_QListWidget_2.selectedIndexes()]
 
+        # load_hs_and_compare
         hydrosignature.load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                                            hdf5name_2, reach_index_list_2, unit_index_list_2,
+                                           self.filename_lineedit.text(),
                                            self.path_prj)
 
 
