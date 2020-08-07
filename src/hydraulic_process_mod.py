@@ -18,6 +18,7 @@ import os
 import sys
 from io import StringIO
 from time import sleep
+import numpy as np
 
 from PyQt5.QtCore import QCoreApplication as qt_tr, QThread, pyqtSignal
 from multiprocessing import Process, Value
@@ -1222,8 +1223,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             return
 
         """ bank hydraulic aberations  """
-        # TODO: second pretraitement
-
+        data_2d.fix_aberrations()
 
         """ re compute area """
         if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():

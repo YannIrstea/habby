@@ -69,7 +69,7 @@ class Data2d(list):
         self.get_informations()
         self.hvum = data_2d_new.hvum
 
-    def add_unit(self,  data_2d_new, reach_num):
+    def add_unit(self, data_2d_new, reach_num):
         if not self.reach_num:
             self.append([])
         self[reach_num].extend(data_2d_new[reach_num])
@@ -172,7 +172,8 @@ class Data2d(list):
     def rename_substrate_column_data(self):
         for reach_num in range(self.reach_num):
             for unit_num in range(self.unit_num):
-                self[reach_num][unit_num]["mesh"]["data"].columns = self.hvum.hdf5_and_computable_list.hdf5s().subs().names()
+                self[reach_num][unit_num]["mesh"][
+                    "data"].columns = self.hvum.hdf5_and_computable_list.hdf5s().subs().names()
 
     def set_unit_names(self, unit_name_list):
         self.unit_name_list = unit_name_list
@@ -220,11 +221,13 @@ class Data2d(list):
             # for each unit
             for unit_num in range(self.unit_num):
                 """ node (always) """
-                self[reach_num][unit_num]["node"]["data"].loc[self[reach_num][unit_num]["node"]["data"][self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.nodes().depend_on_hs().names()] = 0.0
+                self[reach_num][unit_num]["node"]["data"].loc[self[reach_num][unit_num]["node"]["data"][
+                                                                  self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.nodes().depend_on_hs().names()] = 0.0
 
                 """ mesh """
                 if self.hvum.h.name in self.hvum.hdf5_and_computable_list.meshs().names():
-                    self[reach_num][unit_num]["mesh"]["data"].loc[self[reach_num][unit_num]["mesh"]["data"][self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.meshs().depend_on_hs().names()] = 0.0
+                    self[reach_num][unit_num]["mesh"]["data"].loc[self[reach_num][unit_num]["mesh"]["data"][
+                                                                      self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.meshs().depend_on_hs().names()] = 0.0
 
     def remove_dry_mesh(self):
         self.get_informations()
@@ -238,7 +241,7 @@ class Data2d(list):
                 # get data from dict
                 ikle = self[reach_num][unit_num]["mesh"]["tin"]
                 point_all = np.column_stack((self[reach_num][unit_num]["node"][self.hvum.xy.name],
-                                 self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
+                                             self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
                 water_height = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name].to_numpy()
                 ind_whole = self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name]
 
@@ -249,7 +252,8 @@ class Data2d(list):
 
                 # all meshes are entirely dry
                 if not True in mikle_keep:
-                    print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(reach_num) + " is entirely dry.")
+                    print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
+                        reach_num) + " is entirely dry.")
                     unit_to_remove_list.append(unit_num)
                     continue
 
@@ -269,10 +273,12 @@ class Data2d(list):
                 self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
                 self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
                 if not self[reach_num][unit_num]["mesh"]["data"].empty:
-                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[mikle_keep]
+                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[
+                        mikle_keep]
 
                 # node data
-                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[ipt_iklenew_unique]
+                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
+                    ipt_iklenew_unique]
                 self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
 
         if unit_to_remove_list:
@@ -301,7 +307,6 @@ class Data2d(list):
         # progress
         delta_reach = delta_file / self.reach_num
 
-
         # for each reach
         for reach_num in range(self.reach_num):
 
@@ -313,7 +318,7 @@ class Data2d(list):
                 # get data from dict
                 ikle = self[reach_num][unit_num]["mesh"]["tin"]
                 point_all = np.column_stack((self[reach_num][unit_num]["node"][self.hvum.xy.name],
-                                 self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
+                                             self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
                 water_height = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name].to_numpy()
                 velocity = self[reach_num][unit_num]["node"]["data"][self.hvum.v.name].to_numpy()
 
@@ -336,7 +341,7 @@ class Data2d(list):
                     jpn = jpn0
                     ind_whole2 = []
                     for i, iklec in enumerate(ikle):
-                        #print("delta_ikle", delta_ikle)
+                        # print("delta_ikle", delta_ikle)
                         if ikle_type[i] == 1 or ikle_type[i] == 2:
                             sumk, nboverdry, bkeep = 0, 0, True
                             ia, ib, ic = ikle[i]
@@ -370,7 +375,9 @@ class Data2d(list):
                                 if sumk == 5:
                                     point_new = np.append(point_new, np.array([p2, p3]), axis=0)
                                     if hc == 0:
-                                        iklenew = np.append(iklenew, np.array([[ia, jpn + 1, jpn + 2], [ia, ib, jpn + 1]]), axis=0)
+                                        iklenew = np.append(iklenew,
+                                                            np.array([[ia, jpn + 1, jpn + 2], [ia, ib, jpn + 1]]),
+                                                            axis=0)
                                         ipt_all_ok_wetdry.extend([ia, ib])
                                         ind_whole2.extend([i, i])
                                     else:
@@ -380,7 +387,9 @@ class Data2d(list):
                                 elif sumk == 4:
                                     point_new = np.append(point_new, np.array([p1, p3]), axis=0)
                                     if ha == 0:
-                                        iklenew = np.append(iklenew, np.array([[jpn + 1, ib, jpn + 2], [ib, ic, jpn + 2]]), axis=0)
+                                        iklenew = np.append(iklenew,
+                                                            np.array([[jpn + 1, ib, jpn + 2], [ib, ic, jpn + 2]]),
+                                                            axis=0)
                                         ipt_all_ok_wetdry.extend([ic, ib])
                                         ind_whole2.extend([i, i])
                                     else:
@@ -390,7 +399,9 @@ class Data2d(list):
                                 elif sumk == 3:
                                     point_new = np.append(point_new, np.array([p1, p2]), axis=0)
                                     if hb == 0:
-                                        iklenew = np.append(iklenew, np.array([[jpn + 1, jpn + 2, ia], [ia, jpn + 2, ic]]), axis=0)
+                                        iklenew = np.append(iklenew,
+                                                            np.array([[jpn + 1, jpn + 2, ia], [ia, jpn + 2, ic]]),
+                                                            axis=0)
                                         ipt_all_ok_wetdry.extend([ia, ic])
                                         ind_whole2.extend([i, i])
                                     else:
@@ -414,7 +425,8 @@ class Data2d(list):
                 ipt_iklenew_unique = np.unique(iklekeep)
 
                 if ipt_all_ok_wetdry:  # presence of partially wet/dry meshes cutted that we want
-                    ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry, dtype=self.hvum.tin.dtype), axis=0)
+                    ipt_iklenew_unique = np.append(ipt_iklenew_unique,
+                                                   np.asarray(ipt_all_ok_wetdry, dtype=self.hvum.tin.dtype), axis=0)
                     ipt_iklenew_unique = np.unique(ipt_iklenew_unique)
 
                 point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
@@ -450,14 +462,16 @@ class Data2d(list):
                     if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
                                                                 xyz_array=point_all_ok,
                                                                 unit_num=unit_num,
-                                                                case="after the cutting of mesh partially wet", checkpoint=False):
+                                                                case="after the cutting of mesh partially wet",
+                                                                checkpoint=False):
                         print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
                             reach_num) + " is not loaded.")
                         unit_to_remove_list.append(unit_num)
                         continue
 
                     # all the new points added have water_height,velocity=0,0   # TODO: v=0 is applicable to torrential flows ?
-                    water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype), axis=0)
+                    water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype),
+                                                axis=0)
                     velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
 
                     # temp
@@ -571,7 +585,7 @@ class Data2d(list):
         for reach_num in range(0, self.reach_num):
             # for all units
             for unit_num in range(0, self.unit_num):
-                #print("--- compute_variables unit", str(unit_num), " ---")
+                # print("--- compute_variables unit", str(unit_num), " ---")
                 """ node """
                 if node_variable_list:
                     for node_variable in node_variable_list:
@@ -646,6 +660,140 @@ class Data2d(list):
             for unit_num in range(0, self.unit_num):
                 self[reach_num][unit_num].remove_null_area()
 
+    def neighbouring_triangles(self, tin):
+        seg1 = tin[:, 0:2].reshape((len(tin), 1, 2))
+        seg2 = tin[:, 1:3].reshape((len(tin), 1, 2))
+        seg3 = tin[:, 0::2].reshape((len(tin), 1, 2))
+        segments = np.concatenate((seg1, seg2, seg3), axis=1)
+        segment_sides_found = np.zeros((len(tin), 3), dtype=bool)
+        neighbouring_triangles = [[] for _ in range(len(tin))]
+        neighbour_count = np.zeros(len(tin), dtype=int)
+        for tri_i in range(len(tin)):
+            for segment_i in range(len(segments[tri_i])):
+                if not segment_sides_found[tri_i, segment_i]:
+                    neighbour, matching_segment = np.nonzero((segments == segments[tri_i, segment_i]).all(axis=2))
+                    if len(neighbour) == 2:
+                        neighbouring_triangles[neighbour[0]].append(neighbour[1])
+                        neighbouring_triangles[neighbour[1]].append(neighbour[0])
+                        segment_sides_found[neighbour, matching_segment] = True
+                    elif len(neighbour) != 1:
+                        print("ERROR: there is something wrong with the neighbouring function")
+
+            neighbour_count[tri_i] = len(neighbouring_triangles[tri_i])
+        return neighbouring_triangles, neighbour_count
+
+    def triangle_connectedness(self, neighbours):
+        already_counted = np.zeros(len(neighbours), dtype=bool)
+        connectedness = np.zeros(len(neighbours), dtype=int)
+        for i in range(len(neighbours)):
+            if not (already_counted[i]):
+                edge_triangles = neighbours[i]
+                network = [i] + edge_triangles
+                network_is_growing = True
+
+                while network_is_growing:
+                    network_is_growing = False
+                    new_edge_triangles = []
+                    for tri in edge_triangles:
+                        for neighbour in neighbours[tri]:
+                            if not neighbour in network:
+                                network.append(neighbour)
+                                new_edge_triangles.append(neighbour)
+                                network_is_growing = True
+                    edge_triangles = new_edge_triangles
+                connectedness[network] = len(network)
+                already_counted[network] = True
+        return connectedness
+
+    def check_point_pertinence(self, x_adj, y_adj, phi_adj, x_lone, y_lone, phi_lone, max_discrepancy):
+        ##Calculating planar a*x+b*y+c approximation of phi from nodes of adjacent triangle
+        try:
+            A = np.concatenate((x_adj.reshape((3, 1)), y_adj.reshape((3, 1)), np.ones((3, 1))), axis=1)
+            a, b, c = np.linalg.solve(A, phi_adj)
+            phi_pred = a * x_lone + b * y_lone + c  # phi predicted at the lone node position
+            discrepancy = abs(phi_pred - phi_lone)
+            return discrepancy <= max_discrepancy
+        except np.linalg.LinAlgError:
+            print("singular matrix!")
+            return False
+
+    def fix_aberrations(self, npasses=10, tolerance=0.01, connectedness_criterion=5):
+        # TODO optimize code to run faster for large meshes
+        # TODO find the most appropriate parameters npasses, tolerance, connectedness_criterion
+
+        for reach_i in range(self.reach_num):
+            for unit_i in range(self.unit_num):
+                ##Aliases
+                node_data = self[reach_i][unit_i]["node"]["data"]
+                unsorted_tin = self[reach_i][unit_i]["mesh"]["tin"]
+                mesh_data = self[reach_i][unit_i]["mesh"]["data"]  # alias, not copy
+                i_whole_profile = self[reach_i][unit_i]["mesh"]["i_whole_profile"]
+                ##Copies
+                tin = np.sort(unsorted_tin, axis=1)
+                x = self[reach_i][unit_i]["node"]["xy"][:, 0]
+                x -= np.mean(x)
+                y = self[reach_i][unit_i]["node"]["xy"][:, 1]
+                y -= np.mean(y)
+                phi = np.array((node_data["z"].array - np.min(node_data["z"].array)) + node_data[
+                    "h"].array)  # water height relative to a point at the bottom of the river bed
+                node_number = len(x)
+
+                max_discrepancy = np.mean(phi) * tolerance
+
+                passes = 0
+                while passes < npasses:
+
+                    neighbours, neighbour_count = self.neighbouring_triangles(tin)
+                    connectedness = self.triangle_connectedness(neighbours)
+                    triangles_to_remove = []
+
+                    for tri_index in range(len(tin)):
+                        if connectedness[tri_index] < connectedness_criterion:
+                            triangles_to_remove.append(tri_index)
+                        if neighbour_count[tri_index] == 1:
+                            adjacent_triangle = tin[neighbours[tri_index][0]]
+                            x_adj, y_adj, phi_adj = x[adjacent_triangle], y[adjacent_triangle], phi[adjacent_triangle]
+                            for node in tin[tri_index]:
+                                if not node in adjacent_triangle:
+                                    lone_node = node
+                            x_lone, y_lone, phi_lone = x[lone_node], y[lone_node], phi[lone_node]
+
+                            if not self.check_point_pertinence(x_adj, y_adj, phi_adj, x_lone, y_lone, phi_lone,
+                                                               max_discrepancy):
+                                triangles_to_remove.append(tri_index)
+
+                        # elif neighbour_count[tri_index] == 2:
+                        #     for adjacent_triangle in neighbours[tri_index]:
+                        #         x_adj, y_adj, phi_adj = x[adjacent_triangle], y[adjacent_triangle], phi[
+                        #             adjacent_triangle]
+                        #         for node in tin[tri_index]:
+                        #             if not node in adjacent_triangle:
+                        #                 lone_node = node
+                        #         x_lone, y_lone, phi_lone = x[lone_node], y[lone_node], phi[lone_node]
+                        #
+                        #         if not self.check_point_pertinence(x_adj, y_adj, phi_adj, x_lone, y_lone, phi_lone,
+                        #                                            max_discrepancy):
+                        #             triangles_to_remove.append(tri_index)
+                        #             break
+
+                    np.delete(tin, triangles_to_remove, axis=0)
+                    np.delete(unsorted_tin, triangles_to_remove, axis=0)
+                    # np.delete(mesh_data, triangles_to_remove, axis=0)
+                    np.delete(i_whole_profile, triangles_to_remove, axis=0)
+                    mesh_data.drop(axis=0, index=mesh_data.index, inplace=True)
+                    if len(triangles_to_remove) == 0:
+                        passes = npasses  # if no triangles were removed in the loop, stop iterating
+                    passes += 1
+
+                # self[reach_i][unit_i]["mesh"]["tin"] = unsorted_tin
+                # self[reach_i][unit_i]["mesh"]["data"] = mesh_data
+                # self[reach_i][unit_i]["i_whole_profile"] = i_whole_profile
+
+                for node in range(node_number):
+                    if not node in tin:
+                        node_data.drop(index=node_data.index[node], axis=0, inplace=True)
+                        np.delete(self[reach_i][unit_i]["node"]["xy"], node, axis=0)
+
     def get_hs_summary_data(self, reach_num_list, unit_num_list):
         # get hs headers
         self.hs_summary_data = [[]]
@@ -693,6 +841,7 @@ class UnitDict(dict):
         self.data_width = None
 
     """ mesh """
+
     # mean from node variable
     def c_mesh_mean_from_node_values(self, node_variable_name):
         mesh_values = np.mean([self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 0]],
@@ -710,7 +859,8 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.v.name] = self.c_mesh_mean_from_node_values(self.hvum.v.name)
 
     def c_mesh_shear_stress(self):
-        self["mesh"]["data"][self.hvum.shear_stress.name] = self.c_mesh_mean_from_node_values(self.hvum.shear_stress.name)
+        self["mesh"]["data"][self.hvum.shear_stress.name] = self.c_mesh_mean_from_node_values(
+            self.hvum.shear_stress.name)
 
     # compute from node variable
     def c_mesh_shear_stress_beta(self):
@@ -728,8 +878,9 @@ class UnitDict(dict):
         v3 = self["node"]["data"][self.hvum.v.name].to_numpy()[self["mesh"]["tin"][:, 2]]
 
         w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
-        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * self.hvum.g.value), z2 + h2 + v2 ** 2 / (2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (
-                    2 * self.hvum.g.value)
+        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * self.hvum.g.value), z2 + h2 + v2 ** 2 / (
+                2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (
+                                2 * self.hvum.g.value)
         u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
         v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -786,8 +937,9 @@ class UnitDict(dict):
         v3 = self["node"]["data"][self.hvum.v.name].to_numpy()[self["mesh"]["tin"][:, 2]]
 
         w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
-        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * self.hvum.g.value), z2 + h2 + v2 ** 2 / (2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (
-                    2 * self.hvum.g.value)
+        zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * self.hvum.g.value), z2 + h2 + v2 ** 2 / (
+                2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (
+                                2 * self.hvum.g.value)
         u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
         v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
         with np.errstate(divide='ignore', invalid='ignore'):
@@ -824,10 +976,11 @@ class UnitDict(dict):
         if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
             # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
             self["mesh"]["data"][self.hvum.hydraulic_head.name] = self["mesh"]["data"][self.hvum.h.name] + (
-                        (self["mesh"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
+                    (self["mesh"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
         # compute mesh mean
         else:
-            self["mesh"]["data"][self.hvum.hydraulic_head.name] = self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head.name)
+            self["mesh"]["data"][self.hvum.hydraulic_head.name] = self.c_mesh_mean_from_node_values(
+                self.hvum.hydraulic_head.name)
 
     def c_mesh_conveyance(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -837,7 +990,8 @@ class UnitDict(dict):
                                                               self["mesh"]["data"][self.hvum.v.name]
         # compute mesh mean
         else:
-            self["mesh"]["data"][self.hvum.conveyance.name] = self.c_mesh_mean_from_node_values(self.hvum.conveyance.name)
+            self["mesh"]["data"][self.hvum.conveyance.name] = self.c_mesh_mean_from_node_values(
+                self.hvum.conveyance.name)
 
     def c_mesh_water_level(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -845,7 +999,7 @@ class UnitDict(dict):
         if self.hvum.h.name in mesh_colnames and self.hvum.z.name in mesh_colnames:
             # mesh_water_level from mesh_h and mesh_z
             self["mesh"]["data"][self.hvum.level.name] = np.sum([self["mesh"]["data"][self.hvum.z.name],
-                                                        self["mesh"]["data"][self.hvum.h.name]], axis=0)
+                                                                 self["mesh"]["data"][self.hvum.h.name]], axis=0)
         else:
             # mesh_water_level
             self["mesh"]["data"][self.hvum.level.name] = self.c_mesh_mean_from_node_values(self.hvum.level.name)
@@ -962,27 +1116,35 @@ class UnitDict(dict):
         self["mesh"]["data"][self.hvum.sub_dom.name] = sub_dom
 
     """ node """
+
     def c_node_shear_stress(self):
-        self["node"]["data"][self.hvum.shear_stress.name] = (self["node"]["data"][self.hvum.v_frict.name] ** 2) * self.hvum.ro.value
+        self["node"]["data"][self.hvum.shear_stress.name] = (self["node"]["data"][
+                                                                 self.hvum.v_frict.name] ** 2) * self.hvum.ro.value
 
     def c_node_froude(self):
         # compute froude
-        self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.v.name] / np.sqrt(self.hvum.g.value * self["node"]["data"][self.hvum.h.name])
+        self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.v.name] / np.sqrt(
+            self.hvum.g.value * self["node"]["data"][self.hvum.h.name])
         with pd.option_context('mode.use_inf_as_na', True):
-            self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(0)  # divid by 0 return Nan
+            self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(
+                0)  # divid by 0 return Nan
 
     def c_node_hydraulic_head(self):
         # TODO: add z for 3d pvd
         # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
-        self["node"]["data"][self.hvum.hydraulic_head.name] = self["node"]["data"][self.hvum.h.name] + ((self["node"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
+        self["node"]["data"][self.hvum.hydraulic_head.name] = self["node"]["data"][self.hvum.h.name] + (
+                (self["node"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
 
     def c_node_conveyance(self):
-        self["node"]["data"][self.hvum.conveyance.name] = self["node"]["data"][self.hvum.h.name] * self["node"]["data"][self.hvum.v.name]
+        self["node"]["data"][self.hvum.conveyance.name] = self["node"]["data"][self.hvum.h.name] * self["node"]["data"][
+            self.hvum.v.name]
 
     def c_node_water_level(self):
-        self["node"]["data"][self.hvum.level.name] = self["node"]["data"][self.hvum.z.name] + self["node"]["data"][self.hvum.h.name]
+        self["node"]["data"][self.hvum.level.name] = self["node"]["data"][self.hvum.z.name] + self["node"]["data"][
+            self.hvum.h.name]
 
     """ other """
+
     def remove_null_area(self):
         index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() == 0.0
 
@@ -991,10 +1153,12 @@ class UnitDict(dict):
             self["mesh"][self.hvum.tin.name] = self["mesh"][self.hvum.tin.name][~index_to_remove]
 
             # update i_whole_profile
-            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][~index_to_remove]
+            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][
+                ~index_to_remove]
 
             # update mesh data
             self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
 
             print("Warning: " + str(np.sum(index_to_remove)) + " hydraulic triangle(s) "
-                    "detected with a null surface in unit " + str(self.unit_num) + ". This is removed.")
+                                                               "detected with a null surface in unit " + str(
+                self.unit_num) + ". This is removed.")
