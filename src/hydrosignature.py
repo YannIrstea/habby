@@ -360,6 +360,19 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
         return nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume
 
 
+def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
+                        hdf5name_2, reach_index_list_2, unit_index_list_2, path_prj):
+    # create hdf5 class
+    hdf5_1 = hdf5_mod.Hdf5Management(path_prj, hdf5name_1)
+    hdf5_1.open_hdf5_file(False)
+    hdf5_1.load_hydrosignature()
+    hdf5_2 = hdf5_mod.Hdf5Management(path_prj, hdf5name_2)
+    hdf5_2.open_hdf5_file(False)
+    hdf5_2.load_hydrosignature()
+
+    #TODO
+
+
 def hscomparison(classhv1, hs1, classhv2, hs2, k1=1, k2=1):
     # checking validity of the operation
     bok = False
@@ -630,8 +643,8 @@ if __name__ == '__main__':
         print(hsc)
 
         # Test export file
-        pathexport = 'C:\\habby_dev\\files\\hydrosignature';
-        filename = "3HSexport.txt";
+        pathexport = 'C:\\habby_dev\\files\\hydrosignature'
+        filename = "3HSexport.txt"
         unitname = 'XXXXXXX'
         hsexporttxt(pathexport, filename, classhv, unitname, nb_mesh, total_area, total_volume, mean_depth,
                     mean_velocity,

@@ -667,7 +667,7 @@ class VisualGroup(QGroupBoxCollapsible):
                                                self.axe_mod_choosen))
         self.process_list.append((hydrosignature_process, state))
 
-        self.process_list.start()
+        self.process_list.start()load_hs_and_compare
 
     def plot_hs_result(self):
         # hdf5
@@ -732,6 +732,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # file_selection_1
         file_selection_label_1 = QLabel(self.tr("HS files :"))
         self.file_selection_listwidget_1 = QListWidget()
+        self.file_selection_listwidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.file_selection_listwidget_1.itemSelectionChanged.connect(self.names_hdf5_change_1)
         file_selection_layout_1 = QVBoxLayout()
         file_selection_layout_1.addWidget(file_selection_label_1)
@@ -740,6 +741,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # reach_1
         reach_label_1 = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget_1 = QListWidget()
+        self.reach_QListWidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.reach_QListWidget_1.itemSelectionChanged.connect(self.reach_hdf5_change_1)
         reach_layout_1 = QVBoxLayout()
         reach_layout_1.addWidget(reach_label_1)
@@ -748,6 +750,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # units_1
         units_label_1 = QLabel(self.tr('unit(s)'))
         self.units_QListWidget_1 = QListWidget()
+        self.units_QListWidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
         units_layout_1 = QVBoxLayout()
         units_layout_1.addWidget(units_label_1)
         units_layout_1.addWidget(self.units_QListWidget_1)
@@ -761,6 +764,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # file_selection_2
         file_selection_label_2 = QLabel(self.tr("HS files :"))
         self.file_selection_listwidget_2 = QListWidget()
+        self.file_selection_listwidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.file_selection_listwidget_2.itemSelectionChanged.connect(self.names_hdf5_change_2)
         file_selection_layout_2 = QVBoxLayout()
         file_selection_layout_2.addWidget(file_selection_label_2)
@@ -769,6 +773,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # reach_2
         reach_label_2 = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget_2 = QListWidget()
+        self.reach_QListWidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.reach_QListWidget_2.itemSelectionChanged.connect(self.reach_hdf5_change_2)
         reach_layout_2 = QVBoxLayout()
         reach_layout_2.addWidget(reach_label_2)
@@ -777,6 +782,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # units_2
         units_label_2 = QLabel(self.tr('unit(s)'))
         self.units_QListWidget_2 = QListWidget()
+        self.units_QListWidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
         units_layout_2 = QVBoxLayout()
         units_layout_2.addWidget(units_label_2)
         units_layout_2.addWidget(self.units_QListWidget_2)
@@ -799,6 +805,7 @@ class CompareGroup(QGroupBoxCollapsible):
         filename_label = QLabel(self.tr("Output filename :"))
         self.filename_lineedit = QLineEdit(self.tr('HS_comp.txt'))
         self.run_comp_pushbutton = QPushButton(self.tr("run"))
+        self.run_comp_pushbutton.clicked.connect(self.compare)
         self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
 
         comp_run_layout = QGridLayout()
@@ -900,4 +907,23 @@ class CompareGroup(QGroupBoxCollapsible):
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget_2.addItem(item)
+
+    def compare(self):
+        # hdf5
+        hdf5name_1 = self.file_selection_listwidget_1.selectedItems()[0].text()
+        hdf5name_2 = self.file_selection_listwidget_2.selectedItems()[0].text()
+
+        # reach
+        reach_index_list_1 = [element.row() for element in self.reach_QListWidget_1.selectedIndexes()]
+        reach_index_list_2 = [element.row() for element in self.reach_QListWidget_2.selectedIndexes()]
+
+        # units
+        unit_index_list_1 = [element.row() for element in self.units_QListWidget_1.selectedIndexes()]
+        unit_index_list_2 = [element.row() for element in self.units_QListWidget_2.selectedIndexes()]
+
+        hydrosignature.load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
+                                           hdf5name_2, reach_index_list_2, unit_index_list_2,
+                                           self.path_prj)
+
+
 
