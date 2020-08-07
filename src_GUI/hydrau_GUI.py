@@ -595,18 +595,18 @@ class ModelInfoGroup(QGroupBox):
     def update_reach_from_input_file(self):
         self.reach_name_combobox.blockSignals(True)
         self.reach_name_combobox.clear()
-        self.reach_name_combobox.addItems(self.hydrau_description_list[0]["reach_list"])
-        mesh_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].meshs().names_gui())
-        node_list = ", ".join(self.hydrau_description_list[0]["variable_name_unit_dict"].nodes().names_gui())
+        self.reach_name_combobox.addItems(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["reach_list"])
+        mesh_list = ", ".join(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["variable_name_unit_dict"].meshs().names_gui())
+        node_list = ", ".join(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["variable_name_unit_dict"].nodes().names_gui())
         self.usefull_mesh_variable_label.setText(mesh_list)
         self.usefull_node_variable_label.setText(node_list)
 
-        self.units_name_label.setText(self.hydrau_description_list[0]["unit_type"])  # kind of unit
+        self.units_name_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_type"])  # kind of unit
 
         self.update_unit_from_reach()
 
-        self.epsg_label.setText(self.hydrau_description_list[0]["epsg_code"])
-        self.hdf5_name_lineedit.setText(self.hydrau_description_list[0]["hdf5_name"])  # hdf5 name
+        self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
+        self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
         text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" .hyd file")
         if len(self.hydrau_description_list) > 1:
             text_load_button = text_load_button + "s"

@@ -381,7 +381,9 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
             all_list.append((1, reach_num, unit_num))
 
     combination_list = list(permutations(all_list, 2))
-
+    for comb in combination_list:
+        if tuple(reversed(comb)) in combination_list:
+            combination_list.pop(combination_list.index(tuple(reversed(comb))))
     f = open(os.path.join(path_prj, "output", "text", out_filename), 'w')
     f.write("reach_1" + "\t" + "unit_1" + "\t" + "reach_2" + "\t" + "unit_2" + "\t" + "hs_comp_value" + '\n')
 
@@ -426,6 +428,7 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                     reach_name_2 + "\t" +
                     unit_name_2 + "\t" +
                     str(hs_comp_value) + '\n')
+    f.close()
 
 
 def hscomparison(classhv1, hs1, classhv2, hs2, k1=1, k2=1):
