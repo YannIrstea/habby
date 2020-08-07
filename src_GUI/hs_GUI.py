@@ -667,7 +667,7 @@ class VisualGroup(QGroupBoxCollapsible):
                                                self.axe_mod_choosen))
         self.process_list.append((hydrosignature_process, state))
 
-        self.process_list.start()load_hs_and_compare
+        self.process_list.start()
 
     def plot_hs_result(self):
         # hdf5
