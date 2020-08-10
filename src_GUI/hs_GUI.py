@@ -924,6 +924,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # load_hs_and_compare
         hydrosignature.load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                                            hdf5name_2, reach_index_list_2, unit_index_list_2,
+                                           self.comp_choice_all_radio.isChecked(),
                                            self.filename_lineedit.text(),
                                            self.path_prj)
 

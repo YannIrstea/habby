@@ -2,7 +2,7 @@ import numpy as np
 import numpy.lib.recfunctions
 import os.path
 import time
-from itertools import combinations, permutations
+from itertools import combinations, permutations, combinations_with_replacement, product
 
 from src import hdf5_mod
 
@@ -363,7 +363,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
 
 def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                         hdf5name_2, reach_index_list_2, unit_index_list_2,
-                        out_filename, path_prj):
+                        all_possibilities, out_filename, path_prj):
     # create hdf5 class
     hdf5_1 = hdf5_mod.Hdf5Management(path_prj, hdf5name_1)
     hdf5_1.open_hdf5_file(False)
@@ -372,62 +372,62 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
     hdf5_2.open_hdf5_file(False)
     hdf5_2.load_hydrosignature()
 
-    all_list = []
-    for reach_num in reach_index_list_1:
-        for unit_num in unit_index_list_1:
-            all_list.append((0, reach_num, unit_num))
-    for reach_num in reach_index_list_2:
-        for unit_num in unit_index_list_2:
-            all_list.append((1, reach_num, unit_num))
+    col_row_name_list = [""]
+    table_list = []
+    for reach_num_1 in reach_index_list_1:
+        for unit_num_1 in unit_index_list_1:
+            reach_name_1 = hdf5_1.data_2d[reach_num_1][unit_num_1].reach_name
+            unit_name_1 = hdf5_1.data_2d[reach_num_1][unit_num_1].unit_name
+            col_name = hdf5name_1 + "_" + reach_name_1 + "_" + unit_name_1
+            col_row_name_list.append(col_name)
+            table_list.append((hdf5_1, reach_num_1, unit_num_1))
+    for reach_num_2 in reach_index_list_2:
+        for unit_num_2 in unit_index_list_2:
+            reach_name_2 = hdf5_2.data_2d[reach_num_2][unit_num_2].reach_name
+            unit_name_2 = hdf5_2.data_2d[reach_num_2][unit_num_2].unit_name
+            col_name = hdf5name_2 + "_" + reach_name_2 + "_" + unit_name_2
+            # all same
+            if not all_possibilities:
+                if reach_num_2 in reach_index_list_1 and unit_num_2 in unit_index_list_1:
+                    col_row_name_list.append(col_name)
+                    table_list.append((hdf5_2, reach_num_2, unit_num_2))
+            else:
+                col_row_name_list.append(col_name)
+                table_list.append((hdf5_2, reach_num_2, unit_num_2))
 
-    combination_list = list(permutations(all_list, 2))
-    for comb in combination_list:
-        if tuple(reversed(comb)) in combination_list:
-            combination_list.pop(combination_list.index(tuple(reversed(comb))))
-    f = open(os.path.join(path_prj, "output", "text", out_filename), 'w')
-    f.write("reach_1" + "\t" + "unit_1" + "\t" + "reach_2" + "\t" + "unit_2" + "\t" + "hs_comp_value" + '\n')
+    # compute combination
+    combination_list = list(product(table_list, repeat=2))
 
+    # compute hscomparison
+    data_list = []
     for comb in combination_list:
-        # first_comp
+        # first
         first_comp = comb[0]
-
-        # second_comp
+        classhv1 = first_comp[0].hs_input_class
+        hs1 = first_comp[0].data_2d[first_comp[1]][first_comp[2]].hydrosignature["hsarea"]
+        # second
         second_comp = comb[1]
-
-        if first_comp[0] == 0:
-            classhv1 = hdf5_1.hs_input_class
-            hs1 = hdf5_1.data_2d[first_comp[1]][first_comp[2]].hydrosignature["hsarea"]
-            reach_name_1 = hdf5_1.data_2d[first_comp[1]][first_comp[2]].reach_name
-            unit_name_1 = hdf5_1.data_2d[first_comp[1]][first_comp[2]].unit_name
-        else:
-            classhv1 = hdf5_2.hs_input_class
-            hs1 = hdf5_2.data_2d[first_comp[1]][first_comp[2]].hydrosignature["hsarea"]
-            reach_name_1 = hdf5_2.data_2d[first_comp[1]][first_comp[2]].reach_name
-            unit_name_1 = hdf5_2.data_2d[first_comp[1]][first_comp[2]].unit_name
-
-        if second_comp[0] == 0:
-            classhv2 = hdf5_1.hs_input_class
-            hs2 = hdf5_1.data_2d[second_comp[1]][second_comp[2]].hydrosignature["hsarea"]
-            reach_name_2 = hdf5_1.data_2d[second_comp[1]][second_comp[2]].reach_name
-            unit_name_2 = hdf5_1.data_2d[second_comp[1]][second_comp[2]].unit_name
-        else:
-            classhv2 = hdf5_2.hs_input_class
-            hs2 = hdf5_2.data_2d[second_comp[1]][second_comp[2]].hydrosignature["hsarea"]
-            reach_name_2 = hdf5_2.data_2d[second_comp[1]][second_comp[2]].reach_name
-            unit_name_2 = hdf5_2.data_2d[second_comp[1]][second_comp[2]].unit_name
-
+        classhv2 = second_comp[0].hs_input_class
+        hs2 = second_comp[0].data_2d[second_comp[1]][second_comp[2]].hydrosignature["hsarea"]
         # comp
         done_tf, hs_comp_value = hscomparison(classhv1=classhv1,
-                                      hs1=hs1,
-                                      classhv2=classhv2,
-                                      hs2=hs2)
+                                              hs1=hs1,
+                                              classhv2=classhv2,
+                                              hs2=hs2)
+        # append
+        data_list.append(str(hs_comp_value))
 
-        if done_tf:
-            f.write(reach_name_1 + "\t" +
-                    unit_name_1 + "\t" +
-                    reach_name_2 + "\t" +
-                    unit_name_2 + "\t" +
-                    str(hs_comp_value) + '\n')
+    # add colnames
+    data_list_2 = []
+    for ind, x in enumerate(range(0, len(data_list), len(col_row_name_list) - 1)):
+        row_list = [col_row_name_list[ind + 1]] + data_list[x:x + len(col_row_name_list) - 1]
+        data_list_2.append(row_list)
+    data_list_2.insert(0, col_row_name_list)
+
+    # write file
+    f = open(os.path.join(path_prj, "output", "text", out_filename), 'w')
+    for row in data_list_2:
+        f.write("\t".join(row) + '\n')
     f.close()
 
 
