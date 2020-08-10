@@ -18,6 +18,7 @@ import os
 import sys
 from multiprocessing import Process, Queue, Value
 import numpy as np
+from copy import deepcopy
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt
 from PyQt5.QtGui import QIcon
@@ -726,7 +727,7 @@ class ModelInfoGroup(QGroupBox):
         self.nativeParentWidget().progress_bar.setVisible(True)
 
         # check if extension is set by user (multi hdf5 case)
-        hydrau_description_multiple = list(self.hydrau_description_list)  # create copy to not erase inital choices
+        hydrau_description_multiple = deepcopy(self.hydrau_description_list)  # create copy to not erase inital choices
         for hdf5_num in range(len(hydrau_description_multiple)):
             if not os.path.splitext(hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
                 hydrau_description_multiple[hdf5_num]["hdf5_name"] = hydrau_description_multiple[hdf5_num]["hdf5_name"] + ".hyd"
@@ -748,10 +749,6 @@ class ModelInfoGroup(QGroupBox):
 
         # write the new file name in the project file
         self.save_xml()
-
-        # check cases
-        for el in hydrau_description_multiple:
-            print(el["unit_list"])
 
         self.q = Queue()
         self.progress_value = Value("d", 0)
