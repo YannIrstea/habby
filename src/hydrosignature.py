@@ -403,7 +403,7 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
     # compute combination
     combination_list = list(product(table_list, repeat=2))
 
-    # compute hscomparison
+    # compute hscomparison area
     data_list = []
     for comb in combination_list:
         # first
@@ -421,17 +421,43 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                                               hs2=hs2)
         # append
         data_list.append(str(hs_comp_value))
-
-    # add colnames
-    data_list_2 = []
+    row_area_list = []
     for ind, x in enumerate(range(0, len(data_list), len(col_row_name_list) - 1)):
         row_list = [col_row_name_list[ind + 1]] + data_list[x:x + len(col_row_name_list) - 1]
-        data_list_2.append(row_list)
-    data_list_2.insert(0, col_row_name_list)
+        row_area_list.append(row_list)
+    row_area_list.insert(0, col_row_name_list)
+
+    # compute hscomparison volume
+    data_list = []
+    for comb in combination_list:
+        # first
+        first_comp = comb[0]
+        classhv1 = first_comp[0].hs_input_class
+        hs1 = first_comp[0].data_2d[first_comp[1]][first_comp[2]].hydrosignature["hsvolume"]
+        # second
+        second_comp = comb[1]
+        classhv2 = second_comp[0].hs_input_class
+        hs2 = second_comp[0].data_2d[second_comp[1]][second_comp[2]].hydrosignature["hsvolume"]
+        # comp
+        done_tf, hs_comp_value = hscomparison(classhv1=classhv1,
+                                              hs1=hs1,
+                                              classhv2=classhv2,
+                                              hs2=hs2)
+        # append
+        data_list.append(str(hs_comp_value))
+    row_volume_list = []
+    for ind, x in enumerate(range(0, len(data_list), len(col_row_name_list) - 1)):
+        row_list = [col_row_name_list[ind + 1]] + data_list[x:x + len(col_row_name_list) - 1]
+        row_volume_list.append(row_list)
+    row_volume_list.insert(0, col_row_name_list)
 
     # write file
     f = open(os.path.join(path_prj, "output", "text", out_filename), 'w')
-    for row in data_list_2:
+    f.write("area" + '\n')
+    for row in row_area_list:
+        f.write("\t".join(row) + '\n')
+    f.write('\n' + "volume" + '\n')
+    for row in row_volume_list:
         f.write("\t".join(row) + '\n')
     f.close()
 
