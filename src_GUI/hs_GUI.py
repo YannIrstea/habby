@@ -725,6 +725,7 @@ class CompareGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
+        self.comp_filename = 'HS_comp.txt'
         self.setTitle(title)
         self.init_ui()
 
@@ -801,9 +802,11 @@ class CompareGroup(QGroupBoxCollapsible):
         # comp_run
         self.comp_choice_all_radio = QRadioButton(self.tr("All possibilities"))
         self.comp_choice_all_radio.setChecked(True)
+        self.comp_choice_all_radio.toggled.connect(self.mod_change)
         self.comp_choice_same_radio = QRadioButton(self.tr("All same"))
         filename_label = QLabel(self.tr("Output filename :"))
-        self.filename_lineedit = QLineEdit(self.tr('HS_comp.txt'))
+        self.filename_lineedit = QLineEdit()
+        self.mod_change(None)
         self.run_comp_pushbutton = QPushButton(self.tr("run"))
         self.run_comp_pushbutton.clicked.connect(self.compare)
         self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
@@ -907,6 +910,12 @@ class CompareGroup(QGroupBoxCollapsible):
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget_2.addItem(item)
+
+    def mod_change(self, _):
+        if self.comp_choice_all_radio.isChecked():
+            self.filename_lineedit.setText(os.path.splitext(self.comp_filename)[0] + "_poss.txt")
+        else:
+            self.filename_lineedit.setText(os.path.splitext(self.comp_filename)[0] + "_same.txt")
 
     def compare(self):
         # hdf5

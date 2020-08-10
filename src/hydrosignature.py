@@ -374,6 +374,8 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
 
     col_row_name_list = [""]
     table_list = []
+    reach_name_1_list = []
+    unit_name_1_list = []
     for reach_num_1 in reach_index_list_1:
         for unit_num_1 in unit_index_list_1:
             reach_name_1 = hdf5_1.data_2d[reach_num_1][unit_num_1].reach_name
@@ -381,6 +383,9 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
             col_name = hdf5name_1 + "_" + reach_name_1 + "_" + unit_name_1
             col_row_name_list.append(col_name)
             table_list.append((hdf5_1, reach_num_1, unit_num_1))
+            # templist
+            reach_name_1_list.append(reach_name_1)
+            unit_name_1_list.append(unit_name_1)
     for reach_num_2 in reach_index_list_2:
         for unit_num_2 in unit_index_list_2:
             reach_name_2 = hdf5_2.data_2d[reach_num_2][unit_num_2].reach_name
@@ -388,7 +393,7 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
             col_name = hdf5name_2 + "_" + reach_name_2 + "_" + unit_name_2
             # all same
             if not all_possibilities:
-                if reach_num_2 in reach_index_list_1 and unit_num_2 in unit_index_list_1:
+                if reach_name_2 in reach_name_1_list and unit_name_2 in unit_name_1_list:
                     col_row_name_list.append(col_name)
                     table_list.append((hdf5_2, reach_num_2, unit_num_2))
             else:
