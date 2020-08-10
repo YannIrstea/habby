@@ -627,6 +627,8 @@ class ModelInfoGroup(QGroupBox):
         self.unit_counter()
 
     def unit_counter(self):
+        hyd_desc_index = self.input_file_combobox.currentIndex()
+        reach_index = self.reach_name_combobox.currentIndex()
         # count total number items (units)
         total = self.units_QListWidget.count()
         # count total number items selected
@@ -643,20 +645,34 @@ class ModelInfoGroup(QGroupBox):
             unit_list_full.append(text)
             unit_list_tf.append(self.units_QListWidget.item(i).isSelected())
         # save multi
-        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list"][self.reach_name_combobox.currentIndex()] = list(unit_list)
-        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_full"][self.reach_name_combobox.currentIndex()] = unit_list_full
-        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_list_tf"][self.reach_name_combobox.currentIndex()] = unit_list_tf
-        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_number"] = str(selected)
+        self.hydrau_description_list[hyd_desc_index]["unit_list"][reach_index] = list(unit_list)
+        self.hydrau_description_list[hyd_desc_index]["unit_list_full"][reach_index] = unit_list_full
+        self.hydrau_description_list[hyd_desc_index]["unit_list_tf"][reach_index] = unit_list_tf
+        self.hydrau_description_list[hyd_desc_index]["unit_number"] = str(selected)
 
         if not self.project_preferences["cut_mesh_partialy_dry"]:
             namehdf5_old = \
-            os.path.splitext(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])[0]
+            os.path.splitext(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])[0]
             exthdf5_old = \
-            os.path.splitext(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])[1]
+            os.path.splitext(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])[1]
             if not "no_cut" in namehdf5_old:
-                self.hydrau_description_list[self.input_file_combobox.currentIndex()][
+                self.hydrau_description_list[hyd_desc_index][
                     "hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-        self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
+
+        if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+            # preset name hdf5
+            filename_source_list = self.hydrau_description_list[hyd_desc_index]["filename_source"].split(", ")
+            new_names_list = []
+            for file_num, file in enumerate(filename_source_list):
+                if self.hydrau_description_list[hyd_desc_index]["unit_list_tf"][reach_index][file_num]:
+                    new_names_list.append(os.path.splitext(file)[0])
+            self.hydrau_description_list[hyd_desc_index]["hdf5_name"] = "_".join(new_names_list) + ".hyd"
+            if len(filename_source_list) == len(new_names_list) and len(self.hydrau_description_list[hyd_desc_index]["hdf5_name"]) > 25:
+                self.hydrau_description_list[hyd_desc_index]["hdf5_name"] = new_names_list[0].replace(".", "_") \
+                                                                                        + "_to_" + \
+                                                                                        new_names_list[-1].replace(".", "_") + ".hyd"
+
+        self.hdf5_name_lineedit.setText(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])  # hdf5 name
 
         # set text
         text = str(selected) + "/" + str(total)

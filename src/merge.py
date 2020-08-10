@@ -742,7 +742,7 @@ def intersection2segmentsdistsquare(xya, xyb, xyc, xyd):
     return bok, xycontact, dist_square_to_a
 
 
-@profileit
+# @profileit
 def gridtin(sub_xy, sub_tin, gridelt, bnoflat):  # sub_xy, sub_tin
     '''
     building the table : for each cell of the grid  determining the list of meshes from the substrate TIN that have at least a part in the cell
