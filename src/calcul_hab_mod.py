@@ -86,10 +86,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     hdf5.data_2d.hvum = hdf5.hvum
 
     # progress
-    progress_value.value = 20
-
-    # progress
-    delta_reach = (90 - progress_value.value) / hdf5.data_2d.reach_num
+    delta_reach = (80 - progress_value.value) / hdf5.data_2d.reach_num
 
     # for each reach
     for reach_num in range(hdf5.data_2d.reach_num):
@@ -334,8 +331,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
                   ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
                                                                           " of reach : ") +
-                  hdf5.data_description[
-                      "hyd_reach_list"])
+                  hdf5.reach_name[reach_num])
         # WARNINGS HEM
         if animal.aquatic_animal_type == "invertebrate":
             if warning_shearstress_list:
@@ -349,7 +345,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                     "calcul_hab_mod", ", the shear stress data present unknown values in unit(s) : ") +
                       ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
                                                                               " of reach : ") +
-                      hdf5.data_description["hyd_reach_list"])
+                      hdf5.reach_name[reach_num])
 
     # progress
     progress_value.value = 90

@@ -631,6 +631,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                         item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setToolTip(
                             self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
                         self.hyd_mode_qtablewidget.selectRow(hydraulic_type_available.index("Neglect"))
+                        choosen_index = hydraulic_type_available.index("Neglect")
                         item_combobox_hyd.setToolTip(
                             self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
                 item_combobox_hyd.setCurrentIndex(choosen_index)

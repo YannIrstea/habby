@@ -94,7 +94,7 @@ class Hdf5Management:
         self.sub_mapping_method = None
         self.sub_description_system = dict()
 
-    def open_hdf5_file(self, new=False):
+    def open_hdf5_file(self, new=False, get_hdf5_attributes=True):
         # get mode
         if not new:
             mode_file = 'r+'  # Readonly, file must exist
@@ -127,7 +127,8 @@ class Hdf5Management:
             if self.hdf5_type != "ESTIMHAB":
                 self.project_preferences = load_project_properties(self.path_prj)
 
-                self.get_hdf5_attributes()
+                if get_hdf5_attributes:
+                    self.get_hdf5_attributes()
 
                 # create basename_output_reach_unit for output files
                 if self.extension != ".sub":
@@ -220,11 +221,11 @@ class Hdf5Management:
             for attribute_name, attribute_data in hdf5_attributes:
                 if "reach_list" in attribute_name:
                     if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
-                        if attribute_name[:3] == "hyd":
+                        if attribute_name[:3] == "hyd" or attribute_name[:3] == "hab":
                             if type(attribute_data) == np.ndarray:
                                 reach_name = attribute_data.tolist()
                             else:
-                                reach_name = attribute_data.split(", ")
+                                reach_name = eval(attribute_data)
 
                     else:
                         if attribute_name[:3] == "sub":
@@ -640,7 +641,7 @@ class Hdf5Management:
         # create hyd attributes
         self.data_description = data_description
         for attribute_name, attribute_value in list(self.data_description.items()):
-            if attribute_name in ("hyd_unit_list", "hyd_unit_list_full"):
+            if attribute_name in ("hyd_unit_list", "hyd_unit_list_full", "hyd_reach_list"):
                 # check if duplicate name present in unit_list
                 for reach_num in range(int(self.data_description["hyd_reach_number"])):
                     if len(set(self.data_description[attribute_name][reach_num])) != len(
@@ -1094,7 +1095,7 @@ class Hdf5Management:
         :param animal: the name of the fish (with the stage in it)
         """
         # open an hdf5
-        self.open_hdf5_file(new=False)
+        self.open_hdf5_file(new=False, get_hdf5_attributes=False)
 
         # add variables
         self.hvum.hdf5_and_computable_list.extend(animal_variable_list)
@@ -1123,7 +1124,8 @@ class Hdf5Management:
                                                                       data=
                                                                       self.data_2d[reach_num][unit_num]["mesh"]["data"][
                                                                           animal.name].to_numpy(),
-                                                                      dtype=self.data_2d[reach_num][unit_num]["mesh"]["data"].dtype)
+                                                                      dtype=self.data_2d[reach_num][unit_num]["mesh"]["data"][
+                                                                          animal.name].dtype)
                     # add dataset attributes
                     fish_data_set.attrs['pref_file'] = animal.pref_file
                     fish_data_set.attrs['stage'] = animal.stage

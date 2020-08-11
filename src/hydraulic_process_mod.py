@@ -1375,7 +1375,7 @@ class MyProcessList(QThread):
                                whole_profil=True)
             # data_description
             data_description = dict(self.hdf5.data_description)
-            data_description["reach_list"] = self.hdf5.data_description["hyd_reach_list"].tolist()
+            data_description["reach_list"] = self.hdf5.reach_name
             data_description["reach_number"] = self.hdf5.data_description["hyd_reach_number"]
             data_description["unit_number"] = self.hdf5.data_description["hyd_unit_number"]
             data_description["unit_type"] = self.hdf5.data_description["hyd_unit_type"]
@@ -1386,7 +1386,7 @@ class MyProcessList(QThread):
             self.hdf5.load_hdf5_sub(user_target_list=self.hvum.user_target_list)
             # data_description
             data_description = dict(self.hdf5.data_description)
-            data_description["reach_list"] = self.hdf5.data_description["sub_reach_list"].tolist()
+            data_description["reach_list"] = self.hdf5.data_description["sub_reach_list"]
             data_description["reach_number"] = self.hdf5.data_description["sub_reach_number"]
             data_description["unit_number"] = self.hdf5.data_description["sub_unit_number"]
             data_description["unit_type"] = self.hdf5.data_description["sub_unit_type"]
@@ -1399,7 +1399,7 @@ class MyProcessList(QThread):
                                whole_profil=False)
             # data_description
             data_description = dict(self.hdf5.data_description)
-            data_description["reach_list"] = self.hdf5.data_description["hyd_reach_list"].tolist()
+            data_description["reach_list"] = self.hdf5.reach_name
             data_description["reach_number"] = self.hdf5.data_description["hyd_reach_number"]
             data_description["unit_number"] = self.hdf5.data_description["hyd_unit_number"]
             data_description["unit_type"] = self.hdf5.data_description["hyd_unit_type"]
