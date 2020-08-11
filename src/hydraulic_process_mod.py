@@ -406,10 +406,6 @@ class HydraulicSimulationResultsAnalyzer:
                             return
                     if file == data_index_file["filename"][-1]:  # last
                         variable_name_unit_dict = hsr.hvum.software_detected_list
-                # selected files same than indexHYDRAU file
-                if not selectedfiles_textfiles_matching:
-                    self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
-                    return
 
                 if reach_presence:
                     reach_name = [data_index_file[headers[reach_index]][0]]
