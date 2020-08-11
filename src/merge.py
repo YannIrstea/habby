@@ -157,21 +157,22 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             data_2d_merge.set_sub_cst_value(hdf5_sub)
 
         elif extent_intersect:
-            # prog
-            delta = 80 / int(hdf5_hydro.data_description["hyd_unit_number"])
-            prog = progress_value.value
-
             data_2d_merge = Data2d(reach_num=int(hdf5_hydro.data_description["hyd_reach_number"]),
                                    unit_num=int(hdf5_hydro.data_description["hyd_unit_number"]))  # new
             data_2d_whole_merge = hdf5_hydro.data_2d_whole
             data_2d_merge.equation_type = hdf5_hydro.data_2d.equation_type
             data_2d_merge.hvum = hdf5_hydro.hvum  # hyd variables
             data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)  # sub variables
-
+            # progress
+            delta_reach = 80 / hdf5_hydro.data_2d.reach_num
             # for each reach
-            for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
+            for reach_num in range(0, hdf5_hydro.data_2d.reach_num):
+                # progress
+                delta_unit = delta_reach / hdf5_hydro.data_2d.unit_num
                 # for each unit
-                for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
+                for unit_num in range(0, hdf5_hydro.data_2d.unit_num):
+                    # progress
+                    delta_mesh = delta_unit / hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"].shape[0]
                     # merge
                     merge_xy, merge_data_node, merge_tin, merge_i_whole_profile, merge_data_mesh, merge_data_sub = merge(
                         hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
@@ -184,7 +185,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                         sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"].to_numpy(),
                         sub_default=np.array(
                             list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
-                        coeffgrid=10)
+                        coeffgrid=10,
+                        delta_mesh=delta_mesh,
+                        progress_value=progress_value)
 
                     # get mesh data
                     data_2d_merge[reach_num][unit_num]["mesh"]["tin"] = merge_tin
@@ -229,9 +232,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     #                            merge_tin=data_2d_merge[reach_num][unit_num]["mesh"]["tin"],
                     #                            merge_data=data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy())
 
-                    # progress
-                    prog += delta
-                    progress_value.value = int(prog)
+
 
             # new variables
             data_2d_merge.hvum.i_sub_defaut.position = "mesh"
@@ -270,7 +271,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
 
 
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
-          coeffgrid):
+          coeffgrid, delta_mesh, progress_value):
     """
     Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
@@ -308,6 +309,10 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             merge_data_mesh : hydraulic data affected to each merge mesh
             merge_data_sub_mesh : substrate data affected to each merge mesh
     """
+    # # progress
+    # prog += delta
+    # progress_value.value = int(prog)
+
     translationxy = np.min(np.vstack((hyd_xy, sub_xy)), axis=0)
     hyd_xy -= translationxy
     sub_xy -= translationxy
@@ -611,6 +616,10 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             merge_data_mesh.extend([hyd_data_mesh[i].tolist()] * nbmeshmergeadd)
             xymergepointlinkstohydr.extend(nxynewpointlinkstohydr.tolist())
             decalnewpointmerge += len(nxynewpoint)
+
+        # progress
+        progress_value.value = progress_value.value + delta_mesh
+
     # get rid of duplicate points
     merge_xy = np.array(xymerge)
     merge_tin = np.array(iklemerge)
