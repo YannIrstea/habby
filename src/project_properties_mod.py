@@ -85,6 +85,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['resolution'] = 300  # dpi
     project_preferences['fish_name_type'] = 0  # latin_name, french, english, code_alternative
     project_preferences['marker'] = True  # Add point to line plot
+    project_preferences['hs_axe_mod'] = 1  # hs axe mod visualisation
 
     # gui
     project_preferences['physic_tabs'] = False

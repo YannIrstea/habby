@@ -2364,23 +2364,29 @@ class CentralW(QWidget):
 
     def update_specific_tab(self):
         # hyd
-        if self.tab_widget.currentIndex() == self.hydro_tab.tab_position:
-            self.hydro_tab.model_list_combobox.setFocus()
+        if hasattr(self.tab_widget, "hydro_tab"):
+            if self.tab_widget.currentIndex() == self.hydro_tab.tab_position:
+                self.hydro_tab.model_list_combobox.setFocus()
         # hyd
-        elif self.tab_widget.currentIndex() == self.substrate_tab.tab_position:
-            self.substrate_tab.update_sub_hdf5_name()
+        if hasattr(self.tab_widget, "substrate_tab"):
+            if self.tab_widget.currentIndex() == self.substrate_tab.tab_position:
+                self.substrate_tab.update_sub_hdf5_name()
         # calc hab
-        elif self.tab_widget.currentIndex() == self.bioinfo_tab.tab_position:
-            self.bioinfo_tab.update_merge_list()
+        if hasattr(self.tab_widget, "bioinfo_tab"):
+            if self.tab_widget.currentIndex() == self.bioinfo_tab.tab_position:
+                self.bioinfo_tab.update_merge_list()
         # data_explorer_tab
-        elif self.tab_widget.currentIndex() == self.data_explorer_tab.tab_position:
-            self.data_explorer_tab.refresh_type()
+        if hasattr(self.tab_widget, "data_explorer_tab"):
+            if self.tab_widget.currentIndex() == self.data_explorer_tab.tab_position:
+                self.data_explorer_tab.refresh_type()
         # tools_tab
-        elif self.tab_widget.currentIndex() == self.tools_tab.tab_position:
-            self.tools_tab.refresh_hab_filenames()
+        if hasattr(self.tab_widget, "tools_tab"):
+            if self.tab_widget.currentIndex() == self.tools_tab.tab_position:
+                self.tools_tab.refresh_hab_filenames()
         # hs_tab
-        elif self.tab_widget.currentIndex() == self.hs_tab.tab_position:
-            self.hs_tab.refresh_filenames()
+        if hasattr(self.tab_widget, "hs_tab"):
+            if self.tab_widget.currentIndex() == self.hs_tab.tab_position:
+                self.hs_tab.refresh_filenames()
 
 
 class EmptyTab(QWidget):

@@ -32,7 +32,8 @@ from src.hydraulic_process_mod import MyProcessList
 from src import hdf5_mod
 from src import plot_mod
 from src import tools_mod
-from src.project_properties_mod import load_project_properties, save_project_properties
+from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
+    load_specific_properties
 from src import hydrosignature
 from src_GUI.tools_GUI import change_button_color
 from src_GUI.data_explorer_GUI import MyTableModel
@@ -466,19 +467,26 @@ class VisualGroup(QGroupBoxCollapsible):
         units_layout.addWidget(self.units_QListWidget)
 
         # axe
+        self.axe_mod_choosen = load_specific_properties(self.path_prj, ["hs_axe_mod"])[0]
+
         axe_label = QLabel(self.tr("Axe orientation :"))
         self.axe_mod_1_radio = QRadioButton()
-        self.axe_mod_1_radio.setChecked(True)  # TODO: save in json default and last choice (to be loaded)
+        if self.axe_mod_choosen == 1:
+            self.axe_mod_1_radio.setChecked(True)
         self.axe_mod_1_radio.setIcon(QIcon(r"translation/axe_mod_1.PNG"))
         self.axe_mod_1_radio.setIconSize(QSize(75, 75))
         self.axe_mod_1_radio.clicked.connect(self.change_axe_mod)
 
         self.axe_mod_2_radio = QRadioButton()
+        if self.axe_mod_choosen == 2:
+            self.axe_mod_2_radio.setChecked(True)
         self.axe_mod_2_radio.setIcon(QIcon(r"translation/axe_mod_2.PNG"))
         self.axe_mod_2_radio.setIconSize(QSize(75, 75))
         self.axe_mod_2_radio.clicked.connect(self.change_axe_mod)
 
         self.axe_mod_3_radio = QRadioButton()
+        if self.axe_mod_choosen == 3:
+            self.axe_mod_3_radio.setChecked(True)
         self.axe_mod_3_radio.setIcon(QIcon(r"translation/axe_mod_3.PNG"))
         self.axe_mod_3_radio.setIconSize(QSize(75, 75))
         self.axe_mod_3_radio.clicked.connect(self.change_axe_mod)
@@ -559,6 +567,7 @@ class VisualGroup(QGroupBoxCollapsible):
             self.axe_mod_choosen = 2
         elif self.axe_mod_3_radio.isChecked():
             self.axe_mod_choosen = 3
+        change_specific_properties(self.path_prj, ["hs_axe_mod"], [self.axe_mod_choosen])
 
     def names_hdf5_change(self):
         self.reach_QListWidget.clear()
