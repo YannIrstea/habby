@@ -34,7 +34,7 @@ from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
 from src import hdf5_mod
 from src import hydraulic_process_mod
 
-from src.project_properties_mod import load_project_properties, save_project_properties
+from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
 from src_GUI.tools_GUI import QListWidgetClipboard
 np.set_printoptions(threshold=np.inf)
 
@@ -437,10 +437,8 @@ class ModelInfoGroup(QGroupBox):
     def set_suffix_no_cut(self, no_cut_bool):
         if self.model_index:
             if self.hydraulic_model_information.name_models_gui_list[self.model_index]:
-                # get class
-                current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.model_index].lower())
                 # get hdf5_name
-                current_hdf5_name = current_model_class.hname.text()
+                current_hdf5_name = self.hdf5_name_lineedit.text()
                 # add no_cut suffix if not exist
                 if not no_cut_bool:
                     # check if no_cut suffix exist
@@ -453,7 +451,7 @@ class ModelInfoGroup(QGroupBox):
                         # create new name
                         new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
                         # set new name
-                        current_model_class.hname.setText(new_hdf5_name)
+                        self.hdf5_name_lineedit.setText(new_hdf5_name)
                 # remove no_cut suffix if exist
                 elif no_cut_bool:
                     # check if no_cut suffix exist
@@ -466,7 +464,9 @@ class ModelInfoGroup(QGroupBox):
                         # create new name
                         new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
                         # set new name
-                        current_model_class.hname.setText(new_hdf5_name)
+                        self.hdf5_name_lineedit.setText(new_hdf5_name)
+
+                self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = new_hdf5_name
 
     def clean_gui(self):
         self.input_file_combobox.clear()
@@ -651,15 +651,6 @@ class ModelInfoGroup(QGroupBox):
         self.hydrau_description_list[hyd_desc_index]["unit_list_tf"][reach_index] = unit_list_tf
         self.hydrau_description_list[hyd_desc_index]["unit_number"] = str(selected)
 
-        if not self.project_preferences["cut_mesh_partialy_dry"]:
-            namehdf5_old = \
-            os.path.splitext(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])[0]
-            exthdf5_old = \
-            os.path.splitext(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])[1]
-            if not "no_cut" in namehdf5_old:
-                self.hydrau_description_list[hyd_desc_index][
-                    "hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
-
         if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
             # preset name hdf5
             filename_source_list = self.hydrau_description_list[hyd_desc_index]["filename_source"].split(", ")
@@ -672,6 +663,15 @@ class ModelInfoGroup(QGroupBox):
                 self.hydrau_description_list[hyd_desc_index]["hdf5_name"] = new_names_list[0].replace(".", "_") \
                                                                                         + "_to_" + \
                                                                                         new_names_list[-1].replace(".", "_") + ".hyd"
+
+        if not load_specific_properties(self.path_prj, ["cut_mesh_partialy_dry"])[0]:
+            namehdf5_old = \
+            os.path.splitext(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])[0]
+            exthdf5_old = \
+            os.path.splitext(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])[1]
+            if not "no_cut" in namehdf5_old:
+                self.hydrau_description_list[hyd_desc_index][
+                    "hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])  # hdf5 name
 
