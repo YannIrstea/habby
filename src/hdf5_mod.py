@@ -29,6 +29,7 @@ from multiprocessing import Value
 import shutil
 import sys
 from pandas import DataFrame
+from copy import deepcopy
 
 from src import bio_info_mod
 from src import plot_mod
@@ -130,26 +131,26 @@ class Hdf5Management:
                 if get_hdf5_attributes:
                     self.get_hdf5_attributes()
 
-                # create basename_output_reach_unit for output files
-                if self.extension != ".sub":
-                    self.basename_output_reach_unit = []
-                    for reach_num, reach_name in enumerate(self.reach_name):
-                        self.basename_output_reach_unit.append([])
-                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                            self.basename_output_reach_unit[reach_num].append(
-                                self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
-                    self.units_name_output = []
-                    for reach_num, reach_name in enumerate(self.reach_name):
-                        self.units_name_output.append([])
-                        for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                            if self.file_object.attrs["hyd_unit_type"] != 'unknown':
-                                unit_name2 = unit_name.replace(".", "_") + "_" + \
-                                             self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
-                                                                                                                "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
-                            else:
-                                unit_name2 = unit_name.replace(".", "_") + "_" + \
-                                             self.file_object.attrs["hyd_unit_type"]
-                            self.units_name_output[reach_num].append(unit_name2)
+                    # create basename_output_reach_unit for output files
+                    if self.extension != ".sub":
+                        self.basename_output_reach_unit = []
+                        for reach_num, reach_name in enumerate(self.reach_name):
+                            self.basename_output_reach_unit.append([])
+                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                                self.basename_output_reach_unit[reach_num].append(
+                                    self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
+                        self.units_name_output = []
+                        for reach_num, reach_name in enumerate(self.reach_name):
+                            self.units_name_output.append([])
+                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                                if self.file_object.attrs["hyd_unit_type"] != 'unknown':
+                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
+                                                 self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
+                                                                                                                    "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                                else:
+                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
+                                                 self.file_object.attrs["hyd_unit_type"]
+                                self.units_name_output[reach_num].append(unit_name2)
 
     def save_xml(self, model_type, input_file_path):
         """
@@ -177,7 +178,7 @@ class Hdf5Management:
     # SET HDF5 INFORMATIONS
     def set_hdf5_attributes(self, attribute_name, attribute_value):
         # create existing hdf5
-        self.open_hdf5_file(new=False)
+        self.open_hdf5_file(new=False, get_hdf5_attributes=False)
 
         # set attributes
         for attrib_ind in range(len(attribute_name)):
@@ -303,7 +304,8 @@ class Hdf5Management:
                                   unit_num=self.nb_unit)  # with no array data
             self.data_2d.hvum = self.hvum
             self.data_2d.set_unit_names(self.units_name)
-            self.data_2d.unit_type = self.file_object.attrs["hyd_unit_type"]
+            if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
+                self.data_2d.unit_type = self.file_object.attrs["hyd_unit_type"]
             for reach_num in range(self.data_2d.reach_num):
                 for unit_num in range(self.data_2d.unit_num):
                     self.data_2d[reach_num][unit_num].reach_name = self.reach_name[reach_num]
@@ -482,7 +484,7 @@ class Hdf5Management:
     def load_data_2d(self):
         data_2d_group = 'data_2d'
         reach_list = list(self.file_object[data_2d_group].keys())
-
+        removed_units_list = []
         # for each reach
         for reach_num, reach_group_name in enumerate(reach_list):
             # group name
@@ -491,6 +493,7 @@ class Hdf5Management:
             available_unit_list = list(self.file_object[reach_group].keys())
             desired_units_list = [available_unit_list[unit_index] for unit_index in
                                   self.units_index]  # get only desired_units
+            removed_units_list = list(set(list(range(len(available_unit_list)))) - set(self.units_index))
             for unit_num, unit_group_name in enumerate(desired_units_list):
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
@@ -544,6 +547,9 @@ class Hdf5Management:
         # load_data_2d_info
         self.load_data_2d_info()
 
+        if removed_units_list:
+            self.data_2d.remove_unit_from_unit_index_list(removed_units_list)
+
     def load_data_2d_info(self):
         # global
         self.data_2d.data_extent = self.file_object.attrs["data_extent"]
@@ -575,7 +581,7 @@ class Hdf5Management:
                     mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
                     # if not wish list specify, get original
                     if not self.hvum.all_final_variable_list.hdf5s().meshs().habs():
-                        self.hvum.all_final_variable_list = self.hvum.hdf5_and_computable_list
+                        self.hvum.all_final_variable_list = deepcopy(self.hvum.hdf5_and_computable_list)
                     for animal_num, animal in enumerate(self.hvum.all_final_variable_list.hdf5s().meshs().habs()):
                         # dataset
                         fish_data_set = mesh_hv_data_group[animal.name]
@@ -651,7 +657,7 @@ class Hdf5Management:
         # create hyd attributes
         self.data_description = data_description
         for attribute_name, attribute_value in list(self.data_description.items()):
-            if attribute_name in ("hyd_unit_list", "hyd_unit_list_full", "hyd_reach_list"):
+            if attribute_name in ("hyd_unit_list", "hyd_unit_list_full"):
                 # check if duplicate name present in unit_list
                 for reach_num in range(int(self.data_description["hyd_reach_number"])):
                     if len(set(self.data_description[attribute_name][reach_num])) != len(
@@ -663,6 +669,8 @@ class Hdf5Management:
                                 if unit_element == duplicate:
                                     self.data_description[attribute_name][reach_num][unit_num] = duplicate + "_" + str(
                                         unit_num)
+                self.file_object.attrs[attribute_name] = str(attribute_value)
+            elif attribute_name == "hyd_reach_list":
                 self.file_object.attrs[attribute_name] = str(attribute_value)
             else:
                 if type(attribute_value) == bool:
@@ -1459,13 +1467,6 @@ class Hdf5Management:
         if not mesh_whole_profile_tf and not mesh_units_tf and not point_whole_profile_tf and not point_units_tf:
             return
 
-        # get fish name
-        fish_names = []  # init
-        if self.hdf5_type == "habitat":
-            fish_names = self.data_description["hab_fish_list"].split(", ")
-            if fish_names == ['']:
-                fish_names = []
-
         # Mapping between OGR and Python data types
         OGRTypes_dict = {int: ogr.OFTInteger,
                          np.int64: ogr.OFTInteger64,
@@ -1524,7 +1525,7 @@ class Hdf5Management:
                 # if .hab
                 if self.hdf5_type == "habitat":
                     # no fish
-                    if not fish_names:
+                    if not self.hvum.hdf5_and_computable_list.habs():
                         # if erase_id == True
                         if self.project_preferences['erase_id']:
                             try:
@@ -1626,35 +1627,35 @@ class Hdf5Management:
                     # if layer exist
                     if layer_name in layer_names:
                         layer_exist = True
-                        if fish_names:
-                            layer = ds.GetLayer(unit_num)
+                        if self.hvum.hdf5_and_computable_list.habs():
+                            layer = ds.GetLayer(layer_name)
                             layer_defn = layer.GetLayerDefn()
                             field_names = [layer_defn.GetFieldDefn(i).GetName() for i in
                                            range(layer_defn.GetFieldCount())]
                             # erase all fish field
-                            for fish_num, fish_name in enumerate(fish_names):
-                                if fish_name in field_names:
-                                    field_index = field_names.index(fish_name)
+                            for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
+                                if animal.name in field_names:
+                                    field_index = field_names.index(animal.name)
                                     layer.DeleteField(field_index)  # delete all features attribute of specified field
                                     field_names = [layer_defn.GetFieldDefn(i).GetName() for i in
                                                    range(layer_defn.GetFieldCount())]  # refresh list
                             # create all fish field
-                            for fish_num, fish_name in enumerate(fish_names):
-                                new_field = ogr.FieldDefn(fish_name, ogr.OFTReal)
+                            for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
+                                new_field = ogr.FieldDefn(animal.name, ogr.OFTReal)
                                 layer.CreateField(new_field)
                             # add fish data for each mesh
                             layer.StartTransaction()  # faster
                             for mesh_num in range(0,
                                                   len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
                                 feature = layer.GetFeature(mesh_num + 1)  # 1 because gpkg start at 1
-                                for fish_num, fish_name in enumerate(fish_names):
-                                    data = self.data_2d[reach_num][unit_num]["mesh"]["hv_data"][fish_name][mesh_num]
-                                    feature.SetField(fish_name, data)
+                                for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
+                                    data = self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name][mesh_num]
+                                    feature.SetField(animal.name, data)
                                 layer.SetFeature(feature)
                             layer.CommitTransaction()  # faster
 
                     # if layer not exist
-                    if not layer_exist or not fish_names:  # not exist or merge case
+                    if not layer_exist or not self.hvum.hdf5_and_computable_list.habs():  # not exist or merge case
                         # create layer
                         if not crs.ExportToWkt():  # '' == crs unknown
                             layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPolygon)
@@ -1662,27 +1663,15 @@ class Hdf5Management:
                             layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon)
 
                         # create fields (no width no precision to be specified with GPKG)
-                        for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
+                        for mesh_variable in self.hvum.hdf5_and_computable_list.no_habs().meshs():
                             layer.CreateField(ogr.FieldDefn(mesh_variable.name_gui, OGRTypes_dict[mesh_variable.dtype]))
 
                         defn = layer.GetLayerDefn()
                         if self.hdf5_type == "habitat":
-                            # layer.CreateField(ogr.FieldDefn('area', ogr.OFTReal))
-                            # # sub
-                            # if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            #     layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))
-                            #     layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))
-                            # if self.data_description["sub_classification_method"] == 'percentage':
-                            #     if self.data_description["sub_classification_code"] == "Cemagref":
-                            #         sub_class_number = 8
-                            #     if self.data_description["sub_classification_code"] == "Sandre":
-                            #         sub_class_number = 12
-                            #     for i in range(sub_class_number):
-                            #         layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))
                             # fish
-                            if fish_names:
-                                for fish_num, fish_name in enumerate(fish_names):
-                                    layer.CreateField(ogr.FieldDefn(fish_name, ogr.OFTReal))
+                            if self.hvum.hdf5_and_computable_list.habs():
+                                for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
+                                    layer.CreateField(ogr.FieldDefn(animal.name, OGRTypes_dict[animal.dtype]))
                         layer.StartTransaction()  # faster
 
                         # for each mesh
@@ -1700,11 +1689,11 @@ class Hdf5Management:
                                 self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node3]])
                             # data attrbiutes
                             if self.hdf5_type == "habitat":
-                                if fish_names:
+                                if self.hvum.hdf5_and_computable_list.habs():
                                     fish_data = []
-                                    for fish_name in fish_names:
+                                    for animal in self.hvum.hdf5_and_computable_list.habs():
                                         fish_data.append(
-                                            self.data_2d[reach_num][unit_num]["mesh"]["hv_data"][fish_name][mesh_num])
+                                            self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name][mesh_num])
 
                             # Create triangle
                             ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -1719,7 +1708,7 @@ class Hdf5Management:
                             feat = ogr.Feature(defn)
 
                             # variables
-                            for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
+                            for mesh_variable in self.hvum.hdf5_and_computable_list.no_habs().meshs():
                                 if mesh_variable.dtype == np.int64:
                                     data_field = int(self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][
                                                          mesh_variable.name][mesh_num])
@@ -1731,9 +1720,9 @@ class Hdf5Management:
 
                             if self.hdf5_type == "habitat":
                                 # fish
-                                if fish_names:
-                                    for fish_num, fish_name in enumerate(fish_names):
-                                        feat.SetField(fish_name, fish_data[fish_num])
+                                if self.hvum.hdf5_and_computable_list.habs():
+                                    for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
+                                        feat.SetField(animal.name, fish_data[fish_num])
                             # set geometry
                             feat.SetGeometry(poly)
                             # create
@@ -1801,7 +1790,7 @@ class Hdf5Management:
                         layer_exist = True
 
                     # if layer not exist
-                    if not layer_exist or not fish_names:  # not exist or merge case
+                    if not layer_exist or not self.hvum.hdf5_and_computable_list.habs():  # not exist or merge case
                         # create layer
                         if not crs.ExportToWkt():  # '' == crs unknown
                             layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
@@ -1809,7 +1798,7 @@ class Hdf5Management:
                             layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint)
 
                         # create fields (no width no precision to be specified with GPKG)
-                        for node_variable in self.hvum.hdf5_and_computable_list.nodes():
+                        for node_variable in self.hvum.hdf5_and_computable_list.no_habs().nodes():
                             layer.CreateField(ogr.FieldDefn(node_variable.name_gui, OGRTypes_dict[node_variable.dtype]))
 
                         defn = layer.GetLayerDefn()
@@ -1828,7 +1817,7 @@ class Hdf5Management:
                             # Create a new feature
                             feat = ogr.Feature(defn)
 
-                            for node_variable in self.hvum.hdf5_and_computable_list.nodes():
+                            for node_variable in self.hvum.hdf5_and_computable_list.no_habs().nodes():
                                 feat.SetField(node_variable.name_gui,
                                               self.data_2d[reach_num][unit_num][node_variable.position]["data"][
                                                   node_variable.name][point_num])
@@ -2182,7 +2171,7 @@ class Hdf5Management:
                             text_to_write_str += f"\t{str(node1)}\t{str(node2)}\t{str(node3)}"
                             if animal_list:
                                 for animal in animal_list:
-                                    text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['hv_data'][animal.name][mesh_num])}"
+                                    text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['data'][animal.name][mesh_num])}"
 
                         # change decimal point
                         locale = QLocale()

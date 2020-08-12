@@ -757,7 +757,7 @@ class HydraulicVariableUnitManagement:
             # pvd_variable_z ?
 
         if node and mesh:
-            user_target_list = self.hdf5_and_computable_list
+            user_target_list = deepcopy(self.hdf5_and_computable_list)
         else:
             if mesh:
                 user_target_list = self.hdf5_and_computable_list.meshs()
@@ -774,8 +774,8 @@ class HydraulicVariableUnitManagement:
         load hdf5 or compute ? Depend on user wish selection
         """
         # print("######################################")
-        # print("target nodes : ", user_target_list.nodes().names())
-        # print("target meshs : ", user_target_list.meshs().names())
+        # print("target nodes : ", user_target_list.nodes())
+        # print("target meshs : ", user_target_list.meshs())
 
         # wish hdf5 (node and mesh)
         for variable_wish in user_target_list.hdf5s():
@@ -949,8 +949,7 @@ class HydraulicVariableUnitManagement:
                 elif variable_wish.name == self.sub_coarser.name or variable_wish.name == self.sub_dom.name:
                     # is percentage data or coarser/dom data ?
                     if not variable_wish.hdf5:
-                        # load all sub percentage to compute coarser/dom
-                        self.hdf5_and_computable_list.names()
+                        # # load all sub percentage to compute coarser/dom
                         # class_nb
                         if self.sub_s12.name in self.hdf5_and_computable_list.names():  # Sandre
                             class_nb = 12
@@ -960,7 +959,8 @@ class HydraulicVariableUnitManagement:
                             class_variable = getattr(self, "sub_s" + str(class_num))
                             class_variable.position = "mesh"
                             class_variable.hdf5 = True
-                            self.all_final_variable_list.append(class_variable)
+                            if class_variable.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                                self.all_final_variable_list.append(class_variable)
                     else:
                         # load hdf5 coarser/dom data
                         pass
@@ -1110,7 +1110,7 @@ class HydraulicVariableUnitManagement:
                 self.all_final_variable_list.append(variable_wish)
 
             # # print final names
-            # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes().names())
-            # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs().names())
-            # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes().names())
-            # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs().names())
+            # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
+            # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
+            # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
+            # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())
