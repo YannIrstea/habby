@@ -186,13 +186,21 @@ class Data2d(list):
                 try:
                     default_data = np.array(list(map(int, hdf5_sub.sub_default_values.split(", "))),
                                             dtype=self.hvum.sub_dom.dtype)
-                    sub_array = np.repeat([default_data], self[reach_num][unit_num]["mesh"]["tin"].shape[0], 0)
+                    sub_array = np.repeat([default_data],
+                                          self[reach_num][unit_num]["mesh"]["tin"].shape[0],
+                                          0)
                 except ValueError or TypeError:
                     print(
-                        'Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
-                # add sub data to dict
-                for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
-                    self[reach_num][unit_num]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
+                        'Error: Merging failed. No numerical data in substrate. (only float or int accepted for now).')
+                    return
+                try:
+                    # add sub data to dict
+                    for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
+                        self[reach_num][unit_num]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
+                except IndexError:
+                    print("Error: Default substrate data is not coherent with the substrate classification code. "
+                          "Change it in the text file accompanying the input file.")
+                    return
 
                 # area ?
                 if self.hvum.area.name not in self[reach_num][unit_num]["mesh"]["data"].columns:
@@ -582,9 +590,9 @@ class Data2d(list):
         node_variable_list = variable_computable_list.nodes()
         mesh_variable_list = variable_computable_list.meshs()
         # for all reach
-        for reach_num in range(0, self.reach_num):
+        for reach_num in range(self.reach_num):
             # for all units
-            for unit_num in range(0, self.unit_num):
+            for unit_num in range(self.unit_num):
                 # print("--- compute_variables unit", str(unit_num), " ---")
                 """ node """
                 if node_variable_list:
