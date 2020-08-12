@@ -58,7 +58,7 @@ class HsTab(QScrollArea):
         self.init_iu()
 
         # refresh_filenames
-        self.refresh_filenames()
+        #self.refresh_filenames()
 
     def init_iu(self):
         # insist on white background color (for linux, mac)

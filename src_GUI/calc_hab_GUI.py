@@ -217,7 +217,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.verticalScrollBar().valueChanged.connect(self.change_scroll_position)
 
         # fill hdf5 list
-        self.update_merge_list()
+        #self.update_merge_list()
 
         # empty frame scrolable
         content_widget = QFrame()
