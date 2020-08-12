@@ -2327,6 +2327,8 @@ class CentralW(QWidget):
             # calc hab combobox
             self.bioinfo_tab.m_all.clear()
 
+            self.data_explorer_tab.refresh_type()
+
     def save_info_projet(self):
         """
         This function is used to save the description of the project and the username in the xml project file
