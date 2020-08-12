@@ -24,21 +24,17 @@ from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVari
 
 
 class Data2d(list):
+    """ A Data2d represent a list of reach """
+
     def __init__(self, reach_num=0, unit_num=0):
         super().__init__()
         self.reach_num = reach_num
         self.unit_num = unit_num
         if self.reach_num and self.unit_num:
             for reach_num in range(self.reach_num):
-                unit_list = []
-                for unit_num in range(self.unit_num):
-                    unit_dict = UnitDict(reach_num,
-                                         unit_num)
-                    unit_dict["mesh"] = dict(tin=None)
-                    unit_dict["node"] = dict(xy=None,
-                                             z=None)
-                    unit_list.append(unit_dict)
-                self.append(unit_list)
+                reach = Reach(reach_num,
+                              unit_num)
+                self.append(reach)
         # hvum
         self.hvum = HydraulicVariableUnitManagement()
         # data
@@ -70,8 +66,9 @@ class Data2d(list):
         self.hvum = data_2d_new.hvum
 
     def add_unit(self, data_2d_new, reach_num):
+        # if not reach
         if not self.reach_num:
-            self.append([])
+            self.append(Reach())
         self[reach_num].extend(data_2d_new[reach_num])
 
         # TODO: check if same units number and name
@@ -119,17 +116,17 @@ class Data2d(list):
         """
         whole_profile = Data2d()
         for reach_num in range(self.reach_num):
-            unit_list = []
+            reach = Reach()
             for unit_num in range(self.unit_num):
-                unit_dict = UnitDict(reach_num,
-                                     unit_num)
-                unit_dict["mesh"] = dict(tin=self[reach_num][unit_num]["mesh"]["tin"])
-                unit_dict["node"] = dict(xy=self[reach_num][unit_num]["node"]["xy"],
-                                         z=self[reach_num][unit_num]["node"]["data"][self.hvum.z.name])
+                unit_dict = Unit(reach_num,
+                                 unit_num)
+                unit_dict["mesh"]["tin"] = self[reach_num][unit_num]["mesh"]["tin"]
+                unit_dict["node"]["xy"] = self[reach_num][unit_num]["node"]["xy"]
+                unit_dict["node"]["z"] = self[reach_num][unit_num]["node"]["data"][self.hvum.z.name]
                 # append by unit
-                unit_list.append(unit_dict)
+                reach.append(unit_dict)
                 # append by reach
-            whole_profile.append(unit_list)
+            whole_profile.append(reach)
 
         whole_profile.get_informations()
 
@@ -166,7 +163,10 @@ class Data2d(list):
 
     def reduce_to_first_unit_by_reach(self):
         for reach_num in range(self.reach_num):
-            self[reach_num] = [self[reach_num][0]]
+            new_reach = Reach(reach_num,
+                              0)
+            new_reach.append(self[reach_num][0])
+            self[reach_num] = new_reach
         self.get_informations()
 
     def rename_substrate_column_data(self):
@@ -174,6 +174,45 @@ class Data2d(list):
             for unit_num in range(self.unit_num):
                 self[reach_num][unit_num]["mesh"][
                     "data"].columns = self.hvum.hdf5_and_computable_list.hdf5s().subs().names()
+
+    def set_sub_cst_value(self, hdf5_sub):
+        # mixing variables
+        self.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)
+
+        # for each reach
+        for reach_num in range(self.reach_num):
+            # for each unit
+            for unit_num in range(self.unit_num):
+                try:
+                    default_data = np.array(list(map(int, hdf5_sub.sub_default_values.split(", "))),
+                                            dtype=self.hvum.sub_dom.dtype)
+                    sub_array = np.repeat([default_data], self[reach_num][unit_num]["mesh"]["tin"].shape[0], 0)
+                except ValueError or TypeError:
+                    print(
+                        'Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
+                # add sub data to dict
+                for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
+                    self[reach_num][unit_num]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
+
+                # area ?
+                if self.hvum.area.name not in self[reach_num][unit_num]["mesh"]["data"].columns:
+                    pa = self[reach_num][unit_num]["node"]["xy"][
+                        self[reach_num][unit_num]["mesh"]["tin"][:, 0]]
+                    pb = self[reach_num][unit_num]["node"]["xy"][
+                        self[reach_num][unit_num]["mesh"]["tin"][:, 1]]
+                    pc = self[reach_num][unit_num]["node"]["xy"][
+                        self[reach_num][unit_num]["mesh"]["tin"][:, 2]]
+                    area = 0.5 * abs(
+                        (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) -
+                        (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))  # get area2
+                    self[reach_num][unit_num]["mesh"]["data"]["area"] = area
+                    # variable
+                    self.hvum.area.hdf5 = True
+                    self.hvum.hdf5_and_computable_list.append(self.hvum.area)
+                else:
+                    area = self[reach_num][unit_num]["mesh"]["data"][self.hvum.area.name].to_numpy()
+
+                self[reach_num][unit_num].total_wet_area = np.sum(area)
 
     def set_unit_names(self, unit_name_list):
         self.unit_name_list = unit_name_list
@@ -529,45 +568,6 @@ class Data2d(list):
 
         self.get_informations()
 
-    def set_sub_cst_value(self, hdf5_sub):
-        # mixing variables
-        self.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)
-
-        # for each reach
-        for reach_num in range(self.reach_num):
-            # for each unit
-            for unit_num in range(self.unit_num):
-                try:
-                    default_data = np.array(list(map(int, hdf5_sub.sub_default_values.split(", "))),
-                                            dtype=self.hvum.sub_dom.dtype)
-                    sub_array = np.repeat([default_data], self[reach_num][unit_num]["mesh"]["tin"].shape[0], 0)
-                except ValueError or TypeError:
-                    print(
-                        'Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
-                # add sub data to dict
-                for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
-                    self[reach_num][unit_num]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
-
-                # area ?
-                if self.hvum.area.name not in self[reach_num][unit_num]["mesh"]["data"].columns:
-                    pa = self[reach_num][unit_num]["node"]["xy"][
-                        self[reach_num][unit_num]["mesh"]["tin"][:, 0]]
-                    pb = self[reach_num][unit_num]["node"]["xy"][
-                        self[reach_num][unit_num]["mesh"]["tin"][:, 1]]
-                    pc = self[reach_num][unit_num]["node"]["xy"][
-                        self[reach_num][unit_num]["mesh"]["tin"][:, 2]]
-                    area = 0.5 * abs(
-                        (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) -
-                        (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))  # get area2
-                    self[reach_num][unit_num]["mesh"]["data"]["area"] = area
-                    # variable
-                    self.hvum.area.hdf5 = True
-                    self.hvum.hdf5_and_computable_list.append(self.hvum.area)
-                else:
-                    area = self[reach_num][unit_num]["mesh"]["data"][self.hvum.area.name].to_numpy()
-
-                self[reach_num][unit_num].total_wet_area = np.sum(area)
-
     def compute_variables(self, variable_computable_list):
         """
         Compute all necessary variables.
@@ -833,7 +833,22 @@ class Data2d(list):
                 self.hs_summary_data.append(key_element_list)
 
 
-class UnitDict(dict):
+class Reach(list):
+    """ A reach represent a list of units """
+
+    def __init__(self, reach_num=0, unit_num=0):
+        super().__init__()
+        self.reach_num = reach_num
+        self.unit_num = unit_num
+        for unit_num in range(self.unit_num):
+            unit = Unit(reach_num,
+                        unit_num)
+            self.append(unit)
+
+
+class Unit(dict):
+    """ A unit represent the mesh """
+
     def __init__(self, reach_num, unit_num):
         super().__init__()
         # HydraulicVariableUnit
@@ -847,6 +862,9 @@ class UnitDict(dict):
         self.data_extent = None
         self.data_height = None
         self.data_width = None
+        self["mesh"] = dict(tin=None)
+        self["node"] = dict(xy=None,
+                            z=None)
 
     """ mesh """
 

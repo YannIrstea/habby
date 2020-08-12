@@ -648,7 +648,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         plt.close()
 
 
-def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, project_preferences):
+def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_num, types, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -696,10 +696,10 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
         is_constant = all(round(j - i, number_decimal_mean) == first_delta for i, j in zip(sim_name, sim_name[1:]))
 
     # colors
-    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(animal_list))
 
-    reach_name = data_description["hyd_reach_list"]
-    unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
+    reach_name = data_2d[reach_num][0].reach_name
+    unit_type = data_2d.unit_type[data_2d.unit_type.find('[') + 1:data_2d.unit_type.find(']')]
     unit_type = unit_type.replace("m3/s", "$m^3$/s")
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
 
@@ -713,26 +713,21 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
 
     if not is_constant:
         fig, ax = plt.subplots(3, 1, sharex=True)
-    if is_constant:
+    else:
         fig, ax = plt.subplots(2, 1, sharex=True)
     fig.canvas.set_window_title(plot_window_title)
-
-    name_fish_origin = list(name_fish)
-
-    for id, n in enumerate(name_fish):
-        name_fish[id] = n.replace('_', ' ')
 
     # SPU
     if len(types.keys()) > 1:  # date
         x_data = sim_name
     else:
         x_data = range(len(sim_name))
-    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
-        y_data_spu = data_to_table["spu_" + name_fish_value]
+    for name_fish_num, animal in enumerate(animal_list):
+        y_data_spu = data_to_table["spu_" + animal.name]
         ax[0].plot(x_data, y_data_spu,
                    color=color_list[name_fish_num],
                    linestyle=style_list[name_fish_num],
-                   label=name_fish_value,
+                   label=animal.name.replace('_', ' '),
                    marker=mar)
     ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
     ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
@@ -748,12 +743,12 @@ def plot_interpolate_chronicle(state, data_to_table, horiz_headers, vertical_hea
     ax[0].xaxis.set_ticklabels([])
 
     # VH
-    for name_fish_num, name_fish_value in enumerate(name_fish_origin):
-        y_data_hv = data_to_table["hv_" + name_fish_value]
+    for name_fish_num, animal in enumerate(animal_list):
+        y_data_hv = data_to_table["hv_" + animal.name]
         ax[1].plot(x_data, y_data_hv,
                    color=color_list[name_fish_num],
                    linestyle=style_list[name_fish_num],
-                   label=name_fish_value,
+                   label=animal.name.replace('_', ' '),
                    marker=mar)
     ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
     ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))

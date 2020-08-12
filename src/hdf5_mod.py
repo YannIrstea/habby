@@ -303,9 +303,16 @@ class Hdf5Management:
                                   unit_num=self.nb_unit)  # with no array data
             self.data_2d.hvum = self.hvum
             self.data_2d.set_unit_names(self.units_name)
+            self.data_2d.unit_type = self.file_object.attrs["hyd_unit_type"]
             for reach_num in range(self.data_2d.reach_num):
                 for unit_num in range(self.data_2d.unit_num):
                     self.data_2d[reach_num][unit_num].reach_name = self.reach_name[reach_num]
+            self.units_index = list(range(self.data_2d.unit_num))
+            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+                                                                       hdf5_type=self.hdf5_type)
+
+            self.data_2d.filename = self.filename
+            self.load_data_2d_info()
 
             # hs
             if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
@@ -566,6 +573,9 @@ class Hdf5Management:
                     # group
                     mesh_group = unit_group + "/mesh"
                     mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
+                    # if not wish list specify, get original
+                    if not self.hvum.all_final_variable_list.hdf5s().meshs().habs():
+                        self.hvum.all_final_variable_list = self.hvum.hdf5_and_computable_list
                     for animal_num, animal in enumerate(self.hvum.all_final_variable_list.hdf5s().meshs().habs()):
                         # dataset
                         fish_data_set = mesh_hv_data_group[animal.name]

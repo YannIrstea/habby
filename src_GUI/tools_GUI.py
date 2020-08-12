@@ -20,7 +20,7 @@ from multiprocessing import Process, Value
 from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeySequence
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
-    QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
+    QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, QListWidgetItem, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, QApplication
 
 from src.tools_mod import QGroupBoxCollapsible
@@ -29,6 +29,7 @@ from src import hdf5_mod
 from src import plot_mod
 from src import tools_mod
 from src.project_properties_mod import load_project_properties
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 def change_button_color(button, color):
@@ -340,8 +341,11 @@ class InterpolationGroup(QGroupBoxCollapsible):
             units_name = hdf5.units_name[reach_index]
 
             # hab
-            if fish_list != [""]:
-                self.fish_available_qlistwidget.addItems(fish_list)
+            if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
+                for mesh in hdf5.hvum.hdf5_and_computable_list.habs().meshs():
+                    mesh_item = QListWidgetItem(mesh.name_gui, self.fish_available_qlistwidget)
+                    mesh_item.setData(Qt.UserRole, mesh)
+                    self.fish_available_qlistwidget.addItem(mesh_item)
                 self.fish_available_qlistwidget.selectAll()
             if units_name:
                 # set min and max unit for from to by
@@ -382,8 +386,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         # is fish selected
         selection = self.fish_available_qlistwidget.selectedItems()
-        fish_names = [item.text() for item in selection]
-        if fish_names == [""] or fish_names == []:
+        if not selection:
             self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
@@ -406,8 +409,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
     def display_required_units_from_txtfile(self):
         # is fish ?
         selection = self.fish_available_qlistwidget.selectedItems()
-        fish_names = [item.text() for item in selection]
-        if fish_names == [""] or fish_names == []:
+        if not selection:
             self.send_log.emit('Error: ' + self.tr('No fish selected.'))
             return
 
@@ -430,22 +432,23 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 self.create_model_array_and_display(chronicle_from_file, types_from_file, source=filename_path)
 
     def create_model_array_and_display(self, chronicle, types, source):
+        hvum = HydraulicVariableUnitManagement()
         # get fish selected
-        selection = self.fish_available_qlistwidget.selectedItems()
-        fish_names = [item.text() for item in selection]
+        for selection in self.fish_available_qlistwidget.selectedItems():
+            hvum.user_target_list.append(selection.data(Qt.UserRole))
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         # load hdf5 data
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
+        hdf5.open_hdf5_file()
 
         # get reach_name
         reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
 
         # check matching units for interpolation
-        valid, text = tools_mod.check_matching_units(hdf5.data_description, types)
+        valid, text = tools_mod.check_matching_units(hdf5.unit_type, types)
 
         if not valid:
             self.send_log.emit("Warning : " + self.tr("Interpolation not done.") + text)
@@ -453,8 +456,8 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.plot_chronicle_qpushbutton.setEnabled(False)
             self.export_txt_chronicle_qpushbutton.setEnabled(False)
         if valid:
-            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
-                                                                                         fish_names,
+            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,
+                                                                                         hvum.user_target_list,
                                                                                          reach_index,
                                                                                          chronicle,
                                                                                          types,
@@ -484,7 +487,6 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # get hdf5 inforamtions
             hdf5.open_hdf5_file()
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
-            fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
             units_name = hdf5.units_name[self.hab_reach_qcombobox.currentIndex()]
             unit_num = list(map(float, units_name))
             min_unit = min(unit_num)
@@ -499,12 +501,10 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 self.send_log.emit('Error: ' + self.tr('The file has not been exported as it may be opened by another program.'))
 
     def plot_chronicle(self):
-        # is fish ?
-        selection = self.fish_available_qlistwidget.selectedItems()
-        fish_names = [item.text() for item in selection]
-        if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
-            return
+        hvum = HydraulicVariableUnitManagement()
+        # get fish selected
+        for selection in self.fish_available_qlistwidget.selectedItems():
+            hvum.user_target_list.append(selection.data(Qt.UserRole))
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
@@ -514,24 +514,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
             return
 
         if self.mytablemodel:
-            # fish names and units names from tableview
-            fish_names_hv_spu = self.mytablemodel.colnames
-            fish_names = []
-            for fish in fish_names_hv_spu:
-                if "hv_" in fish:
-                    fish_names.append(fish.replace("hv_", ""))
-                if "spu_" in fish:
-                    fish_names.append(fish.replace("spu_", ""))
-            fish_names = list(set(fish_names))
-
-            total_fish_number = len(fish_names)
-            if total_fish_number > 32:
+            # max
+            if len(hvum.user_target_list) > 32:
                 self.send_log.emit('Warning: ' + self.tr(
                     'You cannot display more than 32 habitat values per graph. Current selected : ') + str(
-                    total_fish_number) + ". " + self.tr("Only the first 32 will be displayed.") + " " + self.tr(
+                    len(hvum.user_target_list)) + ". " + self.tr("Only the first 32 will be displayed.") + " " + self.tr(
                     'You have to re-compute interpolation with 32 selected habitat values at maximum. There is no limit for txt exports.'))
-                fish_names = fish_names[:32]
-                fish_names.sort()
+                hvum.user_target_list = hvum.user_target_list[:32]
 
             # seq or txt
             source = self.mytablemodel.source
@@ -549,17 +538,18 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
+            # get hdf5 inforamtions
+            hdf5.open_hdf5_file()
 
             reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
 
             # recompute
-            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
-                                                                                             fish_names,
-                                                                                             reach_index,
-                                                                                             chronicle,
-                                                                                             types,
-                                                                                             False)
+            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,
+                                                                                         hvum.user_target_list,
+                                                                                         reach_index,
+                                                                                         chronicle,
+                                                                                         types,
+                                                                                         rounddata=False)
             # plot
             state = Value("i", 0)
             plot_interpolate_chronicle_process = Process(target=plot_mod.plot_interpolate_chronicle,
@@ -567,8 +557,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                                data_to_table,
                                                                horiz_headers,
                                                                vertical_headers,
-                                                               hdf5.data_description,
-                                                               fish_names,
+                                                               hdf5.data_2d,
+                                                               hvum.user_target_list,
+                                                               reach_index,
                                                                types,
                                                                project_preferences),
                                                          name="plot_interpolate_chronicle")
@@ -576,12 +567,10 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.process_list.start()
 
     def export_chronicle(self):
-        # is fish ?
-        selection = self.fish_available_qlistwidget.selectedItems()
-        fish_names = [item.text() for item in selection]
-        if fish_names == [""] or fish_names == []:
-            self.send_log.emit('Error: ' + self.tr('No fish selected.'))
-            return
+        hvum = HydraulicVariableUnitManagement()
+        # get fish selected
+        for selection in self.fish_available_qlistwidget.selectedItems():
+            hvum.user_target_list.append(selection.data(Qt.UserRole))
 
         # get filename
         hdf5name = self.hab_filenames_qcombobox.currentText()
@@ -598,7 +587,6 @@ class InterpolationGroup(QGroupBoxCollapsible):
                     fish_names.append(fish.replace("hv_", ""))
                 if "spu_" in fish:
                     fish_names.append(fish.replace("spu_", ""))
-            fish_names = list(set(fish_names))
 
             # seq or txt
             source = self.mytablemodel.source
@@ -618,22 +606,23 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
+            # get hdf5 inforamtions
+            hdf5.open_hdf5_file()
 
             reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
 
             # recompute interpolation
-            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
-                                                                                             fish_names,
-                                                                                             reach_index,
-                                                                                             chronicle,
-                                                                                             types,
-                                                                                             False)
+            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,
+                                                                                         hvum.user_target_list,
+                                                                                         reach_index,
+                                                                                         chronicle,
+                                                                                         types,
+                                                                                         rounddata=False)
             # export text
             exported = tools_mod.export_text_interpolatevalues(data_to_table,
                                                                horiz_headers,
                                                                vertical_headers,
-                                                               hdf5.data_description,
+                                                               hdf5.data_2d,
                                                                types,
                                                                project_preferences)
             if exported:

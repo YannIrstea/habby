@@ -117,10 +117,10 @@ def read_chronicle_from_text_file(chronicle_filepath):
     return chronicle_from_file, types_from_file
 
 
-def check_matching_units(data_description, types):
+def check_matching_units(unit_type, types):
+    unit_chronicle_type = None
     # get units types
-    unit_hdf5_type = data_description["hyd_unit_type"][
-                     data_description["hyd_unit_type"].find('[') + 1:data_description["hyd_unit_type"].find(']')]
+    unit_hdf5_type = unit_type[unit_type.find('[') + 1:unit_type.find(']')]
     for key in types.keys():
         if "units" in key:
             unit_chronicle_type = types[key]
@@ -128,14 +128,12 @@ def check_matching_units(data_description, types):
 
     # check matching units type ok
     if unit_hdf5_type == unit_chronicle_type:
-        #print("units type match")
         return True, ""
     if unit_hdf5_type != unit_chronicle_type:
-        #print("units type doesn't match")
         return False, " Desired units type is different from available units type : " + unit_chronicle_type + " != " + unit_hdf5_type
 
 
-def compute_interpolation(data_description, fish_names, reach_num, chronicle, types, rounddata=True):
+def compute_interpolation(data_2d, animal_list, reach_num, chronicle, types, rounddata=True):
     # check if date
     if "date" in types.keys():
         date_presence = True
@@ -144,21 +142,23 @@ def compute_interpolation(data_description, fish_names, reach_num, chronicle, ty
 
     # get hdf5 model
     inter_data_model = dict()
-    inter_data_model["unit"] = list(map(float, data_description["hyd_unit_list"][reach_num]))
-    wet_area = np.array(list(map(float, data_description["total_wet_area"][reach_num])))
+    inter_data_model["unit"] = list(map(float, data_2d.unit_name_list[reach_num]))
+    total_wet_area = []
+    for unit_num in range(data_2d.unit_num):
+        total_wet_area.append(data_2d[reach_num][unit_num].total_wet_area)
+    wet_area = np.array(total_wet_area)
     # map by fish
-    for fish_index, fish_name in enumerate(fish_names):
-        spu = np.array(list(map(float, data_description["total_WUA_area"][fish_name][reach_num])))
-        inter_data_model["hv_" + fish_name] = spu / wet_area
-        inter_data_model["spu_" + fish_name] = spu
+    for animal_index, animal in enumerate(animal_list):
+        spu = np.array(animal.wua[reach_num])
+        inter_data_model["hv_" + animal.name] = spu / wet_area
+        inter_data_model["spu_" + animal.name] = spu
 
     # copy chonicle to interpolated
     chronicle_interpolated = deepcopy(chronicle)
     # Add new column to chronicle_interpolated
-    for fish_name in fish_names:
-        chronicle_interpolated["hv_" + fish_name] = []
-    for fish_name in fish_names:
-        chronicle_interpolated["spu_" + fish_name] = []
+    for animal in animal_list:
+        chronicle_interpolated["hv_" + animal.name] = []
+        chronicle_interpolated["spu_" + animal.name] = []
     # copy for round for table gui
     chronicle_gui = deepcopy(chronicle_interpolated)
     # get min max
@@ -166,30 +166,30 @@ def compute_interpolation(data_description, fish_names, reach_num, chronicle, ty
     q_max = max(inter_data_model["unit"])
 
     # interpolation
-    for fish_name in fish_names:
+    for animal in animal_list:
         for index_to_est, q_value_to_est in enumerate(chronicle_interpolated["units"]):
             if q_value_to_est != None:
                 if q_value_to_est < q_min or q_value_to_est > q_max:
-                    chronicle_interpolated["hv_" + fish_name].append(None)
-                    chronicle_gui["hv_" + fish_name].append("")
-                    chronicle_interpolated["spu_" + fish_name].append(None)
-                    chronicle_gui["spu_" + fish_name].append("")
+                    chronicle_interpolated["hv_" + animal.name].append(None)
+                    chronicle_gui["hv_" + animal.name].append("")
+                    chronicle_interpolated["spu_" + animal.name].append(None)
+                    chronicle_gui["spu_" + animal.name].append("")
                 else:
                     data_interp_hv = np.interp(q_value_to_est,
                                                inter_data_model["unit"],
-                                               inter_data_model["hv_" + fish_name])
-                    chronicle_interpolated["hv_" + fish_name].append(data_interp_hv)
-                    chronicle_gui["hv_" + fish_name].append("{0:.2f}".format(data_interp_hv))
+                                               inter_data_model["hv_" + animal.name])
+                    chronicle_interpolated["hv_" + animal.name].append(data_interp_hv)
+                    chronicle_gui["hv_" + animal.name].append("{0:.2f}".format(data_interp_hv))
                     data_interp_spu = np.interp(q_value_to_est,
                                                 inter_data_model["unit"],
-                                                inter_data_model["spu_" + fish_name])
-                    chronicle_interpolated["spu_" + fish_name].append(data_interp_spu)
-                    chronicle_gui["spu_" + fish_name].append("{0:.0f}".format(data_interp_spu))
+                                                inter_data_model["spu_" + animal.name])
+                    chronicle_interpolated["spu_" + animal.name].append(data_interp_spu)
+                    chronicle_gui["spu_" + animal.name].append("{0:.0f}".format(data_interp_spu))
             if q_value_to_est == None:
-                chronicle_interpolated["hv_" + fish_name].append(None)
-                chronicle_gui["hv_" + fish_name].append("")
-                chronicle_interpolated["spu_" + fish_name].append(None)
-                chronicle_gui["spu_" + fish_name].append("")
+                chronicle_interpolated["hv_" + animal.name].append(None)
+                chronicle_gui["hv_" + animal.name].append("")
+                chronicle_interpolated["spu_" + animal.name].append(None)
+                chronicle_gui["spu_" + animal.name].append("")
 
     # round for GUI
     if rounddata:
@@ -219,10 +219,10 @@ def compute_interpolation(data_description, fish_names, reach_num, chronicle, ty
     return data_to_table, horiz_headers, vertical_headers
 
 
-def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_description, types, project_preferences):
-    filename = data_description["hab_filename"]
-    path_prj = data_description["path_project"]
-    unit_type = types["units"]
+def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_2d, types, project_preferences):
+    filename = data_2d.filename
+    path_prj = project_preferences["path_prj"]
+    unit_type = data_2d.unit_type
 
     fish_names = list(horiz_headers)
 
