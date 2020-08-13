@@ -512,7 +512,8 @@ class VisualGroup(QGroupBoxCollapsible):
         self.input_class_v_lineedit = QLineEdit("")
         self.input_class_plot_button = QPushButton(self.tr("Show"))
         self.input_class_plot_button.clicked.connect(self.plot_hs_class)
-        self.input_class_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
+        change_button_color(self.input_class_plot_button, "#47B5E6")
+        self.input_class_plot_button.setEnabled(False)
         input_class_layout = QGridLayout()
         input_class_layout.addWidget(input_class_label, 0, 0, 1, 2)
         input_class_layout.addWidget(input_class_h_label, 1, 0)
@@ -523,16 +524,14 @@ class VisualGroup(QGroupBoxCollapsible):
 
         # result
         result_label = QLabel(self.tr("Result :"))
-
         self.result_tableview = QTableView()
-        # self.result_tableview.setFrameShape(QFrame.NoFrame)
         self.result_tableview.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.result_tableview.verticalHeader().setVisible(False)
         self.result_tableview.horizontalHeader().setVisible(False)
-
         self.result_plot_button = QPushButton(self.tr("Show"))
         self.result_plot_button.clicked.connect(self.plot_hs_result)
-        self.result_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
+        self.result_plot_button.setEnabled(False)
+        change_button_color(self.result_plot_button, "#47B5E6")
         result_layout = QGridLayout()
         result_layout.addWidget(result_label, 0, 0)
         result_layout.addWidget(self.result_tableview, 1, 0)
@@ -583,9 +582,12 @@ class VisualGroup(QGroupBoxCollapsible):
             self.input_class_h_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[0]))))
             self.input_class_v_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[1]))))
 
+            self.input_class_plot_button.setEnabled(True)
+
             self.toggle_group(False)
             self.input_result_group.show()
             self.toggle_group(True)
+
         else:
             self.input_result_group.hide()
 
@@ -643,9 +645,11 @@ class VisualGroup(QGroupBoxCollapsible):
             # table
             mytablemodel = MyTableModel(hdf5.data_2d.hs_summary_data)
             self.result_tableview.setModel(mytablemodel)  # set model
+            self.result_plot_button.setEnabled(True)
         else:
             mytablemodel = MyTableModel(["", ""])
             self.result_tableview.setModel(mytablemodel)  # set model
+            self.result_plot_button.setEnabled(False)
 
     def plot_hs_class(self):
         # hdf5
@@ -734,6 +738,7 @@ class CompareGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.comp_filename = 'HS_comp.txt'
+        self.p = Process(target=None)  # second process
         self.setTitle(title)
         self.init_ui()
 
@@ -759,6 +764,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # units_1
         units_label_1 = QLabel(self.tr('unit(s)'))
         self.units_QListWidget_1 = QListWidget()
+        self.units_QListWidget_1.itemSelectionChanged.connect(self.enable_disable_pushbutton)
         self.units_QListWidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
         units_layout_1 = QVBoxLayout()
         units_layout_1.addWidget(units_label_1)
@@ -791,6 +797,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # units_2
         units_label_2 = QLabel(self.tr('unit(s)'))
         self.units_QListWidget_2 = QListWidget()
+        self.units_QListWidget_2.itemSelectionChanged.connect(self.enable_disable_pushbutton)
         self.units_QListWidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
         units_layout_2 = QVBoxLayout()
         units_layout_2.addWidget(units_label_2)
@@ -814,10 +821,12 @@ class CompareGroup(QGroupBoxCollapsible):
         self.comp_choice_same_radio = QRadioButton(self.tr("All same"))
         filename_label = QLabel(self.tr("Output filename :"))
         self.filename_lineedit = QLineEdit()
-        self.mod_change(None)
+        self.filename_lineedit.textChanged.connect(self.enable_disable_pushbutton)
         self.run_comp_pushbutton = QPushButton(self.tr("run"))
+        change_button_color(self.run_comp_pushbutton, "#47B5E6")
         self.run_comp_pushbutton.clicked.connect(self.compare)
-        self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
+        self.run_comp_pushbutton.setEnabled(False)
+        # self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
 
         comp_run_layout = QGridLayout()
         comp_run_layout.addWidget(self.comp_choice_all_radio, 0, 0, Qt.AlignLeft)
@@ -831,6 +840,8 @@ class CompareGroup(QGroupBoxCollapsible):
         general_layout = QVBoxLayout()
         general_layout.addLayout(comp_layout)
         general_layout.addLayout(comp_run_layout)
+
+        self.mod_change(None)
 
         self.setLayout(general_layout)
 
@@ -918,6 +929,15 @@ class CompareGroup(QGroupBoxCollapsible):
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget_2.addItem(item)
+
+    def enable_disable_pushbutton(self):
+        selection_1 = self.units_QListWidget_1.selectedItems()
+        selection_2 = self.units_QListWidget_2.selectedItems()
+        filename_output = self.filename_lineedit.text()
+        if (selection_1 or selection_2) and filename_output:
+            self.run_comp_pushbutton.setEnabled(True)
+        else:
+            self.run_comp_pushbutton.setEnabled(False)
 
     def mod_change(self, _):
         if self.comp_choice_all_radio.isChecked():

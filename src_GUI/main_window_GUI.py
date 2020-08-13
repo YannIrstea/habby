@@ -1750,7 +1750,7 @@ class MainWindows(QMainWindow):
         if hasattr(self, "central_widget"):
             central_widget_attrib = getattr(self, "central_widget")
             for tabs in tab_list:
-                # hydraulic tabs
+                # hydraulic tabs and hs_tab
                 if type(tabs) == tuple:
                     if hasattr(central_widget_attrib, tabs[0]):
                         process_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).p
