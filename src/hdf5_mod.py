@@ -491,58 +491,57 @@ class Hdf5Management:
             reach_group = data_2d_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
-            desired_units_list = [available_unit_list[unit_index] for unit_index in
-                                  self.units_index]  # get only desired_units
             removed_units_list = list(set(list(range(len(available_unit_list)))) - set(self.units_index))
-            for unit_num, unit_group_name in enumerate(desired_units_list):
-                # group name
-                unit_group = reach_group + "/" + unit_group_name
+            for unit_num, unit_group_name in enumerate(available_unit_list):
+                if unit_num in self.units_index:
+                    # group name
+                    unit_group = reach_group + "/" + unit_group_name
 
-                """ mesh """
-                # group
-                mesh_group = unit_group + "/mesh"
-                # i_whole_profile
-                if self.extension == ".hyd" or self.extension == ".hab":
-                    self.data_2d[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = self.file_object[
-                                                                                                    mesh_group + "/i_whole_profile"][
-                                                                                                :]
-                # tin
-                self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name] = self.file_object[mesh_group + "/tin"][:]
-                # data (always ?)
-                mesh_dataframe = DataFrame()
-                if mesh_group + "/data" in self.file_object:
-                    if self.user_target_list != "defaut":
-                        for mesh_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().meshs():
-                            mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][
-                                mesh_variable.name]
-                    else:
-                        mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
-                self.data_2d[reach_num][unit_num]["mesh"]["data"] = mesh_dataframe
+                    """ mesh """
+                    # group
+                    mesh_group = unit_group + "/mesh"
+                    # i_whole_profile
+                    if self.extension == ".hyd" or self.extension == ".hab":
+                        self.data_2d[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = self.file_object[
+                                                                                                        mesh_group + "/i_whole_profile"][
+                                                                                                    :]
+                    # tin
+                    self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name] = self.file_object[mesh_group + "/tin"][:]
+                    # data (always ?)
+                    mesh_dataframe = DataFrame()
+                    if mesh_group + "/data" in self.file_object:
+                        if self.user_target_list != "defaut":
+                            for mesh_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().meshs():
+                                mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][
+                                    mesh_variable.name]
+                        else:
+                            mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
+                    self.data_2d[reach_num][unit_num]["mesh"]["data"] = mesh_dataframe
 
-                # HV by celle for each fish
-                if self.extension == ".hab":
-                    mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
-                    for animal_num, animal in enumerate(self.hvum.all_final_variable_list.hdf5s().meshs().habs()):
-                        # get dataset
-                        fish_data_set = mesh_hv_data_group[animal.name]
-                        # get data
-                        self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name] = fish_data_set[:]
+                    # HV by celle for each fish
+                    if self.extension == ".hab":
+                        mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
+                        for animal_num, animal in enumerate(self.hvum.all_final_variable_list.hdf5s().meshs().habs()):
+                            # get dataset
+                            fish_data_set = mesh_hv_data_group[animal.name]
+                            # get data
+                            self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name] = fish_data_set[:]
 
-                """ node """
-                # group
-                node_group = unit_group + "/node"
-                # xy
-                self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name] = self.file_object[node_group + "/xy"][:]
-                # data (always ?)
-                node_dataframe = DataFrame()
-                if node_group + "/data" in self.file_object:
-                    if self.user_target_list != "defaut":
-                        for node_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().nodes():
-                            node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][
-                                node_variable.name]
-                    else:
-                        node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
-                self.data_2d[reach_num][unit_num]["node"]["data"] = node_dataframe
+                    """ node """
+                    # group
+                    node_group = unit_group + "/node"
+                    # xy
+                    self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name] = self.file_object[node_group + "/xy"][:]
+                    # data (always ?)
+                    node_dataframe = DataFrame()
+                    if node_group + "/data" in self.file_object:
+                        if self.user_target_list != "defaut":
+                            for node_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().nodes():
+                                node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][
+                                    node_variable.name]
+                        else:
+                            node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
+                    self.data_2d[reach_num][unit_num]["node"]["data"] = node_dataframe
 
         # load_data_2d_info
         self.load_data_2d_info()
