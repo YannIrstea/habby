@@ -26,9 +26,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
 import numpy as np
 
 import src.hydraulic_process_mod
-from src import hydrosignature
 from src.tools_mod import QGroupBoxCollapsible
-from src.hydraulic_process_mod import MyProcessList
+from src.hydraulic_process_mod import MyProcessList, load_data_and_compute_hs, load_hs_and_compare
 from src import hdf5_mod
 from src import plot_mod
 from src import tools_mod
@@ -364,7 +363,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                                               classhv=self.classhv)
             self.q = Queue()
             self.progress_value = Value("d", 0)
-            self.p = Process(target=src.hydraulic_process_mod.hydrosignature_process,
+            self.p = Process(target=load_data_and_compute_hs,
                              args=(hydrosignature_description,
                                    self.progress_value,
                                    self.q,
@@ -666,7 +665,7 @@ class VisualGroup(QGroupBoxCollapsible):
         project_preferences = load_project_properties(self.path_prj)
         state = Value("i", 0)
         title = "input classes of " + hdf5name
-        hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
+        plot_process = Process(target=plot_mod.plot_hydrosignature,
                                          args=(state,
                                                None,
                                                hdf5.hs_input_class[1],
@@ -674,7 +673,7 @@ class VisualGroup(QGroupBoxCollapsible):
                                                title,
                                                project_preferences,
                                                self.axe_mod_choosen))
-        self.process_list.append((hydrosignature_process, state))
+        self.process_list.append((plot_process, state))
 
         self.process_list.start()
 
@@ -710,7 +709,7 @@ class VisualGroup(QGroupBoxCollapsible):
                 title = "hydrosignature : " + hdf5.data_2d[reach_num][unit_num].reach_name + " at " + \
                         hdf5.data_2d[reach_num][unit_num].unit_name + " " + hdf5.unit_type[hdf5.unit_type.find('[') + len('['):hdf5.unit_type.find(']')]
 
-                hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
+                plot_process = Process(target=plot_mod.plot_hydrosignature,
                                                  args=(state,
                                                        hdf5.data_2d[reach_num][unit_num].hydrosignature["hsarea"],
                                                        hdf5.hs_input_class[1],
@@ -718,7 +717,7 @@ class VisualGroup(QGroupBoxCollapsible):
                                                        title,
                                                        project_preferences,
                                                        self.axe_mod_choosen))
-                self.process_list.append((hydrosignature_process, state))
+                self.process_list.append((plot_process, state))
 
         self.process_list.start()
 
@@ -940,11 +939,16 @@ class CompareGroup(QGroupBoxCollapsible):
         unit_index_list_2 = [element.row() for element in self.units_QListWidget_2.selectedIndexes()]
 
         # load_hs_and_compare
-        hydrosignature.load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
-                                           hdf5name_2, reach_index_list_2, unit_index_list_2,
-                                           self.comp_choice_all_radio.isChecked(),
-                                           self.filename_lineedit.text(),
-                                           self.path_prj)
+        self.p = Process(target=load_hs_and_compare,
+                         args=(hdf5name_1, reach_index_list_1, unit_index_list_1,
+                               hdf5name_2, reach_index_list_2, unit_index_list_2,
+                               self.comp_choice_all_radio.isChecked(),
+                               self.filename_lineedit.text(),
+                               self.path_prj))
+        self.p.name = "hydrosignature comparison"
+        self.p.start()
+        self.p.join()
+        self.send_log.emit(self.tr("Hydrosignature comparison finished."))
 
 
 

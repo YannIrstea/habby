@@ -15,8 +15,10 @@ https://github.com/YannIrstea/habby
 
 """
 import os
+import os.path
 import sys
 from io import StringIO
+from itertools import product
 from time import sleep
 import numpy as np
 
@@ -24,6 +26,7 @@ from PyQt5.QtCore import QCoreApplication as qt_tr, QThread, pyqtSignal
 from multiprocessing import Process, Value
 
 from src.hdf5_mod import Hdf5Management
+from src.hydrosignature import hscomparison
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
 from src.project_properties_mod import create_default_project_properties_dict
 from src import hdf5_mod
@@ -272,7 +275,7 @@ class HydraulicSimulationResultsAnalyzer:
                 if data_index_file[headers[time_index]][0] != "all":
                     self.hydrau_case = "4.b"
 
-            print("self.hydrau_case", self.hydrau_case)
+            # print("self.hydrau_case", self.hydrau_case)
 
             """ ALL CASE """
             # hdf5 name and source filenames
@@ -1282,7 +1285,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             return
 
 
-def hydrosignature_process(hydrosignature_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
@@ -1318,6 +1321,107 @@ def hydrosignature_process(hydrosignature_description, progress_value, q=[], pri
             return
         else:
             return
+
+
+def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
+                        hdf5name_2, reach_index_list_2, unit_index_list_2,
+                        all_possibilities, out_filename, path_prj):
+    # create hdf5 class
+    hdf5_1 = hdf5_mod.Hdf5Management(path_prj, hdf5name_1)
+    hdf5_1.open_hdf5_file(False)
+    hdf5_1.load_hydrosignature()
+    hdf5_2 = hdf5_mod.Hdf5Management(path_prj, hdf5name_2)
+    hdf5_2.open_hdf5_file(False)
+    hdf5_2.load_hydrosignature()
+
+    col_row_name_list = [""]
+    table_list = []
+    reach_name_1_list = []
+    unit_name_1_list = []
+    for reach_num_1 in reach_index_list_1:
+        for unit_num_1 in unit_index_list_1:
+            reach_name_1 = hdf5_1.data_2d[reach_num_1][unit_num_1].reach_name
+            unit_name_1 = hdf5_1.data_2d[reach_num_1][unit_num_1].unit_name
+            col_name = hdf5name_1 + "_" + reach_name_1 + "_" + unit_name_1
+            col_row_name_list.append(col_name)
+            table_list.append((hdf5_1, reach_num_1, unit_num_1))
+            # templist
+            reach_name_1_list.append(reach_name_1)
+            unit_name_1_list.append(unit_name_1)
+    for reach_num_2 in reach_index_list_2:
+        for unit_num_2 in unit_index_list_2:
+            reach_name_2 = hdf5_2.data_2d[reach_num_2][unit_num_2].reach_name
+            unit_name_2 = hdf5_2.data_2d[reach_num_2][unit_num_2].unit_name
+            col_name = hdf5name_2 + "_" + reach_name_2 + "_" + unit_name_2
+            # all same
+            if not all_possibilities:
+                if reach_name_2 in reach_name_1_list and unit_name_2 in unit_name_1_list:
+                    col_row_name_list.append(col_name)
+                    table_list.append((hdf5_2, reach_num_2, unit_num_2))
+            else:
+                col_row_name_list.append(col_name)
+                table_list.append((hdf5_2, reach_num_2, unit_num_2))
+
+    # compute combination
+    combination_list = list(product(table_list, repeat=2))
+
+    # compute hscomparison area
+    data_list = []
+    for comb in combination_list:
+        # first
+        first_comp = comb[0]
+        classhv1 = first_comp[0].hs_input_class
+        hs1 = first_comp[0].data_2d[first_comp[1]][first_comp[2]].hydrosignature["hsarea"]
+        # second
+        second_comp = comb[1]
+        classhv2 = second_comp[0].hs_input_class
+        hs2 = second_comp[0].data_2d[second_comp[1]][second_comp[2]].hydrosignature["hsarea"]
+        # comp
+        done_tf, hs_comp_value = hscomparison(classhv1=classhv1,
+                                              hs1=hs1,
+                                              classhv2=classhv2,
+                                              hs2=hs2)
+        # append
+        data_list.append(str(hs_comp_value))
+    row_area_list = []
+    for ind, x in enumerate(range(0, len(data_list), len(col_row_name_list) - 1)):
+        row_list = [col_row_name_list[ind + 1]] + data_list[x:x + len(col_row_name_list) - 1]
+        row_area_list.append(row_list)
+    row_area_list.insert(0, col_row_name_list)
+
+    # compute hscomparison volume
+    data_list = []
+    for comb in combination_list:
+        # first
+        first_comp = comb[0]
+        classhv1 = first_comp[0].hs_input_class
+        hs1 = first_comp[0].data_2d[first_comp[1]][first_comp[2]].hydrosignature["hsvolume"]
+        # second
+        second_comp = comb[1]
+        classhv2 = second_comp[0].hs_input_class
+        hs2 = second_comp[0].data_2d[second_comp[1]][second_comp[2]].hydrosignature["hsvolume"]
+        # comp
+        done_tf, hs_comp_value = hscomparison(classhv1=classhv1,
+                                              hs1=hs1,
+                                              classhv2=classhv2,
+                                              hs2=hs2)
+        # append
+        data_list.append(str(hs_comp_value))
+    row_volume_list = []
+    for ind, x in enumerate(range(0, len(data_list), len(col_row_name_list) - 1)):
+        row_list = [col_row_name_list[ind + 1]] + data_list[x:x + len(col_row_name_list) - 1]
+        row_volume_list.append(row_list)
+    row_volume_list.insert(0, col_row_name_list)
+
+    # write file
+    f = open(os.path.join(path_prj, "output", "text", out_filename), 'w')
+    f.write("area" + '\n')
+    for row in row_area_list:
+        f.write("\t".join(row) + '\n')
+    f.write('\n' + "volume" + '\n')
+    for row in row_volume_list:
+        f.write("\t".join(row) + '\n')
+    f.close()
 
 
 class MyProcessList(QThread):
@@ -1725,7 +1829,7 @@ class MyProcessList(QThread):
         self.plot_finished = True
 
     def check_all_export_produced(self):
-        print("check_all_export_produced")
+        # print("check_all_export_produced")
         self.nb_finished = 0
         self.nb_export_total = len(self.process_list)
         state_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
@@ -1755,5 +1859,4 @@ class MyProcessList(QThread):
                 #print(self.process_list[i][0].name, "removed from list")
                 self.process_list.pop(i)
         self.nb_plot_total = len(self.process_list)
-
 
