@@ -227,11 +227,11 @@ class InterpolationGroup(QGroupBoxCollapsible):
         mytablemodel = MyTableModel("", "", "", "")
         self.require_unit_qtableview.setModel(mytablemodel)
         self.plot_chronicle_qpushbutton = QPushButton(self.tr('View interpolate chronicle'))
-        self.plot_chronicle_qpushbutton.setStyleSheet("background-color: #47B5E6; color: black")
+        change_button_color(self.plot_chronicle_qpushbutton, "#47B5E6")
         self.plot_chronicle_qpushbutton.clicked.connect(self.plot_chronicle)
         self.plot_chronicle_qpushbutton.setEnabled(False)
         self.export_txt_chronicle_qpushbutton = QPushButton(self.tr('Export interpolate chronicle'))
-        self.export_txt_chronicle_qpushbutton.setStyleSheet("background-color: #47B5E6; color: black")
+        change_button_color(self.export_txt_chronicle_qpushbutton, "#47B5E6")
         self.export_txt_chronicle_qpushbutton.clicked.connect(self.export_chronicle)
         self.export_txt_chronicle_qpushbutton.setEnabled(False)
 
@@ -315,7 +315,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 reach_names = hdf5.reach_name
             else:
                 reach_names = [""] + hdf5.reach_name
-            self.hab_reach_qcombobox.addItems(reach_names)
+
+            unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
+            if "Date" not in unit_type:
+                self.hab_reach_qcombobox.addItems(reach_names)
+            else:
+                self.send_log.emit(self.tr("Error: This file contain date unit. "
+                                           "To be interpolated, file must contain discharge or timestep unit."))
 
     def reach_hab_change(self):
         hdf5name = self.hab_filenames_qcombobox.currentText()
@@ -331,7 +337,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.disable_and_clean_group_widgets(False)
             # clean
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file()
+            hdf5.open_hdf5_file(get_hdf5_attributes=True)
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
             unit_type = unit_type.replace("m3/s", "m<sup>3</sup>/s")
             unit_type_value = unit_type[unit_type.index("["):unit_type.index("]")+1]
@@ -341,23 +347,22 @@ class InterpolationGroup(QGroupBoxCollapsible):
             units_name = hdf5.units_name[reach_index]
 
             # hab
-            if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                for mesh in hdf5.hvum.hdf5_and_computable_list.habs().meshs():
+            if hdf5.hvum.all_final_variable_list.meshs().names_gui():
+                for mesh in hdf5.hvum.all_final_variable_list.habs().meshs():
                     mesh_item = QListWidgetItem(mesh.name_gui, self.fish_available_qlistwidget)
                     mesh_item.setData(Qt.UserRole, mesh)
                     self.fish_available_qlistwidget.addItem(mesh_item)
                 self.fish_available_qlistwidget.selectAll()
-            if units_name:
                 # set min and max unit for from to by
-                unit_num = list(map(float, units_name))
-                min_unit = min(unit_num)
-                max_unit = max(unit_num)
-                self.unit_min_qlabel.setText(str(min_unit))
-                self.unit_max_qlabel.setText(str(max_unit))
-                self.unit_type_qlabel.setText(unit_type)
-                self.from_qlineedit.setText(str(min_unit))
-                self.to_qlineedit.setText(str(max_unit))
-                self.unit_qlabel.setText(unit_type_value)
+            unit_num = list(map(float, units_name))
+            min_unit = min(unit_num)
+            max_unit = max(unit_num)
+            self.unit_min_qlabel.setText(str(min_unit))
+            self.unit_max_qlabel.setText(str(max_unit))
+            self.unit_type_qlabel.setText(unit_type)
+            self.from_qlineedit.setText(str(min_unit))
+            self.to_qlineedit.setText(str(max_unit))
+            self.unit_qlabel.setText(unit_type_value)
 
     def display_required_units_from_sequence(self):
         from_sequ = self.from_qlineedit.text().replace(",", ".")
