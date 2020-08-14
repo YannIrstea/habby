@@ -1524,7 +1524,7 @@ class MyProcessList(QThread):
                 state = Value("d", 0)
                 plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
                                                    args=(state,
-                                                         data_description,
+                                                         self.hdf5.data_2d,
                                                          reach_num,
                                                          habitat_variable_list,
                                                          self.project_preferences),

@@ -406,7 +406,7 @@ def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences,
     plt.show()
 
 
-def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_preferences):
+def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -442,23 +442,17 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
     erase1 = project_preferences['erase_id']
     types_plot = project_preferences['type_plot']
     # colors
-    color_list, style_list = get_colors_styles_line_from_nb_input(len(name_fish))
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(habitat_variable_list))
 
     # prep data
-    name_hdf5 = os.path.splitext(data_description["name_hdf5"])[0]
-    area_all = list(map(float, data_description["total_wet_area"][reach_num]))
-    unit_name = []
-    if len(area_all) == 1:
-        for unit_index in data_description["units_index"]:
-            unit_name.append(data_description["hyd_unit_list"][0][unit_index])
-    if len(area_all) > 1:
-        for unit_index in data_description["units_index"]:
-            unit_name.append(str(data_description["hyd_unit_list"][reach_num][unit_index]))
-    unit_type = data_description["unit_type"]
-    unit_type_only = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    name_hdf5 = data_2d.filename
+    area_all = [unit.total_wet_area for unit in data_2d[reach_num]]
+    unit_name = data_2d.unit_name_list[reach_num]
+    unit_type = data_2d.unit_type
+    unit_type_only = unit_type[unit_type.find('[') + len('['):unit_type.find(']')]
     unit_type_only_scientific = unit_type_only.replace("m3/s", "$m^3$/s")
     unit_type_scientific = unit_type.replace("m3/s", "$m^3$/s")
-    reach_name = data_description["hyd_reach_list"].split(", ")[reach_num]
+    reach_name = data_2d[reach_num][0].reach_name
 
     # plot
     title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
@@ -471,20 +465,20 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
     fig, ax = plt.subplots(3, 1, sharex=True)
     fig.canvas.set_window_title(plot_window_title)
 
-    name_fish_origin = list(name_fish)
-    for id, n in enumerate(name_fish):
-        name_fish[id] = n.name.replace('_', ' ')
+    # name_fish_origin = list(name_fish)
+    # for id, n in enumerate(name_fish):
+    #     name_fish[id] = n.name.replace('_', ' ')
 
     # one time step - bar
     if len(unit_name) == 1:
         # SPU
         data_bar = []
         percent = []
-        for name_fish_value in name_fish_origin:
-            percent.append(float(data_description["percent_area_unknown"][name_fish_value][reach_num][0]))
-            data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
+        for habitat_variable in habitat_variable_list:
+            percent.append(float(habitat_variable.percent_area_unknown[reach_num][0]))
+            data_bar.append(float(habitat_variable.wua[reach_num][0]))
 
-        y_pos = np.arange(len(name_fish))
+        y_pos = np.arange(len(habitat_variable_list))
         data_bar2 = np.array(data_bar)
         ax[0].bar(y_pos, data_bar2)
         ax[0].set_xticks(y_pos)
@@ -506,7 +500,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         percent = np.array(percent)
         ax[2].bar(y_pos, percent)
         ax[2].set_xticks(y_pos)
-        ax[2].set_xticklabels(name_fish, horizontalalignment="right")
+        ax[2].set_xticklabels(habitat_variable_list.names_gui(), horizontalalignment="right")
         ax[2].xaxis.set_tick_params(rotation=15)
         ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
         ax[2].set_title(
@@ -518,9 +512,9 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         plt.tight_layout()
 
         #
-        if len(name_fish) == 1:  # one fish
+        if len(habitat_variable_list) == 1:  # one fish
             filename = name_hdf5 + "_" + reach_name + "_" + str(unit_name[0]).replace(".", "_") + '_' \
-                       + name_fish[0].replace(' ', '_')
+                       + habitat_variable_list[0].name_gui.replace(' ', '_')
         else:  # multi fish
             filename = name_hdf5 + "_" + reach_name + "_" + str(unit_name[0]).replace(".", "_") + '_' \
                        + qt_tr.translate("plot_mod", "HSI")
@@ -541,12 +535,12 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
     else:
         # SPU
         x_data = list(map(float, unit_name))
-        for fish_index, name_fish_value in enumerate(name_fish_origin):
-            y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
+        for fish_index, habitat_variable in enumerate(habitat_variable_list):
+            y_data_spu = list(map(float, habitat_variable.wua[reach_num]))
             # plot line
             ax[0].plot(x_data,
                      y_data_spu,
-                     label=name_fish_value,
+                     label=habitat_variable.name_gui,
                      color=color_list[fish_index],
                      linestyle=style_list[fish_index],
                        marker=mar)
@@ -561,13 +555,12 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         ax[0].set_xticklabels([])
 
         # VH
-        for fish_index, name_fish_value in enumerate(name_fish_origin):
-            y_data_hv = [b / m for b, m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
-                                                        area_all)]
+        for fish_index, habitat_variable in enumerate(habitat_variable_list):
+            y_data_hv = list(map(float, habitat_variable.hv[reach_num]))
             # plot line
             ax[1].plot(x_data,
                      y_data_hv,
-                    label=name_fish_value,
+                    label=habitat_variable.name_gui,
                      color=color_list[fish_index],
                      linestyle=style_list[fish_index],
                        marker=mar)
@@ -583,12 +576,12 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         ax[1].set_xticklabels([])
 
         # % inconnu
-        for fish_index, name_fish_value in enumerate(name_fish_origin):
-            y_data_percent = list(map(float, data_description["percent_area_unknown"][name_fish_value][reach_num]))
+        for fish_index, habitat_variable in enumerate(habitat_variable_list):
+            y_data_percent = list(map(float, habitat_variable.percent_area_unknown[reach_num]))
             # plot line
             ax[2].plot(x_data,
                      y_data_percent,
-                    label=name_fish_value,
+                    label=habitat_variable.name_gui,
                      color=color_list[fish_index],
                      linestyle=style_list[fish_index],
                        marker=mar)
@@ -623,8 +616,8 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, project_pref
         # view data with mouse
         mplcursors.cursor()
 
-        if len(name_fish) == 1:  # one fish
-            filename = name_hdf5 + "_" + reach_name + "_units_" + name_fish[0].replace(' ', '_')
+        if len(habitat_variable_list) == 1:  # one fish
+            filename = name_hdf5 + "_" + reach_name + "_units_" + habitat_variable_list[0].name_gui.replace(' ', '_')
         else:
             filename = name_hdf5 + "_" + reach_name + "_units_" + qt_tr.translate("plot_mod", "HSI")
 
