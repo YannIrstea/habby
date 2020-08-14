@@ -581,7 +581,7 @@ class HydraulicVariableUnitManagement:
         # always z, if not detect : compute (FV to FE)
         if self.z.name not in node_names:
             self.z.position = "node"
-            self.z.precomputable_tohdf5 = True
+            self.z.hdf5 = True
             self.hdf5_and_computable_list.append(self.z)
         if self.h.name not in node_names:
             self.h.position = "node"
