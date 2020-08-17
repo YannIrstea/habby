@@ -1670,7 +1670,7 @@ class Hdf5Management:
                             # fish
                             if self.hvum.hdf5_and_computable_list.habs():
                                 for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
-                                    layer.CreateField(ogr.FieldDefn(animal.name, OGRTypes_dict[animal.dtype]))
+                                    layer.CreateField(ogr.FieldDefn(animal.name_gui, OGRTypes_dict[animal.dtype]))
                         layer.StartTransaction()  # faster
 
                         # for each mesh
@@ -1686,13 +1686,6 @@ class Hdf5Management:
                                 self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node2]])
                             p3 = list(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][node3].tolist() + [
                                 self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node3]])
-                            # data attrbiutes
-                            if self.hdf5_type == "habitat":
-                                if self.hvum.hdf5_and_computable_list.habs():
-                                    fish_data = []
-                                    for animal in self.hvum.hdf5_and_computable_list.habs():
-                                        fish_data.append(
-                                            self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name][mesh_num])
 
                             # Create triangle
                             ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -1721,7 +1714,8 @@ class Hdf5Management:
                                 # fish
                                 if self.hvum.hdf5_and_computable_list.habs():
                                     for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
-                                        feat.SetField(animal.name, fish_data[fish_num])
+                                        feat.SetField(animal.name,
+                                                      self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name][mesh_num])
                             # set geometry
                             feat.SetGeometry(poly)
                             # create
@@ -1925,7 +1919,7 @@ class Hdf5Management:
                     cellData = {}
 
                     # hyd variables mesh
-                    for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
+                    for mesh_variable in self.hvum.all_final_variable_list.meshs():
                         cellData[mesh_variable.name_gui] = \
                             self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][
                                 mesh_variable.name].to_numpy()

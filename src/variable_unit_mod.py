@@ -281,7 +281,7 @@ class HydraulicVariableUnitManagement:
         self.i_whole_profile = HydraulicVariable(value=None,
                                                  unit="",
                                                  name="i_whole_profile",
-                                                 name_gui="i_whole_profile",
+                                                 name_gui="i whole profile",
                                                  descr="mesh whole profile index",
                                                  dtype=np.int64,
                                                  index_gui=getframeinfo(currentframe()).lineno,
@@ -289,7 +289,7 @@ class HydraulicVariableUnitManagement:
         self.i_split = HydraulicVariable(value=None,
                                          unit="",
                                          name="i_split",
-                                         name_gui="i_split",
+                                         name_gui="i split",
                                          descr="mesh cutting index",
                                          dtype=np.int64,
                                          index_gui=getframeinfo(currentframe()).lineno,
@@ -297,7 +297,7 @@ class HydraulicVariableUnitManagement:
         self.i_sub_defaut = HydraulicVariable(value=None,
                                               unit="",
                                               name="i_sub_defaut",
-                                              name_gui="i_sub_defaut",
+                                              name_gui="i sub defaut",
                                               descr="mesh default substrate index",
                                               index_gui=getframeinfo(currentframe()).lineno,
                                               dtype=np.int64,
@@ -683,20 +683,6 @@ class HydraulicVariableUnitManagement:
             if not variable_node.sub:
                 self.hdf5_and_computable_list.append(variable_node)
 
-        # computable mesh
-        computable_mesh_list = [self.v, self.h, self.z, self.level, self.froude, self.hydraulic_head,
-                                self.conveyance, self.max_slope_bottom, self.max_slope_energy]
-        # shear_stress
-        if self.v_frict.name in self.hdf5_and_computable_list.names():
-            computable_mesh_list.append(self.shear_stress)
-        # shear_stress_beta
-        computable_mesh_list.append(self.shear_stress_beta)
-        for computed_mesh in computable_mesh_list:
-            if computed_mesh.name not in mesh_variable_original_name_list:
-                computed_mesh.position = "mesh"
-                computed_mesh.hdf5 = False
-                self.hdf5_and_computable_list.append(computed_mesh)
-
         # computable node
         computable_node_list = [self.level, self.froude, self.hydraulic_head, self.conveyance]
         if self.v_frict.name in self.hdf5_and_computable_list.names():
@@ -708,6 +694,18 @@ class HydraulicVariableUnitManagement:
                 computed_node.position = "node"
                 computed_node.hdf5 = False
                 self.hdf5_and_computable_list.append(computed_node)
+
+        # computable mesh
+        computable_mesh_list = [self.max_slope_bottom, self.max_slope_energy]
+        computable_mesh_list = deepcopy(self.hdf5_and_computable_list.nodes()) + computable_mesh_list
+
+        # shear_stress_beta
+        computable_mesh_list.append(self.shear_stress_beta)
+        for computed_mesh in computable_mesh_list:
+            if computed_mesh.name not in mesh_variable_original_name_list:
+                computed_mesh.position = "mesh"
+                computed_mesh.hdf5 = False
+                self.hdf5_and_computable_list.append(computed_mesh)
 
         # sort_by_names_gui
         self.hdf5_and_computable_list.sort_by_names_gui()
@@ -756,7 +754,7 @@ class HydraulicVariableUnitManagement:
             node = True
             # pvd_variable_z ?
 
-        if node and mesh:
+        if node and mesh:  # all data
             user_target_list = deepcopy(self.hdf5_and_computable_list)
         else:
             if mesh:
@@ -766,6 +764,15 @@ class HydraulicVariableUnitManagement:
             else:  # whole profile == no data
                 user_target_list = None
 
+        # if mesh:
+        #     # for all nodes variables add them to mesh (be to computed : mean)
+        #     for node_variable in user_target_list.nodes():
+        #         if node_variable.name not in user_target_list.meshs().names():
+        #             print("append", node_variable)
+        #             node_variable.position = "mesh"
+        #             node_variable.hdf5 = False
+        #             user_target_list.append(node_variable)
+
         if user_target_list is not None:
             self.get_final_variable_list_from_wish(user_target_list)
 
@@ -773,9 +780,9 @@ class HydraulicVariableUnitManagement:
         """
         load hdf5 or compute ? Depend on user wish selection
         """
-        # print("######################################")
-        # print("target nodes : ", user_target_list.nodes())
-        # print("target meshs : ", user_target_list.meshs())
+        print("######################################")
+        print("target nodes : ", user_target_list.nodes())
+        print("target meshs : ", user_target_list.meshs())
 
         # wish hdf5 (node and mesh)
         for variable_wish in user_target_list.hdf5s():
@@ -1105,12 +1112,20 @@ class HydraulicVariableUnitManagement:
                         self.z.position = "node"
                         self.z.hdf5 = True
                         self.all_final_variable_list.append(self.z)
+                # compute mean from node
+                else:
+                    if variable_wish.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        class_variable = getattr(self, variable_wish.name)
+                        class_variable.position = "node"
+                        class_variable.hdf5 = True
+                        self.all_final_variable_list.append(class_variable)
 
                 # all cases
                 self.all_final_variable_list.append(variable_wish)
 
-            # # print final names
-            # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
-            # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
-            # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
-            # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())
+            # print final names
+            print("------>")
+            print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
+            print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
+            print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
+            print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())

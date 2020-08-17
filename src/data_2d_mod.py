@@ -300,7 +300,7 @@ class Data2d(list):
                 # all meshes are entirely dry
                 if not True in mikle_keep:
                     print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
-                        reach_num) + " is entirely dry.")
+                        reach_num) + " is entirely dry. The latter is removed.")
                     unit_to_remove_list.append(unit_num)
                     continue
 
@@ -660,6 +660,8 @@ class Data2d(list):
                         # area
                         elif mesh_variable.name == self.hvum.area.name:
                             self[reach_num][unit_num].c_mesh_area()
+                        else:
+                            self[reach_num][unit_num].c_mesh_mean_from_node_values(mesh_variable.name)
 
     def remove_null_area(self):
         # for all reach
@@ -881,20 +883,19 @@ class Unit(dict):
         mesh_values = np.mean([self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 0]],
                                self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 1]],
                                self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 2]]], axis=0)
-        return mesh_values
+        self["mesh"]["data"][node_variable_name] = mesh_values
 
     def c_mesh_elevation(self):
-        self["mesh"]["data"][self.hvum.z.name] = self.c_mesh_mean_from_node_values(self.hvum.z.name)
+        self.c_mesh_mean_from_node_values(self.hvum.z.name)
 
     def c_mesh_height(self):
-        self["mesh"]["data"][self.hvum.h.name] = self.c_mesh_mean_from_node_values(self.hvum.h.name)
+        self.c_mesh_mean_from_node_values(self.hvum.h.name)
 
     def c_mesh_velocity(self):
-        self["mesh"]["data"][self.hvum.v.name] = self.c_mesh_mean_from_node_values(self.hvum.v.name)
+        self.c_mesh_mean_from_node_values(self.hvum.v.name)
 
     def c_mesh_shear_stress(self):
-        self["mesh"]["data"][self.hvum.shear_stress.name] = self.c_mesh_mean_from_node_values(
-            self.hvum.shear_stress.name)
+        self.c_mesh_mean_from_node_values(self.hvum.shear_stress.name)
 
     # compute from node variable
     def c_mesh_shear_stress_beta(self):
@@ -1002,7 +1003,7 @@ class Unit(dict):
 
         # compute from node
         else:
-            self["mesh"]["data"][self.hvum.froude.name] = self.c_mesh_mean_from_node_values(self.hvum.froude.name)
+            self.c_mesh_mean_from_node_values(self.hvum.froude.name)
 
     def c_mesh_hydraulic_head(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -1013,8 +1014,7 @@ class Unit(dict):
                     (self["mesh"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
         # compute mesh mean
         else:
-            self["mesh"]["data"][self.hvum.hydraulic_head.name] = self.c_mesh_mean_from_node_values(
-                self.hvum.hydraulic_head.name)
+            self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head.name)
 
     def c_mesh_conveyance(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -1024,8 +1024,7 @@ class Unit(dict):
                                                               self["mesh"]["data"][self.hvum.v.name]
         # compute mesh mean
         else:
-            self["mesh"]["data"][self.hvum.conveyance.name] = self.c_mesh_mean_from_node_values(
-                self.hvum.conveyance.name)
+            self.c_mesh_mean_from_node_values(self.hvum.conveyance.name)
 
     def c_mesh_water_level(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -1036,7 +1035,7 @@ class Unit(dict):
                                                                  self["mesh"]["data"][self.hvum.h.name]], axis=0)
         else:
             # mesh_water_level
-            self["mesh"]["data"][self.hvum.level.name] = self.c_mesh_mean_from_node_values(self.hvum.level.name)
+            self.c_mesh_mean_from_node_values(self.hvum.level.name)
 
     def c_mesh_area(self):
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
