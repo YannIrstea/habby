@@ -528,14 +528,19 @@ class VisualGroup(QGroupBoxCollapsible):
         self.result_tableview.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.result_tableview.verticalHeader().setVisible(False)
         self.result_tableview.horizontalHeader().setVisible(False)
-        self.result_plot_button = QPushButton(self.tr("Show"))
-        self.result_plot_button.clicked.connect(self.plot_hs_result)
-        self.result_plot_button.setEnabled(False)
-        change_button_color(self.result_plot_button, "#47B5E6")
+        self.result_plot_button_area = QPushButton(self.tr("Show area"))
+        self.result_plot_button_area.clicked.connect(lambda: self.plot_hs_result("area"))
+        self.result_plot_button_area.setEnabled(False)
+        change_button_color(self.result_plot_button_area, "#47B5E6")
+        self.result_plot_button_volume = QPushButton(self.tr("Show volume"))
+        self.result_plot_button_volume.clicked.connect(lambda: self.plot_hs_result("volume"))
+        self.result_plot_button_volume.setEnabled(False)
+        change_button_color(self.result_plot_button_volume, "#47B5E6")
         result_layout = QGridLayout()
         result_layout.addWidget(result_label, 0, 0)
-        result_layout.addWidget(self.result_tableview, 1, 0)
-        result_layout.addWidget(self.result_plot_button, 1, 1)
+        result_layout.addWidget(self.result_tableview, 1, 0, 2, 1)
+        result_layout.addWidget(self.result_plot_button_area, 1, 1)
+        result_layout.addWidget(self.result_plot_button_volume, 2, 1)
 
         self.input_result_group = QGroupBox()
         input_result_layout = QVBoxLayout()
@@ -645,11 +650,13 @@ class VisualGroup(QGroupBoxCollapsible):
             # table
             mytablemodel = MyTableModel(hdf5.data_2d.hs_summary_data)
             self.result_tableview.setModel(mytablemodel)  # set model
-            self.result_plot_button.setEnabled(True)
+            self.result_plot_button_area.setEnabled(True)
+            self.result_plot_button_volume.setEnabled(True)
         else:
             mytablemodel = MyTableModel(["", ""])
             self.result_tableview.setModel(mytablemodel)  # set model
-            self.result_plot_button.setEnabled(False)
+            self.result_plot_button_area.setEnabled(False)
+            self.result_plot_button_volume.setEnabled(False)
 
     def plot_hs_class(self):
         # hdf5
@@ -681,7 +688,7 @@ class VisualGroup(QGroupBoxCollapsible):
 
         self.process_list.start()
 
-    def plot_hs_result(self):
+    def plot_hs_result(self, type):
         # hdf5
         hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
@@ -715,10 +722,11 @@ class VisualGroup(QGroupBoxCollapsible):
 
                 plot_process = Process(target=plot_mod.plot_hydrosignature,
                                                  args=(state,
-                                                       hdf5.data_2d[reach_num][unit_num].hydrosignature["hsarea"],
+                                                       hdf5.data_2d[reach_num][unit_num].hydrosignature["hs" + type],
                                                        hdf5.hs_input_class[1],
                                                        hdf5.hs_input_class[0],
                                                        title,
+                                                       self.tr(type),
                                                        project_preferences,
                                                        self.axe_mod_choosen))
                 self.process_list.append((plot_process, state))

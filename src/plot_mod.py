@@ -328,7 +328,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         plt.show()
 
 
-def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences, axe_mod_choosen=2):
+def plot_hydrosignature(state, data, vclass, hclass, title, type, project_preferences, axe_mod_choosen=2):
     mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
@@ -395,7 +395,7 @@ def plot_hydrosignature(state, data, vclass, hclass, title, project_preferences,
     ax1.xaxis.set_label_position(x_labels_position)
     if data is not None:
         cbar = plt.colorbar()
-        cbar.ax.set_ylabel('Relative area [%]')
+        cbar.ax.set_ylabel('Relative ' + type + ' [%]')
 
     plt.tight_layout()
     mplcursors.cursor()  # get data with mouse
