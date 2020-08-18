@@ -166,7 +166,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.fish_available_qlistwidget = QListWidget()
         self.fish_available_qlistwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.export_empty_text_pushbutton = QPushButton(self.tr("export empty required text file"))
+        change_button_color(self.export_empty_text_pushbutton, "")
         self.export_empty_text_pushbutton.clicked.connect(self.export_empty_text_file)
+        self.export_empty_text_pushbutton.setEnabled(False)
 
         available_firstlayout = QVBoxLayout()
         available_firstlayout.setAlignment(Qt.AlignTop)

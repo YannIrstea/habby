@@ -26,7 +26,7 @@ from src import hdf5_mod
 from src.hydraulic_process_mod import MyProcessList
 from src.project_properties_mod import load_project_properties
 from src.tools_mod import QHLine, DoubleClicOutputGroup
-from src_GUI.tools_GUI import QGroupBoxCollapsible
+from src_GUI.tools_GUI import QGroupBoxCollapsible, change_button_color
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
@@ -591,7 +591,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
         # buttons plot_button
         self.plot_button = QPushButton(self.tr("run"))
-        self.plot_button.setStyleSheet("background-color: #47B5E6; color: black")
+        change_button_color(self.plot_button, "#47B5E6")
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
         self.plot_button.setEnabled(False)
 
@@ -999,6 +999,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_prog)
         self.progress_value = Value("i", 0)
+        self.export_production_stoped = False
         self.init_ui()
 
     def init_ui(self):
@@ -1069,7 +1070,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
         """ data_exporter widgets """
         self.data_exporter_run_pushbutton = QPushButton(self.tr("run"))
-        self.data_exporter_run_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
+        change_button_color(self.data_exporter_run_pushbutton, "#47B5E6")
         self.data_exporter_run_pushbutton.clicked.connect(self.start_stop_export)
         self.data_exporter_run_pushbutton.setEnabled(False)
 
@@ -1283,11 +1284,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.data_exporter_progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def start_stop_export(self):
-        # CHECKED ==> START
-        if not self.data_exporter_run_pushbutton.isChecked():
+        if self.data_exporter_run_pushbutton.text() == self.tr("run"):
             self.start_export()
-        # UNCHECKED ==> STOP
-        else:
+        elif self.data_exporter_run_pushbutton.text() == self.tr("stop"):
             self.stop_export()
 
     def start_export(self):
@@ -1329,20 +1328,22 @@ class DataExporterGroup(QGroupBoxCollapsible):
                 export_dict["nb_export"] = self.nb_export
 
                 self.process_list.set_export_hdf5_mode(self.path_prj, names_hdf5, export_dict, project_preferences)
+                # start thread
                 self.process_list.start()
 
-            # for error management and figures
-            self.timer.start(100)
+                # for error management and figures
+                self.timer.start(100)
 
     def stop_export(self):
         # stop plot production
         self.export_production_stoped = True
         # activate
         self.data_exporter_run_pushbutton.setText(self.tr("run"))
-        self.data_exporter_run_pushbutton.setEnabled(True)
         # close_all_export
         self.process_list.close_all_export()
         self.process_list.terminate()
+        self.timer.stop()
+        self.count_export()
         # log
         self.send_log.emit(self.tr("Export(s) stoped by user."))
 

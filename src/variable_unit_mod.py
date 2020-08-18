@@ -780,9 +780,9 @@ class HydraulicVariableUnitManagement:
         """
         load hdf5 or compute ? Depend on user wish selection
         """
-        print("######################################")
-        print("target nodes : ", user_target_list.nodes())
-        print("target meshs : ", user_target_list.meshs())
+        # print("######################################")
+        # print("target nodes : ", user_target_list.nodes())
+        # print("target meshs : ", user_target_list.meshs())
 
         # wish hdf5 (node and mesh)
         for variable_wish in user_target_list.hdf5s():
@@ -1124,8 +1124,8 @@ class HydraulicVariableUnitManagement:
                 self.all_final_variable_list.append(variable_wish)
 
             # print final names
-            print("------>")
-            print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
-            print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
-            print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
-            print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())
+            # print("------>")
+            # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
+            # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
+            # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
+            # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())
