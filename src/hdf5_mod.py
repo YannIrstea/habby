@@ -1982,13 +1982,8 @@ class Hdf5Management:
             index = 1
         if self.project_preferences['habitat_text'][index]:
             sim_name = self.units_name
-            fish_names = self.data_description["hab_fish_list"].split(", ")
-            if fish_names == ['']:
-                fish_names = []
-
-            unit_type = self.data_description["hyd_unit_type"][
-                        self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
-                            "hyd_unit_type"].find(']')]
+            animal_list = self.data_2d.hvum.hdf5_and_computable_list.habs()
+            unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
 
             if self.project_preferences['language'] == 0:
                 name = self.basename + '_wua.txt'
@@ -2019,26 +2014,26 @@ class Hdf5Management:
                 else:
                     header = 'troncon\tunit\taire_troncon'
                 if self.project_preferences['language'] == 0:
-                    header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\t%unknown' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tHV' for _ in range(len(animal_list))])
+                    header += "".join(['\tWUA' for _ in range(len(animal_list))])
+                    header += "".join(['\t%unknown' for _ in range(len(animal_list))])
                 else:
-                    header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\t%inconnu' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tVH' for _ in range(len(animal_list))])
+                    header += "".join(['\tSPU' for _ in range(len(animal_list))])
+                    header += "".join(['\t%inconnu' for _ in range(len(animal_list))])
                 header += '\n'
                 f.write(header)
                 # header 2
                 header = '[]\t[' + unit_type + ']\t[m2]'
-                header += "".join(['\t[]' for _ in range(len(fish_names))])
-                header += "".join(['\t[m2]' for _ in range(len(fish_names))])
-                header += "".join(['\t[%m2]' for _ in range(len(fish_names))])
+                header += "".join(['\t[]' for _ in range(len(animal_list))])
+                header += "".join(['\t[m2]' for _ in range(len(animal_list))])
+                header += "".join(['\t[%m2]' for _ in range(len(animal_list))])
                 header += '\n'
                 f.write(header)
                 # header 3
                 header = 'all\tall\tall '
-                for fish_name in fish_names * 3:
-                    header += '\t' + fish_name.replace(' ', '_')
+                for animal in animal_list * 3:
+                    header += '\t' + animal.name.replace(' ', '_')
                 header += '\n'
                 f.write(header)
 
@@ -2051,19 +2046,19 @@ class Hdf5Management:
                             data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(
                                 area_reach)
                         # HV
-                        for fish_name in fish_names:
+                        for animal in animal_list:
                             try:
-                                wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
+                                wua_fish = animal.hv[reach_num][unit_num]
                                 data_here += '\t' + str(float(wua_fish) / float(area_reach))
-                            except TypeError:
+                            except:
                                 data_here += '\t' + 'NaN'
                         # WUA
-                        for fish_name in fish_names:
-                            wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
+                        for animal in animal_list:
+                            wua_fish = animal.wua[reach_num][unit_num]
                             data_here += '\t' + str(wua_fish)
                         # %unknwon
-                        for fish_name in fish_names:
-                            wua_fish = self.data_description["percent_area_unknown"][fish_name][reach_num][unit_num]
+                        for animal in animal_list:
+                            wua_fish = animal.percent_area_unknown[reach_num][unit_num]
                             data_here += '\t' + str(wua_fish)
 
                         data_here += '\n'
