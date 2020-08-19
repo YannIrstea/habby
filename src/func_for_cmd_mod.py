@@ -50,6 +50,7 @@ from src import mesh_management_mod
 from src import lammi_mod
 from src import ascii_mod
 from src import hydraulic_process_mod
+from src.hydrosignature import hydraulic_class_from_file
 from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_properties_dict, load_project_properties, change_specific_properties
 
@@ -1014,6 +1015,13 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         cli_calc_hab(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
+    elif all_arg[0] == 'RUN_HS':
+        # remove the first arg MERGE_GRID_SUB
+        all_arg = all_arg[1:]
+
+        cli_compute_hs(all_arg, project_preferences)
+
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_HYDRO_HDF5':
         if len(all_arg) < 4:
             print('ADD_HYDRO_HDF5 needs at least two arguments. See LIST_COMMAND for more information.')
@@ -1823,18 +1831,67 @@ def cli_calc_hab(arguments, project_preferences):
         cli_start_process_and_print_progress(p, progress_value)
 
 
+""" HS """
+
+
+def cli_compute_hs(arguments, project_preferences):
+    # if len(all_arg) != 4:
+    #     print('RUN_HABITAT needs between four and five inputs. See LIST_COMMAND for more information.')
+    #     return
+
+    # get args
+    for arg in arguments:
+
+        arg_v1 = 'input_file='
+        if arg[:len(arg_v1)] == arg_v1:
+            hdf5_name = arg[len(arg_v1):]
+
+        arg_v2 = 'input_class_file='
+        if arg[:len(arg_v2)] == arg_v2:
+            input_class_file = arg[len(arg_v2):]
+
+        arg_v3 = 'export_mesh='
+        if arg[:len(arg_v3)] == arg_v3:
+            export_mesh = eval(arg[len(arg_v3):])
+
+        arg_v4 = 'export_txt='
+        if arg[:len(arg_v4)] == arg_v4:
+            export_txt = eval(arg[len(arg_v4):])
+
+    if hdf5_name and input_class_file:
+        hydrosignature_description = dict(hs_export_mesh=export_mesh,
+                                          hdf5_name=hdf5_name,
+                                          hs_export_txt=export_txt,
+                                          classhv=hydraulic_class_from_file(input_class_file))
+        q = Queue()
+        progress_value = Value("d", 0)
+        # run calculation
+        p = Process(target=hydraulic_process_mod.load_data_and_compute_hs,
+                         args=(hydrosignature_description,
+                               progress_value,
+                               q,
+                               False,
+                               project_preferences),
+                    name="hydrosignature computing")
+        cli_start_process_and_print_progress(p, progress_value)
+
+
 """ PROCESS """
 
 
 def cli_start_process_and_print_progress(process, progress_value):
+    start_time = time.time()
     process.start()
     while process.is_alive():
-        print("Progress : " + str(round(progress_value.value, 1)) + "%\r", end="")
+        running_time = time.time() - start_time
+        print(process.name + " running "  + str(round(progress_value.value, 1)) + " %, since " + str(round(running_time)) + " s.\r", end="")
     process.join()
+    print("                                                                         \r", end="")  # clean line
+    running_time = time.time() - start_time
     if progress_value.value == 100:
-        print("# " + process.name + " finished")
+        print("# " + process.name + " finished (" + str(round(running_time)) + "s)")
     else:
-        print("# " + process.name + " crash !!!!!!!!!!!!!!!")
+        print("# Error : " + process.name + " crashed (" + str(round(running_time)) + "s)")
 
 
 
