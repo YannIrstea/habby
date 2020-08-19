@@ -20,7 +20,7 @@ from multiprocessing import Value
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel, QTimer
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
-    QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QProgressBar, QListWidgetItem
+    QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QProgressBar, QListWidgetItem, QRadioButton
 
 from src import hdf5_mod
 from src.hydraulic_process_mod import MyProcessList
@@ -65,10 +65,11 @@ class DataExplorerTab(QScrollArea):
         self.setWidget(self.data_explorer_frame)
 
     def refresh_type(self):
-        index = self.data_explorer_frame.types_hdf5_QComboBox.currentIndex()
+        index = self.data_explorer_frame.get_type_index()
+
         if index:
-            self.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(0)
-            self.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(index)
+            self.data_explorer_frame.types_hdf5_change()
+
             if self.data_explorer_frame.names_hdf5_index:
                 self.data_explorer_frame.reselect_hdf5_name_after_rename()
                 self.data_explorer_frame.names_hdf5_index = None
@@ -99,18 +100,17 @@ class DataExplorerFrame(QFrame):
         self.plot_production_stoped = False
 
     def init_ui(self):
-        # title
-        # self.setTitle(self.tr('HABBY data explorer'))
-        # self.setStyleSheet('QGroupBox {font-weight: bold;}')
-
-        verticalSpacer = QSpacerItem(1, 1, QSizePolicy.Expanding, QSizePolicy.Expanding)
         """ File selection """
         # hab_filenames_qcombobox
         self.types_hdf5_QLabel = QLabel(self.tr('file types'))
-        self.types_hdf5_QComboBox = QComboBox()
-        self.types_hdf5_list = ["", "hydraulic", "substrate", "habitat"]
-        self.types_hdf5_QComboBox.addItems(self.types_hdf5_list)
-        self.types_hdf5_QComboBox.currentIndexChanged.connect(self.types_hdf5_change)
+        # radiobutton
+        self.hyd_radiobutton = QRadioButton(self.tr("hydraulic"))
+        self.hyd_radiobutton.clicked.connect(self.types_hdf5_change)
+        self.sub_radiobutton = QRadioButton(self.tr("substrate"))
+        self.sub_radiobutton.clicked.connect(self.types_hdf5_change)
+        self.hab_radiobutton = QRadioButton(self.tr("habitat"))
+        self.hab_radiobutton.clicked.connect(self.types_hdf5_change)
+
         self.names_hdf5_QLabel = QLabel(self.tr('filenames'))
         self.names_hdf5_QListWidget = QListWidget()
         self.names_hdf5_QListWidget.resizeEvent = self.resize_names_hdf5_qlistwidget
@@ -126,7 +126,9 @@ class DataExplorerFrame(QFrame):
         self.types_hdf5_layout = QVBoxLayout()
         self.types_hdf5_layout.setAlignment(Qt.AlignTop)
         self.types_hdf5_layout.addWidget(self.types_hdf5_QLabel)
-        self.types_hdf5_layout.addWidget(self.types_hdf5_QComboBox)
+        self.types_hdf5_layout.addWidget(self.hyd_radiobutton)
+        self.types_hdf5_layout.addWidget(self.sub_radiobutton)
+        self.types_hdf5_layout.addWidget(self.hab_radiobutton)
 
         """ names_hdf5_layout """
         self.names_hdf5_layout = QVBoxLayout()
@@ -185,11 +187,21 @@ class DataExplorerFrame(QFrame):
         """
         self.names_hdf5_QListWidget.setFixedHeight(100)
 
+    def get_type_index(self):
+        index = 0
+        if self.hyd_radiobutton.isChecked():
+            index = 1
+        elif self.sub_radiobutton.isChecked():
+            index = 2
+        elif self.hab_radiobutton.isChecked():
+            index = 3
+        return index
+
     def types_hdf5_change(self):
         """
         Ajust item list according to hdf5 type selected by user
         """
-        index = self.types_hdf5_QComboBox.currentIndex()
+        index = self.get_type_index()
         self.names_hdf5_QListWidget.clear()
 
         if index == 0:
@@ -272,8 +284,11 @@ class DataExplorerFrame(QFrame):
                     hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
                     self.plot_group.units_QLabel.setText(hdf5.unit_type)
 
+                # get_type_index
+                index_type = self.get_type_index()
+
                 # hydraulic
-                if self.types_hdf5_QComboBox.currentIndex() == 1:
+                if index_type == 1:
                     self.set_hydraulic_layout()
                     if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
                         for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
@@ -302,7 +317,7 @@ class DataExplorerFrame(QFrame):
                                 self.plot_group.units_QListWidget.setCurrentRow(0)
 
                 # substrat
-                if self.types_hdf5_QComboBox.currentIndex() == 2:
+                if index_type == 2:
                     self.set_substrate_layout()
                     if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
                         for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
@@ -332,7 +347,7 @@ class DataExplorerFrame(QFrame):
                                     self.plot_group.units_QListWidget.setCurrentRow(0)
 
                 # habitat
-                if self.types_hdf5_QComboBox.currentIndex() == 3:
+                if index_type == 3:
                     self.set_habitat_layout()
                     if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
                         for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
@@ -737,7 +752,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.hvum = HydraulicVariableUnitManagement()
 
         # types
-        types_hdf5 = self.parent().types_hdf5_QComboBox.currentText()
+        types_hdf5 = self.parent().get_type_index()
 
         # names
         selection = self.parent().names_hdf5_QListWidget.selectedItems()
@@ -1245,7 +1260,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         Get selected values by user
         """
         # types
-        types_hdf5 = self.parent().types_hdf5_QComboBox.currentText()
+        types_hdf5 = self.parent().get_type_index()
 
         # names
         selection = self.parent().names_hdf5_QListWidget.selectedItems()
