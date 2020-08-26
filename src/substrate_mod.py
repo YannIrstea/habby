@@ -54,18 +54,18 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     progress_value.value = 5
 
     # security if point case
-    sub_path_source = sub_description["sub_path_source"]
-    sub_filename_source = sub_description["sub_filename_source"]
+    path_filename_source = sub_description["path_filename_source"]
+    filename_source = sub_description["filename_source"]
 
     # create input project folder
-    input_project_folder = os.path.join(sub_description["path_prj"], "input", os.path.splitext(sub_filename_source)[0])
+    input_project_folder = os.path.join(sub_description["path_prj"], "input", os.path.splitext(filename_source)[0])
     if os.path.exists(input_project_folder):
         try:
             rmtree(input_project_folder)
             while os.path.exists(input_project_folder):  # check if it exists
                 pass
         except PermissionError:
-            print("Error: Can't remove " + os.path.splitext(sub_filename_source)[0] +
+            print("Error: Can't remove " + os.path.splitext(filename_source)[0] +
                   " folder in 'input' project folder, as it file(s) opened in another program.")
             if not print_cmd:
                 q.put(mystdout)
@@ -92,17 +92,27 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
 
     data_2d.hvum = HydraulicVariableUnitManagement()
     data_2d.hvum.detect_variable_from_sub_description(sub_description)
-    data_2d.rename_substrate_column_data()
     if sub_description["sub_mapping_method"] != "constant":
+        data_2d.rename_substrate_column_data()
         data_2d.get_dimension()
-
-    # security if point case
-    sub_description["sub_path_source"] = sub_path_source
-    sub_description["sub_filename_source"] = sub_filename_source
+    data_2d.sub_mapping_method = sub_description["sub_mapping_method"]
+    data_2d.sub_classification_code = sub_description["sub_classification_code"]
+    data_2d.sub_classification_method = sub_description["sub_classification_method"]
+    data_2d.sub_default_values = sub_description["sub_default_values"]
+    data_2d.epsg_code = sub_description["epsg_code"]
+    data_2d.filename_source = filename_source
+    data_2d.path_filename_source = path_filename_source
+    data_2d.reach_number = sub_description["reach_number"]
+    data_2d.reach_list = sub_description["reach_list"]
+    data_2d.unit_number = sub_description["unit_number"]
+    data_2d.unit_list = sub_description["unit_list"]
+    data_2d.unit_type = sub_description["unit_type"]
+    delattr(data_2d, "hyd_equation_type")
 
     hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"],
-                                   sub_description["name_hdf5"])
-    hdf5.create_hdf5_sub(sub_description, data_2d)
+                                   sub_description["name_hdf5"],
+                                   new=True)
+    hdf5.create_hdf5_sub(data_2d)
 
     # prog
     progress_value.value = 100
@@ -134,14 +144,14 @@ def load_sub_txt(sub_description, progress_value):
     :return: grid in form of list of coordinate and connectivity table (two list)
              and an array with substrate type and (x,y,sub) of the orginal data
     """
-    filename = sub_description["sub_filename_source"]
+    filename = sub_description["filename_source"]
     blob, ext = os.path.splitext(filename)
-    path = sub_description["sub_path_source"]
+    path = sub_description["path_filename_source"]
     sub_classification_code = sub_description["sub_classification_code"]
     sub_classification_method = sub_description["sub_classification_method"]
     path_prj = sub_description["path_prj"]
     path_shp = os.path.join(path_prj, "input", blob)
-    sub_epsg_code = sub_description["sub_epsg_code"]
+    epsg_code = sub_description["epsg_code"]
 
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
@@ -218,11 +228,11 @@ def load_sub_txt(sub_description, progress_value):
         driver = ogr.GetDriverByName('GPKG')
         ds = driver.CreateDataSource(sub_filename_voronoi_path)
         crs = osr.SpatialReference()
-        if sub_epsg_code != "unknown":
+        if epsg_code != "unknown":
             try:
-                crs.ImportFromEPSG(int(sub_epsg_code))
+                crs.ImportFromEPSG(int(epsg_code))
             except:
-                print("Warning : Can't write .prj from EPSG code :", sub_epsg_code)
+                print("Warning : Can't write .prj from EPSG code :", epsg_code)
 
         if not crs.ExportToWkt():  # '' == crs unknown
             layer = ds.CreateLayer(name=name, geom_type=ogr.wkbPoint)
@@ -384,8 +394,8 @@ def load_sub_txt(sub_description, progress_value):
     else:
         ds = driver.CreateDataSource(sub_filename_voronoi_path)
     crs = osr.SpatialReference()
-    if sub_epsg_code != "unknown":
-        crs.ImportFromEPSG(int(sub_epsg_code))
+    if epsg_code != "unknown":
+        crs.ImportFromEPSG(int(epsg_code))
 
     if not crs.ExportToWkt():  # '' == crs unknown
         layer = ds.CreateLayer(name=name + '_voronoi', geom_type=ogr.wkbPolygon)
@@ -426,8 +436,8 @@ def load_sub_txt(sub_description, progress_value):
     progress_value.value = 40
 
     # set temporary names with voronoi suffix
-    sub_description["sub_filename_source"] = sub_filename_voronoi
-    sub_description["sub_path_source"] = path_shp
+    sub_description["filename_source"] = sub_filename_voronoi
+    sub_description["path_filename_source"] = path_shp
 
     # triangulation on voronoi polygons
     data_2d = load_sub_sig(sub_description, progress_value)
@@ -452,13 +462,13 @@ def load_sub_sig(sub_description, progress_value):
     """
     data_2d = None
 
-    filename = sub_description["sub_filename_source"]
-    path_file = sub_description["sub_path_source"]
+    filename = sub_description["filename_source"]
+    path_file = sub_description["path_filename_source"]
     sub_mapping_method = sub_description["sub_mapping_method"]
     sub_classification_code = sub_description["sub_classification_code"]
     default_values = sub_description["sub_default_values"]
     path_prj = sub_description["path_prj"]
-    sub_epsg_code = sub_description["sub_epsg_code"]
+    epsg_code = sub_description["epsg_code"]
     blob, ext = os.path.splitext(filename)
 
     if ext == ".shp":
@@ -489,15 +499,15 @@ def load_sub_sig(sub_description, progress_value):
     # prog (read done)
     progress_value.value = 60
 
-    sub_description_system["sub_filename_source"] = filename
+    sub_description_system["filename_source"] = filename
     sub_description_system["sub_class_number"] = str(len(sub_array[0]))
     sub_description_system["sub_default_values"] = default_values
-    sub_description_system["sub_reach_number"] = "1"
-    sub_description_system["sub_reach_list"] = "unknown"
-    sub_description_system["sub_unit_number"] = "1"
-    sub_description_system["sub_unit_list"] = "0.0"
-    sub_description_system["sub_unit_type"] = "unknown"
-    sub_description_system["sub_epsg_code"] = sub_epsg_code
+    sub_description_system["reach_number"] = "1"
+    sub_description_system["reach_list"] = ["unknown"]
+    sub_description_system["unit_number"] = 1
+    sub_description_system["unit_list"] = [["0.0"]]
+    sub_description_system["unit_type"] = "unknown"
+    sub_description_system["epsg_code"] = epsg_code
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
@@ -549,8 +559,8 @@ def load_sub_sig(sub_description, progress_value):
                 tin.append(tin_i)
 
             # data_2d
-            data_2d = Data2d(reach_num=1,
-                             unit_num=1)
+            data_2d = Data2d(reach_number=1,
+                             unit_number=1)
             data_2d[0][0]["node"] = dict(data=None,
                                      xy=np.array(xy))
             data_2d[0][0]["mesh"] = dict(data=None,
@@ -573,7 +583,8 @@ def load_sub_cst(sub_description, progress_value):
     sub_constant_values = sub_description["sub_default_values"].split(",")
 
     # data_2d
-    data_2d = Data2d()
+    data_2d = Data2d(reach_number=1,
+                     unit_number=1)
     for i, value in enumerate(sub_constant_values):
         sub_constant_values[i] = int(value.strip())  # clean string and convert to int
     data_2d.sub_constant_values = np.array(sub_constant_values, dtype=np.int64)
@@ -1643,14 +1654,14 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method, pat
                            sub_classification_code=substrate_classification_code,
                            sub_classification_method=substrate_classification_method,
                            sub_default_values=substrate_default_values,
-                           sub_epsg_code=epsg_code,
-                           sub_filename_source=filename,
-                           sub_path_source=dirname,
-                           sub_reach_number="1",
-                           sub_reach_list="unknown",
-                           sub_unit_number="1",
-                           sub_unit_list="0.0",
-                           sub_unit_type="unknown",
+                           epsg_code=epsg_code,
+                           filename_source=filename,
+                           path_filename_source=dirname,
+                           reach_number=1,
+                           reach_list=["unknown"],
+                           unit_number=1,
+                           unit_list=[["0.0"]],
+                           unit_type="unknown",
                            name_prj=name_prj,
                            path_prj=path_prj
                            )

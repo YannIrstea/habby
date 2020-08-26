@@ -118,9 +118,9 @@ class HydraulicSimulationResultsAnalyzer:
                                                                 hdf5_name=name_hdf5,
                                                                 model_type=self.model_type,
                                                                 model_dimension=str(self.nb_dim),
-                                                                unit_list=[list(hsr.timestep_name_list)] * hsr.reach_num,
-                                                                unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_num,
-                                                                unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_num,
+                                                                unit_list=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                                unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                                unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
                                                                 unit_number=str(hsr.timestep_nb),
                                                                 unit_type=hsr.timestep_unit,
                                                                 reach_list=["unknown"],
@@ -152,13 +152,13 @@ class HydraulicSimulationResultsAnalyzer:
                                                     model_dimension=str(self.nb_dim),
                                                     epsg_code=hsr.epsg_code,
                                                     variable_name_unit_dict=hsr.hvum.software_detected_list,
-                                                    unit_list=[list(hsr.timestep_name_list)] * hsr.reach_num,
-                                                    unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_num,
-                                                    unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_num,
+                                                    unit_list=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                    unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                    unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
                                                     unit_number=str(hsr.timestep_nb),
                                                     unit_type=hsr.timestep_unit,
                                                     reach_list=hsr.reach_name_list,
-                                                    reach_number=str(hsr.reach_num),
+                                                    reach_number=str(hsr.reach_number),
                                                     reach_type="river",
                                                     flow_type="unknown",
                                                     sub=hsr.sub,
@@ -344,9 +344,9 @@ class HydraulicSimulationResultsAnalyzer:
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_num
+                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_number
                 self.hydrau_description_list[0]["unit_number"] = str(1)
                 self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
                 self.hydrau_description_list[0]["reach_list"] = reach_name
@@ -380,9 +380,9 @@ class HydraulicSimulationResultsAnalyzer:
                     self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
 
                 # self.hydrau_description_list
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_num
+                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_number
                 self.hydrau_description_list[0]["unit_number"] = str(1)
                 self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
                 self.hydrau_description_list[0]["timestep_list"] = data_index_file[headers[time_index]]
@@ -429,9 +429,9 @@ class HydraulicSimulationResultsAnalyzer:
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])]  * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_tf"] = [selectedfiles_textfiles_match] * hsr.reach_num
+                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])]  * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_tf"] = [selectedfiles_textfiles_match] * hsr.reach_number
                 self.hydrau_description_list[0]["unit_number"] = str(selectedfiles_textfiles_match.count(True))
                 self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
                 self.hydrau_description_list[0]["reach_list"] = reach_name
@@ -479,9 +479,9 @@ class HydraulicSimulationResultsAnalyzer:
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_num
+                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_number
                 self.hydrau_description_list[0]["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
                 self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
                 self.hydrau_description_list[0]["timestep_list"] = data_index_file[headers[time_index]]
@@ -514,9 +514,9 @@ class HydraulicSimulationResultsAnalyzer:
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(hsr.timestep_name_list)] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_full"] = [list(hsr.timestep_name_list)] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_num
+                self.hydrau_description_list[0]["unit_list"] = [list(hsr.timestep_name_list)] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_full"] = [list(hsr.timestep_name_list)] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_number
                 self.hydrau_description_list[0]["unit_number"] = str(hsr.timestep_nb)
                 self.hydrau_description_list[0]["unit_type"] = hsr.timestep_unit
                 self.hydrau_description_list[0]["reach_list"] = reach_name
@@ -573,9 +573,9 @@ class HydraulicSimulationResultsAnalyzer:
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [unit_name_from_index_file2] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_full"] = [hsr.timestep_name_list] * hsr.reach_num
-                self.hydrau_description_list[0]["unit_list_tf"] = [timestep_to_select] * hsr.reach_num
+                self.hydrau_description_list[0]["unit_list"] = [unit_name_from_index_file2] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_full"] = [hsr.timestep_name_list] * hsr.reach_number
+                self.hydrau_description_list[0]["unit_list_tf"] = [timestep_to_select] * hsr.reach_number
                 self.hydrau_description_list[0]["unit_number"] = str(len(unit_name_from_index_file2))
                 self.hydrau_description_list[0]["unit_type"] = "time [" + time_unit + "]"
                 self.hydrau_description_list[0]["reach_list"] = reach_name
@@ -620,9 +620,9 @@ class HydraulicSimulationResultsAnalyzer:
                                                              model_type=self.model_type,
                                                              model_dimension=str(self.nb_dim),
                                                              epsg_code=epsg_code,
-                                                             unit_list=[list(hsr.timestep_name_list)] * hsr.reach_num,
-                                                             unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_num,
-                                                             unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_num,
+                                                             unit_list=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                             unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                             unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
                                                              unit_number=str(hsr.timestep_nb),
                                                              unit_type=hsr.timestep_unit,
                                                              reach_list=reach_name,
@@ -762,7 +762,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                                  epsg_code=epsg_code,
                                                                  unit_list=[list(unit_name_from_index_file2)],
                                                                  unit_list_full=[list(hsr.timestep_name_list)],
-                                                                 unit_list_tf=[unit_index_from_file] * hsr.reach_num,
+                                                                 unit_list_tf=[unit_index_from_file] * hsr.reach_number,
                                                                  unit_number=str(len(unit_name_from_index_file2)),
                                                                  unit_type="time [" + time_unit + "]",
                                                                  reach_list=reach_name,
@@ -1126,7 +1126,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
     for hdf5_file_index in range(0, len(hydrau_description)):
         filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
         data_2d = Data2d()  # data_2d
-        hydrau_description[hdf5_file_index]["unit_correspondence"] = []  # always one reach by file ?
+        hydrau_description[hdf5_file_index]["hyd_unit_correspondence"] = []  # always one reach by file ?
         # for each filename source
         for i, file in enumerate(filename_source):
             # get file informations
@@ -1166,9 +1166,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
                 if not data_2d_source and not print_cmd:
                     q.put(mystdout)
                     return
-                for reach_num in range(data_2d_source.reach_num):
+                for reach_number in range(data_2d_source.reach_number):
                     # data_2d
-                    data_2d.add_unit(data_2d_source, reach_num)
+                    data_2d.add_unit(data_2d_source, reach_number)
 
         """ get data_2d_whole_profile """
         data_2d_whole_profile = data_2d.get_only_mesh()
@@ -1178,23 +1178,23 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
 
         """ varying mesh """
         hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
-        for reach_num in range(len(hyd_varying_xy_index)):
-            if len(set(hyd_varying_xy_index[reach_num])) == 1:  # one tin for all unit
+        for reach_number in range(len(hyd_varying_xy_index)):
+            if len(set(hyd_varying_xy_index[reach_number])) == 1:  # one tin for all unit
                 hyd_varying_mesh = False
                 data_2d_whole_profile.reduce_to_first_unit_by_reach()
             else:
                 hyd_varying_mesh = True
             # hyd_unit_z_equal ?
-            if len(set(hyd_varying_z_index[reach_num])) == 1:
+            if len(set(hyd_varying_z_index[reach_number])) == 1:
                 hyd_unit_z_equal = True
             else:
                 hyd_unit_z_equal = True
 
             # one file : one reach, varying_mesh==False
             if len(filename_source) == 1:
-                hydrau_description[hdf5_file_index]["unit_correspondence"].append(hyd_varying_xy_index[reach_num] * int(hydrau_description[hdf5_file_index]["unit_number"]))
+                hydrau_description[hdf5_file_index]["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
             else:
-                hydrau_description[hdf5_file_index]["unit_correspondence"].append(hyd_varying_xy_index[reach_num])
+                hydrau_description[hdf5_file_index]["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
 
         """ check_validity """
         data_2d.check_validity()
@@ -1204,7 +1204,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
 
         """ remove_dry_mesh """
         data_2d.remove_dry_mesh()
-        if data_2d.unit_num == 0:
+        if data_2d.unit_number == 0:
             print("Error: All selected units or timestep are entirely dry.")
             if not print_cmd:
                 q.put(mystdout)
@@ -1215,7 +1215,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             data_2d.semi_wetted_mesh_cutting(hydrau_description[hdf5_file_index]["unit_list"],
                                              progress_value,
                                              delta_file)
-        if data_2d.unit_num == 0:
+        if data_2d.unit_number == 0:
             print("Error: All selected units or timestep are not hydraulically operable.")
             if not print_cmd:
                 q.put(mystdout)
@@ -1236,38 +1236,39 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         data_2d.get_dimension()
 
         # hyd description
-        hyd_description = dict()
-        hyd_description["hyd_filename_source"] = hydrau_description[hdf5_file_index]["filename_source"]
-        hyd_description["hyd_path_filename_source"] = hydrau_description[hdf5_file_index]["path_filename_source"]
-        hyd_description["hyd_model_type"] = hydrau_description[hdf5_file_index]["model_type"]
-        hyd_description["hyd_equation_type"] = data_2d.equation_type
-        hyd_description["hyd_model_dimension"] = hydrau_description[hdf5_file_index]["model_dimension"]
-        hyd_description["hyd_epsg_code"] = hydrau_description[hdf5_file_index]["epsg_code"]
-        hyd_description["hyd_reach_list"] = hydrau_description[hdf5_file_index]["reach_list"]
-        hyd_description["hyd_reach_number"] = hydrau_description[hdf5_file_index]["reach_number"]
-        hyd_description["hyd_reach_type"] = hydrau_description[hdf5_file_index]["reach_type"]
+        data_2d.filename_source = hydrau_description[hdf5_file_index]["filename_source"]
+        data_2d.path_filename_source = hydrau_description[hdf5_file_index]["path_filename_source"]
+        data_2d.hyd_model_type = hydrau_description[hdf5_file_index]["model_type"]
+        data_2d.hyd_model_dimension = hydrau_description[hdf5_file_index]["model_dimension"]
+        data_2d.epsg_code = hydrau_description[hdf5_file_index]["epsg_code"]
+        data_2d.reach_list = hydrau_description[hdf5_file_index]["reach_list"]
+        data_2d.reach_number = int(hydrau_description[hdf5_file_index]["reach_number"])
+        data_2d.reach_type = hydrau_description[hdf5_file_index]["reach_type"]
         reach_unit_list_str = []
-        for reach_num in range(data_2d.reach_num):
+        for reach_number in range(data_2d.reach_number):
             unit_list_str = []
-            for unit_name in hydrau_description[hdf5_file_index]["unit_list"][reach_num]:
+            for unit_name in hydrau_description[hdf5_file_index]["unit_list"][reach_number]:
                 unit_list_str.append(unit_name.replace(":", "_").replace(" ", "_"))
             reach_unit_list_str.append(unit_list_str)
-        hyd_description["hyd_unit_list"] = reach_unit_list_str
-        hyd_description["hyd_unit_number"] = str(len(hydrau_description[hdf5_file_index]["unit_list"][0]))
-        hyd_description["hyd_unit_type"] = hydrau_description[hdf5_file_index]["unit_type"]
-        hyd_description["hyd_varying_mesh"] = hyd_varying_mesh
-        hyd_description["hyd_unit_z_equal"] = hyd_unit_z_equal
-        hyd_description["unit_correspondence"] = hydrau_description[hdf5_file_index]["unit_correspondence"]
-        hyd_description["hyd_cuted_mesh_partialy_dry"] = project_preferences["cut_mesh_partialy_dry"]
-        hyd_description["hyd_hydrau_case"] = hydrau_description[hdf5_file_index]["hydrau_case"]
-        if hyd_description["hyd_hydrau_case"] in {"1.b", "2.b"}:
-            hyd_description["timestep_source_list"] = [hydrau_description[hdf5_file_index]["timestep_list"]]
-        hyd_description["hs_calculated"] = "False"
+        data_2d.unit_list = reach_unit_list_str
+        data_2d.unit_number = len(hydrau_description[hdf5_file_index]["unit_list"][0])
+        data_2d.unit_type = hydrau_description[hdf5_file_index]["unit_type"]
+        data_2d.hyd_varying_mesh = hyd_varying_mesh
+        data_2d.hyd_unit_z_equal = hyd_unit_z_equal
+        data_2d.hyd_unit_correspondence = hydrau_description[hdf5_file_index]["hyd_unit_correspondence"]
+        data_2d.hyd_cuted_mesh_partialy_dry = project_preferences["cut_mesh_partialy_dry"]
+        data_2d.hyd_hydrau_case = hydrau_description[hdf5_file_index]["hydrau_case"]
+        if data_2d.hyd_hydrau_case in {"1.b", "2.b"}:
+            data_2d.hyd_timestep_source_list = [hydrau_description[hdf5_file_index]["timestep_list"]]
+        data_2d.hs_calculated = False
 
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hdf5_file_index]["path_prj"],
-                                       hydrau_description[hdf5_file_index]["hdf5_name"])
-        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
+                                       hydrau_description[hdf5_file_index]["hdf5_name"],
+                                       new=True)
+        hdf5.create_hdf5_hyd(data_2d,
+                             data_2d_whole_profile,
+                             project_preferences)
 
         # create_index_hydrau_text_file
         if not hydrau_description[hdf5_file_index]["index_hydrau"]:
@@ -1298,14 +1299,14 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
 
     # compute
     hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
-                                   hydrosignature_description["hdf5_name"])
+                                   hydrosignature_description["hdf5_name"],
+                                   new=False)
 
     if hydrosignature_description["hs_export_mesh"]:
         hdf5.hydrosignature_new_file(progress_value,
                                      hydrosignature_description["classhv"],
                                      hydrosignature_description["hs_export_txt"])
     else:
-        hdf5.open_hdf5_file(False)
         hdf5.add_hs(progress_value,
                     hydrosignature_description["classhv"],
                     False,
@@ -1328,10 +1329,10 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                         all_possibilities, out_filename, path_prj):
     # create hdf5 class
     hdf5_1 = hdf5_mod.Hdf5Management(path_prj, hdf5name_1)
-    hdf5_1.open_hdf5_file(False)
+    hdf5_1.create_or_open_file(False)
     hdf5_1.load_hydrosignature()
     hdf5_2 = hdf5_mod.Hdf5Management(path_prj, hdf5name_2)
-    hdf5_2.open_hdf5_file(False)
+    hdf5_2.create_or_open_file(False)
     hdf5_2.load_hydrosignature()
 
     col_row_name_list = [""]
@@ -1475,57 +1476,36 @@ class MyProcessList(QThread):
         # load hydraulic data
         if self.hdf5.hdf5_type == "hydraulic":
             self.hdf5.load_hdf5_hyd(units_index=units_index,
-                               user_target_list=self.hvum.user_target_list,
-                               whole_profil=True)
-            # data_description
-            data_description = dict(self.hdf5.data_description)
-            data_description["reach_list"] = self.hdf5.reach_name
-            data_description["reach_number"] = self.hdf5.data_description["hyd_reach_number"]
-            data_description["unit_number"] = self.hdf5.data_description["hyd_unit_number"]
-            data_description["unit_type"] = self.hdf5.data_description["hyd_unit_type"]
-            data_description["units_index"] = units_index
-            data_description["name_hdf5"] = self.hdf5.data_description["hyd_filename"]
+                                    user_target_list=self.hvum.user_target_list,
+                                    whole_profil=True)
+
         # load substrate data
         elif self.hdf5.hdf5_type == "substrate":
             self.hdf5.load_hdf5_sub(user_target_list=self.hvum.user_target_list)
-            # data_description
-            data_description = dict(self.hdf5.data_description)
-            data_description["reach_list"] = self.hdf5.data_description["sub_reach_list"]
-            data_description["reach_number"] = self.hdf5.data_description["sub_reach_number"]
-            data_description["unit_number"] = self.hdf5.data_description["sub_unit_number"]
-            data_description["unit_type"] = self.hdf5.data_description["sub_unit_type"]
-            data_description["name_hdf5"] = self.hdf5.data_description["sub_filename"]
-            data_description["sub_classification_code"] = self.hdf5.data_description["sub_classification_code"]
+
         # load habitat data
         elif self.hdf5.hdf5_type == "habitat":
             self.hdf5.load_hdf5_hab(units_index=units_index,
-                               user_target_list=self.hvum.user_target_list,
-                               whole_profil=False)
-            # data_description
-            data_description = dict(self.hdf5.data_description)
-            data_description["reach_list"] = self.hdf5.reach_name
-            data_description["reach_number"] = self.hdf5.data_description["hyd_reach_number"]
-            data_description["unit_number"] = self.hdf5.data_description["hyd_unit_number"]
-            data_description["unit_type"] = self.hdf5.data_description["hyd_unit_type"]
-            data_description["units_index"] = units_index
-            data_description["name_hdf5"] = self.hdf5.data_description["hab_filename"]
+                                    user_target_list=self.hvum.user_target_list,
+                                    whole_profil=False)
 
         habitat_variable_list = self.hvum.user_target_list.habs()
+        light_data_2d = self.hdf5.data_2d.get_light_data_2d()
 
         # all cases
-        unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(
+        unit_type = light_data_2d.unit_type[light_data_2d.unit_type.find('[') + len('['):light_data_2d.unit_type.find(
                         ']')]
 
         # for each reach
         for reach_name in reach:
-            reach_num = data_description["reach_list"].index(reach_name)
+            reach_number = light_data_2d.reach_list.index(reach_name)
             # for one or more desired units ==> habitat data (HV and WUA)
             if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stoped:
                 state = Value("d", 0)
                 plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
                                                    args=(state,
                                                          self.hdf5.data_2d,
-                                                         reach_num,
+                                                         reach_number,
                                                          habitat_variable_list,
                                                          self.project_preferences),
                                                    name="plot_fish_hv_wua")
@@ -1533,34 +1513,17 @@ class MyProcessList(QThread):
 
             # for each desired units ==> maps
             if plot_type != ["result"]:
-                for unit_num, t in enumerate(units_index):
+                for unit_number, t in enumerate(units_index):
                     # string_tr
                     string_tr = [self.tr("reach"), self.tr("unit")]
-                    # """ 3D """
-                    # if self.plot_3d_QCheckBox.isChecked():
-                    #     state = Value("i", 0)
-                    #     process = Process(target=plot_mod.view_mayavi,
-                    #                       args=(
-                    #                           state,
-                    #                           hdf5.data_2d,
-                    #                           hdf5.data_2d_whole,
-                    #                           "level",
-                    #                           reach_num,
-                    #                           unit_num,
-                    #                           data_description,
-                    #                           project_preferences),
-                    #                       name="3d")
-                    #     process.start()
-                    #     self.process_list.append([process, state])
-                    # else:
                     """ MAP """
                     if self.plot_attr.plot_map_QCheckBoxisChecked:
                         # plot
                         for variable in self.hvum.user_target_list.no_habs():
                             if not self.plot_production_stoped:
-                                    plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                    plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
-                                                                                   units[unit_num],
+                                                                                   units[unit_number],
                                                                                    unit_type,
                                                                                    self.tr(variable.name_gui),
                                                                                    variable.unit,
@@ -1569,11 +1532,11 @@ class MyProcessList(QThread):
                                     process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
                                                                args=(
                                                                    state,
-                                                                   self.hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
-                                                                   self.hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                                                   self.hdf5.data_2d[reach_num][unit_num][variable.position]["data"][variable.name].to_numpy(),
+                                                                   self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
+                                                                   self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                                                                   self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
                                                                    plot_string_dict,
-                                                                   data_description,
+                                                                   light_data_2d,
                                                                    self.project_preferences
                                                                ),
                                                                name=variable.name)
@@ -1582,23 +1545,23 @@ class MyProcessList(QThread):
                         # plot animal map
                         for animal_index, animal in enumerate(habitat_variable_list):
                             if not self.plot_production_stoped:
-                                plot_string_dict = create_map_plot_string_dict(data_description["name_hdf5"],
+                                plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                reach_name,
-                                                                               units[unit_num],
+                                                                               units[unit_number],
                                                                                unit_type,
                                                                                animal.name,
-                                                                           "",
+                                                                                "",
                                                                                string_tr,
-                                                                               self.tr('HSI = ') + '{0:3.2f}'.format(animal.hv[reach_num][unit_num]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_num][unit_num]) + " %")
+                                                                               self.tr('HSI = ') + '{0:3.2f}'.format(animal.hv[reach_number][unit_number]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
                                 state = Value("i", 0)
                                 habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                               args=(
                                                                   state,
-                                                                  self.hdf5.data_2d[reach_num][unit_num]["node"]["xy"],
-                                                                  self.hdf5.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                                                                  self.hdf5.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name],
+                                                                  self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
+                                                                  self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                                                                  self.hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name],
                                                                   plot_string_dict,
-                                                                  data_description,
+                                                                  light_data_2d,
                                                                   self.project_preferences
                                                               ),
                                                               name="plot_map_fish_habitat")
@@ -1609,7 +1572,8 @@ class MyProcessList(QThread):
     def load_data_and_append_export_process(self):
         # hydraulic
         if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
-            self.hdf5.load_hdf5_hyd(whole_profil=True, user_target_list=self.project_preferences)
+            self.hdf5.load_hdf5_hyd(whole_profil=True,
+                                    user_target_list=self.project_preferences)
             total_gpkg_export = sum(
                 [self.export_dict["mesh_whole_profile_hyd"], self.export_dict["point_whole_profile_hyd"],
                  self.export_dict["mesh_units_hyd"], self.export_dict["point_units_hyd"]])
@@ -1648,7 +1612,8 @@ class MyProcessList(QThread):
 
         # habitat
         elif self.hdf5.hdf5_type == "habitat":  # load habitat data
-            self.hdf5.load_hdf5_hab(whole_profil=True, user_target_list=self.project_preferences)
+            self.hdf5.load_hdf5_hab(whole_profil=True,
+                                    user_target_list=self.project_preferences)
             total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
             if self.export_dict["mesh_units_hab"] or self.export_dict["point_units_hab"]:
                 # append fake first
@@ -1720,7 +1685,8 @@ class MyProcessList(QThread):
             self.all_process_runned = False
             if self.plot_hdf5_mode:  # from hdf5 data
                 for name_hdf5 in self.names_hdf5:
-                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5)
+                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5,
+                                               new=False)
                     self.hvum = self.plot_attr.hvum
                     self.load_data_and_append_plot_process()
             # Process mod

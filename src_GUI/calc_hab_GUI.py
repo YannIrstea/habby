@@ -743,9 +743,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
     def get_current_hab_informations(self):
         # create hdf5 class
         if self.m_all.currentText():
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.m_all.currentText())
-            hdf5.open_hdf5_file(False)
-
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           self.m_all.currentText(),
+                                           new=False)
+            hdf5.get_hdf5_attributes(True)
             # init
             required_dict = dict(
                 dimension_ok=False,
@@ -755,16 +756,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 sub_mesh_ok=False,
                 fish_list=[])
 
-            if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd model dimension")] == "2":
+            if hdf5.data_2d.hyd_model_dimension == "2":
                 required_dict["dimension_ok"] = True
             # if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
             required_dict["z_presence_ok"] = True  # TODO : always True ??
-            if "percentage" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub classification method")]:
+            if "percentage" in hdf5.data_2d.sub_classification_method:
                 required_dict["percentage_ok"] = True
-            if hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("sub mapping method")] != "constant":
+            if hdf5.data_2d.sub_mapping_method != "constant":
                 required_dict["sub_mesh_ok"] = True
-            required_dict["fish_list"] = hdf5.hvum.hdf5_and_computable_list.meshs().habs().names()
-            if hdf5.hvum.shear_stress.name in hdf5.hvum.hdf5_and_computable_list.names():
+            required_dict["fish_list"] = hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names()
+            if hdf5.data_2d.hvum.shear_stress.name in hdf5.data_2d.hvum.hdf5_and_computable_list.names():
                 required_dict["shear_stress_ok"] = True
 
             self.current_hab_informations_dict = required_dict

@@ -312,7 +312,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.hab_reach_qcombobox.clear()
             # create hdf5 class to get hdf5 inforamtions
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file()
+            hdf5.create_or_open_file()
             if len(hdf5.reach_name) == 1:
                 reach_names = hdf5.reach_name
             else:
@@ -339,7 +339,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.disable_and_clean_group_widgets(False)
             # clean
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(get_hdf5_attributes=True)
+            hdf5.create_or_open_file(get_hdf5_attributes=True)
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
             unit_type = unit_type.replace("m3/s", "m<sup>3</sup>/s")
             unit_type_value = unit_type[unit_type.index("["):unit_type.index("]")+1]
@@ -356,9 +356,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
                     self.fish_available_qlistwidget.addItem(mesh_item)
                 self.fish_available_qlistwidget.selectAll()
                 # set min and max unit for from to by
-            unit_num = list(map(float, units_name))
-            min_unit = min(unit_num)
-            max_unit = max(unit_num)
+            unit_number = list(map(float, units_name))
+            min_unit = min(unit_number)
+            max_unit = max(unit_number)
             self.unit_min_qlabel.setText(str(min_unit))
             self.unit_max_qlabel.setText(str(max_unit))
             self.unit_type_qlabel.setText(unit_type)
@@ -449,7 +449,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         # load hdf5 data
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.open_hdf5_file()
+        hdf5.create_or_open_file()
 
         # get reach_name
         reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
@@ -492,12 +492,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             # get hdf5 inforamtions
-            hdf5.open_hdf5_file()
+            hdf5.create_or_open_file()
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
             units_name = hdf5.units_name[self.hab_reach_qcombobox.currentIndex()]
-            unit_num = list(map(float, units_name))
-            min_unit = min(unit_num)
-            max_unit = max(unit_num)
+            unit_number = list(map(float, units_name))
+            min_unit = min(unit_number)
+            max_unit = max(unit_number)
 
             # export
             exported = tools_mod.export_empty_text_from_hdf5(unit_type, min_unit, max_unit, hdf5name, self.path_prj)
@@ -546,7 +546,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             # get hdf5 inforamtions
-            hdf5.open_hdf5_file()
+            hdf5.create_or_open_file()
 
             reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
 
@@ -614,7 +614,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # load hdf5 data
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             # get hdf5 inforamtions
-            hdf5.open_hdf5_file()
+            hdf5.create_or_open_file()
 
             reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
 

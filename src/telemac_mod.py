@@ -37,10 +37,10 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.extensions_list = [".res", ".slf"]
         self.file_type = "binary"
         # simulation attributes
-        self.equation_type = "FE"
+        self.hyd_equation_type = "FE"
         # reach
         self.multi_reach = False
-        self.reach_num = 1
+        self.reach_number = 1
         self.reach_name_list = ["unknown"]
         self.morphology_available = True
         # hydraulic variables
@@ -114,23 +114,23 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.load_specific_timestep(timestep_name_wish_list)
 
         # prepare original data for data_2d
-        for reach_num in range(self.reach_num):  # for each reach
+        for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
                 val_all = self.results_data_file.getvalues(timestep_index)
                 for variables_wish in self.hvum.software_detected_list:  # .varunits
                     if not variables_wish.precomputable_tohdf5:
-                        variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
+                        variables_wish.data[reach_number].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
                 # struct
-                self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
-                self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+                self.hvum.xy.data[reach_number] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_number] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
 
         # prepare computable data for data_2d
         if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
-            for reach_num in range(self.reach_num):  # for each reach
+            for reach_number in range(self.reach_number):  # for each reach
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
                     # compute from v_x v_y
-                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_number].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_number][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_number][timestep_index] ** 2))
                     self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
 
         return self.get_data_2d()

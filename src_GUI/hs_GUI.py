@@ -207,8 +207,10 @@ class ComputingGroup(QGroupBoxCollapsible):
                 item.setText("")
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                 try:
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name)
-                    hdf5.open_hdf5_file(False)
+                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                                   name,
+                                                   new=False)
+                    hdf5.get_hdf5_attributes(close_file=True)
                     if hdf5.hs_calculated:
                         item.setCheckState(Qt.Checked)
                     else:
@@ -244,7 +246,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         selection = self.file_selection_listwidget.selectedItems()
         if selection:
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[0].text())
-            hdf5.open_hdf5_file(False)
+            hdf5.create_or_open_file(False)
             # enable run button
             if self.input_class_filename.text():
                 self.computation_pushbutton.setEnabled(True)
@@ -579,10 +581,12 @@ class VisualGroup(QGroupBoxCollapsible):
         if selection:
             # read
             hdf5name = selection[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # check reach
-            self.reach_QListWidget.addItems(hdf5.reach_name)
+            self.reach_QListWidget.addItems(hdf5.data_2d.reach_list)
 
             self.input_class_h_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[0]))))
             self.input_class_v_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[1]))))
@@ -605,11 +609,13 @@ class VisualGroup(QGroupBoxCollapsible):
             hdf5name = selection_file[0].text()
 
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
 
             # add units
-            for item_text in hdf5.units_name[self.reach_QListWidget.currentRow()]:
+            for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget.addItem(item)
@@ -619,7 +625,7 @@ class VisualGroup(QGroupBoxCollapsible):
 
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5.create_or_open_file(False)
 
             # add units
             item = QListWidgetItem("all units")
@@ -634,9 +640,11 @@ class VisualGroup(QGroupBoxCollapsible):
             hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
             hdf5.load_hydrosignature()
+            hdf5.close_file()
 
             if len(selection_unit) == 1 and selection_unit[0].text() == "all units":
                 # get hs data
@@ -664,7 +672,7 @@ class VisualGroup(QGroupBoxCollapsible):
 
         # create hdf5 class
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.open_hdf5_file(False)
+        hdf5.create_or_open_file(False)
         hdf5.load_hydrosignature()
 
         # check plot process done
@@ -677,13 +685,14 @@ class VisualGroup(QGroupBoxCollapsible):
         state = Value("i", 0)
         title = "input classes of " + hdf5name
         plot_process = Process(target=plot_mod.plot_hydrosignature,
-                                         args=(state,
-                                               None,
-                                               hdf5.hs_input_class[1],
-                                               hdf5.hs_input_class[0],
-                                               title,
-                                               project_preferences,
-                                               self.axe_mod_choosen))
+                               args=(state,
+                                     None,
+                                     hdf5.hs_input_class[1],
+                                     hdf5.hs_input_class[0],
+                                     title,
+                                     None,
+                                     project_preferences,
+                                     self.axe_mod_choosen))
         self.process_list.append((plot_process, state))
 
         self.process_list.start()
@@ -694,7 +703,7 @@ class VisualGroup(QGroupBoxCollapsible):
 
         # create hdf5 class
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.open_hdf5_file(False)
+        hdf5.create_or_open_file(False)
         hdf5.load_hydrosignature()
 
         selection_reach = self.reach_QListWidget.selectedItems()
@@ -707,22 +716,22 @@ class VisualGroup(QGroupBoxCollapsible):
 
         if len(selection_reach) > 1:  # all units
             reach_index_list = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
-            unit_index_list = list(range(hdf5.data_2d.unit_num))
+            unit_index_list = list(range(hdf5.data_2d.unit_number))
         else:  # specific reach and unit
             reach_index_list = [self.reach_QListWidget.currentIndex().row()]
             unit_index_list = [element.row() for element in self.units_QListWidget.selectedIndexes()]
 
         # loop
-        for reach_num in reach_index_list:
-            for unit_num in unit_index_list:
+        for reach_number in reach_index_list:
+            for unit_number in unit_index_list:
                 project_preferences = load_project_properties(self.path_prj)
                 state = Value("i", 0)
-                title = "hydrosignature : " + hdf5.data_2d[reach_num][unit_num].reach_name + " at " + \
-                        hdf5.data_2d[reach_num][unit_num].unit_name + " " + hdf5.unit_type[hdf5.unit_type.find('[') + len('['):hdf5.unit_type.find(']')]
+                title = type + " hydrosignature : " + hdf5.data_2d[reach_number][unit_number].reach_name + " at " + \
+                        hdf5.data_2d[reach_number][unit_number].unit_name + " " + hdf5.data_2d.unit_type[hdf5.data_2d.unit_type.find('[') + len('['):hdf5.data_2d.unit_type.find(']')]
 
                 plot_process = Process(target=plot_mod.plot_hydrosignature,
                                                  args=(state,
-                                                       hdf5.data_2d[reach_num][unit_num].hydrosignature["hs" + type],
+                                                       hdf5.data_2d[reach_number][unit_number].hydrosignature["hs" + type],
                                                        hdf5.hs_input_class[1],
                                                        hdf5.hs_input_class[0],
                                                        title,
@@ -873,34 +882,28 @@ class CompareGroup(QGroupBoxCollapsible):
     def names_hdf5_change_1(self):
         self.reach_QListWidget_1.clear()
         self.units_QListWidget_1.clear()
-        selection = self.file_selection_listwidget_1.selectedItems()
-        if selection:
-            # read
-            hdf5name = selection[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+        selection_file = self.file_selection_listwidget_1.selectedItems()
+        if selection_file:
+            hdf5name = selection_file[0].text()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # check reach
-            self.reach_QListWidget_1.addItems(hdf5.reach_name)
-
-            # self.input_result_group.show()
-        # else:
-            # self.input_result_group.hide()
+            self.reach_QListWidget_1.addItems(hdf5.data_2d.reach_list)
 
     def names_hdf5_change_2(self):
         self.reach_QListWidget_2.clear()
         self.units_QListWidget_2.clear()
-        selection = self.file_selection_listwidget_2.selectedItems()
-        if selection:
-            # read
-            hdf5name = selection[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+        selection_file = self.file_selection_listwidget_2.selectedItems()
+        if selection_file:
+            hdf5name = selection_file[0].text()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # check reach
-            self.reach_QListWidget_2.addItems(hdf5.reach_name)
-
-        #     self.input_result_group.show()
-        # else:
-        #     self.input_result_group.hide()
+            self.reach_QListWidget_2.addItems(hdf5.data_2d.reach_list)
 
     def reach_hdf5_change_1(self):
         selection_file = self.file_selection_listwidget_1.selectedItems()
@@ -909,13 +912,12 @@ class CompareGroup(QGroupBoxCollapsible):
         # one file selected
         if len(selection_reach) == 1:
             hdf5name = selection_file[0].text()
-
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
-
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # add units
-            for item_text in hdf5.units_name[self.reach_QListWidget_1.currentRow()]:
+            for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget_1.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget_1.addItem(item)
@@ -927,13 +929,12 @@ class CompareGroup(QGroupBoxCollapsible):
         # one file selected
         if len(selection_reach) == 1:
             hdf5name = selection_file[0].text()
-
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
-
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # add units
-            for item_text in hdf5.units_name[self.reach_QListWidget_2.currentRow()]:
+            for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget_2.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget_2.addItem(item)

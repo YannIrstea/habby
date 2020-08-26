@@ -1007,7 +1007,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     return point_all, ikle, point_c, p_not_found
 
 
-def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, case, checkpoint=True):
+def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_number, case, checkpoint=True):
     # init
     tin_duplicate_tf = False
     xyz_duplicate_tf = False
@@ -1017,7 +1017,7 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, cas
     dup = u[c > 1]
     if len(dup) != 0:
         tin_duplicate_tf = True
-        print("Warning: The mesh of unit n° " + str(unit_num) + " has " + str(len(dup)) +
+        print("Warning: The mesh of unit n° " + str(unit_number) + " has " + str(len(dup)) +
               " duplicate(s) mesh(s) " + case + " : " +
               ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
     if checkpoint:
@@ -1026,7 +1026,7 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_num, cas
         dup = u[c > 1]
         if len(dup) != 0:
             xyz_duplicate_tf = True
-            print("Warning: The mesh of unit n°" + str(unit_num) + " has " + str(len(dup)) +
+            print("Warning: The mesh of unit n°" + str(unit_number) + " has " + str(len(dup)) +
                   " duplicate(s) point(s) " + case + " : " +
                   ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
 

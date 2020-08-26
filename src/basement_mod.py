@@ -36,12 +36,12 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.extensions_list = [".h5"]
         self.file_type = "hdf5"
         # simulation attributes
-        self.equation_type = "FV"
+        self.hyd_equation_type = "FV"
         self.morphology_available = True
         self.second_file_suffix = "_aux"
         # reach
         self.multi_reach = False # ?
-        self.reach_num = 1
+        self.reach_number = 1
         self.reach_name_list = ["unknown"]
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
@@ -220,7 +220,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # transform data to pandas
         data_mesh_pd_r_list = []
-        for reach_num in range(len(self.reach_name_list)):
+        for reach_number in range(len(self.reach_name_list)):
             data_mesh_pd_t_list = []
             for timestep_name_wish_index in range(self.timestep_wish_nb):
                 data_mesh_pd = pd.DataFrame()
@@ -237,31 +237,31 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                                                                                           data_mesh_pd_r_list[0])
 
         # prepare original and computed data for data_2d
-        for reach_num in range(self.reach_num):  # for each reach
+        for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in range(self.timestep_wish_nb):  # for each timestep
                 for variables_wish in self.hvum.hdf5_and_computable_list:  # .varunits
                     if variables_wish.position == "mesh":
                         if variables_wish.name == self.hvum.z.name:
                             if self.unit_z_equal:
-                                variables_wish.data[reach_num].append(mesh_z.astype(variables_wish.dtype))
+                                variables_wish.data[reach_number].append(mesh_z.astype(variables_wish.dtype))
                             else:
-                                variables_wish.data[reach_num].append(mesh_z[:, timestep_index].astype(variables_wish.dtype))
+                                variables_wish.data[reach_number].append(mesh_z[:, timestep_index].astype(variables_wish.dtype))
                         elif variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_num].append(mesh_h[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number].append(mesh_h[:, timestep_index].astype(variables_wish.dtype))
                         elif variables_wish.name == self.hvum.v.name:
-                            variables_wish.data[reach_num].append(mesh_v[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number].append(mesh_v[:, timestep_index].astype(variables_wish.dtype))
                     if variables_wish.position == "node":
                         if variables_wish.name == self.hvum.z.name:
-                            variables_wish.data[reach_num].append(node_z.astype(variables_wish.dtype))
+                            variables_wish.data[reach_number].append(node_z.astype(variables_wish.dtype))
                         elif variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_num].append(node_h[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number].append(node_h[:, timestep_index].astype(variables_wish.dtype))
                         else:
                             var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(variables_wish.name)
-                            variables_wish.data[reach_num].append(data_node_list[timestep_index][:, var_node_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number].append(data_node_list[timestep_index][:, var_node_index].astype(variables_wish.dtype))
 
             # coord
-            self.hvum.xy.data[reach_num] = [node_xy] * self.timestep_wish_nb
-            self.hvum.tin.data[reach_num] = [mesh_tin] * self.timestep_wish_nb
+            self.hvum.xy.data[reach_number] = [node_xy] * self.timestep_wish_nb
+            self.hvum.tin.data[reach_number] = [mesh_tin] * self.timestep_wish_nb
 
         del self.results_data_file
 

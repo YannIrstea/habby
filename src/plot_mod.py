@@ -406,7 +406,7 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
     plt.show()
 
 
-def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_preferences):
+def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -446,13 +446,13 @@ def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_p
 
     # prep data
     name_hdf5 = data_2d.filename
-    area_all = [unit.total_wet_area for unit in data_2d[reach_num]]
-    unit_name = data_2d.unit_name_list[reach_num]
+    area_all = [unit.total_wet_area for unit in data_2d[reach_number]]
+    unit_name = data_2d.unit_name_list[reach_number]
     unit_type = data_2d.unit_type
     unit_type_only = unit_type[unit_type.find('[') + len('['):unit_type.find(']')]
     unit_type_only_scientific = unit_type_only.replace("m3/s", "$m^3$/s")
     unit_type_scientific = unit_type.replace("m3/s", "$m^3$/s")
-    reach_name = data_2d[reach_num][0].reach_name
+    reach_name = data_2d[reach_number][0].reach_name
 
     # plot
     title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
@@ -475,8 +475,8 @@ def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_p
         data_bar = []
         percent = []
         for habitat_variable in habitat_variable_list:
-            percent.append(float(habitat_variable.percent_area_unknown[reach_num][0]))
-            data_bar.append(float(habitat_variable.wua[reach_num][0]))
+            percent.append(float(habitat_variable.percent_area_unknown[reach_number][0]))
+            data_bar.append(float(habitat_variable.wua[reach_number][0]))
 
         y_pos = np.arange(len(habitat_variable_list))
         data_bar2 = np.array(data_bar)
@@ -487,7 +487,7 @@ def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_p
         ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type_only_scientific)
 
         # VH
-        vh = data_bar2 / area_all[reach_num]
+        vh = data_bar2 / area_all[reach_number]
         ax[1].bar(y_pos, vh)
         ax[1].set_xticks(y_pos)
         # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
@@ -536,7 +536,7 @@ def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_p
         # SPU
         x_data = list(map(float, unit_name))
         for fish_index, habitat_variable in enumerate(habitat_variable_list):
-            y_data_spu = list(map(float, habitat_variable.wua[reach_num]))
+            y_data_spu = list(map(float, habitat_variable.wua[reach_number]))
             # plot line
             ax[0].plot(x_data,
                      y_data_spu,
@@ -556,7 +556,7 @@ def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_p
 
         # VH
         for fish_index, habitat_variable in enumerate(habitat_variable_list):
-            y_data_hv = list(map(float, habitat_variable.hv[reach_num]))
+            y_data_hv = list(map(float, habitat_variable.hv[reach_number]))
             # plot line
             ax[1].plot(x_data,
                      y_data_hv,
@@ -577,7 +577,7 @@ def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_p
 
         # % inconnu
         for fish_index, habitat_variable in enumerate(habitat_variable_list):
-            y_data_percent = list(map(float, habitat_variable.percent_area_unknown[reach_num]))
+            y_data_percent = list(map(float, habitat_variable.percent_area_unknown[reach_number]))
             # plot line
             ax[2].plot(x_data,
                      y_data_percent,
@@ -641,7 +641,7 @@ def plot_fish_hv_wua(state, data_2d, reach_num, habitat_variable_list, project_p
         plt.close()
 
 
-def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_num, types, project_preferences):
+def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_number, types, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -691,7 +691,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     # colors
     color_list, style_list = get_colors_styles_line_from_nb_input(len(animal_list))
 
-    reach_name = data_2d[reach_num][0].reach_name
+    reach_name = data_2d[reach_number][0].reach_name
     unit_type = data_2d.unit_type[data_2d.unit_type.find('[') + 1:data_2d.unit_type.find(']')]
     unit_type = unit_type.replace("m3/s", "$m^3$/s")
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
@@ -960,7 +960,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
 
 
 # all cases
-def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
     mpl_map_change_parameters(project_preferences)
 
     # title and filename
@@ -976,7 +976,7 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, data_de
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+    extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1009,7 +1009,7 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, data_de
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
     mpl_map_change_parameters(project_preferences)
 
     # title and filename
@@ -1025,7 +1025,7 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, data_de
     data_min = masked_array.min()
     data_max = masked_array.max()
     decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+    extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
@@ -1179,20 +1179,20 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
 
 
 # 3d
-def view_mayavi(state, data_2d, data_2d_whole, varname, reach_num, unit_num, data_description, project_preferences):
+def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_number, data_description, project_preferences):
     state.value = 1  # process finished
     # BOTOM
-    bottom_mesh = mlab.triangular_mesh(data_2d_whole[reach_num][unit_num]["node"]["xy"][:, 0],
-                                       data_2d_whole[reach_num][unit_num]["node"]["xy"][:, 1],
-                                       data_2d_whole[reach_num][unit_num]["node"]["z"] * project_preferences["vertical_exaggeration"],
-                                       data_2d_whole[reach_num][unit_num]["mesh"]["tin"],
+    bottom_mesh = mlab.triangular_mesh(data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 0],
+                                       data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 1],
+                                       data_2d_whole[reach_number][unit_number]["node"]["z"] * project_preferences["vertical_exaggeration"],
+                                       data_2d_whole[reach_number][unit_number]["mesh"]["tin"],
                                        representation="surface")  # , scalars=t
 
     # OTHER
-    other_mesh = mlab.triangular_mesh(data_2d[reach_num][unit_num]["node"]["xy"][:, 0],
-                                       data_2d[reach_num][unit_num]["node"]["xy"][:, 1],
-                                       data_2d[reach_num][unit_num]["node"]["data"][varname].to_numpy() * project_preferences["vertical_exaggeration"],
-                                      data_2d[reach_num][unit_num]["mesh"]["tin"],
+    other_mesh = mlab.triangular_mesh(data_2d[reach_number][unit_number]["node"]["xy"][:, 0],
+                                       data_2d[reach_number][unit_number]["node"]["xy"][:, 1],
+                                       data_2d[reach_number][unit_number]["node"]["data"][varname].to_numpy() * project_preferences["vertical_exaggeration"],
+                                      data_2d[reach_number][unit_number]["mesh"]["tin"],
                                       color=(0, 0, 1),
                                        representation="surface")  # , scalars=t
 
@@ -1770,7 +1770,7 @@ def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_
     :param ytxt: if the data was given in txt form, the orignal y data
     :param subtxt: if the data was given in txt form, the orignal sub data
     :param path_im: the path where to save the figure
-    :param reach_num: If we plot more than one reach, this is the reach number
+    :param reach_number: If we plot more than one reach, this is the reach number
     """
     mpl_map_change_parameters(project_preferences)
 
@@ -1843,7 +1843,7 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     :param ytxt: if the data was given in txt form, the orignal y data
     :param subtxt: if the data was given in txt form, the orignal sub data
     :param path_im: the path where to save the figure
-    :param reach_num: If we plot more than one reach, this is the reach number
+    :param reach_number: If we plot more than one reach, this is the reach number
     """
     mpl_map_change_parameters(project_preferences)
 

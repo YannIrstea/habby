@@ -394,8 +394,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             if arg[:len(unit_list_arg)] == unit_list_arg:
                 unit_list_base = eval(arg[len(unit_list_arg):])
                 unit_list = []
-                for reach_num in range(len(unit_list_base)):
-                    unit_list.append(list(map(str, unit_list_base[reach_num])))
+                for reach_number in range(len(unit_list_base)):
+                    unit_list.append(list(map(str, unit_list_base[reach_number])))
 
         # get_hydrau_description_from_source
         hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_path,
@@ -426,13 +426,13 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         # refresh units if set
         if unit_list:
-            for reach_num in range(len(hydrau_description["unit_list_tf"])):
-                for unit_num in reversed(range(len(hydrau_description["unit_list"][reach_num]))):
-                    if hydrau_description["unit_list"][reach_num][unit_num] in unit_list[reach_num]:
-                        hydrau_description["unit_list_tf"][reach_num][unit_num] = True
+            for reach_number in range(len(hydrau_description["unit_list_tf"])):
+                for unit_number in reversed(range(len(hydrau_description["unit_list"][reach_number]))):
+                    if hydrau_description["unit_list"][reach_number][unit_number] in unit_list[reach_number]:
+                        hydrau_description["unit_list_tf"][reach_number][unit_number] = True
                     else:
-                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
-                        hydrau_description["unit_list"][reach_num].pop(unit_num)
+                        hydrau_description["unit_list_tf"][reach_number][unit_number] = False
+                        hydrau_description["unit_list"][reach_number].pop(unit_number)
 
         # run process
         progress_value = Value("d", 0)

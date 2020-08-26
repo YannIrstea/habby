@@ -645,7 +645,7 @@ if __name__ == '__main__':
         input_filename = "a1.hyd"
         oldhdf5 = hdf5_mod.Hdf5Management(path_prj, input_filename)
         # oldhdf5.load_hdf5_hyd()
-        # oldhdf5.open_hdf5_file()
+        # oldhdf5.create_or_open_file()
         # oldhdf5.load_data_2d()
         # oldhdf5.load_whole_profile()
         # oldhdf5.load_data_2d_info()
@@ -656,7 +656,7 @@ if __name__ == '__main__':
         # newhdf5.load_hydrosignature()
         newfile = hdf5_mod.Hdf5Management(path_prj, "a1_HS.hyd")
         newfile.load_hdf5_hyd()
-        newfile.open_hdf5_file()
+        newfile.create_or_open_file()
         newfile.load_data_2d()
         newfile.load_hydrosignature()
         print(newhdf5.data_2d)

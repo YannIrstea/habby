@@ -710,21 +710,21 @@ class HydraulicVariableUnitManagement:
         # sort_by_names_gui
         self.hdf5_and_computable_list.sort_by_names_gui()
 
-    def set_variable_data_structure(self, reach_num, unit_num):
+    def set_variable_data_structure(self, reach_number, unit_number):
         # variables
         for variable in self.hdf5_and_computable_list:
             variable.data = []
-            for reach_ind in range(reach_num):
+            for reach_ind in range(reach_number):
                 variable.data.append([])
-                for _ in range(unit_num):
+                for _ in range(unit_number):
                     variable.data[reach_ind].append([])
         # struct
         self.xy.data = []
         self.tin.data = []
-        for reach_ind in range(reach_num):
+        for reach_ind in range(reach_number):
             self.xy.data.append([])
             self.tin.data.append([])
-            for _ in range(unit_num):
+            for _ in range(unit_number):
                 self.xy.data[reach_ind].append([])
                 self.tin.data[reach_ind].append([])
 
@@ -764,15 +764,6 @@ class HydraulicVariableUnitManagement:
             else:  # whole profile == no data
                 user_target_list = None
 
-        # if mesh:
-        #     # for all nodes variables add them to mesh (be to computed : mean)
-        #     for node_variable in user_target_list.nodes():
-        #         if node_variable.name not in user_target_list.meshs().names():
-        #             print("append", node_variable)
-        #             node_variable.position = "mesh"
-        #             node_variable.hdf5 = False
-        #             user_target_list.append(node_variable)
-
         if user_target_list is not None:
             self.get_final_variable_list_from_wish(user_target_list)
 
@@ -780,9 +771,7 @@ class HydraulicVariableUnitManagement:
         """
         load hdf5 or compute ? Depend on user wish selection
         """
-        # print("######################################")
-        # print("target nodes : ", user_target_list.nodes())
-        # print("target meshs : ", user_target_list.meshs())
+        self.all_final_variable_list = HydraulicVariableUnitList()
 
         # wish hdf5 (node and mesh)
         for variable_wish in user_target_list.hdf5s():
@@ -1123,9 +1112,11 @@ class HydraulicVariableUnitManagement:
                 # all cases
                 self.all_final_variable_list.append(variable_wish)
 
-            # print final names
-            # print("------>")
-            # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
-            # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
-            # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
-            # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())
+            print("######################################")
+            print("target nodes : ", user_target_list.nodes())
+            print("target meshs : ", user_target_list.meshs())
+            print("------>")
+            print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
+            print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
+            print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
+            print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())

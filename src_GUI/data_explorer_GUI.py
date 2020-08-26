@@ -95,6 +95,7 @@ class DataExplorerFrame(QFrame):
         self.send_log = send_log
         self.nb_plot = 0
         self.names_hdf5_index = None
+        self.hdf5 = None
         self.file_to_remove_list = []
         self.init_ui()
         self.plot_production_stoped = False
@@ -139,6 +140,7 @@ class DataExplorerFrame(QFrame):
         """ plot_group """
         self.plot_group = FigureProducerGroup(self.path_prj, self.name_prj, self.send_log,
                                               self.tr("Figure viewer/exporter"))
+        self.plot_group.hdf5 = self.hdf5
         self.plot_group.setChecked(False)
         self.plot_group.hide()
 
@@ -254,16 +256,19 @@ class DataExplorerFrame(QFrame):
             for selection_el in selection:
                 # read
                 hdf5name = selection_el.text()
-                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-                hdf5.open_hdf5_file(False)
+                self.hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                               hdf5name,
+                                               new=False)
+                self.hdf5.get_hdf5_attributes(close_file=True)
+                self.plot_group.hdf5 = self.hdf5
                 # check reach
-                reach_list.append(hdf5.reach_name)
+                reach_list.append(self.hdf5.data_2d.reach_list)
                 # check unit
-                unit_list.append(hdf5.units_name)
+                unit_list.append(self.hdf5.data_2d.unit_list)
                 # check variable_node
-                variable_node_list.append(hdf5.hvum.hdf5_and_computable_list.meshs().names())
+                variable_node_list.append(self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().names())
                 # check variable_mesh
-                variable_mesh_list.append(hdf5.hvum.hdf5_and_computable_list.nodes().names())
+                variable_mesh_list.append(self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names())
 
             if not reach_list.count(reach_list[0]) == len(reach_list) and \
                     not unit_list.count(unit_list[0]) == len(unit_list) and \
@@ -271,18 +276,12 @@ class DataExplorerFrame(QFrame):
                     not variable_mesh_list.count(variable_mesh_list[0]) == len(variable_mesh_list):
                 self.set_empty_layout()
             else:
-                # one file selected
                 self.plot_group.units_QListWidget.clear()
-                hdf5name = selection[0].text()
-
-                # create hdf5 class
-                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-                hdf5.open_hdf5_file(False)
 
                 # change unit_type
-                if hasattr(hdf5, "unit_type"):
-                    hdf5.unit_type = hdf5.unit_type.replace("m3/s", "m<sup>3</sup>/s")
-                    self.plot_group.units_QLabel.setText(hdf5.unit_type)
+                if hasattr(self.hdf5.data_2d, "unit_type"):
+                    self.hdf5.data_2d.unit_type = self.hdf5.data_2d.unit_type.replace("m3/s", "m<sup>3</sup>/s")
+                    self.plot_group.units_QLabel.setText(self.hdf5.data_2d.unit_type)
 
                 # get_type_index
                 index_type = self.get_type_index()
@@ -290,16 +289,16 @@ class DataExplorerFrame(QFrame):
                 # hydraulic
                 if index_type == 1:
                     self.set_hydraulic_layout()
-                    if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                        for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().names_gui():
+                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs():
                             mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
                             mesh_item.setData(Qt.UserRole, mesh)
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
                                 mesh_item.setToolTip("computable")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                    if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                        for node in hdf5.hvum.hdf5_and_computable_list.nodes():
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
+                        for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
                             node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
                             node_item.setData(Qt.UserRole, node)
                             if not node.hdf5:
@@ -307,11 +306,11 @@ class DataExplorerFrame(QFrame):
                                 node_item.setToolTip("computable")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
-                    if hdf5.reach_name:
-                        self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                        if len(hdf5.reach_name) == 1:
+                    if self.hdf5.data_2d.reach_list:
+                        self.plot_group.reach_QListWidget.addItems(self.hdf5.data_2d.reach_list)
+                        if len(self.hdf5.data_2d.reach_list) == 1:
                             self.plot_group.reach_QListWidget.selectAll()
-                            if hdf5.nb_unit == 1:
+                            if self.hdf5.data_2d.unit_list == 1:
                                 self.plot_group.units_QListWidget.selectAll()
                             else:
                                 self.plot_group.units_QListWidget.setCurrentRow(0)
@@ -319,16 +318,16 @@ class DataExplorerFrame(QFrame):
                 # substrat
                 if index_type == 2:
                     self.set_substrate_layout()
-                    if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                        for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().names_gui():
+                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs():
                             mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
                             mesh_item.setData(Qt.UserRole, mesh)
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
                                 mesh_item.setToolTip("computable")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                    if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                        for node in hdf5.hvum.hdf5_and_computable_list.nodes():
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
+                        for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
                             node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
                             node_item.setData(Qt.UserRole, node)
                             if not node.hdf5:
@@ -336,12 +335,12 @@ class DataExplorerFrame(QFrame):
                                 node_item.setToolTip("computable")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
-                    if hdf5.sub_mapping_method != "constant":
-                        if hdf5.reach_name:
-                            self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                            if len(hdf5.reach_name) == 1:
+                    if self.hdf5.data_2d.sub_mapping_method != "constant":
+                        if self.hdf5.data_2d.reach_list:
+                            self.plot_group.reach_QListWidget.addItems(self.hdf5.data_2d.reach_list)
+                            if len(self.hdf5.data_2d.reach_list) == 1:
                                 self.plot_group.reach_QListWidget.selectAll()
-                                if hdf5.nb_unit == 1:
+                                if self.hdf5.data_2d.unit_list == 1:
                                     self.plot_group.units_QListWidget.selectAll()
                                 else:
                                     self.plot_group.units_QListWidget.setCurrentRow(0)
@@ -349,16 +348,16 @@ class DataExplorerFrame(QFrame):
                 # habitat
                 if index_type == 3:
                     self.set_habitat_layout()
-                    if hdf5.hvum.hdf5_and_computable_list.meshs().names_gui():
-                        for mesh in hdf5.hvum.hdf5_and_computable_list.meshs():
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().names_gui():
+                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs():
                             mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
                             mesh_item.setData(Qt.UserRole, mesh)
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
                                 mesh_item.setToolTip("computable")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                    if hdf5.hvum.hdf5_and_computable_list.nodes().names_gui():
-                        for node in hdf5.hvum.hdf5_and_computable_list.nodes():
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
+                        for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
                             node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
                             node_item.setData(Qt.UserRole, node)
                             if not node.hdf5:
@@ -367,8 +366,8 @@ class DataExplorerFrame(QFrame):
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
                     # habitatvalueremover_group
-                    if hdf5.hvum.hdf5_and_computable_list.meshs().habs().names_gui():
-                        for mesh in hdf5.hvum.hdf5_and_computable_list.habs().meshs():
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names_gui():
+                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.habs().meshs():
                             mesh_item = QListWidgetItem(mesh.name_gui, self.habitatvalueremover_group.existing_animal_QListWidget)
                             mesh_item.setData(Qt.UserRole, mesh)
                             if not mesh.hdf5:
@@ -376,22 +375,17 @@ class DataExplorerFrame(QFrame):
                                 mesh_item.setToolTip("computable")
                             self.habitatvalueremover_group.existing_animal_QListWidget.addItem(mesh_item)
 
-                    if hdf5.reach_name:
-                        self.plot_group.reach_QListWidget.addItems(hdf5.reach_name)
-                        if len(hdf5.reach_name) == 1:
+                    if self.hdf5.data_2d.reach_list:
+                        self.plot_group.reach_QListWidget.addItems(self.hdf5.data_2d.reach_list)
+                        if len(self.hdf5.data_2d.reach_list) == 1:
                             self.plot_group.reach_QListWidget.selectAll()
-                            if hdf5.nb_unit == 1:
+                            if self.hdf5.data_2d.unit_list == 1:
                                 self.plot_group.units_QListWidget.selectAll()
                             else:
                                 self.plot_group.units_QListWidget.setCurrentRow(0)
 
-
-            # # change unit_type string
-            # for element_index, _ in enumerate(hdf5.hdf5_attributes_info_text):
-            #     if "m3/s" in hdf5.hdf5_attributes_info_text[element_index]:
-            #         hdf5.hdf5_attributes_info_text[element_index] = hdf5.hdf5_attributes_info_text[element_index].replace("m3/s", u"m<sup>3</sup>/s")
             # display hdf5 attributes
-            tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
+            tablemodel = MyTableModel(list(zip(self.hdf5.hdf5_attributes_name_text, self.hdf5.hdf5_attributes_info_text)), self)
             self.file_information_group.hdf5_attributes_qtableview.setModel(tablemodel)
             header = self.file_information_group.hdf5_attributes_qtableview.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -400,7 +394,7 @@ class DataExplorerFrame(QFrame):
                 self.file_information_group.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
 
             # resize qtableview
-            height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(hdf5.hdf5_attributes_name_text) + 1)
+            height = self.file_information_group.hdf5_attributes_qtableview.rowHeight(1) * (len(self.hdf5.hdf5_attributes_name_text) + 1)
             self.file_information_group.hdf5_attributes_qtableview.setFixedHeight(height)
             self.file_information_group.toggle_group(self.file_information_group.isChecked())
 
@@ -830,29 +824,33 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             hdf5name = selection_file[0].text()
             self.units_QListWidget.clear()
 
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            # # create hdf5 class
+            # hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+            #                                hdf5name,
+            #                                new=False)
+            # hdf5.get_hdf5_attributes()
 
             # add units
-            for item_text in hdf5.units_name[self.reach_QListWidget.currentRow()]:
+            for item_text in self.hdf5.data_2d.unit_list[self.reach_QListWidget.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget.addItem(item)
 
         # more than one file selected
         elif len(selection_reach) > 1:
-            # clear attributes hdf5_attributes_qtableview
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection_file[0].text())
-            hdf5.open_hdf5_file(False)
+            # # clear attributes hdf5_attributes_qtableview
+            # hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+            #                                selection_file[0].text(),
+            #                                new=False)
+            # hdf5.get_hdf5_attributes()
             # check if units are equal between reachs
             units_equal = True
-            for reach_num in range(len(hdf5.units_name) - 1):
-                if hdf5.units_name[reach_num] != hdf5.units_name[reach_num + 1]:
+            for reach_number in range(len(self.hdf5.data_2d.unit_list) - 1):
+                if self.hdf5.data_2d.unit_list[reach_number] != self.hdf5.data_2d.unit_list[reach_number + 1]:
                     units_equal = False
             if units_equal:  # homogene units between reach
                 # self.units_QListWidget.addItems()
-                for item_text in hdf5.units_name[0]:
+                for item_text in self.hdf5.data_2d.unit_list[0]:
                     item = QListWidgetItem(item_text)
                     item.setTextAlignment(Qt.AlignRight)
                     self.units_QListWidget.addItem(item)
@@ -1434,9 +1432,9 @@ class HabitatValueRemover(QGroupBoxCollapsible):
             hab_variable_list.append(selection.data(Qt.UserRole).name)
 
         # remove
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.open_hdf5_file(False)
-        hdf5.remove_fish_hab(hab_variable_list)
+        # hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+        # hdf5.create_or_open_file(False)
+        self.hdf5.remove_fish_hab(hab_variable_list)
 
         # refresh
         self.parent().names_hdf5_change()

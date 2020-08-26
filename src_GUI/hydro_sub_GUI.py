@@ -1102,7 +1102,9 @@ class SubHydroW(QWidget):
                         self.load_b.setDisabled(False)  # hydraulic
 
                     # send round(c) to attribute .hyd
-                    hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
+                    hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj,
+                                                       self.name_hdf5,
+                                                       new=False)
                     hdf5_hyd.set_hdf5_attributes([os.path.splitext(self.name_hdf5)[1][1:] + "_time_creation [s]"],
                                                  [round(self.running_time)])
 
@@ -3122,9 +3124,9 @@ class ASCII(SubHydroW):  # QGroupBox
         # save one
         else:
             if self.multi_reach:
-                for reach_num in range(int(self.hydrau_description["reach_number"])):
-                    for unit_num in range(int(self.hydrau_description["unit_number"])):
-                        self.hydrau_description["unit_list_tf"][reach_num][unit_num] = selected_list[unit_num]
+                for reach_number in range(int(self.hydrau_description["reach_number"])):
+                    for unit_number in range(int(self.hydrau_description["unit_number"])):
+                        self.hydrau_description["unit_list_tf"][reach_number][unit_number] = selected_list[unit_number]
             else:
                 self.hydrau_description["unit_list"] = [unit_list]
                 self.hydrau_description["unit_list_full"] = [unit_list_full]
@@ -4544,7 +4546,7 @@ class SubstrateW(SubHydroW):
                     self.sub_classification_code_polygon_label.setText(sub_description["sub_classification_code"])
                     self.sub_classification_method_polygon_label.setText(sub_description["sub_classification_method"])
                     self.sub_default_values_polygon_label.setText(sub_description["sub_default_values"])
-                    self.epsg_polygon_label.setText(sub_description["sub_epsg_code"])
+                    self.epsg_polygon_label.setText(sub_description["epsg_code"])
                     self.polygon_hname.setText(self.name_hdf5_polygon)
 
                 # POINT
@@ -4560,7 +4562,7 @@ class SubstrateW(SubHydroW):
                     self.sub_classification_code_point_label.setText(sub_description["sub_classification_code"])
                     self.sub_classification_method_point_label.setText(sub_description["sub_classification_method"])
                     self.sub_default_values_point_label.setText(sub_description["sub_default_values"])
-                    self.epsg_point_label.setText(sub_description["sub_epsg_code"])
+                    self.epsg_point_label.setText(sub_description["epsg_code"])
                     self.point_hname.setText(self.name_hdf5_point)
 
                 # CONSTANT

@@ -40,10 +40,10 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.extensions_list = [".txt"]
         self.file_type = "ascii"
         # simulation attributes
-        self.equation_type = ""  # FE or FV
+        self.hyd_equation_type = ""  # FE or FV
         # reach
         self.multi_reach = False
-        self.reach_num = 1
+        self.reach_number = 1
         self.reach_name_list = ["unknown"]
         self.morphology_available = True
         # # readable file ?
@@ -73,7 +73,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         :param file_path:
         :return: the reachname list and the unit description (times or discharges)
         """
-        kk, self.reach_num = 0, 0
+        kk, self.reach_number = 0, 0
         msg, unit_type = '', ''
         lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
         # or nbreaches elements
@@ -114,7 +114,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                       0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
                             break
                         else:
-                            if bq_per_reach == False and self.reach_num != 1:
+                            if bq_per_reach == False and self.reach_number != 1:
                                 msg = ls[0] + ' This structure REACH unit description is forbiden '
                                 break
                             bq_per_reach = True
@@ -128,13 +128,13 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     if bq_per_reach and kk == 3:
                         msg = ls[0] + ' This structure REACH unit description is forbiden '
                         break
-                    self.reach_num += 1
+                    self.reach_number += 1
                     bmeshconstant = True
-                    if self.reach_num == 1:
+                    if self.reach_number == 1:
                         lreachname = [('_'.join(ls[1:]))]
                     else:
                         if '_'.join(ls[1:]) == lreachname[-1]:
-                            self.reach_num -= 1
+                            self.reach_number -= 1
                             bmeshconstant = False
                         else:
                             lreachname.append(('_'.join(ls[1:])))
@@ -217,14 +217,14 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # data_description
         if bfvm:
-            self.equation_type = "FV"
+            self.hyd_equation_type = "FV"
         else:
-            self.equation_type = "FE"
+            self.hyd_equation_type = "FE"
         if bsub:
             self.sub = True
         self.reach_name_list = lreachname
-        self.reach_num = len(self.reach_name_list)
-        if self.reach_num > 1:
+        self.reach_number = len(self.reach_name_list)
+        if self.reach_number > 1:
             self.multi_reach = True
         self.varying_mesh = not bmeshconstant
         if unit_type.upper()[0] == 'Q':
@@ -242,23 +242,23 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.load_specific_timestep(timestep_name_wish_list)
 
         # prepare original data for data_2d
-        for reach_num in range(self.reach_num):  # for each reach
+        for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
                 val_all = self.results_data_file.getvalues(timestep_index)
                 for variables_wish in self.hvum.software_detected_list:  # .varunits
                     if not variables_wish.precomputable_tohdf5:
-                        variables_wish.data[reach_num].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
+                        variables_wish.data[reach_number].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
 
                 # struct
-                self.hvum.xy.data[reach_num] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
-                self.hvum.tin.data[reach_num] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+                self.hvum.xy.data[reach_number] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_number] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
 
         # prepare computable data for data_2d
         if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
-            for reach_num in range(self.reach_num):  # for each reach
+            for reach_number in range(self.reach_number):  # for each reach
                 for timestep_index in range(len(self.timestep_name_wish_list_index)):
                     # compute from v_x v_y
-                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_num].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_num][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_num][timestep_index] ** 2))
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_number].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_number][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_number][timestep_index] ** 2))
                     self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
 
         return self.get_data_2d()
@@ -588,12 +588,12 @@ def load_ascii_model(filename, path_prj, user_pref_temp_path):
                 vmesh[:, [u]] = hvmesh[:, [2 * u + 1]]
     else:
         # transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
-        for unit_num in range(nbunit):
-            nodesall[:, 2 + unit_num * 2 + 2] = np.abs(nodesall[:, 2 + unit_num * 2 + 2])
-            hwneg = np.where(nodesall[:, 2 + unit_num * 2 + 1] < 0)
-            nodesall[:, 2 + unit_num * 2 + 1][hwneg] = 0
-            hwnul = np.where(nodesall[:, 2 + unit_num * 2 + 1] == 0)
-            nodesall[:, 2 + unit_num * 2 + 2][hwnul] = 0
+        for unit_number in range(nbunit):
+            nodesall[:, 2 + unit_number * 2 + 2] = np.abs(nodesall[:, 2 + unit_number * 2 + 2])
+            hwneg = np.where(nodesall[:, 2 + unit_number * 2 + 1] < 0)
+            nodesall[:, 2 + unit_number * 2 + 1][hwneg] = 0
+            hwnul = np.where(nodesall[:, 2 + unit_number * 2 + 1] == 0)
+            nodesall[:, 2 + unit_number * 2 + 2][hwnul] = 0
 
     if bsub:
         fsub.close()
@@ -628,22 +628,22 @@ def load_ascii_model(filename, path_prj, user_pref_temp_path):
         data_2d = create_empty_data_2d_dict(reachnumber,
                                             node_variables=["h", "v"])
 
-    for reach_num in range(reachnumber):
+    for reach_number in range(reachnumber):
         if bmeshconstant:
-            nodes = np.array(nodesall[lnode[reach_num][0]:lnode[reach_num][1], :])
+            nodes = np.array(nodesall[lnode[reach_number][0]:lnode[reach_number][1], :])
             if ikleall.ndim == 1:  # if we only got one mesh and one unit
                 ikleall = ikleall.reshape(1, ikleall.shape[0])
-            ikle = np.array(ikleall[ltin[reach_num][0]:ltin[reach_num][1], :])
+            ikle = np.array(ikleall[ltin[reach_number][0]:ltin[reach_number][1], :])
             if bsub:
-                sub = np.array(suball[ltin[reach_num][0]:ltin[reach_num][1], :])
+                sub = np.array(suball[ltin[reach_number][0]:ltin[reach_number][1], :])
             nbnodes = len(nodes)
             if ikle.max() != nbnodes - 1:
                 print('Error:' + ' REACH :' + lreachname[
-                    reach_num] + "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
+                    reach_number] + "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
                 return False, False
             if bfvm:
-                hmeshr = np.array(hmesh[ltin[reach_num][0]:ltin[reach_num][1], :])
-                vmeshr = np.array(vmesh[ltin[reach_num][0]:ltin[reach_num][1], :])
+                hmeshr = np.array(hmesh[ltin[reach_number][0]:ltin[reach_number][1], :])
+                vmeshr = np.array(vmesh[ltin[reach_number][0]:ltin[reach_number][1], :])
                 if bsub:
                     ikle2, nodes2, hnodes2, vnodes2, sub = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
                         ikle, nodes, hmeshr, vmeshr, sub)
@@ -652,30 +652,30 @@ def load_ascii_model(filename, path_prj, user_pref_temp_path):
                                                                                                                    nodes,
                                                                                                                    hmeshr,
                                                                                                                    vmeshr)
-                for unit_num in range(nbunit):
-                    data_2d["mesh"]["tin"][reach_num].append(ikle2)
-                    data_2d["mesh"]["i_whole_profile"][reach_num].append(ikle2)
+                for unit_number in range(nbunit):
+                    data_2d["mesh"]["tin"][reach_number].append(ikle2)
+                    data_2d["mesh"]["i_whole_profile"][reach_number].append(ikle2)
                     if bsub:
-                        data_2d["mesh"]["data"]["sub"][reach_num].append(sub)
-                    data_2d["node"]["xy"][reach_num].append(nodes2[:, :2])
-                    data_2d["node"]["z"][reach_num].append(nodes2[:, 2])
-                    data_2d["node"]["data"]["h"][reach_num].append(hnodes2[:, unit_num])
-                    data_2d["node"]["data"]["v"][reach_num].append(vnodes2[:, unit_num])
+                        data_2d["mesh"]["data"]["sub"][reach_number].append(sub)
+                    data_2d["node"]["xy"][reach_number].append(nodes2[:, :2])
+                    data_2d["node"]["z"][reach_number].append(nodes2[:, 2])
+                    data_2d["node"]["data"]["h"][reach_number].append(hnodes2[:, unit_number])
+                    data_2d["node"]["data"]["v"][reach_number].append(vnodes2[:, unit_number])
             else:
                 ikle, nodes, sub = reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub)
 
-                for unit_num in range(nbunit):
-                    data_2d["mesh"]["tin"][reach_num].append(ikle)
-                    data_2d["mesh"]["i_whole_profile"][reach_num].append(ikle)
+                for unit_number in range(nbunit):
+                    data_2d["mesh"]["tin"][reach_number].append(ikle)
+                    data_2d["mesh"]["i_whole_profile"][reach_number].append(ikle)
                     if bsub:
-                        data_2d["mesh"]["data"]["sub"][reach_num].append(sub)
-                    data_2d["node"]["xy"][reach_num].append(nodes[:, :2])
-                    data_2d["node"]["z"][reach_num].append(nodes[:, 2])
-                    data_2d["node"]["data"]["h"][reach_num].append(nodes[:, 2 + unit_num * 2 + 1])
-                    data_2d["node"]["data"]["v"][reach_num].append(nodes[:, 2 + unit_num * 2 + 2])
+                        data_2d["mesh"]["data"]["sub"][reach_number].append(sub)
+                    data_2d["node"]["xy"][reach_number].append(nodes[:, :2])
+                    data_2d["node"]["z"][reach_number].append(nodes[:, 2])
+                    data_2d["node"]["data"]["h"][reach_number].append(nodes[:, 2 + unit_number * 2 + 1])
+                    data_2d["node"]["data"]["v"][reach_number].append(nodes[:, 2 + unit_number * 2 + 2])
         else:
-            for unit_num in range(nbunitforall):
-                ilnode = reach_num * nbunitforall + unit_num
+            for unit_number in range(nbunitforall):
+                ilnode = reach_number * nbunitforall + unit_number
                 nodes = np.array(nodesall[lnode[ilnode][0]:lnode[ilnode][1], :])
                 ikle = np.array(ikleall[ltin[ilnode][0]:ltin[ilnode][1], :])
                 if bsub:
@@ -683,17 +683,17 @@ def load_ascii_model(filename, path_prj, user_pref_temp_path):
                 nbnodes = len(nodes)
                 if ikle.max() != nbnodes - 1:
                     print('Error:' + ' REACH :' + lreachname[
-                        reach_num] + "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
+                        reach_number] + "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
                     return False, False
                 ikle, nodes, sub = reduce_quadrangles_to_triangles(ikle, nodes, 1, bsub, sub)
-                data_2d["mesh"]["tin"][reach_num].append(ikle)
-                data_2d["mesh"]["i_whole_profile"][reach_num].append(ikle)
+                data_2d["mesh"]["tin"][reach_number].append(ikle)
+                data_2d["mesh"]["i_whole_profile"][reach_number].append(ikle)
                 if bsub:
-                    data_2d["mesh"]["data"]["sub"][reach_num].append(sub)
-                data_2d["node"]["xy"][reach_num].append(nodes[:, :2])
-                data_2d["node"]["z"][reach_num].append(nodes[:, 2])
-                data_2d["node"]["data"]["h"][reach_num].append(nodes[:, 3])
-                data_2d["node"]["data"]["v"][reach_num].append(nodes[:, 4])
+                    data_2d["mesh"]["data"]["sub"][reach_number].append(sub)
+                data_2d["node"]["xy"][reach_number].append(nodes[:, :2])
+                data_2d["node"]["z"][reach_number].append(nodes[:, 2])
+                data_2d["node"]["data"]["h"][reach_number].append(nodes[:, 3])
+                data_2d["node"]["data"]["v"][reach_number].append(nodes[:, 4])
 
     data_description = dict(path_prj=path_prj,
                             name_prj=os.path.basename(path_prj),
@@ -749,17 +749,17 @@ def reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub):
     ikle = ikle3[:, 0:3]
 
     if len(ikle4):  # partitionning each 4angles in 4 triangles
-        for unit_num in range(nbunit):
+        for unit_number in range(nbunit):
             manage_grid_mod.is_duplicates_mesh_and_point_on_one_unit(tin_array=ikle4,
                                                                      xyz_array=nodes[:, 0:2],
-                                                                     unit_num=unit_num,
+                                                                     unit_number=unit_number,
                                                                      case="before reduce quadrangles to triangles")
             # always obtain the sames ikle3new,xynew,znew only hnew,vnew are differents
             ikle3new, xynew, znew, hnew, vnew = \
                 mesh_management_mod.quadrangles_to_triangles(ikle4, nodes[:, 0:2],
-                                                             nodes[:, 2], nodes[:, 2 + unit_num * 2 + 1],
-                                                             nodes[:, 2 + unit_num * 2 + 2])
-            if unit_num == 0:
+                                                             nodes[:, 2], nodes[:, 2 + unit_number * 2 + 1],
+                                                             nodes[:, 2 + unit_number * 2 + 2])
+            if unit_number == 0:
                 newnodes = np.concatenate((xynew, znew, hnew, vnew), axis=1)
             else:
                 newnodes = np.concatenate((newnodes, hnew, vnew), axis=1)
