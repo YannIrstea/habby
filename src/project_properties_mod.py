@@ -286,8 +286,12 @@ def load_specific_properties(path_prj, preference_names):
     # load values
     preference_value = []
     for preference_name in preference_names:
-        preference_value.append(project_preferences[preference_name])
-
+        try:
+            preference_value.append(project_preferences[preference_name])
+        except KeyError:
+            print("Error: Actual project must be deleted because it is from an older version of HABBY. " + preference_name + " have been set to default value. .")
+            project_preferences_default = create_default_project_properties_dict()
+            preference_value = project_preferences_default[preference_name]
     return preference_value
 
 
