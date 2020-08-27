@@ -159,9 +159,13 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                                    unit_number=hdf5_hydro.data_2d.unit_number)  # new
             # get hyd attr
             data_2d_merge.__dict__ = hdf5_hydro.data_2d.__dict__.copy()
+            data_2d_merge.__dict__["hyd_filename_source"] = data_2d_merge.__dict__.pop("filename_source")
+            data_2d_merge.__dict__["hyd_path_filename_source"] = data_2d_merge.__dict__.pop("path_filename_source")
             # get sub attr
             for attribute_name in hdf5_sub.data_2d.__dict__.keys():
                 attribute_value = getattr(hdf5_sub.data_2d, attribute_name)
+                if attribute_name in {"filename_source", "path_filename_source"}:
+                    setattr(data_2d_merge, "sub_" + attribute_name, attribute_value)
                 if attribute_name[:3] == "sub":
                     setattr(data_2d_merge, attribute_name, attribute_value)
             data_2d_merge.hab_fish_list = ", ".join([])

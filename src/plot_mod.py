@@ -1902,7 +1902,7 @@ def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
     mpl_map_change_parameters(project_preferences)
 
     # title and filename
@@ -1918,7 +1918,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     data_min = 0
     data_max = 1
     decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+    extent_list = light_data_2d.data_extent # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map

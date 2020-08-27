@@ -1490,7 +1490,7 @@ class MyProcessList(QThread):
                                     user_target_list=self.hvum.user_target_list,
                                     whole_profil=False)
 
-        habitat_variable_list = self.hvum.user_target_list.habs()
+        habitat_variable_list = self.hdf5.data_2d.hvum.all_final_variable_list.habs()
         light_data_2d = self.hdf5.data_2d.get_light_data_2d()
 
         # all cases
@@ -1544,7 +1544,7 @@ class MyProcessList(QThread):
                                     self.process_list.append([process, state])
 
                         # plot animal map
-                        for animal_index, animal in enumerate(habitat_variable_list):
+                        for animal in habitat_variable_list:
                             if not self.plot_production_stoped:
                                 plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                reach_name,

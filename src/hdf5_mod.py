@@ -218,8 +218,6 @@ class Hdf5Management:
                             if "m<sup>3</sup>/s" in attribute_value:
                                 attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
                             self.file_object.attrs[attribute_name] = attribute_value
-                        if attribute_name == "hyd_unit_correspondence":
-                            self.file_object.attrs[attribute_name] = attribute_value
                         else:
                             self.file_object.attrs[attribute_name] = attribute_value
 
@@ -228,25 +226,37 @@ class Hdf5Management:
                 # variables attrs
                 self.data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
                 self.file_object.attrs[
-                    "mesh_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
+                    "mesh_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().names()
                 self.file_object.attrs[
-                    "node_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
+                    "node_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().names()
                 self.file_object.attrs[
-                    "mesh_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
+                    "mesh_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
                 self.file_object.attrs[
-                    "node_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
+                    "node_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
                 self.file_object.attrs[
                     "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()]
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().min()]
                 self.file_object.attrs[
                     "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()]
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().min()]
                 self.file_object.attrs[
                     "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()]
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().max()]
                 self.file_object.attrs[
                     "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()]
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
+
+            # hab variables
+            self.file_object.attrs["hab_fish_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
+            self.file_object.attrs["hab_fish_number"] = str(
+                len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
+            self.file_object.attrs["hab_fish_pref_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
+            self.file_object.attrs["hab_fish_stage_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
+            self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
     def get_hdf5_attributes(self, close_file=False):
         print("get_hdf5_attributes")
@@ -558,7 +568,7 @@ class Hdf5Management:
                     # HV by celle for each fish
                     if self.extension == ".hab":
                         mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
-                        for animal_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.hdf5s().meshs().habs()):
+                        for animal_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.habs().hdf5s().meshs()):
                             # get dataset
                             fish_data_set = mesh_hv_data_group[animal.name]
                             # get data
@@ -580,7 +590,6 @@ class Hdf5Management:
                             node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
                     self.data_2d[reach_number][unit_number]["node"]["data"] = node_dataframe
 
-        # load_data_2d_info
         self.load_data_2d_info()
 
         if removed_units_list:
@@ -609,9 +618,9 @@ class Hdf5Management:
                     mesh_group = unit_group + "/mesh"
                     mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
                     # if not wish list specify, get original
-                    if not self.data_2d.hvum.all_final_variable_list.hdf5s().meshs().habs():
-                        self.data_2d.hvum.all_final_variable_list = deepcopy(self.data_2d.hvum.hdf5_and_computable_list)
-                    for animal_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.hdf5s().meshs().habs()):
+                    # if not self.data_2d.hvum.all_final_variable_list.hdf5s().meshs().habs():
+                    #     self.data_2d.hvum.all_final_variable_list = deepcopy(self.data_2d.hvum.hdf5_and_computable_list)
+                    for animal_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().habs()):
                         # dataset
                         fish_data_set = mesh_hv_data_group[animal.name]
 
@@ -901,8 +910,14 @@ class Hdf5Management:
         # open an hdf5
         self.create_or_open_file(new=False)
 
+        # get_hdf5_attributes
+        self.get_hdf5_attributes(close_file=False)
+
         # save unit_index for computing variables
         self.units_index = units_index
+        if self.units_index == "all":
+            # load the number of time steps
+            self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
 
         # variables
         self.user_target_list = user_target_list
@@ -915,29 +930,6 @@ class Hdf5Management:
                                                                        hdf5_type=self.hdf5_type)
         else:
             self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
-
-        # attributes
-        if self.units_index == "all":
-            # load the number of time steps
-            nb_t = int(self.file_object.attrs['unit_number'])
-            self.units_index = list(range(nb_t))
-
-        # get attributes
-        self.data_description = dict()
-        for attribute_name, attribute_value in list(self.file_object.attrs.items()):
-            if type(attribute_value) == str:
-                if attribute_value == "True" or attribute_value == "False":
-                    self.data_description[attribute_name] = eval(attribute_value)
-                else:
-                    self.data_description[attribute_name] = attribute_value
-            if type(attribute_value) == np.array:
-                self.data_description[attribute_name] = attribute_value.tolist()
-            else:
-                self.data_description[attribute_name] = attribute_value
-
-        # dataset for unit_list
-        self.data_description["unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
-        self.data_description["hyd_unit_correspondence"] = self.file_object["hyd_unit_correspondence"][:].transpose().tolist()
 
         # load_whole_profile
         if whole_profil:
@@ -966,7 +958,7 @@ class Hdf5Management:
         :param animal: the name of the fish (with the stage in it)
         """
         # open an hdf5
-        self.create_or_open_file(new=False, get_hdf5_attributes=False)
+        self.create_or_open_file(new=False)
 
         # add variables
         self.data_2d.hvum.hdf5_and_computable_list.extend(animal_variable_list)
@@ -1017,24 +1009,6 @@ class Hdf5Management:
         self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(
             self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
-        # # all variable
-        # self.file_object.attrs[
-        #     "mesh_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().names()
-        # self.file_object.attrs[
-        #     "node_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().names()
-        # self.file_object.attrs[
-        #     "mesh_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
-        # self.file_object.attrs[
-        #     "node_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
-        # self.file_object.attrs[
-        #     "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().min()]
-        # self.file_object.attrs[
-        #     "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().min()]
-        # self.file_object.attrs[
-        #     "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().max()]
-        # self.file_object.attrs[
-        #     "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
-
         # close file
         self.close_file()
 
@@ -1050,6 +1024,10 @@ class Hdf5Management:
         Method to remove all data of specific aquatic animal.
         Data to remove : attributes general and datasets.
         """
+        # open file if not done
+        if self.file_object is None:
+            self.create_or_open_file(new=False)
+
         # get actual attributes (hab_fish_list, hab_fish_number, hab_fish_pref_list, hab_fish_shortname_list, hab_fish_stage_list)
         hab_fish_list_before = self.file_object.attrs["hab_fish_list"].split(", ")
         hab_fish_pref_list_before = self.file_object.attrs["hab_fish_pref_list"].split(", ")
@@ -1834,7 +1812,7 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['habitat_text'][index]:
-            sim_name = self.units_name
+            sim_name = self.data_2d.unit_list
             animal_list = self.data_2d.hvum.all_final_variable_list.habs()
             unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
 

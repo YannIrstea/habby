@@ -261,6 +261,7 @@ class DataExplorerFrame(QFrame):
                                                new=False)
                 self.hdf5.get_hdf5_attributes(close_file=True)
                 self.plot_group.hdf5 = self.hdf5
+                self.habitatvalueremover_group.hdf5 = self.hdf5
                 # check reach
                 reach_list.append(self.hdf5.data_2d.reach_list)
                 # check unit
@@ -1432,8 +1433,6 @@ class HabitatValueRemover(QGroupBoxCollapsible):
             hab_variable_list.append(selection.data(Qt.UserRole).name)
 
         # remove
-        # hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        # hdf5.create_or_open_file(False)
         self.hdf5.remove_fish_hab(hab_variable_list)
 
         # refresh

@@ -81,9 +81,10 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             return
 
     # load data and get variable to compute
-    hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5")), hab_filename)
+    hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5")),
+                                   hab_filename,
+                                   new=False)
     hdf5.load_hdf5_hab(user_target_list=animal_variable_list)
-    hdf5.data_2d.hvum = hdf5.hvum
 
     # progress
     delta_reach = (80 - progress_value.value) / hdf5.data_2d.reach_number
@@ -203,14 +204,14 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                 sub_t[:, sub_class_num] = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][
                                     sub_class_name]
 
-                            if hdf5.data_description["sub_classification_code"] == "Sandre":
-                                if hdf5.data_description["sub_classification_method"] == "percentage":
+                            if hdf5.data_2d.sub_classification_code == "Sandre":
+                                if hdf5.data_2d.sub_classification_method == "percentage":
                                     sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
                                 else:
                                     sub_t = sandre_to_cemagref_array(sub_t)
                             # Coarser-Dominant
                             if animal.sub_opt == "Coarser-Dominant":
-                                if hdf5.data_description["sub_classification_method"] == "percentage":
+                                if hdf5.data_2d.sub_classification_method == "percentage":
                                     s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(
                                         pref_sub[1], sub_t)
                                     s_pref_c_dom = pref_substrate_dominant_from_percentage_description(
@@ -222,26 +223,24 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                     s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
                             # Coarser
                             elif animal.sub_opt == "Coarser":
-                                if hdf5.data_description["sub_classification_method"] == "percentage":
+                                if hdf5.data_2d.sub_classification_method == "percentage":
                                     s_pref_c = pref_substrate_coarser_from_percentage_description(
                                         pref_sub[1], sub_t)
-                                elif hdf5.data_description["sub_classification_method"] == "coarser-dominant":
+                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
                                     s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
                             # Dominant
                             elif animal.sub_opt == "Dominant":
-                                if hdf5.data_description["sub_classification_method"] == "percentage":
+                                if hdf5.data_2d.sub_classification_method == "percentage":
                                     s_pref_c = pref_substrate_dominant_from_percentage_description(
                                         pref_sub[1], sub_t)
-                                elif hdf5.data_description["sub_classification_method"] == "coarser-dominant":
+                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
                                     s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
                             # Percentage
                             else:
-                                if information_model_dict["substrate_type"][
-                                    stage_index] == "Dominant":  # dominant curve
+                                if information_model_dict["substrate_type"][stage_index] == "Dominant":  # dominant curve
                                     s_pref_c = pref_substrate_dominant_from_percentage_description(
                                         pref_sub[1], sub_t)
-                                if information_model_dict["substrate_type"][
-                                    stage_index] == "Dominant":  # dominant curve
+                                if information_model_dict["substrate_type"][stage_index] == "Dominant":  # dominant curve
                                     s_pref_c = pref_substrate_coarser_from_percentage_description(
                                         pref_sub[1], sub_t)
 
@@ -300,7 +299,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 # compute summary
                 wua = np.nansum(hv * area)
                 if any(np.isnan(hv)):
-                    area = np.sum(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.hvum.area.name][
+                    area = np.sum(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name][
                                       ~np.isnan(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name])])
                     global_hv = wua / area
                     percent_area_unknown = (1 - (area / hdf5.data_2d[reach_number][
@@ -324,14 +323,14 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             # get unit name
             unit_names = []
             for warning_unit_num in warning_range_list:
-                unit_names.append(hdf5.data_description["unit_list"][reach_number][warning_unit_num])
+                unit_names.append(hdf5.data_2d.unit_list[reach_number][warning_unit_num])
             print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
                                                  "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
                 "calcul_hab_mod",
                 ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
                   ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
                                                                           " of reach : ") +
-                  hdf5.reach_name[reach_number])
+                  hdf5.data_2d.reach_list[reach_number])
         # WARNINGS HEM
         if animal.aquatic_animal_type == "invertebrate":
             if warning_shearstress_list:
@@ -339,13 +338,13 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 # get unit name
                 unit_names = []
                 for warning_unit_num in warning_shearstress_list:
-                    unit_names.append(hdf5.data_description["unit_list"][reach_number][warning_unit_num])
+                    unit_names.append(hdf5.data_2d.unit_list[reach_number][warning_unit_num])
                 print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
                                                      "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
                     "calcul_hab_mod", ", the shear stress data present unknown values in unit(s) : ") +
                       ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
                                                                               " of reach : ") +
-                      hdf5.reach_name[reach_number])
+                      hdf5.data_2d.reach_list[reach_number])
 
     # progress
     progress_value.value = 90
