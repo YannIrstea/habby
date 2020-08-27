@@ -247,19 +247,19 @@ class Hdf5Management:
                                                           self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
 
             # hab variables
-            self.file_object.attrs["hab_fish_list"] = ", ".join(
+            self.file_object.attrs["hab_animal_list"] = ", ".join(
                 self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
-            self.file_object.attrs["hab_fish_number"] = str(
+            self.file_object.attrs["hab_animal_number"] = str(
                 len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
-            self.file_object.attrs["hab_fish_pref_list"] = ", ".join(
+            self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
                 self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
-            self.file_object.attrs["hab_fish_stage_list"] = ", ".join(
+            self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
                 self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
-            self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(
+            self.file_object.attrs["hab_animal_type_list"] = ", ".join(
                 self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
     def get_hdf5_attributes(self, close_file=False):
-        print("get_hdf5_attributes")
+        # print("get_hdf5_attributes")
         # get attributes
         hdf5_attributes_dict = dict(self.file_object.attrs.items())
 
@@ -342,7 +342,7 @@ class Hdf5Management:
                 self.data_2d.hvum.detect_variable_from_sub_description(sub_description)
             # habitat
             if self.hdf5_type == "habitat":
-                hab_variable_list = hdf5_attributes_dict["hab_fish_list"].split(", ")
+                hab_variable_list = hdf5_attributes_dict["hab_animal_list"].split(", ")
                 if hab_variable_list == ['']:
                     hab_variable_list = []
                 self.data_2d.hvum.detect_variable_habitat(hab_variable_list)
@@ -617,10 +617,7 @@ class Hdf5Management:
                     # group
                     mesh_group = unit_group + "/mesh"
                     mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
-                    # if not wish list specify, get original
-                    # if not self.data_2d.hvum.all_final_variable_list.hdf5s().meshs().habs():
-                    #     self.data_2d.hvum.all_final_variable_list = deepcopy(self.data_2d.hvum.hdf5_and_computable_list)
-                    for animal_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().habs()):
+                    for animal in self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().habs():
                         # dataset
                         fish_data_set = mesh_hv_data_group[animal.name]
 
@@ -635,6 +632,9 @@ class Hdf5Management:
                         animal.stage = fish_data_set.attrs['stage']
                         animal.name = fish_data_set.attrs['short_name']
                         animal.aquatic_animal_type = fish_data_set.attrs['aquatic_animal_type_list']
+
+                        # replace_variable
+                        self.data_2d.hvum.hdf5_and_computable_list.replace_variable(animal)
 
     # HYDRAULIC
     def create_hdf5_hyd(self, data_2d, data_2d_whole, project_preferences):
@@ -881,7 +881,7 @@ class Hdf5Management:
         self.write_data_2d_info()
 
         # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII)
-        if not hasattr(self.data_2d, "sub_time_creation [s]"):
+        if not hasattr(self.data_2d, "sub_filename_source"):
             copy_hydrau_input_files(self.data_2d.path_filename_source,
                                     self.data_2d.filename_source,
                                     self.filename,
@@ -925,7 +925,7 @@ class Hdf5Management:
             self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         elif type(self.user_target_list) == dict:  # project_preferences
-            self.project_preferences = self.user_target_list
+            # self.project_preferences = self.user_target_list
             self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         else:
@@ -1000,13 +1000,13 @@ class Hdf5Management:
                         animal.percent_area_unknown[reach_number][unit_number])
 
         # set to attributes
-        self.file_object.attrs["hab_fish_list"] = ", ".join(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
-        self.file_object.attrs["hab_fish_number"] = str(len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
-        self.file_object.attrs["hab_fish_pref_list"] = ", ".join(
+        self.file_object.attrs["hab_animal_list"] = ", ".join(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
+        self.file_object.attrs["hab_animal_number"] = str(len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
+        self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
             self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
-        self.file_object.attrs["hab_fish_stage_list"] = ", ".join(
+        self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
             self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
-        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(
+        self.file_object.attrs["hab_animal_type_list"] = ", ".join(
             self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
         # close file
@@ -1028,32 +1028,32 @@ class Hdf5Management:
         if self.file_object is None:
             self.create_or_open_file(new=False)
 
-        # get actual attributes (hab_fish_list, hab_fish_number, hab_fish_pref_list, hab_fish_shortname_list, hab_fish_stage_list)
-        hab_fish_list_before = self.file_object.attrs["hab_fish_list"].split(", ")
-        hab_fish_pref_list_before = self.file_object.attrs["hab_fish_pref_list"].split(", ")
-        hab_fish_stage_list_before = self.file_object.attrs["hab_fish_stage_list"].split(", ")
-        hab_aquatic_animal_type_list = self.file_object.attrs["hab_aquatic_animal_type_list"].split(", ")
+        # get actual attributes (hab_fish_list, hab_animal_number, hab_fish_pref_list, hab_fish_shortname_list, hab_animal_stage_list)
+        hab_animal_list_before = self.file_object.attrs["hab_animal_list"].split(", ")
+        hab_animal_pref_list_before = self.file_object.attrs["hab_animal_pref_list"].split(", ")
+        hab_animal_stage_list_before = self.file_object.attrs["hab_animal_stage_list"].split(", ")
+        hab_animal_type_list = self.file_object.attrs["hab_animal_type_list"].split(", ")
 
         # get index
         fish_index_to_remove_list = []
         for fish_name_to_remove in fish_names_to_remove:
-            if fish_name_to_remove in hab_fish_list_before:
-                fish_index_to_remove_list.append(hab_fish_list_before.index(fish_name_to_remove))
+            if fish_name_to_remove in hab_animal_list_before:
+                fish_index_to_remove_list.append(hab_animal_list_before.index(fish_name_to_remove))
         fish_index_to_remove_list.sort()
 
         # change lists
         for index in reversed(fish_index_to_remove_list):
-            hab_fish_list_before.pop(index)
-            hab_fish_pref_list_before.pop(index)
-            hab_fish_stage_list_before.pop(index)
-            hab_aquatic_animal_type_list.pop(index)
+            hab_animal_list_before.pop(index)
+            hab_animal_pref_list_before.pop(index)
+            hab_animal_stage_list_before.pop(index)
+            hab_animal_type_list.pop(index)
 
         # change attributes
-        self.file_object.attrs["hab_fish_number"] = str(len(hab_fish_list_before))
-        self.file_object.attrs["hab_fish_list"] = ", ".join(hab_fish_list_before)
-        self.file_object.attrs["hab_fish_pref_list"] = ", ".join(hab_fish_pref_list_before)
-        self.file_object.attrs["hab_fish_stage_list"] = ", ".join(hab_fish_stage_list_before)
-        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(hab_aquatic_animal_type_list)
+        self.file_object.attrs["hab_animal_number"] = str(len(hab_animal_list_before))
+        self.file_object.attrs["hab_animal_list"] = ", ".join(hab_animal_list_before)
+        self.file_object.attrs["hab_animal_pref_list"] = ", ".join(hab_animal_pref_list_before)
+        self.file_object.attrs["hab_animal_stage_list"] = ", ".join(hab_animal_stage_list_before)
+        self.file_object.attrs["hab_animal_type_list"] = ", ".join(hab_animal_type_list)
 
         # remove data
         # load the number of reach
@@ -1313,12 +1313,12 @@ class Hdf5Management:
                     print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "),
                           self.data_2d.epsg_code)
         if self.hdf5_type == "habitat":
-            if self.data_2d.hab_epsg_code != "unknown":
+            if self.data_2d.epsg_code != "unknown":
                 try:
-                    crs.ImportFromEPSG(int(self.data_2d.hab_epsg_code))
+                    crs.ImportFromEPSG(int(self.data_2d.epsg_code))
                 except:
                     print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "),
-                          self.data_2d.hab_epsg_code)
+                          self.data_2d.epsg_code)
 
         # for each reach : one gpkg
         for reach_number in range(0, self.data_2d.reach_number):
@@ -1715,18 +1715,9 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['variables_units'][index]:
-            if self.extension == ".hab":
-                # format the name of species and stage
-                name_fish = self.data_description["hab_fish_list"].split(", ")
-                if name_fish == [""]:
-                    name_fish = []
-                for id, n in enumerate(name_fish):
-                    name_fish[id] = n.replace('_', ' ')
-
             file_names_all = []
             part_timestep_indice = []
-            pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(
-                self.project_preferences["pvd_variable_z"])
+            pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(self.project_preferences["pvd_variable_z"])
 
             # for all reach
             for reach_number in range(self.data_2d.reach_number):
@@ -1928,8 +1919,6 @@ class Hdf5Management:
                 print('Error: ' + qt_tr.translate("hdf5_mod",
                                                   'The path to the text file is not found. Text files not created \n'))
 
-            animal_list = self.data_2d.hvum.all_final_variable_list.meshs().habs()
-
             # for all reach
             for reach_number in range(self.data_2d.reach_number):
                 # for all units
@@ -1951,28 +1940,19 @@ class Hdf5Management:
 
                     # open text to write
                     with open(name, 'wt', encoding='utf-8') as f:
-                        # hyd variables mesh
-                        text_to_write_str_list = self.data_2d.hvum.all_final_variable_list.meshs().no_habs().names()
-
                         # header 1
-                        text_to_write_str_list.extend([
+                        text_to_write_str_list = [
                             qt_tr.translate("hdf5_mod", "node1"),
                             qt_tr.translate("hdf5_mod", "node2"),
-                            qt_tr.translate("hdf5_mod", "node3")])
+                            qt_tr.translate("hdf5_mod", "node3")]
+                        text_to_write_str_list.extend(self.data_2d.hvum.all_final_variable_list.meshs().names())
                         text_to_write_str = "\t".join(text_to_write_str_list)
-                        if animal_list:
-                            if self.project_preferences['language'] == 0:
-                                text_to_write_str += "".join(['\tHV' + str(i) for i in range(len(animal_list))])
-                            else:
-                                text_to_write_str += "".join(['\tVH' + str(i) for i in range(len(animal_list))])
                         text_to_write_str += '\n'
                         f.write(text_to_write_str)
 
                         # header 2
-                        text_to_write_str = "["
-                        text_to_write_str += ']\t['.join(self.data_2d.hvum.all_final_variable_list.meshs().no_habs().units())
-                        text_to_write_str += ']\t[]\t[]\t[]'
-
+                        text_to_write_str = "[]\t[]\t[]\t["
+                        text_to_write_str += ']\t['.join(self.data_2d.hvum.all_final_variable_list.meshs().units())
                         f.write(text_to_write_str)
 
                         # data
@@ -1984,15 +1964,12 @@ class Hdf5Management:
                             node2 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][1]
                             node3 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][2]
                             text_to_write_str += '\n'
+                            text_to_write_str += f"{str(node1)}\t{str(node2)}\t{str(node3)}\t"
                             data_list = []
                             for mesh_variable_name in self.data_2d.hvum.all_final_variable_list.meshs().names():
                                 data_list.append(str(
                                     self.data_2d[reach_number][unit_number]["mesh"]["data"][mesh_variable_name][mesh_num]))
                             text_to_write_str += "\t".join(data_list)
-                            text_to_write_str += f"\t{str(node1)}\t{str(node2)}\t{str(node3)}"
-                            if animal_list:
-                                for animal in animal_list:
-                                    text_to_write_str += f"\t{str(self.data_2d[reach_number][unit_number]['mesh']['data'][animal.name][mesh_num])}"
 
                         # change decimal point
                         locale = QLocale()
@@ -2099,10 +2076,10 @@ class Hdf5Management:
         if self.project_preferences['fish_information'][index]:
             # get data
             xmlfiles = self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()
-            hab_aquatic_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
+            hab_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
             # remove duplicates xml
-            prov_list = list(set(list(zip(xmlfiles, hab_aquatic_animal_type_list))))
-            xmlfiles, hab_aquatic_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
+            prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
+            xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
 
             plt.close()
             plt.rcParams['figure.figsize'] = 21, 29.7  # a4
@@ -2126,10 +2103,10 @@ class Hdf5Management:
 
                 if information_model_dict["ModelType"] != "bivariate suitability index models":
                     # fish
-                    if hab_aquatic_animal_type_list[idx] == "fish":
+                    if hab_animal_type_list[idx] == "fish":
                         # read pref
                         h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
-                            bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+                            bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
                         # plot
                         plot_mod.plot_suitability_curve(fake_value,
                                                         h_all,
@@ -2147,7 +2124,7 @@ class Hdf5Management:
                     else:
                         # open the pref
                         shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
-                            bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
+                            bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
                         # plot
                         plot_mod.plot_suitability_curve_invertebrate(fake_value,
                                                                      shear_stress_all, hem_all, hv_all,
@@ -2156,7 +2133,7 @@ class Hdf5Management:
                 else:
                     # open the pref
                     [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
-                                                                                                                hab_aquatic_animal_type_list[
+                                                                                                                hab_animal_type_list[
                                                                                                                     idx])
                     state_fake = Value("d", 0)
                     plot_mod.plot_suitability_curve_bivariate(state_fake,

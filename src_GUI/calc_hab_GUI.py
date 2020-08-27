@@ -746,7 +746,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
                                            self.m_all.currentText(),
                                            new=False)
-            hdf5.get_hdf5_attributes(True)
+            hdf5.get_hdf5_attributes(close_file=True)
             # init
             required_dict = dict(
                 dimension_ok=False,

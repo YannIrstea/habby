@@ -85,15 +85,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub)
     hdf5_sub.load_hdf5_sub()
 
-    # # merge_description
-    # merge_description = dict()
-    # # copy attributes hydraulic
-    # for attribute_name, attribute_value in list(hdf5_hydro.data_description.items()):
-    #     merge_description[attribute_name] = attribute_value
-    # # copy attributes substrate
-    # for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
-    #     merge_description[attribute_name] = attribute_value
-
     # CONSTANT CASE
     if hdf5_sub.data_2d.sub_mapping_method == "constant":  # set default value to all mesh
         data_2d_merge = hdf5_hydro.data_2d
@@ -168,10 +159,10 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     setattr(data_2d_merge, "sub_" + attribute_name, attribute_value)
                 if attribute_name[:3] == "sub":
                     setattr(data_2d_merge, attribute_name, attribute_value)
-            data_2d_merge.hab_fish_list = ", ".join([])
-            data_2d_merge.hab_fish_number = str(0)
-            data_2d_merge.hab_fish_pref_list = ", ".join([])
-            data_2d_merge.hab_fish_stage_list = ", ".join([])
+            data_2d_merge.hab_animal_list = ", ".join([])
+            data_2d_merge.hab_animal_number = 0
+            data_2d_merge.hab_animal_pref_list = ", ".join([])
+            data_2d_merge.hab_animal_stage_list = ", ".join([])
 
             data_2d_whole_merge = hdf5_hydro.data_2d_whole
             data_2d_merge.epsg_code = hab_epsg_code

@@ -1650,7 +1650,7 @@ class MyProcessList(QThread):
                                                             name="export_detailled_txt")
                 self.process_list.append([export_detailled_mesh_txt_process, state])
             if self.export_dict["fish_information_hab"]:
-                if self.hdf5.hvum.hdf5_and_computable_list.habs():
+                if self.hdf5.data_2d.hvum.hdf5_and_computable_list.habs():
                     state = Value("i", 0)
                     export_pdf_process = Process(target=self.hdf5.export_report,
                                                  args=(state,),
@@ -1686,7 +1686,8 @@ class MyProcessList(QThread):
             self.all_process_runned = False
             if self.plot_hdf5_mode:  # from hdf5 data
                 for name_hdf5 in self.names_hdf5:
-                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5,
+                    self.hdf5 = Hdf5Management(self.path_prj,
+                                               name_hdf5,
                                                new=False)
                     self.hvum = self.plot_attr.hvum
                     self.load_data_and_append_plot_process()
@@ -1703,7 +1704,9 @@ class MyProcessList(QThread):
             self.all_process_runned = False
             if self.export_hdf5_mode:
                 for name_hdf5 in self.names_hdf5:
-                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5)
+                    self.hdf5 = Hdf5Management(self.path_prj,
+                                               name_hdf5,
+                                               new=False)
                     self.load_data_and_append_export_process()
             # Process mod
             for i in range(len(self.process_list)):

@@ -38,7 +38,7 @@ class HydraulicVariable:
         self.index_gui = index_gui  # position index in gui
         self.data = [[]]
         self.min = 0.0  # min for all reach and unit
-        self.max = 0.0 # max for all reach and unit
+        self.max = 0.0  # max for all reach and unit
         self.software_attributes_list = []  # software string names list to link with them
         self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
         self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
@@ -261,6 +261,9 @@ class HydraulicVariableUnitList(list):
 
     def get_from_name_gui(self, name_gui):
         return self[self.names_gui().index(name_gui)]
+
+    def replace_variable(self, hvu):
+        self[self.names().index(hvu.name)] = hvu
 
 
 class HydraulicVariableUnitManagement:
@@ -1112,11 +1115,11 @@ class HydraulicVariableUnitManagement:
                 # all cases
                 self.all_final_variable_list.append(variable_wish)
 
-        print("######################################")
-        print("target nodes : ", user_target_list.nodes())
-        print("target meshs : ", user_target_list.meshs())
-        print("------>")
-        print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
-        print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
-        print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
-        print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())
+        # print("######################################")
+        # print("target nodes : ", user_target_list.nodes())
+        # print("target meshs : ", user_target_list.meshs())
+        # print("------>")
+        # print("loaded nodes : ", self.all_final_variable_list.hdf5s().nodes())
+        # print("loaded meshs : ", self.all_final_variable_list.hdf5s().meshs())
+        # print("computed nodes : ", self.all_final_variable_list.to_compute().nodes())
+        # print("computed meshs : ", self.all_final_variable_list.to_compute().meshs())
