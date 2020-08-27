@@ -46,7 +46,8 @@ from src import stathab_mod
 from src import substrate_mod
 from src import fstress_mod
 from src import calcul_hab_mod
-from src import mesh_management_mod
+from src.variable_unit_mod import HydraulicVariableUnitList
+from src.bio_info_mod import get_biomodels_informations_for_database
 from src import lammi_mod
 from src import ascii_mod
 from src import hydraulic_process_mod
@@ -1816,13 +1817,36 @@ def cli_calc_hab(arguments, project_preferences):
         if arg[:8] == 'sub_opt=':
             run_choice["sub_opt"] = arg[8:].split(",")
 
+    user_target_list = HydraulicVariableUnitList()
+
+    for i in range(len(run_choice["pref_file_list"])):
+        # options
+        pref_file = run_choice["pref_file_list"][i]
+        stage = run_choice["stage_list"][i]
+        hyd_opt = run_choice["hyd_opt"][i]
+        sub_opt = run_choice["sub_opt"][i]
+
+        if hyd_opt == "Neglect" and sub_opt == "Neglect":
+            print('Warning: ' + pref_file + "_" + stage + " model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed.")
+            continue
+        information_model_dict = get_biomodels_informations_for_database(pref_file)
+
+        # append_new_habitat_variable
+        user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
+                                                     stage,
+                                                     hyd_opt,
+                                                     sub_opt,
+                                                     information_model_dict["aquatic_animal_type"],
+                                                     information_model_dict["ModelType"],
+                                                     pref_file)
+
     if hab_filename:
         # run calculation
         progress_value = Value("d", 0)
         q = Queue()
         p = Process(target=calcul_hab_mod.calc_hab_and_output,
                     args=(hab_filename,
-                          run_choice,
+                          user_target_list,
                           progress_value,
                           q,
                           True,
