@@ -581,7 +581,6 @@ class ModelInfoGroup(QGroupBox):
 
             # get names
             names = [description["filename_source"] for description in self.hydrau_description_list]
-            # to GUI (first decription)
 
             # clean GUI
             self.clean_gui()
@@ -608,7 +607,12 @@ class ModelInfoGroup(QGroupBox):
 
         self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
-        text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" .hyd file")
+        if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
+            extension = "hab"
+        else:
+            extension = "hyd"
+
+        text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" ." + extension + " file")
         if len(self.hydrau_description_list) > 1:
             text_load_button = text_load_button + "s"
         self.create_hdf5_button.setText(text_load_button)

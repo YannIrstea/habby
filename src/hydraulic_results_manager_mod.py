@@ -121,6 +121,9 @@ class HydraulicSimulationResultsBase:
         self.results_data_file = None
 
         self.sub = False
+        self.sub_mapping_method = ""
+        self.sub_classification_method = ""  # "coarser-dominant" / "percentage"
+        self.sub_classification_code = ""  # "Cemagref" / "Sandre"
         self.epsg_code = "unknown"
 
         # reach_number

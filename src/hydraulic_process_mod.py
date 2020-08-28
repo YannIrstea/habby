@@ -142,6 +142,14 @@ class HydraulicSimulationResultsAnalyzer:
                 else:
                     hdf5_name = os.path.splitext(filename)[0].replace(".", "_") + ".hyd"
 
+                if hsr.sub:
+                    hdf5_name = os.path.splitext(hdf5_name)[0] + ".hab"
+
+                # if type(hsr.timestep_name_list[0]) == list:  # ASCII case
+                #     unit_list = hsr.timestep_name_list
+                # else:
+                unit_list = [list(hsr.timestep_name_list)] * hsr.reach_number
+
                 self.hydrau_description_list = [dict(path_prj=self.path_prj,
                                                     name_prj=self.name_prj,
                                                     hydrau_case=self.hydrau_case,
@@ -152,8 +160,8 @@ class HydraulicSimulationResultsAnalyzer:
                                                     model_dimension=str(self.nb_dim),
                                                     epsg_code=hsr.epsg_code,
                                                     variable_name_unit_dict=hsr.hvum.software_detected_list,
-                                                    unit_list=[list(hsr.timestep_name_list)] * hsr.reach_number,
-                                                    unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                    unit_list=unit_list,
+                                                    unit_list_full=unit_list,
                                                     unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
                                                     unit_number=str(hsr.timestep_nb),
                                                     unit_type=hsr.timestep_unit,
@@ -1267,9 +1275,17 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hdf5_file_index]["path_prj"],
                                        hydrau_description[hdf5_file_index]["hdf5_name"],
                                        new=True)
-        hdf5.create_hdf5_hyd(data_2d,
-                             data_2d_whole_profile,
-                             project_preferences)
+        if not data_2d.hvum.hdf5_and_computable_list.subs():
+            hdf5.create_hdf5_hyd(data_2d,
+                                 data_2d_whole_profile,
+                                 project_preferences)
+        else:
+            data_2d.sub_mapping_method = hsr.sub_mapping_method
+            data_2d.sub_classification_code = hsr.sub_classification_code
+            data_2d.sub_classification_method = hsr.sub_classification_method
+            hdf5.create_hdf5_hab(data_2d,
+                                 data_2d_whole_profile,
+                                 project_preferences)
 
         # create_index_hydrau_text_file
         if not hydrau_description[hdf5_file_index]["index_hydrau"]:
