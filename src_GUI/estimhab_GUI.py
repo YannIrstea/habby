@@ -155,7 +155,7 @@ class StatModUseful(QScrollArea):
 
     def find_path_im_est(self):
         """
-        A function to find the path where to save the figues. Careful there is similar function in hydro_sub_GUI.py.
+        A function to find the path where to save the figues. Careful there is similar function in sub_and_merge_GUI.py.
         Do not mix it up
 
         :return: path_im a string which indicates the path to the folder where are save the images.
@@ -184,7 +184,7 @@ class StatModUseful(QScrollArea):
 
     def find_path_hdf5_est(self):
         """
-        A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_sub_GUI.py and in
+        A function to find the path where to save the hdf5 file. Careful a simialar one is in sub_and_merge_GUI.py and in
         stathab_c. By default, path_hdf5 is in the project folder in the folder 'hdf5'.
         """
 
@@ -259,7 +259,7 @@ class StatModUseful(QScrollArea):
 
     def find_path_input_est(self):
         """
-        A function to find the path where to save the input file. Careful a similar one is in hydro_sub_GUI.py. By default,
+        A function to find the path where to save the input file. Careful a similar one is in sub_and_merge_GUI.py. By default,
         path_input indicates the folder 'input' in the project folder.
         """
 
@@ -284,7 +284,7 @@ class StatModUseful(QScrollArea):
         """
         This function sends the errors and the warnings to the logs.
         The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
-        to avoid freezing the GUI. A similar function exists in hydro_sub_GUI.py. Correct both if necessary.
+        to avoid freezing the GUI. A similar function exists in sub_and_merge_GUI.py. Correct both if necessary.
         """
         max_send = 100
         if self.mystdout is not None:

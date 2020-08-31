@@ -36,6 +36,7 @@ from src import hydraulic_process_mod
 
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
 from src_GUI.tools_GUI import QListWidgetClipboard
+from src_GUI.tools_GUI import change_button_color
 np.set_printoptions(threshold=np.inf)
 
 
@@ -291,8 +292,9 @@ class ModelInfoGroup(QGroupBox):
 
         # load button
         self.create_hdf5_button = QPushButton(self.tr('Create .hyd file'))
-        self.create_hdf5_button.setStyleSheet("background-color: #47B5E6; color: black")
+        change_button_color(self.create_hdf5_button, "#47B5E6")
         self.create_hdf5_button.clicked.connect(self.load_hydraulic_create_hdf5)
+        self.create_hdf5_button.setEnabled(False)
 
         # last_hydraulic_file_label
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
@@ -338,7 +340,7 @@ class ModelInfoGroup(QGroupBox):
             self.clean_gui()
             # extensions
             self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
-
+            self.name_last_hdf5(self.model_type)
             self.show()
 
     def read_attribute_xml(self, att_here):
@@ -679,6 +681,8 @@ class ModelInfoGroup(QGroupBox):
         text = str(selected) + "/" + str(total)
         self.unit_number_label.setText(text)  # number units
 
+        self.create_hdf5_button.setEnabled(True)
+
     def create_script(self):
         # path_prj
         path_prj_script = self.path_prj + "_restarted"
@@ -745,7 +749,7 @@ class ModelInfoGroup(QGroupBox):
         self.project_preferences = load_project_properties(self.path_prj)
 
         # block button
-        self.create_hdf5_button.setDisabled(True)  # hydraulic
+        self.create_hdf5_button.setEnabled(False)  # hydraulic
 
         # write the new file name in the project file
         self.save_xml()
@@ -789,22 +793,10 @@ class ModelInfoGroup(QGroupBox):
             # get the language
             self.nativeParentWidget().kill_process.setVisible(True)
 
-            # MERGE
-            if self.model_type == 'HABITAT':
-                self.send_log.emit("Process " +
-                                   QCoreApplication.translate("SubHydroW", "'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
-                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            # SUBSTRATE
-            elif self.model_type == 'SUBSTRATE':
-                self.send_log.emit("Process " +
-                                   QCoreApplication.translate("SubHydroW", "'Substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
-                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            # HYDRAULIC
-            else:
-                # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit("Process " +
-                    QCoreApplication.translate("SubHydroW", "'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
-                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
+            # it is necssary to start this string with Process to see it in the Statusbar
+            self.send_log.emit("Process " +
+                QCoreApplication.translate("SubHydroW", "'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
+            self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
 
         else:
             # FINISH (but can have known errors)
@@ -824,60 +816,21 @@ class ModelInfoGroup(QGroupBox):
                     self.send_log.emit("clear status bar")
                     self.running_time = 0
                     self.nativeParentWidget().kill_process.setVisible(False)
-                    # MERGE
-                    if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                        # unblock button merge
-                        self.load_b2.setDisabled(False)  # merge
-                    # SUBSTRATE
-                    elif self.model_type == 'SUBSTRATE':
-                        # unblock button substrate
-                        self.load_polygon_substrate.setDisabled(False)  # substrate
-                        self.load_point_substrate.setDisabled(False)  # substrate
-                        self.load_constant_substrate.setDisabled(False)  # substrate
-                    # HYDRAULIC
-                    else:
-                        # unblock button hydraulic
-                        self.create_hdf5_button.setDisabled(False)  # hydraulic
+                    # unblock button hydraulic
+                    self.create_hdf5_button.setEnabled(True)  # hydraulic
 
                 # finished without error
                 elif not error:
-                    # MERGE
-                    if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                        self.send_log.emit(
-                            QCoreApplication.translate("SubHydroW", "Merging of substrate and hydraulic grid finished (computation time = ") + str(
-                                round(self.running_time)) + " s).")
+                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of hydraulic data finished (computation time = ") + str(
+                        round(self.running_time)) + " s).")
+                    # send a signal to the substrate tab so it can account for the new info
+                    self.drop_hydro.emit()
+                    # update last name
+                    self.name_last_hdf5(self.model_type)
+                    if self.model_type == "ASCII":  # can produce .hab
                         self.drop_merge.emit()
-                        # update last name
-                        self.name_last_hdf5("HABITAT")
-                        # unblock button merge
-                        self.load_b2.setDisabled(False)  # merge
-
-                    # SUBSTRATE
-                    elif self.model_type == 'SUBSTRATE':
-                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of substrate data finished (computation time = ") + str(
-                            round(self.running_time)) + " s).")
-                        self.drop_merge.emit()
-                        # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
-                        self.update_sub_hdf5_name()
-                        # update last name
-                        self.name_last_hdf5("SUBSTRATE")
-                        # unblock button substrate
-                        self.load_polygon_substrate.setDisabled(False)  # substrate
-                        self.load_point_substrate.setDisabled(False)  # substrate
-                        self.load_constant_substrate.setDisabled(False)  # substrate
-
-                    # HYDRAULIC
-                    else:
-                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of hydraulic data finished (computation time = ") + str(
-                            round(self.running_time)) + " s).")
-                        # send a signal to the substrate tab so it can account for the new info
-                        self.drop_hydro.emit()
-                        # update last name
-                        self.name_last_hdf5(self.model_type)
-                        if self.model_type == "ASCII":  # can produce .hab
-                            self.drop_merge.emit()
-                        # unblock button hydraulic
-                        self.create_hdf5_button.setDisabled(False)  # hydraulic
+                    # unblock button hydraulic
+                    self.create_hdf5_button.setEnabled(True)  # hydraulic
 
                     # send round(c) to attribute .hyd
                     hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
@@ -887,10 +840,7 @@ class ModelInfoGroup(QGroupBox):
                     # general
                     self.nativeParentWidget().progress_bar.setValue(100)
                     self.nativeParentWidget().kill_process.setVisible(False)
-                    if not const_sub:
-                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Outputs data can be displayed and exported from 'Data explorer' tab."))
-                    if const_sub:
-                        self.update_sub_hdf5_name()
+
                     self.send_log.emit("clear status bar")
                     # refresh plot gui list file
                     self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
@@ -902,22 +852,9 @@ class ModelInfoGroup(QGroupBox):
                 self.send_log.emit("clear status bar")
                 self.nativeParentWidget().kill_process.setVisible(False)
                 self.running_time = 0
-                # MERGE
-                if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                    # unblock button merge
-                    self.load_b2.setDisabled(False)  # merge
-                # SUBSTRATE
-                elif self.model_type == 'SUBSTRATE':
-                    # unblock button substrate
-                    self.load_polygon_substrate.setDisabled(False)  # substrate
-                    self.load_point_substrate.setDisabled(False)  # substrate
-                    self.load_constant_substrate.setDisabled(False)  # substrate
-                # HYDRAULIC
-                else:
-                    # unblock button hydraulic
-                    self.create_hdf5_button.setDisabled(False)  # hydraulic
-                    if self.model_type == "ASCII":  # can produce .hab
-                        self.drop_merge.emit()
+                self.create_hdf5_button.setEnabled(True)  # hydraulic
+                if self.model_type == "ASCII":  # can produce .hab
+                    self.drop_merge.emit()
                 # CRASH
                 if self.p.exitcode == 1:
                     self.send_log.emit(QCoreApplication.translate("SubHydroW",

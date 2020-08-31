@@ -35,7 +35,7 @@ mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
 from src_GUI import welcome_GUI
 from src_GUI import estimhab_GUI
-from src_GUI import hydro_sub_GUI
+from src_GUI import sub_and_merge_GUI
 from src_GUI import hydrau_GUI
 from src_GUI import stathab_GUI
 from src_GUI import preferences_GUI
@@ -562,7 +562,7 @@ class MainWindows(QMainWindow):
 
         # update hydro
         self.central_widget.update_combobox_filenames()
-        self.central_widget.substrate_tab.update_sub_hdf5_name()
+        self.central_widget.substrate_tab.sub_and_merge.update_sub_hdf5_name()
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
@@ -1354,11 +1354,11 @@ class MainWindows(QMainWindow):
 
             if hasattr(self.central_widget, "substrate_tab"):
                 if not self.central_widget.substrate_tab:
-                    self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
+                    self.central_widget.substrate_tab = sub_and_merge_GUI.SubstrateTab(self.path_prj, self.name_prj)
                 else:
                     self.central_widget.substrate_tab.__init__(self.path_prj, self.name_prj)
             else:
-                self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
+                self.central_widget.substrate_tab = sub_and_merge_GUI.SubstrateTab(self.path_prj, self.name_prj)
 
             if hasattr(self.central_widget, "bioinfo_tab"):
                 if not self.central_widget.bioinfo_tab:
@@ -1710,8 +1710,8 @@ class MainWindows(QMainWindow):
             for f in filelist:
                 os.remove(os.path.join(path_im, f))
         # update substrate and hydro list
-        self.central_widget.substrate_tab.drop_hyd.clear()
-        self.central_widget.substrate_tab.drop_sub.clear()
+        self.central_widget.substrate_tab.input_hyd_combobox.clear()
+        self.central_widget.substrate_tab.input_sub_combobox.clear()
         # log
         t = self.central_widget.tracking_journal_QTextEdit.toPlainText()
         self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('All figures are deleted.'))
@@ -1741,10 +1741,10 @@ class MainWindows(QMainWindow):
         """
         tab_list = [
             ("hydro_tab", "model_group"),
+            ("substrate_tab", "sub_and_merge"),
+            "bioinfo_tab",
             ("hs_tab", "computing_group"),
-            ("hs_tab", "compare_group"),
-            "substrate_tab",
-            "bioinfo_tab"]
+            ("hs_tab", "compare_group")]
         alive = []
         # loop
         if hasattr(self, "central_widget"):
@@ -1941,7 +1941,7 @@ class CentralW(QWidget):
 
     Finally, each tab is filled. The tabs have been created before, but there were empty. Now we fill each one with the
     adequate widget. This is the link with many of the other classes that we describe below. Indeed, many of the widget
-    are based on more complicated classes created for example in hydro_sub_GUI.py.
+    are based on more complicated classes created for example in sub_and_merge_GUI.py.
 
     Then, we create an area under it for the log. Here HABBY will write various infos for the user. Two things to note
     here: a) we should show the end of the scroll area. b) The size of the area should be controlled and not be
@@ -1961,7 +1961,7 @@ class CentralW(QWidget):
         self.welcome_tab = welcome_GUI.WelcomeW(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.hydro_tab = hydrau_GUI.HydrauTab(path_prj, name_prj)
-            self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
+            self.substrate_tab = sub_and_merge_GUI.SubstrateTab(path_prj, name_prj)
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
@@ -2148,7 +2148,7 @@ class CentralW(QWidget):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
-            self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.substrate_tab.sub_and_merge.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
@@ -2313,17 +2313,8 @@ class CentralW(QWidget):
         """
 
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
-            # substrate hyd combobox
-            self.substrate_tab.drop_hyd.clear()
-            names_hyd = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
-            self.substrate_tab.drop_hyd.addItems(names_hyd)
-            self.substrate_tab.hyd_name = names_hyd
-
             # substrate sub combobox
-            self.substrate_tab.drop_sub.clear()
-            names_sub = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
-            self.substrate_tab.drop_sub.addItems(names_sub)
-            self.substrate_tab.sub_name = names_sub
+            self.substrate_tab.sub_and_merge.update_sub_hdf5_name()
 
             # calc hab combobox
             self.bioinfo_tab.m_all.clear()
@@ -2373,7 +2364,7 @@ class CentralW(QWidget):
         # hyd
         if hasattr(self, "substrate_tab"):
             if self.tab_widget.currentIndex() == self.substrate_tab.tab_position:
-                self.substrate_tab.update_sub_hdf5_name()
+                self.substrate_tab.sub_and_merge.update_sub_hdf5_name()
         # calc hab
         if hasattr(self, "bioinfo_tab"):
             if self.tab_widget.currentIndex() == self.bioinfo_tab.tab_position:
