@@ -133,7 +133,7 @@ def check_matching_units(unit_type, types):
         return False, " Desired units type is different from available units type : " + unit_chronicle_type + " != " + unit_hdf5_type
 
 
-def compute_interpolation(data_2d, animal_list, reach_num, chronicle, types, rounddata=True):
+def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, rounddata=True):
     # check if date
     if "date" in types.keys():
         date_presence = True
@@ -142,14 +142,14 @@ def compute_interpolation(data_2d, animal_list, reach_num, chronicle, types, rou
 
     # get hdf5 model
     inter_data_model = dict()
-    inter_data_model["unit"] = list(map(float, data_2d.unit_name_list[reach_num]))
+    inter_data_model["unit"] = list(map(float, data_2d.unit_name_list[reach_number]))
     total_wet_area = []
-    for unit_num in range(data_2d.unit_num):
-        total_wet_area.append(data_2d[reach_num][unit_num].total_wet_area)
+    for unit_number in range(data_2d.unit_number):
+        total_wet_area.append(data_2d[reach_number][unit_number].total_wet_area)
     wet_area = np.array(total_wet_area)
     # map by fish
     for animal_index, animal in enumerate(animal_list):
-        spu = np.array(animal.wua[reach_num])
+        spu = np.array(animal.wua[reach_number])
         inter_data_model["hv_" + animal.name] = spu / wet_area
         inter_data_model["spu_" + animal.name] = spu
 

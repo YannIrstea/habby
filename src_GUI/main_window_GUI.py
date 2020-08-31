@@ -1601,10 +1601,10 @@ class MainWindows(QMainWindow):
         # loop on files
         for file_to_remove in hdf5_files_list:
             # open hdf5 to read type_mode attribute
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_to_remove)
-            hdf5.open_hdf5_file()
-            input_type = hdf5.input_type
-            hdf5.file_object.close()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           file_to_remove,
+                                            new=False)
+            hdf5.close_file()
 
             # remove files
             try:
@@ -1619,8 +1619,8 @@ class MainWindows(QMainWindow):
                 project_preferences = load_project_properties(self.path_prj)
 
                 # remove
-                if file_to_remove in project_preferences[input_type]["hdf5"]:
-                    project_preferences[input_type]["hdf5"].remove(file_to_remove)
+                if file_to_remove in project_preferences[hdf5.input_type]["hdf5"]:
+                    project_preferences[hdf5.input_type]["hdf5"].remove(file_to_remove)
 
                     # save
                     save_project_properties(self.path_prj, project_preferences)
@@ -1645,11 +1645,11 @@ class MainWindows(QMainWindow):
                   os.path.join(self.path_prj, "hdf5", file_renamed))
 
         # change attribute
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_renamed)
-        hdf5.open_hdf5_file()
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                       file_renamed,
+                                       new=False)
         hdf5.file_object.attrs[ext[1:] + "_filename"] = file_renamed
-        input_type = hdf5.input_type
-        hdf5.file_object.close()
+        hdf5.close_file()
 
         # refresh .habby project
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -1658,9 +1658,9 @@ class MainWindows(QMainWindow):
             project_preferences = load_project_properties(self.path_prj)
 
             # rename
-            if file_to_rename in project_preferences[input_type]["hdf5"]:
-                file_to_rename_index = project_preferences[input_type]["hdf5"].index(file_to_rename)
-                project_preferences[input_type]["hdf5"][file_to_rename_index] = file_renamed
+            if file_to_rename in project_preferences[hdf5.input_type]["hdf5"]:
+                file_to_rename_index = project_preferences[hdf5.input_type]["hdf5"].index(file_to_rename)
+                project_preferences[hdf5.input_type]["hdf5"][file_to_rename_index] = file_renamed
 
                 # save
                 save_project_properties(self.path_prj, project_preferences)
@@ -1750,7 +1750,7 @@ class MainWindows(QMainWindow):
         if hasattr(self, "central_widget"):
             central_widget_attrib = getattr(self, "central_widget")
             for tabs in tab_list:
-                # hydraulic tabs
+                # hydraulic tabs and hs_tab
                 if type(tabs) == tuple:
                     if hasattr(central_widget_attrib, tabs[0]):
                         process_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).p

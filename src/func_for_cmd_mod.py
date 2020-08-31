@@ -46,10 +46,12 @@ from src import stathab_mod
 from src import substrate_mod
 from src import fstress_mod
 from src import calcul_hab_mod
-from src import mesh_management_mod
+from src.variable_unit_mod import HydraulicVariableUnitList
+from src.bio_info_mod import get_biomodels_informations_for_database
 from src import lammi_mod
 from src import ascii_mod
 from src import hydraulic_process_mod
+from src.hydrosignature import hydraulic_class_from_file
 from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_properties_dict, load_project_properties, change_specific_properties
 
@@ -393,8 +395,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             if arg[:len(unit_list_arg)] == unit_list_arg:
                 unit_list_base = eval(arg[len(unit_list_arg):])
                 unit_list = []
-                for reach_num in range(len(unit_list_base)):
-                    unit_list.append(list(map(str, unit_list_base[reach_num])))
+                for reach_number in range(len(unit_list_base)):
+                    unit_list.append(list(map(str, unit_list_base[reach_number])))
 
         # get_hydrau_description_from_source
         hydrau_description, warning_list = hydraulic_process_mod.get_hydrau_description_from_source(filename_path,
@@ -425,13 +427,13 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         # refresh units if set
         if unit_list:
-            for reach_num in range(len(hydrau_description["unit_list_tf"])):
-                for unit_num in reversed(range(len(hydrau_description["unit_list"][reach_num]))):
-                    if hydrau_description["unit_list"][reach_num][unit_num] in unit_list[reach_num]:
-                        hydrau_description["unit_list_tf"][reach_num][unit_num] = True
+            for reach_number in range(len(hydrau_description["unit_list_tf"])):
+                for unit_number in reversed(range(len(hydrau_description["unit_list"][reach_number]))):
+                    if hydrau_description["unit_list"][reach_number][unit_number] in unit_list[reach_number]:
+                        hydrau_description["unit_list_tf"][reach_number][unit_number] = True
                     else:
-                        hydrau_description["unit_list_tf"][reach_num][unit_num] = False
-                        hydrau_description["unit_list"][reach_num].pop(unit_num)
+                        hydrau_description["unit_list_tf"][reach_number][unit_number] = False
+                        hydrau_description["unit_list"][reach_number].pop(unit_number)
 
         # run process
         progress_value = Value("d", 0)
@@ -1012,6 +1014,13 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         all_arg = all_arg[1:]
 
         cli_calc_hab(all_arg, project_preferences)
+
+    # ----------------------------------------------------------------------------------
+    elif all_arg[0] == 'RUN_HS':
+        # remove the first arg MERGE_GRID_SUB
+        all_arg = all_arg[1:]
+
+        cli_compute_hs(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_HYDRO_HDF5':
@@ -1808,13 +1817,36 @@ def cli_calc_hab(arguments, project_preferences):
         if arg[:8] == 'sub_opt=':
             run_choice["sub_opt"] = arg[8:].split(",")
 
+    user_target_list = HydraulicVariableUnitList()
+
+    for i in range(len(run_choice["pref_file_list"])):
+        # options
+        pref_file = run_choice["pref_file_list"][i]
+        stage = run_choice["stage_list"][i]
+        hyd_opt = run_choice["hyd_opt"][i]
+        sub_opt = run_choice["sub_opt"][i]
+
+        if hyd_opt == "Neglect" and sub_opt == "Neglect":
+            print('Warning: ' + pref_file + "_" + stage + " model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed.")
+            continue
+        information_model_dict = get_biomodels_informations_for_database(pref_file)
+
+        # append_new_habitat_variable
+        user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
+                                                     stage,
+                                                     hyd_opt,
+                                                     sub_opt,
+                                                     information_model_dict["aquatic_animal_type"],
+                                                     information_model_dict["ModelType"],
+                                                     pref_file)
+
     if hab_filename:
         # run calculation
         progress_value = Value("d", 0)
         q = Queue()
         p = Process(target=calcul_hab_mod.calc_hab_and_output,
                     args=(hab_filename,
-                          run_choice,
+                          user_target_list,
                           progress_value,
                           q,
                           True,
@@ -1823,18 +1855,67 @@ def cli_calc_hab(arguments, project_preferences):
         cli_start_process_and_print_progress(p, progress_value)
 
 
+""" HS """
+
+
+def cli_compute_hs(arguments, project_preferences):
+    # if len(all_arg) != 4:
+    #     print('RUN_HABITAT needs between four and five inputs. See LIST_COMMAND for more information.')
+    #     return
+
+    # get args
+    for arg in arguments:
+
+        arg_v1 = 'input_file='
+        if arg[:len(arg_v1)] == arg_v1:
+            hdf5_name = arg[len(arg_v1):]
+
+        arg_v2 = 'input_class_file='
+        if arg[:len(arg_v2)] == arg_v2:
+            input_class_file = arg[len(arg_v2):]
+
+        arg_v3 = 'export_mesh='
+        if arg[:len(arg_v3)] == arg_v3:
+            export_mesh = eval(arg[len(arg_v3):])
+
+        arg_v4 = 'export_txt='
+        if arg[:len(arg_v4)] == arg_v4:
+            export_txt = eval(arg[len(arg_v4):])
+
+    if hdf5_name and input_class_file:
+        hydrosignature_description = dict(hs_export_mesh=export_mesh,
+                                          hdf5_name=hdf5_name,
+                                          hs_export_txt=export_txt,
+                                          classhv=hydraulic_class_from_file(input_class_file))
+        q = Queue()
+        progress_value = Value("d", 0)
+        # run calculation
+        p = Process(target=hydraulic_process_mod.load_data_and_compute_hs,
+                         args=(hydrosignature_description,
+                               progress_value,
+                               q,
+                               False,
+                               project_preferences),
+                    name="hydrosignature computing")
+        cli_start_process_and_print_progress(p, progress_value)
+
+
 """ PROCESS """
 
 
 def cli_start_process_and_print_progress(process, progress_value):
+    start_time = time.time()
     process.start()
     while process.is_alive():
-        print("Progress : " + str(round(progress_value.value, 1)) + "%\r", end="")
+        running_time = time.time() - start_time
+        print(process.name + " running "  + str(round(progress_value.value, 1)) + " %, since " + str(round(running_time)) + " s.\r", end="")
     process.join()
+    print("                                                                         \r", end="")  # clean line
+    running_time = time.time() - start_time
     if progress_value.value == 100:
-        print("# " + process.name + " finished")
+        print("# " + process.name + " finished (" + str(round(running_time)) + "s)")
     else:
-        print("# " + process.name + " crash !!!!!!!!!!!!!!!")
+        print("# Error : " + process.name + " crashed (" + str(round(running_time)) + "s)")
 
 
 

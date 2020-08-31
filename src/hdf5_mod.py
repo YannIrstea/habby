@@ -38,14 +38,14 @@ from src import paraview_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
 from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
 from src.data_2d_mod import Data2d
-from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
 from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
 
 from habby import HABBY_VERSION_STR
 
 
 class Hdf5Management:
-    def __init__(self, path_prj, hdf5_filename):
+    def __init__(self, path_prj, hdf5_filename, new=False):
         self.gravity_acc = 9.80665
         # hdf5 version attributes
         self.h5py_version = h5py.version.version
@@ -53,19 +53,22 @@ class Hdf5Management:
         # project attributes
         self.path_prj = path_prj  # relative path to project
         self.path_shp = os.path.join(self.path_prj, "output", "GIS")
+        self.path_txt = os.path.join(self.path_prj, "output", "text")
         self.path_visualisation = os.path.join(self.path_prj, "output", "3D")
+        self.path_figure = os.path.join(self.path_prj, "output", "figures")
         self.name_prj = os.path.basename(path_prj)  # name of project
         self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.habby')
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
-        # HydraulicVariableUnit
-        self.hvum = HydraulicVariableUnitManagement()
+        self.project_preferences = dict()
         # dict
         self.data_2d = None
         self.data_2d_whole = None
-        self.data_description = None
         self.whole_profile_unit_corresp = []
+        # gui
+        self.hdf5_attributes_name_text = []
+        self.hdf5_attributes_info_text = []
         # export available list
         self.available_export_list = ["mesh_whole_profile",  # GPKG
                                       "point_whole_profile",  # GPKG
@@ -75,6 +78,9 @@ class Hdf5Management:
                                       "variables_units",  # PVD
                                       "detailled_text",  # txt
                                       "fish_information"]  # pdf
+        # export filenames
+        self.basename_output_reach_unit = []
+        self.units_name_output = []
         # hdf5 file attributes
         self.path = os.path.join(path_prj, "hdf5")  # relative path
         self.filename = hdf5_filename  # filename with extension
@@ -82,6 +88,7 @@ class Hdf5Management:
         self.basename = hdf5_filename[:-4]  # filename without extension
         self.extension = hdf5_filename[-4:]  # extension of filename
         self.file_object = None  # file object
+        self.hdf5_type = None
         if self.extension == ".hyd":
             self.hdf5_type = "hydraulic"
         if self.extension == ".sub":
@@ -91,11 +98,11 @@ class Hdf5Management:
             if "ESTIMHAB" in self.filename:
                 self.hdf5_type = "ESTIMHAB"
         # hdf5 data attrbutes
-        self.sub_constant_values = None
-        self.sub_mapping_method = None
-        self.sub_description_system = dict()
+        self.hs_calculated = False
+        # create_or_open_file
+        self.create_or_open_file(new)
 
-    def open_hdf5_file(self, new=False, get_hdf5_attributes=True):
+    def create_or_open_file(self, new=False):
         # get mode
         if not new:
             mode_file = 'r+'  # Readonly, file must exist
@@ -123,34 +130,27 @@ class Hdf5Management:
             self.file_object.attrs['software_version'] = str(HABBY_VERSION_STR)
             self.file_object.attrs['path_project'] = self.path_prj
             self.file_object.attrs['name_project'] = self.name_prj
-            self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
+            self.file_object.attrs['filename'] = self.filename
         elif not new:
             if self.hdf5_type != "ESTIMHAB":
                 self.project_preferences = load_project_properties(self.path_prj)
+                """ get xml parent element name """
+                if self.hdf5_type == "hydraulic":
+                    self.input_type = self.file_object.attrs['hyd_model_type']
+                elif self.hdf5_type == "substrate":
+                    self.input_type = "SUBSTRATE"
+                else:
+                    self.input_type = "HABITAT"
 
-                if get_hdf5_attributes:
-                    self.get_hdf5_attributes()
+                # hs
+                if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
+                    self.hs_calculated = self.file_object.attrs["hs_calculated"]
+                    if self.hs_calculated:
+                        self.hs_input_class = self.file_object.attrs["hs_input_class"]
 
-                    # create basename_output_reach_unit for output files
-                    if self.extension != ".sub":
-                        self.basename_output_reach_unit = []
-                        for reach_num, reach_name in enumerate(self.reach_name):
-                            self.basename_output_reach_unit.append([])
-                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                self.basename_output_reach_unit[reach_num].append(
-                                    self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
-                        self.units_name_output = []
-                        for reach_num, reach_name in enumerate(self.reach_name):
-                            self.units_name_output.append([])
-                            for unit_num, unit_name in enumerate(self.units_name[reach_num]):
-                                if self.file_object.attrs["hyd_unit_type"] != 'unknown':
-                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
-                                                 self.file_object.attrs["hyd_unit_type"].split("[")[1][:-1].replace("/",
-                                                                                                                    "")  # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
-                                else:
-                                    unit_name2 = unit_name.replace(".", "_") + "_" + \
-                                                 self.file_object.attrs["hyd_unit_type"]
-                                self.units_name_output[reach_num].append(unit_name2)
+    def close_file(self):
+        self.file_object.close()
+        self.file_object = None
 
     def save_xml(self, model_type, input_file_path):
         """
@@ -175,20 +175,91 @@ class Hdf5Management:
             # save_project_properties
             save_project_properties(self.path_prj, project_preferences)
 
-    # SET HDF5 INFORMATIONS
-    def set_hdf5_attributes(self, attribute_name, attribute_value):
-        # create existing hdf5
-        self.open_hdf5_file(new=False, get_hdf5_attributes=False)
+    # HDF5 INFORMATIONS
+    def set_hdf5_attributes(self, attribute_name_list=[], attribute_value_list=[]):
+        # open file if not done
+        if self.file_object is None:
+            self.create_or_open_file(new=False)
 
-        # set attributes
-        for attrib_ind in range(len(attribute_name)):
-            self.file_object.attrs[attribute_name[attrib_ind]] = str(attribute_value[attrib_ind])
-        self.file_object.close()
+        # specific attributes
+        if attribute_name_list and attribute_value_list:
+            for attribute_name, attribute_value in zip(attribute_name_list, attribute_value_list):
+                self.file_object.attrs[attribute_name] = attribute_value
+        # all data_2d attributes
+        else:
+            # global
+            self.file_object.attrs["data_extent"] = self.data_2d.data_extent
+            self.file_object.attrs["data_height"] = self.data_2d.data_height
+            self.file_object.attrs["data_width"] = self.data_2d.data_width
 
-    # GET HDF5 INFORMATIONS
-    def get_hdf5_attributes(self):
-        self.hvum = HydraulicVariableUnitManagement()
+            for attribute_name in self.data_2d.__dict__.keys():
+                attribute_value = getattr(self.data_2d, attribute_name)
+                if attribute_name in ("unit_list", "unit_list_full"):
+                    # check if duplicate name present in unit_list
+                    for reach_number in range(self.data_2d.reach_number):
+                        if len(set(attribute_value[reach_number])) != len(attribute_value[reach_number]):
+                            a = attribute_value[reach_number]
+                            duplicates = list(set([x for x in a if a.count(x) > 1]))
+                            for unit_number, unit_element in enumerate(attribute_value[reach_number]):
+                                for duplicate in duplicates:
+                                    if unit_element == duplicate:
+                                        attribute_value[reach_number][unit_number] = duplicate + "_" + str(
+                                            unit_number)
+                    self.file_object.attrs[attribute_name] = attribute_value
+                elif attribute_name == "reach_list":
+                    self.file_object.attrs[attribute_name] = attribute_value
+                elif attribute_name in {"hs_summary_data", "hvum", "units_index"}:  # don't save to attr
+                    pass
+                else:
+                    if type(attribute_value) == bool:
+                        self.file_object.attrs[attribute_name] = attribute_value
+                    else:
+                        if type(attribute_value) == str:
+                            if "m<sup>3</sup>/s" in attribute_value:
+                                attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
+                            self.file_object.attrs[attribute_name] = attribute_value
+                        else:
+                            self.file_object.attrs[attribute_name] = attribute_value
 
+            # variable_list
+            if self.data_2d.hvum.hdf5_and_computable_list:
+                # variables attrs
+                self.data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
+                self.file_object.attrs[
+                    "mesh_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().names()
+                self.file_object.attrs[
+                    "node_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().names()
+                self.file_object.attrs[
+                    "mesh_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
+                self.file_object.attrs[
+                    "node_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
+                self.file_object.attrs[
+                    "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().min()]
+                self.file_object.attrs[
+                    "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().min()]
+                self.file_object.attrs[
+                    "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().max()]
+                self.file_object.attrs[
+                    "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
+                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
+
+            # hab variables
+            self.file_object.attrs["hab_animal_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
+            self.file_object.attrs["hab_animal_number"] = str(
+                len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
+            self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
+            self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
+            self.file_object.attrs["hab_animal_type_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
+
+    def get_hdf5_attributes(self, close_file=False):
+        # print("get_hdf5_attributes")
         # get attributes
         hdf5_attributes_dict = dict(self.file_object.attrs.items())
 
@@ -196,17 +267,34 @@ class Hdf5Management:
         hdf5_attributes_dict_keys = sorted(hdf5_attributes_dict.keys())
         attributes_to_the_end = ['name_project', 'path_project', 'software', 'software_version', 'h5py_version',
                                  'hdf5_version']
+        attributes_to_not_show_gui = ["hs_input_class", "hyd_unit_correspondence"]
         hdf5_attributes_name_text = []
         hdf5_attributes_info_text = []
         for attribute_name in hdf5_attributes_dict_keys:
-            if attribute_name in attributes_to_the_end:
+            if attribute_name in attributes_to_the_end or attribute_name in attributes_to_not_show_gui:
                 pass
             else:
                 hdf5_attributes_name_text.append(attribute_name.replace("_", " "))
-                hdf5_attributes_info_text.append(str(hdf5_attributes_dict[attribute_name]))
-                # to attributes
-                setattr(self, attribute_name, hdf5_attributes_dict[attribute_name])
-        for attribute_name in attributes_to_the_end:  # set general attributes to the end
+                attribute_value = hdf5_attributes_dict[attribute_name]
+                # height, width,
+                if type(attribute_value) == np.float64:
+                    attribute_value = "{0:.2f}".format(attribute_value)
+                # np array
+                elif type(attribute_value) in {np.array, np.ndarray}:
+                    if attribute_value.dtype == 'O':
+                        if len(attribute_value.shape) == 1:
+                            attribute_value = ", ".join(attribute_value.tolist())
+                        else:
+                            attribute_value = str(attribute_value.tolist())
+                    else:
+                        attribute_value = ", ".join(np.round(attribute_value, decimals=2).astype('str').tolist())
+                else:
+                    attribute_value = str(attribute_value)
+                # append
+                hdf5_attributes_info_text.append(attribute_value)
+
+        # set general attributes to the end
+        for attribute_name in attributes_to_the_end:
             hdf5_attributes_name_text.extend([attribute_name.replace("_", " ")])
             hdf5_attributes_info_text.extend([hdf5_attributes_dict[attribute_name]])
 
@@ -214,202 +302,171 @@ class Hdf5Management:
         self.hdf5_attributes_name_text = hdf5_attributes_name_text
         self.hdf5_attributes_info_text = hdf5_attributes_info_text
 
+        # .hyd, .sub and .hab
         if self.hdf5_type != "estimhab":
             """ get_hdf5_reach_name """
-            # units name
-            reach_name = []
-            hdf5_attributes = list(self.file_object.attrs.items())
-            for attribute_name, attribute_data in hdf5_attributes:
-                if "reach_list" in attribute_name:
-                    if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
-                        if attribute_name[:3] == "hyd" or attribute_name[:3] == "hab":
-                            if type(attribute_data) == np.ndarray:
-                                reach_name = attribute_data.tolist()
-                            else:
-                                reach_name = eval(attribute_data)
-
-                    else:
-                        if attribute_name[:3] == "sub":
-                            reach_name = attribute_data.split(", ")
-
-            # to attributes
-            self.reach_name = reach_name
-
-            """ get xml parent element name """
-            if self.hdf5_type == "hydraulic":
-                self.input_type = hdf5_attributes_dict["hyd_model_type"]
-            elif self.hdf5_type == "substrate":
-                self.input_type = "SUBSTRATE"
-            else:
-                self.input_type = "HABITAT"
+            reach_list = self.file_object.attrs["reach_list"].tolist()
+            reach_number = self.file_object.attrs["reach_number"]
 
             """ get_hdf5_units_name """
-            # to attributes
-            if self.hdf5_type == "substrate":
-                self.units_name = [["unit_0"]]
-                self.nb_unit = 1
-            else:
-                self.units_name = self.file_object["unit_by_reach"][:].transpose().astype(np.str).tolist()
-                self.nb_unit = len(self.units_name[0])
-                self.unit_type = self.file_object.attrs["hyd_unit_type"]
+            unit_list = self.file_object.attrs["unit_list"].tolist()
+            unit_number = len(unit_list[0])
+            unit_type = self.file_object.attrs["unit_type"]
+
+            """ light_data_2d """
+            self.data_2d = Data2d(reach_number=reach_number,
+                                  unit_number=unit_number)  # with no array data
+            self.data_2d.set_unit_names(unit_list)
+            self.data_2d.set_reach_names(reach_list)
+            self.data_2d.filename = self.filename
+            self.data_2d.unit_type = unit_type
+            self.data_2d.data_extent = self.file_object.attrs["data_extent"]
+            self.data_2d.data_height = self.file_object.attrs["data_height"]
+            self.data_2d.data_width = self.file_object.attrs["data_width"]
 
             """ get_2D_variables """
             # hydraulic
-            if self.hdf5_type == "hydraulic":
-                self.hvum.get_original_computable_mesh_and_node_from_hyd(
+            if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
+                self.data_2d.hvum.get_original_computable_mesh_and_node_from_hyd(
                     hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
                     hdf5_attributes_dict["mesh_variable_original_min_list"].tolist(),
                     hdf5_attributes_dict["mesh_variable_original_max_list"].tolist(),
                     hdf5_attributes_dict["node_variable_original_name_list"].tolist(),
                     hdf5_attributes_dict["node_variable_original_min_list"].tolist(),
                     hdf5_attributes_dict["node_variable_original_max_list"].tolist())
-
-            # substrate constant ==> nothing to plot
-            elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
-                # recreate dict
+            # substrate
+            if self.hdf5_type == "substrate" or self.hdf5_type == "habitat":
                 sub_description = dict(sub_mapping_method=hdf5_attributes_dict["sub_mapping_method"],
                                        sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
                                        sub_classification_method=hdf5_attributes_dict["sub_classification_method"])
-                self.hvum.detect_variable_from_sub_description(sub_description)
-            # substrate polygon/point
-            elif self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] != "constant":
-                # recreate dict
-                sub_description = dict(sub_mapping_method=hdf5_attributes_dict["sub_mapping_method"],
-                                       sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
-                                       sub_classification_method=hdf5_attributes_dict["sub_classification_method"])
-                self.hvum.detect_variable_from_sub_description(sub_description)
+                self.data_2d.hvum.detect_variable_from_sub_description(sub_description)
             # habitat
-            else:
-                # hyd
-                self.hvum.get_original_computable_mesh_and_node_from_hyd(
-                    hdf5_attributes_dict["mesh_variable_original_name_list"].tolist(),
-                    hdf5_attributes_dict["mesh_variable_original_min_list"].tolist(),
-                    hdf5_attributes_dict["mesh_variable_original_max_list"].tolist(),
-                    hdf5_attributes_dict["node_variable_original_name_list"].tolist(),
-                    hdf5_attributes_dict["node_variable_original_min_list"].tolist(),
-                    hdf5_attributes_dict["node_variable_original_max_list"].tolist())
-                # # sub
-                sub_description = dict(sub_mapping_method=hdf5_attributes_dict["sub_mapping_method"],
-                                       sub_classification_code=hdf5_attributes_dict["sub_classification_code"],
-                                       sub_classification_method=hdf5_attributes_dict["sub_classification_method"])
-                self.hvum.detect_variable_from_sub_description(sub_description)
-                # hab
-                hab_variable_list = hdf5_attributes_dict["hab_fish_list"].split(", ")
+            if self.hdf5_type == "habitat":
+                hab_variable_list = hdf5_attributes_dict["hab_animal_list"].split(", ")
                 if hab_variable_list == ['']:
                     hab_variable_list = []
-                self.hvum.detect_variable_habitat(hab_variable_list)
+                self.data_2d.hvum.detect_variable_habitat(hab_variable_list)
 
-            # light_data_2d
-            self.data_2d = Data2d(reach_num=len(reach_name),
-                                  unit_num=self.nb_unit)  # with no array data
-            self.data_2d.hvum = self.hvum
-            self.data_2d.set_unit_names(self.units_name)
-            if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
-                self.data_2d.unit_type = self.file_object.attrs["hyd_unit_type"]
-            for reach_num in range(self.data_2d.reach_num):
-                for unit_num in range(self.data_2d.unit_num):
-                    self.data_2d[reach_num][unit_num].reach_name = self.reach_name[reach_num]
-            self.units_index = list(range(self.data_2d.unit_num))
-            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
+            # all attr
+            for attribute_name in hdf5_attributes_dict_keys:
+                if attribute_name[:4] not in {"mesh", "node"}:
+                    attribute_value = hdf5_attributes_dict[attribute_name]
+                    if type(attribute_value) in {np.array, np.ndarray}:
+                        attribute_value = attribute_value.tolist()
+                    setattr(self.data_2d, attribute_name, attribute_value)
 
-            self.data_2d.filename = self.filename
-            self.load_data_2d_info()
+            # load_data_2d_info
+            if self.hdf5_type == "substrate":
+                if self.data_2d.sub_mapping_method != "constant":
+                    self.load_data_2d_info()
+            else:
+                self.load_data_2d_info()
 
-            # hs
-            if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
-                self.hs_calculated = eval(hdf5_attributes_dict["hs_calculated"])
-                if self.hs_calculated:
-                    self.hs_input_class = eval(hdf5_attributes_dict["hs_input_class"])
+            # output filenames
+            for reach_number in range(self.data_2d.reach_number):
+                self.basename_output_reach_unit.append([])
+                self.units_name_output.append([])
+                for unit_number in range(self.data_2d.unit_number):
+                    reach_name = self.data_2d[reach_number][unit_number].reach_name
+                    unit_name = self.data_2d[reach_number][unit_number].unit_name
+                    self.basename_output_reach_unit[reach_number].append(self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
+                    if unit_type != 'unknown':
+                        # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
+                        unit_name2 = unit_name.replace(".", "_") + "_" + unit_type.split("[")[1][:-1].replace("/", "")
+                    else:
+                        unit_name2 = unit_name.replace(".", "_") + "_" + unit_type
+                    self.units_name_output[reach_number].append(unit_name2)
+
+        if close_file:
+            self.close_file()
 
     # HYDRAU 2D
-    def write_whole_profile(self, data_2d_whole):
+    def write_whole_profile(self):
         data_whole_profile_group = self.file_object.create_group('data_2d_whole_profile')
         self.whole_profile_unit_corresp = []
-        for reach_num in range(int(self.data_description["hyd_reach_number"])):
+        for reach_number in range(self.data_2d_whole.reach_number):
             self.whole_profile_unit_corresp.append([])
-            reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
-            unit_list = list(set(self.data_description["unit_correspondence"][reach_num]))
+            reach_group = data_whole_profile_group.create_group('reach_' + str(reach_number))
+            unit_list = list(set(self.data_2d.hyd_unit_correspondence[reach_number]))
             unit_list.sort()
             # UNIT GROUP
-            for unit_index, unit_num in enumerate(unit_list):
+            for unit_index, unit_number in enumerate(unit_list):
                 # hyd_varying_mesh==False
                 if unit_list == [0]:  # one whole profile for all units
                     group_name = 'unit_all'
                 # hyd_varying_mesh==True
                 else:
                     if unit_index == len(unit_list) - 1:  # last
-                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(
-                            int(self.data_description["hyd_unit_number"]) - 1)
+                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(self.data_2d.unit_number - 1)
                     else:  # all case
                         group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(unit_list[unit_index + 1] - 1)
 
                 unit_group = reach_group.create_group(group_name)
-                self.whole_profile_unit_corresp[reach_num].extend(
-                    [group_name] * self.data_description["unit_correspondence"][reach_num].count(unit_num))
+                self.whole_profile_unit_corresp[reach_number].extend(
+                    [group_name] * self.data_2d.hyd_unit_correspondence[reach_number].count(unit_number))
 
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
-                mesh_group.create_dataset(name=self.hvum.tin.name,
-                                          shape=data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name].shape,
-                                          data=data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name])
+                mesh_group.create_dataset(name=self.data_2d.hvum.tin.name,
+                                          shape=self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name].shape,
+                                          data=self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
-                node_group.create_dataset(name=self.hvum.xy.name,
-                                          shape=data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name].shape,
-                                          data=data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name])
-                if self.data_description["hyd_unit_z_equal"]:
-                    node_group.create_dataset(name=self.hvum.z.name,
-                                              shape=data_2d_whole[reach_num][0]["node"][self.hvum.z.name].shape,
-                                              data=data_2d_whole[reach_num][0]["node"][self.hvum.z.name])
+                node_group.create_dataset(name=self.data_2d.hvum.xy.name,
+                                          shape=self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name].shape,
+                                          data=self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])
+                if self.data_2d.hyd_unit_z_equal:
+                    node_group.create_dataset(name=self.data_2d.hvum.z.name,
+                                              shape=self.data_2d_whole[reach_number][0]["node"][self.data_2d.hvum.z.name].shape,
+                                              data=self.data_2d_whole[reach_number][0]["node"][self.data_2d.hvum.z.name])
                 else:
-                    if not self.data_description["hyd_varying_mesh"]:
-                        for unit_num2 in range(int(self.data_description["hyd_unit_number"])):
+                    if not self.data_2d.hyd_varying_mesh:
+                        for unit_num2 in range(self.data_2d.unit_number):
                             unit_group = reach_group.create_group('unit_' + str(unit_num2))
                             node_group = unit_group.create_group('node')
-                            node_group.create_dataset(name=self.hvum.z.name,
-                                                      shape=data_2d_whole[reach_num][unit_num2]["node"][
-                                                          self.hvum.z.name].shape,
-                                                      data=data_2d_whole[reach_num][unit_num2]["node"][
-                                                          self.hvum.z.name])
+                            node_group.create_dataset(name=self.data_2d.hvum.z.name,
+                                                      shape=self.data_2d_whole[reach_number][unit_num2]["node"][
+                                                          self.data_2d.hvum.z.name].shape,
+                                                      data=self.data_2d_whole[reach_number][unit_num2]["node"][
+                                                          self.data_2d.hvum.z.name])
                     else:
-                        node_group.create_dataset(name=self.hvum.z.name,
-                                                  shape=data_2d_whole[reach_num][unit_num]["node"][
-                                                      self.hvum.z.name].shape,
-                                                  data=data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name])
+                        node_group.create_dataset(name=self.data_2d.hvum.z.name,
+                                                  shape=self.data_2d_whole[reach_number][unit_number]["node"][
+                                                      self.data_2d.hvum.z.name].shape,
+                                                  data=self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name])
 
-    def write_data_2d(self, data_2d):
+    def write_data_2d(self):
         # data_2d
         data_group = self.file_object.create_group('data_2d')
         # for each reach
-        for reach_num in range(data_2d.reach_num):
-            reach_group = data_group.create_group('reach_' + str(reach_num))
+        for reach_number in range(self.data_2d.reach_number):
+            reach_group = data_group.create_group('reach_' + str(reach_number))
             # for each unit
-            for unit_num in range(data_2d.unit_num):
-                unit_group = reach_group.create_group('unit_' + str(unit_num))
+            for unit_number in range(self.data_2d.unit_number):
+                unit_group = reach_group.create_group('unit_' + str(unit_number))
 
                 """ mesh """
                 mesh_group = unit_group.create_group('mesh')
                 if self.extension == ".hab":
                     mesh_group.create_group("hv_data")  # always an empty group for futur calc hab
                 # tin
-                tin_dataset = mesh_group.create_dataset(name=self.hvum.tin.name,
-                                                        shape=data_2d[reach_num][unit_num]["mesh"][
-                                                            self.hvum.tin.name].shape,
-                                                        data=data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])
-                tin_dataset.attrs[self.hvum.tin.name] = self.hvum.tin.descr
+                tin_dataset = mesh_group.create_dataset(name=self.data_2d.hvum.tin.name,
+                                                        shape=self.data_2d[reach_number][unit_number]["mesh"][
+                                                            self.data_2d.hvum.tin.name].shape,
+                                                        data=self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])
+                tin_dataset.attrs[self.data_2d.hvum.tin.name] = self.data_2d.hvum.tin.descr
                 # i_whole_profile
                 if self.extension == ".hyd" or self.extension == ".hab":
-                    i_whole_profile_dataset = mesh_group.create_dataset(name=self.hvum.i_whole_profile.name,
-                                                                        shape=data_2d[reach_num][unit_num]["mesh"][
-                                                                            self.hvum.i_whole_profile.name].shape,
-                                                                        data=data_2d[reach_num][unit_num]["mesh"][
-                                                                            self.hvum.i_whole_profile.name])
-                    i_whole_profile_dataset.attrs[self.hvum.i_whole_profile.name] = self.hvum.i_whole_profile.descr
+                    i_whole_profile_dataset = mesh_group.create_dataset(name=self.data_2d.hvum.i_whole_profile.name,
+                                                                        shape=self.data_2d[reach_number][unit_number]["mesh"][
+                                                                            self.data_2d.hvum.i_whole_profile.name].shape,
+                                                                        data=self.data_2d[reach_number][unit_number]["mesh"][
+                                                                            self.data_2d.hvum.i_whole_profile.name])
+                    i_whole_profile_dataset.attrs[self.data_2d.hvum.i_whole_profile.name] = self.data_2d.hvum.i_whole_profile.descr
 
                 # data
-                if data_2d.hvum.hdf5_and_computable_list.meshs():
-                    rec_array = data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
+                if self.data_2d.hvum.hdf5_and_computable_list.meshs():
+                    rec_array = self.data_2d[reach_number][unit_number]["mesh"]["data"].to_records(index=False)
                     mesh_group.create_dataset(name="data",
                                               shape=rec_array.shape,
                                               data=rec_array,
@@ -418,67 +475,57 @@ class Hdf5Management:
                 """ node """
                 node_group = unit_group.create_group('node')
                 # xy
-                xy_dataset = node_group.create_dataset(name=self.hvum.xy.name,
-                                                       shape=data_2d[reach_num][unit_num]["node"][
-                                                           self.hvum.xy.name].shape,
-                                                       data=data_2d[reach_num][unit_num]["node"][self.hvum.xy.name])
-                xy_dataset.attrs[self.hvum.xy.name] = self.hvum.xy.descr
+                xy_dataset = node_group.create_dataset(name=self.data_2d.hvum.xy.name,
+                                                       shape=self.data_2d[reach_number][unit_number]["node"][
+                                                           self.data_2d.hvum.xy.name].shape,
+                                                       data=self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])
+                xy_dataset.attrs[self.data_2d.hvum.xy.name] = self.data_2d.hvum.xy.descr
                 # data
-                if data_2d.hvum.hdf5_and_computable_list.nodes():
-                    rec_array = data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
+                if self.data_2d.hvum.hdf5_and_computable_list.nodes():
+                    rec_array = self.data_2d[reach_number][unit_number]["node"]["data"].to_records(index=False)
                     node_group.create_dataset(name="data",
                                               shape=rec_array.shape,
                                               data=rec_array,
                                               dtype=rec_array.dtype)
 
-        # create_data_2d_info
-        self.write_data_2d_info(data_2d)
-
-    def write_data_2d_info(self, data_2d):
-        # global
-        self.file_object.attrs["data_extent"] = data_2d.data_extent
-        self.file_object.attrs["data_height"] = data_2d.data_height
-        self.file_object.attrs["data_width"] = data_2d.data_width
-        self.file_object.attrs["hyd_equation_type"] = data_2d.equation_type
-
+    def write_data_2d_info(self):
         # for each reach
-        for reach_num in range(data_2d.reach_num):
+        for reach_number in range(self.data_2d.reach_number):
             # for each unit
-            for unit_num in range(data_2d.unit_num):
+            for unit_number in range(self.data_2d.unit_number):
                 """ unit info """
-                unit_group = self.file_object["data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num)]
+                unit_group = self.file_object["data_2d/reach_" + str(reach_number) + "/unit_" + str(unit_number)]
                 if self.extension == ".hyd" or self.extension == ".hab":
-                    unit_group.attrs["whole_profile_corresp"] = self.whole_profile_unit_corresp[reach_num][unit_num]
-                    unit_group.attrs['total_wet_area'] = data_2d[reach_num][unit_num].total_wet_area
+                    unit_group.attrs["whole_profile_corresp"] = self.whole_profile_unit_corresp[reach_number][unit_number]
+                    unit_group.attrs['total_wet_area'] = self.data_2d[reach_number][unit_number].total_wet_area
 
     def load_whole_profile(self):
         # create dict
         data_2d_whole_profile_group = 'data_2d_whole_profile'
         reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
 
-        self.data_2d_whole = Data2d(reach_num=len(reach_list),
-                                    unit_num=len(self.file_object[
+        self.data_2d_whole = Data2d(reach_number=len(reach_list),
+                                    unit_number=len(self.file_object[
                                                      data_2d_whole_profile_group + "/" + reach_list[0]].keys()))  # new
-
-        self.data_description["unit_name_whole_profile"] = []
+        self.data_2d_whole.unit_list = []
 
         # for each reach
-        for reach_num, reach_group_name in enumerate(reach_list):
-            self.data_description["unit_name_whole_profile"].append([])
+        for reach_number, reach_group_name in enumerate(reach_list):
+            self.data_2d_whole.unit_list.append([])
             reach_group = data_2d_whole_profile_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
-            for unit_num, unit_group_name in enumerate(available_unit_list):
-                self.data_description["unit_name_whole_profile"][reach_num].append(unit_group_name)
+            for unit_number, unit_group_name in enumerate(available_unit_list):
+                self.data_2d_whole.unit_list[reach_number].append(unit_group_name)
                 unit_group = reach_group + "/" + unit_group_name
                 mesh_group = unit_group + "/mesh"
                 node_group = unit_group + "/node"
                 # data_2d_whole_profile
-                self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name] = self.file_object[
+                self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name] = self.file_object[
                                                                                           mesh_group + "/tin"][:]
-                self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name] = self.file_object[
+                self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name] = self.file_object[
                                                                                          node_group + "/xy"][:]
-                self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name] = self.file_object[node_group + "/z"][
+                self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name] = self.file_object[node_group + "/z"][
                                                                                     :]
 
     def load_data_2d(self):
@@ -486,14 +533,14 @@ class Hdf5Management:
         reach_list = list(self.file_object[data_2d_group].keys())
         removed_units_list = []
         # for each reach
-        for reach_num, reach_group_name in enumerate(reach_list):
+        for reach_number, reach_group_name in enumerate(reach_list):
             # group name
             reach_group = data_2d_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
             removed_units_list = list(set(list(range(len(available_unit_list)))) - set(self.units_index))
-            for unit_num, unit_group_name in enumerate(available_unit_list):
-                if unit_num in self.units_index:
+            for unit_number, unit_group_name in enumerate(available_unit_list):
+                if unit_number in self.units_index:
                     # group name
                     unit_group = reach_group + "/" + unit_group_name
 
@@ -502,93 +549,82 @@ class Hdf5Management:
                     mesh_group = unit_group + "/mesh"
                     # i_whole_profile
                     if self.extension == ".hyd" or self.extension == ".hab":
-                        self.data_2d[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = self.file_object[
+                        self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.i_whole_profile.name] = self.file_object[
                                                                                                         mesh_group + "/i_whole_profile"][
                                                                                                     :]
                     # tin
-                    self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name] = self.file_object[mesh_group + "/tin"][:]
+                    self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name] = self.file_object[mesh_group + "/tin"][:]
                     # data (always ?)
                     mesh_dataframe = DataFrame()
                     if mesh_group + "/data" in self.file_object:
                         if self.user_target_list != "defaut":
-                            for mesh_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().meshs():
+                            for mesh_variable in self.data_2d.hvum.all_final_variable_list.no_habs().hdf5s().meshs():
                                 mesh_dataframe[mesh_variable.name] = self.file_object[mesh_group + "/data"][
                                     mesh_variable.name]
                         else:
                             mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
-                    self.data_2d[reach_num][unit_num]["mesh"]["data"] = mesh_dataframe
+                    self.data_2d[reach_number][unit_number]["mesh"]["data"] = mesh_dataframe
 
                     # HV by celle for each fish
                     if self.extension == ".hab":
                         mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
-                        for animal_num, animal in enumerate(self.hvum.all_final_variable_list.hdf5s().meshs().habs()):
+                        for animal_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.habs().hdf5s().meshs()):
                             # get dataset
                             fish_data_set = mesh_hv_data_group[animal.name]
                             # get data
-                            self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name] = fish_data_set[:]
+                            self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name] = fish_data_set[:]
 
                     """ node """
                     # group
                     node_group = unit_group + "/node"
                     # xy
-                    self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name] = self.file_object[node_group + "/xy"][:]
+                    self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name] = self.file_object[node_group + "/xy"][:]
                     # data (always ?)
                     node_dataframe = DataFrame()
                     if node_group + "/data" in self.file_object:
                         if self.user_target_list != "defaut":
-                            for node_variable in self.hvum.all_final_variable_list.no_habs().hdf5s().nodes():
+                            for node_variable in self.data_2d.hvum.all_final_variable_list.no_habs().hdf5s().nodes():
                                 node_dataframe[node_variable.name] = self.file_object[node_group + "/data"][
                                     node_variable.name]
                         else:
                             node_dataframe = DataFrame.from_records(self.file_object[node_group + "/data"][:])
-                    self.data_2d[reach_num][unit_num]["node"]["data"] = node_dataframe
+                    self.data_2d[reach_number][unit_number]["node"]["data"] = node_dataframe
 
-        # load_data_2d_info
         self.load_data_2d_info()
 
         if removed_units_list:
             self.data_2d.remove_unit_from_unit_index_list(removed_units_list)
 
     def load_data_2d_info(self):
-        # global
-        self.data_2d.data_extent = self.file_object.attrs["data_extent"]
-        self.data_2d.data_height = self.file_object.attrs["data_height"]
-        self.data_2d.data_width = self.file_object.attrs["data_width"]
-        self.data_2d.equation_type = self.file_object.attrs["hyd_equation_type"]
-
         data_2d_group = 'data_2d'
         reach_list = list(self.file_object[data_2d_group].keys())
         # for each reach
-        for reach_num, reach_group_name in enumerate(reach_list):
+        for reach_number, reach_group_name in enumerate(reach_list):
             # group name
             reach_group = data_2d_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
-            desired_units_list = [available_unit_list[unit_index] for unit_index in
-                                  self.units_index]  # get only desired_units
-            for unit_num, unit_group_name in enumerate(desired_units_list):
+            desired_units_list = [available_unit_list[unit_index] for unit_index in self.data_2d.units_index]  # get only desired_units
+            for unit_number, unit_group_name in enumerate(desired_units_list):
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
 
                 if self.extension == ".hyd" or self.extension == ".hab":
-                    self.data_2d[reach_num][unit_num].total_wet_area = self.file_object[unit_group].attrs[
+                    self.data_2d[reach_number][unit_number].total_wet_area = self.file_object[unit_group].attrs[
                         'total_wet_area']
 
                 if self.extension == ".hab":
                     # group
                     mesh_group = unit_group + "/mesh"
                     mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
-                    # if not wish list specify, get original
-                    if not self.hvum.all_final_variable_list.hdf5s().meshs().habs():
-                        self.hvum.all_final_variable_list = deepcopy(self.hvum.hdf5_and_computable_list)
-                    for animal_num, animal in enumerate(self.hvum.all_final_variable_list.hdf5s().meshs().habs()):
+                    for animal in self.data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().habs():
                         # dataset
                         fish_data_set = mesh_hv_data_group[animal.name]
 
                         # get summary data
-                        animal.wua[reach_num].append(float(fish_data_set.attrs['wua']))
-                        animal.hv[reach_num].append(float(fish_data_set.attrs['hv']))
-                        animal.percent_area_unknown[reach_num].append(
+                        animal.wua[reach_number].append(float(fish_data_set.attrs['wua']))
+                        animal.hv[reach_number].append(float(fish_data_set.attrs['hv']))
+                        animal.percent_area_unknown[reach_number].append(
                             float(fish_data_set.attrs['percent_area_unknown [%m2]']))
 
                         # add dataset attributes
@@ -597,8 +633,11 @@ class Hdf5Management:
                         animal.name = fish_data_set.attrs['short_name']
                         animal.aquatic_animal_type = fish_data_set.attrs['aquatic_animal_type_list']
 
+                        # replace_variable
+                        self.data_2d.hvum.hdf5_and_computable_list.replace_variable(animal)
+
     # HYDRAULIC
-    def create_hdf5_hyd(self, data_2d, data_2d_whole, data_description, project_preferences):
+    def create_hdf5_hyd(self, data_2d, data_2d_whole, project_preferences):
         """
         :param data_2d: data 2d dict with keys :
         'mesh':
@@ -630,109 +669,52 @@ class Hdf5Management:
             (two values by node : x and y coordinates)
             'z' : list by reach, sub list by units and sub list of numpy array type float
             (one value by node : bottom elevation)
-        :param data_description: description dict with keys :
-        'hyd_filename_source' : str of input filename(s) (sep: ', ')
+        :param data_2d attributes: description attributes with name :
+        'filename_source' : str of input filename(s) (sep: ', ')
         'hyd_model_type' : str of hydraulic model type
         'hyd_model_dimension' : str of dimension number
         'hyd_mesh_variables_list' : str of mesh variable list (sep: ', ')
         'hyd_node_variables_list' : str of node variable list (sep: ', ')
-        'hyd_epsg_code' : str of EPSG number
-        'hyd_reach_list' : str of reach name(s) (sep: ', ')
-        'hyd_reach_number' : str of reach total number
-        'hyd_reach_type' : str of type of reach
-        'hyd_unit_list' : str of list of units (sep: ', ')
-        'hyd_unit_number' : str of units total number
-        'hyd_unit_type' : str of units type (discharge or time) with between brackets, the unit symbol ([m3/s], [s], ..)
+        'epsg_code' : str of EPSG number
+        'reach_list' : str of reach name(s) (sep: ', ')
+        'reach_number' : str of reach total number
+        'reach_type' : str of type of reach
+        'unit_list' : str of list of units (sep: ', ')
+        'unit_number' : str of units total number
+        'unit_type' : str of units type (discharge or time) with between brackets, the unit symbol ([m3/s], [s], ..)
         ex : 'discharge [m3/s]', 'time [s]'
         'hyd_varying_mesh' : boolean
         'hyd_unit_z_equal' : boolean if all z are egual between units, 'False' if the bottom values vary
         """
-        # create a new hdf5
-        self.open_hdf5_file(new=True)
-
-        # save dict to attribute
+        # save temporary to attribute
+        self.data_2d = data_2d
+        self.data_2d_whole = data_2d_whole
         self.project_preferences = project_preferences
 
-        # create hyd attributes
-        self.data_description = data_description
-        for attribute_name, attribute_value in list(self.data_description.items()):
-            if attribute_name in ("hyd_unit_list", "hyd_unit_list_full"):
-                # check if duplicate name present in unit_list
-                for reach_num in range(int(self.data_description["hyd_reach_number"])):
-                    if len(set(self.data_description[attribute_name][reach_num])) != len(
-                            self.data_description[attribute_name][reach_num]):
-                        a = self.data_description[attribute_name][reach_num]
-                        duplicates = list(set([x for x in a if a.count(x) > 1]))
-                        for unit_num, unit_element in enumerate(self.data_description[attribute_name][reach_num]):
-                            for duplicate in duplicates:
-                                if unit_element == duplicate:
-                                    self.data_description[attribute_name][reach_num][unit_num] = duplicate + "_" + str(
-                                        unit_num)
-                self.file_object.attrs[attribute_name] = str(attribute_value)
-            elif attribute_name == "hyd_reach_list":
-                self.file_object.attrs[attribute_name] = str(attribute_value)
-            else:
-                if type(attribute_value) == bool:
-                    self.file_object.attrs[attribute_name] = str(attribute_value)
-                else:
-                    if type(attribute_value) == str:
-                        if "m<sup>3</sup>/s" in attribute_value:
-                            attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
-                        self.file_object.attrs[attribute_name] = attribute_value
-                    if attribute_name == "unit_correspondence":
-                        pass
-                    else:
-                        self.file_object.attrs[attribute_name] = attribute_value
+        # save hyd attributes to hdf5 file
+        self.set_hdf5_attributes()
 
-        # variables attrs
-        data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        self.file_object.attrs[
-            "mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
-        self.file_object.attrs[
-            "node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
-        self.file_object.attrs[
-            "mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
-        self.file_object.attrs[
-            "node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
-        self.file_object.attrs[
-            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()]
-        self.file_object.attrs[
-            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()]
-        self.file_object.attrs[
-            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()]
-        self.file_object.attrs[
-            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()]
+        # create_whole_profile to hdf5 file
+        self.write_whole_profile()
 
-        # dataset for unit_list
-        self.file_object.create_dataset(name="unit_by_reach",
-                                        shape=[len(self.data_description["hyd_unit_list"][0]),
-                                               len(self.data_description["hyd_unit_list"])],
-                                        data=np.array(self.data_description["hyd_unit_list"],
-                                                      dtype=h5py.string_dtype(encoding='utf-8')).transpose())
-        # dataset for unit_list
-        self.file_object.create_dataset(name="unit_correspondence",
-                                        shape=[len(self.data_description["unit_correspondence"][0]),
-                                               len(self.data_description["unit_correspondence"])],
-                                        data=np.array(self.data_description["unit_correspondence"]).astype(
-                                            np.int).transpose())
+        # create_data_2d to hdf5 file
+        self.write_data_2d()
 
-        # create_whole_profile
-        self.write_whole_profile(data_2d_whole)
-
-        # create_data_2d
-        self.write_data_2d(data_2d)
-
-        # close file
-        self.file_object.close()
-        self.file_object = None
+        # create_data_2d_info
+        self.write_data_2d_info()
 
         # copy input files to input project folder
-        copy_hydrau_input_files(self.data_description["hyd_path_filename_source"],
-                                self.data_description["hyd_filename_source"],
+        copy_hydrau_input_files(self.data_2d.path_filename_source,
+                                self.data_2d.filename_source,
                                 self.filename,
                                 os.path.join(project_preferences["path_prj"], "input"))
+
         # save XML
-        self.save_xml(self.data_description["hyd_model_type"], self.data_description["hyd_path_filename_source"])
+        self.save_xml(self.data_2d.hyd_model_type,
+                      self.data_2d.path_filename_source)
+
+        # close file
+        self.close_file()
 
         # reload to export data or not
         for key in self.available_export_list:
@@ -747,50 +729,30 @@ class Hdf5Management:
                 self.export_detailled_point_txt()
                 break
 
-        # indicates hydrosignature has not been calculated
-        self.hs_calculated = "False"
-
     def load_hdf5_hyd(self, units_index="all", user_target_list="defaut", whole_profil=False):
         # open an hdf5
-        self.open_hdf5_file(new=False)
+        self.create_or_open_file(new=False)
+
+        # get_hdf5_attributes
+        self.get_hdf5_attributes(close_file=False)
 
         # save unit_index for computing variables
         self.units_index = units_index
+        if self.units_index == "all":
+            # load the number of time steps
+            self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
 
         # variables
         self.user_target_list = user_target_list
         if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
-            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         elif type(self.user_target_list) == dict:  # project_preferences
             self.project_preferences = self.user_target_list
-            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         else:
-            self.hvum.get_final_variable_list_from_wish(self.user_target_list)
-
-        # attributes
-        if self.units_index == "all":
-            # load the number of time steps
-            nb_t = int(self.file_object.attrs['hyd_unit_number'])
-            self.units_index = list(range(nb_t))
-
-        # get attributes
-        self.data_description = dict()
-        for attribute_name, attribute_value in list(self.file_object.attrs.items()):
-            if type(attribute_value) == str:
-                if attribute_value == "True" or attribute_value == "False":
-                    self.data_description[attribute_name] = eval(attribute_value)
-                else:
-                    self.data_description[attribute_name] = attribute_value
-            if type(attribute_value) == np.array:
-                self.data_description[attribute_name] = attribute_value.tolist()
-            else:
-                self.data_description[attribute_name] = attribute_value
-
-        # dataset for unit_list
-        self.data_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
-        self.data_description["unit_correspondence"] = self.file_object["unit_correspondence"][:].transpose().tolist()
+            self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
 
         # load_whole_profile
         if whole_profil:
@@ -800,120 +762,73 @@ class Hdf5Management:
         self.load_data_2d()
 
         # close file
-        self.file_object.close()
-        self.file_object = None
+        self.close_file()
 
         # compute ?
-        if self.hvum.all_final_variable_list.to_compute():
-            self.data_2d.compute_variables(self.hvum.all_final_variable_list.to_compute())
+        if self.data_2d.hvum.all_final_variable_list.to_compute():
+            self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
 
     # SUBSTRATE
-    def create_hdf5_sub(self, data_description, data_2d):
-        # create a new hdf5
-        self.open_hdf5_file(new=True)
+    def create_hdf5_sub(self, data_2d):
+        self.data_2d = data_2d
 
-        # data_description
-        self.data_description = data_description
-
-        # create sub attributes
-        for attribute_name, attribute_value in list(self.data_description.items()):
-            self.file_object.attrs[attribute_name] = attribute_value
-
-        # variables attrs
-        data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        self.file_object.attrs[
-            "mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
-        self.file_object.attrs[
-            "node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
-        self.file_object.attrs[
-            "mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
-        self.file_object.attrs[
-            "node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
-        self.file_object.attrs[
-            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()]
-        self.file_object.attrs[
-            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()]
-        self.file_object.attrs[
-            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()]
-        self.file_object.attrs[
-            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()]
+        # save hyd attributes to hdf5 file
+        self.set_hdf5_attributes()
 
         # POLYGON or POINT
-        if self.data_description["sub_mapping_method"] in ("polygon", "point"):
-            # create specific attributes
-            self.file_object.attrs['sub_default_values'] = self.data_description["sub_default_values"]
-            self.file_object.attrs['sub_epsg_code'] = self.data_description["sub_epsg_code"]
-
+        if self.data_2d.sub_mapping_method in ("polygon", "point"):
             # data_2d
-            self.write_data_2d(data_2d)
-
-        # CONSTANT
-        if self.data_description["sub_mapping_method"] == "constant":
-            # create attributes
-            self.file_object.attrs['sub_constant_values'] = self.data_description["sub_default_values"]
-
-            # add the constant value of substrate
-            self.file_object.create_dataset(name="sub_constant_values",
-                                            shape=data_2d.sub_constant_values.shape,
-                                            data=data_2d.sub_constant_values)
+            self.write_data_2d()
 
         # close file
-        self.file_object.close()
-        self.file_object = None
+        self.close_file()
 
         # copy input files to input project folder
         copy_shapefiles(
-            os.path.join(self.data_description["sub_path_source"], self.data_description["sub_filename_source"]),
-            self.data_description["name_hdf5"],
-            os.path.join(self.data_description["path_prj"], "input"),
+            os.path.join(self.data_2d.path_filename_source, self.data_2d.filename_source),
+            self.filename,
+            os.path.join(self.path_prj, "input"),
             remove=False)
 
         # save XML
-        self.save_xml("SUBSTRATE", self.data_description["sub_path_source"])
+        self.save_xml("SUBSTRATE", self.data_2d.path_filename_source)
 
     def load_hdf5_sub(self, user_target_list="defaut"):
         # open an hdf5
-        self.open_hdf5_file(new=False)
+        self.create_or_open_file(new=False)
+
+        # get_hdf5_attributes
+        self.get_hdf5_attributes(close_file=False)
 
         # units_index
-        self.units_index = list(range(int(self.file_object.attrs['sub_unit_number'])))
+        self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
 
         # variables
         self.user_target_list = user_target_list
         if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
-            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         elif type(self.user_target_list) == dict:  # project_preferences
             self.project_preferences = self.user_target_list
-            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         else:
-            self.hvum.get_final_variable_list_from_wish(self.user_target_list)
+            self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
 
-        # get attributes
-        self.data_description = dict()
-        for attribute_name, attribute_value in list(self.file_object.attrs.items()):
-            self.data_description[attribute_name] = attribute_value
-
-        # constant ?
-        if self.data_description["sub_mapping_method"] == "constant":
-            # fake data_2d
-            data_2d = Data2d()
-            data_2d.sub_constant_values = self.file_object["sub_constant_values"][:]
-        elif self.data_description["sub_mapping_method"] != "constant":
+        # load_data_2d
+        if self.data_2d.sub_mapping_method != "constant":
             # load_data_2d
             self.load_data_2d()
 
         # close
-        self.file_object.close()
-        self.file_object = None
+        self.close_file()
 
         # compute ?
-        if self.hvum.all_final_variable_list.to_compute():
-            self.data_2d.compute_variables(self.hvum.all_final_variable_list.to_compute())
+        if self.data_2d.hvum.all_final_variable_list.to_compute():
+            self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
 
     # HABITAT
-    def create_hdf5_hab(self, data_2d, data_2d_whole_profile, data_description, project_preferences):
+    def create_hdf5_hab(self, data_2d, data_2d_whole, project_preferences):
         """
         :param data_2d: data 2d dict with keys :
         'mesh':
@@ -948,86 +863,35 @@ class Hdf5Management:
             'z' : list by reach, sub list by units and sub list of numpy array type float
             (one value by node : bottom elevation)
         """
-        attributes_to_remove = (
-            "hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number",
-            "sub_unit_type",
-            "hdf5_type")
-
-        # create a new hdf5
-        self.open_hdf5_file(new=True)
-
-        self.data_description = data_description
-
-        # save dict to attribute
+        # save temporary to attribute
+        self.data_2d = data_2d
+        self.data_2d_whole = data_2d_whole
         self.project_preferences = project_preferences
 
-        # create hab attributes
-        for attribute_name, attribute_value in list(self.data_description.items()):
-            if attribute_name not in attributes_to_remove:
-                if type(attribute_value) == bool:
-                    self.file_object.attrs[attribute_name] = str(attribute_value)
-                else:
-                    if type(attribute_value) == str:
-                        if "m<sup>3</sup>/s" in attribute_value:
-                            attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
-                        self.file_object.attrs[attribute_name] = attribute_value
+        # save hyd attributes to hdf5 file
+        self.set_hdf5_attributes()
 
-        # variables attrs
-        data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-        self.file_object.attrs[
-            "mesh_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().names()
-        self.file_object.attrs[
-            "node_variable_original_name_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().names()
-        self.file_object.attrs[
-            "mesh_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().units()
-        self.file_object.attrs[
-            "node_variable_original_unit_list"] = data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().units()
-        self.file_object.attrs[
-            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().min()]
-        self.file_object.attrs[
-            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().min()]
-        self.file_object.attrs[
-            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().meshs().max()]
-        self.file_object.attrs[
-            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in data_2d.hvum.hdf5_and_computable_list.hdf5s().nodes().max()]
+        # create_whole_profile to hdf5 file
+        self.write_whole_profile()
 
-        self.file_object.attrs["hab_fish_list"] = ", ".join([])
-        self.file_object.attrs["hab_fish_number"] = str(0)
-        self.file_object.attrs["hab_fish_pref_list"] = ", ".join([])
-        self.file_object.attrs["hab_fish_stage_list"] = ", ".join([])
+        # create_data_2d to hdf5 file
+        self.write_data_2d()
 
-        # dataset for unit_list
-        self.file_object.create_dataset(name="unit_by_reach",
-                                        shape=[len(self.data_description["hyd_unit_list"][0]),
-                                               len(self.data_description["hyd_unit_list"])],
-                                        data=np.array(self.data_description["hyd_unit_list"],
-                                                      dtype=h5py.string_dtype(encoding='utf-8')).transpose())
-        # dataset for unit_list
-        self.file_object.create_dataset(name="unit_correspondence",
-                                        shape=[len(self.data_description["unit_correspondence"][0]),
-                                               len(self.data_description["unit_correspondence"])],
-                                        data=np.array(self.data_description["unit_correspondence"]).astype(
-                                            np.int).transpose())
-
-        # whole_profile
-        self.write_whole_profile(data_2d_whole_profile)
-
-        # data_2d
-        self.write_data_2d(data_2d)
-
-        # close file
-        self.file_object.close()
-        self.file_object = None
+        # create_data_2d_info
+        self.write_data_2d_info()
 
         # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII)
-        if self.data_description["hyd_filename_source"] == self.data_description["sub_filename_source"]:
-            copy_hydrau_input_files(self.data_description["hyd_path_filename_source"],
-                                    self.data_description["hyd_filename_source"],
+        if not hasattr(self.data_2d, "sub_filename_source"):
+            copy_hydrau_input_files(self.data_2d.path_filename_source,
+                                    self.data_2d.filename_source,
                                     self.filename,
                                     os.path.join(project_preferences["path_prj"], "input"))
 
         # save XML
         self.save_xml("HABITAT", "")
+
+        # close file
+        self.close_file()
 
         # reload to export data or not
         for key in self.available_export_list:
@@ -1044,45 +908,28 @@ class Hdf5Management:
 
     def load_hdf5_hab(self, units_index="all", user_target_list="defaut", whole_profil=False):
         # open an hdf5
-        self.open_hdf5_file(new=False)
+        self.create_or_open_file(new=False)
+
+        # get_hdf5_attributes
+        self.get_hdf5_attributes(close_file=False)
 
         # save unit_index for computing variables
         self.units_index = units_index
+        if self.units_index == "all":
+            # load the number of time steps
+            self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
 
         # variables
         self.user_target_list = user_target_list
         if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
-            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         elif type(self.user_target_list) == dict:  # project_preferences
-            self.project_preferences = self.user_target_list
-            self.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+            # self.project_preferences = self.user_target_list
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         else:
-            self.hvum.get_final_variable_list_from_wish(self.user_target_list)
-
-        # attributes
-        if self.units_index == "all":
-            # load the number of time steps
-            nb_t = int(self.file_object.attrs['hyd_unit_number'])
-            self.units_index = list(range(nb_t))
-
-        # get attributes
-        self.data_description = dict()
-        for attribute_name, attribute_value in list(self.file_object.attrs.items()):
-            if type(attribute_value) == str:
-                if attribute_value == "True" or attribute_value == "False":
-                    self.data_description[attribute_name] = eval(attribute_value)
-                else:
-                    self.data_description[attribute_name] = attribute_value
-            if type(attribute_value) == np.array:
-                self.data_description[attribute_name] = attribute_value.tolist()
-            else:
-                self.data_description[attribute_name] = attribute_value
-
-        # dataset for unit_list
-        self.data_description["hyd_unit_list"] = self.file_object["unit_by_reach"][:].transpose().tolist()
-        self.data_description["unit_correspondence"] = self.file_object["unit_correspondence"][:].transpose().tolist()
+            self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
 
         # load_whole_profile
         if whole_profil:
@@ -1092,12 +939,11 @@ class Hdf5Management:
         self.load_data_2d()
 
         # close file
-        self.file_object.close()
-        self.file_object = None
+        self.close_file()
 
         # compute ?
-        if self.hvum.all_final_variable_list.to_compute():
-            self.data_2d.compute_variables(self.hvum.all_final_variable_list.to_compute())
+        if self.data_2d.hvum.all_final_variable_list.to_compute():
+            self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
 
     def add_fish_hab(self, animal_variable_list):
         """
@@ -1112,78 +958,59 @@ class Hdf5Management:
         :param animal: the name of the fish (with the stage in it)
         """
         # open an hdf5
-        self.open_hdf5_file(new=False, get_hdf5_attributes=False)
+        self.create_or_open_file(new=False)
 
         # add variables
-        self.hvum.hdf5_and_computable_list.extend(animal_variable_list)
+        self.data_2d.hvum.hdf5_and_computable_list.extend(animal_variable_list)
 
         # data_2d
         data_group = self.file_object['data_2d']
         # REACH GROUP
-        for reach_num in range(self.data_2d.reach_num):
-            reach_group = data_group["reach_" + str(reach_num)]
+        for reach_number in range(self.data_2d.reach_number):
+            reach_group = data_group["reach_" + str(reach_number)]
             # UNIT GROUP
-            for unit_num in range(self.data_2d.unit_num):
-                unit_group = reach_group["unit_" + str(unit_num)]
+            for unit_number in range(self.data_2d.unit_number):
+                unit_group = reach_group["unit_" + str(unit_number)]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
                 mesh_hv_data_group = mesh_group["hv_data"]
 
                 # HV by celle for each fish
-                for animal_num, animal in enumerate(self.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
+                for animal_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
                     # create
                     if animal.name in mesh_hv_data_group:
                         del mesh_hv_data_group[animal.name]
                     fish_data_set = mesh_hv_data_group.create_dataset(name=animal.name,
                                                                       shape=
-                                                                      self.data_2d[reach_num][unit_num]["mesh"]["data"][
+                                                                      self.data_2d[reach_number][unit_number]["mesh"]["data"][
                                                                           animal.name].shape,
                                                                       data=
-                                                                      self.data_2d[reach_num][unit_num]["mesh"]["data"][
+                                                                      self.data_2d[reach_number][unit_number]["mesh"]["data"][
                                                                           animal.name].to_numpy(),
-                                                                      dtype=self.data_2d[reach_num][unit_num]["mesh"]["data"][
+                                                                      dtype=self.data_2d[reach_number][unit_number]["mesh"]["data"][
                                                                           animal.name].dtype)
                     # add dataset attributes
                     fish_data_set.attrs['pref_file'] = animal.pref_file
                     fish_data_set.attrs['stage'] = animal.stage
                     fish_data_set.attrs['short_name'] = animal.name
                     fish_data_set.attrs['aquatic_animal_type_list'] = animal.aquatic_animal_type
-                    fish_data_set.attrs['wua'] = str(animal.wua[reach_num][unit_num])
-                    fish_data_set.attrs['hv'] = str(animal.hv[reach_num][unit_num])
+                    fish_data_set.attrs['wua'] = str(animal.wua[reach_number][unit_number])
+                    fish_data_set.attrs['hv'] = str(animal.hv[reach_number][unit_number])
                     fish_data_set.attrs['percent_area_unknown [%m2]'] = str(
-                        animal.percent_area_unknown[reach_num][unit_num])
+                        animal.percent_area_unknown[reach_number][unit_number])
 
         # set to attributes
-        self.file_object.attrs["hab_fish_list"] = ", ".join(self.hvum.hdf5_and_computable_list.meshs().habs().names())
-        self.file_object.attrs["hab_fish_number"] = str(len(self.hvum.hdf5_and_computable_list.meshs().habs()))
-        self.file_object.attrs["hab_fish_pref_list"] = ", ".join(
-            self.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
-        self.file_object.attrs["hab_fish_stage_list"] = ", ".join(
-            self.hvum.hdf5_and_computable_list.meshs().habs().stages())
-        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(
-            self.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
-
-        # all variable
-        self.file_object.attrs[
-            "mesh_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().names()
-        self.file_object.attrs[
-            "node_variable_original_name_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().names()
-        self.file_object.attrs[
-            "mesh_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
-        self.file_object.attrs[
-            "node_variable_original_unit_list"] = self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
-        self.file_object.attrs[
-            "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().min()]
-        self.file_object.attrs[
-            "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().min()]
-        self.file_object.attrs[
-            "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().max()]
-        self.file_object.attrs[
-            "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in self.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
+        self.file_object.attrs["hab_animal_list"] = ", ".join(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
+        self.file_object.attrs["hab_animal_number"] = str(len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
+        self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
+            self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
+        self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
+            self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
+        self.file_object.attrs["hab_animal_type_list"] = ", ".join(
+            self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
         # close file
-        self.file_object.close()
-        self.file_object = None
+        self.close_file()
 
         # reload to add new data to attributes
         self.export_gpkg()
@@ -1197,37 +1024,41 @@ class Hdf5Management:
         Method to remove all data of specific aquatic animal.
         Data to remove : attributes general and datasets.
         """
-        # get actual attributes (hab_fish_list, hab_fish_number, hab_fish_pref_list, hab_fish_shortname_list, hab_fish_stage_list)
-        hab_fish_list_before = self.file_object.attrs["hab_fish_list"].split(", ")
-        hab_fish_pref_list_before = self.file_object.attrs["hab_fish_pref_list"].split(", ")
-        hab_fish_stage_list_before = self.file_object.attrs["hab_fish_stage_list"].split(", ")
-        hab_aquatic_animal_type_list = self.file_object.attrs["hab_aquatic_animal_type_list"].split(", ")
+        # open file if not done
+        if self.file_object is None:
+            self.create_or_open_file(new=False)
+
+        # get actual attributes (hab_fish_list, hab_animal_number, hab_fish_pref_list, hab_fish_shortname_list, hab_animal_stage_list)
+        hab_animal_list_before = self.file_object.attrs["hab_animal_list"].split(", ")
+        hab_animal_pref_list_before = self.file_object.attrs["hab_animal_pref_list"].split(", ")
+        hab_animal_stage_list_before = self.file_object.attrs["hab_animal_stage_list"].split(", ")
+        hab_animal_type_list = self.file_object.attrs["hab_animal_type_list"].split(", ")
 
         # get index
         fish_index_to_remove_list = []
         for fish_name_to_remove in fish_names_to_remove:
-            if fish_name_to_remove in hab_fish_list_before:
-                fish_index_to_remove_list.append(hab_fish_list_before.index(fish_name_to_remove))
+            if fish_name_to_remove in hab_animal_list_before:
+                fish_index_to_remove_list.append(hab_animal_list_before.index(fish_name_to_remove))
         fish_index_to_remove_list.sort()
 
         # change lists
         for index in reversed(fish_index_to_remove_list):
-            hab_fish_list_before.pop(index)
-            hab_fish_pref_list_before.pop(index)
-            hab_fish_stage_list_before.pop(index)
-            hab_aquatic_animal_type_list.pop(index)
+            hab_animal_list_before.pop(index)
+            hab_animal_pref_list_before.pop(index)
+            hab_animal_stage_list_before.pop(index)
+            hab_animal_type_list.pop(index)
 
         # change attributes
-        self.file_object.attrs["hab_fish_number"] = str(len(hab_fish_list_before))
-        self.file_object.attrs["hab_fish_list"] = ", ".join(hab_fish_list_before)
-        self.file_object.attrs["hab_fish_pref_list"] = ", ".join(hab_fish_pref_list_before)
-        self.file_object.attrs["hab_fish_stage_list"] = ", ".join(hab_fish_stage_list_before)
-        self.file_object.attrs["hab_aquatic_animal_type_list"] = ", ".join(hab_aquatic_animal_type_list)
+        self.file_object.attrs["hab_animal_number"] = str(len(hab_animal_list_before))
+        self.file_object.attrs["hab_animal_list"] = ", ".join(hab_animal_list_before)
+        self.file_object.attrs["hab_animal_pref_list"] = ", ".join(hab_animal_pref_list_before)
+        self.file_object.attrs["hab_animal_stage_list"] = ", ".join(hab_animal_stage_list_before)
+        self.file_object.attrs["hab_animal_type_list"] = ", ".join(hab_animal_type_list)
 
         # remove data
         # load the number of reach
         try:
-            nb_r = int(self.file_object.attrs["hyd_reach_number"])
+            nb_r = int(self.file_object.attrs["reach_number"])
         except KeyError:
             print(
                 'Error: the number of time step is missing from :' + self.filename)
@@ -1235,7 +1066,7 @@ class Hdf5Management:
 
         # load the number of time steps
         try:
-            nb_t = int(self.file_object.attrs["hyd_unit_number"])
+            nb_t = int(self.file_object.attrs["unit_number"])
         except KeyError:
             print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from : ') + self.filename)
             return
@@ -1243,11 +1074,11 @@ class Hdf5Management:
         # data_2d
         data_group = self.file_object['data_2d']
         # REACH GROUP
-        for reach_num in range(nb_r):
-            reach_group = data_group["reach_" + str(reach_num)]
+        for reach_number in range(nb_r):
+            reach_group = data_group["reach_" + str(reach_number)]
             # UNIT GROUP
-            for unit_num in range(nb_t):
-                unit_group = reach_group["unit_" + str(unit_num)]
+            for unit_number in range(nb_t):
+                unit_group = reach_group["unit_" + str(unit_number)]
                 mesh_group = unit_group["mesh"]
                 mesh_hv_data_group = mesh_group["hv_data"]
                 for fish_name_to_remove in fish_names_to_remove:
@@ -1258,7 +1089,7 @@ class Hdf5Management:
         newfilename = self.filename[:-4] + "_HS" + self.extension
         shutil.copy(self.absolute_path_file, os.path.join(self.path, newfilename))
         newhdf5 = Hdf5Management(self.path_prj, newfilename)
-        newhdf5.open_hdf5_file(False)
+        newhdf5.create_or_open_file(False)
         newhdf5.add_hs(progress_value,
                        classhv,
                        export_mesh=True,
@@ -1266,32 +1097,33 @@ class Hdf5Management:
         return newhdf5
 
     def add_hs(self, progress_value, classhv, export_mesh=False, export_txt=False):
-        self.units_index = list(range(self.data_2d.unit_num))
+        self.get_hdf5_attributes(close_file=False)
+        self.units_index = list(range(self.data_2d.unit_number))
         self.user_target_list = "defaut"
         self.load_data_2d()
 
         mathing = check_hs_class_match_hydraulic_values(classhv,
-                                              h_min=self.hvum.h.min,
-                                              h_max=self.hvum.h.max,
-                                              v_min=self.hvum.v.min,
-                                              v_max=self.hvum.v.max)
+                                              h_min=self.data_2d.hvum.h.min,
+                                              h_max=self.data_2d.hvum.h.max,
+                                              v_min=self.data_2d.hvum.v.min,
+                                              v_max=self.data_2d.hvum.v.max)
         if mathing:
             # progress
-            delta_reach = 90 / self.data_2d.reach_num
+            delta_reach = 90 / self.data_2d.reach_number
 
             # for each reach
-            for reach_num in range(self.data_2d.reach_num):
+            for reach_number in range(self.data_2d.reach_number):
 
                 # progress
-                delta_unit = delta_reach / self.data_2d.unit_num
+                delta_unit = delta_reach / self.data_2d.unit_number
 
                 # for each unit
-                for unit_num in range(self.data_2d.unit_num):
-                    hyd_data_mesh = self.data_2d[reach_num][unit_num]["mesh"]["data"].to_records(index=False)
-                    hyd_tin = self.data_2d[reach_num][unit_num]["mesh"]["tin"]
-                    i_whole_profile = self.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"]
-                    hyd_data_node = self.data_2d[reach_num][unit_num]["node"]["data"].to_records(index=False)
-                    hyd_xy_node = self.data_2d[reach_num][unit_num]["node"]["xy"]
+                for unit_number in range(self.data_2d.unit_number):
+                    hyd_data_mesh = self.data_2d[reach_number][unit_number]["mesh"]["data"].to_records(index=False)
+                    hyd_tin = self.data_2d[reach_number][unit_number]["mesh"]["tin"]
+                    i_whole_profile = self.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"]
+                    hyd_data_node = self.data_2d[reach_number][unit_number]["node"]["data"].to_records(index=False)
+                    hyd_xy_node = self.data_2d[reach_number][unit_number]["node"]["xy"]
                     hyd_hv_node = np.array([hyd_data_node["h"], hyd_data_node["v"]]).T
 
                     # progress
@@ -1310,7 +1142,7 @@ class Hdf5Management:
                     if export_txt:
                         hsexporttxt(os.path.join(self.path_prj, "output", "text"),
                                 os.path.splitext(self.filename)[0] + "_HSresult.txt",
-                                classhv, self.units_name[reach_num][unit_num],
+                                classhv, self.data_2d[reach_number][unit_number].unit_name,
                                 nb_mesh, total_area, total_volume, mean_depth, mean_velocity,
                                 mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
 
@@ -1324,7 +1156,7 @@ class Hdf5Management:
                                                                         "max_depth": max_depth,
                                                                         "min_velocity": min_velocity,
                                                                         "max_velocity": max_velocity}
-                    unitpath = "data_2d/reach_" + str(reach_num) + "/unit_" + str(unit_num)
+                    unitpath = "data_2d/reach_" + str(reach_number) + "/unit_" + str(unit_number)
                     for attrname in hs_dict.keys():
                         self.file_object[unitpath].attrs.create(attrname, hs_dict[attrname])
 
@@ -1348,14 +1180,15 @@ class Hdf5Management:
                         self.replace_dataset_in_file(unitpath + "/node/data", node_data_out)
                         self.replace_dataset_in_file(unitpath + "/node/xy", node_xy_out)
 
-                    # print("Calculated reach " + str(reach_num) + ", unit " + str(unit_num))
+                    # print("Calculated reach " + str(reach_number) + ", unit " + str(unit_number))
 
-            self.file_object.attrs.create("hs_calculated", "True")
-            self.file_object.attrs.create("hs_input_class", str(classhv))
+            self.file_object.attrs.create("hs_calculated", True)
+            self.file_object.attrs.create("hs_input_class", classhv)
 
     def load_hydrosignature(self):
-        for reach_index in range(self.data_2d.reach_num):
-            for unit_index in range(self.data_2d.unit_num):
+        self.get_hdf5_attributes(close_file=False)
+        for reach_index in range(self.data_2d.reach_number):
+            for unit_index in range(self.data_2d.unit_number):
                 unitpath = "data_2d/reach_" + str(reach_index) + "/unit_" + str(unit_index)
                 keylist = ["nb_mesh", "total_area", "total_volume", "mean_depth", "mean_velocity", "mean_froude",
                            "min_depth", "max_depth", "min_velocity", "max_velocity"]
@@ -1378,7 +1211,7 @@ class Hdf5Management:
     # ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
         # create a new hdf5
-        self.open_hdf5_file(new=True)
+        self.create_or_open_file(new=True)
 
         # hdf5_type
         self.hdf5_type = "ESTIMHAB"
@@ -1412,14 +1245,14 @@ class Hdf5Management:
             self.file_object.create_dataset("targ_" + k, data=v)
 
         # close
-        self.file_object.close()
+        self.close_file()
 
         # load
         self.load_hdf5_estimhab()
 
     def load_hdf5_estimhab(self):
         # open an hdf5
-        self.open_hdf5_file(new=False)
+        self.create_or_open_file(new=False)
 
         # load dataset
         estimhab_dict = dict(q=self.file_object["qmes"][:].flatten().tolist(),
@@ -1443,8 +1276,7 @@ class Hdf5Management:
             estimhab_dict["targ_" + k] = self.file_object["targ_" + k][:]
 
         # close file
-        self.file_object.close()
-        self.file_object = None
+        self.close_file()
 
         # save attrivbute
         self.estimhab_dict = estimhab_dict
@@ -1474,24 +1306,24 @@ class Hdf5Management:
         # CRS
         crs = osr.SpatialReference()
         if self.hdf5_type == "hydraulic":
-            if self.data_description["hyd_epsg_code"] != "unknown":
+            if self.data_2d.epsg_code != "unknown":
                 try:
-                    crs.ImportFromEPSG(int(self.data_description["hyd_epsg_code"]))
+                    crs.ImportFromEPSG(int(self.data_2d.epsg_code))
                 except:
                     print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "),
-                          self.data_description["hyd_epsg_code"])
+                          self.data_2d.epsg_code)
         if self.hdf5_type == "habitat":
-            if self.data_description["hab_epsg_code"] != "unknown":
+            if self.data_2d.epsg_code != "unknown":
                 try:
-                    crs.ImportFromEPSG(int(self.data_description["hab_epsg_code"]))
+                    crs.ImportFromEPSG(int(self.data_2d.epsg_code))
                 except:
                     print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "),
-                          self.data_description["hab_epsg_code"])
+                          self.data_2d.epsg_code)
 
         # for each reach : one gpkg
-        for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+        for reach_number in range(0, self.data_2d.reach_number):
             # name
-            filename = self.basename + "_" + self.reach_name[reach_num] + ".gpkg"
+            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
             driver = ogr.GetDriverByName('GPKG')  # GPKG
 
             # file not exist : create it
@@ -1514,7 +1346,7 @@ class Hdf5Management:
                             return
                     # if erase_id == False : create with new name
                     else:
-                        filename = self.basename + "_" + self.reach_name[reach_num] + "_allunits_" + time.strftime(
+                        filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_allunits_" + time.strftime(
                             "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
 
                     # gpkg file creation
@@ -1524,7 +1356,7 @@ class Hdf5Management:
                 # if .hab
                 if self.hdf5_type == "habitat":
                     # no fish
-                    if not self.hvum.hdf5_and_computable_list.habs():
+                    if not self.data_2d.hvum.all_final_variable_list.habs():
                         # if erase_id == True
                         if self.project_preferences['erase_id']:
                             try:
@@ -1535,7 +1367,7 @@ class Hdf5Management:
                                 return
                         # if erase_id == False
                         else:
-                            filename = self.basename + "_" + self.reach_name[reach_num] + "_allunits_" + time.strftime(
+                            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_allunits_" + time.strftime(
                                 "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
 
                         # gpkg file creation
@@ -1551,7 +1383,7 @@ class Hdf5Management:
                             layer_names = [ds.GetLayer(i).GetName() for i in range(ds.GetLayerCount())]
                         # if erase_id == False
                         else:
-                            filename = self.basename + "_" + self.reach_name[reach_num] + "_allunits_" + time.strftime(
+                            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_allunits_" + time.strftime(
                                 "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
                             # gpkg file creation
                             ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
@@ -1559,14 +1391,14 @@ class Hdf5Management:
 
             # DATA 2D WHOLE PROFILE mesh
             if mesh_whole_profile_tf:  # only on .hyd creation
-                # for all units (selected or all)
-                for unit_num in range(0, len(self.data_2d_whole[reach_num])):
+                # for all units
+                for unit_number in range(0, self.data_2d_whole.unit_number):
                     # layer_name
-                    if not self.data_description['hyd_varying_mesh']:
+                    if not self.data_2d.hyd_varying_mesh:
                         layer_name = "mesh_wholeprofile_allunits"
                     else:
-                        layer_name = "mesh_wholeprofile_" + self.data_description["unit_name_whole_profile"][reach_num][
-                            unit_num]
+                        layer_name = "mesh_wholeprofile_" + self.data_2d_whole.unit_list[reach_number][
+                            unit_number]
 
                     # create layer
                     if not crs.ExportToWkt():  # '' == crs unknown
@@ -1579,18 +1411,18 @@ class Hdf5Management:
                     layer.StartTransaction()  # faster
 
                     # for each mesh
-                    for mesh_num in range(0, len(self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
-                        node1 = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][
+                    for mesh_num in range(0, len(self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
+                        node1 = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][
                             0]  # node num
-                        node2 = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][1]
-                        node3 = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][2]
+                        node2 = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][1]
+                        node3 = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][2]
                         # data geom (get the triangle coordinates)
-                        p1 = list(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][node1].tolist() + [
-                            self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][node1]])
-                        p2 = list(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][node2].tolist() + [
-                            self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][node2]])
-                        p3 = list(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][node3].tolist() + [
-                            self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][node3]])
+                        p1 = list(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node1].tolist() + [
+                            self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][node1]])
+                        p2 = list(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node2].tolist() + [
+                            self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][node2]])
+                        p3 = list(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node3].tolist() + [
+                            self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][node3]])
                         # Create triangle
                         ring = ogr.Geometry(ogr.wkbLinearRing)
                         ring.AddPoint(*p1)
@@ -1611,50 +1443,50 @@ class Hdf5Management:
                     # Save and close everything
                     layer.CommitTransaction()  # faster
 
-                    # # stop loop in this case (if one unit in whole profile)
-                    # if not self.data_description['hyd_varying_mesh']:
-                    #     break
+                    # stop loop in this case (if one unit in whole profile)
+                    if not self.data_2d.hyd_varying_mesh:
+                        break
 
             # DATA 2D mesh
             if mesh_units_tf:
                 # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                for unit_number in range(0, self.data_2d.unit_number):
                     # name
-                    layer_name = "mesh_" + self.units_name_output[reach_num][unit_num]
+                    layer_name = "mesh_" + self.units_name_output[reach_number][unit_number]
                     layer_exist = False
 
                     # if layer exist
                     if layer_name in layer_names:
                         layer_exist = True
-                        if self.hvum.hdf5_and_computable_list.habs():
+                        if self.data_2d.hvum.all_final_variable_list.habs():
                             layer = ds.GetLayer(layer_name)
                             layer_defn = layer.GetLayerDefn()
                             field_names = [layer_defn.GetFieldDefn(i).GetName() for i in
                                            range(layer_defn.GetFieldCount())]
                             # erase all fish field
-                            for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
+                            for fish_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.habs()):
                                 if animal.name in field_names:
                                     field_index = field_names.index(animal.name)
                                     layer.DeleteField(field_index)  # delete all features attribute of specified field
                                     field_names = [layer_defn.GetFieldDefn(i).GetName() for i in
                                                    range(layer_defn.GetFieldCount())]  # refresh list
                             # create all fish field
-                            for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
+                            for fish_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.habs()):
                                 new_field = ogr.FieldDefn(animal.name, ogr.OFTReal)
                                 layer.CreateField(new_field)
                             # add fish data for each mesh
                             layer.StartTransaction()  # faster
                             for mesh_num in range(0,
-                                                  len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
+                                                  len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
                                 feature = layer.GetFeature(mesh_num + 1)  # 1 because gpkg start at 1
-                                for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
-                                    data = self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name][mesh_num]
+                                for fish_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.habs()):
+                                    data = self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name][mesh_num]
                                     feature.SetField(animal.name, data)
                                 layer.SetFeature(feature)
                             layer.CommitTransaction()  # faster
 
                     # if layer not exist
-                    if not layer_exist or not self.hvum.hdf5_and_computable_list.habs():  # not exist or merge case
+                    if not layer_exist or not self.data_2d.hvum.all_final_variable_list.habs():  # not exist or merge case
                         # create layer
                         if not crs.ExportToWkt():  # '' == crs unknown
                             layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPolygon)
@@ -1662,37 +1494,30 @@ class Hdf5Management:
                             layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon)
 
                         # create fields (no width no precision to be specified with GPKG)
-                        for mesh_variable in self.hvum.hdf5_and_computable_list.no_habs().meshs():
+                        for mesh_variable in self.data_2d.hvum.all_final_variable_list.no_habs().meshs():
                             layer.CreateField(ogr.FieldDefn(mesh_variable.name_gui, OGRTypes_dict[mesh_variable.dtype]))
 
                         defn = layer.GetLayerDefn()
                         if self.hdf5_type == "habitat":
                             # fish
-                            if self.hvum.hdf5_and_computable_list.habs():
-                                for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
-                                    layer.CreateField(ogr.FieldDefn(animal.name, OGRTypes_dict[animal.dtype]))
+                            if self.data_2d.hvum.all_final_variable_list.habs():
+                                for fish_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.habs()):
+                                    layer.CreateField(ogr.FieldDefn(animal.name_gui, OGRTypes_dict[animal.dtype]))
                         layer.StartTransaction()  # faster
 
                         # for each mesh
-                        for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
-                            node1 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][
+                        for mesh_num in range(0, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
+                            node1 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][
                                 0]  # node num
-                            node2 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][1]
-                            node3 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][2]
+                            node2 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][1]
+                            node3 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][2]
                             # data geom (get the triangle coordinates)
-                            p1 = list(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][node1].tolist() + [
-                                self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node1]])
-                            p2 = list(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][node2].tolist() + [
-                                self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node2]])
-                            p3 = list(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][node3].tolist() + [
-                                self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][node3]])
-                            # data attrbiutes
-                            if self.hdf5_type == "habitat":
-                                if self.hvum.hdf5_and_computable_list.habs():
-                                    fish_data = []
-                                    for animal in self.hvum.hdf5_and_computable_list.habs():
-                                        fish_data.append(
-                                            self.data_2d[reach_num][unit_num]["mesh"]["data"][animal.name][mesh_num])
+                            p1 = list(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node1].tolist() + [
+                                self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][node1]])
+                            p2 = list(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node2].tolist() + [
+                                self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][node2]])
+                            p3 = list(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node3].tolist() + [
+                                self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][node3]])
 
                             # Create triangle
                             ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -1707,21 +1532,22 @@ class Hdf5Management:
                             feat = ogr.Feature(defn)
 
                             # variables
-                            for mesh_variable in self.hvum.hdf5_and_computable_list.no_habs().meshs():
+                            for mesh_variable in self.data_2d.hvum.all_final_variable_list.no_habs().meshs():
                                 if mesh_variable.dtype == np.int64:
-                                    data_field = int(self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][
+                                    data_field = int(self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
                                                          mesh_variable.name][mesh_num])
                                 else:
-                                    data_field = self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][
+                                    data_field = self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
                                         mesh_variable.name][mesh_num]
 
                                 feat.SetField(mesh_variable.name_gui, data_field)
 
                             if self.hdf5_type == "habitat":
                                 # fish
-                                if self.hvum.hdf5_and_computable_list.habs():
-                                    for fish_num, animal in enumerate(self.hvum.hdf5_and_computable_list.habs()):
-                                        feat.SetField(animal.name, fish_data[fish_num])
+                                if self.data_2d.hvum.all_final_variable_list.habs():
+                                    for fish_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.habs()):
+                                        feat.SetField(animal.name,
+                                                      self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name][mesh_num])
                             # set geometry
                             feat.SetGeometry(poly)
                             # create
@@ -1733,13 +1559,13 @@ class Hdf5Management:
             # DATA 2D WHOLE PROFILE point
             if point_whole_profile_tf:  # only on .hyd creation
                 # for all units (selected or all)
-                for unit_num in range(0, len(self.data_2d_whole[reach_num])):
+                for unit_number in range(0, self.data_2d_whole.unit_number):
                     # layer_name
-                    if not self.data_description['hyd_varying_mesh']:
+                    if not self.data_2d.hyd_varying_mesh:
                         layer_name = "point_wholeprofile_allunits"
                     else:
                         layer_name = "point_wholeprofile_" + \
-                                     self.data_description["unit_name_whole_profile"][reach_num][unit_num]
+                                     self.data_2d_whole.unit_list[reach_number][unit_number]
 
                     # create layer
                     if not crs.ExportToWkt():  # '' == crs unknown
@@ -1753,11 +1579,11 @@ class Hdf5Management:
                     layer.StartTransaction()  # faster
 
                     # for each point
-                    for point_num in range(0, len(self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name])):
+                    for point_num in range(0, len(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])):
                         # data geom (get the triangle coordinates)
-                        x = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][0]
-                        y = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][1]
-                        z = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name][point_num]
+                        x = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][0]
+                        y = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][1]
+                        z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][point_num]
                         # Create a point
                         point = ogr.Geometry(ogr.wkbPoint)
                         point.AddPoint(x, y, z)
@@ -1773,15 +1599,15 @@ class Hdf5Management:
                     layer.CommitTransaction()  # faster
 
                     # stop loop in this case (if one unit in whole profile)
-                    if not self.data_description['hyd_varying_mesh']:
+                    if not self.data_2d.hyd_varying_mesh:
                         break
 
             # DATA 2D point
             if point_units_tf:
                 # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                for unit_number in range(0, self.data_2d.unit_number):
                     # name
-                    layer_name = "point_" + self.units_name_output[reach_num][unit_num]
+                    layer_name = "point_" + self.units_name_output[reach_number][unit_number]
                     layer_exist = False
 
                     # if layer exist
@@ -1789,7 +1615,7 @@ class Hdf5Management:
                         layer_exist = True
 
                     # if layer not exist
-                    if not layer_exist or not self.hvum.hdf5_and_computable_list.habs():  # not exist or merge case
+                    if not layer_exist or not self.data_2d.hvum.all_final_variable_list.habs():  # not exist or merge case
                         # create layer
                         if not crs.ExportToWkt():  # '' == crs unknown
                             layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
@@ -1797,18 +1623,18 @@ class Hdf5Management:
                             layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint)
 
                         # create fields (no width no precision to be specified with GPKG)
-                        for node_variable in self.hvum.hdf5_and_computable_list.no_habs().nodes():
+                        for node_variable in self.data_2d.hvum.all_final_variable_list.no_habs().nodes():
                             layer.CreateField(ogr.FieldDefn(node_variable.name_gui, OGRTypes_dict[node_variable.dtype]))
 
                         defn = layer.GetLayerDefn()
                         layer.StartTransaction()  # faster
 
                         # for each point
-                        for point_num in range(0, len(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name])):
+                        for point_num in range(0, len(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])):
                             # data geom (get the triangle coordinates)
-                            x = self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][0]
-                            y = self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][1]
-                            z = self.data_2d[reach_num][unit_num]["node"]["data"][self.hvum.z.name][point_num]
+                            x = self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][0]
+                            y = self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][1]
+                            z = self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][point_num]
 
                             # Create a point
                             point = ogr.Geometry(ogr.wkbPoint)
@@ -1816,9 +1642,9 @@ class Hdf5Management:
                             # Create a new feature
                             feat = ogr.Feature(defn)
 
-                            for node_variable in self.hvum.hdf5_and_computable_list.no_habs().nodes():
+                            for node_variable in self.data_2d.hvum.all_final_variable_list.no_habs().nodes():
                                 feat.SetField(node_variable.name_gui,
-                                              self.data_2d[reach_num][unit_num][node_variable.position]["data"][
+                                              self.data_2d[reach_number][unit_number][node_variable.position]["data"][
                                                   node_variable.name][point_num])
 
                             # set geometry
@@ -1845,14 +1671,14 @@ class Hdf5Management:
         if self.project_preferences['elevation_whole_profile'][index]:
             """ create stl whole profile (to see topography) """
             # for all reach
-            for reach_num in range(self.data_2d_whole.reach_num):
+            for reach_number in range(self.data_2d_whole.reach_number):
                 # for all units
-                for unit_num in range(self.data_2d_whole.unit_num):
+                for unit_number in range(self.data_2d_whole.unit_number):
                     # get data
-                    xy = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.xy.name]
-                    z = self.data_2d_whole[reach_num][unit_num]["node"][self.hvum.z.name] * self.project_preferences[
+                    xy = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name]
+                    z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name] * self.project_preferences[
                         "vertical_exaggeration"]
-                    tin = self.data_2d_whole[reach_num][unit_num]["mesh"][self.hvum.tin.name]
+                    tin = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]
                     xyz = np.column_stack([xy, z])
                     # Create the mesh
                     stl_file = mesh.Mesh(np.zeros(tin.shape[0], dtype=mesh.Mesh.dtype))
@@ -1860,9 +1686,9 @@ class Hdf5Management:
                         for j in range(3):
                             stl_file.vectors[i][j] = xyz[f[j], :]
                     # filename
-                    name_file = self.basename + "_" + self.reach_name[reach_num] + "_" + \
-                                self.data_description["unit_name_whole_profile"][reach_num][
-                                    unit_num] + "_wholeprofile_mesh.stl"
+                    name_file = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + \
+                                self.data_2d_whole.unit_list[reach_number][
+                                    unit_number] + "_wholeprofile_mesh.stl"
 
                     if self.project_preferences['erase_id']:  # erase file if exist ?
                         if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
@@ -1889,50 +1715,41 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['variables_units'][index]:
-            if self.extension == ".hab":
-                # format the name of species and stage
-                name_fish = self.data_description["hab_fish_list"].split(", ")
-                if name_fish == [""]:
-                    name_fish = []
-                for id, n in enumerate(name_fish):
-                    name_fish[id] = n.replace('_', ' ')
-
             file_names_all = []
             part_timestep_indice = []
-            pvd_variable_z = self.hvum.all_sys_variable_list.get_from_name_gui(
-                self.project_preferences["pvd_variable_z"])
+            pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(self.project_preferences["pvd_variable_z"])
 
             # for all reach
-            for reach_num in range(self.data_2d.reach_num):
+            for reach_number in range(self.data_2d.reach_number):
                 # for all units
-                for unit_num in range(self.data_2d.unit_num):
-                    part_timestep_indice.append((reach_num, unit_num))
+                for unit_number in range(self.data_2d.unit_number):
+                    part_timestep_indice.append((reach_number, unit_number))
                     # create one vtu file by time step
-                    x = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][:, 0])
-                    y = np.ascontiguousarray(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][:, 1])
+                    x = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 0])
+                    y = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 1])
                     z = np.ascontiguousarray(
-                        self.data_2d[reach_num][unit_num]["node"]["data"][pvd_variable_z.name].to_numpy() *
+                        self.data_2d[reach_number][unit_number]["node"]["data"][pvd_variable_z.name].to_numpy() *
                         self.project_preferences["vertical_exaggeration"])
-                    connectivity = np.reshape(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name],
-                                              (len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name]) * 3,))
-                    offsets = np.arange(3, len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name]) * 3 + 3,
+                    connectivity = np.reshape(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name],
+                                              (len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3,))
+                    offsets = np.arange(3, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3 + 3,
                                         3)
                     offsets = np.array(list(map(int, offsets)), dtype=np.int64)
                     cell_types = np.zeros(
-                        len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name]), ) + 5  # triangle
+                        len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]), ) + 5  # triangle
                     cell_types = np.array(list((map(int, cell_types))), dtype=np.int64)
 
                     cellData = {}
 
                     # hyd variables mesh
-                    for mesh_variable in self.hvum.hdf5_and_computable_list.meshs():
+                    for mesh_variable in self.data_2d.hvum.all_final_variable_list.meshs():
                         cellData[mesh_variable.name_gui] = \
-                            self.data_2d[reach_num][unit_num][mesh_variable.position]["data"][
+                            self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
                                 mesh_variable.name].to_numpy()
 
                     # create the grid and the vtu files
                     name_file = os.path.join(self.path_visualisation,
-                                             self.basename_output_reach_unit[reach_num][unit_num] + "_" +
+                                             self.basename_output_reach_unit[reach_number][unit_number] + "_" +
                                              self.project_preferences['pvd_variable_z'])
                     if self.project_preferences['erase_id']:  # erase file if exist ?
                         if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
@@ -1945,7 +1762,7 @@ class Hdf5Management:
                     else:
                         if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
                             name_file = os.path.join(self.path_visualisation,
-                                                     self.basename_output_reach_unit[reach_num][unit_num] + "_" +
+                                                     self.basename_output_reach_unit[reach_number][unit_number] + "_" +
                                                      self.project_preferences['pvd_variable_z']) + "_" + time.strftime(
                                 "%d_%m_%Y_at_%H_%M_%S")
                     file_names_all.append(name_file + ".vtu")
@@ -1953,7 +1770,7 @@ class Hdf5Management:
                                                  cellData)
 
             # create the "grouping" file to read all time step together
-            name_here = self.basename + "_" + self.reach_name[reach_num] + "_" + self.project_preferences[
+            name_here = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + self.project_preferences[
                 'pvd_variable_z'] + ".pvd"
             file_names_all = list(map(os.path.basename, file_names_all))
             if self.project_preferences['erase_id']:  # erase file if exist ?
@@ -1966,7 +1783,7 @@ class Hdf5Management:
                         return
             else:
                 if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
-                    name_here = self.basename + "_" + self.reach_name[reach_num] + "_" + self.project_preferences[
+                    name_here = self.basename + "_" + self.reach_name[reach_number] + "_" + self.project_preferences[
                         'pvd_variable_z'] + "_" + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + '.pvd'
             paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
@@ -1977,8 +1794,7 @@ class Hdf5Management:
 
     # EXPORT TXT
     def export_spu_txt(self, state=None):
-        path_txt = os.path.join(self.data_description["path_project"], "output", "text")
-        if not os.path.exists(path_txt):
+        if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
         # INDEX IF HYD OR HAB
@@ -1987,20 +1803,15 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['habitat_text'][index]:
-            sim_name = self.units_name
-            fish_names = self.data_description["hab_fish_list"].split(", ")
-            if fish_names == ['']:
-                fish_names = []
-
-            unit_type = self.data_description["hyd_unit_type"][
-                        self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
-                            "hyd_unit_type"].find(']')]
+            sim_name = self.data_2d.unit_list
+            animal_list = self.data_2d.hvum.all_final_variable_list.habs()
+            unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
 
             if self.project_preferences['language'] == 0:
                 name = self.basename + '_wua.txt'
             else:
                 name = self.basename + '_spu.txt'
-            if os.path.isfile(os.path.join(path_txt, name)):
+            if os.path.isfile(os.path.join(self.path_txt, name)):
                 if not self.project_preferences['erase_id']:
                     if self.project_preferences['language'] == 0:
                         name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
@@ -2008,13 +1819,13 @@ class Hdf5Management:
                         name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                 else:
                     try:
-                        os.remove(os.path.join(path_txt, name))
+                        os.remove(os.path.join(self.path_txt, name))
                     except PermissionError:
                         print('Error: ' + qt_tr.translate("hdf5_mod",
                                                           'Could not modify text file as it is open in another program. \n'))
                         return
 
-            name = os.path.join(path_txt, name)
+            name = os.path.join(self.path_txt, name)
 
             # open text to write
             with open(name, 'wt', encoding='utf-8') as f:
@@ -2025,51 +1836,54 @@ class Hdf5Management:
                 else:
                     header = 'troncon\tunit\taire_troncon'
                 if self.project_preferences['language'] == 0:
-                    header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\t%unknown' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tHV' for _ in range(len(animal_list))])
+                    header += "".join(['\tWUA' for _ in range(len(animal_list))])
+                    header += "".join(['\t%unknown' for _ in range(len(animal_list))])
                 else:
-                    header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\t%inconnu' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tVH' for _ in range(len(animal_list))])
+                    header += "".join(['\tSPU' for _ in range(len(animal_list))])
+                    header += "".join(['\t%inconnu' for _ in range(len(animal_list))])
                 header += '\n'
                 f.write(header)
                 # header 2
                 header = '[]\t[' + unit_type + ']\t[m2]'
-                header += "".join(['\t[]' for _ in range(len(fish_names))])
-                header += "".join(['\t[m2]' for _ in range(len(fish_names))])
-                header += "".join(['\t[%m2]' for _ in range(len(fish_names))])
+                header += "".join(['\t[]' for _ in range(len(animal_list))])
+                header += "".join(['\t[m2]' for _ in range(len(animal_list))])
+                header += "".join(['\t[%m2]' for _ in range(len(animal_list))])
                 header += '\n'
                 f.write(header)
                 # header 3
                 header = 'all\tall\tall '
-                for fish_name in fish_names * 3:
-                    header += '\t' + fish_name.replace(' ', '_')
+                for animal in animal_list * 3:
+                    header += '\t' + animal.name.replace(' ', '_')
                 header += '\n'
                 f.write(header)
 
-                for reach_num in range(self.data_2d.reach_num):
-                    for unit_num in range(self.data_2d.unit_num):
-                        area_reach = self.data_2d[reach_num][unit_num].total_wet_area
+                for reach_number in range(self.data_2d.reach_number):
+                    for unit_number in range(self.data_2d.unit_number):
+                        area_reach = self.data_2d[reach_number][unit_number].total_wet_area
                         if not sim_name:
-                            data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
+                            data_here = str(reach_number) + '\t' + str(unit_number) + '\t' + str(area_reach)
                         else:
-                            data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(
+                            data_here = str(reach_number) + '\t' + str(sim_name[reach_number][unit_number]) + '\t' + str(
                                 area_reach)
                         # HV
-                        for fish_name in fish_names:
+                        for animal in animal_list:
                             try:
-                                wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
+                                wua_fish = animal.hv[reach_number][unit_number]
                                 data_here += '\t' + str(float(wua_fish) / float(area_reach))
-                            except TypeError:
+                            except:
                                 data_here += '\t' + 'NaN'
                         # WUA
-                        for fish_name in fish_names:
-                            wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
-                            data_here += '\t' + str(wua_fish)
+                        for animal in animal_list:
+                            try:
+                                wua_fish = animal.wua[reach_number][unit_number]
+                                data_here += '\t' + str(wua_fish)
+                            except:
+                                data_here += '\t' + 'NaN'
                         # %unknwon
-                        for fish_name in fish_names:
-                            wua_fish = self.data_description["percent_area_unknown"][fish_name][reach_num][unit_num]
+                        for animal in animal_list:
+                            wua_fish = animal.percent_area_unknown[reach_number][unit_number]
                             data_here += '\t' + str(wua_fish)
 
                         data_here += '\n'
@@ -2101,76 +1915,61 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['detailled_text'][index]:
-            path_txt = os.path.join(self.data_description["path_project"], "output", "text")
-            if not os.path.exists(path_txt):
+            if not os.path.exists(self.path_txt):
                 print('Error: ' + qt_tr.translate("hdf5_mod",
                                                   'The path to the text file is not found. Text files not created \n'))
 
-            animal_list = self.hvum.hdf5_and_computable_list.meshs().habs()
-
             # for all reach
-            for reach_num in range(self.data_2d.reach_num):
+            for reach_number in range(self.data_2d.reach_number):
                 # for all units
-                for unit_num in range(self.data_2d.unit_num):
-                    name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate("hdf5_mod",
+                for unit_number in range(self.data_2d.unit_number):
+                    name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
                                                                                                         "detailled_mesh") + ".txt"
-                    if os.path.isfile(os.path.join(path_txt, name)):
+                    if os.path.isfile(os.path.join(self.path_txt, name)):
                         if not self.project_preferences['erase_id']:
-                            name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate(
+                            name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
                                 "hdf5_mod", "detailled_mesh") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                         else:
                             try:
-                                os.remove(os.path.join(path_txt, name))
+                                os.remove(os.path.join(self.path_txt, name))
                             except PermissionError:
                                 print('Error: ' + qt_tr.translate("hdf5_mod",
                                                                   'Could not modify text file as it is open in another program. \n'))
                                 return
-                    name = os.path.join(path_txt, name)
+                    name = os.path.join(self.path_txt, name)
 
                     # open text to write
                     with open(name, 'wt', encoding='utf-8') as f:
-                        # hyd variables mesh
-                        text_to_write_str_list = self.hvum.hdf5_and_computable_list.meshs().no_habs().names()
-
                         # header 1
-                        text_to_write_str_list.extend([
+                        text_to_write_str_list = [
                             qt_tr.translate("hdf5_mod", "node1"),
                             qt_tr.translate("hdf5_mod", "node2"),
-                            qt_tr.translate("hdf5_mod", "node3")])
+                            qt_tr.translate("hdf5_mod", "node3")]
+                        text_to_write_str_list.extend(self.data_2d.hvum.all_final_variable_list.meshs().names())
                         text_to_write_str = "\t".join(text_to_write_str_list)
-                        if animal_list:
-                            if self.project_preferences['language'] == 0:
-                                text_to_write_str += "".join(['\tHV' + str(i) for i in range(len(animal_list))])
-                            else:
-                                text_to_write_str += "".join(['\tVH' + str(i) for i in range(len(animal_list))])
                         text_to_write_str += '\n'
                         f.write(text_to_write_str)
 
                         # header 2
-                        text_to_write_str = "["
-                        text_to_write_str += ']\t['.join(self.hvum.hdf5_and_computable_list.meshs().no_habs().units())
-                        text_to_write_str += ']\t[]\t[]\t[]'
-
+                        text_to_write_str = "[]\t[]\t[]\t["
+                        text_to_write_str += ']\t['.join(self.data_2d.hvum.all_final_variable_list.meshs().units())
                         f.write(text_to_write_str)
 
                         # data
                         text_to_write_str = ""
                         # for each mesh
-                        for mesh_num in range(0, len(self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name])):
-                            node1 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][
+                        for mesh_num in range(0, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
+                            node1 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][
                                 0]  # node num
-                            node2 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][1]
-                            node3 = self.data_2d[reach_num][unit_num]["mesh"][self.hvum.tin.name][mesh_num][2]
+                            node2 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][1]
+                            node3 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][2]
                             text_to_write_str += '\n'
+                            text_to_write_str += f"{str(node1)}\t{str(node2)}\t{str(node3)}\t"
                             data_list = []
-                            for mesh_variable_name in self.hvum.hdf5_and_computable_list.meshs().names():
+                            for mesh_variable_name in self.data_2d.hvum.all_final_variable_list.meshs().names():
                                 data_list.append(str(
-                                    self.data_2d[reach_num][unit_num]["mesh"]["data"][mesh_variable_name][mesh_num]))
+                                    self.data_2d[reach_number][unit_number]["mesh"]["data"][mesh_variable_name][mesh_num]))
                             text_to_write_str += "\t".join(data_list)
-                            text_to_write_str += f"\t{str(node1)}\t{str(node2)}\t{str(node3)}"
-                            if animal_list:
-                                for animal in animal_list:
-                                    text_to_write_str += f"\t{str(self.data_2d[reach_num][unit_num]['mesh']['data'][animal.name][mesh_num])}"
 
                         # change decimal point
                         locale = QLocale()
@@ -2193,56 +1992,55 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['detailled_text'][index]:
-            path_txt = os.path.join(self.data_description["path_project"], "output", "text")
-            if not os.path.exists(path_txt):
+            if not os.path.exists(self.path_txt):
                 print('Error: ' + qt_tr.translate("hdf5_mod",
                                                   'The path to the text file is not found. Text files not created \n'))
 
             # for all reach
-            for reach_num in range(self.data_2d.reach_num):
+            for reach_number in range(self.data_2d.reach_number):
                 # for all units
-                for unit_num in range(self.data_2d.unit_num):
-                    name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate("hdf5_mod",
+                for unit_number in range(self.data_2d.unit_number):
+                    name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
                                                                                                         "detailled_point") + ".txt"
-                    if os.path.isfile(os.path.join(path_txt, name)):
+                    if os.path.isfile(os.path.join(self.path_txt, name)):
                         if not self.project_preferences['erase_id']:
-                            name = self.basename_output_reach_unit[reach_num][unit_num] + "_" + qt_tr.translate(
+                            name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
                                 "hdf5_mod", "detailled_point") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                         else:
                             try:
-                                os.remove(os.path.join(path_txt, name))
+                                os.remove(os.path.join(self.path_txt, name))
                             except PermissionError:
                                 print('Error: ' + qt_tr.translate("hdf5_mod",
                                                                   'Could not modify text file as it is open in another program. \n'))
                                 return
-                    name = os.path.join(path_txt, name)
+                    name = os.path.join(self.path_txt, name)
 
                     # open text to write
                     with open(name, 'wt', encoding='utf-8') as f:
                         # header 1
                         text_to_write_str = "x\ty\t"
-                        text_to_write_str += "\t".join(self.hvum.hdf5_and_computable_list.nodes().names())
+                        text_to_write_str += "\t".join(self.data_2d.hvum.all_final_variable_list.nodes().names())
                         text_to_write_str += '\n'
                         f.write(text_to_write_str)
 
                         # header 2 2
                         text_to_write_str = '[m]\t[m]\t['
-                        text_to_write_str += "]\t[".join(self.hvum.hdf5_and_computable_list.nodes().units())
+                        text_to_write_str += "]\t[".join(self.data_2d.hvum.all_final_variable_list.nodes().units())
                         text_to_write_str += "]"
                         f.write(text_to_write_str)
 
                         # data
                         text_to_write_str = ""
                         # for each point
-                        for point_num in range(0, len(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name])):
+                        for point_num in range(0, len(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])):
                             text_to_write_str += '\n'
                             # data geom (get the triangle coordinates)
-                            x = str(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][0])
-                            y = str(self.data_2d[reach_num][unit_num]["node"][self.hvum.xy.name][point_num][1])
+                            x = str(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][0])
+                            y = str(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][1])
                             text_to_write_str += f"{x}\t{y}"
-                            for node_variable_name in self.hvum.hdf5_and_computable_list.nodes().names():
+                            for node_variable_name in self.data_2d.hvum.all_final_variable_list.nodes().names():
                                 text_to_write_str += "\t" + str(
-                                    self.data_2d[reach_num][unit_num]["node"]["data"][node_variable_name][point_num])
+                                    self.data_2d[reach_number][unit_number]["node"]["data"][node_variable_name][point_num])
 
                         # change decimal point
                         locale = QLocale()
@@ -2277,15 +2075,11 @@ class Hdf5Management:
             index = 1
         if self.project_preferences['fish_information'][index]:
             # get data
-            xmlfiles = self.data_description["hab_fish_pref_list"].split(", ")
-            # stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
-            hab_aquatic_animal_type_list = self.data_description["hab_aquatic_animal_type_list"].split(", ")
+            xmlfiles = self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()
+            hab_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
             # remove duplicates xml
-            prov_list = list(set(list(zip(xmlfiles, hab_aquatic_animal_type_list))))
-            xmlfiles, hab_aquatic_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
-
-            # path_im_bio = path_bio
-            path_out = os.path.join(self.path_prj, "output", "figures")
+            prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
+            xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
 
             plt.close()
             plt.rcParams['figure.figsize'] = 21, 29.7  # a4
@@ -2308,17 +2102,12 @@ class Hdf5Management:
                 fake_value = Value("d", 0)
 
                 if information_model_dict["ModelType"] != "bivariate suitability index models":
-                    # read pref
-                    if hab_aquatic_animal_type_list[idx] == "fish":
+                    # fish
+                    if hab_animal_type_list[idx] == "fish":
+                        # read pref
                         h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
-                            bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
-                    if hab_aquatic_animal_type_list[idx] == "invertebrate":
-                        # open the pref
-                        shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
-                            bio_info_mod.read_pref(xmlfile, hab_aquatic_animal_type_list[idx])
-
-                    # plot pref
-                    if hab_aquatic_animal_type_list[idx] == "fish":
+                            bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
+                        # plot
                         plot_mod.plot_suitability_curve(fake_value,
                                                         h_all,
                                                         vel_all,
@@ -2328,8 +2117,15 @@ class Hdf5Management:
                                                         stages,
                                                         information_model_dict["substrate_type"],
                                                         sub_code,
-                                                        self.project_preferences, True)
-                    if hab_aquatic_animal_type_list[idx] == "invertebrate":
+                                                        self.project_preferences,
+                                                        True)
+                        aa = 1
+                    # invertebrate
+                    else:
+                        # open the pref
+                        shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
+                            bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
+                        # plot
                         plot_mod.plot_suitability_curve_invertebrate(fake_value,
                                                                      shear_stress_all, hem_all, hv_all,
                                                                      code_fish, name_fish,
@@ -2337,7 +2133,7 @@ class Hdf5Management:
                 else:
                     # open the pref
                     [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
-                                                                                                                hab_aquatic_animal_type_list[
+                                                                                                                hab_animal_type_list[
                                                                                                                     idx])
                     state_fake = Value("d", 0)
                     plot_mod.plot_suitability_curve_bivariate(state_fake,
@@ -2424,7 +2220,7 @@ class Hdf5Management:
                              weight='bold')
 
                 # filename
-                filename = os.path.join(path_out, 'report_' + information_model_dict["CdBiologicalModel"] +
+                filename = os.path.join(self.path_figure, 'report_' + information_model_dict["CdBiologicalModel"] +
                                         self.project_preferences["format"])
 
                 # save
@@ -2453,12 +2249,11 @@ class Hdf5Management:
         qrange = self.estimhab_dict["qrange"]
         VH = self.estimhab_dict["VH"]
         SPU = self.estimhab_dict["SPU"]
-        path_txt = os.path.join(self.path_prj, "output", "text")
         output_filename = "Estimhab"
         intput_filename = "Estimhab_input"
 
         # check if exist and erase
-        if os.path.exists(os.path.join(path_txt, output_filename + '.txt')):
+        if os.path.exists(os.path.join(self.path_txt, output_filename + '.txt')):
             if not self.project_preferences["erase_id"]:
                 output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -2484,7 +2279,7 @@ class Hdf5Management:
 
         # export estimhab output
         try:
-            np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+            np.savetxt(os.path.join(self.path_txt, output_filename + '.txt'),
                        all_data.T,
                        header=txt_header,
                        fmt='%f',
@@ -2492,13 +2287,13 @@ class Hdf5Management:
         except PermissionError:
             output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+            np.savetxt(os.path.join(self.path_txt, output_filename + '.txt'),
                        all_data.T,
                        header=txt_header,
                        fmt='%f',
                        delimiter='\t')  # , newline=os.linesep
         if len(self.estimhab_dict["targ_q_all"]) != 0:
-            f = open(os.path.join(path_txt, output_filename + '.txt'), "a+")
+            f = open(os.path.join(self.path_txt, output_filename + '.txt'), "a+")
             np.savetxt(f,
                        all_data_targ.T,
                        header="target(s) discharge(s)",
@@ -2509,7 +2304,7 @@ class Hdf5Management:
         # change decimal point
         locale = QLocale()
         if locale.decimalPoint() == ",":
-            txt_file_convert_dot_to_comma(os.path.join(path_txt, output_filename + '.txt'))
+            txt_file_convert_dot_to_comma(os.path.join(self.path_txt, output_filename + '.txt'))
 
         # export estimhab input
         txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
@@ -2530,15 +2325,15 @@ class Hdf5Management:
         txtin += '\n'
         txtin += 'Output file:\t' + output_filename + '.txt\n'
         try:
-            with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
+            with open(os.path.join(self.path_txt, intput_filename + '.txt'), 'wt') as f:
                 f.write(txtin)
         except PermissionError:
             intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            with open(os.path.join(path_txt, intput_filename + '.txt'), 'wt') as f:
+            with open(os.path.join(self.path_txt, intput_filename + '.txt'), 'wt') as f:
                 f.write(txtin)
         locale = QLocale()
         if locale.decimalPoint() == ",":
-            txt_file_convert_dot_to_comma(os.path.join(path_txt, intput_filename + '.txt'))
+            txt_file_convert_dot_to_comma(os.path.join(self.path_txt, intput_filename + '.txt'))
 
 
 #################################################################
@@ -2665,8 +2460,10 @@ def get_filename_hs(path):
         if file.endswith(".hyd") or file.endswith(".hab"):
             path_prj = os.path.dirname(path)
             try:
-                hdf5 = Hdf5Management(path_prj, file)
-                hdf5.open_hdf5_file(False)
+                hdf5 = Hdf5Management(path_prj,
+                                      file,
+                                      new=False)
+                hdf5.close_file()
                 if hdf5.hs_calculated:
                     filenames.append(file)
             except:
@@ -2713,11 +2510,11 @@ def get_initial_files(path_hdf5, hdf5_name):
 
     # get the name
     try:
-        sub_ini = file.attrs['sub_filename']
+        sub_ini = file.attrs['filename']
     except KeyError:
         sub_ini = ''
     try:
-        hydro_ini = file.attrs['hyd_filename']
+        hydro_ini = file.attrs['filename']
     except KeyError:
         hydro_ini = ''
     file.close()

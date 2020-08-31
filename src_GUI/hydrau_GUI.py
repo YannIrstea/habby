@@ -452,6 +452,7 @@ class ModelInfoGroup(QGroupBox):
                         new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
                         # set new name
                         self.hdf5_name_lineedit.setText(new_hdf5_name)
+                        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = new_hdf5_name
                 # remove no_cut suffix if exist
                 elif no_cut_bool:
                     # check if no_cut suffix exist
@@ -465,8 +466,7 @@ class ModelInfoGroup(QGroupBox):
                         new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
                         # set new name
                         self.hdf5_name_lineedit.setText(new_hdf5_name)
-
-                self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = new_hdf5_name
+                        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = new_hdf5_name
 
     def clean_gui(self):
         self.input_file_combobox.clear()
@@ -581,7 +581,6 @@ class ModelInfoGroup(QGroupBox):
 
             # get names
             names = [description["filename_source"] for description in self.hydrau_description_list]
-            # to GUI (first decription)
 
             # clean GUI
             self.clean_gui()
@@ -601,14 +600,15 @@ class ModelInfoGroup(QGroupBox):
         node_list = ", ".join(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["variable_name_unit_dict"].nodes().names_gui())
         self.usefull_mesh_variable_label.setText(mesh_list)
         self.usefull_node_variable_label.setText(node_list)
-
         self.units_name_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_type"])  # kind of unit
-
         self.update_unit_from_reach()
-
         self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
-        text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" .hyd file")
+        extension = "hyd"
+        if "sub" in self.hydrau_description_list[self.input_file_combobox.currentIndex()].keys():
+            if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
+                extension = "hab"
+        text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" ." + extension + " file")
         if len(self.hydrau_description_list) > 1:
             text_load_button = text_load_button + "s"
         self.create_hdf5_button.setText(text_load_button)
@@ -703,8 +703,8 @@ class ModelInfoGroup(QGroupBox):
         """
         # get timestep and epsg selected
         for i in range(len(self.hydrau_description_list)):
-            for reach_num in range(int(self.hydrau_description_list[i]["reach_number"])):
-                if not any(self.hydrau_description_list[i]["unit_list_tf"][reach_num]):
+            for reach_number in range(int(self.hydrau_description_list[i]["reach_number"])):
+                if not any(self.hydrau_description_list[i]["unit_list_tf"][reach_number]):
                     self.send_log.emit("Error: " + self.tr("No units selected for : ") + self.hydrau_description_list[i]["filename_source"] + "\n")
                     return
 
@@ -735,9 +735,9 @@ class ModelInfoGroup(QGroupBox):
             if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
                 filename_source_list = hydrau_description_multiple[hdf5_num]["filename_source"].split(", ")
                 new_filename_source_list = []
-                for reach_num in range(len(hydrau_description_multiple[hdf5_num]["unit_list_tf"])):
+                for reach_number in range(len(hydrau_description_multiple[hdf5_num]["unit_list_tf"])):
                     for file_num, file in enumerate(filename_source_list):
-                        if hydrau_description_multiple[hdf5_num]["unit_list_tf"][reach_num][file_num]:
+                        if hydrau_description_multiple[hdf5_num]["unit_list_tf"][reach_number][file_num]:
                             new_filename_source_list.append(filename_source_list[file_num])
                 hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
 

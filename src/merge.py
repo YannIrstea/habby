@@ -85,31 +85,20 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub)
     hdf5_sub.load_hdf5_sub()
 
-    # merge_description
-    merge_description = dict()
-    # copy attributes hydraulic
-    for attribute_name, attribute_value in list(hdf5_hydro.data_description.items()):
-        merge_description[attribute_name] = attribute_value
-    # copy attributes substrate
-    for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
-        merge_description[attribute_name] = attribute_value
-
     # CONSTANT CASE
-    if hdf5_sub.data_description["sub_mapping_method"] == "constant":  # set default value to all mesh
+    if hdf5_sub.data_2d.sub_mapping_method == "constant":  # set default value to all mesh
         data_2d_merge = hdf5_hydro.data_2d
-        data_2d_merge.hvum = hdf5_hydro.hvum
         data_2d_whole_merge = hdf5_hydro.data_2d_whole
-        merge_description["hab_epsg_code"] = merge_description["hyd_epsg_code"]
         data_2d_merge.set_sub_cst_value(hdf5_sub)
 
     # POLYGON AND POINTS CASES
-    elif hdf5_sub.data_description["sub_mapping_method"] != "constant":
+    elif hdf5_sub.data_2d.sub_mapping_method != "constant":
         # check if EPSG are integer and if TRUE they must be equal
-        epsg_hyd = hdf5_hydro.data_description["hyd_epsg_code"]
-        epsg_sub = hdf5_sub.data_description["sub_epsg_code"]
+        epsg_hyd = hdf5_hydro.data_2d.epsg_code
+        epsg_sub = hdf5_sub.data_2d.epsg_code
         if epsg_hyd.isdigit() and epsg_sub.isdigit():
             if epsg_hyd == epsg_sub:
-                merge_description["hab_epsg_code"] = epsg_hyd
+                hab_epsg_code = epsg_hyd
             if epsg_hyd != epsg_sub:
                 print(
                     "Error : Merging failed. EPSG codes are different between hydraulic and substrate data : " + epsg_hyd + ", " + epsg_sub)
@@ -119,22 +108,22 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                 "Warning : EPSG code of hydraulic data is unknown (" + epsg_hyd + ") "
                                                                                   "and EPSG code of substrate data is known (" + epsg_sub + "). " +
                 "The merging data will still be calculated.")
-            merge_description["hab_epsg_code"] = epsg_sub
+            hab_epsg_code = epsg_sub
         if epsg_hyd.isdigit() and not epsg_sub.isdigit():
             print(
                 "Warning : EPSG code of hydraulic data is known (" + epsg_hyd + ") "
                                                                                 "and EPSG code of substrate data is unknown (" + epsg_sub + "). " +
                 "The merging data will still be calculated.")
-            merge_description["hab_epsg_code"] = epsg_hyd
+            hab_epsg_code = epsg_hyd
         if not epsg_hyd.isdigit() and not epsg_sub.isdigit():
             print(
                 "Warning : EPSG codes of hydraulic and substrate data are unknown : " + epsg_hyd + " ; "
                 + epsg_sub + ". The merging data will still be calculated.")
-            merge_description["hab_epsg_code"] = epsg_hyd
+            hab_epsg_code = epsg_hyd
 
         # check if extent match
-        extent_hyd = list(map(float, hdf5_hydro.data_description["data_extent"].split(", ")))
-        extent_sub = list(map(float, hdf5_sub.data_description["data_extent"].split(", ")))
+        extent_hyd = hdf5_hydro.data_2d.data_extent
+        extent_sub = hdf5_sub.data_2d.data_extent
         if (extent_hyd[2] < extent_sub[0] or extent_hyd[0] > extent_sub[2] or
                 extent_hyd[3] < extent_sub[1] or extent_hyd[1] > extent_sub[3]):
             print("Warning : No intersection found between hydraulic and substrate data (from extent intersection).")
@@ -143,96 +132,110 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             extent_intersect = True
 
         # check if whole profile is equal for all timestep
-        if not hdf5_hydro.data_description["hyd_varying_mesh"]:
+        if not hdf5_hydro.data_2d.hyd_varying_mesh:
             # have to check intersection for only one timestep
             pass
         else:
             # TODO : merge for all time step
             pass
 
+        # no intersect
         if not extent_intersect:  # set default value to all mesh
             data_2d_merge = hdf5_hydro.data_2d
-            data_2d_merge.hvum = hdf5_hydro.hvum
             data_2d_whole_merge = hdf5_hydro.data_2d_whole
             data_2d_merge.set_sub_cst_value(hdf5_sub)
+        # intersect
+        else:
+            data_2d_merge = Data2d(reach_number=hdf5_hydro.data_2d.reach_number,
+                                   unit_number=hdf5_hydro.data_2d.unit_number)  # new
+            # get hyd attr
+            data_2d_merge.__dict__ = hdf5_hydro.data_2d.__dict__.copy()
+            data_2d_merge.__dict__["hyd_filename_source"] = data_2d_merge.__dict__.pop("filename_source")
+            data_2d_merge.__dict__["hyd_path_filename_source"] = data_2d_merge.__dict__.pop("path_filename_source")
+            # get sub attr
+            for attribute_name in hdf5_sub.data_2d.__dict__.keys():
+                attribute_value = getattr(hdf5_sub.data_2d, attribute_name)
+                if attribute_name in {"filename_source", "path_filename_source"}:
+                    setattr(data_2d_merge, "sub_" + attribute_name, attribute_value)
+                if attribute_name[:3] == "sub":
+                    setattr(data_2d_merge, attribute_name, attribute_value)
+            data_2d_merge.hab_animal_list = ", ".join([])
+            data_2d_merge.hab_animal_number = 0
+            data_2d_merge.hab_animal_pref_list = ", ".join([])
+            data_2d_merge.hab_animal_stage_list = ", ".join([])
 
-        elif extent_intersect:
-            data_2d_merge = Data2d(reach_num=int(hdf5_hydro.data_description["hyd_reach_number"]),
-                                   unit_num=int(hdf5_hydro.data_description["hyd_unit_number"]))  # new
             data_2d_whole_merge = hdf5_hydro.data_2d_whole
-            data_2d_merge.equation_type = hdf5_hydro.data_2d.equation_type
-            data_2d_merge.hvum = hdf5_hydro.hvum  # hyd variables
-            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)  # sub variables
+            data_2d_merge.epsg_code = hab_epsg_code
+
+            data_2d_merge.hvum = hdf5_hydro.data_2d.hvum  # hyd variables
+            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_sub.data_2d.hvum.hdf5_and_computable_list)  # sub variables
             # progress
-            delta_reach = 80 / hdf5_hydro.data_2d.reach_num
+            delta_reach = 80 / hdf5_hydro.data_2d.reach_number
             # for each reach
-            for reach_num in range(0, hdf5_hydro.data_2d.reach_num):
+            for reach_number in range(0, hdf5_hydro.data_2d.reach_number):
                 # progress
-                delta_unit = delta_reach / hdf5_hydro.data_2d.unit_num
+                delta_unit = delta_reach / hdf5_hydro.data_2d.unit_number
                 # for each unit
-                for unit_num in range(0, hdf5_hydro.data_2d.unit_num):
+                for unit_number in range(0, hdf5_hydro.data_2d.unit_number):
                     # progress
-                    delta_mesh = delta_unit / hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"].shape[0]
+                    delta_mesh = delta_unit / hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"].shape[0]
                     # merge
                     merge_xy, merge_data_node, merge_tin, merge_i_whole_profile, merge_data_mesh, merge_data_sub = merge(
-                        hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
-                        hyd_data_node=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["data"].to_numpy(),
-                        hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                        iwholeprofile=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["i_whole_profile"],
-                        hyd_data_mesh=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["data"].to_numpy(),
+                        hyd_xy=hdf5_hydro.data_2d[reach_number][unit_number]["node"]["xy"],
+                        hyd_data_node=hdf5_hydro.data_2d[reach_number][unit_number]["node"]["data"].to_numpy(),
+                        hyd_tin=hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                        iwholeprofile=hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"],
+                        hyd_data_mesh=hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["data"].to_numpy(),
                         sub_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
                         sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
                         sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"].to_numpy(),
-                        sub_default=np.array(
-                            list(map(int, hdf5_sub.data_description["sub_default_values"].split(", ")))),
+                        sub_default=np.array(hdf5_sub.data_2d.sub_default_values),
                         coeffgrid=10,
                         delta_mesh=delta_mesh,
                         progress_value=progress_value)
 
                     # get mesh data
-                    data_2d_merge[reach_num][unit_num]["mesh"]["tin"] = merge_tin
-                    data_2d_merge[reach_num][unit_num]["mesh"]["data"] = DataFrame()
+                    data_2d_merge[reach_number][unit_number]["mesh"]["tin"] = merge_tin
+                    data_2d_merge[reach_number][unit_number]["mesh"]["data"] = DataFrame()
                     for colname_num, colname in enumerate(hdf5_hydro.data_2d[0][0]["mesh"]["data"].columns):
                         if colname == "i_whole_profile":
-                            data_2d_merge[reach_num][unit_num]["mesh"]["data"][colname] = merge_i_whole_profile[:, 0]
+                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_i_whole_profile[:, 0]
                         elif colname == "i_split":
-                            data_2d_merge[reach_num][unit_num]["mesh"]["data"][colname] = merge_i_whole_profile[:, 1]
+                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_i_whole_profile[:, 1]
                         else:
-                            data_2d_merge[reach_num][unit_num]["mesh"]["data"][colname] = merge_data_mesh[:,
+                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_data_mesh[:,
                                                                                           colname_num]
-                    data_2d_merge[reach_num][unit_num]["mesh"]["i_whole_profile"] = merge_i_whole_profile
+                    data_2d_merge[reach_number][unit_number]["mesh"]["i_whole_profile"] = merge_i_whole_profile
                     # sub_defaut
-                    data_2d_merge[reach_num][unit_num]["mesh"]["data"][data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
+                    data_2d_merge[reach_number][unit_number]["mesh"]["data"][data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
 
                     # get mesh sub data
                     for sub_class_num, sub_class_name in enumerate(
-                            hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
-                        data_2d_merge[reach_num][unit_num]["mesh"]["data"][sub_class_name] = merge_data_sub[:,
+                            hdf5_sub.data_2d.hvum.hdf5_and_computable_list.hdf5s().names()):
+                        data_2d_merge[reach_number][unit_number]["mesh"]["data"][sub_class_name] = merge_data_sub[:,
                                                                                              sub_class_num]
 
                     # get node data
-                    data_2d_merge[reach_num][unit_num]["node"]["xy"] = merge_xy
-                    data_2d_merge[reach_num][unit_num]["node"]["data"] = DataFrame()
+                    data_2d_merge[reach_number][unit_number]["node"]["xy"] = merge_xy
+                    data_2d_merge[reach_number][unit_number]["node"]["data"] = DataFrame()
                     for colname_num, colname in enumerate(hdf5_hydro.data_2d[0][0]["node"]["data"].columns):
-                        data_2d_merge[reach_num][unit_num]["node"]["data"][colname] = merge_data_node[:, colname_num]
+                        data_2d_merge[reach_number][unit_number]["node"]["data"][colname] = merge_data_node[:, colname_num]
 
                     # post process merge
-                    if data_2d_merge[reach_num][unit_num]["node"]["data"][data_2d_merge.hvum.h.name].min() < 0:
+                    if data_2d_merge[reach_number][unit_number]["node"]["data"][data_2d_merge.hvum.h.name].min() < 0:
                         print("Error: negative water height values detected after merging with substrate.")
 
                     # # plot_to_check_mesh_merging
-                    # plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[reach_num][unit_num]["node"]["xy"],
-                    #                            hyd_tin=hdf5_hydro.data_2d[reach_num][unit_num]["mesh"]["tin"],
+                    # plot_to_check_mesh_merging(hyd_xy=hdf5_hydro.data_2d[reach_number][unit_number]["node"]["xy"],
+                    #                            hyd_tin=hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"],
                     #
-                    #                            sub_xy=hdf5_sub.data_2d[reach_num][unit_num]["node"]["xy"],
-                    #                            sub_tin=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["tin"],
-                    #                            sub_data=hdf5_sub.data_2d[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy(),
+                    #                            sub_xy=hdf5_sub.data_2d[reach_number][unit_number]["node"]["xy"],
+                    #                            sub_tin=hdf5_sub.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                    #                            sub_data=hdf5_sub.data_2d[reach_number][unit_number]["mesh"]["data"]["sub_coarser"].to_numpy(),
                     #
-                    #                            merge_xy=data_2d_merge[reach_num][unit_num]["node"]["xy"],
-                    #                            merge_tin=data_2d_merge[reach_num][unit_num]["mesh"]["tin"],
-                    #                            merge_data=data_2d_merge[reach_num][unit_num]["mesh"]["data"]["sub_coarser"].to_numpy())
-
-
+                    #                            merge_xy=data_2d_merge[reach_number][unit_number]["node"]["xy"],
+                    #                            merge_tin=data_2d_merge[reach_number][unit_number]["mesh"]["tin"],
+                    #                            merge_data=data_2d_merge[reach_number][unit_number]["mesh"]["data"]["sub_coarser"].to_numpy())
 
             # new variables
             data_2d_merge.hvum.i_sub_defaut.position = "mesh"
@@ -255,8 +258,10 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     progress_value.value = 90
 
     # create hdf5 hab
-    hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hab)
-    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, merge_description, project_preferences)
+    hdf5 = hdf5_mod.Hdf5Management(path_prj,
+                                   hdf5_name_hab,
+                                   new=True)
+    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_preferences)
 
     # progress
     progress_value.value = 100

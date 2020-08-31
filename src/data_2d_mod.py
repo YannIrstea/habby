@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
 import sys
-import time
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
 from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
@@ -27,38 +26,41 @@ from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVari
 class Data2d(list):
     """ A Data2d represent a list of reach """
 
-    def __init__(self, reach_num=0, unit_num=0):
+    def __init__(self, reach_number=0, unit_number=0):
         super().__init__()
-        self.reach_num = reach_num
-        self.unit_num = unit_num
-        if self.reach_num and self.unit_num:
-            for reach_num in range(self.reach_num):
-                reach = Reach(reach_num,
-                              unit_num)
+        self.reach_number = reach_number
+        self.unit_number = unit_number
+        if self.reach_number and self.unit_number:
+            for reach_number in range(self.reach_number):
+                reach = Reach(reach_number,
+                              unit_number)
                 self.append(reach)
+        self.reach_list = []
+        self.unit_list = []
+        self.units_index = []
         # hvum
         self.hvum = HydraulicVariableUnitManagement()
         # data
-        self.data_extent = None
-        self.data_height = None
-        self.data_width = None
-        self.equation_type = "unknown"
+        self.data_extent = (0, 0, 0, 0)
+        self.data_height = 0.0
+        self.data_width = 0.0
+        self.hyd_equation_type = "unknown"
         # hs
         self.hs_summary_data = []
 
     def get_informations(self):
-        self.reach_num = len(self)
-        if self.reach_num:
-            self.unit_num = len(self[self.reach_num - 1])
+        self.reach_number = len(self)
+        if self.reach_number:
+            self.unit_number = len(self[self.reach_number - 1])
 
-        for reach_num in range(self.reach_num):
-            for unit_num in range(self.unit_num):
-                self[reach_num][unit_num].reach_num = reach_num
-                self[reach_num][unit_num].unit_num = unit_num
+        for reach_number in range(self.reach_number):
+            for unit_number in range(self.unit_number):
+                self[reach_number][unit_number].reach_number = reach_number
+                self[reach_number][unit_number].unit_number = unit_number
 
     def add_reach(self, data_2d_new, reach_num_list):
-        for reach_num in reach_num_list:
-            self.append(data_2d_new[reach_num_list[reach_num]])
+        for reach_number in reach_num_list:
+            self.append(data_2d_new[reach_num_list[reach_number]])
 
         # TODO: check if same units number and name
 
@@ -66,17 +68,17 @@ class Data2d(list):
         self.get_informations()
         self.hvum = data_2d_new.hvum
 
-    def add_unit(self, data_2d_new, reach_num):
+    def add_unit(self, data_2d_new, reach_number):
         # if not reach
-        if not self.reach_num:
+        if not self.reach_number:
             self.append(Reach())
-        self[reach_num].extend(data_2d_new[reach_num])
+        self[reach_number].extend(data_2d_new[reach_number])
 
         # TODO: check if same units number and name
 
         self.get_informations()
         self.hvum = data_2d_new.hvum
-        self.equation_type = data_2d_new.equation_type
+        self.hyd_equation_type = data_2d_new.hyd_equation_type
 
     def get_dimension(self):
         # get extent
@@ -86,28 +88,28 @@ class Data2d(list):
         yMax = []
 
         # for each reach
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             # for each unit
-            for unit_num in range(self.unit_num):
+            for unit_number in range(self.unit_number):
                 # extent
-                xMin.append(min(self[reach_num][unit_num]["node"]["xy"][:, 0]))
-                xMax.append(max(self[reach_num][unit_num]["node"]["xy"][:, 0]))
-                yMin.append(min(self[reach_num][unit_num]["node"]["xy"][:, 1]))
-                yMax.append(max(self[reach_num][unit_num]["node"]["xy"][:, 1]))
+                xMin.append(min(self[reach_number][unit_number]["node"]["xy"][:, 0]))
+                xMax.append(max(self[reach_number][unit_number]["node"]["xy"][:, 0]))
+                yMin.append(min(self[reach_number][unit_number]["node"]["xy"][:, 1]))
+                yMax.append(max(self[reach_number][unit_number]["node"]["xy"][:, 1]))
                 # data min/max
                 for variable in self.hvum.hdf5_and_computable_list:
                     if variable.hdf5:
-                        if min(self[reach_num][unit_num][variable.position]["data"][variable.name]) < variable.min:
-                            variable.min = min(self[reach_num][unit_num][variable.position]["data"][variable.name])
-                        if max(self[reach_num][unit_num][variable.position]["data"][variable.name]) > variable.max:
-                            variable.max = max(self[reach_num][unit_num][variable.position]["data"][variable.name])
+                        if min(self[reach_number][unit_number][variable.position]["data"][variable.name]) < variable.min:
+                            variable.min = min(self[reach_number][unit_number][variable.position]["data"][variable.name])
+                        if max(self[reach_number][unit_number][variable.position]["data"][variable.name]) > variable.max:
+                            variable.max = max(self[reach_number][unit_number][variable.position]["data"][variable.name])
 
         # get extent
         xMin = min(xMin)
         xMax = max(xMax)
         yMin = min(yMin)
         yMax = max(yMax)
-        self.data_extent = str(xMin) + ", " + str(yMin) + ", " + str(xMax) + ", " + str(yMax)
+        self.data_extent = (xMin, yMin, xMax, yMax)
         self.data_height = xMax - xMin
         self.data_width = yMax - yMin
 
@@ -116,14 +118,14 @@ class Data2d(list):
         retrun whole_profile from original data2d
         """
         whole_profile = Data2d()
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             reach = Reach()
-            for unit_num in range(self.unit_num):
-                unit_dict = Unit(reach_num,
-                                 unit_num)
-                unit_dict["mesh"]["tin"] = self[reach_num][unit_num]["mesh"]["tin"]
-                unit_dict["node"]["xy"] = self[reach_num][unit_num]["node"]["xy"]
-                unit_dict["node"]["z"] = self[reach_num][unit_num]["node"]["data"][self.hvum.z.name]
+            for unit_number in range(self.unit_number):
+                unit_dict = Unit(reach_number,
+                                 unit_number)
+                unit_dict["mesh"]["tin"] = self[reach_number][unit_number]["mesh"]["tin"]
+                unit_dict["node"]["xy"] = self[reach_number][unit_number]["node"]["xy"]
+                unit_dict["node"]["z"] = self[reach_number][unit_number]["node"]["data"][self.hvum.z.name]
                 # append by unit
                 reach.append(unit_dict)
                 # append by reach
@@ -133,47 +135,58 @@ class Data2d(list):
 
         return whole_profile
 
+    def get_light_data_2d(self):
+        light_data_2d = Data2d(self.reach_number,
+                               self.unit_number)
+        light_data_2d.__dict__ = self.__dict__.copy()
+        # for each reach
+        for reach_number in range(self.reach_number):
+            # for each unit
+            for unit_number in range(self.unit_number):
+                light_data_2d[reach_number][unit_number].__dict__ = self[reach_number][unit_number].__dict__.copy()
+        return light_data_2d
+
     def get_hyd_varying_xy_and_z_index(self):
         # hyd_varying_mesh and hyd_unit_z_equal?
         hyd_varying_xy_index = []
         hyd_varying_z_index = []
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             hyd_varying_xy_index.append([])
             hyd_varying_z_index.append([])
             it_equality = 0
-            for unit_num in range(self.unit_num):
-                if unit_num == 0:
-                    hyd_varying_xy_index[reach_num].append(it_equality)
-                    hyd_varying_z_index[reach_num].append(it_equality)
-                if unit_num > 0:
+            for unit_number in range(self.unit_number):
+                if unit_number == 0:
+                    hyd_varying_xy_index[reach_number].append(it_equality)
+                    hyd_varying_z_index[reach_number].append(it_equality)
+                if unit_number > 0:
                     # xy
-                    if np.array_equal(self[reach_num][unit_num]["node"]["xy"],
-                                      self[reach_num][it_equality]["node"]["xy"]):  # equal
-                        hyd_varying_xy_index[reach_num].append(it_equality)
+                    if np.array_equal(self[reach_number][unit_number]["node"]["xy"],
+                                      self[reach_number][it_equality]["node"]["xy"]):  # equal
+                        hyd_varying_xy_index[reach_number].append(it_equality)
                     else:
-                        it_equality = unit_num
-                        hyd_varying_xy_index[reach_num].append(it_equality)  # diff
+                        it_equality = unit_number
+                        hyd_varying_xy_index[reach_number].append(it_equality)  # diff
                     # z
-                    if np.array_equal(self[reach_num][unit_num]["node"]["z"],
-                                      self[reach_num][it_equality]["node"]["z"]):  # equal
-                        hyd_varying_z_index[reach_num].append(it_equality)
+                    if np.array_equal(self[reach_number][unit_number]["node"]["z"],
+                                      self[reach_number][it_equality]["node"]["z"]):  # equal
+                        hyd_varying_z_index[reach_number].append(it_equality)
                     else:
-                        it_equality = unit_num
-                        hyd_varying_z_index[reach_num].append(it_equality)  # diff
+                        it_equality = unit_number
+                        hyd_varying_z_index[reach_number].append(it_equality)  # diff
         return hyd_varying_xy_index, hyd_varying_z_index
 
     def reduce_to_first_unit_by_reach(self):
-        for reach_num in range(self.reach_num):
-            new_reach = Reach(reach_num,
+        for reach_number in range(self.reach_number):
+            new_reach = Reach(reach_number,
                               0)
-            new_reach.append(self[reach_num][0])
-            self[reach_num] = new_reach
+            new_reach.append(self[reach_number][0])
+            self[reach_number] = new_reach
         self.get_informations()
 
     def rename_substrate_column_data(self):
-        for reach_num in range(self.reach_num):
-            for unit_num in range(self.unit_num):
-                self[reach_num][unit_num]["mesh"][
+        for reach_number in range(self.reach_number):
+            for unit_number in range(self.unit_number):
+                self[reach_number][unit_number]["mesh"][
                     "data"].columns = self.hvum.hdf5_and_computable_list.hdf5s().subs().names()
 
     def set_sub_cst_value(self, hdf5_sub):
@@ -181,14 +194,14 @@ class Data2d(list):
         self.hvum.hdf5_and_computable_list.extend(hdf5_sub.hvum.hdf5_and_computable_list)
 
         # for each reach
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             # for each unit
-            for unit_num in range(self.unit_num):
+            for unit_number in range(self.unit_number):
                 try:
                     default_data = np.array(list(map(int, hdf5_sub.sub_default_values.split(", "))),
                                             dtype=self.hvum.sub_dom.dtype)
                     sub_array = np.repeat([default_data],
-                                          self[reach_num][unit_num]["mesh"]["tin"].shape[0],
+                                          self[reach_number][unit_number]["mesh"]["tin"].shape[0],
                                           0)
                 except ValueError or TypeError:
                     print(
@@ -197,67 +210,76 @@ class Data2d(list):
                 try:
                     # add sub data to dict
                     for sub_class_num, sub_class_name in enumerate(hdf5_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
-                        self[reach_num][unit_num]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
+                        self[reach_number][unit_number]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
                 except IndexError:
                     print("Error: Default substrate data is not coherent with the substrate classification code. "
                           "Change it in the text file accompanying the input file.")
                     return
 
                 # area ?
-                if self.hvum.area.name not in self[reach_num][unit_num]["mesh"]["data"].columns:
-                    pa = self[reach_num][unit_num]["node"]["xy"][
-                        self[reach_num][unit_num]["mesh"]["tin"][:, 0]]
-                    pb = self[reach_num][unit_num]["node"]["xy"][
-                        self[reach_num][unit_num]["mesh"]["tin"][:, 1]]
-                    pc = self[reach_num][unit_num]["node"]["xy"][
-                        self[reach_num][unit_num]["mesh"]["tin"][:, 2]]
+                if self.hvum.area.name not in self[reach_number][unit_number]["mesh"]["data"].columns:
+                    pa = self[reach_number][unit_number]["node"]["xy"][
+                        self[reach_number][unit_number]["mesh"]["tin"][:, 0]]
+                    pb = self[reach_number][unit_number]["node"]["xy"][
+                        self[reach_number][unit_number]["mesh"]["tin"][:, 1]]
+                    pc = self[reach_number][unit_number]["node"]["xy"][
+                        self[reach_number][unit_number]["mesh"]["tin"][:, 2]]
                     area = 0.5 * abs(
                         (pb[:, 0] - pa[:, 0]) * (pc[:, 1] - pa[:, 1]) -
                         (pc[:, 0] - pa[:, 0]) * (pb[:, 1] - pa[:, 1]))  # get area2
-                    self[reach_num][unit_num]["mesh"]["data"]["area"] = area
+                    self[reach_number][unit_number]["mesh"]["data"]["area"] = area
                     # variable
                     self.hvum.area.hdf5 = True
                     self.hvum.hdf5_and_computable_list.append(self.hvum.area)
                 else:
-                    area = self[reach_num][unit_num]["mesh"]["data"][self.hvum.area.name].to_numpy()
+                    area = self[reach_number][unit_number]["mesh"]["data"][self.hvum.area.name].to_numpy()
 
-                self[reach_num][unit_num].total_wet_area = np.sum(area)
+                self[reach_number][unit_number].total_wet_area = np.sum(area)
 
-    def set_unit_names(self, unit_name_list):
-        self.unit_name_list = unit_name_list
-        for reach_num in range(self.reach_num):
-            for unit_num in range(self.unit_num):
-                self[reach_num][unit_num].unit_name = self.unit_name_list[reach_num][unit_num]
+    def set_reach_names(self, reach_list):
+        self.reach_list = reach_list
+        for reach_number in range(self.reach_number):
+            for unit_number in range(self.unit_number):
+                reach_name = self.reach_list[reach_number]
+                self[reach_number].reach_name = reach_name
+                self[reach_number][unit_number].reach_name = reach_name
+
+    def set_unit_names(self, unit_list):
+        self.unit_list = unit_list
+        for reach_number in range(self.reach_number):
+            for unit_number in range(self.unit_number):
+                self[reach_number][unit_number].unit_name = self.unit_list[reach_number][unit_number]
+        self.units_index = list(range(self.unit_number))
 
     def remove_unit_from_unit_index_list(self, unit_index_to_remove_list):
         # remove duplicates
         unit_index_to_remove_list = list(set(unit_index_to_remove_list))
 
         # unit_dict removed
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             for unit_index_to_remove in reversed(unit_index_to_remove_list):
-                self[reach_num].pop(unit_index_to_remove)
+                self[reach_number].pop(unit_index_to_remove)
                 # unit_name_list updated
-                self.unit_name_list[reach_num].pop(unit_index_to_remove)
+                self.unit_list[reach_number].pop(unit_index_to_remove)
         self.get_informations()
 
     def check_validity(self):
         unit_to_remove_list = []
         # for each reach
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             # for each unit
-            for unit_num in range(self.unit_num):
+            for unit_number in range(self.unit_number):
                 # is_duplicates_mesh_and_point_on_one_unit?
-                if is_duplicates_mesh_and_point_on_one_unit(tin_array=self[reach_num][unit_num]["mesh"]["tin"],
+                if is_duplicates_mesh_and_point_on_one_unit(tin_array=self[reach_number][unit_number]["mesh"]["tin"],
                                                             xyz_array=np.column_stack(
-                                                                (self[reach_num][unit_num]["node"][self.hvum.xy.name],
-                                                                 self[reach_num][unit_num]["node"]["data"][
+                                                                (self[reach_number][unit_number]["node"][self.hvum.xy.name],
+                                                                 self[reach_number][unit_number]["node"]["data"][
                                                                      self.hvum.z.name].to_numpy())),
-                                                            unit_num=unit_num,
+                                                            unit_number=unit_number,
                                                             case="at reading."):
-                    print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
-                        reach_num) + " is not loaded.")
-                    unit_to_remove_list.append(unit_num)
+                    print("Warning: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
+                        reach_number) + " is not loaded.")
+                    unit_to_remove_list.append(unit_number)
                     continue
 
         # remove_unit_from_unit_index_list
@@ -265,16 +287,16 @@ class Data2d(list):
 
     def set_min_height_to_0(self, min_height):
         # for each reach
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             # for each unit
-            for unit_num in range(self.unit_num):
+            for unit_number in range(self.unit_number):
                 """ node (always) """
-                self[reach_num][unit_num]["node"]["data"].loc[self[reach_num][unit_num]["node"]["data"][
+                self[reach_number][unit_number]["node"]["data"].loc[self[reach_number][unit_number]["node"]["data"][
                                                                   self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.nodes().depend_on_hs().names()] = 0.0
 
                 """ mesh """
                 if self.hvum.h.name in self.hvum.hdf5_and_computable_list.meshs().names():
-                    self[reach_num][unit_num]["mesh"]["data"].loc[self[reach_num][unit_num]["mesh"]["data"][
+                    self[reach_number][unit_number]["mesh"]["data"].loc[self[reach_number][unit_number]["mesh"]["data"][
                                                                       self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.meshs().depend_on_hs().names()] = 0.0
 
     def remove_dry_mesh(self):
@@ -283,15 +305,15 @@ class Data2d(list):
         unit_to_remove_list = []
 
         # for each reach
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             # for each unit
-            for unit_num in range(self.unit_num):
+            for unit_number in range(self.unit_number):
                 # get data from dict
-                ikle = self[reach_num][unit_num]["mesh"]["tin"]
-                point_all = np.column_stack((self[reach_num][unit_num]["node"][self.hvum.xy.name],
-                                             self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
-                water_height = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name].to_numpy()
-                ind_whole = self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name]
+                ikle = self[reach_number][unit_number]["mesh"]["tin"]
+                point_all = np.column_stack((self[reach_number][unit_number]["node"][self.hvum.xy.name],
+                                             self[reach_number][unit_number]["node"]["data"][self.hvum.z.name].to_numpy()))
+                water_height = self[reach_number][unit_number]["node"]["data"][self.hvum.h.name].to_numpy()
+                ind_whole = self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name]
 
                 bhw = (water_height > 0).astype(self.hvum.i_whole_profile.dtype)
                 ikle_bit = bhw[ikle]
@@ -300,9 +322,9 @@ class Data2d(list):
 
                 # all meshes are entirely dry
                 if not True in mikle_keep:
-                    print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
-                        reach_num) + " is entirely dry.")
-                    unit_to_remove_list.append(unit_num)
+                    print("Warning: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
+                        reach_number) + " is entirely dry. The latter is removed.")
+                    unit_to_remove_list.append(unit_number)
                     continue
 
                 # only the wet meshes (and the partially ones)
@@ -318,16 +340,16 @@ class Data2d(list):
                 iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
 
                 # mesh data
-                self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
-                self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
-                if not self[reach_num][unit_num]["mesh"]["data"].empty:
-                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[
+                self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = iklekeep
+                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
+                if not self[reach_number][unit_number]["mesh"]["data"].empty:
+                    self[reach_number][unit_number]["mesh"]["data"] = self[reach_number][unit_number]["mesh"]["data"].iloc[
                         mikle_keep]
 
                 # node data
-                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
+                self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].iloc[
                     ipt_iklenew_unique]
-                self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
+                self[reach_number][unit_number]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
 
         if unit_to_remove_list:
             self.remove_unit_from_unit_index_list(unit_to_remove_list)
@@ -353,22 +375,22 @@ class Data2d(list):
         unit_to_remove_list = []
 
         # progress
-        delta_reach = delta_file / self.reach_num
+        delta_reach = delta_file / self.reach_number
 
         # for each reach
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
 
             # progress
-            delta_unit = delta_reach / len(unit_list[reach_num])
+            delta_unit = delta_reach / len(unit_list[reach_number])
 
             # for each unit
-            for unit_num, unit_name in enumerate(unit_list[reach_num]):
+            for unit_number, unit_name in enumerate(unit_list[reach_number]):
                 # get data from dict
-                ikle = self[reach_num][unit_num]["mesh"]["tin"]
-                point_all = np.column_stack((self[reach_num][unit_num]["node"][self.hvum.xy.name],
-                                             self[reach_num][unit_num]["node"]["data"][self.hvum.z.name].to_numpy()))
-                water_height = self[reach_num][unit_num]["node"]["data"][self.hvum.h.name].to_numpy()
-                velocity = self[reach_num][unit_num]["node"]["data"][self.hvum.v.name].to_numpy()
+                ikle = self[reach_number][unit_number]["mesh"]["tin"]
+                point_all = np.column_stack((self[reach_number][unit_number]["node"][self.hvum.xy.name],
+                                             self[reach_number][unit_number]["node"]["data"][self.hvum.z.name].to_numpy()))
+                water_height = self[reach_number][unit_number]["node"]["data"][self.hvum.h.name].to_numpy()
+                velocity = self[reach_number][unit_number]["node"]["data"][self.hvum.v.name].to_numpy()
 
                 point_new = np.empty((0, 3), dtype=self.hvum.xy.dtype)
                 jpn0 = len(point_all) - 1
@@ -459,7 +481,7 @@ class Data2d(list):
                                 else:
                                     print(
                                         "Error: Impossible case during the cutting of mesh partially wet on the unit " + unit_name + ".")
-                                    unit_to_remove_list.append(unit_num)
+                                    unit_to_remove_list.append(unit_number)
                                     continue
                                 jpn += 2
 
@@ -504,17 +526,17 @@ class Data2d(list):
                         iklekeep = indices2[iklekeep]
                         point_all_ok = point_all_ok2
                         print("Warning: while the cutting of mesh partially wet of the unit n°" + str(
-                            unit_num) + " of reach n°" + str(
-                            reach_num) + " we have been forced to eliminate " + str(nbdouble) +
+                            unit_number) + " of reach n°" + str(
+                            reach_number) + " we have been forced to eliminate " + str(nbdouble) +
                               " duplicate(s) point(s) ")
                     if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
                                                                 xyz_array=point_all_ok,
-                                                                unit_num=unit_num,
+                                                                unit_number=unit_number,
                                                                 case="after the cutting of mesh partially wet",
                                                                 checkpoint=False):
-                        print("Warning: The mesh of unit n°" + str(unit_num) + " of reach n°" + str(
-                            reach_num) + " is not loaded.")
-                        unit_to_remove_list.append(unit_num)
+                        print("Warning: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
+                            reach_number) + " is not loaded.")
+                        unit_to_remove_list.append(unit_number)
                         continue
 
                     # all the new points added have water_height,velocity=0,0   # TODO: v=0 is applicable to torrential flows ?
@@ -525,48 +547,48 @@ class Data2d(list):
                     # temp
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         # inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
-                        temp_data = griddata(points=self[reach_num][unit_num]["node"][self.hvum.xy.name],
-                                             values=self[reach_num][unit_num]["node"]["data"][
+                        temp_data = griddata(points=self[reach_number][unit_number]["node"][self.hvum.xy.name],
+                                             values=self[reach_number][unit_number]["node"]["data"][
                                                  self.hvum.temp.name].to_numpy(),
                                              xi=point_new_single[:, :2],
                                              method="linear")
 
                     # change all node dataframe
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
+                    self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].iloc[
                         ipt_iklenew_unique]
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
-                        temp_ok = np.append(self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name], temp_data,
+                        temp_ok = np.append(self[reach_number][unit_number]["node"]["data"][self.hvum.temp.name], temp_data,
                                             axis=0)
 
                     # new pandas dataframe (to be added to the end)
                     nan_pd = pd.DataFrame(np.nan, index=np.arange(lpns - nbdouble),
-                                          columns=self[reach_num][unit_num]["node"]["data"].columns.values)
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].append(nan_pd)
-                    self[reach_num][unit_num]["node"]["data"][self.hvum.h.name] = water_height_ok
-                    self[reach_num][unit_num]["node"]["data"][self.hvum.v.name] = velocity_ok
-                    self[reach_num][unit_num]["node"]["data"][self.hvum.z.name] = point_all_ok[:, 2]
+                                          columns=self[reach_number][unit_number]["node"]["data"].columns.values)
+                    self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].append(nan_pd)
+                    self[reach_number][unit_number]["node"]["data"][self.hvum.h.name] = water_height_ok
+                    self[reach_number][unit_number]["node"]["data"][self.hvum.v.name] = velocity_ok
+                    self[reach_number][unit_number]["node"]["data"][self.hvum.z.name] = point_all_ok[:, 2]
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
-                        self[reach_num][unit_num]["node"]["data"][self.hvum.temp.name] = temp_ok
+                        self[reach_number][unit_number]["node"]["data"][self.hvum.temp.name] = temp_ok
                 else:
-                    self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].iloc[
+                    self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].iloc[
                         ipt_iklenew_unique]
 
                 # mesh data
-                if not self[reach_num][unit_num]["mesh"]["data"].empty:
-                    self[reach_num][unit_num]["mesh"]["data"] = self[reach_num][unit_num]["mesh"]["data"].iloc[
+                if not self[reach_number][unit_number]["mesh"]["data"].empty:
+                    self[reach_number][unit_number]["mesh"]["data"] = self[reach_number][unit_number]["mesh"]["data"].iloc[
                         ind_whole]
-                self[reach_num][unit_num]["mesh"][self.hvum.tin.name] = iklekeep
-                self[reach_num][unit_num]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack(
+                self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = iklekeep
+                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack(
                     [ind_whole, i_split])
-                self[reach_num][unit_num]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
+                self[reach_number][unit_number]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
                 if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
                     self.hvum.i_split.position = "mesh"
                     self.hvum.i_split.hdf5 = True
                     self.hvum.hdf5_and_computable_list.append(self.hvum.i_split)
 
                 # node data
-                self[reach_num][unit_num]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
-                self[reach_num][unit_num]["node"]["data"] = self[reach_num][unit_num]["node"]["data"].fillna(
+                self[reach_number][unit_number]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
+                self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].fillna(
                     0)  # fillna with 0
 
                 # progress
@@ -591,83 +613,85 @@ class Data2d(list):
         node_variable_list = variable_computable_list.nodes()
         mesh_variable_list = variable_computable_list.meshs()
         # for all reach
-        for reach_num in range(self.reach_num):
+        for reach_number in range(self.reach_number):
             # for all units
-            for unit_num in range(self.unit_num):
-                # print("--- compute_variables unit", str(unit_num), " ---")
+            for unit_number in range(self.unit_number):
+                # print("--- compute_variables unit", str(unit_number), " ---")
                 """ node """
                 if node_variable_list:
                     for node_variable in node_variable_list:
                         # compute water_level
                         if node_variable.name == self.hvum.level.name:
-                            self[reach_num][unit_num].c_node_water_level()
+                            self[reach_number][unit_number].c_node_water_level()
                         # compute froude
                         elif node_variable.name == self.hvum.froude.name:
-                            self[reach_num][unit_num].c_node_froude()
+                            self[reach_number][unit_number].c_node_froude()
                         # compute hydraulic_head
                         elif node_variable.name == self.hvum.hydraulic_head.name:
-                            self[reach_num][unit_num].c_node_hydraulic_head()
+                            self[reach_number][unit_number].c_node_hydraulic_head()
                         # compute conveyance
                         elif node_variable.name == self.hvum.conveyance.name:
-                            self[reach_num][unit_num].c_node_conveyance()
+                            self[reach_number][unit_number].c_node_conveyance()
                         # compute shear_stress
                         elif node_variable.name == self.hvum.shear_stress.name:
-                            self[reach_num][unit_num].c_node_shear_stress()
+                            self[reach_number][unit_number].c_node_shear_stress()
                 """ mesh """
                 if mesh_variable_list:
                     for mesh_variable in mesh_variable_list:
                         # c_mesh_elevation
                         if mesh_variable.name == self.hvum.z.name:
-                            self[reach_num][unit_num].c_mesh_elevation()
+                            self[reach_number][unit_number].c_mesh_elevation()
                         # compute height
                         elif mesh_variable.name == self.hvum.h.name:
-                            self[reach_num][unit_num].c_mesh_height()
+                            self[reach_number][unit_number].c_mesh_height()
                         # compute velocity
                         elif mesh_variable.name == self.hvum.v.name:
-                            self[reach_num][unit_num].c_mesh_velocity()
+                            self[reach_number][unit_number].c_mesh_velocity()
                         # compute shear_stress
                         elif mesh_variable.name == self.hvum.shear_stress.name:
-                            self[reach_num][unit_num].c_mesh_shear_stress()
+                            self[reach_number][unit_number].c_mesh_shear_stress()
                         # compute shear_stress_beta
                         elif mesh_variable.name == self.hvum.shear_stress_beta.name:
-                            self[reach_num][unit_num].c_mesh_shear_stress_beta()
+                            self[reach_number][unit_number].c_mesh_shear_stress_beta()
                         # compute water_level
                         elif mesh_variable.name == self.hvum.level.name:
-                            self[reach_num][unit_num].c_mesh_water_level()
+                            self[reach_number][unit_number].c_mesh_water_level()
                         # compute froude
                         elif mesh_variable.name == self.hvum.froude.name:
-                            self[reach_num][unit_num].c_mesh_froude()
+                            self[reach_number][unit_number].c_mesh_froude()
                         # compute hydraulic_head
                         elif mesh_variable.name == self.hvum.hydraulic_head.name:
-                            self[reach_num][unit_num].c_mesh_hydraulic_head()
+                            self[reach_number][unit_number].c_mesh_hydraulic_head()
                         # compute conveyance
                         elif mesh_variable.name == self.hvum.conveyance.name:
-                            self[reach_num][unit_num].c_mesh_conveyance()
+                            self[reach_number][unit_number].c_mesh_conveyance()
                         # compute max_slope_bottom
                         elif mesh_variable.name == self.hvum.max_slope_bottom.name:
-                            self[reach_num][unit_num].c_mesh_max_slope_bottom()
+                            self[reach_number][unit_number].c_mesh_max_slope_bottom()
                         # compute max_slope_energy
                         elif mesh_variable.name == self.hvum.max_slope_energy.name:
-                            self[reach_num][unit_num].c_mesh_max_slope_energy()
+                            self[reach_number][unit_number].c_mesh_max_slope_energy()
                         # compute area
                         elif mesh_variable.name == self.hvum.area.name:
-                            self[reach_num][unit_num].c_mesh_area()
+                            self[reach_number][unit_number].c_mesh_area()
                         # compute coarser
                         elif mesh_variable.name == self.hvum.sub_coarser.name:
-                            self[reach_num][unit_num].c_mesh_sub_coarser()
+                            self[reach_number][unit_number].c_mesh_sub_coarser()
                         # compute dominant
                         elif mesh_variable.name == self.hvum.sub_dom.name:
-                            self[reach_num][unit_num].c_mesh_sub_dom()
+                            self[reach_number][unit_number].c_mesh_sub_dom()
                         # area
                         elif mesh_variable.name == self.hvum.area.name:
-                            self[reach_num][unit_num].c_mesh_area()
+                            self[reach_number][unit_number].c_mesh_area()
+                        else:
+                            self[reach_number][unit_number].c_mesh_mean_from_node_values(mesh_variable.name)
 
     def remove_null_area(self):
         # for all reach
-        for reach_num in range(0, self.reach_num):
+        for reach_number in range(0, self.reach_number):
             # for all units
-            for unit_num in range(0, self.unit_num):
-                self[reach_num][unit_num].remove_null_area()
+            for unit_number in range(0, self.unit_number):
+                self[reach_number][unit_number].remove_null_area()
 
     def neighbouring_triangles(self, tin, interest_mesh_indices=None):
         """
@@ -798,8 +822,8 @@ class Data2d(list):
         # TODO optimize code to run faster for large meshes
         # TODO find the most appropriate parameters npasses, tolerance, connectedness_criterion
         t0 = time.time()
-        for reach_i in range(self.reach_num):
-            for unit_i in range(self.unit_num):
+        for reach_i in range(self.reach_number):
+            for unit_i in range(self.unit_number):
                 ##All arrays below are copies, rather than aliases
                 node_data = self[reach_i][unit_i]["node"]["data"].copy()
                 mesh_data = self[reach_i][unit_i]["mesh"]["data"].copy()
@@ -934,26 +958,26 @@ class Data2d(list):
 class Reach(list):
     """ A reach represent a list of units """
 
-    def __init__(self, reach_num=0, unit_num=0):
+    def __init__(self, reach_number=0, unit_number=0):
         super().__init__()
-        self.reach_num = reach_num
-        self.unit_num = unit_num
-        for unit_num in range(self.unit_num):
-            unit = Unit(reach_num,
-                        unit_num)
+        self.reach_number = reach_number
+        self.unit_number = unit_number
+        for unit_number in range(self.unit_number):
+            unit = Unit(reach_number,
+                        unit_number)
             self.append(unit)
 
 
 class Unit(dict):
     """ A unit represent the mesh """
 
-    def __init__(self, reach_num, unit_num):
+    def __init__(self, reach_number, unit_number):
         super().__init__()
         # HydraulicVariableUnit
         self.hvum = HydraulicVariableUnitManagement()
-        self.reach_num = reach_num
+        self.reach_number = reach_number
         self.reach_name = ""
-        self.unit_num = unit_num
+        self.unit_number = unit_number
         self.unit_name = ""
         # data
         self.total_wet_area = None
@@ -971,20 +995,19 @@ class Unit(dict):
         mesh_values = np.mean([self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 0]],
                                self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 1]],
                                self["node"]["data"][node_variable_name].iloc[self["mesh"]["tin"][:, 2]]], axis=0)
-        return mesh_values
+        self["mesh"]["data"][node_variable_name] = mesh_values
 
     def c_mesh_elevation(self):
-        self["mesh"]["data"][self.hvum.z.name] = self.c_mesh_mean_from_node_values(self.hvum.z.name)
+        self.c_mesh_mean_from_node_values(self.hvum.z.name)
 
     def c_mesh_height(self):
-        self["mesh"]["data"][self.hvum.h.name] = self.c_mesh_mean_from_node_values(self.hvum.h.name)
+        self.c_mesh_mean_from_node_values(self.hvum.h.name)
 
     def c_mesh_velocity(self):
-        self["mesh"]["data"][self.hvum.v.name] = self.c_mesh_mean_from_node_values(self.hvum.v.name)
+        self.c_mesh_mean_from_node_values(self.hvum.v.name)
 
     def c_mesh_shear_stress(self):
-        self["mesh"]["data"][self.hvum.shear_stress.name] = self.c_mesh_mean_from_node_values(
-            self.hvum.shear_stress.name)
+        self.c_mesh_mean_from_node_values(self.hvum.shear_stress.name)
 
     # compute from node variable
     def c_mesh_shear_stress_beta(self):
@@ -1092,7 +1115,7 @@ class Unit(dict):
 
         # compute from node
         else:
-            self["mesh"]["data"][self.hvum.froude.name] = self.c_mesh_mean_from_node_values(self.hvum.froude.name)
+            self.c_mesh_mean_from_node_values(self.hvum.froude.name)
 
     def c_mesh_hydraulic_head(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -1103,8 +1126,7 @@ class Unit(dict):
                     (self["mesh"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
         # compute mesh mean
         else:
-            self["mesh"]["data"][self.hvum.hydraulic_head.name] = self.c_mesh_mean_from_node_values(
-                self.hvum.hydraulic_head.name)
+            self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head.name)
 
     def c_mesh_conveyance(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -1114,8 +1136,7 @@ class Unit(dict):
                                                               self["mesh"]["data"][self.hvum.v.name]
         # compute mesh mean
         else:
-            self["mesh"]["data"][self.hvum.conveyance.name] = self.c_mesh_mean_from_node_values(
-                self.hvum.conveyance.name)
+            self.c_mesh_mean_from_node_values(self.hvum.conveyance.name)
 
     def c_mesh_water_level(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
@@ -1126,7 +1147,7 @@ class Unit(dict):
                                                                  self["mesh"]["data"][self.hvum.h.name]], axis=0)
         else:
             # mesh_water_level
-            self["mesh"]["data"][self.hvum.level.name] = self.c_mesh_mean_from_node_values(self.hvum.level.name)
+            self.c_mesh_mean_from_node_values(self.hvum.level.name)
 
     def c_mesh_area(self):
         xy1 = self["node"]["xy"][self["mesh"]["tin"][:, 0]]
@@ -1285,4 +1306,4 @@ class Unit(dict):
 
             print("Warning: " + str(np.sum(index_to_remove)) + " hydraulic triangle(s) "
                                                                "detected with a null surface in unit " + str(
-                self.unit_num) + ". This is removed.")
+                self.unit_number) + ". This is removed.")

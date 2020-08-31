@@ -868,7 +868,7 @@ class BioModelInfoSelection(QScrollArea):
         if self.process_list.check_all_process_closed():
             self.process_list.new_plots()
         else:
-            self.process_list.add_plots()
+            self.process_list.add_plots(1)
         state = Value("i", 0)
         # univariate
         if information_model_dict["ModelType"] == "univariate suitability index curves":

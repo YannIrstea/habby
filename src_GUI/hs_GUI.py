@@ -207,8 +207,10 @@ class ComputingGroup(QGroupBoxCollapsible):
                 item.setText("")
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                 try:
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name)
-                    hdf5.open_hdf5_file(False)
+                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                                   name,
+                                                   new=False)
+                    hdf5.get_hdf5_attributes(close_file=True)
                     if hdf5.hs_calculated:
                         item.setCheckState(Qt.Checked)
                     else:
@@ -244,7 +246,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         selection = self.file_selection_listwidget.selectedItems()
         if selection:
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[0].text())
-            hdf5.open_hdf5_file(False)
+            hdf5.create_or_open_file(False)
             # enable run button
             if self.input_class_filename.text():
                 self.computation_pushbutton.setEnabled(True)
@@ -512,7 +514,8 @@ class VisualGroup(QGroupBoxCollapsible):
         self.input_class_v_lineedit = QLineEdit("")
         self.input_class_plot_button = QPushButton(self.tr("Show"))
         self.input_class_plot_button.clicked.connect(self.plot_hs_class)
-        self.input_class_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
+        change_button_color(self.input_class_plot_button, "#47B5E6")
+        self.input_class_plot_button.setEnabled(False)
         input_class_layout = QGridLayout()
         input_class_layout.addWidget(input_class_label, 0, 0, 1, 2)
         input_class_layout.addWidget(input_class_h_label, 1, 0)
@@ -523,20 +526,23 @@ class VisualGroup(QGroupBoxCollapsible):
 
         # result
         result_label = QLabel(self.tr("Result :"))
-
         self.result_tableview = QTableView()
-        # self.result_tableview.setFrameShape(QFrame.NoFrame)
         self.result_tableview.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.result_tableview.verticalHeader().setVisible(False)
         self.result_tableview.horizontalHeader().setVisible(False)
-
-        self.result_plot_button = QPushButton(self.tr("Show"))
-        self.result_plot_button.clicked.connect(self.plot_hs_result)
-        self.result_plot_button.setStyleSheet("background-color: #47B5E6; color: black")
+        self.result_plot_button_area = QPushButton(self.tr("Show area"))
+        self.result_plot_button_area.clicked.connect(lambda: self.plot_hs_result("area"))
+        self.result_plot_button_area.setEnabled(False)
+        change_button_color(self.result_plot_button_area, "#47B5E6")
+        self.result_plot_button_volume = QPushButton(self.tr("Show volume"))
+        self.result_plot_button_volume.clicked.connect(lambda: self.plot_hs_result("volume"))
+        self.result_plot_button_volume.setEnabled(False)
+        change_button_color(self.result_plot_button_volume, "#47B5E6")
         result_layout = QGridLayout()
         result_layout.addWidget(result_label, 0, 0)
-        result_layout.addWidget(self.result_tableview, 1, 0)
-        result_layout.addWidget(self.result_plot_button, 1, 1)
+        result_layout.addWidget(self.result_tableview, 1, 0, 2, 1)
+        result_layout.addWidget(self.result_plot_button_area, 1, 1)
+        result_layout.addWidget(self.result_plot_button_volume, 2, 1)
 
         self.input_result_group = QGroupBox()
         input_result_layout = QVBoxLayout()
@@ -575,17 +581,22 @@ class VisualGroup(QGroupBoxCollapsible):
         if selection:
             # read
             hdf5name = selection[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # check reach
-            self.reach_QListWidget.addItems(hdf5.reach_name)
+            self.reach_QListWidget.addItems(hdf5.data_2d.reach_list)
 
             self.input_class_h_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[0]))))
             self.input_class_v_lineedit.setText(", ".join(list(map(str, hdf5.hs_input_class[1]))))
 
+            self.input_class_plot_button.setEnabled(True)
+
             self.toggle_group(False)
             self.input_result_group.show()
             self.toggle_group(True)
+
         else:
             self.input_result_group.hide()
 
@@ -598,11 +609,13 @@ class VisualGroup(QGroupBoxCollapsible):
             hdf5name = selection_file[0].text()
 
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
 
             # add units
-            for item_text in hdf5.units_name[self.reach_QListWidget.currentRow()]:
+            for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget.addItem(item)
@@ -612,7 +625,7 @@ class VisualGroup(QGroupBoxCollapsible):
 
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5.create_or_open_file(False)
 
             # add units
             item = QListWidgetItem("all units")
@@ -627,9 +640,11 @@ class VisualGroup(QGroupBoxCollapsible):
             hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
             hdf5.load_hydrosignature()
+            hdf5.close_file()
 
             if len(selection_unit) == 1 and selection_unit[0].text() == "all units":
                 # get hs data
@@ -643,9 +658,13 @@ class VisualGroup(QGroupBoxCollapsible):
             # table
             mytablemodel = MyTableModel(hdf5.data_2d.hs_summary_data)
             self.result_tableview.setModel(mytablemodel)  # set model
+            self.result_plot_button_area.setEnabled(True)
+            self.result_plot_button_volume.setEnabled(True)
         else:
             mytablemodel = MyTableModel(["", ""])
             self.result_tableview.setModel(mytablemodel)  # set model
+            self.result_plot_button_area.setEnabled(False)
+            self.result_plot_button_volume.setEnabled(False)
 
     def plot_hs_class(self):
         # hdf5
@@ -653,7 +672,7 @@ class VisualGroup(QGroupBoxCollapsible):
 
         # create hdf5 class
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.open_hdf5_file(False)
+        hdf5.create_or_open_file(False)
         hdf5.load_hydrosignature()
 
         # check plot process done
@@ -666,24 +685,25 @@ class VisualGroup(QGroupBoxCollapsible):
         state = Value("i", 0)
         title = "input classes of " + hdf5name
         plot_process = Process(target=plot_mod.plot_hydrosignature,
-                                         args=(state,
-                                               None,
-                                               hdf5.hs_input_class[1],
-                                               hdf5.hs_input_class[0],
-                                               title,
-                                               project_preferences,
-                                               self.axe_mod_choosen))
+                               args=(state,
+                                     None,
+                                     hdf5.hs_input_class[1],
+                                     hdf5.hs_input_class[0],
+                                     title,
+                                     None,
+                                     project_preferences,
+                                     self.axe_mod_choosen))
         self.process_list.append((plot_process, state))
 
         self.process_list.start()
 
-    def plot_hs_result(self):
+    def plot_hs_result(self, type):
         # hdf5
         hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
         # create hdf5 class
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.open_hdf5_file(False)
+        hdf5.create_or_open_file(False)
         hdf5.load_hydrosignature()
 
         selection_reach = self.reach_QListWidget.selectedItems()
@@ -696,25 +716,26 @@ class VisualGroup(QGroupBoxCollapsible):
 
         if len(selection_reach) > 1:  # all units
             reach_index_list = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
-            unit_index_list = list(range(hdf5.data_2d.unit_num))
+            unit_index_list = list(range(hdf5.data_2d.unit_number))
         else:  # specific reach and unit
             reach_index_list = [self.reach_QListWidget.currentIndex().row()]
             unit_index_list = [element.row() for element in self.units_QListWidget.selectedIndexes()]
 
         # loop
-        for reach_num in reach_index_list:
-            for unit_num in unit_index_list:
+        for reach_number in reach_index_list:
+            for unit_number in unit_index_list:
                 project_preferences = load_project_properties(self.path_prj)
                 state = Value("i", 0)
-                title = "hydrosignature : " + hdf5.data_2d[reach_num][unit_num].reach_name + " at " + \
-                        hdf5.data_2d[reach_num][unit_num].unit_name + " " + hdf5.unit_type[hdf5.unit_type.find('[') + len('['):hdf5.unit_type.find(']')]
+                title = type + " hydrosignature : " + hdf5.data_2d[reach_number][unit_number].reach_name + " at " + \
+                        hdf5.data_2d[reach_number][unit_number].unit_name + " " + hdf5.data_2d.unit_type[hdf5.data_2d.unit_type.find('[') + len('['):hdf5.data_2d.unit_type.find(']')]
 
                 plot_process = Process(target=plot_mod.plot_hydrosignature,
                                                  args=(state,
-                                                       hdf5.data_2d[reach_num][unit_num].hydrosignature["hsarea"],
+                                                       hdf5.data_2d[reach_number][unit_number].hydrosignature["hs" + type],
                                                        hdf5.hs_input_class[1],
                                                        hdf5.hs_input_class[0],
                                                        title,
+                                                       self.tr(type),
                                                        project_preferences,
                                                        self.axe_mod_choosen))
                 self.process_list.append((plot_process, state))
@@ -734,6 +755,7 @@ class CompareGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.comp_filename = 'HS_comp.txt'
+        self.p = Process(target=None)  # second process
         self.setTitle(title)
         self.init_ui()
 
@@ -759,6 +781,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # units_1
         units_label_1 = QLabel(self.tr('unit(s)'))
         self.units_QListWidget_1 = QListWidget()
+        self.units_QListWidget_1.itemSelectionChanged.connect(self.enable_disable_pushbutton)
         self.units_QListWidget_1.setSelectionMode(QAbstractItemView.ExtendedSelection)
         units_layout_1 = QVBoxLayout()
         units_layout_1.addWidget(units_label_1)
@@ -791,6 +814,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # units_2
         units_label_2 = QLabel(self.tr('unit(s)'))
         self.units_QListWidget_2 = QListWidget()
+        self.units_QListWidget_2.itemSelectionChanged.connect(self.enable_disable_pushbutton)
         self.units_QListWidget_2.setSelectionMode(QAbstractItemView.ExtendedSelection)
         units_layout_2 = QVBoxLayout()
         units_layout_2.addWidget(units_label_2)
@@ -814,10 +838,12 @@ class CompareGroup(QGroupBoxCollapsible):
         self.comp_choice_same_radio = QRadioButton(self.tr("All same"))
         filename_label = QLabel(self.tr("Output filename :"))
         self.filename_lineedit = QLineEdit()
-        self.mod_change(None)
+        self.filename_lineedit.textChanged.connect(self.enable_disable_pushbutton)
         self.run_comp_pushbutton = QPushButton(self.tr("run"))
+        change_button_color(self.run_comp_pushbutton, "#47B5E6")
         self.run_comp_pushbutton.clicked.connect(self.compare)
-        self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
+        self.run_comp_pushbutton.setEnabled(False)
+        # self.run_comp_pushbutton.setStyleSheet("background-color: #47B5E6; color: black")
 
         comp_run_layout = QGridLayout()
         comp_run_layout.addWidget(self.comp_choice_all_radio, 0, 0, Qt.AlignLeft)
@@ -831,6 +857,8 @@ class CompareGroup(QGroupBoxCollapsible):
         general_layout = QVBoxLayout()
         general_layout.addLayout(comp_layout)
         general_layout.addLayout(comp_run_layout)
+
+        self.mod_change(None)
 
         self.setLayout(general_layout)
 
@@ -854,34 +882,28 @@ class CompareGroup(QGroupBoxCollapsible):
     def names_hdf5_change_1(self):
         self.reach_QListWidget_1.clear()
         self.units_QListWidget_1.clear()
-        selection = self.file_selection_listwidget_1.selectedItems()
-        if selection:
-            # read
-            hdf5name = selection[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+        selection_file = self.file_selection_listwidget_1.selectedItems()
+        if selection_file:
+            hdf5name = selection_file[0].text()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # check reach
-            self.reach_QListWidget_1.addItems(hdf5.reach_name)
-
-            # self.input_result_group.show()
-        # else:
-            # self.input_result_group.hide()
+            self.reach_QListWidget_1.addItems(hdf5.data_2d.reach_list)
 
     def names_hdf5_change_2(self):
         self.reach_QListWidget_2.clear()
         self.units_QListWidget_2.clear()
-        selection = self.file_selection_listwidget_2.selectedItems()
-        if selection:
-            # read
-            hdf5name = selection[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
+        selection_file = self.file_selection_listwidget_2.selectedItems()
+        if selection_file:
+            hdf5name = selection_file[0].text()
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # check reach
-            self.reach_QListWidget_2.addItems(hdf5.reach_name)
-
-        #     self.input_result_group.show()
-        # else:
-        #     self.input_result_group.hide()
+            self.reach_QListWidget_2.addItems(hdf5.data_2d.reach_list)
 
     def reach_hdf5_change_1(self):
         selection_file = self.file_selection_listwidget_1.selectedItems()
@@ -890,13 +912,12 @@ class CompareGroup(QGroupBoxCollapsible):
         # one file selected
         if len(selection_reach) == 1:
             hdf5name = selection_file[0].text()
-
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
-
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # add units
-            for item_text in hdf5.units_name[self.reach_QListWidget_1.currentRow()]:
+            for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget_1.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget_1.addItem(item)
@@ -908,16 +929,24 @@ class CompareGroup(QGroupBoxCollapsible):
         # one file selected
         if len(selection_reach) == 1:
             hdf5name = selection_file[0].text()
-
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.open_hdf5_file(False)
-
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
             # add units
-            for item_text in hdf5.units_name[self.reach_QListWidget_2.currentRow()]:
+            for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget_2.currentRow()]:
                 item = QListWidgetItem(item_text)
                 item.setTextAlignment(Qt.AlignRight)
                 self.units_QListWidget_2.addItem(item)
+
+    def enable_disable_pushbutton(self):
+        selection_1 = self.units_QListWidget_1.selectedItems()
+        selection_2 = self.units_QListWidget_2.selectedItems()
+        filename_output = self.filename_lineedit.text()
+        if (selection_1 or selection_2) and filename_output:
+            self.run_comp_pushbutton.setEnabled(True)
+        else:
+            self.run_comp_pushbutton.setEnabled(False)
 
     def mod_change(self, _):
         if self.comp_choice_all_radio.isChecked():
