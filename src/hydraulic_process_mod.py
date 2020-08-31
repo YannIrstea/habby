@@ -34,7 +34,6 @@ from src.hydraulic_results_manager_mod import HydraulicSimulationResultsSelector
 from src.data_2d_mod import Data2d
 from src import plot_mod
 from src.tools_mod import create_map_plot_string_dict
-from src.dev_tools import profileit
 
 
 class HydraulicSimulationResultsAnalyzer:
@@ -1091,7 +1090,6 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
         with open(filename_path, 'wt') as f:
             f.write(text)
 
-
 def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     """
     This function calls the function load_hydraulic and call the function cut_2d_grid()
@@ -1222,7 +1220,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             return
 
         """ bank hydraulic aberations  """
-        # data_2d.fix_aberrations(tolerance=0.001, npasses=5)
+        data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
+        # cProfile.runctx("data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=False, bank_depth=1)",globals={},locals={"data_2d":data_2d},filename="c:/habby_dev/files/cut6.profile")
 
         """ re compute area """
         if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():

@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
 import sys
+import time
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
 from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
@@ -668,16 +669,46 @@ class Data2d(list):
             for unit_num in range(0, self.unit_num):
                 self[reach_num][unit_num].remove_null_area()
 
-    def neighbouring_triangles(self, tin):
-        seg1 = tin[:, 0:2].reshape((len(tin), 1, 2))
-        seg2 = tin[:, 1:3].reshape((len(tin), 1, 2))
-        seg3 = tin[:, 0::2].reshape((len(tin), 1, 2))
-        segments = np.concatenate((seg1, seg2, seg3), axis=1)
+    def neighbouring_triangles(self, tin, interest_mesh_indices=None):
+        """
+        Accyrately lists the neighbours of each triangle from the subsection of the mesh we are interested in.
+        For the rest of the triangles, the returned list will only contain the neighbours which belong to the interesting subsection
+        :param tin:
+        :param bank_mesh_indices:
+        :return:
+        """
+        if interest_mesh_indices is None:
+            interest_mesh_indices = np.array(range(len(tin)))
+        # seg1 = tin[:, 0:2].reshape((len(tin), 1, 2))
+        # seg2 = tin[:, 1:3].reshape((len(tin), 1, 2))
+        # seg3 = tin[:, 0::2].reshape((len(tin), 1, 2))
+        # segments = np.concatenate((seg1, seg2, seg3), axis=1)
+        interest_tin = tin[interest_mesh_indices]
+        seg1 = interest_tin[:, 0:2]
+        seg2 = interest_tin[:, 1:3]
+        seg3 = interest_tin[:, 0::2]
+        triangle_count = len(interest_tin)
+        segments = np.concatenate((seg1, seg2, seg3), axis=0)
+        segments_unique, inverse_indices, counts = np.unique(segments, axis=0, return_inverse=True, return_counts=True)
+        neighbouring_triangles = [[] for _ in range(len(tin))]
+        neighbour_count = np.zeros(len(tin), dtype=np.int64)
+        for i in range(len(segments_unique)):
+            if counts[i] == 2:
+                tri_neighbours = interest_mesh_indices[np.where(inverse_indices == i)[0] % triangle_count]
+                neighbouring_triangles[tri_neighbours[0]].append(tri_neighbours[1])
+                neighbouring_triangles[tri_neighbours[1]].append(tri_neighbours[0])
+                neighbour_count[tri_neighbours] += 1
+
+        return neighbouring_triangles, neighbour_count
+
+        segment_to_triangle = {}  # dict where each key is a tuple of vertices (v1,v2) and the content is a list of triangles sharing the segment (v1,v2)
+        triangle_count = {}  # dict whose keys are the same as above, and the content is the number of triangles which contain each segment
+
         segment_sides_found = np.zeros((len(tin), 3), dtype=bool)
         neighbouring_triangles = [[] for _ in range(len(tin))]
-        neighbour_count = np.zeros(len(tin), dtype=int)
-        for tri_i in range(len(tin)):
-            for segment_i in range(len(segments[tri_i])):
+        neighbour_count = np.zeros(len(tin), dtype=np.int64)
+        for tri_i in interest_mesh_indices:
+            for segment_i in range(3):
                 if not segment_sides_found[tri_i, segment_i]:
                     neighbour, matching_segment = np.nonzero((segments == segments[tri_i, segment_i]).all(axis=2))
                     if len(neighbour) == 2:
@@ -685,21 +716,28 @@ class Data2d(list):
                         neighbouring_triangles[neighbour[1]].append(neighbour[0])
                         segment_sides_found[neighbour, matching_segment] = True
                     elif len(neighbour) != 1:
-                        print("ERROR: there is something wrong with the neighbouring function")
+                        print("ERROR: there is something wrong with the neighbours function")
 
             neighbour_count[tri_i] = len(neighbouring_triangles[tri_i])
         return neighbouring_triangles, neighbour_count
 
-    def triangle_connectedness(self, neighbours):
+    def triangle_connectedness(self, neighbours, big_network_size):
+        """
+        Counts how many triangles each mesh triangle is connected to, and returns whether this 'network' of elements is bigger than big_network_size
+        The objective is to identify small islands of elements that are not really connected to the relevant mesh
+        :param neighbours: list of lists containing the neighbours of each triangle
+        :param big_network_size: int indicating at which size to
+        :return: a np boolean array indicating whether each triangle is in a big enough network
+        """
         already_counted = np.zeros(len(neighbours), dtype=bool)
-        connectedness = np.zeros(len(neighbours), dtype=int)
+        connectedness = np.zeros(len(neighbours), dtype=np.int64)
         for i in range(len(neighbours)):
             if not (already_counted[i]):
                 edge_triangles = neighbours[i]
                 network = [i] + edge_triangles
                 network_is_growing = True
 
-                while network_is_growing:
+                while network_is_growing and len(network) < big_network_size:
                     network_is_growing = False
                     new_edge_triangles = []
                     for tri in edge_triangles:
@@ -711,7 +749,38 @@ class Data2d(list):
                     edge_triangles = new_edge_triangles
                 connectedness[network] = len(network)
                 already_counted[network] = True
-        return connectedness
+        return connectedness >= big_network_size
+
+    def is_well_connected(self, neighbours, bank_mesh_index):
+        """
+        returns whether each mesh element is connected to a mesh that is not in the river banks
+        :param neighbours: list of lists containing the neighbours of each triangle in the mesh
+        :param bank_mesh_index: np array containing the index of each element of the river banks in the tin
+        :return: a boolean np array that states wheteher each mesh element in the tin either is a deep (non-bank) element or is connected to a deep element
+        """
+        is_connected = np.ones(shape=len(neighbours), dtype=bool)
+        is_connected[bank_mesh_index] = False
+        already_counted = is_connected.copy()
+        for tri_index in bank_mesh_index:
+            if not already_counted[tri_index]:
+                edge_triangles = [tri_index, ]
+                network = [tri_index, ]
+                expand_network = True
+                while expand_network:
+                    expand_network = False
+                    new_edge_triangles = []
+                    for triangle in edge_triangles:
+                        for neighbour in neighbours[triangle]:
+                            if not neighbour in network:
+                                network.append(neighbour)
+                                new_edge_triangles.append(neighbour)
+                                expand_network = True
+                    if is_connected[edge_triangles].any():
+                        is_connected[network] = True
+                        expand_network = False
+                    edge_triangles = new_edge_triangles
+                already_counted[network] = True
+        return is_connected
 
     def check_point_pertinence(self, x_adj, y_adj, phi_adj, x_lone, y_lone, phi_lone, max_discrepancy):
         ##Calculating planar a*x+b*y+c approximation of phi from nodes of adjacent triangle
@@ -723,18 +792,15 @@ class Data2d(list):
             return discrepancy <= max_discrepancy
         except np.linalg.LinAlgError:
             print("singular matrix!")
-            return False
+            return True
 
-    def fix_aberrations(self, npasses=10, tolerance=0.01, connectedness_criterion=5):
+    def fix_aberrations(self, npasses=10, tolerance=0.01, connectedness_criterion=None, bank_depth=0.5):
         # TODO optimize code to run faster for large meshes
         # TODO find the most appropriate parameters npasses, tolerance, connectedness_criterion
-
+        t0 = time.time()
         for reach_i in range(self.reach_num):
             for unit_i in range(self.unit_num):
-                ##Aliases
-                # node_data = self[reach_i][unit_i]["node"]["data"]
-                # mesh_data = self[reach_i][unit_i]["mesh"]["data"]
-                ##Copies
+                ##All arrays below are copies, rather than aliases
                 node_data = self[reach_i][unit_i]["node"]["data"].copy()
                 mesh_data = self[reach_i][unit_i]["mesh"]["data"].copy()
                 i_whole_profile = self[reach_i][unit_i]["mesh"]["i_whole_profile"].copy()
@@ -744,8 +810,9 @@ class Data2d(list):
                 x -= np.mean(x)
                 y = np.array(self[reach_i][unit_i]["node"]["xy"][:, 1])
                 y -= np.mean(y)
-                phi = np.array((node_data["z"].array - np.min(node_data["z"].array)) + node_data[
-                    "h"].array)  # water height relative to a point at the bottom of the river bed
+                h = np.array(node_data["h"].array)
+                phi = np.array((node_data["z"].array - np.min(
+                    node_data["z"].array)) + h)  # water height relative to a point at the bottom of the river bed
                 node_number = len(x)
 
                 max_discrepancy = np.mean(phi) * tolerance
@@ -753,51 +820,63 @@ class Data2d(list):
                 passes = 0
                 while passes < npasses:
 
-                    neighbours, neighbour_count = self.neighbouring_triangles(tin)
-                    connectedness = self.triangle_connectedness(neighbours)
+                    tl0 = time.time()
+
+                    bank_mesh_index = np.flatnonzero((h[tin] < bank_depth).any(axis=1))
+                    bank_mesh = tin[bank_mesh_index]
+                    neighbours, neighbour_count = self.neighbouring_triangles(tin, bank_mesh_index)
+                    if connectedness_criterion:
+                        connectedness = self.is_well_connected(neighbours, bank_mesh_index)
+                    else:
+                        connectedness = np.ones(len(tin), dtype=bool)
+
                     triangles_to_remove = []
 
-                    for tri_index in range(len(tin)):
-                        if connectedness[tri_index] < connectedness_criterion:
-                            triangles_to_remove.append(tri_index)
-                        elif neighbour_count[tri_index] == 1:
-                            adjacent_triangle = tin[neighbours[tri_index][0]]
+                    for tri_index in range(len(bank_mesh)):
+
+                        if not connectedness[bank_mesh_index[tri_index]]:
+                            triangles_to_remove.append(bank_mesh_index[tri_index])
+                        elif neighbour_count[bank_mesh_index[tri_index]] == 0:
+                            triangles_to_remove.append(bank_mesh_index[tri_index])
+                        elif neighbour_count[bank_mesh_index[tri_index]] == 1:
+                            adjacent_triangle = tin[neighbours[bank_mesh_index[tri_index]][0]]
                             x_adj, y_adj, phi_adj = x[adjacent_triangle], y[adjacent_triangle], phi[adjacent_triangle]
-                            for node in tin[tri_index]:
+                            for node in tin[bank_mesh_index[tri_index]]:
                                 if not node in adjacent_triangle:
                                     lone_node = node
                             x_lone, y_lone, phi_lone = x[lone_node], y[lone_node], phi[lone_node]
 
                             if not self.check_point_pertinence(x_adj, y_adj, phi_adj, x_lone, y_lone, phi_lone,
                                                                max_discrepancy):
-                                triangles_to_remove.append(tri_index)
+                                triangles_to_remove.append(bank_mesh_index[tri_index])
 
-                        # elif neighbour_count[tri_index] == 2:
-                        #     for adjacent_triangle in neighbours[tri_index]:
-                        #         x_adj, y_adj, phi_adj = x[adjacent_triangle], y[adjacent_triangle], phi[
-                        #             adjacent_triangle]
-                        #         for node in tin[tri_index]:
-                        #             if not node in adjacent_triangle:
-                        #                 lone_node = node
-                        #         x_lone, y_lone, phi_lone = x[lone_node], y[lone_node], phi[lone_node]
-                        #
-                        #         if not self.check_point_pertinence(x_adj, y_adj, phi_adj, x_lone, y_lone, phi_lone,
-                        #                                            max_discrepancy):
-                        #             triangles_to_remove.append(tri_index)
-                        #             break
+
+                        elif neighbour_count[bank_mesh_index[tri_index]] == 2:
+                            for neighbour in neighbours[bank_mesh_index[tri_index]]:
+                                adjacent_triangle = tin[neighbour]
+                                x_adj, y_adj, phi_adj = x[adjacent_triangle], y[adjacent_triangle], phi[
+                                    adjacent_triangle]
+                                for node in tin[bank_mesh_index[tri_index]]:
+                                    if not node in adjacent_triangle:
+                                        lone_node = node
+                                x_lone, y_lone, phi_lone = x[lone_node], y[lone_node], phi[lone_node]
+
+                                if not self.check_point_pertinence(x_adj, y_adj, phi_adj, x_lone, y_lone, phi_lone,
+                                                                   max_discrepancy):
+                                    triangles_to_remove.append(bank_mesh_index[tri_index])
+                                    break
 
                     tin = np.delete(tin, triangles_to_remove, axis=0)
                     unsorted_tin = np.delete(unsorted_tin, triangles_to_remove, axis=0)
                     i_whole_profile = np.delete(i_whole_profile, triangles_to_remove, axis=0)
                     mesh_data = mesh_data[~np.in1d(np.arange(len(mesh_data)), triangles_to_remove)]
                     # mesh_data.drop(axis=0, labels=mesh_data.index[triangles_to_remove], inplace=True)
+                    tl1 = time.time()
+                    print("Loop " + str(passes) + ", unit", unit_i, "reach", reach_i)
+                    print("looptime=", tl1 - tl0)
                     if len(triangles_to_remove) == 0:
                         passes = npasses  # if no triangles were removed in the loop, stop iterating
                     passes += 1
-
-                self[reach_i][unit_i]["mesh"]["tin"] = unsorted_tin
-                self[reach_i][unit_i]["mesh"]["data"] = mesh_data
-                self[reach_i][unit_i]["i_whole_profile"] = i_whole_profile
 
                 nodes_to_delete = []
                 for node in range(node_number):
@@ -805,10 +884,21 @@ class Data2d(list):
                         nodes_to_delete.append(node)
                         # node_data.drop(index=node_data.index[node], axis=0, inplace=True)
                         # node_data=node_data[np.arange(len())
+                nodes_to_delete = np.array(nodes_to_delete, dtype=np.int64)
                 self[reach_i][unit_i]["node"]["xy"] = np.delete(self[reach_i][unit_i]["node"]["xy"], nodes_to_delete,
                                                                 axis=0)
                 node_data = node_data[~np.in1d(np.arange(len(node_data)), nodes_to_delete)]
                 self[reach_i][unit_i]["node"]["data"] = node_data
+                # newnodes=np.delete(np.arange(node_number),nodes_to_delete)
+                corrected_tin = unsorted_tin.copy()
+                for node in nodes_to_delete:
+                    corrected_tin -= (unsorted_tin > node)
+
+                self[reach_i][unit_i]["mesh"]["tin"] = corrected_tin
+                self[reach_i][unit_i]["mesh"]["data"] = mesh_data
+                self[reach_i][unit_i]["mesh"]["i_whole_profile"] = i_whole_profile
+        t1 = time.time()
+        print("runtime=", t1 - t0)
 
     def get_hs_summary_data(self, reach_num_list, unit_num_list):
         # get hs headers
