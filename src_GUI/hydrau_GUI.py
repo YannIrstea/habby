@@ -600,18 +600,14 @@ class ModelInfoGroup(QGroupBox):
         node_list = ", ".join(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["variable_name_unit_dict"].nodes().names_gui())
         self.usefull_mesh_variable_label.setText(mesh_list)
         self.usefull_node_variable_label.setText(node_list)
-
         self.units_name_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_type"])  # kind of unit
-
         self.update_unit_from_reach()
-
         self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
-        if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
-            extension = "hab"
-        else:
-            extension = "hyd"
-
+        extension = "hyd"
+        if "sub" in self.hydrau_description_list[self.input_file_combobox.currentIndex()].keys():
+            if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
+                extension = "hab"
         text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" ." + extension + " file")
         if len(self.hydrau_description_list) > 1:
             text_load_button = text_load_button + "s"

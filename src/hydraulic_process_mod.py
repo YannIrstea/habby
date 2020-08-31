@@ -1230,7 +1230,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             return
 
         """ bank hydraulic aberations  """
-        # data_2d.fix_aberrations(tolerance=0.001, npasses=5)
+        data_2d.fix_aberrations(tolerance=0.001, npasses=5)
 
         """ re compute area """
         if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
