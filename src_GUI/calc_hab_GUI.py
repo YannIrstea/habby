@@ -15,7 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process, Queue, Value, Event
 
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer
 from PyQt5.QtGui import QColor
@@ -105,7 +105,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                  substrate_mode_list=[])
         self.load_selected_aquatic_animal_dict()
 
-        self.p = Process(target=None)  # second process
+        self.stop = Event()
+        self.q = Queue()
+        self.progress_value = Value("d", 0)
+        self.p = Process(target=None)
 
         self.init_iu()
 
@@ -933,10 +936,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # send the calculation of habitat and the creation of output
             self.timer.start(100)  # to refresh progress info
-            self.q4 = Queue()
+            self.stop = Event()
+            self.q = Queue()
             self.progress_value = Value("d", 0)
             self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
-                             args=(hab_filename, user_target_list, self.progress_value, self.q4, False, project_preferences))
+                             args=(hab_filename, user_target_list, self.progress_value, self.q, False,
+                                   project_preferences,
+                                   self.stop))
             self.p.name = "Habitat calculation"
             self.p.start()
 
@@ -977,9 +983,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().kill_process.setVisible(True)
         else:
             # FINISH (but can have known errors)
-            if not self.q4.empty():
+            if not self.q.empty():
                 self.timer.stop()
-                self.mystdout = self.q4.get()
+                self.mystdout = self.q.get()
                 error = self.send_err_log(True)
 
                 # known errors
@@ -1010,7 +1016,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     self.check_uncheck_allmodels_presence()
 
             # CLEANING GUI
-            if not self.p.is_alive() and self.q4.empty():
+            if not self.p.is_alive() and self.q.empty():
                 # enable the button to call this functin directly again
                 self.timer.stop()
                 self.send_log.emit("clear status bar")

@@ -38,7 +38,6 @@ from src import paraview_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
 from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
 from src.data_2d_mod import Data2d
-from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
 from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
 
 from habby import HABBY_VERSION_STR
@@ -61,7 +60,7 @@ class Hdf5Management:
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
-        self.project_preferences = dict()
+        self.project_preferences = load_project_properties(self.path_prj)
         # dict
         self.data_2d = None
         self.data_2d_whole = None
@@ -111,7 +110,7 @@ class Hdf5Management:
 
         # extension check
         if self.extension not in self.extensions:
-            print(f"Warning: the extension file should be : {self.extensions}.")
+            print("Warning: extension : " + self.extension + f" is unknown. The extension file should be : {self.extensions}.")
 
         # file presence check
         try:
@@ -716,19 +715,6 @@ class Hdf5Management:
         # close file
         self.close_file()
 
-        # reload to export data or not
-        for key in self.available_export_list:
-            if True in project_preferences[key]:
-                # load
-                self.load_hdf5_hyd(whole_profil=True)
-                # exports
-                self.export_gpkg()
-                self.export_stl()
-                self.export_paraview()
-                self.export_detailled_mesh_txt()
-                self.export_detailled_point_txt()
-                break
-
     def load_hdf5_hyd(self, units_index="all", user_target_list="defaut", whole_profil=False):
         # open an hdf5
         self.create_or_open_file(new=False)
@@ -893,19 +879,6 @@ class Hdf5Management:
         # close file
         self.close_file()
 
-        # reload to export data or not
-        for key in self.available_export_list:
-            if True in project_preferences[key]:
-                # load
-                self.load_hdf5_hab(whole_profil=True)
-
-                # exports
-                self.export_gpkg()
-                self.export_paraview()
-                self.export_detailled_mesh_txt()
-                self.export_detailled_point_txt()
-                break
-
     def load_hdf5_hab(self, units_index="all", user_target_list="defaut", whole_profil=False):
         # open an hdf5
         self.create_or_open_file(new=False)
@@ -925,7 +898,7 @@ class Hdf5Management:
             self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         elif type(self.user_target_list) == dict:  # project_preferences
-            # self.project_preferences = self.user_target_list
+            self.project_preferences = self.user_target_list
             self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
                                                                        hdf5_type=self.hdf5_type)
         else:
@@ -1011,13 +984,6 @@ class Hdf5Management:
 
         # close file
         self.close_file()
-
-        # reload to add new data to attributes
-        self.export_gpkg()
-        self.export_paraview()
-        self.export_spu_txt()
-        self.export_detailled_mesh_txt()
-        self.export_report()
 
     def remove_fish_hab(self, fish_names_to_remove):
         """
@@ -1284,9 +1250,8 @@ class Hdf5Management:
     # EXPORT GPKG
     def export_gpkg(self, state=None):
         # INDEX IF HYD OR HAB
-        if self.extension == ".hyd":
-            index = 0
-        elif self.extension == ".hab":
+        index = 0
+        if self.extension == ".hab":
             index = 1
 
         # activated exports ?
@@ -1664,8 +1629,7 @@ class Hdf5Management:
     # EXPORT 3D
     def export_stl(self, state=None):
         # INDEX IF HYD OR HAB
-        if self.extension == ".hyd":
-            index = 0
+        index = 0
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['elevation_whole_profile'][index]:
@@ -1705,13 +1669,12 @@ class Hdf5Management:
                     # Write the mesh to file "cube.stl"
                     stl_file.save(os.path.join(self.path_visualisation,
                                                name_file))
-            if state:
-                state.value = 1  # process finished
+        if state:
+            state.value = 1  # process finished
 
     def export_paraview(self, state=None):
         # INDEX IF HYD OR HAB
-        if self.extension == ".hyd":
-            index = 0
+        index = 0
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['variables_units'][index]:
@@ -1798,103 +1761,103 @@ class Hdf5Management:
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
         # INDEX IF HYD OR HAB
-        if self.extension == ".hyd":
-            index = 0
+        index = 0
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['habitat_text'][index]:
-            sim_name = self.data_2d.unit_list
             animal_list = self.data_2d.hvum.all_final_variable_list.habs()
-            unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
+            if animal_list:
+                sim_name = self.data_2d.unit_list
+                unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
 
-            if self.project_preferences['language'] == 0:
-                name = self.basename + '_wua.txt'
-            else:
-                name = self.basename + '_spu.txt'
-            if os.path.isfile(os.path.join(self.path_txt, name)):
-                if not self.project_preferences['erase_id']:
-                    if self.project_preferences['language'] == 0:
-                        name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                    else:
-                        name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                else:
-                    try:
-                        os.remove(os.path.join(self.path_txt, name))
-                    except PermissionError:
-                        print('Error: ' + qt_tr.translate("hdf5_mod",
-                                                          'Could not modify text file as it is open in another program. \n'))
-                        return
-
-            name = os.path.join(self.path_txt, name)
-
-            # open text to write
-            with open(name, 'wt', encoding='utf-8') as f:
-
-                # header 1
                 if self.project_preferences['language'] == 0:
-                    header = 'reach\tunit\treach_area'
+                    name = self.basename + '_wua.txt'
                 else:
-                    header = 'troncon\tunit\taire_troncon'
-                if self.project_preferences['language'] == 0:
-                    header += "".join(['\tHV' for _ in range(len(animal_list))])
-                    header += "".join(['\tWUA' for _ in range(len(animal_list))])
-                    header += "".join(['\t%unknown' for _ in range(len(animal_list))])
-                else:
-                    header += "".join(['\tVH' for _ in range(len(animal_list))])
-                    header += "".join(['\tSPU' for _ in range(len(animal_list))])
-                    header += "".join(['\t%inconnu' for _ in range(len(animal_list))])
-                header += '\n'
-                f.write(header)
-                # header 2
-                header = '[]\t[' + unit_type + ']\t[m2]'
-                header += "".join(['\t[]' for _ in range(len(animal_list))])
-                header += "".join(['\t[m2]' for _ in range(len(animal_list))])
-                header += "".join(['\t[%m2]' for _ in range(len(animal_list))])
-                header += '\n'
-                f.write(header)
-                # header 3
-                header = 'all\tall\tall '
-                for animal in animal_list * 3:
-                    header += '\t' + animal.name.replace(' ', '_')
-                header += '\n'
-                f.write(header)
-
-                for reach_number in range(self.data_2d.reach_number):
-                    for unit_number in range(self.data_2d.unit_number):
-                        area_reach = self.data_2d[reach_number][unit_number].total_wet_area
-                        if not sim_name:
-                            data_here = str(reach_number) + '\t' + str(unit_number) + '\t' + str(area_reach)
+                    name = self.basename + '_spu.txt'
+                if os.path.isfile(os.path.join(self.path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        if self.project_preferences['language'] == 0:
+                            name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                         else:
-                            data_here = str(reach_number) + '\t' + str(sim_name[reach_number][unit_number]) + '\t' + str(
-                                area_reach)
-                        # HV
-                        for animal in animal_list:
-                            try:
-                                wua_fish = animal.hv[reach_number][unit_number]
-                                data_here += '\t' + str(float(wua_fish) / float(area_reach))
-                            except:
-                                data_here += '\t' + 'NaN'
-                        # WUA
-                        for animal in animal_list:
-                            try:
-                                wua_fish = animal.wua[reach_number][unit_number]
+                            name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        try:
+                            os.remove(os.path.join(self.path_txt, name))
+                        except PermissionError:
+                            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                                              'Could not modify text file as it is open in another program. \n'))
+                            return
+
+                name = os.path.join(self.path_txt, name)
+
+                # open text to write
+                with open(name, 'wt', encoding='utf-8') as f:
+
+                    # header 1
+                    if self.project_preferences['language'] == 0:
+                        header = 'reach\tunit\treach_area'
+                    else:
+                        header = 'troncon\tunit\taire_troncon'
+                    if self.project_preferences['language'] == 0:
+                        header += "".join(['\tHV' for _ in range(len(animal_list))])
+                        header += "".join(['\tWUA' for _ in range(len(animal_list))])
+                        header += "".join(['\t%unknown' for _ in range(len(animal_list))])
+                    else:
+                        header += "".join(['\tVH' for _ in range(len(animal_list))])
+                        header += "".join(['\tSPU' for _ in range(len(animal_list))])
+                        header += "".join(['\t%inconnu' for _ in range(len(animal_list))])
+                    header += '\n'
+                    f.write(header)
+                    # header 2
+                    header = '[]\t[' + unit_type + ']\t[m2]'
+                    header += "".join(['\t[]' for _ in range(len(animal_list))])
+                    header += "".join(['\t[m2]' for _ in range(len(animal_list))])
+                    header += "".join(['\t[%m2]' for _ in range(len(animal_list))])
+                    header += '\n'
+                    f.write(header)
+                    # header 3
+                    header = 'all\tall\tall '
+                    for animal in animal_list * 3:
+                        header += '\t' + animal.name.replace(' ', '_')
+                    header += '\n'
+                    f.write(header)
+
+                    for reach_number in range(self.data_2d.reach_number):
+                        for unit_number in range(self.data_2d.unit_number):
+                            area_reach = self.data_2d[reach_number][unit_number].total_wet_area
+                            if not sim_name:
+                                data_here = str(reach_number) + '\t' + str(unit_number) + '\t' + str(area_reach)
+                            else:
+                                data_here = str(reach_number) + '\t' + str(sim_name[reach_number][unit_number]) + '\t' + str(
+                                    area_reach)
+                            # HV
+                            for animal in animal_list:
+                                try:
+                                    wua_fish = animal.hv[reach_number][unit_number]
+                                    data_here += '\t' + str(float(wua_fish) / float(area_reach))
+                                except:
+                                    data_here += '\t' + 'NaN'
+                            # WUA
+                            for animal in animal_list:
+                                try:
+                                    wua_fish = animal.wua[reach_number][unit_number]
+                                    data_here += '\t' + str(wua_fish)
+                                except:
+                                    data_here += '\t' + 'NaN'
+                            # %unknwon
+                            for animal in animal_list:
+                                wua_fish = animal.percent_area_unknown[reach_number][unit_number]
                                 data_here += '\t' + str(wua_fish)
-                            except:
-                                data_here += '\t' + 'NaN'
-                        # %unknwon
-                        for animal in animal_list:
-                            wua_fish = animal.percent_area_unknown[reach_number][unit_number]
-                            data_here += '\t' + str(wua_fish)
 
-                        data_here += '\n'
+                            data_here += '\n'
 
-                        # change decimal point
-                        locale = QLocale()
-                        if locale.decimalPoint() == ",":
-                            data_here = data_here.replace('.', ',')
+                            # change decimal point
+                            locale = QLocale()
+                            if locale.decimalPoint() == ",":
+                                data_here = data_here.replace('.', ',')
 
-                        # write file
-                        f.write(data_here)
+                            # write file
+                            f.write(data_here)
 
             if state:
                 state.value = 1  # process finished
@@ -1910,8 +1873,7 @@ class Hdf5Management:
         detailled mesh
         """
         # INDEX IF HYD OR HAB
-        if self.extension == ".hyd":
-            index = 0
+        index = 0
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['detailled_text'][index]:
@@ -1987,8 +1949,7 @@ class Hdf5Management:
          detailled mesh
          """
         # INDEX IF HYD OR HAB
-        if self.extension == ".hyd":
-            index = 0
+        index = 0
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['detailled_text'][index]:
@@ -2069,166 +2030,165 @@ class Hdf5Management:
             (usually other_outputs)
         """
         # INDEX IF HYD OR HAB
-        if self.extension == ".hyd":
-            index = 0
+        index = 0
         if self.extension == ".hab":
             index = 1
         if self.project_preferences['fish_information'][index]:
-            # get data
-            xmlfiles = self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()
-            hab_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
-            # remove duplicates xml
-            prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
-            xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
+            if self.data_2d.hvum.hdf5_and_computable_list.habs():
+                # get data
+                xmlfiles = self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()
+                hab_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
+                # remove duplicates xml
+                prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
+                xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
 
-            plt.close()
-            plt.rcParams['figure.figsize'] = 21, 29.7  # a4
-            plt.rcParams['font.size'] = 24
+                plt.close()
+                plt.rcParams['figure.figsize'] = 21, 29.7  # a4
+                plt.rcParams['font.size'] = 24
 
-            # create the pdf
-            for idx, xmlfile in enumerate(xmlfiles):
-                information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
+                # create the pdf
+                for idx, xmlfile in enumerate(xmlfiles):
+                    information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
 
-                # read additionnal info
-                attributes = ['Description', 'Image', 'French_common_name',
-                              'English_common_name', ]
-                # careful: description is last data returned
-                path_bio = os.path.dirname(xmlfile)
-                path_im_bio = path_bio
-                xmlfile = os.path.basename(xmlfile)
-                data = bio_info_mod.load_xml_name(path_bio, attributes, [xmlfile])
+                    # read additionnal info
+                    attributes = ['Description', 'Image', 'French_common_name',
+                                  'English_common_name', ]
+                    # careful: description is last data returned
+                    path_bio = os.path.dirname(xmlfile)
+                    path_im_bio = path_bio
+                    xmlfile = os.path.basename(xmlfile)
+                    data = bio_info_mod.load_xml_name(path_bio, attributes, [xmlfile])
 
-                # create figure
-                fake_value = Value("d", 0)
+                    # create figure
+                    fake_value = Value("d", 0)
 
-                if information_model_dict["ModelType"] != "bivariate suitability index models":
-                    # fish
-                    if hab_animal_type_list[idx] == "fish":
-                        # read pref
-                        h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
-                            bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
-                        # plot
-                        plot_mod.plot_suitability_curve(fake_value,
-                                                        h_all,
-                                                        vel_all,
-                                                        sub_all,
-                                                        information_model_dict["CdBiologicalModel"],
-                                                        name_fish,
-                                                        stages,
-                                                        information_model_dict["substrate_type"],
-                                                        sub_code,
-                                                        self.project_preferences,
-                                                        True)
-                        aa = 1
-                    # invertebrate
+                    if information_model_dict["ModelType"] != "bivariate suitability index models":
+                        # fish
+                        if hab_animal_type_list[idx] == "fish":
+                            # read pref
+                            h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
+                                bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
+                            # plot
+                            plot_mod.plot_suitability_curve(fake_value,
+                                                            h_all,
+                                                            vel_all,
+                                                            sub_all,
+                                                            information_model_dict["CdBiologicalModel"],
+                                                            name_fish,
+                                                            stages,
+                                                            information_model_dict["substrate_type"],
+                                                            sub_code,
+                                                            self.project_preferences,
+                                                            True)
+                        # invertebrate
+                        else:
+                            # open the pref
+                            shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
+                                bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
+                            # plot
+                            plot_mod.plot_suitability_curve_invertebrate(fake_value,
+                                                                         shear_stress_all, hem_all, hv_all,
+                                                                         code_fish, name_fish,
+                                                                         stages, self.project_preferences, True)
                     else:
                         # open the pref
-                        shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
-                            bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
-                        # plot
-                        plot_mod.plot_suitability_curve_invertebrate(fake_value,
-                                                                     shear_stress_all, hem_all, hv_all,
-                                                                     code_fish, name_fish,
-                                                                     stages, self.project_preferences, True)
-                else:
-                    # open the pref
-                    [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
-                                                                                                                hab_animal_type_list[
-                                                                                                                    idx])
-                    state_fake = Value("d", 0)
-                    plot_mod.plot_suitability_curve_bivariate(state_fake,
-                                                              h_all,
-                                                              vel_all,
-                                                              pref_values_all,
-                                                              code_fish,
-                                                              name_fish,
-                                                              stages,
-                                                              self.project_preferences,
-                                                              True)
-                # get axe and fig
-                fig = plt.gcf()
-                # axe_curve = plt.gca()
+                        [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile,
+                                                                                                                    hab_animal_type_list[
+                                                                                                                        idx])
+                        state_fake = Value("d", 0)
+                        plot_mod.plot_suitability_curve_bivariate(state_fake,
+                                                                  h_all,
+                                                                  vel_all,
+                                                                  pref_values_all,
+                                                                  code_fish,
+                                                                  name_fish,
+                                                                  stages,
+                                                                  self.project_preferences,
+                                                                  True)
+                    # get axe and fig
+                    fig = plt.gcf()
+                    # axe_curve = plt.gca()
 
-                # modification of the orginal preference fig
-                # (0,0) is bottom left - 1 is the end of the page in x and y direction
-                # plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
-                plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
-                # position for the image
+                    # modification of the orginal preference fig
+                    # (0,0) is bottom left - 1 is the end of the page in x and y direction
+                    # plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
+                    plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
+                    # position for the image
 
-                # HABBY and date
-                plt.figtext(0.8, 0.97, 'HABBY - ' + time.strftime("%d %b %Y"))
+                    # HABBY and date
+                    plt.figtext(0.8, 0.97, 'HABBY - ' + time.strftime("%d %b %Y"))
 
-                # REPORT title
-                plt.figtext(0.1, 0.92, "REPORT - " + name_fish,
-                            fontsize=55,
-                            weight='bold',
-                            bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
+                    # REPORT title
+                    plt.figtext(0.1, 0.92, "REPORT - " + name_fish,
+                                fontsize=55,
+                                weight='bold',
+                                bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
 
-                # Informations title
-                list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
-                                 qt_tr.translate("hdf5_mod", "Common Name:"),
-                                 qt_tr.translate("hdf5_mod", "Code biological model:"),
-                                 qt_tr.translate("hdf5_mod", "ONEMA fish code:"),
-                                 qt_tr.translate("hdf5_mod", "Stage chosen:"),
-                                 qt_tr.translate("hdf5_mod", "Description:")]
-                list_of_title_str = "\n\n".join(list_of_title)
-                plt.figtext(0.1, 0.7,
-                            list_of_title_str,
-                            weight='bold',
-                            fontsize=32)
+                    # Informations title
+                    list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
+                                     qt_tr.translate("hdf5_mod", "Common Name:"),
+                                     qt_tr.translate("hdf5_mod", "Code biological model:"),
+                                     qt_tr.translate("hdf5_mod", "ONEMA fish code:"),
+                                     qt_tr.translate("hdf5_mod", "Stage chosen:"),
+                                     qt_tr.translate("hdf5_mod", "Description:")]
+                    list_of_title_str = "\n\n".join(list_of_title)
+                    plt.figtext(0.1, 0.7,
+                                list_of_title_str,
+                                weight='bold',
+                                fontsize=32)
 
-                # Informations text
-                text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + information_model_dict[
-                    "CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
-                for idx, s in enumerate(stages):
-                    text_all += s + ', '
-                text_all = text_all[:-2] + '\n\n'
-                plt.figtext(0.4, 0.7, text_all, fontsize=32)
+                    # Informations text
+                    text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + information_model_dict[
+                        "CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
+                    for idx, s in enumerate(stages):
+                        text_all += s + ', '
+                    text_all = text_all[:-2] + '\n\n'
+                    plt.figtext(0.4, 0.7, text_all, fontsize=32)
 
-                # description
-                newax = fig.add_axes([0.4, 0.55, 0.56, 0.16], anchor='C',
-                                     zorder=-1,
-                                     frameon=True)
-                newax.name = "description"
-                newax.xaxis.set_ticks([])  # remove ticks
-                newax.yaxis.set_ticks([])  # remove ticks
-                if len(data[0][-1]) > 350:
-                    decription_str = data[0][-1][:350] + '...'
-                else:
-                    decription_str = data[0][-1]
-                newax.text(0.0, 1.0, decription_str,  # 0.4, 0.71,
-                           wrap=True,
-                           fontsize=32,
-                           # bbox={'facecolor': 'grey', 'alpha': 0.15},
-                           va='top',
-                           ha="left")
+                    # description
+                    newax = fig.add_axes([0.4, 0.55, 0.56, 0.16], anchor='C',
+                                         zorder=-1,
+                                         frameon=True)
+                    newax.name = "description"
+                    newax.xaxis.set_ticks([])  # remove ticks
+                    newax.yaxis.set_ticks([])  # remove ticks
+                    if len(data[0][-1]) > 350:
+                        decription_str = data[0][-1][:350] + '...'
+                    else:
+                        decription_str = data[0][-1]
+                    newax.text(0.0, 1.0, decription_str,  # 0.4, 0.71,
+                               wrap=True,
+                               fontsize=32,
+                               # bbox={'facecolor': 'grey', 'alpha': 0.15},
+                               va='top',
+                               ha="left")
 
-                # add a fish image
-                if path_im_bio:
-                    fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
-                    if os.path.isfile(fish_im_name):
-                        im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
-                        newax = fig.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
-                                             zorder=-1)
-                        newax.imshow(im)
-                        newax.axis('off')
+                    # add a fish image
+                    if path_im_bio:
+                        fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
+                        if os.path.isfile(fish_im_name):
+                            im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
+                            newax = fig.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
+                                                 zorder=-1)
+                            newax.imshow(im)
+                            newax.axis('off')
 
-                # move suptitle
-                fig.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
-                             x=0.5, y=0.54,
-                             fontsize=32,
-                             weight='bold')
+                    # move suptitle
+                    fig.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
+                                 x=0.5, y=0.54,
+                                 fontsize=32,
+                                 weight='bold')
 
-                # filename
-                filename = os.path.join(self.path_figure, 'report_' + information_model_dict["CdBiologicalModel"] +
-                                        self.project_preferences["format"])
+                    # filename
+                    filename = os.path.join(self.path_figure, 'report_' + information_model_dict["CdBiologicalModel"] +
+                                            self.project_preferences["format"])
 
-                # save
-                try:
-                    plt.savefig(filename)
-                except PermissionError:
-                    print(
-                        'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
+                    # save
+                    try:
+                        plt.savefig(filename)
+                    except PermissionError:
+                        print(
+                            'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
 
             if state:
                 state.value = 1  # process finished

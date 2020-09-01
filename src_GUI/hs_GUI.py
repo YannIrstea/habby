@@ -15,7 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Value, Queue
+from multiprocessing import Process, Value, Queue, Event
 
 from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QSize, QTimer
 from PyQt5.QtGui import QStandardItemModel, QPixmap, QIcon, QPalette, QColor
@@ -123,8 +123,10 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_prog)
         self.running_time = 0
-        self.p = Process(target=None)  # second process
+        self.stop = Event()
         self.q = Queue()
+        self.progress_value = Value("d", 0)
+        self.p = Process(target=None)
         self.progress_value = Value("d", 0)
         self.project_preferences = load_project_properties(self.path_prj)
         self.setTitle(title)
@@ -755,7 +757,10 @@ class CompareGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.comp_filename = 'HS_comp.txt'
-        self.p = Process(target=None)  # second process
+        self.stop = Event()
+        self.q = Queue()
+        self.progress_value = Value("d", 0)
+        self.p = Process(target=None)
         self.setTitle(title)
         self.init_ui()
 

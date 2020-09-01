@@ -30,10 +30,11 @@ from src.data_2d_mod import Data2d
 from src.plot_mod import plot_to_check_mesh_merging
 from src.tools_mod import get_translator
 from src.dev_tools import profileit
+from src.hydraulic_process_mod import MyProcessList
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False,
-                        project_preferences={}):
+                        project_preferences={}, stop=object):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
@@ -262,6 +263,30 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                                    hdf5_name_hab,
                                    new=True)
     hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_preferences)
+
+    # export
+    export_dict = dict()
+    nb_export = 0
+    for key in hdf5.available_export_list:
+        if project_preferences[key][1]:
+            nb_export += 1
+        export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
+
+    export_dict["habitat_text_hab"] = False
+    export_dict["nb_export"] = nb_export
+    process_list = MyProcessList("export")
+    process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+                                      [hdf5.filename],
+                                      export_dict,
+                                      project_preferences)
+    process_list.start()
+
+    while process_list.isRunning():
+        if stop.is_set():
+            if process_list.all_process_runned:
+                process_list.close_all_export()
+                process_list.terminate()
+                return
 
     # progress
     progress_value.value = 100

@@ -20,7 +20,7 @@ import sys
 from io import StringIO
 from itertools import product
 from time import sleep
-import numpy as np
+from multiprocessing import Queue
 
 from PyQt5.QtCore import QCoreApplication as qt_tr, QThread, pyqtSignal
 from multiprocessing import Process, Value
@@ -1098,7 +1098,8 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
         with open(filename_path, 'wt') as f:
             f.write(text)
 
-def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+
+def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=False, project_preferences={}, stop=object):
     """
     This function calls the function load_hydraulic and call the function cut_2d_grid()
 
@@ -1228,7 +1229,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
             return
 
         """ bank hydraulic aberations  """
-        data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
+        # data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
         # cProfile.runctx("data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=False, bank_depth=1)",globals={},locals={"data_2d":data_2d},filename="c:/habby_dev/files/cut6.profile")
 
         """ re compute area """
@@ -1274,11 +1275,15 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hdf5_file_index]["path_prj"],
                                        hydrau_description[hdf5_file_index]["hdf5_name"],
                                        new=True)
+        # HYD
         if not data_2d.hvum.hdf5_and_computable_list.subs():
+            project_preferences_index = 0
             hdf5.create_hdf5_hyd(data_2d,
                                  data_2d_whole_profile,
                                  project_preferences)
+        # HAB
         else:
+            project_preferences_index = 1
             data_2d.sub_mapping_method = hsr.sub_mapping_method
             data_2d.sub_classification_code = hsr.sub_classification_code
             data_2d.sub_classification_method = hsr.sub_classification_method
@@ -1289,6 +1294,30 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q=[], print_c
         # create_index_hydrau_text_file
         if not hydrau_description[hdf5_file_index]["index_hydrau"]:
             create_index_hydrau_text_file(hydrau_description)
+
+        # export
+        export_dict = dict()
+        nb_export = 0
+        for key in hdf5.available_export_list:
+            if project_preferences[key][project_preferences_index]:
+                nb_export += 1
+            export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][project_preferences_index]
+
+        export_dict["habitat_text_hab"] = False
+        export_dict["nb_export"] = nb_export
+        process_list = MyProcessList("export")
+        process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+                                          [hdf5.filename],
+                                          export_dict,
+                                          project_preferences)
+        process_list.start()
+
+        while process_list.isRunning():
+            if stop.is_set():
+                if process_list.all_process_runned:
+                    process_list.close_all_export()
+                    process_list.terminate()
+                    return
 
     # prog
     progress_value.value = 100
@@ -1665,16 +1694,11 @@ class MyProcessList(QThread):
                                                             name="export_detailled_txt")
                 self.process_list.append([export_detailled_mesh_txt_process, state])
             if self.export_dict["fish_information_hab"]:
-                if self.hdf5.data_2d.hvum.hdf5_and_computable_list.habs():
-                    state = Value("i", 0)
-                    export_pdf_process = Process(target=self.hdf5.export_report,
-                                                 args=(state,),
-                                                 name="export_report")
-                    self.process_list.append([export_pdf_process, state])
-                else:
-                    # append fake first
-                    self.process_list.append([Process(name="fake_fish_information_hab"), Value("i", 1)])
-                    print('Warning: ' + 'No habitat data in this .hab file to export Fish informations report.')
+                state = Value("i", 0)
+                export_pdf_process = Process(target=self.hdf5.export_report,
+                                             args=(state,),
+                                             name="export_report")
+                self.process_list.append([export_pdf_process, state])
 
     def new_plots(self):
         self.nb_finished = 0

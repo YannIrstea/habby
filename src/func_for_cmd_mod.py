@@ -29,7 +29,7 @@ import src.substrate_mod
 
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
-from multiprocessing import Process, Value, Queue
+from multiprocessing import Process, Value, Queue, Event
 from shutil import copyfile
 
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
@@ -270,13 +270,15 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         # run process
         progress_value = Value("d", 0)
+        stop = Event()
         q = Queue()
         p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
                     args=(hsra_value.hydrau_description_list,
                                progress_value,
                                q,
                                True,
-                               project_preferences),
+                               project_preferences,
+                                stop),
                     name="TELEMAC")
 
         cli_start_process_and_print_progress(p, progress_value)
@@ -1738,6 +1740,7 @@ def cli_load_sub(arguments, project_preferences):
         sub_description["name_hdf5"] = name_hdf5
 
         # if shape data valid : load and save
+        stop = Event()
         q = Queue()
         progress_value = Value("d", 0)
         p = Process(target=substrate_mod.load_sub,
@@ -1745,7 +1748,8 @@ def cli_load_sub(arguments, project_preferences):
                           progress_value,
                           q,
                           True,
-                          project_preferences),
+                          project_preferences,
+                          stop),
                     name="LOAD_SUB")
         cli_start_process_and_print_progress(p, progress_value)
 
@@ -1774,6 +1778,7 @@ def cli_merge(arguments, project_preferences):
         outputfilename = os.path.splitext(hdf5_name_hyd)[0] + "_" + os.path.splitext(hdf5_name_sub)[0] + ".hab"
 
     # run the function
+    stop = Event()
     q = Queue()
     progress_value = Value("d", 0)
     p = Process(target=src.merge.merge_grid_and_save,
@@ -1784,7 +1789,8 @@ def cli_merge(arguments, project_preferences):
                       progress_value,
                       q,
                       True,
-                      project_preferences),
+                      project_preferences,
+                      stop),
                 name="MERGE_GRID_SUB")
     cli_start_process_and_print_progress(p, progress_value)
 
@@ -1843,6 +1849,7 @@ def cli_calc_hab(arguments, project_preferences):
     if hab_filename:
         # run calculation
         progress_value = Value("d", 0)
+        stop = Event()
         q = Queue()
         p = Process(target=calcul_hab_mod.calc_hab_and_output,
                     args=(hab_filename,
@@ -1850,7 +1857,8 @@ def cli_calc_hab(arguments, project_preferences):
                           progress_value,
                           q,
                           True,
-                          project_preferences),
+                          project_preferences,
+                          stop),
                     name="RUN_HABITAT")
         cli_start_process_and_print_progress(p, progress_value)
 
@@ -1908,7 +1916,7 @@ def cli_start_process_and_print_progress(process, progress_value):
     process.start()
     while process.is_alive():
         running_time = time.time() - start_time
-        print(process.name + " running "  + str(round(progress_value.value, 1)) + " %, since " + str(round(running_time)) + " s.\r", end="")
+        print(process.name + " running " + str(round(progress_value.value, 1)) + " %, since " + str(round(running_time)) + " s.\r", end="")
     process.join()
     print("                                                                         \r", end="")  # clean line
     running_time = time.time() - start_time

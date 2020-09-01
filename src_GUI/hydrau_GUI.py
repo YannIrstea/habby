@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 import os
 import sys
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process, Queue, Value, Event
 import numpy as np
 from copy import deepcopy
 from PyQt5.QtCore import QCoreApplication
@@ -239,8 +239,10 @@ class ModelInfoGroup(QGroupBox):
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_prog)
         self.running_time = 0
-        self.p = Process(target=None)  # second process
+        self.stop = Event()
         self.q = Queue()
+        self.progress_value = Value("d", 0)
+        self.p = Process(target=None)
         self.model_index = None
         self.progress_value = Value("d", 0)
         # get cmd
@@ -705,6 +707,12 @@ class ModelInfoGroup(QGroupBox):
         The function which call the function which load hec_ras2d and
          save the name of files in the project file
         """
+        # block button
+        self.create_hdf5_button.setEnabled(False)  # hydraulic
+
+        # get minimum water height as we might neglect very low water height
+        self.project_preferences = load_project_properties(self.path_prj)
+
         # get timestep and epsg selected
         for i in range(len(self.hydrau_description_list)):
             for reach_number in range(int(self.hydrau_description_list[i]["reach_number"])):
@@ -717,6 +725,7 @@ class ModelInfoGroup(QGroupBox):
         self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = self.name_hdf5
         if self.name_hdf5 == "":
             self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
+            self.create_hdf5_button.setEnabled(True)
             return
 
         # for error management and figures
@@ -745,15 +754,9 @@ class ModelInfoGroup(QGroupBox):
                             new_filename_source_list.append(filename_source_list[file_num])
                 hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
 
-        # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_properties(self.path_prj)
-
-        # block button
-        self.create_hdf5_button.setEnabled(False)  # hydraulic
-
         # write the new file name in the project file
         self.save_xml()
-
+        self.stop = Event()
         self.q = Queue()
         self.progress_value = Value("d", 0)
         self.p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
@@ -761,7 +764,8 @@ class ModelInfoGroup(QGroupBox):
                                self.progress_value,
                                self.q,
                                False,
-                               self.project_preferences))
+                               self.project_preferences,
+                               self.stop))
 
         self.p.name = self.model_type + " data loading"
         self.p.start()
@@ -804,11 +808,7 @@ class ModelInfoGroup(QGroupBox):
                 # manage error
                 self.timer.stop()
                 queue_back = self.q.get()
-                if queue_back == "const_sub":  # sub cst case
-                    const_sub = True
-                else:
-                    self.mystdout = queue_back
-                    const_sub = False
+                self.mystdout = queue_back
                 error = self.send_err_log(True)
 
                 # known errors
@@ -816,7 +816,6 @@ class ModelInfoGroup(QGroupBox):
                     self.send_log.emit("clear status bar")
                     self.running_time = 0
                     self.nativeParentWidget().kill_process.setVisible(False)
-                    # unblock button hydraulic
                     self.create_hdf5_button.setEnabled(True)  # hydraulic
 
                 # finished without error
@@ -859,4 +858,3 @@ class ModelInfoGroup(QGroupBox):
                 if self.p.exitcode == 1:
                     self.send_log.emit(QCoreApplication.translate("SubHydroW",
                                                                   "Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
-

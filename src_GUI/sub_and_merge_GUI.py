@@ -15,7 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Queue, Value
+from multiprocessing import Process, Queue, Value, Event
 import numpy as np
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt
@@ -142,6 +142,9 @@ class SubstrateAndMerge(QWidget):
         self.send_log = send_log
         self.namefile = [""]
         self.pathfile = [""]
+        self.stop = Event()
+        self.q = Queue()
+        self.progress_value = Value("d", 0)
         self.p = Process(target=None)
         # update attribute
         self.sub_description = None
@@ -789,6 +792,7 @@ class SubstrateAndMerge(QWidget):
             self.sub_description["name_hdf5"] = self.name_hdf5
 
             # load substrate shp (and triangulation)
+            self.stop = Event()
             self.q = Queue()
             self.progress_value = Value("d", 0)
             self.p = Process(target=substrate_mod.load_sub,
@@ -796,7 +800,8 @@ class SubstrateAndMerge(QWidget):
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.project_preferences))
+                                   self.project_preferences,
+                                   self.stop))
             self.p.name = "Substrate data loading from shapefile"
             self.p.start()
 
@@ -906,15 +911,17 @@ class SubstrateAndMerge(QWidget):
 
         # get useful data
         path_hdf5 = self.find_path_hdf5()
-        if len(self.input_hyd_combobox) > 1:
+        if self.input_hyd_combobox.currentText():
             hdf5_name_hyd = self.input_hyd_combobox.currentText()  # path_hdf5 + "/" +
-        elif len(self.input_hyd_combobox) == 0:
+        else:
             self.send_log.emit('Error: ' + self.tr('No hydrological file available \n'))
             return
-        else:
-            hdf5_name_hyd = self.hyd_name[0]
 
-        hdf5_name_sub = self.input_sub_combobox.currentText()
+        if self.input_sub_combobox.currentText():
+            hdf5_name_sub = self.input_sub_combobox.currentText()  # path_hdf5 + "/" +
+        else:
+            self.send_log.emit('Error: ' + self.tr('No substrate file available \n'))
+            return
 
         # hdf5 output file
         self.name_hdf5 = self.hdf5_merge_lineedit.text()
@@ -934,6 +941,7 @@ class SubstrateAndMerge(QWidget):
         self.timer.start(100)
 
         # run the function
+        self.stop = Event()
         self.q = Queue()
         self.progress_value = Value("d", 0)
         self.p = Process(target=src.merge.merge_grid_and_save,
@@ -944,7 +952,8 @@ class SubstrateAndMerge(QWidget):
                                self.progress_value,
                                self.q,
                                False,
-                               project_preferences))
+                               project_preferences,
+                               self.stop))
         self.p.name = "Hydraulic and substrate data merging"
         self.p.start()
 

@@ -27,10 +27,11 @@ from src import bio_info_mod
 from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, \
     pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 from src.tools_mod import get_translator
+from src.hydraulic_process_mod import MyProcessList
 
 
 def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False,
-                        project_preferences={}):
+                        project_preferences={}, stop=object):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
@@ -368,6 +369,30 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
             os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
         src.tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input", "user_models"))
+
+    # export
+    export_dict = dict()
+    nb_export = 0
+    for key in hdf5.available_export_list:
+        if project_preferences[key][1]:
+            nb_export += 1
+        export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
+
+    export_dict["habitat_text_hab"] = True
+    export_dict["nb_export"] = nb_export
+    process_list = MyProcessList("export")
+    process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+                                      [hdf5.filename],
+                                      export_dict,
+                                      project_preferences)
+    process_list.start()
+
+    while process_list.isRunning():
+        if stop.is_set():
+            if process_list.all_process_runned:
+                process_list.close_all_export()
+                process_list.terminate()
+                return
 
     # progress
     progress_value.value = 100

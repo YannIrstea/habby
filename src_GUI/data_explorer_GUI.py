@@ -1002,7 +1002,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.current_type = 0
         self.checkbox_list = []
         self.nb_export = 0
-        self.all_export_keys_available = ["mesh_whole_profile",
+        self.available_export_list = ["mesh_whole_profile",
                                           "point_whole_profile",
                                           "mesh_units",
                                           "point_units",
@@ -1332,7 +1332,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
                     index_dict = 1
 
                 # set to False all export before setting specific export to True
-                for key in self.all_export_keys_available:
+                for key in self.available_export_list:
                     project_preferences[key][index_dict] = False
 
                 # setting specific export to True

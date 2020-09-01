@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 import os
 import shutil
-import ssl
+from time import sleep
 import urllib.request
 from functools import partial
 from platform import system as operatingsystem
@@ -293,7 +293,7 @@ class MainWindows(QMainWindow):
 
         :param event: managed by the operating system.
         """
-        isalive = self.process_alive(close=False, isalive=True)
+        isalive = self.kill_process_alive(close=False, isalive=True)
         if isalive:
             qm = QMessageBox
             ret = qm.question(self,
@@ -316,7 +316,7 @@ class MainWindows(QMainWindow):
             self.central_widget.save_info_projet()
 
         # close all process data (security)
-        self.process_alive(close=True, isalive=False)
+        self.kill_process_alive(close=True, isalive=False)
 
         # save model selection calhab
         if hasattr(self.central_widget, "bioinfo_tab"):
@@ -1310,7 +1310,7 @@ class MainWindows(QMainWindow):
         closeAction.triggered.connect(self.central_widget.closefig)
 
         self.kill_process = QAction(icon_kill, self.tr('Stop current process'), self)
-        self.kill_process.triggered.connect(partial(self.process_alive, close=True, isalive=False))
+        self.kill_process.triggered.connect(partial(self.kill_process_alive, close=True, isalive=False))
         self.kill_process.setVisible(False)
         spacer_toolbar = QWidget()
         spacer_toolbar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -1735,10 +1735,12 @@ class MainWindows(QMainWindow):
         elif self.operatingsystemactual == 'Darwin':
             call(['open', path_choosen])
 
-    def process_alive(self, close=True, isalive=False):
+    def kill_process_alive(self, close=True, isalive=False):
         """
         method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
         """
+        process_object = None
+        stop_object = None
         tab_list = [
             ("hydro_tab", "model_group"),
             ("substrate_tab", "sub_and_merge"),
@@ -1750,32 +1752,31 @@ class MainWindows(QMainWindow):
         if hasattr(self, "central_widget"):
             central_widget_attrib = getattr(self, "central_widget")
             for tabs in tab_list:
-                # hydraulic tabs and hs_tab
+                # hydraulic tabs, substrate, calc hab, hs_tab
                 if type(tabs) == tuple:
                     if hasattr(central_widget_attrib, tabs[0]):
                         process_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).p
-                        if process_object.is_alive():
-                            alive.append(process_object.name)
-                            if close:
-                                process_object.terminate()
-                                self.central_widget.write_log("Warning: " + process_object.name +
-                                                              self.tr(" process has been stopped by the user." +
-                                                              " The files produced by this process can be damaged."))
-                                # hide button
-                                self.kill_process.setVisible(False)
-                # substrate, calc hab, data_explorer and tools tabs
+                        stop_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).stop
+                # data_explorer and tools tabs
                 else:
                     if hasattr(central_widget_attrib, tabs):
                         process_object = getattr(central_widget_attrib, tabs).p
-                        if process_object.is_alive():
-                            alive.append(process_object.name)
-                            if close:
+                        stop_object = getattr(central_widget_attrib, tabs).stop
+
+                if process_object:
+                    if process_object.is_alive():
+                        alive.append(process_object.name)
+                        if close:
+                            stop_object.set()
+                            sleep(1)
+                            if process_object.is_alive():
                                 process_object.terminate()
-                                self.central_widget.write_log("Warning: " + process_object.name +
-                                                              self.tr(" process has been stopped by the user." +
-                                                              " The files produced by this process can be damaged."))
-                                # hide button
-                                self.kill_process.setVisible(False)
+                            self.central_widget.write_log("Warning: " + process_object.name +
+                                                          self.tr(" process has been stopped by the user." +
+                                                          " The files produced by this process can be damaged."))
+                            # hide button
+                            self.kill_process.setVisible(False)
+
         # hide button
         self.kill_process.setVisible(False)
         if isalive:

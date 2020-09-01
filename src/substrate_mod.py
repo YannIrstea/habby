@@ -36,7 +36,7 @@ from src.data_2d_mod import Data2d
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
-def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}, stop=object):
     """
     :param sub_description: substrate description dict
     :param progress_value: progress value from multiprocessing
