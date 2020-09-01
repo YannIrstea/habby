@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
 import sys
+import time
 
 from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
 from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
@@ -823,7 +824,7 @@ class Data2d(list):
     def fix_aberrations(self, npasses=10, tolerance=0.01, connectedness_criterion=None, bank_depth=0.5):
         # TODO optimize code to run faster for large meshes
         # TODO find the most appropriate parameters npasses, tolerance, connectedness_criterion
-        t0 = time.time()
+        # t0 = time.time()
         for reach_i in range(self.reach_number):
             for unit_i in range(self.unit_number):
                 ##All arrays below are copies, rather than aliases
@@ -846,7 +847,7 @@ class Data2d(list):
                 passes = 0
                 while passes < npasses:
 
-                    tl0 = time.time()
+                    # tl0 = time.time()
 
                     bank_mesh_index = np.flatnonzero((h[tin] < bank_depth).any(axis=1))
                     bank_mesh = tin[bank_mesh_index]
@@ -897,9 +898,9 @@ class Data2d(list):
                     i_whole_profile = np.delete(i_whole_profile, triangles_to_remove, axis=0)
                     mesh_data = mesh_data[~np.in1d(np.arange(len(mesh_data)), triangles_to_remove)]
                     # mesh_data.drop(axis=0, labels=mesh_data.index[triangles_to_remove], inplace=True)
-                    tl1 = time.time()
-                    print("Loop " + str(passes) + ", unit", unit_i, "reach", reach_i)
-                    print("looptime=", tl1 - tl0)
+                    # tl1 = time.time()
+                    # print("Loop " + str(passes) + ", unit", unit_i, "reach", reach_i)
+                    # print("looptime=", tl1 - tl0)
                     if len(triangles_to_remove) == 0:
                         passes = npasses  # if no triangles were removed in the loop, stop iterating
                     passes += 1
@@ -923,8 +924,8 @@ class Data2d(list):
                 self[reach_i][unit_i]["mesh"]["tin"] = corrected_tin
                 self[reach_i][unit_i]["mesh"]["data"] = mesh_data
                 self[reach_i][unit_i]["mesh"]["i_whole_profile"] = i_whole_profile
-        t1 = time.time()
-        print("runtime=", t1 - t0)
+        # t1 = time.time()
+        # print("runtime=", t1 - t0)
 
     def get_hs_summary_data(self, reach_num_list, unit_num_list):
         # get hs headers
