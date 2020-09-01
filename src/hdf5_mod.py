@@ -39,6 +39,7 @@ from src.project_properties_mod import load_project_properties, save_project_pro
 from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
 from src.data_2d_mod import Data2d
 from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
+from src.dev_tools import profileit
 
 from habby import HABBY_VERSION_STR
 
@@ -1264,8 +1265,7 @@ class Hdf5Management:
             return
 
         # Mapping between OGR and Python data types
-        OGRTypes_dict = {int: ogr.OFTInteger,
-                         np.int64: ogr.OFTInteger64,
+        OGRTypes_dict = {np.int64: ogr.OFTInteger64,
                          np.float64: ogr.OFTReal}
 
         # CRS
@@ -1498,13 +1498,9 @@ class Hdf5Management:
 
                             # variables
                             for mesh_variable in self.data_2d.hvum.all_final_variable_list.no_habs().meshs():
-                                if mesh_variable.dtype == np.int64:
-                                    data_field = int(self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
-                                                         mesh_variable.name][mesh_num])
-                                else:
-                                    data_field = self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
-                                        mesh_variable.name][mesh_num]
-
+                                # convert NumPy values to a native Python type
+                                data_field = self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
+                                                     mesh_variable.name][mesh_num].item()
                                 feat.SetField(mesh_variable.name_gui, data_field)
 
                             if self.hdf5_type == "habitat":
