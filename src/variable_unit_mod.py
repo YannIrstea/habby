@@ -958,7 +958,7 @@ class HydraulicVariableUnitManagement:
                             class_variable = getattr(self, "sub_s" + str(class_num))
                             class_variable.position = "mesh"
                             class_variable.hdf5 = True
-                            if class_variable.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                            if class_variable.name not in self.all_final_variable_list.hdf5s().meshs().names():
                                 self.all_final_variable_list.append(class_variable)
                     else:
                         # load hdf5 coarser/dom data
