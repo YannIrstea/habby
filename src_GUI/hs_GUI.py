@@ -363,7 +363,7 @@ class ComputingGroup(QGroupBoxCollapsible):
 
             hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
                                               hdf5_name=self.file_selection_listwidget.currentItem().text(),
-                                              hs_export_txt=self.hs_export_mesh_checkbox.isChecked(),
+                                              hs_export_txt=self.hs_export_txt_checkbox.isChecked(),
                                               classhv=self.classhv)
             self.q = Queue()
             self.progress_value = Value("d", 0)
