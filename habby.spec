@@ -6,6 +6,9 @@ import os
 from PyInstaller.utils.hooks import collect_data_files  # this is very helpful
 from osgeo import gdal, ogr, osr
 from platform import system as operatingsystem
+import sys
+sys.path.append(r"C:\habby_dev\habby")
+
 
 if operatingsystem() == 'Windows':
     habby_dev_path = 'C:\\habby_dev'
@@ -37,6 +40,10 @@ hidden_imports = [
     'gdal',
     'pkg_resources.py2_warn']
 # pkg_resources.py2_warn : if not set, .exe crash (Failed to execute script pyi_rth_pkgres)
+
+from src.hydraulic_results_manager_mod import HydraulicModelInformation
+
+hidden_imports.extend(["src." + s for s in HydraulicModelInformation().file_mod_models_list])
 
 a = Analysis(['habby.py'],
              pathex=[],
