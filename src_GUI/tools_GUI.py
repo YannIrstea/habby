@@ -311,14 +311,16 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # clean
             self.hab_reach_qcombobox.clear()
             # create hdf5 class to get hdf5 inforamtions
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.create_or_open_file()
-            if len(hdf5.reach_name) == 1:
-                reach_names = hdf5.reach_name
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
+            if len(hdf5.data_2d.reach_list) == 1:
+                reach_names = hdf5.data_2d.reach_list
             else:
-                reach_names = [""] + hdf5.reach_name
+                reach_names = [""] + hdf5.data_2d.reach_list
 
-            unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
+            unit_type = hdf5.data_2d.unit_type
             if "Date" not in unit_type:
                 self.hab_reach_qcombobox.addItems(reach_names)
             else:
@@ -338,19 +340,19 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # clean
             self.disable_and_clean_group_widgets(False)
             # clean
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.create_or_open_file(get_hdf5_attributes=True)
-            unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
+            hdf5.get_hdf5_attributes(close_file=True)
+            unit_type = hdf5.data_2d.unit_type
             unit_type = unit_type.replace("m3/s", "m<sup>3</sup>/s")
             unit_type_value = unit_type[unit_type.index("["):unit_type.index("]")+1]
-            fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
-            fish_list.sort()
-            reach_index = hdf5.reach_name.index(reach_name)
-            units_name = hdf5.units_name[reach_index]
+            reach_index = hdf5.data_2d.reach_list.index(reach_name)
+            units_name = hdf5.data_2d.unit_list[reach_index]
 
             # hab
-            if hdf5.hvum.all_final_variable_list.meshs().names_gui():
-                for mesh in hdf5.hvum.all_final_variable_list.habs().meshs():
+            if hdf5.data_2d.hvum.hdf5_and_computable_list.habs().meshs().names_gui():
+                for mesh in hdf5.data_2d.hvum.hdf5_and_computable_list.habs().meshs():
                     mesh_item = QListWidgetItem(mesh.name_gui, self.fish_available_qlistwidget)
                     mesh_item.setData(Qt.UserRole, mesh)
                     self.fish_available_qlistwidget.addItem(mesh_item)
@@ -448,14 +450,16 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         # load hdf5 data
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.create_or_open_file()
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                       hdf5name,
+                                       new=False)
+        hdf5.get_hdf5_attributes(close_file=True)
 
         # get reach_name
-        reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+        reach_index = hdf5.data_2d.reach_list.index(self.hab_reach_qcombobox.currentText())
 
         # check matching units for interpolation
-        valid, text = tools_mod.check_matching_units(hdf5.unit_type, types)
+        valid, text = tools_mod.check_matching_units(hdf5.data_2d.unit_type, types)
 
         if not valid:
             self.send_log.emit("Warning : " + self.tr("Interpolation not done.") + text)
@@ -490,11 +494,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5name = self.hab_filenames_qcombobox.currentText()
         if hdf5name:
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
             # get hdf5 inforamtions
-            hdf5.create_or_open_file()
-            unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
-            units_name = hdf5.units_name[self.hab_reach_qcombobox.currentIndex()]
+            hdf5.get_hdf5_attributes(close_file=True)
+            unit_type = hdf5.data_2d.unit_type
+            units_name = hdf5.data_2d.unit_list[self.hab_reach_qcombobox.currentIndex()]
             unit_number = list(map(float, units_name))
             min_unit = min(unit_number)
             max_unit = max(unit_number)
@@ -544,11 +550,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
             project_preferences = load_project_properties(self.path_prj)
 
             # load hdf5 data
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
             # get hdf5 inforamtions
-            hdf5.create_or_open_file()
+            hdf5.get_hdf5_attributes(close_file=True)
 
-            reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+            reach_index = hdf5.data_2d.reach_list.index(self.hab_reach_qcombobox.currentText())
 
             # recompute
             data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,
@@ -612,11 +620,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
             project_preferences = load_project_properties(self.path_prj)
 
             # load hdf5 data
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
+                                           hdf5name,
+                                           new=False)
             # get hdf5 inforamtions
-            hdf5.create_or_open_file()
+            hdf5.get_hdf5_attributes(close_file=True)
 
-            reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+            reach_index = hdf5.data_2d.reach_list.index(self.hab_reach_qcombobox.currentText())
 
             # recompute interpolation
             data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,

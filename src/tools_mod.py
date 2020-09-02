@@ -142,7 +142,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
 
     # get hdf5 model
     inter_data_model = dict()
-    inter_data_model["unit"] = list(map(float, data_2d.unit_name_list[reach_number]))
+    inter_data_model["unit"] = list(map(float, data_2d.unit_list[reach_number]))
     total_wet_area = []
     for unit_number in range(data_2d.unit_number):
         total_wet_area.append(data_2d[reach_number][unit_number].total_wet_area)
