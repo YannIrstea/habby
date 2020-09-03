@@ -7,21 +7,14 @@ from PyInstaller.utils.hooks import collect_data_files  # this is very helpful
 from osgeo import gdal, ogr, osr
 from platform import system as operatingsystem
 import sys
-sys.path.append(r"C:\habby_dev\habby")
 
 
-if operatingsystem() == 'Windows':
-    habby_dev_path = 'C:\\habby_dev'
-elif operatingsystem() == 'Linux':
+habby_dev_path = 'C:\\habby_dev'
+if operatingsystem() == 'Linux':
     habby_dev_path = '\\local\\AIX\\quentin.royer\\Documents\\habby_dev'
 elif operatingsystem() == 'Darwin':
     habby_dev_path = '\\local\\AIX\\quentin.royer\\Documents\\habby_dev'
-
-paths = [
-    os.path.join(habby_dev_path, 'habby'),
-    os.path.join(habby_dev_path, 'env_virtuels\\env_habby_dev\\Lib\\site-packages\\osgeo'),
-    os.path.join(habby_dev_path, 'env_virtuels\\env_habby_dev\\Lib\\site-packages\\triangle')
-]
+sys.path.append(os.path.join(habby_dev_path, "habby"))
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)
 osgeo_pyds = []
