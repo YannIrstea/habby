@@ -185,6 +185,8 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
+    else:
+        return fig, ax
 
 
 def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, project_preferences, get_fig=False):
@@ -254,6 +256,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
+    else:
+        return fig, axarr
 
 
 def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish, name_fish, stade, project_preferences, get_fig=False):
@@ -326,6 +330,8 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
+    else:
+        return fig, ax
 
 
 def plot_hydrosignature(state, data, vclass, hclass, title, type, project_preferences, axe_mod_choosen=2):

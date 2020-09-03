@@ -2061,7 +2061,7 @@ class Hdf5Management:
                             h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
                                 bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
                             # plot
-                            plot_mod.plot_suitability_curve(fake_value,
+                            fig, axe_curve = plot_mod.plot_suitability_curve(fake_value,
                                                             h_all,
                                                             vel_all,
                                                             sub_all,
@@ -2078,7 +2078,7 @@ class Hdf5Management:
                             shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
                                 bio_info_mod.read_pref(xmlfile, hab_animal_type_list[idx])
                             # plot
-                            plot_mod.plot_suitability_curve_invertebrate(fake_value,
+                            fig, axe_curve = plot_mod.plot_suitability_curve_invertebrate(fake_value,
                                                                          shear_stress_all, hem_all, hv_all,
                                                                          code_fish, name_fish,
                                                                          stages, self.project_preferences, True)
@@ -2088,7 +2088,7 @@ class Hdf5Management:
                                                                                                                     hab_animal_type_list[
                                                                                                                         idx])
                         state_fake = Value("d", 0)
-                        plot_mod.plot_suitability_curve_bivariate(state_fake,
+                        fig, axe_curve = plot_mod.plot_suitability_curve_bivariate(state_fake,
                                                                   h_all,
                                                                   vel_all,
                                                                   pref_values_all,
@@ -2098,7 +2098,7 @@ class Hdf5Management:
                                                                   self.project_preferences,
                                                                   True)
                     # get axe and fig
-                    fig = plt.gcf()
+                    # fig = plt.gcf()
                     # axe_curve = plt.gca()
 
                     # modification of the orginal preference fig

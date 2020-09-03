@@ -77,7 +77,10 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['height'] = 11.2  # cm
     project_preferences['width'] = 16  # cm
     project_preferences['color_map'] = 'jet'
-    project_preferences["font_family"] = "Arial"
+    if operatingsystem_str == "Linux":
+        project_preferences["font_family"] = "DejaVu Sans"
+    else:
+        project_preferences["font_family"] = "Arial"
     project_preferences['font_size'] = 9
     project_preferences['line_width'] = 1
     project_preferences['grid'] = False  # grid on plot
