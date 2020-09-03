@@ -98,10 +98,9 @@ class MainWindows(QMainWindow):
         self.beta = True  # if set to True : GUI beta version mode is runned (block fonctionality)
 
         # operating system
-        self.operatingsystemactual = operatingsystem()
         self.myEnv = dict(os.environ)
 
-        if self.operatingsystemactual == "Linux":
+        if operatingsystem() == "Linux":
             lp_key = 'LD_LIBRARY_PATH'
             lp_orig = self.myEnv.get(lp_key + '_ORIG')
             if lp_orig is not None:
@@ -401,7 +400,13 @@ class MainWindows(QMainWindow):
         if self.path_prj:
             path_here = os.path.dirname(self.path_prj)
         else:
-            path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+            if operatingsystem() == 'Windows':
+                path_here = os.path.join(os.path.expanduser("~"),  "Documents", "HABBY_projects")
+            elif operatingsystem() == 'Linux':
+                path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+            elif operatingsystem() == 'Darwin':
+                path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+
         filename_path = \
         QFileDialog.getOpenFileName(self, self.tr('Open project'), path_here, "HABBY project (*.habby)")[0]
         if not filename_path:  # cancel
@@ -1728,11 +1733,11 @@ class MainWindows(QMainWindow):
         else:
             path_choosen = os.path.normpath(self.path_prj)
 
-        if self.operatingsystemactual == 'Windows':
+        if operatingsystem() == 'Windows':
             call(['explorer', path_choosen])
-        elif self.operatingsystemactual == 'Linux':
+        elif operatingsystem() == 'Linux':
             call(["xdg-open", path_choosen], env=self.myEnv)
-        elif self.operatingsystemactual == 'Darwin':
+        elif operatingsystem() == 'Darwin':
             call(['open', path_choosen])
 
     def kill_process_alive(self, close=True, isalive=False):
@@ -1842,16 +1847,20 @@ class CreateNewProjectDialog(QDialog):
     """
 
     def __init__(self, lang, physic_tabs, stat_tabs, oldpath_prj):
-        if oldpath_prj and os.path.isdir(oldpath_prj):
+        super().__init__()
+        if operatingsystem() == 'Windows':
+            self.default_fold = os.path.join(os.path.expanduser("~"), "Documents", "HABBY_projects")
+        elif operatingsystem() == 'Linux':
+            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+        elif operatingsystem() == 'Darwin':
+            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+
+        if oldpath_prj and os.path.isdir(oldpath_prj) and os.path.dirname(oldpath_prj) != "":
             self.default_fold = os.path.dirname(oldpath_prj)
-        else:
-            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
-        if self.default_fold == '':
-            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+
         self.default_name = 'DefaultProj'
         self.physic_tabs = physic_tabs
         self.stat_tabs = stat_tabs
-        super().__init__()
 
         self.init_iu()
 
