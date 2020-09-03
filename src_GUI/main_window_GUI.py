@@ -400,12 +400,12 @@ class MainWindows(QMainWindow):
         if self.path_prj:
             path_here = os.path.dirname(self.path_prj)
         else:
-            if operatingsystem() == 'Windows':
-                path_here = os.path.join(os.path.expanduser("~"),  "Documents", "HABBY_projects")
-            elif operatingsystem() == 'Linux':
-                path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
-            elif operatingsystem() == 'Darwin':
-                path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+            user_path = os.path.expanduser("~")
+            user_document_path = os.path.join(user_path, "Documents")
+            if os.path.exists(user_document_path):
+                path_here = os.path.join(user_document_path, "HABBY_projects")
+            else:
+                path_here = os.path.join(user_path, "HABBY_projects")
 
         filename_path = \
         QFileDialog.getOpenFileName(self, self.tr('Open project'), path_here, "HABBY project (*.habby)")[0]
@@ -1848,12 +1848,12 @@ class CreateNewProjectDialog(QDialog):
 
     def __init__(self, lang, physic_tabs, stat_tabs, oldpath_prj):
         super().__init__()
-        if operatingsystem() == 'Windows':
-            self.default_fold = os.path.join(os.path.expanduser("~"), "Documents", "HABBY_projects")
-        elif operatingsystem() == 'Linux':
-            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
-        elif operatingsystem() == 'Darwin':
-            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
+        user_path = os.path.expanduser("~")
+        user_document_path = os.path.join(user_path, "Documents")
+        if os.path.exists(user_document_path):
+            self.default_fold = os.path.join(user_document_path, "HABBY_projects")
+        else:
+            self.default_fold = os.path.join(user_path, "HABBY_projects")
 
         if oldpath_prj and os.path.isdir(oldpath_prj) and os.path.dirname(oldpath_prj) != "":
             self.default_fold = os.path.dirname(oldpath_prj)
