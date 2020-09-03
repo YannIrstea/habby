@@ -1756,12 +1756,8 @@ class Hdf5Management:
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
-        # INDEX IF HYD OR HAB
-        index = 0
-        if self.extension == ".hab":
-            index = 1
-        if self.project_preferences['habitat_text'][index]:
-            animal_list = self.data_2d.hvum.all_final_variable_list.habs()
+        else:
+            animal_list = self.data_2d.hvum.hdf5_and_computable_list.habs()
             if animal_list:
                 sim_name = self.data_2d.unit_list
                 unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
@@ -1855,8 +1851,8 @@ class Hdf5Management:
                             # write file
                             f.write(data_here)
 
-            if state:
-                state.value = 1  # process finished
+        if state:
+            state.value = 1  # process finished
 
     def export_detailled_txt(self, state=None):
         self.export_detailled_mesh_txt()
