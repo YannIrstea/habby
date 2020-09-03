@@ -21,8 +21,8 @@ if exist %envir_virtuels_path%\%envir_virtuel_name% rmdir /Q /S %envir_virtuels_
 call conda create --prefix %envir_virtuels_path%\%envir_virtuel_name% python=3.6 --yes
 call conda activate %envir_virtuels_path%\%envir_virtuel_name%
 call conda install -c conda-forge numpy conda-forge::blas=*=openblas --yes 
-call conda install pyinstaller gdal --yes
-pip install PyQt5 h5py triangle appdirs qdarkstyle matplotlib numpy-stl lxml scipy mplcursors pillow pandas
+call conda install pyinstaller gdal h5py --yes
+pip install PyQt5 triangle appdirs qdarkstyle matplotlib numpy-stl lxml scipy mplcursors pillow pandas
 
 :::::::::::::::::::::::::::: RUN HABBY :::::::::::::::
 python %habby_path%\habby.py
