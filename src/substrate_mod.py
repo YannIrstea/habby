@@ -98,7 +98,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     data_2d.sub_mapping_method = sub_description["sub_mapping_method"]
     data_2d.sub_classification_code = sub_description["sub_classification_code"]
     data_2d.sub_classification_method = sub_description["sub_classification_method"]
-    data_2d.sub_default_values = sub_description["sub_default_values"]
+    data_2d.sub_default_values = sub_description["sub_default_values"].split(",")
     data_2d.epsg_code = sub_description["epsg_code"]
     data_2d.filename_source = filename_source
     data_2d.path_filename_source = path_filename_source
