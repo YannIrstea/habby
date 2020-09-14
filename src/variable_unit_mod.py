@@ -827,14 +827,27 @@ class HydraulicVariableUnitManagement:
                 self.area.hdf5 = True
                 self.all_final_variable_list.append(self.area)
             # shear_stress
-            for variable_wish in user_target_list:
+            for variable_wish in user_target_list.habs():
                 if variable_wish.aquatic_animal_type == "invertebrate":
                     if self.shear_stress.name not in self.all_final_variable_list.hdf5s().meshs().names():
                         if self.shear_stress.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
                             self.shear_stress.position = "mesh"
                             self.shear_stress.hdf5 = True
-                            self.all_final_variable_list.append(self.shear_stress)
-                            break
+                        else:
+                            if self.v_frict.name in self.hdf5_and_computable_list.hdf5s().nodes().names():
+                                if self.v_frict.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                                    self.v_frict.position = "node"
+                                    self.v_frict.hdf5 = True
+                                    self.all_final_variable_list.append(self.v_frict)
+                                if self.shear_stress.name not in self.all_final_variable_list.to_compute().nodes().names():
+                                    self.shear_stress.position = "node"
+                                    self.shear_stress.hdf5 = False
+                                    self.all_final_variable_list.append(self.shear_stress)
+                                if self.shear_stress.name not in self.all_final_variable_list.hdf5s().meshs().names():
+                                    self.shear_stress.position = "mesh"
+                                    self.shear_stress.hdf5 = False
+                                    self.all_final_variable_list.append(self.shear_stress)
+                        break
 
         else:
             """ node """

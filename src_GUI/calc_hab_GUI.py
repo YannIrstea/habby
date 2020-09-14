@@ -413,12 +413,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
+                # get default_substrate_type
                 default_substrate_type = user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage]
-                if not self.current_hab_informations_dict["sub_mesh_ok"]:
-                    default_substrate_type = "Neglect"
-                # set positon to combobox
-                self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(
-                    substrate_type_available.index(default_substrate_type))
+                # if not self.current_hab_informations_dict["sub_mesh_ok"]:
+                #     default_substrate_type = "Neglect"
+                # set position to combobox
+                self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(default_substrate_type))
             if not default:
                 if new_sub_str in substrate_type_available:
                     # set positon to combobox
@@ -646,11 +646,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
                 """ SUB """
-                # # change language
-                # for num in range(len(user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage])):
-                #     user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage][num] = self.tr(user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage][num])
-                # user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage] = self.tr(
-                #         user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
                 # get default_substrate_type
                 substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage]
 
@@ -664,10 +659,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     default_choice_index = substrate_type_available.index("Neglect")
                     item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
                     item_combobox_sub.model().item(default_choice_index).setToolTip(
-                        self.tr(".hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged."))
+                        self.tr(".hab sub data is constant values. Computing habitat values with constant "
+                                "substrate data is not encouraged."))
                     item_combobox_sub.setToolTip(
-                        self.tr(
-                            ".hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged."))
+                        self.tr(".hab sub data is constant values. Computing habitat values with constant "
+                                "substrate data is not encouraged."))
                     if self.general_option_sub_combobox.currentIndex() == 0:
                         choosen_index = default_choice_index
                 if choosen_index == default_choice_index:
