@@ -201,7 +201,7 @@ class Data2d(list):
             # for each unit
             for unit_number in range(self.unit_number):
                 try:
-                    default_data = np.array(list(map(int, hdf5_sub.data_2d.sub_default_values.split(", "))),
+                    default_data = np.array(hdf5_sub.data_2d.sub_default_values,
                                             dtype=self.hvum.sub_dom.dtype)
                     sub_array = np.repeat([default_data],
                                           self[reach_number][unit_number]["mesh"]["tin"].shape[0],
