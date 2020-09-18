@@ -700,9 +700,11 @@ class QGroupBoxCollapsible(QGroupBox):
 
     def toggle_group(self, checked):
         if checked:
+            self.setFlat(False)
             self.setFixedHeight(self.sizeHint().height())
         else:
-            self.setFixedHeight(30)
+            self.setFlat(True)
+            self.setFixedHeight(20)
 
 
 def mp_worker(data_list):
