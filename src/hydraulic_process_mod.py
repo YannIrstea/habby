@@ -1491,26 +1491,37 @@ class MyProcessList(QThread):
         self.nb_export_total = 0
         self.export_finished = False
         self.export_production_stoped = False
-        self.process_type = type  # cal or plot or export
-        self.process_list = []
+        self.hs_production_stoped = False
+        self.hs_finished = False
+        self.nb_hs_total = 0
+        self.process_type = type  # hs or plot or export
+        self.process_list = [(Process(), Value("d", 0.0))]
         self.save_process = []
         self.plot_hdf5_mode = False
         self.export_hdf5_mode = False
-
-    def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
-        self.path_prj = path_prj
-        self.names_hdf5 = names_hdf5
-        self.project_preferences = project_preferences
-        self.export_hdf5_mode = True
-        self.export_dict = export_dict
-        self.nb_export_total = export_dict["nb_export"]
+        self.hs_hdf5_mode = False
+        self.progress_value = 0.0
 
     def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_preferences):
         self.path_prj = path_prj
         self.names_hdf5 = names_hdf5
+        self.plot_attr = plot_attr
         self.project_preferences = project_preferences
         self.plot_hdf5_mode = True
-        self.plot_attr = plot_attr
+
+    def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
+        self.path_prj = path_prj
+        self.names_hdf5 = names_hdf5
+        self.export_dict = export_dict
+        self.project_preferences = project_preferences
+        self.export_hdf5_mode = True
+        self.nb_export_total = export_dict["nb_export"]
+
+    def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
+        self.path_prj = path_prj
+        self.hs_description_dict = hs_description_dict
+        self.project_preferences = project_preferences
+        self.hs_hdf5_mode = True
 
     def load_data_and_append_plot_process(self):
         reach = self.plot_attr.reach
@@ -1700,6 +1711,21 @@ class MyProcessList(QThread):
                                              name="export_report")
                 self.process_list.append([export_pdf_process, state])
 
+    def load_data_and_append_hs_process(self):
+        self.process_list = []
+        for hdf5_name in self.hs_description_dict["hdf5_name_list"]:
+            self.hs_description_dict["hdf5_name"] = hdf5_name
+            q = Queue()
+            progress_value = Value("d", 0)
+            hs_process = Process(target=load_data_and_compute_hs,
+                                 args=(self.hs_description_dict,
+                                       progress_value,
+                                       q,
+                                       False,
+                                       self.project_preferences),
+                                 name="hydrosignature computing")
+            self.process_list.append([hs_process, progress_value])
+
     def new_plots(self):
         self.nb_finished = 0
         self.add_plots_state = False
@@ -1754,6 +1780,18 @@ class MyProcessList(QThread):
             self.all_process_runned = True
             self.check_all_export_produced()
 
+        if self.process_type == "hs":
+            self.hs_finished = False
+            self.all_process_runned = False
+            if self.hs_hdf5_mode:
+                self.load_data_and_append_hs_process()
+            # Process mod
+            for i in range(len(self.process_list)):
+                if not self.export_production_stoped:
+                    self.process_list[i][0].start()
+            self.all_process_runned = True
+            self.check_all_hs_produced()
+
     def stop_plot_production(self):
         #print("stop_plot_production")
         self.plot_production_stoped = True
@@ -1793,6 +1831,22 @@ class MyProcessList(QThread):
             self.thread_started = False
             self.export_finished = True
             self.process_list = []
+
+    def close_all_hs(self):
+        """
+        Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
+        """
+        if self.thread_started:
+            self.hs_production_stoped = True
+            while not self.all_process_runned:
+                pass
+
+            for i in range(len(self.process_list)):
+                if self.process_list[i][0].is_alive():
+                    self.process_list[i][0].terminate()
+            self.thread_started = False
+            self.hs_finished = True
+            self.terminate()
 
     def check_all_plot_produced(self):
         """
@@ -1850,6 +1904,23 @@ class MyProcessList(QThread):
             if state_list.count(1) != self.nb_finished:
                 self.nb_finished = state_list.count(1)
         self.export_finished = True
+
+    def get_progress_value(self):
+        progress_value_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
+        self.nb_finished = progress_value_list.count(100.0)
+        self.progress_value = sum(progress_value_list) / len(self.process_list)
+
+
+    def check_all_hs_produced(self):
+        # print("check_all_export_produced")
+        self.nb_finished = 0
+        self.nb_hs_total = len(self.process_list)
+        self.get_progress_value()
+        while self.nb_finished != self.nb_hs_total:
+            if self.hs_production_stoped:
+                break
+            self.get_progress_value()
+        self.hs_finished = True
 
     def check_all_process_closed(self):
         """

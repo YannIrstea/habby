@@ -292,7 +292,7 @@ class MainWindows(QMainWindow):
 
         :param event: managed by the operating system.
         """
-        isalive = self.kill_process_alive(close=False, isalive=True)
+        isalive = self.kill_process(close=False, isalive=True)
         if isalive:
             qm = QMessageBox
             ret = qm.question(self,
@@ -311,11 +311,11 @@ class MainWindows(QMainWindow):
 
         # close all process plot
         if hasattr(self, "central_widget"):
-            self.central_widget.closefig()
+            self.central_widget.kill_process_list()
             self.central_widget.save_info_projet()
 
         # close all process data (security)
-        self.kill_process_alive(close=True, isalive=False)
+        self.kill_process(close=True, isalive=False)
 
         # save model selection calhab
         if hasattr(self.central_widget, "bioinfo_tab"):
@@ -1089,7 +1089,7 @@ class MainWindows(QMainWindow):
         savi.triggered.connect(self.remove_all_figure_files)
         closeim = QAction(self.tr("Close all figure windows"), self)
         closeim.setStatusTip(self.tr('Close all open figure windows'))
-        closeim.triggered.connect(self.central_widget.closefig)
+        closeim.triggered.connect(self.central_widget.kill_process_list)
         closeim.setShortcut('Ctrl+B')
         closeprj = QAction(self.tr('Close'), self)
         closeprj.setShortcut('Ctrl+W')
@@ -1312,11 +1312,11 @@ class MainWindows(QMainWindow):
 
         closeAction = QAction(icon_closefig, self.tr('Close figure windows'), self)
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
-        closeAction.triggered.connect(self.central_widget.closefig)
+        closeAction.triggered.connect(self.central_widget.kill_process_list)
 
-        self.kill_process = QAction(icon_kill, self.tr('Stop current process'), self)
-        self.kill_process.triggered.connect(partial(self.kill_process_alive, close=True, isalive=False))
-        self.kill_process.setVisible(False)
+        self.kill_process_action = QAction(icon_kill, self.tr('Stop current process'), self)
+        self.kill_process_action.triggered.connect(partial(self.kill_process, close=True, isalive=False))
+        self.kill_process_action.setVisible(False)
         spacer_toolbar = QWidget()
         spacer_toolbar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -1329,7 +1329,7 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(self.seeAction)
         self.toolbar.addAction(closeAction)
         self.toolbar.addWidget(spacer_toolbar)
-        self.toolbar.addAction(self.kill_process)
+        self.toolbar.addAction(self.kill_process_action)
 
     def open_project_properties(self):
         #"open_project_properties", self.sender())
@@ -1740,7 +1740,7 @@ class MainWindows(QMainWindow):
         elif operatingsystem() == 'Darwin':
             call(['open', path_choosen])
 
-    def kill_process_alive(self, close=True, isalive=False):
+    def kill_process(self, close=True, isalive=False):
         """
         method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
         """
@@ -1750,7 +1750,7 @@ class MainWindows(QMainWindow):
             ("hydro_tab", "model_group"),
             ("substrate_tab", "sub_and_merge"),
             "bioinfo_tab",
-            ("hs_tab", "computing_group"),
+            # ("hs_tab", "computing_group"),
             ("hs_tab", "compare_group")]
         alive = []
         # loop
@@ -1780,10 +1780,10 @@ class MainWindows(QMainWindow):
                                                           self.tr(" process has been stopped by the user." +
                                                           " The files produced by this process can be damaged."))
                             # hide button
-                            self.kill_process.setVisible(False)
+                            self.kill_process_action.setVisible(False)
 
         # hide button
-        self.kill_process.setVisible(False)
+        self.kill_process_action.setVisible(False)
         if isalive:
             return alive
 
@@ -2098,7 +2098,7 @@ class CentralW(QWidget):
 
         #self.tab_widget.setStyleSheet("QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
 
-    def closefig(self):
+    def kill_process_list(self):
         """
         method to close the images opened in HABBY and managed by matplotlib
         """
@@ -2120,8 +2120,11 @@ class CentralW(QWidget):
             if hasattr(self.tools_tab, 'interpolation_group'):
                 if hasattr(self.tools_tab.interpolation_group, 'process_list'):
                     self.tools_tab.interpolation_group.process_list.close_all_plot()
-        # tools_tab
+        # hs_tab
         if hasattr(self, 'hs_tab'):
+            if hasattr(self.hs_tab, 'computing_group'):
+                if hasattr(self.hs_tab.computing_group, 'process_list'):
+                    self.hs_tab.computing_group.process_list.close_all_hs()
             if hasattr(self.hs_tab, 'visual_group'):
                 if hasattr(self.hs_tab.visual_group, 'process_list'):
                     self.hs_tab.visual_group.process_list.close_all_plot()

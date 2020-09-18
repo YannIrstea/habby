@@ -22,7 +22,7 @@ from PyQt5.QtGui import QStandardItemModel, QPixmap, QIcon, QPalette, QColor
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QTableWidget, QWidget, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, \
-    QCheckBox, QListWidgetItem, QRadioButton, QListView
+    QCheckBox, QListWidgetItem, QRadioButton, QListView, QProgressBar
 import numpy as np
 
 import src.hydraulic_process_mod
@@ -120,6 +120,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.classhv = None
+        self.process_list = MyProcessList("hs")
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_prog)
         self.running_time = 0
@@ -127,7 +128,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.q = Queue()
         self.progress_value = Value("d", 0)
         self.p = Process(target=None)
-        self.progress_value = Value("d", 0)
+        self.hs_production_stoped = False
         self.project_preferences = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
@@ -136,7 +137,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         # file_selection
         file_selection_label = QLabel(self.tr("Select a 2D mesh file :"))
         self.file_selection_listwidget = QListWidget()
-        self.file_selection_listwidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.file_selection_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.file_selection_listwidget.itemSelectionChanged.connect(self.names_hdf5_change)
         self.file_selection_listwidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.file_selection_listwidget.verticalScrollBar().setEnabled(True)
@@ -169,8 +170,20 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.hs_export_mesh_checkbox = QCheckBox()
         self.computation_pushbutton = QPushButton(self.tr("run"))
         change_button_color(self.computation_pushbutton, "#47B5E6")
-        self.computation_pushbutton.clicked.connect(self.compute)
+        self.computation_pushbutton.clicked.connect(self.start_stop_export)
         self.computation_pushbutton.setEnabled(False)
+
+        self.progressbar = QProgressBar()
+        self.progressbar.setValue(0.0)
+        self.progressbar.setTextVisible(False)
+        self.progress_label = QLabel()
+        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+
+        """ progress layout """
+        progress_layout = QHBoxLayout()
+        progress_layout.addWidget(self.progressbar)
+        progress_layout.addWidget(self.progress_label)
+        progress_layout.addWidget(self.computation_pushbutton)
 
         grid_layout = QGridLayout()
         grid_layout.addWidget(input_class_label, 2, 0, Qt.AlignLeft)
@@ -180,7 +193,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         grid_layout.addWidget(self.hs_export_txt_checkbox, 3, 1, Qt.AlignLeft)
         grid_layout.addWidget(hs_export_mesh_label, 4, 0, Qt.AlignLeft)
         grid_layout.addWidget(self.hs_export_mesh_checkbox, 4, 1, Qt.AlignLeft)
-        grid_layout.addWidget(self.computation_pushbutton, 5, 2, Qt.AlignLeft)
+        grid_layout.addLayout(progress_layout, 5, 0, 1, 3)
 
         grid_layout.setColumnStretch(0, 2)
         grid_layout.setColumnStretch(1, 1)
@@ -349,81 +362,63 @@ class ComputingGroup(QGroupBoxCollapsible):
             self.project_preferences[attr]["path"] = self.pathfile  # change value
             save_project_properties(self.path_prj, self.project_preferences)  # save_project_properties
 
+    def start_stop_export(self):
+        if self.computation_pushbutton.text() == self.tr("run"):
+            self.compute()
+
+        elif self.computation_pushbutton.text() == self.tr("stop"):
+            self.stop_compute()
+
     def compute(self):
 
         if self.file_selection_listwidget.currentItem():
-            self.computation_pushbutton.setEnabled(False)
+            self.computation_pushbutton.setText(self.tr("stop"))
+
+            self.process_list = MyProcessList("hs")
+
+            hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
+                                              hdf5_name_list=[selection_el.text() for selection_el in self.file_selection_listwidget.selectedItems()],
+                                              hs_export_txt=self.hs_export_txt_checkbox.isChecked(),
+                                              classhv=self.classhv)
+
+            self.process_list.set_hs_hdf5_mode(self.path_prj, hydrosignature_description, self.project_preferences)
+            # start thread
+            self.process_list.start()
 
             # for error management and figures
             self.timer.start(100)
 
-            self.nativeParentWidget().progress_bar.setValue(0)
-            self.nativeParentWidget().progress_bar.setRange(0, 100)
-            self.nativeParentWidget().progress_bar.setVisible(True)
-
-            hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
-                                              hdf5_name=self.file_selection_listwidget.currentItem().text(),
-                                              hs_export_txt=self.hs_export_txt_checkbox.isChecked(),
-                                              classhv=self.classhv)
-            self.q = Queue()
-            self.progress_value = Value("d", 0)
-            self.p = Process(target=load_data_and_compute_hs,
-                             args=(hydrosignature_description,
-                                   self.progress_value,
-                                   self.q,
-                                   False,
-                                   self.project_preferences))
-            self.p.name = "hydrosignature computing"
-            self.p.start()
+    def stop_compute(self):
+        # stop plot production
+        self.hs_production_stoped = True
+        # activate
+        self.computation_pushbutton.setText(self.tr("run"))
+        # close_all_export
+        self.process_list.close_all_hs()
+        self.process_list.terminate()
+        self.timer.stop()
+        # log
+        self.send_log.emit(self.tr("Hydrosginature computation stoped by user."))
 
     def show_prog(self):
         # RUNNING
-        if self.p.is_alive():
-            self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
-            # get the language
-            self.nativeParentWidget().kill_process.setVisible(True)
-
-            self.send_log.emit(self.tr("Process 'hydrosignature' is alive and run since ") + str(round(self.running_time)) + " sec")
-            self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-
+        if not self.process_list.hs_finished:
+            # self.process_list.nb_finished
+            self.progressbar.setValue(int(self.process_list.progress_value))
+            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                               self.process_list.nb_hs_total))
+        # NOT RUNNING
         else:
-            # FINISH (but can have known errors)
-            if not self.q.empty():
-                # manage error
-                self.timer.stop()
-                queue_back = self.q.get()
-                self.mystdout = queue_back
-                error = self.send_err_log(True)
-
-                # known errors
-                if error:
-                    self.send_log.emit("clear status bar")
-                    self.running_time = 0
-                    self.nativeParentWidget().kill_process.setVisible(False)
-                    self.update_gui()
-
-                # finished without error
-                elif not error:
-                    self.send_log.emit(self.tr("Hydrosignature calculation finished (computation time = ") + str(round(self.running_time)) + " s).")
-                    self.update_gui()
-                    self.nativeParentWidget().kill_process.setVisible(False)
-                    self.send_log.emit("clear status bar")
-                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
-                    self.running_time = 0
-
-                self.send_refresh_filenames.emit()
-
-            # CLEANING GUI
-            if not self.p.is_alive() and self.q.empty():
-                self.timer.stop()
-                self.send_log.emit("clear status bar")
-                self.nativeParentWidget().kill_process.setVisible(False)
-                self.running_time = 0
-                self.update_gui()
-
-                # CRASH
-                if self.p.exitcode == 1:
-                    self.send_log.emit(self.tr("Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
+            self.timer.stop()
+            self.progressbar.setValue(int(self.process_list.progress_value))
+            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
+                                                                               self.process_list.nb_hs_total))
+            self.computation_pushbutton.setText(self.tr("run"))
+            self.computation_pushbutton.setChecked(True)
+            # FINISHED
+            if not self.hs_production_stoped:
+                # log
+                self.send_log.emit(self.tr("Hydrosginature computation done."))
 
 
 class VisualGroup(QGroupBoxCollapsible):
