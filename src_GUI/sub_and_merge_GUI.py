@@ -982,7 +982,7 @@ class SubstrateAndMerge(QWidget):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
-            self.nativeParentWidget().kill_process.setVisible(True)
+            self.nativeParentWidget().kill_process_action.setVisible(True)
 
             # MERGE
             if self.model_type == 'HABITAT':
@@ -1012,7 +1012,7 @@ class SubstrateAndMerge(QWidget):
                 if error:
                     self.send_log.emit("clear status bar")
                     self.running_time = 0
-                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.nativeParentWidget().kill_process_action.setVisible(False)
                     # MERGE
                     if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
                         # unblock button merge
@@ -1059,7 +1059,7 @@ class SubstrateAndMerge(QWidget):
 
                     # general
                     self.nativeParentWidget().progress_bar.setValue(100)
-                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.nativeParentWidget().kill_process_action.setVisible(False)
                     if not const_sub:
                         self.send_log.emit(QCoreApplication.translate("SubHydroW", "Outputs data can be displayed and exported from 'Data explorer' tab."))
                     if const_sub:
@@ -1073,7 +1073,7 @@ class SubstrateAndMerge(QWidget):
             if not self.p.is_alive() and self.q.empty():
                 self.timer.stop()
                 self.send_log.emit("clear status bar")
-                self.nativeParentWidget().kill_process.setVisible(False)
+                self.nativeParentWidget().kill_process_action.setVisible(False)
                 self.running_time = 0
                 # MERGE
                 if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':

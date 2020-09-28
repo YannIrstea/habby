@@ -795,7 +795,7 @@ class ModelInfoGroup(QGroupBox):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
-            self.nativeParentWidget().kill_process.setVisible(True)
+            self.nativeParentWidget().kill_process_action.setVisible(True)
 
             # it is necssary to start this string with Process to see it in the Statusbar
             self.send_log.emit("Process " +
@@ -815,7 +815,7 @@ class ModelInfoGroup(QGroupBox):
                 if error:
                     self.send_log.emit("clear status bar")
                     self.running_time = 0
-                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.nativeParentWidget().kill_process_action.setVisible(False)
                     self.create_hdf5_button.setEnabled(True)  # hydraulic
 
                 # finished without error
@@ -838,7 +838,7 @@ class ModelInfoGroup(QGroupBox):
 
                     # general
                     self.nativeParentWidget().progress_bar.setValue(100)
-                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.nativeParentWidget().kill_process_action.setVisible(False)
 
                     self.send_log.emit("clear status bar")
                     # refresh plot gui list file
@@ -849,7 +849,7 @@ class ModelInfoGroup(QGroupBox):
             if not self.p.is_alive() and self.q.empty():
                 self.timer.stop()
                 self.send_log.emit("clear status bar")
-                self.nativeParentWidget().kill_process.setVisible(False)
+                self.nativeParentWidget().kill_process_action.setVisible(False)
                 self.running_time = 0
                 self.create_hdf5_button.setEnabled(True)  # hydraulic
                 if self.model_type == "ASCII":  # can produce .hab

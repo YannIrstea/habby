@@ -976,7 +976,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.send_log.emit("Process " +
                                self.tr("'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            self.nativeParentWidget().kill_process.setVisible(True)
+            self.nativeParentWidget().kill_process_action.setVisible(True)
         else:
             # FINISH (but can have known errors)
             if not self.q.empty():
@@ -988,7 +988,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if error:
                     self.send_log.emit("clear status bar")
                     self.running_time = 0
-                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.nativeParentWidget().kill_process_action.setVisible(False)
                     # give the possibility of sending a new simulation
                     self.calc_hab_pushbutton.setEnabled(True)
                 else:
@@ -1007,7 +1007,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
                     self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
                     self.running_time = 0
-                    self.nativeParentWidget().kill_process.setVisible(False)
+                    self.nativeParentWidget().kill_process_action.setVisible(False)
                     # check_uncheck_allmodels_presence
                     self.check_uncheck_allmodels_presence()
 
@@ -1016,7 +1016,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # enable the button to call this functin directly again
                 self.timer.stop()
                 self.send_log.emit("clear status bar")
-                self.nativeParentWidget().kill_process.setVisible(False)
+                self.nativeParentWidget().kill_process_action.setVisible(False)
                 self.running_time = 0
                 self.calc_hab_pushbutton.setEnabled(True)
                 # check_uncheck_allmodels_presence
