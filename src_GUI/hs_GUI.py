@@ -419,6 +419,8 @@ class ComputingGroup(QGroupBoxCollapsible):
             if not self.hs_production_stoped:
                 # log
                 self.send_log.emit(self.tr("Hydrosginature computation done."))
+                # update_gui
+                self.update_gui()
 
 
 class VisualGroup(QGroupBoxCollapsible):
