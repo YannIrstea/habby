@@ -272,21 +272,22 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             nb_export += 1
         export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
 
-    export_dict["habitat_text_hab"] = False
-    export_dict["nb_export"] = nb_export
-    process_list = MyProcessList("export")
-    process_list.set_export_hdf5_mode(project_preferences['path_prj'],
-                                      [hdf5.filename],
-                                      export_dict,
-                                      project_preferences)
-    process_list.start()
+    if True in export_dict.values():
+        export_dict["habitat_text_hab"] = False
+        export_dict["nb_export"] = nb_export
+        process_list = MyProcessList("export")
+        process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+                                          [hdf5.filename],
+                                          export_dict,
+                                          project_preferences)
+        process_list.start()
 
-    while process_list.isRunning():
-        if stop.is_set():
-            if process_list.all_process_runned:
-                process_list.close_all_export()
-                process_list.terminate()
-                return
+        while process_list.isRunning():
+            if stop.is_set():
+                if process_list.all_process_runned:
+                    process_list.close_all_export()
+                    process_list.terminate()
+                    return
 
     # progress
     progress_value.value = 100

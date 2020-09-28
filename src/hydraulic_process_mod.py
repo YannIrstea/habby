@@ -1303,21 +1303,22 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                 nb_export += 1
             export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][project_preferences_index]
 
-        export_dict["habitat_text_hab"] = False
-        export_dict["nb_export"] = nb_export
-        process_list = MyProcessList("export")
-        process_list.set_export_hdf5_mode(project_preferences['path_prj'],
-                                          [hdf5.filename],
-                                          export_dict,
-                                          project_preferences)
-        process_list.start()
+        if True in export_dict.values():
+            export_dict["habitat_text_hab"] = False
+            export_dict["nb_export"] = nb_export
+            process_list = MyProcessList("export")
+            process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+                                              [hdf5.filename],
+                                              export_dict,
+                                              project_preferences)
+            process_list.start()
 
-        while process_list.isRunning():
-            if stop.is_set():
-                if process_list.all_process_runned:
-                    process_list.close_all_export()
-                    process_list.terminate()
-                    return
+            while process_list.isRunning():
+                if stop.is_set():
+                    if process_list.all_process_runned:
+                        process_list.close_all_export()
+                        process_list.terminate()
+                        return
 
     # prog
     progress_value.value = 100
@@ -1744,6 +1745,9 @@ class MyProcessList(QThread):
         self.process_list.append(process)
 
     def run(self):
+        # remove first process
+        self.process_list.pop(0)
+
         self.thread_started = True
         self.plot_production_stoped = False
         if self.process_type == "plot":
@@ -1909,7 +1913,6 @@ class MyProcessList(QThread):
         progress_value_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
         self.nb_finished = progress_value_list.count(100.0)
         self.progress_value = sum(progress_value_list) / len(self.process_list)
-
 
     def check_all_hs_produced(self):
         # print("check_all_export_produced")

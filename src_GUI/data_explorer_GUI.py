@@ -1339,14 +1339,15 @@ class DataExporterGroup(QGroupBoxCollapsible):
                 for key in export_dict.keys():
                     project_preferences[key[:-4]][index_dict] = export_dict[key]
 
-                export_dict["nb_export"] = self.nb_export
+                if True in export_dict.values():
+                    export_dict["nb_export"] = self.nb_export
 
-                self.process_list.set_export_hdf5_mode(self.path_prj, names_hdf5, export_dict, project_preferences)
-                # start thread
-                self.process_list.start()
+                    self.process_list.set_export_hdf5_mode(self.path_prj, names_hdf5, export_dict, project_preferences)
+                    # start thread
+                    self.process_list.start()
 
-                # for error management and figures
-                self.timer.start(100)
+                    # for error management and figures
+                    self.timer.start(100)
 
     def stop_export(self):
         # stop plot production
