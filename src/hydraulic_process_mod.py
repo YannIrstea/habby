@@ -1745,8 +1745,7 @@ class MyProcessList(QThread):
         self.process_list.append(process)
 
     def run(self):
-        # remove first process
-        self.process_list.pop(0)
+
 
         self.thread_started = True
         self.plot_production_stoped = False
@@ -1769,6 +1768,8 @@ class MyProcessList(QThread):
             self.check_all_plot_produced()
 
         if self.process_type == "export":
+            # remove first process
+            self.process_list.pop(0)
             self.export_finished = False
             self.all_process_runned = False
             if self.export_hdf5_mode:
@@ -1785,6 +1786,8 @@ class MyProcessList(QThread):
             self.check_all_export_produced()
 
         if self.process_type == "hs":
+            # remove first process
+            self.process_list.pop(0)
             self.hs_finished = False
             self.all_process_runned = False
             if self.hs_hdf5_mode:
