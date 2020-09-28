@@ -44,7 +44,7 @@ from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 from src_GUI import about_GUI
-from src_GUI import hs_GUI
+from src_GUI import hydrosignature_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties,\
     create_project_structure, save_project_properties
@@ -1405,11 +1405,11 @@ class MainWindows(QMainWindow):
             # hs_tab
             if hasattr(self.central_widget, "hs_tab"):
                 if not self.central_widget.hs_tab:
-                    self.central_widget.hs_tab = hs_GUI.HsTab(self.path_prj, self.name_prj)
+                    self.central_widget.hs_tab = hydrosignature_GUI.HsTab(self.path_prj, self.name_prj)
                 else:
                     self.central_widget.hs_tab.__init__(self.path_prj, self.name_prj)
             else:
-                self.central_widget.hs_tab = hs_GUI.HsTab(self.path_prj, self.name_prj)
+                self.central_widget.hs_tab = hydrosignature_GUI.HsTab(self.path_prj, self.name_prj)
 
             if hasattr(self.central_widget, "statmod_tab"):
                 if not self.central_widget.statmod_tab:
@@ -1975,7 +1975,7 @@ class CentralW(QWidget):
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
-            self.hs_tab = hs_GUI.HsTab(path_prj, name_prj)
+            self.hs_tab = hydrosignature_GUI.HsTab(path_prj, name_prj)
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
