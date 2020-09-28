@@ -361,12 +361,13 @@ class MainWindows(QMainWindow):
             #     self.central_widget.fstress_tab.setEnabled(False)
 
             # # change GUI title
+            windows_title = self.version
             if "Beta" not in self.version:
-                self.version = self.version + " Beta"
+                windows_title = self.version + " Beta"
             if self.name_prj:
-                self.setWindowTitle(self.tr('HABBY ') + str(self.version) + " - " + self.name_prj)
+                self.setWindowTitle(self.tr('HABBY ') + windows_title + " - " + self.name_prj)
             else:
-                self.setWindowTitle(self.tr('HABBY ') + str(self.version))
+                self.setWindowTitle(self.tr('HABBY ') + windows_title)
 
     # PROJECT
 
@@ -611,6 +612,11 @@ class MainWindows(QMainWindow):
         user_preferences.save_user_preferences_json()
 
         self.my_menu_bar()
+
+        # check version
+        project_version = project_preferences["version_habby"]
+        if float(self.version) > float(project_version):
+            self.central_widget.write_log(self.tr('Warning: Current project is an old HABBY project. Working with this can lead to software crashes. It is advisable to recreate a new project.'))
 
         self.central_widget.write_log(self.tr('Project opened.'))
 

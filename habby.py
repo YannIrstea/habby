@@ -24,7 +24,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen
 from appdirs import AppDirs
 
-HABBY_VERSION_STR = 0.25
+HABBY_VERSION_STR = 0.26
 
 
 class AppDataFolders:

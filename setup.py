@@ -18,7 +18,7 @@ with open("README.md", "r", encoding='utf8') as fh:
 # INSTALL
 setup(
     name="HABBY",
-    version="0.25",
+    version="0.26",
     description="Program to estimate aquatic habitats using hydraulic data and biological models",
     long_description=long_description,
     url="https://github.com/YannIrstea/habby",
