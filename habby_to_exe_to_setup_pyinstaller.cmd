@@ -9,7 +9,10 @@ SET envir_virtuels_path=C:\habby_dev\env_virtuels
 SET envir_virtuel_name=env_habby_dev
 
 ::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
-call %envir_virtuels_path%\%envir_virtuel_name%\Scripts\activate
+:: not conda
+::call %envir_virtuels_path%\%envir_virtuel_name%\Scripts\activate 
+:: conda
+call conda activate %envir_virtuels_path%\%envir_virtuel_name%
 ::call %envir_virtuel_path%\Scripts\activate.bat
 
 ::::::::::: RUN COMPILATION :::::::::::::::::::
