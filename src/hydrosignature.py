@@ -515,24 +515,29 @@ def check_hs_class_validity(classhv):
 
 
 def hydraulic_class_from_file(filename):
+    warnings_list = []
     f = open(filename, "r")
     hvclass = [[], []]
     for i in [0, 1]:
         hvcstr = f.readline().rstrip("\n").split(" ")
 
         for item in hvcstr[1:]:
+            if item == "":
+                warnings_list.append("Warning: space character is present in hydrosignature input class file, it will be remove.")
+                continue
             try:
                 hvclass[i] += [float(item)]
             except ValueError:
-                return None
+                warnings_list.append("Error: can't convert", str(item), "to float.")
+                return None, warnings_list
 
     # check_hs_class_validity
     valid = check_hs_class_validity(hvclass)
 
     if valid:
-        return hvclass
+        return hvclass, warnings_list
     else:
-        return None
+        return None, warnings_list
 
 
 def hydraulic_data_from_file(filename):

@@ -246,7 +246,10 @@ class ComputingGroup(QGroupBoxCollapsible):
 
     def read_input_class(self, input_class_file):
         if os.path.exists(input_class_file):
-            self.classhv = hydrosignature.hydraulic_class_from_file(input_class_file)
+            self.classhv, warnings_list = hydrosignature.hydraulic_class_from_file(input_class_file)
+            if warnings_list:
+                for warning in warnings_list:
+                    self.send_log.emit(warning)
             if not self.classhv:
                 self.send_log.emit(self.tr("Error: Input class file : ") + os.path.basename(input_class_file) + self.tr(" is not valid."))
                 self.computation_pushbutton.setEnabled(False)
