@@ -378,13 +378,16 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
         # add percetage number
         maxlab = np.max(data)
         for (j, i), label in np.ndenumerate(data):
-            # text in black or white depending on the data
-            if label < maxlab / 2:
-                ax1.text(i, j, np.round(label, 2), ha='center',
-                         va='center', color='black')
+            if label == 0.0:
+                pass
             else:
-                ax1.text(i, j, np.round(label, 2), ha='center',
-                         va='center', color='white')
+                # text in black or white depending on the data
+                if label < maxlab / 2:
+                    ax1.text(i, j, "{0:.1f}".format(label), ha='center',
+                             va='center', color='black')
+                else:
+                    ax1.text(i, j, "{0:.1f}".format(label), ha='center',
+                             va='center', color='white')
     else:
         for (j, i), label in np.ndenumerate(hs_index):
             ax1.text(i, j, np.round(label, 2), ha='center',
