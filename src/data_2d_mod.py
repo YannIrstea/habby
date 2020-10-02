@@ -990,6 +990,8 @@ class Unit(dict):
         self["mesh"] = dict(tin=None)
         self["node"] = dict(xy=None,
                             z=None)
+        # hydrosignature
+        self.hydrosignature = dict()
 
     """ mesh """
 

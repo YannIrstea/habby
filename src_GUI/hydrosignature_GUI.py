@@ -132,6 +132,8 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.project_preferences = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
+        input_class_file_info = self.read_attribute_xml("HS_input_class")
+        self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
 
     def init_ui(self):
         # file_selection
@@ -373,6 +375,7 @@ class ComputingGroup(QGroupBoxCollapsible):
     def compute(self):
 
         if self.file_selection_listwidget.currentItem():
+            self.running_time = 0.0
             self.computation_pushbutton.setText(self.tr("stop"))
 
             self.process_list = MyProcessList("hs")
@@ -404,6 +407,7 @@ class ComputingGroup(QGroupBoxCollapsible):
     def show_prog(self):
         # RUNNING
         if not self.process_list.hs_finished:
+            self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # self.process_list.nb_finished
             self.progressbar.setValue(int(self.process_list.progress_value))
             self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
@@ -419,7 +423,8 @@ class ComputingGroup(QGroupBoxCollapsible):
             # FINISHED
             if not self.hs_production_stoped:
                 # log
-                self.send_log.emit(self.tr("Hydrosginature computation done."))
+                self.send_log.emit(self.tr("Hydrosginature computation is finished (computation time = ") + str(
+                round(self.running_time)) + " s).")
                 # update_gui
                 self.send_refresh_filenames.emit()
 

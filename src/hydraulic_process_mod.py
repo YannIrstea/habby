@@ -1352,6 +1352,13 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
         hdf5.hydrosignature_new_file(progress_value,
                                      hydrosignature_description["classhv"],
                                      hydrosignature_description["hs_export_txt"])
+        # load new hs_data
+        hdf5_new = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
+                                       hdf5.filename[:-4] + "_HS" + hdf5.extension,
+                                       new=False)
+        hdf5_new.load_hydrosignature()
+        hdf5.data_2d = hdf5_new.data_2d
+        hdf5.write_hydrosignature()
     else:
         hdf5.add_hs(progress_value,
                     hydrosignature_description["classhv"],
