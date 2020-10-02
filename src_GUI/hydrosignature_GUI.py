@@ -237,8 +237,6 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         self.file_selection_listwidget.blockSignals(False)
         self.hs_computed_listwidget.blockSignals(False)
-        input_class_file_info = self.read_attribute_xml("HS_input_class")
-        self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
 
     def change_scroll_position(self, index):
         self.file_selection_listwidget.verticalScrollBar().setValue(index)
@@ -423,7 +421,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                 # log
                 self.send_log.emit(self.tr("Hydrosginature computation done."))
                 # update_gui
-                self.update_gui()
+                self.send_refresh_filenames.emit()
 
 
 class VisualGroup(QGroupBoxCollapsible):

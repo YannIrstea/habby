@@ -523,7 +523,7 @@ def hydraulic_class_from_file(filename):
 
         for item in hvcstr[1:]:
             if item == "":
-                warnings_list.append("Warning: space character is present in hydrosignature input class file, it will be remove.")
+                #warnings_list.append("Warning: space character is present in hydrosignature input class file, it will be remove.")
                 continue
             try:
                 hvclass[i] += [float(item)]

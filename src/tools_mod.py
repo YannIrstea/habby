@@ -704,7 +704,7 @@ class QGroupBoxCollapsible(QGroupBox):
             self.setFixedHeight(self.sizeHint().height())
         else:
             self.setFlat(True)
-            self.setFixedHeight(25)
+            self.setFixedHeight(28)
 
 
 def mp_worker(data_list):
