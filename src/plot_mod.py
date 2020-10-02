@@ -344,7 +344,6 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
 
-    plt.figure(title)
 
     # axe_mod_choosen
     if axe_mod_choosen == 1:
@@ -354,6 +353,8 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
         origin = "lower"
         x_labels_position = "bottom"
 
+    plt.figure(title)
+
     if data is not None:
         if axe_mod_choosen == 3:
             data = data.T
@@ -362,6 +363,15 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
         plt.imshow(data, cmap='Blues',
                    interpolation='nearest',
                    origin=origin)
+    else:
+        # hs_index
+        nb_point = len(vclass) * len(hclass)
+        hs_index = np.arange(1, nb_point + 1)
+        hs_index.resize((len(vclass), len(hclass)))
+        # cmap should be coherent with text color
+        plt.imshow(hs_index, alpha=0,
+                   origin=origin)
+
     ax1 = plt.gca()
 
     if data is not None:
@@ -375,6 +385,10 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
             else:
                 ax1.text(i, j, np.round(label, 2), ha='center',
                          va='center', color='white')
+    else:
+        for (j, i), label in np.ndenumerate(hs_index):
+            ax1.text(i, j, np.round(label, 2), ha='center',
+                     va='center', color='black')
 
     if axe_mod_choosen == 1:
         ax1.xaxis.tick_top()
@@ -394,11 +408,13 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
     else:
         ax1.set_yticks(np.arange(-0.5, len(hclass) - 0.5, 1).tolist())
         ax1.set_yticklabels(hclass)
-        ax1.set_xlabel('Velocity [m/s]')
         ax1.set_ylabel('Height [m]')
+        ax1.set_xlabel('Velocity [m/s]')
 
     ax1.xaxis.set_label_position(x_labels_position)
     ax1.xaxis.set_label_position(x_labels_position)
+
+    # colorbar
     if data is not None:
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Relative ' + type + ' [%]')
