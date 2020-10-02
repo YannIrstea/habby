@@ -347,6 +347,8 @@ class Hdf5Management:
                     hab_variable_list = []
                 self.data_2d.hvum.detect_variable_habitat(hab_variable_list)
 
+            self.data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
+
             # all attr
             for attribute_name in hdf5_attributes_dict_keys:
                 if attribute_name[:4] not in {"mesh", "node"}:

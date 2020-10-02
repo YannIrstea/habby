@@ -825,12 +825,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             hdf5name = selection_file[0].text()
             self.units_QListWidget.clear()
 
-            # # create hdf5 class
-            # hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-            #                                hdf5name,
-            #                                new=False)
-            # hdf5.get_hdf5_attributes()
-
             # add units
             for item_text in self.hdf5.data_2d.unit_list[self.reach_QListWidget.currentRow()]:
                 item = QListWidgetItem(item_text)
@@ -839,11 +833,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
         # more than one file selected
         elif len(selection_reach) > 1:
-            # # clear attributes hdf5_attributes_qtableview
-            # hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-            #                                selection_file[0].text(),
-            #                                new=False)
-            # hdf5.get_hdf5_attributes()
             # check if units are equal between reachs
             units_equal = True
             for reach_number in range(len(self.hdf5.data_2d.unit_list) - 1):
