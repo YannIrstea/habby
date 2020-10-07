@@ -875,18 +875,18 @@ class CompareGroup(QGroupBoxCollapsible):
         hs_names = hdf5_mod.get_filename_hs(os.path.join(self.path_prj, "hdf5"))
 
         # 1
-        self.file_selection_listwidget_1.blockSignals(True)
+        # self.file_selection_listwidget_1.blockSignals(True)
         self.file_selection_listwidget_1.clear()
         if hs_names:
             self.file_selection_listwidget_1.addItems(hs_names)
-        self.file_selection_listwidget_1.blockSignals(False)
+        # self.file_selection_listwidget_1.blockSignals(False)
 
         # 2
-        self.file_selection_listwidget_2.blockSignals(True)
+        # self.file_selection_listwidget_2.blockSignals(True)
         self.file_selection_listwidget_2.clear()
         if hs_names:
             self.file_selection_listwidget_2.addItems(hs_names)
-        self.file_selection_listwidget_2.blockSignals(False)
+        # self.file_selection_listwidget_2.blockSignals(False)
 
     def names_hdf5_change_1(self):
         self.reach_QListWidget_1.clear()

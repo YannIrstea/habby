@@ -18,7 +18,6 @@ import os
 import os.path
 import sys
 from io import StringIO
-from itertools import product
 from time import sleep
 from multiprocessing import Queue
 
@@ -1388,8 +1387,10 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
     hdf5_2.create_or_open_file(False)
     hdf5_2.load_hydrosignature()
 
-    col_row_name_list = [""]
-    table_list = []
+    name_list_1 = [""]
+    name_list_2 = [""]
+    table_list_1 = []
+    table_list_2 = []
     reach_name_1_list = []
     unit_name_1_list = []
     for reach_num_1 in reach_index_list_1:
@@ -1397,8 +1398,8 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
             reach_name_1 = hdf5_1.data_2d[reach_num_1][unit_num_1].reach_name
             unit_name_1 = hdf5_1.data_2d[reach_num_1][unit_num_1].unit_name
             col_name = hdf5name_1 + "_" + reach_name_1 + "_" + unit_name_1
-            col_row_name_list.append(col_name)
-            table_list.append((hdf5_1, reach_num_1, unit_num_1))
+            name_list_1.append(col_name)
+            table_list_1.append((hdf5_1, reach_num_1, unit_num_1))
             # templist
             reach_name_1_list.append(reach_name_1)
             unit_name_1_list.append(unit_name_1)
@@ -1410,14 +1411,17 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
             # all same
             if not all_possibilities:
                 if reach_name_2 in reach_name_1_list and unit_name_2 in unit_name_1_list:
-                    col_row_name_list.append(col_name)
-                    table_list.append((hdf5_2, reach_num_2, unit_num_2))
+                    name_list_2.append(col_name)
+                    table_list_2.append((hdf5_2, reach_num_2, unit_num_2))
             else:
-                col_row_name_list.append(col_name)
-                table_list.append((hdf5_2, reach_num_2, unit_num_2))
+                name_list_2.append(col_name)
+                table_list_2.append((hdf5_2, reach_num_2, unit_num_2))
 
     # compute combination
-    combination_list = list(product(table_list, repeat=2))
+    combination_list = []
+    for i in table_list_1:
+        for j in table_list_2:
+            combination_list.append((i, j))
 
     # compute hscomparison area
     data_list = []
@@ -1437,11 +1441,12 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                                               hs2=hs2)
         # append
         data_list.append(str(hs_comp_value))
+
     row_area_list = []
-    for ind, x in enumerate(range(0, len(data_list), len(col_row_name_list) - 1)):
-        row_list = [col_row_name_list[ind + 1]] + data_list[x:x + len(col_row_name_list) - 1]
+    for ind, x in enumerate(range(0, len(data_list), len(name_list_2) - 1)):
+        row_list = [name_list_1[ind + 1]] + data_list[x:x + len(name_list_2) - 1]
         row_area_list.append(row_list)
-    row_area_list.insert(0, col_row_name_list)
+    row_area_list.insert(0, name_list_2)
 
     # compute hscomparison volume
     data_list = []
@@ -1461,11 +1466,12 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                                               hs2=hs2)
         # append
         data_list.append(str(hs_comp_value))
+
     row_volume_list = []
-    for ind, x in enumerate(range(0, len(data_list), len(col_row_name_list) - 1)):
-        row_list = [col_row_name_list[ind + 1]] + data_list[x:x + len(col_row_name_list) - 1]
+    for ind, x in enumerate(range(0, len(data_list), len(name_list_2) - 1)):
+        row_list = [name_list_1[ind + 1]] + data_list[x:x + len(name_list_2) - 1]
         row_volume_list.append(row_list)
-    row_volume_list.insert(0, col_row_name_list)
+    row_volume_list.insert(0, name_list_2)
 
     # write file
     f = open(os.path.join(path_prj, "output", "text", out_filename), 'w')
