@@ -102,6 +102,12 @@ class Hdf5Management:
         # create_or_open_file
         self.create_or_open_file(new)
 
+    def __str__(self):
+        return self.filename
+
+    def __repr__(self):
+        return self.filename
+
     def create_or_open_file(self, new=False):
         # get mode
         if not new:
