@@ -152,7 +152,11 @@ class Hdf5Management:
                 if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
                     self.hs_calculated = self.file_object.attrs["hs_calculated"]
                     if self.hs_calculated:
-                        self.hs_input_class = self.file_object.attrs["hs_input_class"]
+                        try:
+                            self.hs_input_class = [self.file_object.attrs["hs_input_class_h"],
+                                                   self.file_object.attrs["hs_input_class_v"]]
+                        except KeyError:
+                            print("Error:", self.filename, "is corrupted. Can't locate attribute: 'hs_input_class'.")
 
     def close_file(self):
         self.file_object.close()
@@ -1077,11 +1081,12 @@ class Hdf5Management:
         self.user_target_list = "defaut"
         self.load_data_2d()
 
-        mathing = check_hs_class_match_hydraulic_values(classhv,
+        mathing, error = check_hs_class_match_hydraulic_values(classhv,
                                               h_min=self.data_2d.hvum.h.min,
                                               h_max=self.data_2d.hvum.h.max,
                                               v_min=self.data_2d.hvum.v.min,
                                               v_max=self.data_2d.hvum.v.max)
+
         if mathing:
             # progress
             delta_reach = 90 / self.data_2d.reach_number
@@ -1148,6 +1153,9 @@ class Hdf5Management:
 
             self.write_hydrosignature()
 
+        else:
+            print("Error: " + self.filename + " " + error)
+
     def write_hydrosignature(self):
         # for each reach
         for reach_number in range(self.data_2d.reach_number):
@@ -1168,7 +1176,13 @@ class Hdf5Management:
 
                 unitpath = "data_2d/reach_" + str(reach_number) + "/unit_" + str(unit_number)
                 for key in hs_dict.keys():
-                    self.file_object[unitpath].attrs.create(key, hs_dict[key])
+                    if key in self.file_object[unitpath].attrs.keys():
+                        del self.file_object[unitpath].attrs[key]
+                    if key == "classhv":
+                        pass
+                    else:
+                        self.file_object[unitpath].attrs.create(key, hs_dict[key])
+
                 # hsarea
                 hsarea = self.data_2d[reach_number][unit_number].hydrosignature["hsarea"]
                 if "hsarea" in self.file_object[unitpath]:
@@ -1186,8 +1200,13 @@ class Hdf5Management:
                                                           dtype=hsvolume.dtype,
                                                           data=hsvolume)
 
+        self.hs_calculated = True
         self.file_object.attrs.create("hs_calculated", True)
-        self.file_object.attrs.create("hs_input_class", self.data_2d[0][0].hydrosignature["classhv"])
+        if "hs_input_class_h" in self.file_object.attrs.keys():
+            del self.file_object.attrs["hs_input_class_h"]
+            del self.file_object.attrs["hs_input_class_v"]
+        self.file_object.attrs.create("hs_input_class_h", self.data_2d[0][0].hydrosignature["classhv"][0])
+        self.file_object.attrs.create("hs_input_class_v", self.data_2d[0][0].hydrosignature["classhv"][1])
 
     def load_hydrosignature(self):
         self.get_hdf5_attributes(close_file=False)
@@ -1207,7 +1226,11 @@ class Hdf5Management:
                            "classhv"]
                 self.data_2d[reach_index][unit_index].hydrosignature = {}
                 for key in keylist:
-                    self.data_2d[reach_index][unit_index].hydrosignature[key] = self.file_object[unitpath].attrs[key]
+                    if key == "classhv":
+                        self.data_2d[reach_index][unit_index].hydrosignature[key] = [self.file_object.attrs["hs_input_class_h"],
+                                               self.file_object.attrs["hs_input_class_v"]]
+                    else:
+                        self.data_2d[reach_index][unit_index].hydrosignature[key] = self.file_object[unitpath].attrs[key]
                 self.data_2d[reach_index][unit_index].hydrosignature["hsarea"] = self.file_object[unitpath + "/hsarea"][:]
                 self.data_2d[reach_index][unit_index].hydrosignature["hsvolume"] = self.file_object[unitpath + "/hsvolume"][:]
 

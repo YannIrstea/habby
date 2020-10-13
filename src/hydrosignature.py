@@ -528,7 +528,7 @@ def hydraulic_class_from_file(filename):
             try:
                 hvclass[i] += [float(item)]
             except ValueError:
-                warnings_list.append("Error: can't convert", str(item), "to float.")
+                warnings_list.append("Error: can't convert" + str(item) + "to float.")
                 return None, warnings_list
 
     # check_hs_class_validity
@@ -581,6 +581,7 @@ def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_tria
 
 
 def check_hs_class_match_hydraulic_values(classhv, h_min, h_max, v_min, v_max):
+    error = ""
     cl_h, cl_v = classhv[0], classhv[1]
 
     if h_min < np.min(cl_h) or h_max > np.max(cl_h):
@@ -589,11 +590,11 @@ def check_hs_class_match_hydraulic_values(classhv, h_min, h_max, v_min, v_max):
 
         return False
     if v_min < np.min(cl_v) or v_max > np.max(cl_v):
-        print("Error: Some velocity values are off the class definition. hydrosignature cannot be calculated. "
-              "Check min/max velocity values in the 'Data explorer'.")
-        return False
+        error = "Some velocity values are off the class definition. hydrosignature cannot be calculated. " \
+                "Check min/max velocity values in the 'Data explorer'."
+        return False, error
 
-    return True
+    return True, error
 
 
 def index_to_class_number(class_shape, indices):
