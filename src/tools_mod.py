@@ -704,15 +704,7 @@ class QGroupBoxCollapsible(QGroupBox):
             self.setFixedHeight(self.sizeHint().height())
         else:
             self.setFlat(True)
-            self.setFixedHeight(28)
-
-
-def mp_worker(data_list):
-    print(data_list[0])
-    state = multiprocessing.Value("d", 0)
-    done = data_list[0](state, *data_list[1:])
-    print("done,", state)
-    return state
+            self.setFixedHeight(23)
 
 
 class QHLine(QFrame):
