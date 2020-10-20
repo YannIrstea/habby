@@ -18,10 +18,10 @@ import multiprocessing
 import os
 import sys
 import traceback
+import time
 from datetime import datetime
-from PyQt5.QtCore import QSettings, Qt
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QSplashScreen
+from PyQt5.QtGui import QPixmap, QPainter
+from PyQt5.QtWidgets import QApplication, QSplashScreen, QGraphicsOpacityEffect
 from appdirs import AppDirs
 
 HABBY_VERSION_STR = 0.26
@@ -132,11 +132,29 @@ def main():
         # create app
         app = QApplication(sys.argv)
 
-        # Create and display the splash screen
-        splash_pix = QPixmap('translation/splash_screen.png')
-        splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
-        splash.setMask(splash_pix.mask())
+        # Create and display image splash screen
+        time_between_image = 0.05
+        splash = QSplashScreen()
+        splash.setPixmap(QPixmap('translation/splash_screen.png'))
+        effect = QGraphicsOpacityEffect()
+        splash.setGraphicsEffect(effect)
+        effect.setOpacity(0.0)
         splash.show()
+        app.processEvents()
+        time.sleep(time_between_image)
+        effect.setOpacity(0.2)
+        app.processEvents()
+        time.sleep(time_between_image)
+        effect.setOpacity(0.4)
+        app.processEvents()
+        time.sleep(time_between_image)
+        effect.setOpacity(0.6)
+        app.processEvents()
+        time.sleep(time_between_image)
+        effect.setOpacity(0.8)
+        app.processEvents()
+        time.sleep(time_between_image)
+        effect.setOpacity(1.0)
         app.processEvents()
 
         # create windows
