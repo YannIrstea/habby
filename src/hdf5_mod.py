@@ -111,7 +111,7 @@ class Hdf5Management:
     def create_or_open_file(self, new=False):
         # get mode
         if not new:
-            mode_file = 'r+'  # Readonly, file must exist
+            mode_file = 'r'  # Readonly, file must exist
         else:
             mode_file = 'w'  # Read/write, file must exist
 

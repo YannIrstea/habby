@@ -134,7 +134,7 @@ def main():
         app = QApplication(sys.argv)
 
         # Create and display image splash screen
-        time_between_image = 0.05
+        time_between_image = 0.02
         delta_opacity = 0.1
         splash = QSplashScreen()
         splash.setPixmap(QPixmap('translation/splash_screen.png'))
