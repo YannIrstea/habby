@@ -129,33 +129,25 @@ def main():
         """
         #print("GUI")
         from src_GUI import main_window_GUI
+        import numpy as np
         # create app
         app = QApplication(sys.argv)
 
         # Create and display image splash screen
         time_between_image = 0.05
+        delta_opacity = 0.1
         splash = QSplashScreen()
         splash.setPixmap(QPixmap('translation/splash_screen.png'))
+        # splashscreen progressively displayed (with transparency)
         effect = QGraphicsOpacityEffect()
         splash.setGraphicsEffect(effect)
         effect.setOpacity(0.0)
+        app.processEvents()
         splash.show()
-        app.processEvents()
-        time.sleep(time_between_image)
-        effect.setOpacity(0.2)
-        app.processEvents()
-        time.sleep(time_between_image)
-        effect.setOpacity(0.4)
-        app.processEvents()
-        time.sleep(time_between_image)
-        effect.setOpacity(0.6)
-        app.processEvents()
-        time.sleep(time_between_image)
-        effect.setOpacity(0.8)
-        app.processEvents()
-        time.sleep(time_between_image)
-        effect.setOpacity(1.0)
-        app.processEvents()
+        for opacity_value in np.arange(delta_opacity, 1.0 + delta_opacity, delta_opacity):
+            time.sleep(time_between_image)
+            effect.setOpacity(opacity_value)
+            app.processEvents()
 
         # create windows
         if len(sys.argv) == 1:
@@ -169,8 +161,12 @@ def main():
 
         app.setActiveWindow(ex)
 
-        # close the splash screen
-        splash.finish(ex)
+        # splashscreen progressively disappear (with transparency)
+        for opacity_value in np.flip(np.arange(0.0, 1.0, delta_opacity)):
+            time.sleep(time_between_image)
+            effect.setOpacity(opacity_value)
+            app.processEvents()
+        splash.finish(ex)  # close splashscreen
 
         # close
         sys.exit(app.exec_())
