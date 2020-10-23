@@ -289,7 +289,7 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
                 # change decimal point
                 locale = QLocale()
                 if locale.decimalPoint() == ",":
-                    data_hv = data_hv.replace('.', ',')
+                    data_hv = str(data_hv).replace('.', ',')
                 linetext += str(data_hv) + "\t"
         # new line
         linetext += "\n"
