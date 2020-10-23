@@ -365,9 +365,12 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
                    origin=origin)
     else:
         # hs_index
-        nb_point = len(vclass) * len(hclass)
+        nb_point = (len(vclass) - 1) * (len(hclass) - 1)
         hs_index = np.arange(1, nb_point + 1)
-        hs_index.resize((len(vclass), len(hclass)))
+        if axe_mod_choosen in (1, 2):
+            hs_index.resize((len(hclass) - 1, len(vclass) - 1))
+        else:
+            hs_index.resize((len(vclass) - 1, len(hclass) - 1))
         # cmap should be coherent with text color
         plt.imshow(hs_index, alpha=0,
                    origin=origin)
