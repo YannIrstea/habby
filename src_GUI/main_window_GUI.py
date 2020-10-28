@@ -310,10 +310,6 @@ class MainWindows(QMainWindow):
         # close all process data (security)
         self.kill_process(close=True, isalive=False)
 
-        # save model selection calhab
-        if hasattr(self.central_widget, "bioinfo_tab"):
-            self.central_widget.bioinfo_tab.save_selected_aquatic_animal_list_calc_hab()
-
         # save wind_position if not fullscreen or not maximazed
         if self.isMaximized() or self.isFullScreen():
             pass

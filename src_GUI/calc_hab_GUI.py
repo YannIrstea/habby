@@ -706,6 +706,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
             if self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]:
                 self.calc_hab_pushbutton.setEnabled(True)
+
+            # save model selection calhab
+            self.save_selected_aquatic_animal_list_prj()
+
         else:
             self.calc_hab_pushbutton.setEnabled(False)
             if new_item_text_dict:
@@ -780,7 +784,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_dict["substrate_mode_list"] = [self.selected_aquatic_animal_dict["substrate_mode_list"][i] for i in index_to_keep]
         self.fill_selected_models_listwidets([])
 
-    def save_selected_aquatic_animal_list_calc_hab(self):
+    def save_selected_aquatic_animal_list_prj(self):
         # if .hab :
         if self.current_hab_informations_dict:
             # get hydraulic and substrate mode

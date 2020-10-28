@@ -1230,7 +1230,7 @@ class Hdf5Management:
         for attribute in attrs:
             self.file_object[dataset_name].attrs.create(attribute[0], attribute[1])
 
-    # ESTIMHAB²
+    # ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
         # hdf5_type
         self.hdf5_type = "ESTIMHAB"
