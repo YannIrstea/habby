@@ -30,7 +30,7 @@ from src.data_2d_mod import Data2d
 from src.plot_mod import plot_to_check_mesh_merging
 from src.tools_mod import get_translator
 from src.dev_tools import profileit
-from src.hydraulic_process_mod import MyProcessList
+from src.hydraulic_process_mod import MyProcessManager
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False,
@@ -79,11 +79,11 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         return
 
     # load hdf5 hydro
-    hdf5_hydro = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hyd)
+    hdf5_hydro = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hyd, new=False, edit=False)
     hdf5_hydro.load_hdf5_hyd(units_index="all", whole_profil=True)
 
     # load hdf5 sub
-    hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub)
+    hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub, new=False, edit=False)
     hdf5_sub.load_hdf5_sub()
 
     # CONSTANT CASE
@@ -259,9 +259,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     progress_value.value = 90
 
     # create hdf5 hab
-    hdf5 = hdf5_mod.Hdf5Management(path_prj,
-                                   hdf5_name_hab,
-                                   new=True)
+    hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hab, new=True)
     hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_preferences)
 
     # export
@@ -275,18 +273,18 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     if True in export_dict.values():
         export_dict["habitat_text_hab"] = False
         export_dict["nb_export"] = nb_export
-        process_list = MyProcessList("export")
-        process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+        process_manager = MyProcessManager("export")
+        process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
                                           [hdf5.filename],
                                           export_dict,
                                           project_preferences)
-        process_list.start()
+        process_manager.start()
 
-        while process_list.isRunning():
+        while process_manager.isRunning():
             if stop.is_set():
-                if process_list.all_process_runned:
-                    process_list.close_all_export()
-                    process_list.terminate()
+                if process_manager.all_process_runned:
+                    process_manager.close_all_export()
+                    process_manager.terminate()
                     return
 
     # progress

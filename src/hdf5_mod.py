@@ -45,8 +45,12 @@ from habby import HABBY_VERSION_STR
 
 
 class Hdf5Management:
-    def __init__(self, path_prj, hdf5_filename, new=False):
-        self.gravity_acc = 9.80665
+    def __init__(self, path_prj, hdf5_filename, new, edit=False):
+        self.new = new
+        if self.new:
+            self.edit = True
+        else:
+            self.edit = edit
         # hdf5 version attributes
         self.h5py_version = h5py.version.version
         self.hdf5_version = h5py.version.hdf5_version
@@ -100,7 +104,7 @@ class Hdf5Management:
         # hdf5 data attrbutes
         self.hs_calculated = False
         # create_or_open_file
-        self.create_or_open_file(new)
+        self.create_or_open_file()
 
     def __str__(self):
         return self.filename
@@ -108,12 +112,15 @@ class Hdf5Management:
     def __repr__(self):
         return self.filename
 
-    def create_or_open_file(self, new=False):
+    def create_or_open_file(self):
         # get mode
-        if not new:
-            mode_file = 'r'  # Readonly, file must exist
+        if not self.new:
+            if self.edit:
+                mode_file = 'r+'  # Read/write, file must exist
+            else:
+                mode_file = 'r'  # Readonly, file must exist
         else:
-            mode_file = 'w'  # Read/write, file must exist
+            mode_file = 'w'  # Create file, truncate if exists
 
         # extension check
         if self.extension not in self.extensions:
@@ -129,7 +136,7 @@ class Hdf5Management:
             self.file_object = None
             return
 
-        if new:  # write + write attributes
+        if self.new:  # write + write attributes
             self.file_object.attrs['hdf5_version'] = self.hdf5_version
             self.file_object.attrs['h5py_version'] = self.h5py_version
             self.file_object.attrs['software'] = 'HABBY'
@@ -137,7 +144,7 @@ class Hdf5Management:
             self.file_object.attrs['path_project'] = self.path_prj
             self.file_object.attrs['name_project'] = self.name_prj
             self.file_object.attrs['filename'] = self.filename
-        elif not new:
+        elif not self.new:
             if self.hdf5_type != "ESTIMHAB":
                 self.project_preferences = load_project_properties(self.path_prj)
                 """ get xml parent element name """
@@ -187,10 +194,6 @@ class Hdf5Management:
 
     # HDF5 INFORMATIONS
     def set_hdf5_attributes(self, attribute_name_list=[], attribute_value_list=[]):
-        # open file if not done
-        if self.file_object is None:
-            self.create_or_open_file(new=False)
-
         # specific attributes
         if attribute_name_list and attribute_value_list:
             for attribute_name, attribute_value in zip(attribute_name_list, attribute_value_list):
@@ -326,8 +329,8 @@ class Hdf5Management:
             """ light_data_2d """
             self.data_2d = Data2d(reach_number=reach_number,
                                   unit_number=unit_number)  # with no array data
-            self.data_2d.set_unit_names(unit_list)
-            self.data_2d.set_reach_names(reach_list)
+            self.data_2d.set_unit_list(unit_list)
+            self.data_2d.set_reach_list(reach_list)
             self.data_2d.filename = self.filename
             self.data_2d.unit_type = unit_type
             self.data_2d.data_extent = self.file_object.attrs["data_extent"]
@@ -550,6 +553,7 @@ class Hdf5Management:
             reach_group = data_2d_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
+            available_unit_list = sorted(available_unit_list, key=lambda x: float(x[5:]))
             removed_units_list = list(set(list(range(len(available_unit_list)))) - set(self.units_index))
             for unit_number, unit_group_name in enumerate(available_unit_list):
                 if unit_number in self.units_index:
@@ -729,9 +733,6 @@ class Hdf5Management:
         self.close_file()
 
     def load_hdf5_hyd(self, units_index="all", user_target_list="defaut", whole_profil=False):
-        # open an hdf5
-        self.create_or_open_file(new=False)
-
         # get_hdf5_attributes
         self.get_hdf5_attributes(close_file=False)
 
@@ -793,9 +794,6 @@ class Hdf5Management:
         self.save_xml("SUBSTRATE", self.data_2d.path_filename_source)
 
     def load_hdf5_sub(self, user_target_list="defaut"):
-        # open an hdf5
-        self.create_or_open_file(new=False)
-
         # get_hdf5_attributes
         self.get_hdf5_attributes(close_file=False)
 
@@ -893,9 +891,6 @@ class Hdf5Management:
         self.close_file()
 
     def load_hdf5_hab(self, units_index="all", user_target_list="defaut", whole_profil=False):
-        # open an hdf5
-        self.create_or_open_file(new=False)
-
         # get_hdf5_attributes
         self.get_hdf5_attributes(close_file=False)
 
@@ -943,9 +938,7 @@ class Hdf5Management:
         :param spu_all: total SPU by reach
         :param animal: the name of the fish (with the stage in it)
         """
-        # open an hdf5
-        self.create_or_open_file(new=False)
-
+        self.create_or_open_file()
         # add variables
         self.data_2d.hvum.hdf5_and_computable_list.extend(animal_variable_list)
 
@@ -962,19 +955,16 @@ class Hdf5Management:
                 mesh_hv_data_group = mesh_group["hv_data"]
 
                 # HV by celle for each fish
-                for animal_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
+                for animal_num, animal in enumerate(
+                        self.data_2d.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
                     # create
                     if animal.name in mesh_hv_data_group:
                         del mesh_hv_data_group[animal.name]
                     fish_data_set = mesh_hv_data_group.create_dataset(name=animal.name,
-                                                                      shape=
-                                                                      self.data_2d[reach_number][unit_number]["mesh"]["data"][
-                                                                          animal.name].shape,
-                                                                      data=
-                                                                      self.data_2d[reach_number][unit_number]["mesh"]["data"][
-                                                                          animal.name].to_numpy(),
-                                                                      dtype=self.data_2d[reach_number][unit_number]["mesh"]["data"][
-                                                                          animal.name].dtype)
+                                                                      shape=self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name].shape,
+                                                                      data=self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name].to_numpy(),
+                                                                      dtype=self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name].dtype)
+
                     # add dataset attributes
                     fish_data_set.attrs['pref_file'] = animal.pref_file
                     fish_data_set.attrs['stage'] = animal.stage
@@ -1003,10 +993,8 @@ class Hdf5Management:
         Method to remove all data of specific aquatic animal.
         Data to remove : attributes general and datasets.
         """
-        # open file if not done
-        if self.file_object is None:
-            self.create_or_open_file(new=False)
-
+        self.edit = True
+        self.create_or_open_file()
         # get actual attributes (hab_fish_list, hab_animal_number, hab_fish_pref_list, hab_fish_shortname_list, hab_animal_stage_list)
         hab_animal_list_before = self.file_object.attrs["hab_animal_list"].split(", ")
         hab_animal_pref_list_before = self.file_object.attrs["hab_animal_pref_list"].split(", ")
@@ -1063,12 +1051,13 @@ class Hdf5Management:
                 for fish_name_to_remove in fish_names_to_remove:
                     del mesh_hv_data_group[fish_name_to_remove]
 
+        self.close_file()
+
     # HYDROSIGNATURE
     def hydrosignature_new_file(self, progress_value, classhv, export_txt=False):
         newfilename = self.filename[:-4] + "_HS" + self.extension
         shutil.copy(self.absolute_path_file, os.path.join(self.path, newfilename))
-        newhdf5 = Hdf5Management(self.path_prj, newfilename)
-        newhdf5.create_or_open_file(False)
+        newhdf5 = Hdf5Management(self.path_prj, newfilename, new=False, edit=True)
         newhdf5.add_hs(progress_value,
                        classhv,
                        export_mesh=True,
@@ -1243,9 +1232,6 @@ class Hdf5Management:
 
     # ESTIMHAB²
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
-        # create a new hdf5
-        self.create_or_open_file(new=True)
-
         # hdf5_type
         self.hdf5_type = "ESTIMHAB"
 
@@ -1284,9 +1270,6 @@ class Hdf5Management:
         self.load_hdf5_estimhab()
 
     def load_hdf5_estimhab(self):
-        # open an hdf5
-        self.create_or_open_file(new=False)
-
         # load dataset
         estimhab_dict = dict(q=self.file_object["qmes"][:].flatten().tolist(),
                              w=self.file_object["wmes"][:].flatten().tolist(),
@@ -2478,9 +2461,7 @@ def get_filename_hs(path):
         if file.endswith(".hyd") or file.endswith(".hab"):
             path_prj = os.path.dirname(path)
             try:
-                hdf5 = Hdf5Management(path_prj,
-                                      file,
-                                      new=False)
+                hdf5 = Hdf5Management(path_prj, file, new=False, edit=False)
                 hdf5.close_file()
                 if hdf5.hs_calculated:
                     filenames.append(file)

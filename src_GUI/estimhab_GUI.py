@@ -30,7 +30,7 @@ import sys
 from io import StringIO
 from src import hdf5_mod
 from src.tools_mod import DoubleClicOutputGroup
-from src.hydraulic_process_mod import MyProcessList
+from src.hydraulic_process_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties
 
 
@@ -346,7 +346,7 @@ class EstimhabW(StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
-        self.process_list = MyProcessList("plot")
+        self.process_manager = MyProcessManager("plot")
         self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []
@@ -810,7 +810,7 @@ class EstimhabW(StatModUseful):
         self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
                          args=(estimhab_dict, project_preferences, self.path_prj,
                                state))
-        self.process_list.append((self.p, state))
+        self.process_manager.append((self.p, state))
 
         # wait end process
         while state.value != 1:

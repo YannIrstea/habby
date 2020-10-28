@@ -475,7 +475,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
     # prep data
     name_hdf5 = data_2d.filename
     area_all = [unit.total_wet_area for unit in data_2d[reach_number]]
-    unit_name = data_2d.unit_name_list[reach_number]
+    unit_name = data_2d.unit_list[reach_number]
     unit_type = data_2d.unit_type
     unit_type_only = unit_type[unit_type.find('[') + len('['):unit_type.find(']')]
     unit_type_only_scientific = unit_type_only.replace("m3/s", "$m^3$/s")

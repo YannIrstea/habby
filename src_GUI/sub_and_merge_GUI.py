@@ -209,6 +209,7 @@ class SubstrateAndMerge(QWidget):
         # POLYGON (5 line)
         hab_filenametitle_polygon_label = QLabel(self.tr('.sub file name'))
         self.polygon_hname = QLineEdit('')  # hdf5 name
+        self.polygon_hname.returnPressed.connect(lambda: self.load_sub_gui('polygon'))
         self.load_polygon_substrate_pushbutton = QPushButton(self.tr('Create .sub file'), self)
         change_button_color(self.load_polygon_substrate_pushbutton, "#47B5E6")
         self.load_polygon_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('polygon'))
@@ -237,6 +238,7 @@ class SubstrateAndMerge(QWidget):
         # POINT (5 line)
         hab_filenametitle_point_label = QLabel(self.tr('.sub file name'))
         self.point_hname = QLineEdit('')  # hdf5 name
+        self.point_hname.returnPressed.connect(lambda: self.load_sub_gui('point'))
         self.load_point_substrate_pushbutton = QPushButton(self.tr('Create .sub file'), self)
         change_button_color(self.load_point_substrate_pushbutton, "#47B5E6")
         self.load_point_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('point'))
@@ -262,6 +264,7 @@ class SubstrateAndMerge(QWidget):
         # CONSTANT (4 line)
         hab_filenametitle_constant_label = QLabel(self.tr('.sub file name'))
         self.constant_hname = QLineEdit('')  # hdf5 name
+        self.constant_hname.returnPressed.connect(lambda: self.load_sub_gui('constant'))
         self.load_constant_substrate_pushbutton = QPushButton(self.tr('Create .sub file'), self)
         change_button_color(self.load_constant_substrate_pushbutton, "#47B5E6")
         self.load_constant_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('constant'))
@@ -288,6 +291,7 @@ class SubstrateAndMerge(QWidget):
         # file name output
         hdf5_merge_label = QLabel(self.tr('.hab file name'))
         self.hdf5_merge_lineedit = QLineEdit('')  # default hdf5 merge name
+        self.hdf5_merge_lineedit.returnPressed.connect(self.compute_merge)
         # get the last file created
         last_hab_created_title_label = QLabel(self.tr('Last file created'))
         self.last_merge_file_name_label = QLabel(self.tr('no file'))
@@ -678,6 +682,7 @@ class SubstrateAndMerge(QWidget):
                     self.sub_default_values_polygon_label.setText(sub_description["sub_default_values"])
                     self.epsg_polygon_label.setText(sub_description["epsg_code"])
                     self.polygon_hname.setText(self.name_hdf5_polygon)
+                    self.polygon_hname.setFocus()
                     self.load_polygon_substrate_pushbutton.setEnabled(True)
 
                 # POINT
@@ -695,6 +700,7 @@ class SubstrateAndMerge(QWidget):
                     self.sub_default_values_point_label.setText(sub_description["sub_default_values"])
                     self.epsg_point_label.setText(sub_description["epsg_code"])
                     self.point_hname.setText(self.name_hdf5_point)
+                    self.point_hname.setFocus()
                     self.load_point_substrate_pushbutton.setEnabled(True)
 
                 # CONSTANT
@@ -711,6 +717,7 @@ class SubstrateAndMerge(QWidget):
                     self.sub_classification_method_constant_label.setText(sub_description["sub_classification_method"])
                     self.valuesdata_constant_label.setText(sub_description["sub_default_values"])
                     self.constant_hname.setText(self.name_hdf5_constant)
+                    self.constant_hname.setFocus()
                     self.load_constant_substrate_pushbutton.setEnabled(True)
 
     def load_sub_gui(self, sub_mapping_method):
@@ -842,6 +849,7 @@ class SubstrateAndMerge(QWidget):
             name_hdf5merge = hdf5_name_hyd[:-4] + "_" + hdf5_name_sub[:-4] + ".hab"
             if hasattr(self, "hdf5_merge_lineedit"):
                 self.hdf5_merge_lineedit.setText(name_hdf5merge)
+                self.hdf5_merge_lineedit.setFocus()
                 self.load_hab_pushbutton.setEnabled(True)
 
     def log_txt(self, code_type):
@@ -1051,9 +1059,7 @@ class SubstrateAndMerge(QWidget):
                         self.load_constant_substrate_pushbutton.setEnabled(True)
 
                     # send round(c) to attribute .hyd
-                    hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj,
-                                                       self.name_hdf5,
-                                                       new=False)
+                    hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=True)
                     hdf5_hyd.set_hdf5_attributes([os.path.splitext(self.name_hdf5)[1][1:] + "_time_creation [s]"],
                                                  [round(self.running_time)])
 

@@ -17,20 +17,17 @@ https://github.com/YannIrstea/habby
 import os
 from multiprocessing import Process, Value, Queue, Event
 
-from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QSize, QTimer
-from PyQt5.QtGui import QStandardItemModel, QPixmap, QIcon, QPalette, QColor
-from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QTableWidget, QWidget, \
-    QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, \
+from PyQt5.QtCore import pyqtSignal, Qt, QSize, QTimer
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, \
+    QMessageBox, QFrame, QLineEdit, QGridLayout, QFileDialog, \
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, \
     QCheckBox, QListWidgetItem, QRadioButton, QListView, QProgressBar
-import numpy as np
 
-import src.hydraulic_process_mod
 from src.tools_mod import QGroupBoxCollapsible
-from src.hydraulic_process_mod import MyProcessList, load_data_and_compute_hs, load_hs_and_compare
+from src.hydraulic_process_mod import MyProcessManager, load_hs_and_compare, ProcessProgShow
 from src import hdf5_mod
 from src import plot_mod
-from src import tools_mod
 from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
     load_specific_properties
 from src import hydrosignature
@@ -120,18 +117,14 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.classhv = None
-        self.process_list = MyProcessList("hs")
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.show_prog)
-        self.running_time = 0
-        self.stop = Event()
-        self.q = Queue()
-        self.progress_value = Value("d", 0)
-        self.p = Process(target=None)
-        self.hs_production_stoped = False
         self.project_preferences = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
+        self.process_prog_show = ProcessProgShow(send_log=self.send_log,
+                                                 send_refresh_filenames=self.send_refresh_filenames,
+                                                 progressbar=self.progressbar,
+                                                 progress_label=self.progress_label,
+                                                 computation_pushbutton=self.computation_pushbutton)
         input_class_file_info = self.read_attribute_xml("HS_input_class")
         self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
 
@@ -224,9 +217,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                 item.setText("")
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                 try:
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                                   name,
-                                                   new=False)
+                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name, new=False, edit=False)
                     hdf5.get_hdf5_attributes(close_file=True)
                     if hdf5.hs_calculated:
                         item.setCheckState(Qt.Checked)
@@ -250,7 +241,7 @@ class ComputingGroup(QGroupBoxCollapsible):
             if warnings_list:
                 for warning in warnings_list:
                     self.send_log.emit(warning)
-            if not self.classhv:
+            if self.classhv is None:
                 self.send_log.emit(self.tr("Error: Input class file : ") + os.path.basename(input_class_file) + self.tr(" is not valid."))
                 self.computation_pushbutton.setEnabled(False)
             else:
@@ -263,8 +254,6 @@ class ComputingGroup(QGroupBoxCollapsible):
     def names_hdf5_change(self):
         selection = self.file_selection_listwidget.selectedItems()
         if selection:
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[0].text())
-            hdf5.create_or_open_file(False)
             # enable run button
             if self.input_class_filename.text():
                 self.computation_pushbutton.setEnabled(True)
@@ -310,32 +299,6 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         return data
 
-    def send_err_log(self, check_ok=False):
-        """
-        This function sends the errors and the warnings to the logs.
-        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
-        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
-
-        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
-        """
-        error = False
-
-        max_send = 100
-        if self.mystdout is not None:
-            str_found = self.mystdout.getvalue()
-        else:
-            return
-        str_found = str_found.split('\n')
-        for i in range(0, min(len(str_found), max_send)):
-            if len(str_found[i]) > 1:
-                self.send_log.emit(str_found[i])
-            if i == max_send - 1:
-                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
-            if 'Error' in str_found[i] and check_ok:
-                error = True
-        if check_ok:
-            return error
-
     def save_xml(self, attr):
         """
         A function to save the loaded data in the xml file.
@@ -373,60 +336,31 @@ class ComputingGroup(QGroupBoxCollapsible):
             self.stop_compute()
 
     def compute(self):
-
         if self.file_selection_listwidget.currentItem():
-            self.running_time = 0.0
             self.computation_pushbutton.setText(self.tr("stop"))
 
-            self.process_list = MyProcessList("hs")
-
+            # process_manager
+            self.process_manager = MyProcessManager("hs")
             hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
-                                              hdf5_name_list=[selection_el.text() for selection_el in self.file_selection_listwidget.selectedItems()],
+                                              hdf5_name_list=[selection_el.text() for selection_el in
+                                                              self.file_selection_listwidget.selectedItems()],
                                               hs_export_txt=self.hs_export_txt_checkbox.isChecked(),
                                               classhv=self.classhv)
+            self.process_manager.set_hs_hdf5_mode(self.path_prj, hydrosignature_description, self.project_preferences)
 
-            self.process_list.set_hs_hdf5_mode(self.path_prj, hydrosignature_description, self.project_preferences)
+            # process_prog_show
+            self.process_prog_show.start_show_prog(self.process_manager)
+
             # start thread
-            self.process_list.start()
-
-            # for error management and figures
-            self.timer.start(100)
+            self.process_manager.start()
 
     def stop_compute(self):
-        # stop plot production
-        self.hs_production_stoped = True
-        # activate
-        self.computation_pushbutton.setText(self.tr("run"))
-        # close_all_export
-        self.process_list.close_all_hs()
-        self.process_list.terminate()
-        self.timer.stop()
-        # log
-        self.send_log.emit(self.tr("Hydrosginature computation stoped by user."))
+        # stop_by_user
+        self.process_manager.stop_by_user()
 
-    def show_prog(self):
-        # RUNNING
-        if not self.process_list.hs_finished:
-            self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
-            # self.process_list.nb_finished
-            self.progressbar.setValue(int(self.process_list.progress_value))
-            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
-                                                                               self.process_list.nb_hs_total))
-        # NOT RUNNING
-        else:
-            self.timer.stop()
-            self.progressbar.setValue(int(self.process_list.progress_value))
-            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_list.nb_finished,
-                                                                               self.process_list.nb_hs_total))
-            self.computation_pushbutton.setText(self.tr("run"))
-            self.computation_pushbutton.setChecked(True)
-            # FINISHED
-            if not self.hs_production_stoped:
-                # log
-                self.send_log.emit(self.tr("Hydrosginature computation is finished (computation time = ") + str(
-                round(self.running_time)) + " s).")
-                # update_gui
-                self.send_refresh_filenames.emit()
+        # stop show_prog
+        self.process_prog_show.timer.stop()
+        self.process_prog_show.show_prog()
 
 
 class VisualGroup(QGroupBoxCollapsible):
@@ -440,7 +374,7 @@ class VisualGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
-        self.process_list = MyProcessList("plot")
+        self.process_manager = MyProcessManager("plot")
         self.axe_mod_choosen = 1
         self.setTitle(title)
         self.init_ui()
@@ -517,7 +451,7 @@ class VisualGroup(QGroupBoxCollapsible):
         self.input_class_h_lineedit = QLineEdit("")
         input_class_v_label = QLabel(self.tr("v (m)"))
         self.input_class_v_lineedit = QLineEdit("")
-        self.input_class_plot_button = QPushButton(self.tr("Show"))
+        self.input_class_plot_button = QPushButton(self.tr("Show input"))
         self.input_class_plot_button.clicked.connect(self.plot_hs_class)
         change_button_color(self.input_class_plot_button, "#47B5E6")
         self.input_class_plot_button.setEnabled(False)
@@ -587,9 +521,7 @@ class VisualGroup(QGroupBoxCollapsible):
         if selection:
             # read
             hdf5name = selection[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             # check reach
             self.reach_QListWidget.addItems(hdf5.data_2d.reach_list)
@@ -615,9 +547,7 @@ class VisualGroup(QGroupBoxCollapsible):
             hdf5name = selection_file[0].text()
 
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
 
             # add units
@@ -627,12 +557,6 @@ class VisualGroup(QGroupBoxCollapsible):
                 self.units_QListWidget.addItem(item)
 
         if len(selection_reach) > 1:
-            hdf5name = selection_file[0].text()
-
-            # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            hdf5.create_or_open_file(False)
-
             # add units
             item = QListWidgetItem("all units")
             item.setTextAlignment(Qt.AlignRight)
@@ -646,9 +570,7 @@ class VisualGroup(QGroupBoxCollapsible):
             hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.load_hydrosignature()
             hdf5.close_file()
 
@@ -677,15 +599,14 @@ class VisualGroup(QGroupBoxCollapsible):
         hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
         # create hdf5 class
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.create_or_open_file(False)
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
         hdf5.load_hydrosignature()
 
         # check plot process done
-        if self.process_list.check_all_process_closed():
-            self.process_list.new_plots()
+        if self.process_manager.check_all_process_closed():
+            self.process_manager.new_plots()
         else:
-            self.process_list.add_plots(1)
+            self.process_manager.add_plots(1)
 
         project_preferences = load_project_properties(self.path_prj)
         state = Value("i", 0)
@@ -699,26 +620,25 @@ class VisualGroup(QGroupBoxCollapsible):
                                      None,
                                      project_preferences,
                                      self.axe_mod_choosen))
-        self.process_list.append((plot_process, state))
+        self.process_manager.append((plot_process, state))
 
-        self.process_list.start()
+        self.process_manager.start()
 
     def plot_hs_result(self, type):
         # hdf5
         hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
 
         # create hdf5 class
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-        hdf5.create_or_open_file(False)
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
         hdf5.load_hydrosignature()
 
         selection_reach = self.reach_QListWidget.selectedItems()
         selection_unit = self.units_QListWidget.selectedItems()
         # check plot process done
-        if self.process_list.check_all_process_closed():
-            self.process_list.new_plots()
+        if self.process_manager.check_all_process_closed():
+            self.process_manager.new_plots()
         else:
-            self.process_list.add_plots(len(selection_unit))
+            self.process_manager.add_plots(len(selection_unit))
 
         if len(selection_reach) > 1:  # all units
             reach_index_list = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
@@ -744,9 +664,9 @@ class VisualGroup(QGroupBoxCollapsible):
                                                        self.tr(type),
                                                        project_preferences,
                                                        self.axe_mod_choosen))
-                self.process_list.append((plot_process, state))
+                self.process_manager.append((plot_process, state))
 
-        self.process_list.start()
+        self.process_manager.start()
 
 
 class CompareGroup(QGroupBoxCollapsible):
@@ -761,8 +681,8 @@ class CompareGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.comp_filename = 'HS_comp.txt'
-        self.stop = Event()
         self.q = Queue()
+        self.stop = Event()
         self.progress_value = Value("d", 0)
         self.p = Process(target=None)
         self.setTitle(title)
@@ -894,9 +814,7 @@ class CompareGroup(QGroupBoxCollapsible):
         selection_file = self.file_selection_listwidget_1.selectedItems()
         if selection_file:
             hdf5name = selection_file[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             # check reach
             self.reach_QListWidget_1.addItems(hdf5.data_2d.reach_list)
@@ -907,9 +825,7 @@ class CompareGroup(QGroupBoxCollapsible):
         selection_file = self.file_selection_listwidget_2.selectedItems()
         if selection_file:
             hdf5name = selection_file[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             # check reach
             self.reach_QListWidget_2.addItems(hdf5.data_2d.reach_list)
@@ -921,9 +837,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # one file selected
         if len(selection_reach) == 1:
             hdf5name = selection_file[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             # add units
             for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget_1.currentRow()]:
@@ -938,9 +852,7 @@ class CompareGroup(QGroupBoxCollapsible):
         # one file selected
         if len(selection_reach) == 1:
             hdf5name = selection_file[0].text()
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             # add units
             for item_text in hdf5.data_2d.unit_list[self.reach_QListWidget_2.currentRow()]:

@@ -174,8 +174,7 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     timestep_str = list(map(str, timesteps))
 
     # create hdf5
-    hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
-                                   hydrau_description["hdf5_name"])
+    hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"], hydrau_description["hdf5_name"], new=True)
     hdf5.create_hdf5_hyd(data_2d,
                          data_2d_whole_profile,
                          hyd_description,

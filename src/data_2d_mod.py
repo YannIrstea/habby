@@ -239,7 +239,7 @@ class Data2d(list):
 
                 self[reach_number][unit_number].total_wet_area = np.sum(area)
 
-    def set_reach_names(self, reach_list):
+    def set_reach_list(self, reach_list):
         self.reach_list = reach_list
         for reach_number in range(self.reach_number):
             for unit_number in range(self.unit_number):
@@ -247,7 +247,7 @@ class Data2d(list):
                 self[reach_number].reach_name = reach_name
                 self[reach_number][unit_number].reach_name = reach_name
 
-    def set_unit_names(self, unit_list):
+    def set_unit_list(self, unit_list):
         self.unit_list = unit_list
         for reach_number in range(self.reach_number):
             for unit_number in range(self.unit_number):

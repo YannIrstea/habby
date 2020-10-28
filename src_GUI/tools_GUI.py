@@ -16,15 +16,17 @@ https://github.com/YannIrstea/habby
 """
 import os
 from multiprocessing import Process, Value
+from PIL import Image
+from copy import deepcopy
 
-from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant
+from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant, QObject, QEvent
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeySequence
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, QListWidgetItem, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, QApplication
 
 from src.tools_mod import QGroupBoxCollapsible
-from src.hydraulic_process_mod import MyProcessList
+from src.hydraulic_process_mod import MyProcessManager
 from src import hdf5_mod
 from src import plot_mod
 from src import tools_mod
@@ -140,7 +142,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.mytablemodel = None
         self.path_last_file_loaded = self.path_prj
-        self.process_list = MyProcessList("plot")
+        self.process_manager = MyProcessManager("plot")
         self.setTitle(title)
         self.init_ui()
         # Signal Connection
@@ -311,9 +313,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # clean
             self.hab_reach_qcombobox.clear()
             # create hdf5 class to get hdf5 inforamtions
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             if len(hdf5.data_2d.reach_list) == 1:
                 reach_names = hdf5.data_2d.reach_list
@@ -340,9 +340,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # clean
             self.disable_and_clean_group_widgets(False)
             # clean
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             unit_type = hdf5.data_2d.unit_type
             unit_type = unit_type.replace("m3/s", "m<sup>3</sup>/s")
@@ -358,15 +356,20 @@ class InterpolationGroup(QGroupBoxCollapsible):
                     self.fish_available_qlistwidget.addItem(mesh_item)
                 self.fish_available_qlistwidget.selectAll()
                 # set min and max unit for from to by
-            unit_number = list(map(float, units_name))
-            min_unit = min(unit_number)
-            max_unit = max(unit_number)
+            unit_number_list = list(map(float, units_name))
+            min_unit = min(unit_number_list)
+            max_unit = max(unit_number_list)
             self.unit_min_qlabel.setText(str(min_unit))
             self.unit_max_qlabel.setText(str(max_unit))
             self.unit_type_qlabel.setText(unit_type)
-            self.from_qlineedit.setText(str(min_unit))
-            self.to_qlineedit.setText(str(max_unit))
-            self.unit_qlabel.setText(unit_type_value)
+            # sequence
+            if len(unit_number_list) > 1:
+                self.from_qlineedit.setText(str(min_unit))
+                self.to_qlineedit.setText(str(max_unit))
+                self.unit_qlabel.setText(unit_type_value)
+            elif len(unit_number_list) == 1:
+                self.send_log.emit("Warning: " + self.tr("Interpolation need at least two time/discharge unit. "
+                                                         "Their is only one is this file."))
 
     def display_required_units_from_sequence(self):
         from_sequ = self.from_qlineedit.text().replace(",", ".")
@@ -450,9 +453,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         # load hdf5 data
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                       hdf5name,
-                                       new=False)
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
         hdf5.get_hdf5_attributes(close_file=True)
 
         # get reach_name
@@ -494,9 +495,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5name = self.hab_filenames_qcombobox.currentText()
         if hdf5name:
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             # get hdf5 inforamtions
             hdf5.get_hdf5_attributes(close_file=True)
             unit_type = hdf5.data_2d.unit_type
@@ -550,9 +549,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             project_preferences = load_project_properties(self.path_prj)
 
             # load hdf5 data
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             # get hdf5 inforamtions
             hdf5.get_hdf5_attributes(close_file=True)
 
@@ -578,8 +575,8 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                                types,
                                                                project_preferences),
                                                          name="plot_interpolate_chronicle")
-            self.process_list.append((plot_interpolate_chronicle_process, state))
-            self.process_list.start()
+            self.process_manager.append((plot_interpolate_chronicle_process, state))
+            self.process_manager.start()
 
     def export_chronicle(self):
         hvum = HydraulicVariableUnitManagement()
@@ -620,9 +617,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             project_preferences = load_project_properties(self.path_prj)
 
             # load hdf5 data
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           hdf5name,
-                                           new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             # get hdf5 inforamtions
             hdf5.get_hdf5_attributes(close_file=True)
 
@@ -772,3 +767,16 @@ class QListWidgetClipboard(QListWidget):
             clipboard.setText(string_to_clipboard)
         else:
             QListWidget.keyPressEvent(self, event)
+
+
+class EnterPressEvent(QObject):
+    enter_signal = pyqtSignal()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.KeyPress and event.key() == 16777220:
+            self.enter_signal.emit()
+            return True  # ENTER
+        else:
+            # standard event processing
+            return QObject.eventFilter(self, obj, event)
+

@@ -109,9 +109,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     data_2d.unit_type = sub_description["unit_type"]
     delattr(data_2d, "hyd_equation_type")
 
-    hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"],
-                                   sub_description["name_hdf5"],
-                                   new=True)
+    hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"], sub_description["name_hdf5"], new=True)
     hdf5.create_hdf5_sub(data_2d)
 
     # prog

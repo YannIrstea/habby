@@ -33,7 +33,7 @@ from src import bio_info_mod
 from src import plot_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties
 from src.user_preferences_mod import user_preferences
-from src.hydraulic_process_mod import MyProcessList
+from src.hydraulic_process_mod import MyProcessManager
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 
 
@@ -550,7 +550,7 @@ class BioModelInfoSelection(QScrollArea):
         self.msg2 = QMessageBox()
         self.init_iu()
         self.lang = 0
-        self.process_list = MyProcessList("plot")
+        self.process_manager = MyProcessManager("plot")
         self.animal_picture_path = None
 
     def init_iu(self):
@@ -865,10 +865,10 @@ class BioModelInfoSelection(QScrollArea):
         # plot the pref
         project_preferences = load_project_properties(self.path_prj)
         # check plot process done
-        if self.process_list.check_all_process_closed():
-            self.process_list.new_plots()
+        if self.process_manager.check_all_process_closed():
+            self.process_manager.new_plots()
         else:
-            self.process_list.add_plots(1)
+            self.process_manager.add_plots(1)
         state = Value("i", 0)
         # univariate
         if information_model_dict["ModelType"] == "univariate suitability index curves":
@@ -925,8 +925,8 @@ class BioModelInfoSelection(QScrollArea):
                                               False),
                                         name="plot_suitability_curve_bivariate")
         # append
-        self.process_list.append((curve_process, state))
-        self.process_list.start()
+        self.process_manager.append((curve_process, state))
+        self.process_manager.start()
 
     def show_hydrosignature(self):
         """
@@ -947,10 +947,10 @@ class BioModelInfoSelection(QScrollArea):
         data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
         if isinstance(data, np.ndarray):
             # check plot process done
-            if self.process_list.check_all_process_closed():
-                self.process_list.new_plots()
+            if self.process_manager.check_all_process_closed():
+                self.process_manager.new_plots()
             else:
-                self.process_list.add_plots()
+                self.process_manager.add_plots()
             project_preferences = load_project_properties(self.path_prj)
             state = Value("i", 0)
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
@@ -960,8 +960,8 @@ class BioModelInfoSelection(QScrollArea):
                                                    hclass,
                                                    fishname,
                                                    project_preferences))
-            self.process_list.append((hydrosignature_process, state))
-            self.process_list.start()
+            self.process_manager.append((hydrosignature_process, state))
+            self.process_manager.start()
 
     def add_selected_to_main(self):
         # source

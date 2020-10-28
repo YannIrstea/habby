@@ -649,9 +649,8 @@ if __name__ == '__main__':
         classhv = [[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3, 100], [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5, 100]]
         path_prj = "C:\\habby_dev\\Hydrosignature\\project"
         input_filename = "a1.hyd"
-        oldhdf5 = hdf5_mod.Hdf5Management(path_prj, input_filename)
+        oldhdf5 = hdf5_mod.Hdf5Management(path_prj, input_filename, new=False, edit=False)
         # oldhdf5.load_hdf5_hyd()
-        # oldhdf5.create_or_open_file()
         # oldhdf5.load_data_2d()
         # oldhdf5.load_whole_profile()
         # oldhdf5.load_data_2d_info()
@@ -660,9 +659,8 @@ if __name__ == '__main__':
         t1 = time.time()
         print("time: " + str(t1 - t0))
         # newhdf5.load_hydrosignature()
-        newfile = hdf5_mod.Hdf5Management(path_prj, "a1_HS.hyd")
+        newfile = hdf5_mod.Hdf5Management(path_prj, "a1_HS.hyd", new=True)
         newfile.load_hdf5_hyd()
-        newfile.create_or_open_file()
         newfile.load_data_2d()
         newfile.load_hydrosignature()
         print(newhdf5.data_2d)

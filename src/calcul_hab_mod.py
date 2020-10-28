@@ -27,7 +27,7 @@ from src import bio_info_mod
 from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, \
     pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
 from src.tools_mod import get_translator
-from src.hydraulic_process_mod import MyProcessList
+from src.hydraulic_process_mod import MyProcessManager
 
 
 def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False,
@@ -82,9 +82,8 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             return
 
     # load data and get variable to compute
-    hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5")),
-                                   hab_filename,
-                                   new=False)
+    hdf5_path = os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5"))
+    hdf5 = hdf5_mod.Hdf5Management(hdf5_path, hab_filename, new=False, edit=True)
     hdf5.load_hdf5_hab(user_target_list=animal_variable_list)
 
     # progress
@@ -100,6 +99,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         for unit_number in range(hdf5.data_2d.unit_number):
             # progress
             delta_animal = delta_unit / len(animal_variable_list)
+
             # for each animal
             for animal in animal_variable_list:
                 """ get bio model """
@@ -381,18 +381,18 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     if True in export_dict.values():
         export_dict["habitat_text_hab"] = True
         export_dict["nb_export"] = nb_export
-        process_list = MyProcessList("export")
-        process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+        process_manager = MyProcessManager("export")
+        process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
                                           [hdf5.filename],
                                           export_dict,
                                           project_preferences)
-        process_list.start()
+        process_manager.start()
 
-        while process_list.isRunning():
+        while process_manager.isRunning():
             if stop.is_set():
-                if process_list.all_process_runned:
-                    process_list.close_all_export()
-                    process_list.terminate()
+                if process_manager.all_process_runned:
+                    process_manager.close_all_export()
+                    process_manager.terminate()
                     return
 
     # progress

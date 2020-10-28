@@ -17,7 +17,6 @@ https://github.com/YannIrstea/habby
 import os
 import shutil
 from time import sleep
-import urllib.request
 from functools import partial
 from platform import system as operatingsystem
 from subprocess import call
@@ -25,11 +24,11 @@ from webbrowser import open as wbopen
 import matplotlib as mpl
 import numpy as np
 import qdarkstyle
-from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, Qt, pyqtRemoveInputHook
+from PyQt5.QtCore import QTranslator, pyqtSignal, Qt, pyqtRemoveInputHook
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor, QColor
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QDialog, QApplication, QWidget, QPushButton, \
-    QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, \
-    QFileDialog, QMessageBox, QFrame, QMenu, QToolBar, QProgressBar, QScrollArea
+    QLabel, QGridLayout, QAction, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, \
+    QFileDialog, QMessageBox, QFrame, QMenu, QToolBar, QProgressBar
 from json import decoder
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
@@ -175,12 +174,6 @@ class MainWindows(QMainWindow):
         self.central_widget = CentralW(self.path_prj,
                                        self.name_prj,
                                        lang_bio)
-
-        # shortcut to change tab (CTRL+TAB)
-        self.keyboard_change_tab_filter = AltTabPressEater()
-        self.app.installEventFilter(self.keyboard_change_tab_filter)
-        self.keyboard_change_tab_filter.next_signal.connect(self.central_widget.next_tab)
-        self.keyboard_change_tab_filter.previous_signal.connect(self.central_widget.previous_tab)
 
         self.msg2 = QMessageBox()
         # call the normal constructor of QWidget
@@ -936,8 +929,8 @@ class MainWindows(QMainWindow):
         ind_tab = self.central_widget.tab_widget.currentIndex()
         # if plot process are open, close them
         if hasattr(self.central_widget, "data_explorer_tab"):
-            if hasattr(self.central_widget.data_explorer_tab.data_explorer_frame, 'process_list'):
-                self.central_widget.data_explorer_tab.data_explorer_frame.process_list.close_all_export()
+            if hasattr(self.central_widget.data_explorer_tab.data_explorer_frame, 'process_manager'):
+                self.central_widget.data_explorer_tab.data_explorer_frame.process_manager.close_all_export()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
@@ -1612,9 +1605,7 @@ class MainWindows(QMainWindow):
         # loop on files
         for file_to_remove in hdf5_files_list:
             # open hdf5 to read type_mode attribute
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                           file_to_remove,
-                                            new=False)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_to_remove, new=False, edit=False)
             hdf5.close_file()
 
             # remove files
@@ -1656,9 +1647,7 @@ class MainWindows(QMainWindow):
                   os.path.join(self.path_prj, "hdf5", file_renamed))
 
         # change attribute
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-                                       file_renamed,
-                                       new=False)
+        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_renamed, new=False, edit=True)
         hdf5.file_object.attrs[ext[1:] + "_filename"] = file_renamed
         hdf5.close_file()
 
@@ -2035,7 +2024,7 @@ class CentralW(QWidget):
         self.tab_widget.currentChanged.connect(self.save_on_change_tab)
 
         # update plot item in plot tab
-        self.tab_widget.currentChanged.connect(self.update_specific_tab)
+        # self.tab_widget.currentChanged.connect(self.update_specific_tab)
 
         # layout
         self.layoutc = QVBoxLayout()
@@ -2111,33 +2100,33 @@ class CentralW(QWidget):
         # bio_model_explorer_dialog
         if hasattr(self.parent(), "bio_model_explorer_dialog"):
             if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
-                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_list"):
-                    self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_list.close_all_plot()
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager"):
+                    self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager.close_all_plot()
         # data_explorer_tab
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
-                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'process_list'):
-                    self.data_explorer_tab.data_explorer_frame.plot_group.process_list.close_all_plot()
+                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'process_manager'):
+                    self.data_explorer_tab.data_explorer_frame.plot_group.process_manager.close_all_plot()
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'dataexporter_group'):
-                if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'process_list'):
-                    self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_list.close_all_export()
+                if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'process_manager'):
+                    self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_manager.close_all_export()
         # tools_tab
         if hasattr(self, 'tools_tab'):
             if hasattr(self.tools_tab, 'interpolation_group'):
-                if hasattr(self.tools_tab.interpolation_group, 'process_list'):
-                    self.tools_tab.interpolation_group.process_list.close_all_plot()
+                if hasattr(self.tools_tab.interpolation_group, 'process_manager'):
+                    self.tools_tab.interpolation_group.process_manager.close_all_plot()
         # hs_tab
         if hasattr(self, 'hs_tab'):
             if hasattr(self.hs_tab, 'computing_group'):
-                if hasattr(self.hs_tab.computing_group, 'process_list'):
-                    self.hs_tab.computing_group.process_list.close_all_hs()
+                if hasattr(self.hs_tab.computing_group, 'process_manager'):
+                    self.hs_tab.computing_group.process_manager.close_all_hs()
             if hasattr(self.hs_tab, 'visual_group'):
-                if hasattr(self.hs_tab.visual_group, 'process_list'):
-                    self.hs_tab.visual_group.process_list.close_all_plot()
+                if hasattr(self.hs_tab.visual_group, 'process_manager'):
+                    self.hs_tab.visual_group.process_manager.close_all_plot()
         # estimhab
         if hasattr(self, 'statmod_tab'):
-            if hasattr(self.statmod_tab, 'process_list'):
-                self.statmod_tab.process_list.close_all_plot()
+            if hasattr(self.statmod_tab, 'process_manager'):
+                self.statmod_tab.process_manager.close_all_plot()
 
     def connect_signal_log(self):
         """
@@ -2166,9 +2155,9 @@ class CentralW(QWidget):
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
-            self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
-            self.substrate_tab.sub_and_merge.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.substrate_tab.sub_and_merge.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
 
     def write_log(self, text_log):
         """
@@ -2336,9 +2325,11 @@ class CentralW(QWidget):
             self.substrate_tab.sub_and_merge.update_sub_hdf5_name()
 
             # calc hab combobox
-            self.bioinfo_tab.m_all.clear()
+            self.bioinfo_tab.update_merge_list()
 
             self.data_explorer_tab.refresh_type()
+
+            self.hs_tab.refresh_filenames()
 
     def save_info_projet(self):
         """
@@ -2434,22 +2425,6 @@ class EmptyTab(QWidget):
         is connected.
         """
         print('Text Text and MORE Text')
-
-
-class AltTabPressEater(QObject):
-    next_signal = pyqtSignal()
-    previous_signal = pyqtSignal()
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.KeyPress and event.key() == 16777217:
-            self.next_signal.emit()
-            return True  # CTRL+TAB
-        elif event.type() == QEvent.KeyPress and event.key() == 16777218:
-            self.previous_signal.emit()
-            return True  # CTRL+MAJ+TAB
-        else:
-            # standard event processing
-            return QObject.eventFilter(self, obj, event)
 
 
 if __name__ == '__main__':

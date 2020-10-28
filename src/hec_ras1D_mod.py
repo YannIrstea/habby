@@ -136,8 +136,7 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
     #                                  nb_pro_reach,
     #                                  sim_name=sim_name, hdf5_type="hydraulic")
     # create hdf5
-    hdf5 = hdf5_mod.Hdf5Management(hydrau_description["path_prj"],
-                                   hydrau_description["hdf5_name"])
+    hdf5 = hdf5_mod.Hdf5Management(hydrau_description["path_prj"], hydrau_description["hdf5_name"], new=True)
     hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
 
 

@@ -1289,18 +1289,14 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # if not file_name or not format:
         #     print("Error: the EXPORT command takes as arguments path_prj, file_name and format")
 
-
-
         if not os.path.exists(path_prj+"\\hdf5\\"+file_name):
             print("Error: the file ", file_name, " does not exist, or is not located in the path_prj\\hdf5 folder.")
             return
 
-
-
         try:
-            data=hdf5_mod.Hdf5Management(path_prj,file_name)
-            data.project_preferences=project_preferences
-            hdf5_mod.simple_export(data,format)
+            data = hdf5_mod.Hdf5Management(path_prj, file_name, new=False, edit=False)
+            data.project_preferences = project_preferences
+            hdf5_mod.simple_export(data, format)
             print("Success!")
         except ValueError:
             print("The EXPORT command only allows as input hdf5 files with a .hyd or .hab extension.")

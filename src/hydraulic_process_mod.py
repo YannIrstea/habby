@@ -18,10 +18,12 @@ import os
 import os.path
 import sys
 from io import StringIO
+from copy import deepcopy
 from time import sleep
 from multiprocessing import Queue
+import time
 
-from PyQt5.QtCore import QCoreApplication as qt_tr, QThread, pyqtSignal
+from PyQt5.QtCore import QCoreApplication as qt_tr, QThread, pyqtSignal, QTimer, QObject
 from multiprocessing import Process, Value
 
 from src.hdf5_mod import Hdf5Management
@@ -1180,7 +1182,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         data_2d_whole_profile = data_2d.get_only_mesh()
 
         """ set unit_names """
-        data_2d.set_unit_names(hydrau_description[hdf5_file_index]["unit_list"])
+        data_2d.set_unit_list(hydrau_description[hdf5_file_index]["unit_list"])
 
         """ varying mesh """
         hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
@@ -1271,9 +1273,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         data_2d.hs_calculated = False
 
         # create hdf5
-        hdf5 = hdf5_mod.Hdf5Management(hydrau_description[hdf5_file_index]["path_prj"],
-                                       hydrau_description[hdf5_file_index]["hdf5_name"],
-                                       new=True)
+        path_prj = hydrau_description[hdf5_file_index]["path_prj"]
+        hdf5_name = hydrau_description[hdf5_file_index]["hdf5_name"]
+        hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name, new=True)
         # HYD
         if not data_2d.hvum.hdf5_and_computable_list.subs():
             project_preferences_index = 0
@@ -1305,18 +1307,18 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         if True in export_dict.values():
             export_dict["habitat_text_hab"] = False
             export_dict["nb_export"] = nb_export
-            process_list = MyProcessList("export")
-            process_list.set_export_hdf5_mode(project_preferences['path_prj'],
+            process_manager = MyProcessManager("export")
+            process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
                                               [hdf5.filename],
                                               export_dict,
                                               project_preferences)
-            process_list.start()
+            process_manager.start()
 
-            while process_list.isRunning():
+            while process_manager.isRunning():
                 if stop.is_set():
-                    if process_list.all_process_runned:
-                        process_list.close_all_export()
-                        process_list.terminate()
+                    if process_manager.all_process_runned:
+                        process_manager.close_all_export()
+                        process_manager.terminate()
                         return
 
     # prog
@@ -1342,27 +1344,30 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
     # progress
     progress_value.value = 10
 
-    # compute
-    hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
-                                   hydrosignature_description["hdf5_name"],
-                                   new=False)
+    path_prj = project_preferences["path_prj"]
 
+    # compute
     if hydrosignature_description["hs_export_mesh"]:
+        hdf5 = hdf5_mod.Hdf5Management(path_prj, hydrosignature_description["hdf5_name"], new=False, edit=True)
         hdf5.hydrosignature_new_file(progress_value,
                                      hydrosignature_description["classhv"],
                                      hydrosignature_description["hs_export_txt"])
-        # load new hs_data
-        hdf5_new = hdf5_mod.Hdf5Management(project_preferences["path_prj"],
-                                       hdf5.filename[:-4] + "_HS" + hdf5.extension,
-                                       new=False)
+        # load new hs_data to original hdf5
+        hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=False, edit=False)
         hdf5_new.load_hydrosignature()
         hdf5.data_2d = hdf5_new.data_2d
         hdf5.write_hydrosignature()
     else:
+        hdf5 = hdf5_mod.Hdf5Management(path_prj, hydrosignature_description["hdf5_name"], new=False, edit=True)
         hdf5.add_hs(progress_value,
                     hydrosignature_description["classhv"],
                     False,
                     hydrosignature_description["hs_export_txt"])
+        # check error
+        if not hdf5.hs_calculated and not print_cmd:
+            q.put(mystdout)
+            progress_value.value = 100
+            return
 
     # prog
     progress_value.value = 100
@@ -1380,11 +1385,9 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
                         hdf5name_2, reach_index_list_2, unit_index_list_2,
                         all_possibilities, out_filename, path_prj):
     # create hdf5 class
-    hdf5_1 = hdf5_mod.Hdf5Management(path_prj, hdf5name_1)
-    hdf5_1.create_or_open_file(False)
+    hdf5_1 = hdf5_mod.Hdf5Management(path_prj, hdf5name_1, new=False, edit=False)
     hdf5_1.load_hydrosignature()
-    hdf5_2 = hdf5_mod.Hdf5Management(path_prj, hdf5name_2)
-    hdf5_2.create_or_open_file(False)
+    hdf5_2 = hdf5_mod.Hdf5Management(path_prj, hdf5name_2, new=False, edit=False)
     hdf5_2.load_hydrosignature()
 
     name_list_1 = [""]
@@ -1484,7 +1487,110 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
     f.close()
 
 
-class MyProcessList(QThread):
+class ProcessProgShow(QObject):
+    """
+    show progress (progress bar, text, number of process)
+    """
+    def __init__(self, send_log=None, send_refresh_filenames=None, progressbar=None, progress_label=None,
+                 computation_pushbutton=None):
+        super().__init__()
+        self.send_log = send_log
+        self.send_refresh_filenames = send_refresh_filenames
+        self.progressbar = progressbar
+        self.progress_label = progress_label
+        self.computation_pushbutton = computation_pushbutton
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.show_prog)
+        self.process_manager = None
+
+    def send_err_log(self, check_ok=False):
+        """
+        This function sends the errors and the warnings to the logs.
+        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
+
+        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
+        """
+        error = False
+
+        max_send = 100
+        if self.mystdout is not None:
+            str_found = self.mystdout.getvalue()
+        else:
+            return
+        str_found = str_found.split('\n')
+        for i in range(0, min(len(str_found), max_send)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+            if i == max_send - 1:
+                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+            if 'Error' in str_found[i] and check_ok:
+                error = True
+        if check_ok:
+            return error
+
+    def start_show_prog(self, process_manager):
+        self.process_manager = process_manager
+        self.timer.start(100)
+        # log
+        self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computing... "))
+
+    def show_prog(self):
+        # RUNNING
+        if self.process_manager.isRunning():
+            self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
+            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
+                                                                 self.process_manager.process_list.nb_total))
+        # NOT RUNNING (stop_by_user, error, known error, done)
+        else:
+            error = False
+            error_list = []
+            # stop show_prog
+            self.timer.stop()
+
+            # for each process get informations
+            for process in self.process_manager.process_list:
+                self.mystdout = None
+                error = False
+                if not process.q.empty():
+                    self.mystdout = process.q.get()
+                    error = self.send_err_log(True)
+                error_list.append(error)
+                if self.process_manager.process_list.stop_by_user and not error:
+                    self.send_log.emit(self.tr(process.p.name + " stoped (computation time = ") + str(
+                        round(process.total_time)) + " s).")
+                else:
+                    if not error:
+                        self.send_log.emit(self.tr(process.p.name + " finished (computation time = ") + str(
+                            round(process.total_time)) + " s).")
+
+            self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
+            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
+                                                                 self.process_manager.process_list.nb_total))
+            self.computation_pushbutton.setText(self.tr("run"))
+            self.computation_pushbutton.setChecked(True)
+
+            if self.process_manager.process_list.stop_by_user:
+                # log
+                self.send_log.emit(self.process_manager.process_type_gui + self.tr(
+                    " computation(s) stoped by user (computation time = ") + str(round(self.process_manager.process_list.total_time)) + " s).")
+            else:
+                if error:
+                    # log
+                    self.send_log.emit(self.process_manager.process_type_gui +
+                        self.tr(" computation(s) finished with error(s) (computation time = ") + str(
+                            round(self.process_manager.process_list.total_time)) + " s).")
+                else:
+                    # log
+                    self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computation(s) finished (computation time = ") + str(
+                        round(self.process_manager.process_list.total_time)) + " s).")
+
+            if not True in error_list:
+                # update_gui
+                self.send_refresh_filenames.emit()
+
+
+class MyProcessManager(QThread):
     """
     This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
 
@@ -1505,11 +1611,18 @@ class MyProcessList(QThread):
         self.nb_export_total = 0
         self.export_finished = False
         self.export_production_stoped = False
-        self.hs_production_stoped = False
         self.hs_finished = False
         self.nb_hs_total = 0
         self.process_type = type  # hs or plot or export
-        self.process_list = [(Process(), Value("d", 0.0))]
+        if self.process_type == "hs":
+            self.process_type_gui = "Hydrosignature"
+        elif self.process_type == "export":
+            self.process_type_gui = "Export"
+        elif self.process_type == "plot":
+            self.process_type_gui = "Figure"
+        else:
+            self.process_type_gui = self.process_type
+        self.process_list = MyProcessList()
         self.save_process = []
         self.plot_hdf5_mode = False
         self.export_hdf5_mode = False
@@ -1726,25 +1839,29 @@ class MyProcessList(QThread):
                 self.process_list.append([export_pdf_process, state])
 
     def load_data_and_append_hs_process(self):
-        self.process_list = []
+        self.process_list = MyProcessList()
         for hdf5_name in self.hs_description_dict["hdf5_name_list"]:
-            self.hs_description_dict["hdf5_name"] = hdf5_name
+            hs_description_dict = deepcopy(self.hs_description_dict)
+            hs_description_dict["hdf5_name"] = hdf5_name
+            # class MyProcess
+            progress_value = Value("d", 0.0)
             q = Queue()
-            progress_value = Value("d", 0)
-            hs_process = Process(target=load_data_and_compute_hs,
-                                 args=(self.hs_description_dict,
-                                       progress_value,
-                                       q,
-                                       False,
-                                       self.project_preferences),
-                                 name="hydrosignature computing")
-            self.process_list.append([hs_process, progress_value])
+            hs_process = MyProcess(p=Process(target=load_data_and_compute_hs,
+                                             args=(hs_description_dict,
+                                                   progress_value,
+                                                   q,
+                                                   False,
+                                                   self.project_preferences),
+                                             name=hdf5_name),
+                                   progress_value=progress_value,
+                                   q=q)
+            self.process_list.append(hs_process)
 
     def new_plots(self):
         self.nb_finished = 0
         self.add_plots_state = False
         self.save_process = []
-        self.process_list = []
+        self.process_list = MyProcessList()
 
     def add_plots(self, plus):
         #print("add_plots")
@@ -1758,8 +1875,6 @@ class MyProcessList(QThread):
         self.process_list.append(process)
 
     def run(self):
-
-
         self.thread_started = True
         self.plot_production_stoped = False
         if self.process_type == "plot":
@@ -1767,9 +1882,7 @@ class MyProcessList(QThread):
             self.all_process_runned = False
             if self.plot_hdf5_mode:  # from hdf5 data
                 for name_hdf5 in self.names_hdf5:
-                    self.hdf5 = Hdf5Management(self.path_prj,
-                                               name_hdf5,
-                                               new=False)
+                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
                     self.hvum = self.plot_attr.hvum
                     self.load_data_and_append_plot_process()
             # Process mod
@@ -1781,15 +1894,11 @@ class MyProcessList(QThread):
             self.check_all_plot_produced()
 
         if self.process_type == "export":
-            # remove first process
-            self.process_list.pop(0)
             self.export_finished = False
             self.all_process_runned = False
             if self.export_hdf5_mode:
                 for name_hdf5 in self.names_hdf5:
-                    self.hdf5 = Hdf5Management(self.path_prj,
-                                               name_hdf5,
-                                               new=False)
+                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
                     self.load_data_and_append_export_process()
             # Process mod
             for i in range(len(self.process_list)):
@@ -1799,18 +1908,12 @@ class MyProcessList(QThread):
             self.check_all_export_produced()
 
         if self.process_type == "hs":
-            # remove first process
-            self.process_list.pop(0)
             self.hs_finished = False
             self.all_process_runned = False
             if self.hs_hdf5_mode:
                 self.load_data_and_append_hs_process()
-            # Process mod
-            for i in range(len(self.process_list)):
-                if not self.export_production_stoped:
-                    self.process_list[i][0].start()
+            self.process_list.start()
             self.all_process_runned = True
-            self.check_all_hs_produced()
 
     def stop_plot_production(self):
         #print("stop_plot_production")
@@ -1825,9 +1928,8 @@ class MyProcessList(QThread):
         # remove plots not started
         self.remove_process_not_started()
         for i in range(len(self.process_list)):
-            #print(self.process_list[i][0].name, "terminate !!")
             self.process_list[i][0].terminate()
-        self.process_list = []
+        self.process_list = MyProcessList()
 
     def close_all_export(self):
         """
@@ -1841,29 +1943,23 @@ class MyProcessList(QThread):
                 pass
 
             for i in range(len(self.process_list)):
-                # print(self.process_list[i][0].name,
-                #       self.process_list[i][0].exitcode,
-                #       self.process_list[i][0].is_alive(),
-                #       self.process_list[i][1].value)
                 if self.process_list[i][0].is_alive() or self.process_list[i][1].value == 1:
-                    #print(self.process_list[i][0].name, "terminate !!")
                     self.process_list[i][0].terminate()
             self.thread_started = False
             self.export_finished = True
-            self.process_list = []
+            self.process_list = MyProcessList()
 
     def close_all_hs(self):
         """
         Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
         """
         if self.thread_started:
-            self.hs_production_stoped = True
             while not self.all_process_runned:
                 pass
 
             for i in range(len(self.process_list)):
-                if self.process_list[i][0].is_alive():
-                    self.process_list[i][0].terminate()
+                if self.process_list[i].p.is_alive():
+                    self.process_list[i].p.terminate()
             self.thread_started = False
             self.hs_finished = True
             self.terminate()
@@ -1925,22 +2021,6 @@ class MyProcessList(QThread):
                 self.nb_finished = state_list.count(1)
         self.export_finished = True
 
-    def get_progress_value(self):
-        progress_value_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
-        self.nb_finished = progress_value_list.count(100.0)
-        self.progress_value = sum(progress_value_list) / len(self.process_list)
-
-    def check_all_hs_produced(self):
-        # print("check_all_export_produced")
-        self.nb_finished = 0
-        self.nb_hs_total = len(self.process_list)
-        self.get_progress_value()
-        while self.nb_finished != self.nb_hs_total:
-            if self.hs_production_stoped:
-                break
-            self.get_progress_value()
-        self.hs_finished = True
-
     def check_all_process_closed(self):
         """
         Check if a process is alive (plot window open)
@@ -1955,7 +2035,104 @@ class MyProcessList(QThread):
         #print("remove_process_not_started")
         for i in reversed(range(len(self.process_list))):
             if not self.process_list[i][0].is_alive():
-                #print(self.process_list[i][0].name, "removed from list")
                 self.process_list.pop(i)
         self.nb_plot_total = len(self.process_list)
+
+    def stop_by_user(self):
+        self.process_list.stop_by_user = True
+
+        # wait all started
+        while not self.process_list.all_started:
+            pass
+
+        # terminate
+        for process in self.process_list:
+            if process.p.is_alive():
+                process.p.terminate()
+                process.get_total_time()
+
+        # get_total_time
+        self.process_list.get_total_time()
+
+        self.terminate()
+
+
+class MyProcessList(list):
+    """
+    Represent list of process
+    """
+    def __init__(self):
+        super().__init__()
+        self.nb_total = len(self)
+        self.nb_finished = 0
+        self.all_started = False
+        self.stop_by_user = False
+        self.progress_value = 0.0
+        self.start_time = time.clock()
+        self.total_time = 0
+
+    def start(self):
+        # init
+        self.nb_total = len(self)
+        self.nb_finished = 0
+        self.all_started = False
+        self.stop_by_user = False
+        self.progress_value = 0.0
+        self.start_time = time.clock()
+        self.total_time = 0
+
+        # start
+        for process in self:
+            if not self.stop_by_user:
+                process.p.start()
+        self.all_started = True
+
+        # get progress value
+        self.get_progress_value()
+        while self.nb_finished != self.nb_total:
+            if self.stop_by_user:
+                break
+            self.get_progress_value()
+
+        # get_total_time
+        self.get_total_time()
+
+    def get_progress_value(self):
+        progress_value_list = []
+        for process in self:
+            process_value = process.progress_value.value
+            progress_value_list.append(process_value)
+
+            # finish
+            if process_value == 100.0 and not process.total_time_computed:
+                # total_time
+                process.get_total_time()
+
+        actual_nb_finished = progress_value_list.count(100.0)
+        if actual_nb_finished > self.nb_finished:
+            pass
+        # save to attr
+        self.nb_finished = actual_nb_finished
+        self.progress_value = sum(progress_value_list) / len(self)
+
+    def get_total_time(self):
+        # thread
+        self.total_time = time.clock() - self.start_time
+
+
+class MyProcess:
+    """
+    Represent one process
+    """
+    def __init__(self, p=Process(name="p : None"), progress_value=Value("d", 0.0), q=Queue()):
+        self.p = p  # process
+        self.progress_value = progress_value  # progress value in float
+        self.q = q  # string to get if warning or error
+        self.start_time = time.clock()  # start time in s
+        self.total_time = 0  # total time in s
+        self.total_time_computed = False
+
+    def get_total_time(self):
+        self.total_time = time.clock() - self.start_time  # total time in s
+        self.total_time_computed = True
 

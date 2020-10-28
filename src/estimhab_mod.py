@@ -42,8 +42,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     filename = name_prj + '_ESTIMHAB' + '.hab'
 
     # create hdf5
-    hdf5 = hdf5_mod.Hdf5Management(path_prj,
-                                   filename)
+    hdf5 = hdf5_mod.Hdf5Management(path_prj, filename, new=True)
     hdf5.create_hdf5_estimhab(estimhab_dict, project_preferences)
 
     # export
