@@ -219,7 +219,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
     return data_to_table, horiz_headers, vertical_headers
 
 
-def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_2d, types, project_preferences):
+def export_text_interpolatevalues(state, data_to_table, horiz_headers, vertical_headers, data_2d, types, project_preferences):
     filename = data_2d.filename
     path_prj = project_preferences["path_prj"]
     unit_type = data_2d.unit_type
@@ -300,9 +300,10 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
         output_full_path = os.path.join(path_prj, "output", "text", os.path.splitext(filename)[0] + "_interpolate_chronicle.txt")
         with open(output_full_path, 'wt') as f:
             f.write(text)
-            return True
+        state.value = 100  # process finished
+        print("Interpolated text file has been exported in 'output/text' project folder.")
     except:
-        return False
+        print('Error: ' + 'File not exported as it may be opened by another program.')
 
 
 """ OTHERS TOOLS """

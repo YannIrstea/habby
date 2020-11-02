@@ -15,23 +15,20 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Value
-from PIL import Image
-from copy import deepcopy
 
 from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant, QObject, QEvent
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeySequence
-from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, \
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, QProgressBar, \
     QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, QListWidgetItem, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, QApplication
 
 from src.tools_mod import QGroupBoxCollapsible
 from src.hydraulic_process_mod import MyProcessManager
 from src import hdf5_mod
-from src import plot_mod
 from src import tools_mod
 from src.project_properties_mod import load_project_properties
 from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.hydraulic_process_mod import ProcessProgShow
 
 
 def change_button_color(button, color):
@@ -142,10 +139,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.mytablemodel = None
         self.path_last_file_loaded = self.path_prj
-        self.process_manager = MyProcessManager("plot")
+        self.process_manager = MyProcessManager("interpolation")
         self.setTitle(title)
         self.init_ui()
-        # Signal Connection
+        self.process_prog_show = ProcessProgShow(send_log=self.send_log,
+                                                 # progressbar=self.nativeParentWidget().progress_bar,
+                                                 # progress_label=self.progress_label,
+                                                 computation_pushbutton=self.plot_chronicle_qpushbutton)
 
     def init_ui(self):
         # # group title
@@ -192,7 +192,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         """ Required data """
         # sequence layout
-        fromsequence_group = QGroupBox(self.tr("from a sequence (press ENTER once the data has been entered)"))
+        fromsequence_group = QGroupBox(self.tr("from a sequence"))
         from_qlabel = QLabel(self.tr('min'))
         self.from_qlineedit = QLineEdit()
         self.from_qlineedit.returnPressed.connect(self.display_required_units_from_sequence)
@@ -202,7 +202,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
         by_qlabel = QLabel(self.tr('by'))
         self.by_qlineedit = QLineEdit()
         self.by_qlineedit.returnPressed.connect(self.display_required_units_from_sequence)
+        self.by_qlineedit.textEdited.connect(self.enable_seq_pushbutton)
         self.unit_qlabel = QLabel(self.tr('[]'))
+        self.display_required_units_from_sequence_pushbutton = QPushButton(self.tr("run"))
+        self.display_required_units_from_sequence_pushbutton.clicked.connect(self.display_required_units_from_sequence)
+        change_button_color(self.display_required_units_from_sequence_pushbutton, "#47B5E6")
+        self.display_required_units_from_sequence_pushbutton.setEnabled(False)
         require_secondlayout = QGridLayout()
         require_secondlayout.addWidget(from_qlabel, 1, 0)
         require_secondlayout.addWidget(self.from_qlineedit, 1, 1)
@@ -211,11 +216,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
         require_secondlayout.addWidget(by_qlabel, 1, 4)
         require_secondlayout.addWidget(self.by_qlineedit, 1, 5)
         require_secondlayout.addWidget(self.unit_qlabel, 1, 6)
+        require_secondlayout.addWidget(self.display_required_units_from_sequence_pushbutton, 1, 7)
         fromsequence_group.setLayout(require_secondlayout)
 
         # txt layout
         fromtext_group = QGroupBox(self.tr("from .txt file"))
-        self.fromtext_qpushbutton = QPushButton(self.tr('choose .txt file'))
+        self.fromtext_qpushbutton = QPushButton(self.tr('run'))
+        change_button_color(self.fromtext_qpushbutton, "#47B5E6")
         self.fromtext_qpushbutton.clicked.connect(self.display_required_units_from_txtfile)
         fromtext_layout = QHBoxLayout()
         fromtext_layout.addWidget(self.fromtext_qpushbutton)
@@ -228,13 +235,17 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.require_unit_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.require_unit_qtableview.verticalHeader().setVisible(True)
         self.require_unit_qtableview.horizontalHeader().setVisible(True)
+        self.require_unit_qtableview.setMinimumHeight(150)
         mytablemodel = MyTableModel("", "", "", "")
         self.require_unit_qtableview.setModel(mytablemodel)
-        self.plot_chronicle_qpushbutton = QPushButton(self.tr('View interpolate chronicle'))
+
+        plot_chronicle_label = QLabel(self.tr("View interpolate chronicle :"))
+        export_txt_chronicle_label = QLabel(self.tr("Export interpolate chronicle :"))
+        self.plot_chronicle_qpushbutton = QPushButton(self.tr('run'))
         change_button_color(self.plot_chronicle_qpushbutton, "#47B5E6")
         self.plot_chronicle_qpushbutton.clicked.connect(self.plot_chronicle)
         self.plot_chronicle_qpushbutton.setEnabled(False)
-        self.export_txt_chronicle_qpushbutton = QPushButton(self.tr('Export interpolate chronicle'))
+        self.export_txt_chronicle_qpushbutton = QPushButton(self.tr('run'))
         change_button_color(self.export_txt_chronicle_qpushbutton, "#47B5E6")
         self.export_txt_chronicle_qpushbutton.clicked.connect(self.export_chronicle)
         self.export_txt_chronicle_qpushbutton.setEnabled(False)
@@ -258,9 +269,11 @@ class InterpolationGroup(QGroupBoxCollapsible):
         require_unit_layout = QVBoxLayout()
         require_unit_layout.addWidget(require_units_qlabel)
         require_unit_layout.addWidget(self.require_unit_qtableview)
-        plot_export_layout = QHBoxLayout()
-        plot_export_layout.addWidget(self.plot_chronicle_qpushbutton)
-        plot_export_layout.addWidget(self.export_txt_chronicle_qpushbutton)
+        plot_export_layout = QGridLayout()
+        plot_export_layout.addWidget(plot_chronicle_label, 0, 0)
+        plot_export_layout.addWidget(export_txt_chronicle_label, 0, 1)
+        plot_export_layout.addWidget(self.plot_chronicle_qpushbutton, 1, 0)
+        plot_export_layout.addWidget(self.export_txt_chronicle_qpushbutton, 1, 1)
         require_unit_layout.addLayout(plot_export_layout)
 
         unit_hv_layout = QHBoxLayout()
@@ -268,9 +281,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.require_data_layout.addLayout(unit_hv_layout)
 
         """ interpolation layout """
-        hbox_layout = QHBoxLayout()
-        hbox_layout.addWidget(available_data_group, 1)  # stretch factor
-        hbox_layout.addWidget(require_data_group, 3)  # stretch factor
+        hbox_layout = QVBoxLayout()
+        hbox_layout.addWidget(available_data_group)  # stretch factor
+        hbox_layout.addWidget(require_data_group)  # stretch factor
         self.setLayout(hbox_layout)
 
     def disable_and_clean_group_widgets(self, disable):
@@ -370,6 +383,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
             elif len(unit_number_list) == 1:
                 self.send_log.emit("Warning: " + self.tr("Interpolation need at least two time/discharge unit. "
                                                          "Their is only one is this file."))
+
+    def enable_seq_pushbutton(self):
+        if self.by_qlineedit.text():
+            self.display_required_units_from_sequence_pushbutton.setEnabled(True)
+        else:
+            self.display_required_units_from_sequence_pushbutton.setEnabled(False)
 
     def display_required_units_from_sequence(self):
         from_sequ = self.from_qlineedit.text().replace(",", ".")
@@ -539,43 +558,32 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
             # reread from seq (tablemodel)
             if source == "seq":
-                chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
-                types = dict(units=self.unit_type_qlabel.text())
+                units = dict(units=list(map(float, self.mytablemodel.rownames)))
+                unit_type = dict(units=self.unit_type_qlabel.text())
             # reread from text file (re-read file)
             else:
-                chronicle, types = tools_mod.read_chronicle_from_text_file(source)
+                units, unit_type = tools_mod.read_chronicle_from_text_file(source)
 
             # load figure option
             project_preferences = load_project_properties(self.path_prj)
 
-            # load hdf5 data
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
-            # get hdf5 inforamtions
-            hdf5.get_hdf5_attributes(close_file=True)
+            interp_attr = lambda: None
+            interp_attr.reach = self.hab_reach_qcombobox.currentText()
+            interp_attr.units = units
+            interp_attr.unit_type = unit_type
+            interp_attr.hvum = hvum
+            interp_attr.mode = "plot"
 
-            reach_index = hdf5.data_2d.reach_list.index(self.hab_reach_qcombobox.currentText())
+            # process_manager
+            self.process_manager.set_interpolation_hdf5_mode(self.path_prj,
+                                                    self.hab_filenames_qcombobox.currentText(),
+                                                    interp_attr,
+                                                    project_preferences)
 
-            # recompute
-            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,
-                                                                                         hvum.user_target_list,
-                                                                                         reach_index,
-                                                                                         chronicle,
-                                                                                         types,
-                                                                                         rounddata=False)
-            # plot
-            state = Value("i", 0)
-            plot_interpolate_chronicle_process = Process(target=plot_mod.plot_interpolate_chronicle,
-                                                         args=(state,
-                                                               data_to_table,
-                                                               horiz_headers,
-                                                               vertical_headers,
-                                                               hdf5.data_2d,
-                                                               hvum.user_target_list,
-                                                               reach_index,
-                                                               types,
-                                                               project_preferences),
-                                                         name="plot_interpolate_chronicle")
-            self.process_manager.append((plot_interpolate_chronicle_process, state))
+            # process_prog_show
+            self.process_prog_show.start_show_prog(self.process_manager)
+
+            # start thread
             self.process_manager.start()
 
     def export_chronicle(self):
@@ -605,42 +613,35 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
             # reread from seq (tablemodel)
             if source == "seq":
-                chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
+                units = dict(units=list(map(float, self.mytablemodel.rownames)))
                 # types
                 text_unit = self.unit_type_qlabel.text()
-                types = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
+                unit_type = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
             # reread from text file (re-read file)
             else:
-                chronicle, types = tools_mod.read_chronicle_from_text_file(source)
+                units, unit_type = tools_mod.read_chronicle_from_text_file(source)
 
             # load figure option
             project_preferences = load_project_properties(self.path_prj)
 
-            # load hdf5 data
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
-            # get hdf5 inforamtions
-            hdf5.get_hdf5_attributes(close_file=True)
+            interp_attr = lambda: None
+            interp_attr.reach = self.hab_reach_qcombobox.currentText()
+            interp_attr.units = units
+            interp_attr.unit_type = unit_type
+            interp_attr.hvum = hvum
+            interp_attr.mode = "export"
 
-            reach_index = hdf5.data_2d.reach_list.index(self.hab_reach_qcombobox.currentText())
+            # process_manager
+            self.process_manager.set_interpolation_hdf5_mode(self.path_prj,
+                                                             hdf5name,
+                                                             interp_attr,
+                                                             project_preferences)
 
-            # recompute interpolation
-            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,
-                                                                                         hvum.user_target_list,
-                                                                                         reach_index,
-                                                                                         chronicle,
-                                                                                         types,
-                                                                                         rounddata=False)
-            # export text
-            exported = tools_mod.export_text_interpolatevalues(data_to_table,
-                                                               horiz_headers,
-                                                               vertical_headers,
-                                                               hdf5.data_2d,
-                                                               types,
-                                                               project_preferences)
-            if exported:
-                self.send_log.emit(self.tr("Interpolated text file has been exported in 'output/text' project folder."))
-            if not exported:
-                self.send_log.emit('Error: ' + self.tr('File not exported as it may be opened by another program.'))
+            # process_prog_show
+            self.process_prog_show.start_show_prog(self.process_manager)
+
+            # start thread
+            self.process_manager.start()
 
 
 class OtherToolToCreate(QGroupBoxCollapsible):
@@ -691,6 +692,9 @@ class MyTableModel(QStandardItemModel):
             self.colnames = horiz_headers
             # headers
             horiz_headers = [head.replace("_", "\n") for head in horiz_headers]
+            for head_index, head in enumerate(horiz_headers):
+                if "all\nstages" in head:
+                    horiz_headers[head_index] = head.replace("all\nstages", "all_stages")
             self.setHorizontalHeaderLabels(horiz_headers)
             self.setVerticalHeaderLabels(vertical_headers)
 
@@ -780,3 +784,27 @@ class EnterPressEvent(QObject):
             # standard event processing
             return QObject.eventFilter(self, obj, event)
 
+
+class ProcessProgLayout(QHBoxLayout):
+    def __init__(self, run_function):
+        super().__init__()
+        # progressbar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0.0)
+        self.progress_bar.setRange(0.0, 100.0)
+        self.progress_bar.setTextVisible(False)
+
+        # progress_label
+        self.progress_label = QLabel()
+        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
+
+        # run_stop_button
+        self.run_stop_button = QPushButton(self.tr("run"))
+        change_button_color(self.run_stop_button, "#47B5E6")
+        self.run_stop_button.clicked.connect(run_function)  # self.collect_data_from_gui_and_plot
+        self.run_stop_button.setEnabled(False)
+
+        # layout
+        self.addWidget(self.progress_bar)
+        self.addWidget(self.progress_label)
+        self.addWidget(self.run_stop_button)

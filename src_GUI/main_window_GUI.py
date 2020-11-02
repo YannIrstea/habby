@@ -2102,15 +2102,15 @@ class CentralW(QWidget):
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
                 if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'process_manager'):
-                    self.data_explorer_tab.data_explorer_frame.plot_group.process_manager.close_all_plot()
+                    self.data_explorer_tab.data_explorer_frame.plot_group.process_manager.stop_by_user()
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'dataexporter_group'):
                 if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'process_manager'):
-                    self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_manager.close_all_export()
+                    self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_manager.stop_by_user()
         # tools_tab
         if hasattr(self, 'tools_tab'):
             if hasattr(self.tools_tab, 'interpolation_group'):
                 if hasattr(self.tools_tab.interpolation_group, 'process_manager'):
-                    self.tools_tab.interpolation_group.process_manager.close_all_plot()
+                    self.tools_tab.interpolation_group.process_manager.stop_by_user()
         # hs_tab
         if hasattr(self, 'hs_tab'):
             if hasattr(self.hs_tab, 'computing_group'):
@@ -2118,7 +2118,7 @@ class CentralW(QWidget):
                     self.hs_tab.computing_group.process_manager.close_all_hs()
             if hasattr(self.hs_tab, 'visual_group'):
                 if hasattr(self.hs_tab.visual_group, 'process_manager'):
-                    self.hs_tab.visual_group.process_manager.close_all_plot()
+                    self.hs_tab.visual_group.process_manager.stop_by_user()
         # estimhab
         if hasattr(self, 'statmod_tab'):
             if hasattr(self.statmod_tab, 'process_manager'):

@@ -170,6 +170,7 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         self.progressbar = QProgressBar()
         self.progressbar.setValue(0.0)
+        self.progressbar.setRange(0.0, 100.0)
         self.progressbar.setTextVisible(False)
         self.progress_label = QLabel()
         self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
@@ -374,10 +375,12 @@ class VisualGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
-        self.process_manager = MyProcessManager("plot")
+        self.process_manager = MyProcessManager("hs_plot")
         self.axe_mod_choosen = 1
         self.setTitle(title)
         self.init_ui()
+        self.process_prog_show = ProcessProgShow(send_log=self.send_log,
+                                                 computation_pushbutton=self.input_class_plot_button)
 
     def init_ui(self):
         # file_selection
@@ -595,77 +598,43 @@ class VisualGroup(QGroupBoxCollapsible):
             self.result_plot_button_volume.setEnabled(False)
 
     def plot_hs_class(self):
-        # hdf5
-        hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
+        plot_attr = lambda: None
 
-        # create hdf5 class
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
-        hdf5.load_hydrosignature()
+        plot_attr.nb_plot = 1
+        plot_attr.axe_mod_choosen = self.axe_mod_choosen
+        plot_attr.hs_plot_type = "input_class"
 
-        # check plot process done
-        if self.process_manager.check_all_process_closed():
-            self.process_manager.new_plots()
-        else:
-            self.process_manager.add_plots(1)
+        # process_manager
+        self.process_manager.set_plot_hdf5_mode(self.path_prj,
+                                                [self.file_selection_listwidget.selectedItems()[0].text()],
+                                                plot_attr,
+                                                load_project_properties(self.path_prj))
 
-        project_preferences = load_project_properties(self.path_prj)
-        state = Value("i", 0)
-        title = "input classes of " + hdf5name
-        plot_process = Process(target=plot_mod.plot_hydrosignature,
-                               args=(state,
-                                     None,
-                                     hdf5.hs_input_class[1],
-                                     hdf5.hs_input_class[0],
-                                     title,
-                                     None,
-                                     project_preferences,
-                                     self.axe_mod_choosen))
-        self.process_manager.append((plot_process, state))
+        # process_prog_show
+        self.process_prog_show.start_show_prog(self.process_manager)
 
+        # start thread
         self.process_manager.start()
 
     def plot_hs_result(self, type):
-        # hdf5
-        hdf5name = self.file_selection_listwidget.selectedItems()[0].text()
+        plot_attr = lambda: None
 
-        # create hdf5 class
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
-        hdf5.load_hydrosignature()
+        plot_attr.axe_mod_choosen = self.axe_mod_choosen
+        plot_attr.hs_plot_type = type
+        plot_attr.reach = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
+        plot_attr.units = [element.row() for element in self.units_QListWidget.selectedIndexes()]
+        plot_attr.nb_plot = len(plot_attr.units)
 
-        selection_reach = self.reach_QListWidget.selectedItems()
-        selection_unit = self.units_QListWidget.selectedItems()
-        # check plot process done
-        if self.process_manager.check_all_process_closed():
-            self.process_manager.new_plots()
-        else:
-            self.process_manager.add_plots(len(selection_unit))
+        # process_manager
+        self.process_manager.set_plot_hdf5_mode(self.path_prj,
+                                                [self.file_selection_listwidget.selectedItems()[0].text()],
+                                                plot_attr,
+                                                load_project_properties(self.path_prj))
 
-        if len(selection_reach) > 1:  # all units
-            reach_index_list = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
-            unit_index_list = list(range(hdf5.data_2d.unit_number))
-        else:  # specific reach and unit
-            reach_index_list = [self.reach_QListWidget.currentIndex().row()]
-            unit_index_list = [element.row() for element in self.units_QListWidget.selectedIndexes()]
+        # process_prog_show
+        self.process_prog_show.start_show_prog(self.process_manager)
 
-        # loop
-        for reach_number in reach_index_list:
-            for unit_number in unit_index_list:
-                project_preferences = load_project_properties(self.path_prj)
-                state = Value("i", 0)
-                title = type + " hydrosignature : " + hdf5.data_2d[reach_number][unit_number].reach_name + " at " + \
-                        hdf5.data_2d[reach_number][unit_number].unit_name + " " + hdf5.data_2d.unit_type[hdf5.data_2d.unit_type.find('[') + len('['):hdf5.data_2d.unit_type.find(']')]
-
-                plot_process = Process(target=plot_mod.plot_hydrosignature,
-                                                 args=(state,
-                                                       hdf5.data_2d[reach_number][unit_number].hydrosignature["hs" + type],
-                                                       hdf5.hs_input_class[1],
-                                                       hdf5.hs_input_class[0],
-                                                       title,
-                                                       self.tr(type),
-                                                       project_preferences,
-                                                       self.axe_mod_choosen))
-                self.process_manager.append((plot_process, state))
-
+        # start thread
         self.process_manager.start()
 
 

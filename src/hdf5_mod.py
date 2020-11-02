@@ -1669,7 +1669,7 @@ class Hdf5Management:
             ds.Destroy()
 
         if state:
-            state.value = 1  # process finished
+            state.value = 100.0  # process finished
 
     # EXPORT 3D
     def export_stl(self, state=None):
@@ -1714,8 +1714,8 @@ class Hdf5Management:
                     # Write the mesh to file "cube.stl"
                     stl_file.save(os.path.join(self.path_visualisation,
                                                name_file))
-        if state:
-            state.value = 1  # process finished
+        if state is not None:
+            state.value = 100.0  # process finished
 
     def export_paraview(self, state=None):
         # INDEX IF HYD OR HAB
@@ -1798,7 +1798,7 @@ class Hdf5Management:
                                   part_timestep_indice)
 
             if state:
-                state.value = 1  # process finished
+                state.value = 100.0  # process finished
 
     # EXPORT TXT
     def export_spu_txt(self, state=None):
@@ -1901,13 +1901,13 @@ class Hdf5Management:
                             f.write(data_here)
 
         if state:
-            state.value = 1  # process finished
+            state.value = 100.0  # process finished
 
     def export_detailled_txt(self, state=None):
         self.export_detailled_mesh_txt()
         self.export_detailled_point_txt()
         if state:
-            state.value = 1  # process finished
+            state.value = 100.0  # process finished
 
     def export_detailled_mesh_txt(self, state=None):
         """
@@ -1983,7 +1983,7 @@ class Hdf5Management:
                         f.write(text_to_write_str)
 
             if state:
-                state.value = 1  # process finished
+                state.value = 100.0  # process finished
 
     def export_detailled_point_txt(self, state=None):
         """
@@ -2053,7 +2053,7 @@ class Hdf5Management:
                         f.write(text_to_write_str)
 
             if state:
-                state.value = 1  # process finished
+                state.value = 100.0  # process finished
 
     def export_report(self, state=None):
         """
@@ -2232,7 +2232,7 @@ class Hdf5Management:
                             'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
 
             if state:
-                state.value = 1  # process finished
+                state.value = 100.0  # process finished
 
     def export_estimhab(self):
         # text files output

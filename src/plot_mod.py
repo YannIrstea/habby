@@ -179,7 +179,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
-    state.value = 1  # process finished
+    state.value = 100  # process finished
 
     # show ?
     if not get_fig:
@@ -251,7 +251,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
-    state.value = 1  # process finished
+    state.value = 100  # process finished
 
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
@@ -325,7 +325,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mplcursors.cursor(meshcolor)  # get data with mouse
 
     # output for plot_GUI
-    state.value = 1  # process finished
+    state.value = 100  # process finished
 
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
@@ -429,7 +429,7 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
     mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
-    state.value = 1  # process finished
+    state.value = 100  # process finished
     # fig.set_size_inches(default_size[0], default_size[1])
     plt.show()
 
@@ -660,7 +660,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
                         dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
-    state.value = 1  # process finished
+    state.value = 100  # process finished
     if types_plot == "interactive" or types_plot == "both":
         # reset original size fig window
         fig.set_size_inches(default_size[0], default_size[1])
@@ -843,7 +843,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     mplcursors.cursor()
 
     # output for plot_GUI
-    state.value = 1  # process finished
+    state.value = 100  # process finished
     plt.show()
 
 
@@ -981,7 +981,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     mplcursors.cursor()
 
     # finish process
-    state.value = 1  # process finished
+    state.value = 100  # process finished
 
     # show
     plt.show()
@@ -1208,7 +1208,7 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
 
 # 3d
 def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_number, data_description, project_preferences):
-    state.value = 1  # process finished
+    state.value = 100  # process finished
     # BOTOM
     bottom_mesh = mlab.triangular_mesh(data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 0],
                                        data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 1],
@@ -2150,9 +2150,10 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
             plt.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
                         dpi=project_preferences['resolution'],
                         transparent=True)
+        state.value = 100  # process finished
 
     # output for plot_GUI
-    state.value = 1  # process finished
+    state.value = 100  # process finished
     if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
         # fig.canvas.draw()
         # fig.canvas.flush_events()
@@ -2236,7 +2237,7 @@ def create_gif_from_files(state, variable, reach_name, unit_names, data_descript
              loop=0)
 
     # prog
-    state.value = 1  # process finished
+    state.value = 100  # process finished
 
 
 def get_colors_styles_line_from_nb_input(input_nb):

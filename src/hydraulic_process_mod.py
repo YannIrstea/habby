@@ -24,6 +24,7 @@ from multiprocessing import Queue
 import time
 
 from PyQt5.QtCore import QCoreApplication as qt_tr, QThread, pyqtSignal, QTimer, QObject
+from PyQt5.QtWidgets import QProgressBar, QLabel
 from multiprocessing import Process, Value
 
 from src.hdf5_mod import Hdf5Management
@@ -34,7 +35,7 @@ from src import hdf5_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsSelector
 from src.data_2d_mod import Data2d
 from src import plot_mod
-from src.tools_mod import create_map_plot_string_dict
+from src.tools_mod import create_map_plot_string_dict, compute_interpolation, export_text_interpolatevalues
 
 
 class HydraulicSimulationResultsAnalyzer:
@@ -1496,8 +1497,14 @@ class ProcessProgShow(QObject):
         super().__init__()
         self.send_log = send_log
         self.send_refresh_filenames = send_refresh_filenames
-        self.progressbar = progressbar
-        self.progress_label = progress_label
+        if type(progressbar) == QProgressBar:
+            self.progressbar = progressbar
+        else:
+            self.progressbar = QProgressBar()
+        if type(progress_label) == QLabel:
+            self.progress_label = progress_label
+        else:
+            self.progress_label = QLabel()
         self.computation_pushbutton = computation_pushbutton
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_prog)
@@ -1533,7 +1540,7 @@ class ProcessProgShow(QObject):
         self.process_manager = process_manager
         self.timer.start(100)
         # log
-        self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computing... "))
+        self.send_log.emit(self.tr("Computing ") + self.process_manager.process_type_gui + "...")
 
     def show_prog(self):
         # RUNNING
@@ -1561,7 +1568,7 @@ class ProcessProgShow(QObject):
                         round(process.total_time)) + " s).")
                 else:
                     if not error:
-                        self.send_log.emit(self.tr(process.p.name + " finished (computation time = ") + str(
+                        self.send_log.emit(self.tr(process.p.name + " done (computation time = ") + str(
                             round(process.total_time)) + " s).")
 
             self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
@@ -1582,128 +1589,117 @@ class ProcessProgShow(QObject):
                             round(self.process_manager.process_list.total_time)) + " s).")
                 else:
                     # log
-                    self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computation(s) finished (computation time = ") + str(
+                    self.send_log.emit(self.tr("All tasks finished (computation time = ") + str(
                         round(self.process_manager.process_list.total_time)) + " s).")
 
             if not True in error_list:
-                # update_gui
-                self.send_refresh_filenames.emit()
+                if self.send_refresh_filenames is not None:
+                    # update_gui
+                    self.send_refresh_filenames.emit()
 
 
 class MyProcessManager(QThread):
     """
-    This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
-
-    :param nb_plot_total: integer value representing the total number of graphs to be produced.
-    :param progress_bar: Qprogressbar of DataExplorerFrame to be refreshed
     """
-    progress_signal = pyqtSignal(int)
-
     def __init__(self, type, parent=None):
         QThread.__init__(self, parent)
         self.plot_production_stoped = False
-        self.add_plots_state = False
         self.thread_started = False
         self.all_process_runned = False
         self.nb_finished = 0
-        self.nb_plot_total = 0
-        self.plot_finished = False
-        self.nb_export_total = 0
         self.export_finished = False
         self.export_production_stoped = False
-        self.hs_finished = False
         self.nb_hs_total = 0
         self.process_type = type  # hs or plot or export
         if self.process_type == "hs":
-            self.process_type_gui = "Hydrosignature"
+            self.process_type_gui = "hydrosignature"
         elif self.process_type == "export":
-            self.process_type_gui = "Export"
+            self.process_type_gui = "export"
         elif self.process_type == "plot":
-            self.process_type_gui = "Figure"
+            self.process_type_gui = "figure"
+        elif self.process_type == "hs_plot":
+            self.process_type_gui = "hydrosignature figure"
         else:
             self.process_type_gui = self.process_type
         self.process_list = MyProcessList()
         self.save_process = []
-        self.plot_hdf5_mode = False
         self.export_hdf5_mode = False
-        self.hs_hdf5_mode = False
         self.progress_value = 0.0
 
+    # plot
     def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_preferences):
+        # # check plot process done
+        if self.check_all_process_closed():
+            self.__init__(self.process_type)
+        else:
+            self.add_plots(plot_attr.nb_plot)
         self.path_prj = path_prj
         self.names_hdf5 = names_hdf5
         self.plot_attr = plot_attr
         self.project_preferences = project_preferences
-        self.plot_hdf5_mode = True
-
-    def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
-        self.path_prj = path_prj
-        self.names_hdf5 = names_hdf5
-        self.export_dict = export_dict
-        self.project_preferences = project_preferences
-        self.export_hdf5_mode = True
-        self.nb_export_total = export_dict["nb_export"]
-
-    def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
-        self.path_prj = path_prj
-        self.hs_description_dict = hs_description_dict
-        self.project_preferences = project_preferences
-        self.hs_hdf5_mode = True
 
     def load_data_and_append_plot_process(self):
-        reach = self.plot_attr.reach
-        plot_type = self.plot_attr.plot_type
-        units_index = self.plot_attr.units_index
-        units = self.plot_attr.units
+        for name_hdf5 in self.names_hdf5:
+            self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
+            self.hvum = self.plot_attr.hvum
+            reach = self.plot_attr.reach
+            plot_type = self.plot_attr.plot_type
+            units_index = self.plot_attr.units_index
+            units = self.plot_attr.units
 
-        # load hydraulic data
-        if self.hdf5.hdf5_type == "hydraulic":
-            self.hdf5.load_hdf5_hyd(units_index=units_index,
-                                    user_target_list=self.hvum.user_target_list,
-                                    whole_profil=True)
+            # load hydraulic data
+            if self.hdf5.hdf5_type == "hydraulic":
+                self.hdf5.load_hdf5_hyd(units_index=units_index,
+                                        user_target_list=self.hvum.user_target_list,
+                                        whole_profil=True)
 
-        # load substrate data
-        elif self.hdf5.hdf5_type == "substrate":
-            self.hdf5.load_hdf5_sub(user_target_list=self.hvum.user_target_list)
+            # load substrate data
+            elif self.hdf5.hdf5_type == "substrate":
+                self.hdf5.load_hdf5_sub(user_target_list=self.hvum.user_target_list)
 
-        # load habitat data
-        elif self.hdf5.hdf5_type == "habitat":
-            self.hdf5.load_hdf5_hab(units_index=units_index,
-                                    user_target_list=self.hvum.user_target_list,
-                                    whole_profil=False)
+            # load habitat data
+            elif self.hdf5.hdf5_type == "habitat":
+                self.hdf5.load_hdf5_hab(units_index=units_index,
+                                        user_target_list=self.hvum.user_target_list,
+                                        whole_profil=False)
 
-        habitat_variable_list = self.hdf5.data_2d.hvum.all_final_variable_list.habs()
-        light_data_2d = self.hdf5.data_2d.get_light_data_2d()
+            habitat_variable_list = self.hdf5.data_2d.hvum.all_final_variable_list.habs()
+            light_data_2d = self.hdf5.data_2d.get_light_data_2d()
 
-        # all cases
-        unit_type = light_data_2d.unit_type[light_data_2d.unit_type.find('[') + len('['):light_data_2d.unit_type.find(
-                        ']')]
+            # all cases
+            unit_type = light_data_2d.unit_type[light_data_2d.unit_type.find('[') + len('['):light_data_2d.unit_type.find(
+                            ']')]
 
-        # for each reach
-        for reach_name in reach:
-            reach_number = light_data_2d.reach_list.index(reach_name)
-            # for one or more desired units ==> habitat data (HV and WUA)
-            if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stoped:
-                state = Value("d", 0)
-                plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
-                                                   args=(state,
-                                                         self.hdf5.data_2d,
-                                                         reach_number,
-                                                         habitat_variable_list,
-                                                         self.project_preferences),
-                                                   name="plot_fish_hv_wua")
-                self.process_list.append([plot_hab_fig_spu_process, state])
+            # for each reach
+            for reach_name in reach:
+                reach_number = light_data_2d.reach_list.index(reach_name)
 
-            # for each desired units ==> maps
-            if plot_type != ["result"]:
-                for unit_number, t in enumerate(units_index):
-                    # string_tr
-                    string_tr = [self.tr("reach"), self.tr("unit")]
-                    """ MAP """
-                    if self.plot_attr.plot_map_QCheckBoxisChecked:
-                        # plot
-                        for variable in self.hvum.user_target_list.no_habs():
-                            if not self.plot_production_stoped:
+                # hab data (HV and WUA)
+                if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stoped:
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=plot_mod.plot_fish_hv_wua,
+                                                       args=(progress_value,
+                                                             self.hdf5.data_2d,
+                                                             reach_number,
+                                                             habitat_variable_list,
+                                                             self.project_preferences),
+                                                       name="- " + "plot_fish_hv_wua"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
+
+                # for each desired units ==> maps
+                if plot_type != ["result"]:
+                    for unit_number, t in enumerate(units_index):
+                        # string_tr
+                        string_tr = [self.tr("reach"), self.tr("unit")]
+                        """ MAP """
+                        if self.plot_attr.plot_map_QCheckBoxisChecked:
+                            # plot
+                            for variable in self.hvum.user_target_list.no_habs():
+                                if not self.plot_production_stoped:
                                     plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
                                                                                    units[unit_number],
@@ -1711,10 +1707,12 @@ class MyProcessManager(QThread):
                                                                                    self.tr(variable.name_gui),
                                                                                    variable.unit,
                                                                                    string_tr)
-                                    state = Value("i", 0)
-                                    process = Process(target=getattr(plot_mod, "plot_map_" + variable.position),
+                                    # class MyProcess
+                                    progress_value = Value("d", 0.0)
+                                    q = Queue()
+                                    my_process = MyProcess(p=Process(target=getattr(plot_mod, "plot_map_" + variable.position),
                                                                args=(
-                                                                   state,
+                                                                   progress_value,
                                                                    self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
                                                                    self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
                                                                    self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
@@ -1722,121 +1720,155 @@ class MyProcessManager(QThread):
                                                                    light_data_2d,
                                                                    self.project_preferences
                                                                ),
-                                                               name=variable.name)
-                                    self.process_list.append([process, state])
+                                                               name="- " + variable.name_gui),
+                                                           progress_value=progress_value,
+                                                           q=q)
+                                    self.process_list.append(my_process)
 
-                        # plot animal map
-                        for animal in habitat_variable_list:
-                            if not self.plot_production_stoped:
-                                plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
-                                                                               reach_name,
-                                                                               units[unit_number],
-                                                                               unit_type,
-                                                                               animal.name,
-                                                                                "",
-                                                                               string_tr,
-                                                                               self.tr('HSI = ') + '{0:3.2f}'.format(animal.hv[reach_number][unit_number]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
-                                state = Value("i", 0)
-                                habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
-                                                              args=(
-                                                                  state,
-                                                                  self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
-                                                                  self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
-                                                                  self.hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name],
-                                                                  plot_string_dict,
-                                                                  light_data_2d,
-                                                                  self.project_preferences
-                                                              ),
-                                                              name="plot_map_fish_habitat")
-                                self.process_list.append([habitat_map_process, state])
+                            # plot animal map
+                            for animal in habitat_variable_list:
+                                if not self.plot_production_stoped:
+                                    plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
+                                                                                   reach_name,
+                                                                                   units[unit_number],
+                                                                                   unit_type,
+                                                                                   animal.name,
+                                                                                    "",
+                                                                                   string_tr,
+                                                                                   self.tr('HSI = ') + '{0:3.2f}'.format(animal.hv[reach_number][unit_number]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
 
-        self.nb_plot_total = len(self.process_list)
+                                    # class MyProcess
+                                    progress_value = Value("d", 0.0)
+                                    q = Queue()
+                                    my_process = MyProcess(p=Process(target=plot_mod.plot_map_fish_habitat,
+                                                                  args=(
+                                                                      progress_value,
+                                                                      self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
+                                                                      self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                                                                      self.hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name],
+                                                                      plot_string_dict,
+                                                                      light_data_2d,
+                                                                      self.project_preferences
+                                                                  ),
+                                                                  name="- " + animal.name),
+                                                           progress_value=progress_value,
+                                                           q=q)
+                                    self.process_list.append(my_process)
+
+    # export
+    def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
+        # # check plot process done
+        if self.check_all_process_closed():
+            self.__init__(self.process_type)
+        else:
+            self.__init__(self.process_type)
+        self.path_prj = path_prj
+        self.names_hdf5 = names_hdf5
+        self.export_dict = export_dict
+        self.project_preferences = project_preferences
+        self.export_hdf5_mode = True
 
     def load_data_and_append_export_process(self):
-        # hydraulic
-        if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
-            self.hdf5.load_hdf5_hyd(whole_profil=True,
-                                    user_target_list=self.project_preferences)
-            total_gpkg_export = sum(
-                [self.export_dict["mesh_whole_profile_hyd"], self.export_dict["point_whole_profile_hyd"],
-                 self.export_dict["mesh_units_hyd"], self.export_dict["point_units_hyd"]])
+        for name_hdf5 in self.names_hdf5:
+            self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
+            # hydraulic
+            if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
+                self.hdf5.load_hdf5_hyd(whole_profil=True,
+                                        user_target_list=self.project_preferences)
+                # total_gpkg_export = sum(
+                #     [self.export_dict["mesh_whole_profile_hyd"], self.export_dict["point_whole_profile_hyd"],
+                #      self.export_dict["mesh_units_hyd"], self.export_dict["point_units_hyd"]])
+            # substrate
+            elif self.hdf5.hdf5_type == "substrate":  # load substrate data
+                self.hdf5.load_hdf5_sub()
+
+            # habitat
+            elif self.hdf5.hdf5_type == "habitat":  # load habitat data
+                self.hdf5.load_hdf5_hab(whole_profil=True,
+                                        user_target_list=self.project_preferences)
+                # total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
+
+            # append process
             if self.export_dict["mesh_whole_profile_hyd"] or self.export_dict["point_whole_profile_hyd"] or \
                     self.export_dict["mesh_units_hyd"] or self.export_dict["point_units_hyd"]:
-                # append fake first
-                for fake_num in range(1, total_gpkg_export):
-                    self.process_list.append([Process(name="fake" + str(fake_num)), Value("i", 1)])
-                state = Value("i", 0)
-                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
-                                              args=(state,),
-                                              name="export_gpkg")
-                self.process_list.append([export_gpkg_process, state])
-            if self.export_dict["elevation_whole_profile_hyd"]:
-                state = Value("i", 0)
-                export_stl_process = Process(target=self.hdf5.export_stl,
-                                             args=(state,),
-                                             name="export_stl")
-                self.process_list.append([export_stl_process, state])
-            if self.export_dict["variables_units_hyd"]:
-                state = Value("i", 0)
-                export_paraview_process = Process(target=self.hdf5.export_paraview,
-                                                  args=(state,),
-                                                  name="export_paraview")
-                self.process_list.append([export_paraview_process, state])
-            if self.export_dict["detailled_text_hyd"]:
-                state = Value("i", 0)
-                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
-                                                            args=(state,),
-                                                            name="export_detailled_txt")
-                self.process_list.append([export_detailled_mesh_txt_process, state])
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg,
+                                                 args=(progress_value,),
+                                                 name="- " + "export_gpkg"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
 
-        # substrate
-        elif self.hdf5.hdf5_type == "substrate":  # load substrate data
-            self.hdf5.load_hdf5_sub()
+            if self.export_dict["elevation_whole_profile_" + self.hdf5.extension[1:]]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_stl,
+                                             args=(progress_value,),
+                                             name="- " + "export_stl"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+            if self.export_dict["variables_units_" + self.hdf5.extension[1:]]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_paraview,
+                                                 args=(progress_value,),
+                                                 name="- " + "export_paraview"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+            if self.export_dict["detailled_text_" + self.hdf5.extension[1:]]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_txt,
+                                                 args=(progress_value,),
+                                                 name="- " + "export_detailled_txt"),
+                                       progress_value=progress_value,
+                                       q=q)
 
-        # habitat
-        elif self.hdf5.hdf5_type == "habitat":  # load habitat data
-            self.hdf5.load_hdf5_hab(whole_profil=True,
-                                    user_target_list=self.project_preferences)
-            total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
-            if self.export_dict["mesh_units_hab"] or self.export_dict["point_units_hab"]:
-                # append fake first
-                for fake_num in range(1, total_gpkg_export):
-                    self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
-                state = Value("i", 0)
-                export_gpkg_process = Process(target=self.hdf5.export_gpkg,
-                                              args=(state,),
-                                              name="export_gpkg")
-                self.process_list.append([export_gpkg_process, state])
-            if self.export_dict["elevation_whole_profile_hab"]:
-                state = Value("i", 0)
-                export_stl_process = Process(target=self.hdf5.export_stl,
-                                             args=(state,),
-                                             name="export_stl")
-                self.process_list.append([export_stl_process, state])
-            if self.export_dict["variables_units_hab"]:
-                state = Value("i", 0)
-                export_paraview_process = Process(target=self.hdf5.export_paraview,
-                                                  args=(state,),
-                                                  name="export_paraview")
-                self.process_list.append([export_paraview_process, state])
+                self.process_list.append(my_process)
             if self.export_dict["habitat_text_hab"]:
-                state = Value("i", 0)
-                export_spu_txt_process = Process(target=self.hdf5.export_spu_txt,
-                                                 args=(state,),
-                                                 name="export_spu_txt")
-                self.process_list.append([export_spu_txt_process, state])
-            if self.export_dict["detailled_text_hab"]:
-                state = Value("i", 0)
-                export_detailled_mesh_txt_process = Process(target=self.hdf5.export_detailled_txt,
-                                                            args=(state,),
-                                                            name="export_detailled_txt")
-                self.process_list.append([export_detailled_mesh_txt_process, state])
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_spu_txt,
+                                                 args=(progress_value,),
+                                                 name="- " + "export_spu_txt"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
             if self.export_dict["fish_information_hab"]:
-                state = Value("i", 0)
-                export_pdf_process = Process(target=self.hdf5.export_report,
-                                             args=(state,),
-                                             name="export_report")
-                self.process_list.append([export_pdf_process, state])
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_report,
+                                                 args=(progress_value,),
+                                                 name="- " + "export_report"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+
+            # FAKE
+            # if self.export_dict["mesh_units" + self.hdf5.extension[1:]] or self.export_dict["point_units" + self.hdf5.extension[1:]]:
+            #     # append fake first
+            #     for fake_num in range(1, total_gpkg_export):
+            #         self.process_list.append([Process(name="- " + "fake_gpkg" + str(fake_num)), Value("i", 1)])
+            #     state = Value("i", 0)
+            #     export_gpkg_process = Process(target=self.hdf5.export_gpkg,
+            #                                   args=(state,),
+            #                                   name="- " + "export_gpkg")
+            #     self.process_list.append([export_gpkg_process, state])
+
+    # hs
+    def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
+        self.path_prj = path_prj
+        self.hs_description_dict = hs_description_dict
+        self.project_preferences = project_preferences
 
     def load_data_and_append_hs_process(self):
         self.process_list = MyProcessList()
@@ -1846,30 +1878,155 @@ class MyProcessManager(QThread):
             # class MyProcess
             progress_value = Value("d", 0.0)
             q = Queue()
-            hs_process = MyProcess(p=Process(target=load_data_and_compute_hs,
+            my_process = MyProcess(p=Process(target=load_data_and_compute_hs,
                                              args=(hs_description_dict,
                                                    progress_value,
                                                    q,
                                                    False,
                                                    self.project_preferences),
-                                             name=hdf5_name),
+                                             name="- " + hdf5_name),
                                    progress_value=progress_value,
                                    q=q)
-            self.process_list.append(hs_process)
+            self.process_list.append(my_process)
+
+    # hs plot
+    def load_data_and_append_hs_plot_process(self):
+        for name_hdf5 in self.names_hdf5:
+            hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
+
+            # create hdf5 class
+            hdf5.load_hydrosignature()
+            hdf5.close_file()
+
+            # class MyProcess
+            progress_value = Value("d", 0.0)
+            q = Queue()
+
+            if self.plot_attr.hs_plot_type in ("area", "volume"):
+                # loop
+                for reach_number in self.plot_attr.reach:
+                    for unit_number in self.plot_attr.units:
+                        my_process = MyProcess(p=Process(target=plot_mod.plot_hydrosignature,
+                                                         args=(progress_value,
+                                                               hdf5.data_2d[reach_number][unit_number].hydrosignature["hs" + self.plot_attr.hs_plot_type],
+                                                               hdf5.hs_input_class[1],
+                                                               hdf5.hs_input_class[0],
+                                                               self.plot_attr.hs_plot_type + " hydrosignature : " + hdf5.data_2d[reach_number][unit_number].reach_name + " at " + \
+                                    hdf5.data_2d[reach_number][unit_number].unit_name + " " + hdf5.data_2d.unit_type[
+                                                                                              hdf5.data_2d.unit_type.find(
+                                                                                                  '[') + len(
+                                                                                                  '['):hdf5.data_2d.unit_type.find(
+                                                                                                  ']')],
+                                                               self.tr(self.plot_attr.hs_plot_type),
+                                                               self.project_preferences,
+                                                               self.plot_attr.axe_mod_choosen),
+                                                         name="- " + self.plot_attr.hs_plot_type + " hydrosignature " + name_hdf5),
+                                               progress_value=progress_value,
+                                               q=q)
+                        self.process_list.append(my_process)
+            else:
+                my_process = MyProcess(p=Process(target=plot_mod.plot_hydrosignature,
+                                       args=(progress_value,
+                                             None,
+                                             hdf5.hs_input_class[1],
+                                             hdf5.hs_input_class[0],
+                                             "input classes of " + name_hdf5,
+                                             None,
+                                             self.project_preferences,
+                                             self.plot_attr.axe_mod_choosen),
+                                                 name="- " + "input class"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+
+    # interpolation
+    def set_interpolation_hdf5_mode(self, path_prj, names_hdf5, interp_attr, project_preferences):
+        # # check plot process done
+        if self.check_all_process_closed():
+            self.__init__("interpolation")
+        else:
+            self.add_plots(1)
+        self.path_prj = path_prj
+        self.name_hdf5 = names_hdf5
+        self.interp_attr = interp_attr
+        self.project_preferences = project_preferences
+
+    def load_data_and_append_interpolation_plot_process(self):
+        self.hdf5 = Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=False)
+
+        # get hdf5 inforamtions
+        self.hdf5.get_hdf5_attributes(close_file=True)
+
+        # recompute
+        data_to_table, horiz_headers, vertical_headers = compute_interpolation(self.hdf5.data_2d,
+                                                                                     self.interp_attr.hvum.user_target_list,
+                                                                                     self.hdf5.data_2d.reach_list.index(self.interp_attr.reach),
+                                                                                     self.interp_attr.units,
+                                                                                     self.interp_attr.unit_type,
+                                                                                     rounddata=False)
+
+        # class MyProcess
+        progress_value = Value("d", 0.0)
+        q = Queue()
+        my_process = MyProcess(p=Process(target=plot_mod.plot_interpolate_chronicle,
+                                                     args=(progress_value,
+                                                           data_to_table,
+                                                           horiz_headers,
+                                                           vertical_headers,
+                                                           self.hdf5.data_2d,
+                                                           self.interp_attr.hvum.user_target_list,
+                                                           self.hdf5.data_2d.reach_list.index(self.interp_attr.reach),
+                                                           self.interp_attr.unit_type,
+                                                           self.project_preferences),
+                                                     name="- " + self.tr("interpolated figure")),
+                               progress_value=progress_value,
+                               q=q)
+
+        # append to list
+        self.process_list.append(my_process)
+
+    def load_data_and_append_interpolation_export_process(self):
+        self.hdf5 = Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=False)
+
+        # get hdf5 inforamtions
+        self.hdf5.get_hdf5_attributes(close_file=True)
+
+        # recompute
+        data_to_table, horiz_headers, vertical_headers = compute_interpolation(self.hdf5.data_2d,
+                                                                                     self.interp_attr.hvum.user_target_list,
+                                                                                     self.hdf5.data_2d.reach_list.index(self.interp_attr.reach),
+                                                                                     self.interp_attr.units,
+                                                                                     self.interp_attr.unit_type,
+                                                                                     rounddata=False)
+
+        # class MyProcess
+        progress_value = Value("d", 0.0)
+        q = Queue()
+        my_process = MyProcess(p=Process(target=export_text_interpolatevalues,
+                                         args=(progress_value,
+                                               data_to_table,
+                                               horiz_headers,
+                                               vertical_headers,
+                                               self.hdf5.data_2d,
+                                               self.interp_attr.unit_type,
+                                               self.project_preferences),
+                                         name="- " + self.tr("interpolated export")),
+                               progress_value=progress_value,
+                               q=q)
+
+        # append to list
+        self.process_list.append(my_process)
 
     def new_plots(self):
         self.nb_finished = 0
-        self.add_plots_state = False
         self.save_process = []
         self.process_list = MyProcessList()
 
     def add_plots(self, plus):
         #print("add_plots")
-        self.add_plots_state = True
         self.plot_production_stoped = False
         # remove plots not started
         self.remove_process_not_started()
-        self.nb_plot_total = self.nb_plot_total + plus
 
     def append(self, process):
         self.process_list.append(process)
@@ -1878,50 +2035,41 @@ class MyProcessManager(QThread):
         self.thread_started = True
         self.plot_production_stoped = False
         if self.process_type == "plot":
-            self.plot_finished = False
             self.all_process_runned = False
-            if self.plot_hdf5_mode:  # from hdf5 data
-                for name_hdf5 in self.names_hdf5:
-                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
-                    self.hvum = self.plot_attr.hvum
-                    self.load_data_and_append_plot_process()
-            # Process mod
-            for i in range(len(self.process_list)):
-                if not self.plot_production_stoped:
-                    if self.process_list[i][1].value == 0 and not self.process_list[i][0].is_alive():
-                        self.process_list[i][0].start()
+            self.load_data_and_append_plot_process()
+            self.process_list.start()
             self.all_process_runned = True
-            self.check_all_plot_produced()
 
-        if self.process_type == "export":
-            self.export_finished = False
+        elif self.process_type == "export":
             self.all_process_runned = False
-            if self.export_hdf5_mode:
-                for name_hdf5 in self.names_hdf5:
-                    self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
-                    self.load_data_and_append_export_process()
-            # Process mod
-            for i in range(len(self.process_list)):
-                if not self.export_production_stoped:
-                    self.process_list[i][0].start()
+            self.load_data_and_append_export_process()
+            self.process_list.start()
             self.all_process_runned = True
-            self.check_all_export_produced()
 
-        if self.process_type == "hs":
-            self.hs_finished = False
+        elif self.process_type == "hs":
             self.all_process_runned = False
-            if self.hs_hdf5_mode:
-                self.load_data_and_append_hs_process()
+            self.load_data_and_append_hs_process()
+            self.process_list.start()
+            self.all_process_runned = True
+
+        elif self.process_type == "hs_plot":
+            self.all_process_runned = False
+            self.load_data_and_append_hs_plot_process()
+            self.process_list.start()
+            self.all_process_runned = True
+
+        elif self.process_type == "interpolation":
+            self.all_process_runned = False
+            if self.interp_attr.mode == "plot":
+                self.load_data_and_append_interpolation_plot_process()
+            elif self.interp_attr.mode == "export":
+                self.load_data_and_append_interpolation_export_process()
             self.process_list.start()
             self.all_process_runned = True
 
     def stop_plot_production(self):
         #print("stop_plot_production")
         self.plot_production_stoped = True
-        self.plot_finished = True
-
-    def stop_export_production(self):
-        self.export_production_stoped = True
 
     def close_all_plot(self):
         #print("close_all_plot")
@@ -1961,72 +2109,14 @@ class MyProcessManager(QThread):
                 if self.process_list[i].p.is_alive():
                     self.process_list[i].p.terminate()
             self.thread_started = False
-            self.hs_finished = True
             self.terminate()
-
-    def check_all_plot_produced(self):
-        """
-        State is analysed and progress bar refreshed.
-        """
-        #print("check_all_plot_produced")
-        self.nb_finished = 0
-        self.nb_plot_total = len(self.process_list)
-        state_list = []
-        for i in range(len(self.process_list)):
-            state = self.process_list[i][1].value
-            state_list.append(state)
-            if state == 1:
-                self.nb_finished = self.nb_finished + 1
-                # self.progress_signal.emit(self.nb_finished)
-                #print("emit 1")
-            if state == 0:
-                if i == self.nb_plot_total - 1:  # last of all plot
-                    while 0 in state_list:
-                        for j in [k for k, l in enumerate(state_list) if l == 0]:
-                            state = self.process_list[j][1].value
-                            state_list[j] = state
-                            if state == 1:
-                                self.nb_finished = self.nb_finished + 1
-                                # self.progress_signal.emit(self.nb_finished)
-                                #print("emit 2")
-                        if self.plot_production_stoped:
-                            sleep(1)
-                            for j in [k for k, l in enumerate(state_list) if l == 0]:
-                                state = self.process_list[j][1].value
-                                state_list[j] = state
-                                if state == 1:
-                                    self.nb_finished = self.nb_finished + 1
-                                    # self.progress_signal.emit(self.nb_finished)
-                                    #print("emit 3")
-                            sleep(1)
-                            for j in [k for k, l in enumerate(state_list) if l == 0]:
-                                try:
-                                    self.process_list[j][0].terminate()
-                                except AttributeError:
-                                    continue
-                            break
-        self.plot_finished = True
-
-    def check_all_export_produced(self):
-        # print("check_all_export_produced")
-        self.nb_finished = 0
-        self.nb_export_total = len(self.process_list)
-        state_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
-        self.nb_finished = state_list.count(1)
-        while 0 in state_list:
-            if self.export_production_stoped:
-                break
-            state_list = [self.process_list[i][1].value for i in range(len(self.process_list))]
-            if state_list.count(1) != self.nb_finished:
-                self.nb_finished = state_list.count(1)
-        self.export_finished = True
 
     def check_all_process_closed(self):
         """
         Check if a process is alive (plot window open)
         """
         #print("check_all_process_closed")
-        if any([self.process_list[i][0].is_alive() for i in range(len(self.process_list))]):  # plot window open or plot not finished
+        if any([self.process_list[i].p.is_alive() for i in range(len(self.process_list))]):  # plot window open or plot not finished
             return False
         else:
             return True
@@ -2034,27 +2124,26 @@ class MyProcessManager(QThread):
     def remove_process_not_started(self):
         #print("remove_process_not_started")
         for i in reversed(range(len(self.process_list))):
-            if not self.process_list[i][0].is_alive():
+            if not self.process_list[i].p.is_alive():
                 self.process_list.pop(i)
-        self.nb_plot_total = len(self.process_list)
 
     def stop_by_user(self):
         self.process_list.stop_by_user = True
+        if self.thread_started:
+            # wait all started
+            while not self.process_list.all_started:
+                pass
 
-        # wait all started
-        while not self.process_list.all_started:
-            pass
+            # terminate
+            for process in self.process_list:
+                if process.p.is_alive():
+                    process.p.terminate()
+                    process.get_total_time()
 
-        # terminate
-        for process in self.process_list:
-            if process.p.is_alive():
-                process.p.terminate()
-                process.get_total_time()
+            # get_total_time
+            self.process_list.get_total_time()
 
-        # get_total_time
-        self.process_list.get_total_time()
-
-        self.terminate()
+            self.terminate()
 
 
 class MyProcessList(list):
@@ -2084,7 +2173,8 @@ class MyProcessList(list):
         # start
         for process in self:
             if not self.stop_by_user:
-                process.p.start()
+                if process.progress_value.value == 0.0:
+                    process.p.start()
         self.all_started = True
 
         # get progress value
@@ -2113,7 +2203,7 @@ class MyProcessList(list):
             pass
         # save to attr
         self.nb_finished = actual_nb_finished
-        self.progress_value = sum(progress_value_list) / len(self)
+        self.progress_value = sum(progress_value_list) / len(self)  # 100 %
 
     def get_total_time(self):
         # thread
@@ -2124,7 +2214,7 @@ class MyProcess:
     """
     Represent one process
     """
-    def __init__(self, p=Process(name="p : None"), progress_value=Value("d", 0.0), q=Queue()):
+    def __init__(self, p=Process(name="- None"), progress_value=Value("d", 0.0), q=Queue()):
         self.p = p  # process
         self.progress_value = progress_value  # progress value in float
         self.q = q  # string to get if warning or error
