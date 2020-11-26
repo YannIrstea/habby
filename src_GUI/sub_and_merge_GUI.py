@@ -34,7 +34,7 @@ from src import hdf5_mod
 from src import substrate_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, save_project_properties
 from src.tools_mod import QGroupBoxCollapsible
-from src_GUI.tools_GUI import change_button_color
+from src_GUI.tools_GUI import change_button_color, ProcessProgLayout
 np.set_printoptions(threshold=np.inf)
 
 
@@ -239,10 +239,10 @@ class SubstrateAndMerge(QWidget):
         hab_filenametitle_point_label = QLabel(self.tr('.sub file name'))
         self.point_hname = QLineEdit('')  # hdf5 name
         self.point_hname.returnPressed.connect(lambda: self.load_sub_gui('point'))
-        self.load_point_substrate_pushbutton = QPushButton(self.tr('Create .sub file'), self)
-        change_button_color(self.load_point_substrate_pushbutton, "#47B5E6")
-        self.load_point_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('point'))
-        self.load_point_substrate_pushbutton.setEnabled(False)
+        # progress_layout.run_stop_button = QPushButton(self.tr('Create .sub file'), self)
+        # change_button_color(self.load_point_substrate_pushbutton, "#47B5E6")
+        # self.load_point_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('point'))
+        # self.load_point_substrate_pushbutton.setEnabled(False)
 
         # CONSTANT (0 line)
         filetitle_constant_label = QLabel(self.tr('File'))
@@ -303,6 +303,11 @@ class SubstrateAndMerge(QWidget):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
+        # progress_layout
+        self.progress_layout = ProcessProgLayout(lambda: self.load_sub_gui('point'),
+                                                 send_log=self.send_log,
+                                                 process_type="sub")  # load_polygon_substrate_pushbutton
+
         # POLYGON GROUP
         self.layout_polygon = QGridLayout()  # 4 rows et 3 columns
         self.layout_polygon.addWidget(filetitle_polygon_label, 0, 0)  # 0 line
@@ -318,8 +323,8 @@ class SubstrateAndMerge(QWidget):
         self.layout_polygon.addWidget(self.epsg_polygon_label, 4, 1)  # 4 line
         self.layout_polygon.addWidget(hab_filenametitle_polygon_label, 5, 0)  # 5 line
         self.layout_polygon.addWidget(self.polygon_hname, 5, 1)  # 5 line
-        self.layout_polygon.addWidget(self.load_polygon_substrate_pushbutton, 5, 2)  # 5 line
-        [self.layout_polygon.setRowMinimumHeight(i, 30) for i in range(self.layout_polygon.rowCount())]
+        # self.layout_polygon.addWidget(self.load_polygon_substrate_pushbutton, 5, 2)  # 5 line
+        # [self.layout_polygon.setRowMinimumHeight(i, 30) for i in range(self.layout_polygon.rowCount())]
         self.polygon_group = QGroupBox(self.tr('From polygons'))
         self.polygon_group.setLayout(self.layout_polygon)
 
@@ -338,7 +343,7 @@ class SubstrateAndMerge(QWidget):
         self.layout_point.addWidget(self.epsg_point_label, 4, 1)  # 4 line
         self.layout_point.addWidget(hab_filenametitle_point_label, 5, 0)  # 5 line
         self.layout_point.addWidget(self.point_hname, 5, 1)  # 5 line
-        self.layout_point.addWidget(self.load_point_substrate_pushbutton, 5, 2)  # 5 line
+        # self.layout_point.addWidget(self.load_point_substrate_pushbutton, 5, 2)  # 5 line
         [self.layout_point.setRowMinimumHeight(i, 30) for i in range(self.layout_point.rowCount())]
         self.point_group = QGroupBox(self.tr('From points'))
         self.point_group.setLayout(self.layout_point)
@@ -358,7 +363,7 @@ class SubstrateAndMerge(QWidget):
         self.layout_constant.addWidget(QLabel(""), 4, 1)  # 4 line
         self.layout_constant.addWidget(hab_filenametitle_constant_label, 5, 0)  # 5 line
         self.layout_constant.addWidget(self.constant_hname, 5, 1)  # 5 line
-        self.layout_constant.addWidget(self.load_constant_substrate_pushbutton, 5, 2)  # 5 line
+        # self.layout_constant.addWidget(self.load_constant_substrate_pushbutton, 5, 2)  # 5 line
         [self.layout_constant.setRowMinimumHeight(i, 30) for i in range(self.layout_constant.rowCount())]
         self.constant_group = QGroupBox(self.tr('From constant values'))
         self.constant_group.setLayout(self.layout_constant)
@@ -381,7 +386,8 @@ class SubstrateAndMerge(QWidget):
             QSpacerItem(45, 1))  # ,     6, 0, 1, 1)  # index row, index column, nb row, nb column
         laste_hdf5_sub_layout.addWidget(
             self.last_sub_file_name_label)  # ,    6, 1, 1, 1, Qt.AlignLeft)  # index row, index column, nb row, nb column
-        self.layout_sub.addItem(laste_hdf5_sub_layout, 6, 0, 1, 4, Qt.AlignLeft)
+        self.layout_sub.addLayout(self.progress_layout, 6, 0, 1, 4)
+        self.layout_sub.addItem(laste_hdf5_sub_layout, 7, 0, 1, 4, Qt.AlignLeft)
         self.point_group.hide()
         self.constant_group.hide()
         susbtrate_group = QGroupBoxCollapsible()
@@ -683,7 +689,7 @@ class SubstrateAndMerge(QWidget):
                     self.epsg_polygon_label.setText(sub_description["epsg_code"])
                     self.polygon_hname.setText(self.name_hdf5_polygon)
                     self.polygon_hname.setFocus()
-                    self.load_polygon_substrate_pushbutton.setEnabled(True)
+                    self.progress_layout.run_stop_button.setEnabled(True)
 
                 # POINT
                 elif substrate_mapping_method == "point":
@@ -777,7 +783,7 @@ class SubstrateAndMerge(QWidget):
             # polygon case
             if sub_mapping_method == 'polygon':
                 # block button substrate
-                self.load_polygon_substrate_pushbutton.setEnabled(False)  # substrate
+                self.progress_layout.run_stop_button.setEnabled(False)  # substrate
                 self.name_hdf5 = self.polygon_hname.text()
 
             # point case
@@ -1028,7 +1034,7 @@ class SubstrateAndMerge(QWidget):
                     # SUBSTRATE
                     elif self.model_type == 'SUBSTRATE':
                         # unblock button substrate
-                        self.load_polygon_substrate_pushbutton.setEnabled(True)  # substrate
+                        self.progress_layout.run_stop_button.setEnabled(True)  # substrate
                         self.load_point_substrate_pushbutton.setEnabled(True)  # substrate
                         self.load_constant_substrate_pushbutton.setEnabled(True)  # substrate
 
@@ -1054,7 +1060,7 @@ class SubstrateAndMerge(QWidget):
                         # update last name
                         self.name_last_hdf5("SUBSTRATE")
                         # unblock button substrate
-                        self.load_polygon_substrate_pushbutton.setEnabled(True)
+                        self.progress_layout.run_stop_button.setEnabled(True)
                         self.load_point_substrate_pushbutton.setEnabled(True)
                         self.load_constant_substrate_pushbutton.setEnabled(True)
 
@@ -1088,8 +1094,8 @@ class SubstrateAndMerge(QWidget):
                 # SUBSTRATE
                 elif self.model_type == 'SUBSTRATE':
                     # unblock button substrate
-                    self.load_polygon_substrate_pushbutton.setEnabled(True)  # substrate
-                    self.load_point_substrate_pushbutton.setEnabled(True)  # substrate
+                    self.progress_layout.run_stop_button.setEnabled(True)  # substrate
+                    progress_layout.run_stop_button.setEnabled(True)  # substrate
                     self.load_constant_substrate_pushbutton.setEnabled(True)  # substrate
 
                 # CRASH

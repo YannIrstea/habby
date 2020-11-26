@@ -786,8 +786,10 @@ class EnterPressEvent(QObject):
 
 
 class ProcessProgLayout(QHBoxLayout):
-    def __init__(self, run_function):
+    def __init__(self, run_function, send_log, process_type):
         super().__init__()
+        # send_log
+        self.send_log = send_log
         # progressbar
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0.0)
@@ -808,3 +810,17 @@ class ProcessProgLayout(QHBoxLayout):
         self.addWidget(self.progress_bar)
         self.addWidget(self.progress_label)
         self.addWidget(self.run_stop_button)
+
+        # process_manager
+        self.process_manager = MyProcessManager(process_type)
+
+        # process_prog_show
+        self.process_prog_show = ProcessProgShow(send_log=self.send_log,
+                                                 progressbar=self.progress_bar,
+                                                 progress_label=self.progress_label,
+                                                 computation_pushbutton=self.run_stop_button,
+                                                 run_function=run_function)
+
+    def start(self):
+
+        self.process_prog_show.start_show_prog(self.process_manager)

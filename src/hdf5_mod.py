@@ -1304,13 +1304,15 @@ class Hdf5Management:
         if self.extension == ".hab":
             index = 1
 
-        # activated exports ?
+        # default exports activated ? (when hyd, hab file created)
         mesh_whole_profile_tf = self.project_preferences['mesh_whole_profile'][index]
         mesh_units_tf = self.project_preferences['mesh_units'][index]
         point_whole_profile_tf = self.project_preferences['point_whole_profile'][index]
         point_units_tf = self.project_preferences['point_units'][index]
 
         if not mesh_whole_profile_tf and not mesh_units_tf and not point_whole_profile_tf and not point_units_tf:
+            if state is not None:
+                state.value = 100.0  # process finished
             return
 
         # Mapping between OGR and Python data types
@@ -1668,7 +1670,7 @@ class Hdf5Management:
             # close file
             ds.Destroy()
 
-        if state:
+        if state is not None:
             state.value = 100.0  # process finished
 
     # EXPORT 3D
@@ -1797,7 +1799,7 @@ class Hdf5Management:
             paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
                                   part_timestep_indice)
 
-            if state:
+            if state is not None:
                 state.value = 100.0  # process finished
 
     # EXPORT TXT
@@ -1900,13 +1902,13 @@ class Hdf5Management:
                             # write file
                             f.write(data_here)
 
-        if state:
+        if state is not None:
             state.value = 100.0  # process finished
 
     def export_detailled_txt(self, state=None):
         self.export_detailled_mesh_txt()
         self.export_detailled_point_txt()
-        if state:
+        if state is not None:
             state.value = 100.0  # process finished
 
     def export_detailled_mesh_txt(self, state=None):
@@ -1982,7 +1984,7 @@ class Hdf5Management:
                         # write file
                         f.write(text_to_write_str)
 
-            if state:
+            if state is not None:
                 state.value = 100.0  # process finished
 
     def export_detailled_point_txt(self, state=None):
@@ -2052,7 +2054,7 @@ class Hdf5Management:
                         # write file
                         f.write(text_to_write_str)
 
-            if state:
+            if state is not None:
                 state.value = 100.0  # process finished
 
     def export_report(self, state=None):
@@ -2231,7 +2233,7 @@ class Hdf5Management:
                         print(
                             'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
 
-            if state:
+            if state is not None:
                 state.value = 100.0  # process finished
 
     def export_estimhab(self):

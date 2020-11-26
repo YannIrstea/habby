@@ -34,7 +34,7 @@ from src import hdf5_mod
 from src import hydraulic_process_mod
 
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
-from src_GUI.tools_GUI import QListWidgetClipboard, change_button_color, EnterPressEvent
+from src_GUI.tools_GUI import QListWidgetClipboard, change_button_color, ProcessProgShow, ProcessProgLayout
 np.set_printoptions(threshold=np.inf)
 
 
@@ -240,7 +240,7 @@ class ModelInfoGroup(QGroupBox):
         self.path_last_file_loaded = self.path_prj
         self.hydraulic_model_information = HydraulicModelInformation()
         self.timer = QTimer()
-        self.timer.timeout.connect(self.show_prog)
+        # self.timer.timeout.connect(self.show_prog)
         self.running_time = 0
         self.stop = Event()
         self.q = Queue()
@@ -258,27 +258,41 @@ class ModelInfoGroup(QGroupBox):
         self.init_ui()
 
     def init_ui(self):
-        result_file_title_label = QLabel(self.tr('Result file(s)'))
+        self.result_file_title_label = QLabel(self.tr('Result file(s)'))
         self.input_file_combobox = QComboBox()
-        self.select_file_button = QPushButton(self.tr('Choose file(s) (.txt)'))
+        self.select_file_button = QPushButton("...")
+        self.select_file_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.select_file_button.clicked.connect(self.select_file_and_show_informations_dialog)
+
+        # selection_layout
+        self.selection_layout = QHBoxLayout()
+        self.selection_layout.addWidget(self.input_file_combobox)
+        self.selection_layout.addWidget(self.select_file_button)
 
         # reach
         reach_name_title_label = QLabel(self.tr('Reach name'))
         self.reach_name_combobox = QComboBox()
 
         # unit list
-        unit_select_title_label = QLabel(self.tr('Unit selected'))
+        unit_title_label = QLabel(self.tr('Unit(s)'))
         self.units_QListWidget = QListWidgetClipboard()
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # unit type
-        units_name_title_label = QLabel(self.tr('Unit type'))
+        units_name_title_label = QLabel(self.tr('Type'))
         self.units_name_label = QLabel(self.tr('unknown'))
 
         # unit number
-        units_number_title_label = QLabel(self.tr('Unit number'))
+        units_number_title_label = QLabel(self.tr('Number'))
         self.unit_number_label = QLabel(self.tr('unknown'))
+
+        # unit_layout
+        unit_layout = QGridLayout()
+        unit_layout.addWidget(self.units_QListWidget, 0, 0, 4, 1)
+        unit_layout.addWidget(units_name_title_label, 0, 1, Qt.AlignBottom)
+        unit_layout.addWidget(self.units_name_label, 1, 1, Qt.AlignTop)
+        unit_layout.addWidget(units_number_title_label, 2, 1, Qt.AlignBottom)
+        unit_layout.addWidget(self.unit_number_label, 3, 1, Qt.AlignTop)
 
         # usefull_mesh_variables
         usefull_mesh_variable_label_title = QLabel(self.tr('Mesh data'))
@@ -298,41 +312,42 @@ class ModelInfoGroup(QGroupBox):
         self.hdf5_name_lineedit = QLineEdit()
         self.hdf5_name_lineedit.returnPressed.connect(self.load_hydraulic_create_hdf5)
 
-        # load button
-        self.create_hdf5_pushbutton = QPushButton(self.tr('Create .hyd file'))
-        change_button_color(self.create_hdf5_pushbutton, "#47B5E6")
-        self.create_hdf5_pushbutton.clicked.connect(self.load_hydraulic_create_hdf5)
-        self.create_hdf5_pushbutton.setEnabled(False)
-
         # last_hydraulic_file_label
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
         self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
 
+        # progress_layout
+        self.progress_layout = ProcessProgLayout(self.load_hydraulic_create_hdf5,
+                                                 send_log=self.send_log,
+                                                 process_type="hyd")
+
         # layout
         layout_ascii = QGridLayout()
-        layout_ascii.addWidget(result_file_title_label, 0, 0)
-        layout_ascii.addWidget(self.input_file_combobox, 0, 1)
-        layout_ascii.addWidget(self.select_file_button, 0, 2)
+        layout_ascii.addWidget(self.result_file_title_label, 0, 0)
+        layout_ascii.addLayout(self.selection_layout, 0, 1, 1, 2)
+        # layout_ascii.addWidget(self.select_file_button, 0, 3)
         layout_ascii.addWidget(reach_name_title_label, 1, 0)
-        layout_ascii.addWidget(self.reach_name_combobox, 1, 1)
-        layout_ascii.addWidget(unit_select_title_label, 2, 0)
-        layout_ascii.addWidget(self.units_QListWidget, 2, 1)
-        layout_ascii.addWidget(units_name_title_label, 3, 0)
-        layout_ascii.addWidget(self.units_name_label, 3, 1)
-        layout_ascii.addWidget(units_number_title_label, 4, 0)
-        layout_ascii.addWidget(self.unit_number_label, 4, 1)
+        layout_ascii.addWidget(self.reach_name_combobox, 1, 1, 1, 2)
+
+        layout_ascii.addWidget(unit_title_label, 3, 0, 2, 1)
+
+        layout_ascii.addLayout(unit_layout, 3, 1, 2, 2)
+        # layout_ascii.addWidget(self.units_QListWidget, 3, 2, 2, 1)
+        # layout_ascii.addWidget(self.units_name_label, 3, 1)
+        # layout_ascii.addWidget(units_number_title_label, 4, 0)
+        # layout_ascii.addWidget(self.unit_number_label, 4, 1)
+
         layout_ascii.addWidget(usefull_mesh_variable_label_title, 5, 0)
-        layout_ascii.addWidget(self.usefull_mesh_variable_label, 5, 1, 1, 1)  # from row, from column, nb row, nb column
+        layout_ascii.addWidget(self.usefull_mesh_variable_label, 5, 1, 1, 2)  # from row, from column, nb row, nb column
         layout_ascii.addWidget(usefull_node_variable_label_title, 6, 0)
-        layout_ascii.addWidget(self.usefull_node_variable_label, 6, 1, 1, 1)  # from row, from column, nb row, nb column
+        layout_ascii.addWidget(self.usefull_node_variable_label, 6, 1, 1, 2)  # from row, from column, nb row, nb column
         layout_ascii.addWidget(epsg_title_label, 7, 0)
-        layout_ascii.addWidget(self.epsg_label, 7, 1)
+        layout_ascii.addWidget(self.epsg_label, 7, 1, 1, 1)
         layout_ascii.addWidget(hdf5_name_title_label, 8, 0)
-        layout_ascii.addWidget(self.hdf5_name_lineedit, 8, 1)
-        layout_ascii.addWidget(self.create_hdf5_pushbutton, 8, 2)
-        layout_ascii.addWidget(self.last_hydraulic_file_label, 9, 0)
-        layout_ascii.addWidget(self.last_hydraulic_file_name_label, 9, 1)
-        # [layout_ascii.setRowMinimumHeight(i, 30) for i in range(layout_ascii.rowCount()) if i != 2]
+        layout_ascii.addWidget(self.hdf5_name_lineedit, 8, 1, 1, 2)
+        layout_ascii.addLayout(self.progress_layout, 9, 0, 1, 4)
+        layout_ascii.addWidget(self.last_hydraulic_file_label, 10, 0)
+        layout_ascii.addWidget(self.last_hydraulic_file_name_label, 10, 1)
         self.setLayout(layout_ascii)
 
     def change_model_type_gui(self, i):
@@ -347,7 +362,8 @@ class ModelInfoGroup(QGroupBox):
         if i > 0:
             self.clean_gui()
             # extensions
-            self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
+            # self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
+            self.result_file_title_label.setText(self.tr('Result file(s) (' + self.extension + ')'))
             self.name_last_hdf5(self.model_type)
             self.show()
 
@@ -486,7 +502,7 @@ class ModelInfoGroup(QGroupBox):
         self.units_QListWidget.clear()
         self.epsg_label.clear()
         self.hdf5_name_lineedit.setText("")  # hdf5 name
-        self.create_hdf5_pushbutton.setText(self.tr("Create .hyd file"))
+        self.progress_layout.run_stop_button.setText(self.tr("Create .hyd file"))
 
     def select_file_and_show_informations_dialog(self):
         """
@@ -623,7 +639,7 @@ class ModelInfoGroup(QGroupBox):
         text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" ." + extension + " file")
         if len(self.hydrau_description_list) > 1:
             text_load_button = text_load_button + "s"
-        self.create_hdf5_pushbutton.setText(text_load_button)
+        self.progress_layout.run_stop_button.setText(text_load_button)
         self.reach_name_combobox.blockSignals(False)
 
     def update_unit_from_reach(self):
@@ -691,7 +707,7 @@ class ModelInfoGroup(QGroupBox):
         text = str(selected) + "/" + str(total)
         self.unit_number_label.setText(text)  # number units
 
-        self.create_hdf5_pushbutton.setEnabled(True)
+        self.progress_layout.run_stop_button.setEnabled(True)
 
     def create_script(self):
         # path_prj
@@ -715,10 +731,7 @@ class ModelInfoGroup(QGroupBox):
         The function which call the function which load hec_ras2d and
          save the name of files in the project file
         """
-        if self.create_hdf5_pushbutton.isEnabled():
-            # block button
-            self.create_hdf5_pushbutton.setEnabled(False)  # hydraulic
-
+        if self.progress_layout.run_stop_button.isEnabled():
             # get minimum water height as we might neglect very low water height
             self.project_preferences = load_project_properties(self.path_prj)
 
@@ -734,19 +747,8 @@ class ModelInfoGroup(QGroupBox):
             self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = self.name_hdf5
             if self.name_hdf5 == "":
                 self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
-                self.create_hdf5_pushbutton.setEnabled(True)
+                # self.progress_layout.run_stop_button.setEnabled(True)
                 return
-
-            # for error management and figures
-            self.timer.start(100)
-
-            # reset to 0
-            self.progress_value.value = 0
-
-            # show progressbar
-            self.nativeParentWidget().progress_bar.setValue(0)
-            self.nativeParentWidget().progress_bar.setRange(0, 100)
-            self.nativeParentWidget().progress_bar.setVisible(True)
 
             # check if extension is set by user (multi hdf5 case)
             hydrau_description_multiple = deepcopy(self.hydrau_description_list)  # create copy to not erase inital choices
@@ -763,24 +765,12 @@ class ModelInfoGroup(QGroupBox):
                                 new_filename_source_list.append(filename_source_list[file_num])
                     hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
 
-            # write the new file name in the project file
-            self.save_xml()
-            self.stop = Event()
-            self.q = Queue()
-            self.progress_value = Value("d", 0)
-            self.p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
-                             args=(hydrau_description_multiple,
-                                   self.progress_value,
-                                   self.q,
-                                   False,
-                                   self.project_preferences,
-                                   self.stop))
+            # process_manager
+            self.progress_layout.process_manager.set_hyd_mode(self.path_prj, hydrau_description_multiple, self.project_preferences)
 
-            self.p.name = self.model_type + " data loading"
-            self.p.start()
+            # process_prog_show
+            self.progress_layout.start()
 
-            # log info
-            self.send_log.emit(self.tr('# Loading: ' + self.model_type + ' data...'))
             #self.send_err_log()
             self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
             self.send_log.emit(
@@ -789,81 +779,3 @@ class ModelInfoGroup(QGroupBox):
             # script
             self.create_script()
             self.send_log.emit("restart LOAD_" + self.model_type)
-
-    def show_prog(self):
-        """
-        This function is call regularly by the methods which have a second thread (so moslty the function
-        to load the hydrological data). To call this function regularly, the variable self.timer of QTimer type is used.
-        The variable self.timer is connected to this function in the initiation of SubHydroW() and so in the initiation
-        of all class which inherits from SubHydroW().
-
-        This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
-        messages.
-        """
-        # RUNNING
-        if self.p.is_alive():
-            self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
-            # get the language
-            self.nativeParentWidget().kill_process_action.setVisible(True)
-
-            # it is necssary to start this string with Process to see it in the Statusbar
-            self.send_log.emit("Process " +
-                QCoreApplication.translate("SubHydroW", "'Hydraulic' is alive and run since ") + str(round(self.running_time)) + " sec")
-            self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-
-        else:
-            # FINISH (but can have known errors)
-            if not self.q.empty():
-                # manage error
-                self.timer.stop()
-                queue_back = self.q.get()
-                self.mystdout = queue_back
-                error = self.send_err_log(True)
-
-                # known errors
-                if error:
-                    self.send_log.emit("clear status bar")
-                    self.running_time = 0
-                    self.nativeParentWidget().kill_process_action.setVisible(False)
-                    self.create_hdf5_pushbutton.setEnabled(True)  # hydraulic
-
-                # finished without error
-                elif not error:
-                    self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of hydraulic data finished (computation time = ") + str(
-                        round(self.running_time)) + " s).")
-                    # send a signal to the substrate tab so it can account for the new info
-                    self.drop_hydro.emit()
-                    # update last name
-                    self.name_last_hdf5(self.model_type)
-                    if self.model_type == "ASCII":  # can produce .hab
-                        self.drop_merge.emit()
-                    # unblock button hydraulic
-                    self.create_hdf5_pushbutton.setEnabled(True)  # hydraulic
-
-                    # send round(c) to attribute .hyd
-                    hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=True)
-                    hdf5_hyd.set_hdf5_attributes([os.path.splitext(self.name_hdf5)[1][1:] + "_time_creation [s]"],
-                                                 [round(self.running_time)])
-
-                    # general
-                    self.nativeParentWidget().progress_bar.setValue(100)
-                    self.nativeParentWidget().kill_process_action.setVisible(False)
-
-                    self.send_log.emit("clear status bar")
-                    # refresh plot gui list file
-                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
-                    self.running_time = 0
-
-            # CLEANING GUI
-            if not self.p.is_alive() and self.q.empty():
-                self.timer.stop()
-                self.send_log.emit("clear status bar")
-                self.nativeParentWidget().kill_process_action.setVisible(False)
-                self.running_time = 0
-                self.create_hdf5_pushbutton.setEnabled(True)  # hydraulic
-                if self.model_type == "ASCII":  # can produce .hab
-                    self.drop_merge.emit()
-                # CRASH
-                if self.p.exitcode == 1:
-                    self.send_log.emit(QCoreApplication.translate("SubHydroW",
-                                                                  "Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))

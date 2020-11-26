@@ -31,7 +31,7 @@ from src import plot_mod
 from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
     load_specific_properties
 from src import hydrosignature
-from src_GUI.tools_GUI import change_button_color
+from src_GUI.tools_GUI import change_button_color, ProcessProgLayout
 from src_GUI.data_explorer_GUI import MyTableModel
 
 
@@ -120,11 +120,6 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.project_preferences = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
-        self.process_prog_show = ProcessProgShow(send_log=self.send_log,
-                                                 send_refresh_filenames=self.send_refresh_filenames,
-                                                 progressbar=self.progressbar,
-                                                 progress_label=self.progress_label,
-                                                 computation_pushbutton=self.computation_pushbutton)
         input_class_file_info = self.read_attribute_xml("HS_input_class")
         self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
 
@@ -163,23 +158,12 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.hs_export_txt_checkbox = QCheckBox()
         hs_export_mesh_label = QLabel(self.tr("Export mesh results (.hyd or .hab)"))
         self.hs_export_mesh_checkbox = QCheckBox()
-        self.computation_pushbutton = QPushButton(self.tr("run"))
-        change_button_color(self.computation_pushbutton, "#47B5E6")
-        self.computation_pushbutton.clicked.connect(self.start_stop_export)
-        self.computation_pushbutton.setEnabled(False)
-
-        self.progressbar = QProgressBar()
-        self.progressbar.setValue(0.0)
-        self.progressbar.setRange(0.0, 100.0)
-        self.progressbar.setTextVisible(False)
-        self.progress_label = QLabel()
-        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
         """ progress layout """
-        progress_layout = QHBoxLayout()
-        progress_layout.addWidget(self.progressbar)
-        progress_layout.addWidget(self.progress_label)
-        progress_layout.addWidget(self.computation_pushbutton)
+        # progress_layout
+        self.progress_layout = ProcessProgLayout(self.compute,
+                                                 send_log=self.send_log,
+                                                 process_type="hs")
 
         grid_layout = QGridLayout()
         grid_layout.addWidget(input_class_label, 2, 0, Qt.AlignLeft)
@@ -189,7 +173,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         grid_layout.addWidget(self.hs_export_txt_checkbox, 3, 1, Qt.AlignLeft)
         grid_layout.addWidget(hs_export_mesh_label, 4, 0, Qt.AlignLeft)
         grid_layout.addWidget(self.hs_export_mesh_checkbox, 4, 1, Qt.AlignLeft)
-        grid_layout.addLayout(progress_layout, 5, 0, 1, 3)
+        grid_layout.addLayout(self.progress_layout, 5, 0, 1, 3)
 
         grid_layout.setColumnStretch(0, 2)
         grid_layout.setColumnStretch(1, 1)
@@ -244,24 +228,24 @@ class ComputingGroup(QGroupBoxCollapsible):
                     self.send_log.emit(warning)
             if self.classhv is None:
                 self.send_log.emit(self.tr("Error: Input class file : ") + os.path.basename(input_class_file) + self.tr(" is not valid."))
-                self.computation_pushbutton.setEnabled(False)
+                self.progress_layout.run_stop_button.setEnabled(False)
             else:
                 self.input_class_filename.setText(os.path.basename(input_class_file))
                 if self.file_selection_listwidget.selectedItems():
-                    self.computation_pushbutton.setEnabled(True)
+                    self.progress_layout.run_stop_button.setEnabled(True)
         else:
-            self.computation_pushbutton.setEnabled(False)
+            self.progress_layout.run_stop_button.setEnabled(False)
 
     def names_hdf5_change(self):
         selection = self.file_selection_listwidget.selectedItems()
         if selection:
             # enable run button
             if self.input_class_filename.text():
-                self.computation_pushbutton.setEnabled(True)
+                self.progress_layout.run_stop_button.setEnabled(True)
             else:
-                self.computation_pushbutton.setEnabled(False)
+                self.progress_layout.run_stop_button.setEnabled(False)
         else:
-            self.computation_pushbutton.setEnabled(False)
+            self.progress_layout.run_stop_button.setEnabled(False)
 
     def select_input_class_dialog(self):
         input_class_file_info = self.read_attribute_xml("HS_input_class")
@@ -329,17 +313,8 @@ class ComputingGroup(QGroupBoxCollapsible):
             self.project_preferences[attr]["path"] = self.pathfile  # change value
             save_project_properties(self.path_prj, self.project_preferences)  # save_project_properties
 
-    def start_stop_export(self):
-        if self.computation_pushbutton.text() == self.tr("run"):
-            self.compute()
-
-        elif self.computation_pushbutton.text() == self.tr("stop"):
-            self.stop_compute()
-
     def compute(self):
         if self.file_selection_listwidget.currentItem():
-            self.computation_pushbutton.setText(self.tr("stop"))
-
             # process_manager
             self.process_manager = MyProcessManager("hs")
             hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
@@ -347,21 +322,17 @@ class ComputingGroup(QGroupBoxCollapsible):
                                                               self.file_selection_listwidget.selectedItems()],
                                               hs_export_txt=self.hs_export_txt_checkbox.isChecked(),
                                               classhv=self.classhv)
-            self.process_manager.set_hs_hdf5_mode(self.path_prj, hydrosignature_description, self.project_preferences)
 
-            # process_prog_show
-            self.process_prog_show.start_show_prog(self.process_manager)
+            self.progress_layout.process_manager.set_hs_hdf5_mode(self.path_prj,
+                                                                  hydrosignature_description,
+                                                                  self.project_preferences)
 
             # start thread
-            self.process_manager.start()
+            self.progress_layout.start()
 
     def stop_compute(self):
         # stop_by_user
         self.process_manager.stop_by_user()
-
-        # stop show_prog
-        self.process_prog_show.timer.stop()
-        self.process_prog_show.show_prog()
 
 
 class VisualGroup(QGroupBoxCollapsible):
@@ -379,8 +350,6 @@ class VisualGroup(QGroupBoxCollapsible):
         self.axe_mod_choosen = 1
         self.setTitle(title)
         self.init_ui()
-        self.process_prog_show = ProcessProgShow(send_log=self.send_log,
-                                                 computation_pushbutton=self.input_class_plot_button)
 
     def init_ui(self):
         # file_selection

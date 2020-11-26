@@ -1307,7 +1307,7 @@ class MainWindows(QMainWindow):
 
         closeAction = QAction(icon_closefig, self.tr('Close figure windows'), self)
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
-        closeAction.triggered.connect(self.central_widget.kill_process_list)
+        closeAction.triggered.connect(self.central_widget.kill_process_plot_list)
 
         self.kill_process_action = QAction(icon_kill, self.tr('Stop current process'), self)
         self.kill_process_action.triggered.connect(partial(self.kill_process, close=True, isalive=False))
@@ -2089,7 +2089,7 @@ class CentralW(QWidget):
 
         #self.tab_widget.setStyleSheet("QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
 
-    def kill_process_list(self):
+    def kill_process_plot_list(self):
         """
         method to close the images opened in HABBY and managed by matplotlib
         """
@@ -2101,11 +2101,43 @@ class CentralW(QWidget):
         # data_explorer_tab
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
-                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'process_manager'):
-                    self.data_explorer_tab.data_explorer_frame.plot_group.process_manager.stop_by_user()
+                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'progress_layout'):
+                    self.data_explorer_tab.data_explorer_frame.plot_group.progress_layout.process_manager.stop_by_user()
+        # tools_tab
+        if hasattr(self, 'tools_tab'):
+            if hasattr(self.tools_tab, 'interpolation_group'):
+                if hasattr(self.tools_tab.interpolation_group, 'process_manager'):
+                    self.tools_tab.interpolation_group.process_manager.stop_by_user()
+        # hs_tab
+        if hasattr(self, 'hs_tab'):
+            if hasattr(self.hs_tab, 'computing_group'):
+                if hasattr(self.hs_tab.computing_group, 'process_manager'):
+                    self.hs_tab.computing_group.process_manager.close_all_hs()
+            if hasattr(self.hs_tab, 'visual_group'):
+                if hasattr(self.hs_tab.visual_group, 'process_manager'):
+                    self.hs_tab.visual_group.process_manager.stop_by_user()
+        # estimhab
+        if hasattr(self, 'statmod_tab'):
+            if hasattr(self.statmod_tab, 'process_manager'):
+                self.statmod_tab.process_manager.close_all_plot()
+
+    def kill_process_list(self):
+        """
+        method to kill all process
+        """
+        # bio_model_explorer_dialog
+        if hasattr(self.parent(), "bio_model_explorer_dialog"):
+            if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager"):
+                    self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager.close_all_plot()
+        # data_explorer_tab
+        if hasattr(self, 'data_explorer_tab'):
+            if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
+                if hasattr(self.data_explorer_tab.data_explorer_frame.plot_group, 'progress_layout'):
+                    self.data_explorer_tab.data_explorer_frame.plot_group.progress_layout.process_manager.stop_by_user()
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'dataexporter_group'):
-                if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'process_manager'):
-                    self.data_explorer_tab.data_explorer_frame.dataexporter_group.process_manager.stop_by_user()
+                if hasattr(self.data_explorer_tab.data_explorer_frame.dataexporter_group, 'progress_layout'):
+                    self.data_explorer_tab.data_explorer_frame.dataexporter_group.progress_layout.process_manager.stop_by_user()
         # tools_tab
         if hasattr(self, 'tools_tab'):
             if hasattr(self.tools_tab, 'interpolation_group'):

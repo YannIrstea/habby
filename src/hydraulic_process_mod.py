@@ -1101,7 +1101,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
             f.write(text)
 
 
-def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=False, project_preferences={}, stop=object):
+def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=False, project_preferences={}):
     """
     This function calls the function load_hydraulic and call the function cut_2d_grid()
 
@@ -1129,201 +1129,199 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     # progress
     progress_value.value = 10
 
-    delta_file = 80 / len(hydrau_description)
+    filename_source = hydrau_description["filename_source"].split(", ")
 
-    # for each .hyd (or .hab) to create
-    for hdf5_file_index in range(0, len(hydrau_description)):
-        filename_source = hydrau_description[hdf5_file_index]["filename_source"].split(", ")
-        data_2d = Data2d()  # data_2d
-        hydrau_description[hdf5_file_index]["hyd_unit_correspondence"] = []  # always one reach by file ?
-        # for each filename source
-        for i, file in enumerate(filename_source):
-            # get file informations
-            hsr = HydraulicSimulationResultsSelector(file,
-                                             hydrau_description[hdf5_file_index]["path_filename_source"],
-                                             hydrau_description[hdf5_file_index]["model_type"],
-                                             hydrau_description[hdf5_file_index]["path_prj"])
-            # get timestep_name_list
-            if hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.a", "2.a"}:
-                timestep_wish_list = [hsr.timestep_name_list]
-            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"1.b"}:
-                timestep_wish_list = [hydrau_description[hdf5_file_index]["timestep_list"]]
-            elif hydrau_description[hdf5_file_index]["hydrau_case"] in {"2.b"}:
-                timestep_wish_list = [[hydrau_description[hdf5_file_index]["timestep_list"][i]]]
-            else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
-                timestep_wish_list = hydrau_description[hdf5_file_index]["unit_list"]
+    delta_file = 80 / len(filename_source)
 
-            # multi_reach from several files
-            if len(hydrau_description[hdf5_file_index]["reach_list"]) > 1 and len(filename_source) > 1:
-                # load first reach
-                data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
-                # check error
-                if not data_2d_source and not print_cmd:
-                    q.put(mystdout)
-                    return
-                data_2d.add_reach(data_2d_source, [0])
-            # multi_reach from one files (HEC-RAS 2d, ASCII, .. ?)
-            elif len(hydrau_description[hdf5_file_index]["reach_list"]) > 1 and len(filename_source) == 1:
-                # load data
-                data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
-                data_2d.add_reach(data_2d_source, list(range(len(hydrau_description[hdf5_file_index]["reach_list"]))))
-            # one_reach
-            else:
-                # load data
-                data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[0])
-                # check error
-                if not data_2d_source and not print_cmd:
-                    q.put(mystdout)
-                    return
-                for reach_number in range(data_2d_source.reach_number):
-                    # data_2d
-                    data_2d.add_unit(data_2d_source, reach_number)
+    data_2d = Data2d()  # data_2d
+    hydrau_description["hyd_unit_correspondence"] = []  # always one reach by file ?
+    # for each filename source
+    for i, file in enumerate(filename_source):
+        # get file informations
+        hsr = HydraulicSimulationResultsSelector(file,
+                                         hydrau_description["path_filename_source"],
+                                         hydrau_description["model_type"],
+                                         hydrau_description["path_prj"])
+        # get timestep_name_list
+        if hydrau_description["hydrau_case"] in {"1.a", "2.a"}:
+            timestep_wish_list = [hsr.timestep_name_list]
+        elif hydrau_description["hydrau_case"] in {"1.b"}:
+            timestep_wish_list = [hydrau_description["timestep_list"]]
+        elif hydrau_description["hydrau_case"] in {"2.b"}:
+            timestep_wish_list = [[hydrau_description["timestep_list"][i]]]
+        else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
+            timestep_wish_list = hydrau_description["unit_list"]
 
-        """ get data_2d_whole_profile """
-        data_2d_whole_profile = data_2d.get_only_mesh()
-
-        """ set unit_names """
-        data_2d.set_unit_list(hydrau_description[hdf5_file_index]["unit_list"])
-
-        """ varying mesh """
-        hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
-        for reach_number in range(len(hyd_varying_xy_index)):
-            if len(set(hyd_varying_xy_index[reach_number])) == 1:  # one tin for all unit
-                hyd_varying_mesh = False
-                data_2d_whole_profile.reduce_to_first_unit_by_reach()
-            else:
-                hyd_varying_mesh = True
-            # hyd_unit_z_equal ?
-            if len(set(hyd_varying_z_index[reach_number])) == 1:
-                hyd_unit_z_equal = True
-            else:
-                hyd_unit_z_equal = True
-
-            # one file : one reach, varying_mesh==False
-            if len(filename_source) == 1:
-                hydrau_description[hdf5_file_index]["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
-            else:
-                hydrau_description[hdf5_file_index]["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
-
-        """ check_validity """
-        data_2d.check_validity()
-
-        """ set_min_height_to_0 """
-        data_2d.set_min_height_to_0(project_preferences['min_height_hyd'])
-
-        """ remove_dry_mesh """
-        data_2d.remove_dry_mesh()
-        if data_2d.unit_number == 0:
-            print("Error: All selected units or timestep are entirely dry.")
-            if not print_cmd:
+        # multi_reach from several files
+        if len(hydrau_description["reach_list"]) > 1 and len(filename_source) > 1:
+            # load first reach
+            data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
+            # check error
+            if not data_2d_source and not print_cmd:
                 q.put(mystdout)
-            return
-
-        """ semi_wetted_mesh_cutting """
-        if project_preferences["cut_mesh_partialy_dry"]:
-            data_2d.semi_wetted_mesh_cutting(hydrau_description[hdf5_file_index]["unit_list"],
-                                             progress_value,
-                                             delta_file)
-        if data_2d.unit_number == 0:
-            print("Error: All selected units or timestep are not hydraulically operable.")
-            if not print_cmd:
-                q.put(mystdout)
-            return
-
-        """ bank hydraulic aberations  """
-        # data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
-        # cProfile.runctx("data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=False, bank_depth=1)",globals={},locals={"data_2d":data_2d},filename="c:/habby_dev/files/cut6.profile")
-
-        """ re compute area """
-        if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
-            data_2d.hvum.area.hdf5 = True  # variable
-            data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
-        data_2d.compute_variables([data_2d.hvum.area])
-
-        """ remove null area """
-        data_2d.remove_null_area()
-
-        """ get_dimension """
-        data_2d.get_dimension()
-
-        # hyd description
-        data_2d.filename_source = hydrau_description[hdf5_file_index]["filename_source"]
-        data_2d.path_filename_source = hydrau_description[hdf5_file_index]["path_filename_source"]
-        data_2d.hyd_model_type = hydrau_description[hdf5_file_index]["model_type"]
-        data_2d.hyd_model_dimension = hydrau_description[hdf5_file_index]["model_dimension"]
-        data_2d.epsg_code = hydrau_description[hdf5_file_index]["epsg_code"]
-        data_2d.reach_list = hydrau_description[hdf5_file_index]["reach_list"]
-        data_2d.reach_number = int(hydrau_description[hdf5_file_index]["reach_number"])
-        data_2d.reach_type = hydrau_description[hdf5_file_index]["reach_type"]
-        reach_unit_list_str = []
-        for reach_number in range(data_2d.reach_number):
-            unit_list_str = []
-            for unit_name in hydrau_description[hdf5_file_index]["unit_list"][reach_number]:
-                unit_list_str.append(unit_name.replace(":", "_").replace(" ", "_"))
-            reach_unit_list_str.append(unit_list_str)
-        data_2d.unit_list = reach_unit_list_str
-        data_2d.unit_number = len(hydrau_description[hdf5_file_index]["unit_list"][0])
-        data_2d.unit_type = hydrau_description[hdf5_file_index]["unit_type"]
-        data_2d.hyd_varying_mesh = hyd_varying_mesh
-        data_2d.hyd_unit_z_equal = hyd_unit_z_equal
-        data_2d.hyd_unit_correspondence = hydrau_description[hdf5_file_index]["hyd_unit_correspondence"]
-        data_2d.hyd_cuted_mesh_partialy_dry = project_preferences["cut_mesh_partialy_dry"]
-        data_2d.hyd_hydrau_case = hydrau_description[hdf5_file_index]["hydrau_case"]
-        if data_2d.hyd_hydrau_case in {"1.b", "2.b"}:
-            data_2d.hyd_timestep_source_list = [hydrau_description[hdf5_file_index]["timestep_list"]]
-        data_2d.hs_calculated = False
-
-        # create hdf5
-        path_prj = hydrau_description[hdf5_file_index]["path_prj"]
-        hdf5_name = hydrau_description[hdf5_file_index]["hdf5_name"]
-        hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name, new=True)
-        # HYD
-        if not data_2d.hvum.hdf5_and_computable_list.subs():
-            project_preferences_index = 0
-            hdf5.create_hdf5_hyd(data_2d,
-                                 data_2d_whole_profile,
-                                 project_preferences)
-        # HAB
+                return
+            data_2d.add_reach(data_2d_source, [0])
+        # multi_reach from one files (HEC-RAS 2d, ASCII, .. ?)
+        elif len(hydrau_description["reach_list"]) > 1 and len(filename_source) == 1:
+            # load data
+            data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
+            data_2d.add_reach(data_2d_source, list(range(len(hydrau_description["reach_list"]))))
+        # one_reach
         else:
-            project_preferences_index = 1
-            data_2d.sub_mapping_method = hsr.sub_mapping_method
-            data_2d.sub_classification_code = hsr.sub_classification_code
-            data_2d.sub_classification_method = hsr.sub_classification_method
-            hdf5.create_hdf5_hab(data_2d,
-                                 data_2d_whole_profile,
-                                 project_preferences)
+            # load data
+            data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[0])
+            # check error
+            if not data_2d_source and not print_cmd:
+                q.put(mystdout)
+                return
+            for reach_number in range(data_2d_source.reach_number):
+                # data_2d
+                data_2d.add_unit(data_2d_source, reach_number)
 
-        # create_index_hydrau_text_file
-        if not hydrau_description[hdf5_file_index]["index_hydrau"]:
-            create_index_hydrau_text_file(hydrau_description)
+    """ get data_2d_whole_profile """
+    data_2d_whole_profile = data_2d.get_only_mesh()
 
-        # export
-        export_dict = dict()
-        nb_export = 0
-        for key in hdf5.available_export_list:
-            if project_preferences[key][project_preferences_index]:
-                nb_export += 1
-            export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][project_preferences_index]
+    """ set unit_names """
+    data_2d.set_unit_list(hydrau_description["unit_list"])
 
-        if True in export_dict.values():
-            export_dict["habitat_text_hab"] = False
-            export_dict["nb_export"] = nb_export
-            process_manager = MyProcessManager("export")
-            process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
-                                              [hdf5.filename],
-                                              export_dict,
-                                              project_preferences)
-            process_manager.start()
+    """ varying mesh """
+    hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
+    for reach_number in range(len(hyd_varying_xy_index)):
+        if len(set(hyd_varying_xy_index[reach_number])) == 1:  # one tin for all unit
+            hyd_varying_mesh = False
+            data_2d_whole_profile.reduce_to_first_unit_by_reach()
+        else:
+            hyd_varying_mesh = True
+        # hyd_unit_z_equal ?
+        if len(set(hyd_varying_z_index[reach_number])) == 1:
+            hyd_unit_z_equal = True
+        else:
+            hyd_unit_z_equal = True
 
-            while process_manager.isRunning():
-                if stop.is_set():
-                    if process_manager.all_process_runned:
-                        process_manager.close_all_export()
-                        process_manager.terminate()
-                        return
+        # one file : one reach, varying_mesh==False
+        if len(filename_source) == 1:
+            hydrau_description["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
+        else:
+            hydrau_description["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
+
+    """ check_validity """
+    data_2d.check_validity()
+
+    """ set_min_height_to_0 """
+    data_2d.set_min_height_to_0(project_preferences['min_height_hyd'])
+
+    """ remove_dry_mesh """
+    data_2d.remove_dry_mesh()
+    if data_2d.unit_number == 0:
+        print("Error: All selected units or timestep are entirely dry.")
+        if not print_cmd:
+            q.put(mystdout)
+        return
+
+    """ semi_wetted_mesh_cutting """
+    if project_preferences["cut_mesh_partialy_dry"]:
+        data_2d.semi_wetted_mesh_cutting(hydrau_description["unit_list"],
+                                         progress_value,
+                                         delta_file)
+    if data_2d.unit_number == 0:
+        print("Error: All selected units or timestep are not hydraulically operable.")
+        if not print_cmd:
+            q.put(mystdout)
+        return
+
+    """ bank hydraulic aberations  """
+    # data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
+    # cProfile.runctx("data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=False, bank_depth=1)",globals={},locals={"data_2d":data_2d},filename="c:/habby_dev/files/cut6.profile")
+
+    """ re compute area """
+    if not data_2d.hvum.area.name in data_2d.hvum.hdf5_and_computable_list.names():
+        data_2d.hvum.area.hdf5 = True  # variable
+        data_2d.hvum.hdf5_and_computable_list.append(data_2d.hvum.area)
+    data_2d.compute_variables([data_2d.hvum.area])
+
+    """ remove null area """
+    data_2d.remove_null_area()
+
+    """ get_dimension """
+    data_2d.get_dimension()
+
+    # hyd description
+    data_2d.filename_source = hydrau_description["filename_source"]
+    data_2d.path_filename_source = hydrau_description["path_filename_source"]
+    data_2d.hyd_model_type = hydrau_description["model_type"]
+    data_2d.hyd_model_dimension = hydrau_description["model_dimension"]
+    data_2d.epsg_code = hydrau_description["epsg_code"]
+    data_2d.reach_list = hydrau_description["reach_list"]
+    data_2d.reach_number = int(hydrau_description["reach_number"])
+    data_2d.reach_type = hydrau_description["reach_type"]
+    reach_unit_list_str = []
+    for reach_number in range(data_2d.reach_number):
+        unit_list_str = []
+        for unit_name in hydrau_description["unit_list"][reach_number]:
+            unit_list_str.append(unit_name.replace(":", "_").replace(" ", "_"))
+        reach_unit_list_str.append(unit_list_str)
+    data_2d.unit_list = reach_unit_list_str
+    data_2d.unit_number = len(hydrau_description["unit_list"][0])
+    data_2d.unit_type = hydrau_description["unit_type"]
+    data_2d.hyd_varying_mesh = hyd_varying_mesh
+    data_2d.hyd_unit_z_equal = hyd_unit_z_equal
+    data_2d.hyd_unit_correspondence = hydrau_description["hyd_unit_correspondence"]
+    data_2d.hyd_cuted_mesh_partialy_dry = project_preferences["cut_mesh_partialy_dry"]
+    data_2d.hyd_hydrau_case = hydrau_description["hydrau_case"]
+    if data_2d.hyd_hydrau_case in {"1.b", "2.b"}:
+        data_2d.hyd_timestep_source_list = [hydrau_description["timestep_list"]]
+    data_2d.hs_calculated = False
+
+    # create hdf5
+    path_prj = hydrau_description["path_prj"]
+    hdf5_name = hydrau_description["hdf5_name"]
+    hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name, new=True)
+    # HYD
+    if not data_2d.hvum.hdf5_and_computable_list.subs():
+        project_preferences_index = 0
+        hdf5.create_hdf5_hyd(data_2d,
+                             data_2d_whole_profile,
+                             project_preferences)
+    # HAB
+    else:
+        project_preferences_index = 1
+        data_2d.sub_mapping_method = hsr.sub_mapping_method
+        data_2d.sub_classification_code = hsr.sub_classification_code
+        data_2d.sub_classification_method = hsr.sub_classification_method
+        hdf5.create_hdf5_hab(data_2d,
+                             data_2d_whole_profile,
+                             project_preferences)
+
+    # create_index_hydrau_text_file
+    if not hydrau_description["index_hydrau"]:
+        create_index_hydrau_text_file(hydrau_description)
+
+    # export
+    export_dict = dict()
+    nb_export = 0
+    for key in hdf5.available_export_list:
+        if project_preferences[key][project_preferences_index]:
+            nb_export += 1
+        export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][project_preferences_index]
+
+    if True in export_dict.values():
+        export_dict["habitat_text_hab"] = False
+        export_dict["nb_export"] = nb_export
+        process_manager = MyProcessManager("export")
+        process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
+                                          [hdf5.filename],
+                                          export_dict,
+                                          project_preferences)
+        process_manager.start()
+
+        while process_manager.isRunning():
+            if process_manager.all_process_runned:
+                process_manager.close_all_export()
+                process_manager.terminate()
+                return
 
     # prog
-    progress_value.value = 100
+    progress_value.value = 100.0
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -1493,7 +1491,7 @@ class ProcessProgShow(QObject):
     show progress (progress bar, text, number of process)
     """
     def __init__(self, send_log=None, send_refresh_filenames=None, progressbar=None, progress_label=None,
-                 computation_pushbutton=None):
+                 computation_pushbutton=None, run_function=None):
         super().__init__()
         self.send_log = send_log
         self.send_refresh_filenames = send_refresh_filenames
@@ -1506,9 +1504,12 @@ class ProcessProgShow(QObject):
         else:
             self.progress_label = QLabel()
         self.computation_pushbutton = computation_pushbutton
+        self.original_pushbutton_text = self.tr("run")
+        self.run_function = run_function
         self.timer = QTimer()
         self.timer.timeout.connect(self.show_prog)
         self.process_manager = None
+        self.current_finished = 0
 
     def send_err_log(self, check_ok=False):
         """
@@ -1537,65 +1538,78 @@ class ProcessProgShow(QObject):
             return error
 
     def start_show_prog(self, process_manager):
+        self.original_pushbutton_text = self.computation_pushbutton.text()
+
         self.process_manager = process_manager
+        self.process_manager.send_log = self.send_log
+
+        self.process_manager.start()
         self.timer.start(100)
+
+        self.computation_pushbutton.setText(self.tr("stop"))
+        self.computation_pushbutton.disconnect()
+        self.computation_pushbutton.clicked.connect(self.stop_by_user)
         # log
         self.send_log.emit(self.tr("Computing ") + self.process_manager.process_type_gui + "...")
 
     def show_prog(self):
         # RUNNING
         if self.process_manager.isRunning():
-            self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
-            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
-                                                                 self.process_manager.process_list.nb_total))
+            self.show_running_prog()
         # NOT RUNNING (stop_by_user, error, known error, done)
         else:
-            error = False
-            error_list = []
-            # stop show_prog
-            self.timer.stop()
+            self.show_not_running_prog()
 
-            # for each process get informations
-            for process in self.process_manager.process_list:
-                self.mystdout = None
-                error = False
-                if not process.q.empty():
-                    self.mystdout = process.q.get()
-                    error = self.send_err_log(True)
-                error_list.append(error)
-                if self.process_manager.process_list.stop_by_user and not error:
-                    self.send_log.emit(self.tr(process.p.name + " stoped (computation time = ") + str(
-                        round(process.total_time)) + " s).")
-                else:
-                    if not error:
-                        self.send_log.emit(self.tr(process.p.name + " done (computation time = ") + str(
-                            round(process.total_time)) + " s).")
-
-            self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
+    def show_running_prog(self):
+        # progressbar
+        self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
+        if self.current_finished != self.process_manager.process_list.nb_finished:
+            # new
             self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
                                                                  self.process_manager.process_list.nb_total))
-            self.computation_pushbutton.setText(self.tr("run"))
-            self.computation_pushbutton.setChecked(True)
+            self.current_finished = self.process_manager.process_list.nb_finished
 
-            if self.process_manager.process_list.stop_by_user:
+    def show_not_running_prog(self):
+        error = False
+        error_list = []
+        # stop show_prog
+        self.timer.stop()
+
+        self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
+        self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
+                                                             self.process_manager.process_list.nb_total))
+        self.computation_pushbutton.setText(self.tr("run"))
+        self.computation_pushbutton.setChecked(True)
+        self.computation_pushbutton.disconnect()
+        self.computation_pushbutton.clicked.connect(self.run_function)
+
+        if self.process_manager.process_list.stop_by_user:
+            # log
+            self.send_log.emit(self.process_manager.process_type_gui + self.tr(
+                " computation(s) stopped by user (computation time = ") + str(round(self.process_manager.process_list.total_time)) + " s).")
+        else:
+            if error:
                 # log
-                self.send_log.emit(self.process_manager.process_type_gui + self.tr(
-                    " computation(s) stoped by user (computation time = ") + str(round(self.process_manager.process_list.total_time)) + " s).")
-            else:
-                if error:
-                    # log
-                    self.send_log.emit(self.process_manager.process_type_gui +
-                        self.tr(" computation(s) finished with error(s) (computation time = ") + str(
-                            round(self.process_manager.process_list.total_time)) + " s).")
-                else:
-                    # log
-                    self.send_log.emit(self.tr("All tasks finished (computation time = ") + str(
+                self.send_log.emit(self.process_manager.process_type_gui +
+                    self.tr(" computation(s) finished with error(s) (computation time = ") + str(
                         round(self.process_manager.process_list.total_time)) + " s).")
+            else:
+                # log
+                self.send_log.emit(self.tr("All tasks finished (computation time = ") + str(
+                    round(self.process_manager.process_list.total_time)) + " s).")
 
-            if not True in error_list:
-                if self.send_refresh_filenames is not None:
-                    # update_gui
-                    self.send_refresh_filenames.emit()
+        if not True in error_list:
+            if self.send_refresh_filenames is not None:
+                # update_gui
+                self.send_refresh_filenames.emit()
+
+        self.computation_pushbutton.setText(self.original_pushbutton_text)
+
+    def stop_by_user(self):
+        self.process_manager.stop_by_user()
+        self.computation_pushbutton.setText("run")
+        self.computation_pushbutton.disconnect()
+        self.computation_pushbutton.clicked.connect(self.run_function)
 
 
 class MyProcessManager(QThread):
@@ -1603,12 +1617,11 @@ class MyProcessManager(QThread):
     """
     def __init__(self, type, parent=None):
         QThread.__init__(self, parent)
-        self.plot_production_stoped = False
+        self.plot_production_stopped = False
         self.thread_started = False
         self.all_process_runned = False
         self.nb_finished = 0
         self.export_finished = False
-        self.export_production_stoped = False
         self.nb_hs_total = 0
         self.process_type = type  # hs or plot or export
         if self.process_type == "hs":
@@ -1625,6 +1638,36 @@ class MyProcessManager(QThread):
         self.save_process = []
         self.export_hdf5_mode = False
         self.progress_value = 0.0
+
+    # hyd
+    def set_hyd_mode(self, path_prj, hydrau_description_multiple, project_preferences):
+        # # check plot process done
+        if self.check_all_process_closed():
+            self.__init__(self.process_type)
+        else:
+            self.add_plots(1)
+        self.path_prj = path_prj
+        self.hydrau_description_multiple = hydrau_description_multiple
+        self.project_preferences = project_preferences
+
+    def hyd_process(self):
+        # for each .hyd (or .hab) to create
+        for hdf5_file_index in range(0, len(self.hydrau_description_multiple)):
+            # class MyProcess
+            progress_value = Value("d", 0.0)
+            q = Queue()
+            my_process = MyProcess(p=Process(target=load_hydraulic_cut_to_hdf5,
+                                         args=(self.hydrau_description_multiple[hdf5_file_index],
+                                               progress_value,
+                                               q,
+                                               False,
+                                               self.project_preferences),
+                                         name=self.hydrau_description_multiple[hdf5_file_index]["hdf5_name"] + self.tr(" creation")),
+                               progress_value=progress_value,
+                               q=q)
+            self.process_list.append(my_process)
+
+        self.add_send_log_to_each_process()
 
     # plot
     def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_preferences):
@@ -1675,7 +1718,7 @@ class MyProcessManager(QThread):
                 reach_number = light_data_2d.reach_list.index(reach_name)
 
                 # hab data (HV and WUA)
-                if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stoped:
+                if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stopped:
                     # class MyProcess
                     progress_value = Value("d", 0.0)
                     q = Queue()
@@ -1685,7 +1728,7 @@ class MyProcessManager(QThread):
                                                              reach_number,
                                                              habitat_variable_list,
                                                              self.project_preferences),
-                                                       name="- " + "plot_fish_hv_wua"),
+                                                       name="plot_fish_hv_wua"),
                                            progress_value=progress_value,
                                            q=q)
                     self.process_list.append(my_process)
@@ -1699,7 +1742,7 @@ class MyProcessManager(QThread):
                         if self.plot_attr.plot_map_QCheckBoxisChecked:
                             # plot
                             for variable in self.hvum.user_target_list.no_habs():
-                                if not self.plot_production_stoped:
+                                if not self.plot_production_stopped:
                                     plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
                                                                                    units[unit_number],
@@ -1720,14 +1763,14 @@ class MyProcessManager(QThread):
                                                                    light_data_2d,
                                                                    self.project_preferences
                                                                ),
-                                                               name="- " + variable.name_gui),
+                                                               name=variable.name_gui),
                                                            progress_value=progress_value,
                                                            q=q)
                                     self.process_list.append(my_process)
 
                             # plot animal map
                             for animal in habitat_variable_list:
-                                if not self.plot_production_stoped:
+                                if not self.plot_production_stopped:
                                     plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
                                                                                    units[unit_number],
@@ -1750,10 +1793,11 @@ class MyProcessManager(QThread):
                                                                       light_data_2d,
                                                                       self.project_preferences
                                                                   ),
-                                                                  name="- " + animal.name),
+                                                                  name=animal.name),
                                                            progress_value=progress_value,
                                                            q=q)
                                     self.process_list.append(my_process)
+        self.add_send_log_to_each_process()
 
     # export
     def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
@@ -1771,6 +1815,8 @@ class MyProcessManager(QThread):
     def load_data_and_append_export_process(self):
         for name_hdf5 in self.names_hdf5:
             self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
+
+            """ LOADING """
             # hydraulic
             if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
                 self.hdf5.load_hdf5_hyd(whole_profil=True,
@@ -1781,88 +1827,113 @@ class MyProcessManager(QThread):
             # substrate
             elif self.hdf5.hdf5_type == "substrate":  # load substrate data
                 self.hdf5.load_hdf5_sub()
-
             # habitat
             elif self.hdf5.hdf5_type == "habitat":  # load habitat data
                 self.hdf5.load_hdf5_hab(whole_profil=True,
                                         user_target_list=self.project_preferences)
                 # total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
 
-            # append process
-            if self.export_dict["mesh_whole_profile_hyd"] or self.export_dict["point_whole_profile_hyd"] or \
-                    self.export_dict["mesh_units_hyd"] or self.export_dict["point_units_hyd"]:
+            """ APPEND PROCESS """
+            # remove suffix
+            export_dict = dict()
+            for key in self.export_dict.keys():
+                export_dict[key[:-4]] = self.export_dict[key]
+            # export_gpkg
+            export_gpkg = False
+            if self.hdf5.hdf5_type == "hydraulic":
+                if True in (export_dict["mesh_whole_profile"],
+                             export_dict["point_whole_profile"],
+                             export_dict["mesh_units"],
+                             export_dict["point_units"]):
+                    export_gpkg = True
+            elif self.hdf5.hdf5_type == "habitat":
+                if True in (export_dict["mesh_units"],
+                            export_dict["point_units"]):
+                    export_gpkg = True
+            if export_gpkg:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg,
                                                  args=(progress_value,),
-                                                 name="- " + "export_gpkg"),
+                                                 name="export_gpkg"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
 
-            if self.export_dict["elevation_whole_profile_" + self.hdf5.extension[1:]]:
+            # export_stl
+            if export_dict["elevation_whole_profile"]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_stl,
                                              args=(progress_value,),
-                                             name="- " + "export_stl"),
+                                             name="export_stl"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
-            if self.export_dict["variables_units_" + self.hdf5.extension[1:]]:
+
+            # export_paraview
+            if export_dict["variables_units"]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_paraview,
                                                  args=(progress_value,),
-                                                 name="- " + "export_paraview"),
+                                                 name="export_paraview"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
-            if self.export_dict["detailled_text_" + self.hdf5.extension[1:]]:
+
+            # export_detailled_txt
+            if export_dict["detailled_text"]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_txt,
                                                  args=(progress_value,),
-                                                 name="- " + "export_detailled_txt"),
+                                                 name="export_detailled_txt"),
                                        progress_value=progress_value,
                                        q=q)
+                self.process_list.append(my_process)
 
-                self.process_list.append(my_process)
-            if self.export_dict["habitat_text_hab"]:
-                # class MyProcess
-                progress_value = Value("d", 0.0)
-                q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_spu_txt,
-                                                 args=(progress_value,),
-                                                 name="- " + "export_spu_txt"),
-                                       progress_value=progress_value,
-                                       q=q)
-                self.process_list.append(my_process)
-            if self.export_dict["fish_information_hab"]:
-                # class MyProcess
-                progress_value = Value("d", 0.0)
-                q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_report,
-                                                 args=(progress_value,),
-                                                 name="- " + "export_report"),
-                                       progress_value=progress_value,
-                                       q=q)
-                self.process_list.append(my_process)
+            # habitat
+            if self.hdf5.hdf5_type == "habitat":  # load habitat data
+                # export_spu_txt
+                if export_dict["habitat_text"]:
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=self.hdf5.export_spu_txt,
+                                                     args=(progress_value,),
+                                                     name="export_spu_txt"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
+
+                # fish_information_hab
+                if export_dict["fish_information"]:
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=self.hdf5.export_report,
+                                                     args=(progress_value,),
+                                                     name="export_report"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
 
             # FAKE
             # if self.export_dict["mesh_units" + self.hdf5.extension[1:]] or self.export_dict["point_units" + self.hdf5.extension[1:]]:
             #     # append fake first
             #     for fake_num in range(1, total_gpkg_export):
-            #         self.process_list.append([Process(name="- " + "fake_gpkg" + str(fake_num)), Value("i", 1)])
+            #         self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
             #     state = Value("i", 0)
             #     export_gpkg_process = Process(target=self.hdf5.export_gpkg,
             #                                   args=(state,),
-            #                                   name="- " + "export_gpkg")
+            #                                   name="export_gpkg")
             #     self.process_list.append([export_gpkg_process, state])
+        self.add_send_log_to_each_process()
 
     # hs
     def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
@@ -1884,10 +1955,11 @@ class MyProcessManager(QThread):
                                                    q,
                                                    False,
                                                    self.project_preferences),
-                                             name="- " + hdf5_name),
+                                             name=hdf5_name),
                                    progress_value=progress_value,
                                    q=q)
             self.process_list.append(my_process)
+        self.add_send_log_to_each_process()
 
     # hs plot
     def load_data_and_append_hs_plot_process(self):
@@ -1920,7 +1992,7 @@ class MyProcessManager(QThread):
                                                                self.tr(self.plot_attr.hs_plot_type),
                                                                self.project_preferences,
                                                                self.plot_attr.axe_mod_choosen),
-                                                         name="- " + self.plot_attr.hs_plot_type + " hydrosignature " + name_hdf5),
+                                                         name=self.plot_attr.hs_plot_type + " hydrosignature " + name_hdf5),
                                                progress_value=progress_value,
                                                q=q)
                         self.process_list.append(my_process)
@@ -1934,7 +2006,7 @@ class MyProcessManager(QThread):
                                              None,
                                              self.project_preferences,
                                              self.plot_attr.axe_mod_choosen),
-                                                 name="- " + "input class"),
+                                                 name="input class"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
@@ -1978,12 +2050,13 @@ class MyProcessManager(QThread):
                                                            self.hdf5.data_2d.reach_list.index(self.interp_attr.reach),
                                                            self.interp_attr.unit_type,
                                                            self.project_preferences),
-                                                     name="- " + self.tr("interpolated figure")),
+                                                     name=self.tr("interpolated figure")),
                                progress_value=progress_value,
                                q=q)
 
         # append to list
         self.process_list.append(my_process)
+        self.add_send_log_to_each_process()
 
     def load_data_and_append_interpolation_export_process(self):
         self.hdf5 = Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=False)
@@ -2010,21 +2083,16 @@ class MyProcessManager(QThread):
                                                self.hdf5.data_2d,
                                                self.interp_attr.unit_type,
                                                self.project_preferences),
-                                         name="- " + self.tr("interpolated export")),
+                                         name=self.tr("interpolated export")),
                                progress_value=progress_value,
                                q=q)
 
         # append to list
         self.process_list.append(my_process)
-
-    def new_plots(self):
-        self.nb_finished = 0
-        self.save_process = []
-        self.process_list = MyProcessList()
+        self.add_send_log_to_each_process()
 
     def add_plots(self, plus):
-        #print("add_plots")
-        self.plot_production_stoped = False
+        self.plot_production_stopped = False
         # remove plots not started
         self.remove_process_not_started()
 
@@ -2033,7 +2101,12 @@ class MyProcessManager(QThread):
 
     def run(self):
         self.thread_started = True
-        self.plot_production_stoped = False
+        self.plot_production_stopped = False
+        if self.process_type == "hyd":
+            self.all_process_runned = False
+            self.hyd_process()
+            self.process_list.start()
+            self.all_process_runned = True
         if self.process_type == "plot":
             self.all_process_runned = False
             self.load_data_and_append_plot_process()
@@ -2067,12 +2140,11 @@ class MyProcessManager(QThread):
             self.process_list.start()
             self.all_process_runned = True
 
-    def stop_plot_production(self):
-        #print("stop_plot_production")
-        self.plot_production_stoped = True
+    def add_send_log_to_each_process(self):
+        for process in self.process_list:
+            process.send_log = self.send_log
 
     def close_all_plot(self):
-        #print("close_all_plot")
         # remove plots not started
         self.remove_process_not_started()
         for i in range(len(self.process_list)):
@@ -2083,9 +2155,7 @@ class MyProcessManager(QThread):
         """
         Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
         """
-        #print("close_all_export")
         if self.thread_started:
-            self.export_production_stoped = True
             while not self.all_process_runned:
                 #print("waiting", self.all_process_runned)
                 pass
@@ -2138,7 +2208,11 @@ class MyProcessManager(QThread):
             for process in self.process_list:
                 if process.p.is_alive():
                     process.p.terminate()
-                    process.get_total_time()
+                    process.state = self.tr("stopped")
+                    if self.process_type == "plot":
+                        pass
+                    else:
+                        process.get_total_time()
 
             # get_total_time
             self.process_list.get_total_time()
@@ -2195,6 +2269,7 @@ class MyProcessList(list):
 
             # finish
             if process_value == 100.0 and not process.total_time_computed:
+                process.state = "done"
                 # total_time
                 process.get_total_time()
 
@@ -2210,19 +2285,73 @@ class MyProcessList(list):
         self.total_time = time.clock() - self.start_time
 
 
-class MyProcess:
+class MyProcess(QObject):
     """
     Represent one process
     """
+
     def __init__(self, p=Process(name="- None"), progress_value=Value("d", 0.0), q=Queue()):
+        super().__init__()
+        self.state = "started"
         self.p = p  # process
-        self.progress_value = progress_value  # progress value in float
+        self.progress_value = progress_value  # progress value in float (Value class)
         self.q = q  # string to get if warning or error
         self.start_time = time.clock()  # start time in s
         self.total_time = 0  # total time in s
         self.total_time_computed = False
+        self.send_log = None
 
     def get_total_time(self):
         self.total_time = time.clock() - self.start_time  # total time in s
         self.total_time_computed = True
+        if self.send_log is not None:
+            self.mystdout = None
+            error = False
+            if not self.q.empty():
+                self.mystdout = self.q.get()
+                error = self.send_err_log(True)
+            if self.state == self.tr("stopped"):
+                if not error:
+                    if self.progress_value.value == 100:
+                        self.send_log.emit("- " + self.tr(self.p.name + " done (computation time = ") + str(
+                            round(self.total_time)) + " s).")
+                    else:
+                        self.send_log.emit("- " + self.tr(self.p.name + " stopped (computation time = ") + str(
+                            round(self.total_time)) + " s).")
+            else:
+                if not error:
+                    if self.progress_value.value == 100:
+                        self.send_log.emit("- " + self.tr(self.p.name + " done (computation time = ") + str(
+                            round(self.total_time)) + " s).")
+                    else:
+                        self.send_log.emit("- " + self.tr(self.p.name + " crashed (computation time = ") + str(
+                            round(self.total_time)) + " s).")
+        else:
+            print("- " + self.tr(self.p.name + " " + self.state + " (computation time = ") + str(
+                            round(self.total_time)) + " s).")
 
+    def send_err_log(self, check_ok=False):
+        """
+        This function sends the errors and the warnings to the logs.
+        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
+
+        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
+        """
+        error = False
+
+        max_send = 100
+        if self.mystdout is not None:
+            str_found = self.mystdout.getvalue()
+        else:
+            return
+        str_found = str_found.split('\n')
+        for i in range(0, min(len(str_found), max_send)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+            if i == max_send - 1:
+                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+            if 'Error' in str_found[i] and check_ok:
+                error = True
+        if check_ok:
+            return error

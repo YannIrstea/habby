@@ -1090,13 +1090,15 @@ class HydraulicVariableUnitManagement:
                             self.conveyance.position = "node"
                             self.conveyance.hdf5 = False
                             self.all_final_variable_list.append(self.conveyance)
-                            if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names() and self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                            if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
                                 self.h.position = "node"
                                 self.h.hdf5 = True
                                 self.all_final_variable_list.append(self.h)
+                            if self.v.name not in self.all_final_variable_list.hdf5s().nodes().names():
                                 self.v.position = "node"
                                 self.v.hdf5 = True
                                 self.all_final_variable_list.append(self.v)
+
                 # max_slope_bottom mesh ==> need : z
                 elif variable_wish.name == self.max_slope_bottom.name:
                     if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
