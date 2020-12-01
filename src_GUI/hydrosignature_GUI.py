@@ -25,13 +25,14 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QCheckBox, QListWidgetItem, QRadioButton, QListView, QProgressBar
 
 from src.tools_mod import QGroupBoxCollapsible
-from src.hydraulic_process_mod import MyProcessManager, load_hs_and_compare, ProcessProgShow
+from src.hydraulic_process_mod import load_hs_and_compare
+from src.process_manager_mod import MyProcessManager
 from src import hdf5_mod
 from src import plot_mod
 from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
     load_specific_properties
 from src import hydrosignature
-from src_GUI.tools_GUI import change_button_color, ProcessProgLayout
+from src_GUI.dev_tools_GUI import change_button_color, ProcessProgLayout, ProcessProgShow
 from src_GUI.data_explorer_GUI import MyTableModel
 
 

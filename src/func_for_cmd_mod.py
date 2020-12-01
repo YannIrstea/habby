@@ -24,6 +24,8 @@ import h5py
 import matplotlib
 import numpy as np
 
+import src.calcul_hab_mod
+import src.hydraulic_process_mod
 import src.merge
 import src.substrate_mod
 
@@ -1777,7 +1779,7 @@ def cli_merge(arguments, project_preferences):
     stop = Event()
     q = Queue()
     progress_value = Value("d", 0)
-    p = Process(target=src.merge.merge_grid_and_save,
+    p = Process(target=src.hydraulic_process_mod.merge_grid_and_save,
                 args=(hdf5_name_hyd,
                       hdf5_name_sub,
                       outputfilename,
@@ -1847,7 +1849,7 @@ def cli_calc_hab(arguments, project_preferences):
         progress_value = Value("d", 0)
         stop = Event()
         q = Queue()
-        p = Process(target=calcul_hab_mod.calc_hab_and_output,
+        p = Process(target=src.calcul_hab_mod.calc_hab_and_output,
                     args=(hab_filename,
                           user_target_list,
                           progress_value,

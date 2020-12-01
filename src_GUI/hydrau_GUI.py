@@ -19,8 +19,8 @@ import sys
 from multiprocessing import Process, Queue, Value, Event
 import numpy as np
 from copy import deepcopy
-from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QCoreApplication, QEvent
-from PyQt5.QtGui import QIcon, QKeySequence
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QPushButton, \
     QLabel, QGridLayout, \
     QLineEdit, QFileDialog, \
@@ -30,11 +30,9 @@ from PyQt5.QtWidgets import QPushButton, \
 
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
 from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
-from src import hdf5_mod
-from src import hydraulic_process_mod
-
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
-from src_GUI.tools_GUI import QListWidgetClipboard, change_button_color, ProcessProgShow, ProcessProgLayout
+from src_GUI.dev_tools_GUI import QListWidgetClipboard, ProcessProgLayout
+
 np.set_printoptions(threshold=np.inf)
 
 
@@ -125,9 +123,10 @@ class HydrauTab(QScrollArea):
         self.model_list_combobox = QComboBox()
         self.model_list_combobox.setMaxVisibleItems(len(self.hydraulic_model_information.name_models_gui_list) + 4)
         self.model_list_combobox.addItems([""] + self.hydraulic_model_information.name_models_gui_list)  # available model
-        self.model_list_combobox.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.info_model_pushbutton = QPushButton(self.tr('?'))
-        self.info_model_pushbutton.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        widget_height = self.model_list_combobox.minimumSizeHint().height()
+        self.info_model_pushbutton.setFixedHeight(widget_height)
+        self.info_model_pushbutton.setFixedWidth(widget_height)
         self.info_model_pushbutton.clicked.connect(self.give_info_model)
 
         # model
@@ -239,8 +238,6 @@ class ModelInfoGroup(QGroupBox):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.hydraulic_model_information = HydraulicModelInformation()
-        self.timer = QTimer()
-        # self.timer.timeout.connect(self.show_prog)
         self.running_time = 0
         self.stop = Event()
         self.q = Queue()
@@ -258,10 +255,14 @@ class ModelInfoGroup(QGroupBox):
         self.init_ui()
 
     def init_ui(self):
-        self.result_file_title_label = QLabel(self.tr('Result file(s)'))
+        self.result_file_title_label = QLabel(self.tr('Result file'))
         self.input_file_combobox = QComboBox()
         self.select_file_button = QPushButton("...")
+        self.select_file_button.setToolTip(self.tr("Select file(s)"))
         self.select_file_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        widget_height = self.input_file_combobox.minimumSizeHint().height()
+        self.select_file_button.setFixedHeight(widget_height)
+        self.select_file_button.setFixedWidth(widget_height)
         self.select_file_button.clicked.connect(self.select_file_and_show_informations_dialog)
 
         # selection_layout
@@ -274,7 +275,7 @@ class ModelInfoGroup(QGroupBox):
         self.reach_name_combobox = QComboBox()
 
         # unit list
-        unit_title_label = QLabel(self.tr('Unit(s)'))
+        unit_title_label = QLabel(self.tr('Unit name'))
         self.units_QListWidget = QListWidgetClipboard()
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
@@ -296,15 +297,18 @@ class ModelInfoGroup(QGroupBox):
 
         # usefull_mesh_variables
         usefull_mesh_variable_label_title = QLabel(self.tr('Mesh data'))
+        # usefull_mesh_variable_label_title.setFixedHeight(widget_height)
         self.usefull_mesh_variable_label = QLabel(self.tr('unknown'))
 
         # usefull_node_variables
         usefull_node_variable_label_title = QLabel(self.tr('Node data'))
+        # usefull_node_variable_label_title.setFixedHeight(widget_height)
         self.usefull_node_variable_label = QLabel(self.tr('unknown'))
 
         # epsg
         epsg_title_label = QLabel(self.tr('EPSG code'))
         self.epsg_label = QLineEdit(self.tr('unknown'))
+        # self.epsg_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.epsg_label.returnPressed.connect(self.load_hydraulic_create_hdf5)
 
         # hdf5 name
@@ -319,33 +323,26 @@ class ModelInfoGroup(QGroupBox):
         # progress_layout
         self.progress_layout = ProcessProgLayout(self.load_hydraulic_create_hdf5,
                                                  send_log=self.send_log,
-                                                 process_type="hyd")
+                                                 process_type="hyd",
+                                                 send_refresh_filenames=self.drop_hydro)
 
         # layout
         layout_ascii = QGridLayout()
         layout_ascii.addWidget(self.result_file_title_label, 0, 0)
-        layout_ascii.addLayout(self.selection_layout, 0, 1, 1, 2)
-        # layout_ascii.addWidget(self.select_file_button, 0, 3)
+        layout_ascii.addLayout(self.selection_layout, 0, 1)
         layout_ascii.addWidget(reach_name_title_label, 1, 0)
-        layout_ascii.addWidget(self.reach_name_combobox, 1, 1, 1, 2)
-
-        layout_ascii.addWidget(unit_title_label, 3, 0, 2, 1)
-
-        layout_ascii.addLayout(unit_layout, 3, 1, 2, 2)
-        # layout_ascii.addWidget(self.units_QListWidget, 3, 2, 2, 1)
-        # layout_ascii.addWidget(self.units_name_label, 3, 1)
-        # layout_ascii.addWidget(units_number_title_label, 4, 0)
-        # layout_ascii.addWidget(self.unit_number_label, 4, 1)
-
+        layout_ascii.addWidget(self.reach_name_combobox, 1, 1)
+        layout_ascii.addWidget(unit_title_label, 3, 0)
+        layout_ascii.addLayout(unit_layout, 3, 1)
         layout_ascii.addWidget(usefull_mesh_variable_label_title, 5, 0)
-        layout_ascii.addWidget(self.usefull_mesh_variable_label, 5, 1, 1, 2)  # from row, from column, nb row, nb column
+        layout_ascii.addWidget(self.usefull_mesh_variable_label, 5, 1)  # from row, from column, nb row, nb column
         layout_ascii.addWidget(usefull_node_variable_label_title, 6, 0)
-        layout_ascii.addWidget(self.usefull_node_variable_label, 6, 1, 1, 2)  # from row, from column, nb row, nb column
+        layout_ascii.addWidget(self.usefull_node_variable_label, 6, 1)  # from row, from column, nb row, nb column
         layout_ascii.addWidget(epsg_title_label, 7, 0)
-        layout_ascii.addWidget(self.epsg_label, 7, 1, 1, 1)
+        layout_ascii.addWidget(self.epsg_label, 7, 1)
         layout_ascii.addWidget(hdf5_name_title_label, 8, 0)
-        layout_ascii.addWidget(self.hdf5_name_lineedit, 8, 1, 1, 2)
-        layout_ascii.addLayout(self.progress_layout, 9, 0, 1, 4)
+        layout_ascii.addWidget(self.hdf5_name_lineedit, 8, 1)
+        layout_ascii.addLayout(self.progress_layout, 9, 0, 1, 2)
         layout_ascii.addWidget(self.last_hydraulic_file_label, 10, 0)
         layout_ascii.addWidget(self.last_hydraulic_file_name_label, 10, 1)
         self.setLayout(layout_ascii)
@@ -363,7 +360,7 @@ class ModelInfoGroup(QGroupBox):
             self.clean_gui()
             # extensions
             # self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
-            self.result_file_title_label.setText(self.tr('Result file(s) (' + self.extension + ')'))
+            self.result_file_title_label.setText(self.tr('Result file (' + self.extension + ')'))
             self.name_last_hdf5(self.model_type)
             self.show()
 

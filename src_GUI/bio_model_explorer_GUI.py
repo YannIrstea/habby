@@ -33,7 +33,7 @@ from src import bio_info_mod
 from src import plot_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties
 from src.user_preferences_mod import user_preferences
-from src.hydraulic_process_mod import MyProcessManager
+from src.process_manager_mod import MyProcessManager
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 
 

@@ -2184,6 +2184,7 @@ class CentralW(QWidget):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
             self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.substrate_tab.sub_and_merge.drop_hydro.connect(self.update_combobox_filenames)
             self.substrate_tab.sub_and_merge.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
 

@@ -25,7 +25,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstract
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties
 from src.tools_mod import QHLine, DoubleClicOutputGroup
-from src_GUI.tools_GUI import QGroupBoxCollapsible, ProcessProgLayout
+from src_GUI.tools_GUI import QGroupBoxCollapsible
+from src_GUI.dev_tools_GUI import ProcessProgLayout
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
@@ -294,6 +295,8 @@ class DataExplorerFrame(QFrame):
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
                                 mesh_item.setToolTip("computable")
+                            else:
+                                mesh_item.setToolTip("exist in file")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
                     if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
                         for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
@@ -302,6 +305,8 @@ class DataExplorerFrame(QFrame):
                             if not node.hdf5:
                                 node_item.setText(node_item.text() + " *")
                                 node_item.setToolTip("computable")
+                            else:
+                                node_item.setToolTip("exist in file")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
                     if self.hdf5.data_2d.reach_list:
@@ -323,6 +328,8 @@ class DataExplorerFrame(QFrame):
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
                                 mesh_item.setToolTip("computable")
+                            else:
+                                mesh_item.setToolTip("exist in file")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
                     if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
                         for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
@@ -331,6 +338,8 @@ class DataExplorerFrame(QFrame):
                             if not node.hdf5:
                                 node_item.setText(node_item.text() + " *")
                                 node_item.setToolTip("computable")
+                            else:
+                                node_item.setToolTip("exist in file")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
                     if self.hdf5.data_2d.sub_mapping_method != "constant":
@@ -353,6 +362,8 @@ class DataExplorerFrame(QFrame):
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
                                 mesh_item.setToolTip("computable")
+                            else:
+                                mesh_item.setToolTip("exist in file")
                             self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
                     if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
                         for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
@@ -361,6 +372,8 @@ class DataExplorerFrame(QFrame):
                             if not node.hdf5:
                                 node_item.setText(node_item.text() + " *")
                                 node_item.setToolTip("computable")
+                            else:
+                                node_item.setToolTip("exist in file")
                             self.plot_group.node_variable_QListWidget.addItem(node_item)
 
                     # habitatvalueremover_group
@@ -371,6 +384,8 @@ class DataExplorerFrame(QFrame):
                             if not mesh.hdf5:
                                 mesh_item.setText(mesh_item.text() + " *")
                                 mesh_item.setToolTip("computable")
+                            else:
+                                mesh_item.setToolTip("exist in file")
                             self.habitatvalueremover_group.existing_animal_QListWidget.addItem(mesh_item)
 
                     if self.hdf5.data_2d.reach_list:
@@ -526,14 +541,17 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.init_ui()
 
     def init_ui(self):
+        qlistwidget_height = 100
         """ original and computable data """
         self.mesh_variable_QLabel = QLabel(self.tr('mesh variables'))
         self.mesh_variable_QListWidget = QListWidget()
+        self.mesh_variable_QListWidget.setMaximumHeight(qlistwidget_height)
         self.mesh_variable_QListWidget.setObjectName("mesh_variable_QListWidget")
         self.mesh_variable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.mesh_variable_QListWidget.itemSelectionChanged.connect(self.count_plot)
         self.node_variable_QLabel = QLabel(self.tr('node variables'))
         self.node_variable_QListWidget = QListWidget()
+        self.node_variable_QListWidget.setMaximumHeight(qlistwidget_height)
         self.node_variable_QListWidget.setObjectName("node_variable_QListWidget")
         self.node_variable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.node_variable_QListWidget.itemSelectionChanged.connect(self.count_plot)
@@ -547,6 +565,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # reach_QListWidget
         self.reach_hdf5_QLabel = QLabel(self.tr('reach(s)'))
         self.reach_QListWidget = QListWidget()
+        self.reach_QListWidget.setMaximumHeight(qlistwidget_height)
         self.reach_QListWidget.setObjectName("reach_QListWidget")
         self.reach_QListWidget.setMinimumWidth(110)
         self.reach_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -559,6 +578,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # units_QListWidget
         self.units_QLabel = QLabel(self.tr('unit(s)'))
         self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setMaximumHeight(qlistwidget_height)
         self.units_QListWidget.setObjectName("units_QListWidget")
         self.units_QListWidget.setMinimumWidth(50)
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)

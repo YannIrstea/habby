@@ -15,23 +15,22 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import numpy as np
 import sys
 from io import StringIO
+
+import numpy as np
 from scipy.interpolate import interp1d, griddata
-from pandas import DataFrame
 
 import src.tools_mod
-from src import hdf5_mod
-from src import bio_info_mod
-from src.substrate_mod import sandre_to_cemagref_array, sandre_to_cemagref_by_percentage_array, \
-    pref_substrate_dominant_from_percentage_description, pref_substrate_coarser_from_percentage_description
+from src import hdf5_mod, bio_info_mod
+# from src.process_manager_mod import MyProcessManager
+from src.substrate_mod import sandre_to_cemagref_by_percentage_array, sandre_to_cemagref_array, \
+    pref_substrate_coarser_from_percentage_description, pref_substrate_dominant_from_percentage_description
 from src.tools_mod import get_translator
-from src.hydraulic_process_mod import MyProcessManager
 
 
 def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False,
-                        project_preferences={}, stop=object):
+                        project_preferences={}):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
@@ -378,22 +377,21 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             nb_export += 1
         export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
 
-    if True in export_dict.values():
-        export_dict["habitat_text_hab"] = True
-        export_dict["nb_export"] = nb_export
-        process_manager = MyProcessManager("export")
-        process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
-                                          [hdf5.filename],
-                                          export_dict,
-                                          project_preferences)
-        process_manager.start()
-
-        while process_manager.isRunning():
-            if stop.is_set():
-                if process_manager.all_process_runned:
-                    process_manager.close_all_export()
-                    process_manager.terminate()
-                    return
+    # if True in export_dict.values():
+    #     export_dict["habitat_text_hab"] = True
+    #     export_dict["nb_export"] = nb_export
+    #     process_manager = MyProcessManager("export")
+    #     process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
+    #                                       [hdf5.filename],
+    #                                       export_dict,
+    #                                       project_preferences)
+    #     process_manager.start()
+    #
+    #     while process_manager.isRunning():
+    #         if process_manager.all_process_runned:
+    #             process_manager.close_all_export()
+    #             process_manager.terminate()
+    #             return
 
     # progress
     progress_value.value = 100
@@ -405,4 +403,3 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         return
     else:
         return
-

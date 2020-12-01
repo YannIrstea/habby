@@ -3,8 +3,6 @@ import numpy.lib.recfunctions
 import os.path
 import time
 
-from src import hdf5_mod
-
 
 def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node,
                                    hyd_data_node=None, hyd_data_mesh=None,
@@ -613,57 +611,57 @@ def index_to_class_number(class_shape, indices):
     return number
 
 
-if __name__ == '__main__':
-    '''
-    testing the hydrosignature program
-    '''
-    t = 1  # regarding this value different tests can be launched
-    if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
-        classhv = [[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3], [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5]]
-        hyd_tin = np.array([[0, 1, 3], [0, 3, 4], [1, 2, 3], [3, 4, 6], [3, 6, 7], [4, 5, 6]])
-        hyd_xy_node = np.array([[821128.213280755, 1867852.71720679], [821128.302459342, 1867853.34262438],
-                                [821128.314753232, 1867854.93690708], [821131.385434587, 1867854.6662084],
-                                [821132.187889633, 1867852.67553172], [821136.547596803, 1867851.73984275],
-                                [821136.717311027, 1867853.21858062], [821137.825096539, 1867853.68]])
-        hyd_hv_node = np.array(
-            [[1.076, 0.128], [0.889999985694885, 0.155], [0, 0], [0, 0], [0.829999983310699, 0.145], [1.127, 0.143],
-             [0.600000023841858, 0.182], [0, 0]])
-        nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
-            classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
-        print(nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth,
-              min_velocity, max_velocity, hsarea, hsvolume)
-        bok, hsc = hscomparison(classhv, hsarea, classhv, hsvolume)
-        print(hsc)
-
-        # Test export file
-        pathexport = 'C:\\habby_dev\\files\\hydrosignature'
-        filename = "3HSexport.txt"
-        unitname = 'XXXXXXX'
-        hsexporttxt(pathexport, filename, classhv, unitname, nb_mesh, total_area, total_volume, mean_depth,
-                    mean_velocity,
-                    mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
-
-    if t == 1:
-        t0 = time.time()
-
-        classhv = [[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3, 100], [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5, 100]]
-        path_prj = "C:\\habby_dev\\Hydrosignature\\project"
-        input_filename = "a1.hyd"
-        oldhdf5 = hdf5_mod.Hdf5Management(path_prj, input_filename, new=False, edit=False)
-        # oldhdf5.load_hdf5_hyd()
-        # oldhdf5.load_data_2d()
-        # oldhdf5.load_whole_profile()
-        # oldhdf5.load_data_2d_info()
-        # oldhdf5.add_hs(classhv)
-        newhdf5 = oldhdf5.hydrosignature_new_file(classhv)
-        t1 = time.time()
-        print("time: " + str(t1 - t0))
-        # newhdf5.load_hydrosignature()
-        newfile = hdf5_mod.Hdf5Management(path_prj, "a1_HS.hyd", new=True)
-        newfile.load_hdf5_hyd()
-        newfile.load_data_2d()
-        newfile.load_hydrosignature()
-        print(newhdf5.data_2d)
+# if __name__ == '__main__':
+#     '''
+#     testing the hydrosignature program
+#     '''
+#     t = 1  # regarding this value different tests can be launched
+#     if t == 0:  # random nbpointhyd, nbpointsub are the number of nodes/points to be randomly generated respectively for hydraulic and substrate TIN
+#         classhv = [[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3], [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5]]
+#         hyd_tin = np.array([[0, 1, 3], [0, 3, 4], [1, 2, 3], [3, 4, 6], [3, 6, 7], [4, 5, 6]])
+#         hyd_xy_node = np.array([[821128.213280755, 1867852.71720679], [821128.302459342, 1867853.34262438],
+#                                 [821128.314753232, 1867854.93690708], [821131.385434587, 1867854.6662084],
+#                                 [821132.187889633, 1867852.67553172], [821136.547596803, 1867851.73984275],
+#                                 [821136.717311027, 1867853.21858062], [821137.825096539, 1867853.68]])
+#         hyd_hv_node = np.array(
+#             [[1.076, 0.128], [0.889999985694885, 0.155], [0, 0], [0, 0], [0.829999983310699, 0.145], [1.127, 0.143],
+#              [0.600000023841858, 0.182], [0, 0]])
+#         nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
+#             classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
+#         print(nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth,
+#               min_velocity, max_velocity, hsarea, hsvolume)
+#         bok, hsc = hscomparison(classhv, hsarea, classhv, hsvolume)
+#         print(hsc)
+#
+#         # Test export file
+#         pathexport = 'C:\\habby_dev\\files\\hydrosignature'
+#         filename = "3HSexport.txt"
+#         unitname = 'XXXXXXX'
+#         hsexporttxt(pathexport, filename, classhv, unitname, nb_mesh, total_area, total_volume, mean_depth,
+#                     mean_velocity,
+#                     mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
+#
+#     if t == 1:
+#         t0 = time.time()
+#
+#         classhv = [[0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 3, 100], [0, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 5, 100]]
+#         path_prj = "C:\\habby_dev\\Hydrosignature\\project"
+#         input_filename = "a1.hyd"
+#         oldhdf5 = hdf5_mod.Hdf5Management(path_prj, input_filename, new=False, edit=False)
+#         # oldhdf5.load_hdf5_hyd()
+#         # oldhdf5.load_data_2d()
+#         # oldhdf5.load_whole_profile()
+#         # oldhdf5.load_data_2d_info()
+#         # oldhdf5.add_hs(classhv)
+#         newhdf5 = oldhdf5.hydrosignature_new_file(classhv)
+#         t1 = time.time()
+#         print("time: " + str(t1 - t0))
+#         # newhdf5.load_hydrosignature()
+#         newfile = hdf5_mod.Hdf5Management(path_prj, "a1_HS.hyd", new=True)
+#         newfile.load_hdf5_hyd()
+#         newfile.load_data_2d()
+#         newfile.load_hydrosignature()
+#         print(newhdf5.data_2d)
     # nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation(
     #     classhv, hyd_tin, hyd_xy_node, hyd_hv_node)
 

@@ -32,6 +32,7 @@ from PyQt5.QtWidgets import QMainWindow, QTableWidget, QDialog, QAbstractItemVie
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QTableWidgetItem, QTextEdit, \
     QFileDialog, QMessageBox, QFrame, QMenu, QToolBar, QProgressBar, QScrollArea, QHBoxLayout
 
+import src_GUI.dev_tools_GUI
 from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
 from src_GUI import tools_GUI
@@ -345,7 +346,7 @@ class SoftInformationDialog(QDialog):
 
         """ general """
         self.tab_widget = QTabWidget()
-        self.tab_widget.setTabBar(tools_GUI.LeftHorizontalTabBar(self))  # horizontal tab title text
+        self.tab_widget.setTabBar(src_GUI.dev_tools_GUI.LeftHorizontalTabBar(self))  # horizontal tab title text
         self.tab_widget.setTabPosition(QTabWidget.West)  # tab position to le left
         self.tab_widget.addTab(about_tab, self.tr("About"))
         self.tab_widget.addTab(developer_tab, self.tr("Developers"))

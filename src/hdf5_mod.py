@@ -27,9 +27,7 @@ from osgeo import osr
 from stl import mesh
 from multiprocessing import Value
 import shutil
-import sys
 from pandas import DataFrame
-from copy import deepcopy
 
 from src import bio_info_mod
 from src import plot_mod
@@ -39,7 +37,6 @@ from src.project_properties_mod import load_project_properties, save_project_pro
 from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
 from src.data_2d_mod import Data2d
 from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
-from src.dev_tools import profileit
 
 from habby import HABBY_VERSION_STR
 

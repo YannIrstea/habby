@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
     QSizePolicy, QFrame, QCheckBox, QWidget
 
 from src_GUI import estimhab_GUI
-from src_GUI.tools_GUI import change_button_color
+from src_GUI.dev_tools_GUI import ProcessProgLayout
 from src import calcul_hab_mod
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties
@@ -83,10 +83,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                'Neglect']
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
         self.text_ini = []  # the text with the tooltip
-        # self.name_database = 'pref_bio.db'
-        self.timer = QTimer()
-        self.running_time = 0
-        self.timer.timeout.connect(self.show_prog)
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
@@ -198,10 +194,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.verticalHeader().setVisible(False)
         self.presence_qtablewidget.horizontalHeader().setVisible(False)
 
-        self.calc_hab_pushbutton = QPushButton(self.tr('Compute habitat value'))
-        change_button_color(self.calc_hab_pushbutton, "#47B5E6")
-        self.calc_hab_pushbutton.setEnabled(False)
-        self.calc_hab_pushbutton.clicked.connect(self.run_habitat_value)
+        # progress_layout
+        self.progress_layout = ProcessProgLayout(self.run_habitat_value,
+                                                 send_log=self.send_log,
+                                                 process_type="hab")  # load_polygon_substrate_pushbutton
 
         # 5 column
         self.presence_scrollbar = self.presence_qtablewidget.verticalScrollBar()
@@ -262,7 +258,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # 5e column
         self.layout4.addWidget(self.presence_scrollbar, 3, 4, 1, 1)
 
-        self.layout4.addWidget(self.calc_hab_pushbutton, 5, 2, 1, 3, Qt.AlignRight)
+        self.layout4.addLayout(self.progress_layout, 5, 0, 1, 4)
         self.layout4.setColumnStretch(0, 30)
         self.layout4.setColumnStretch(1, 10)
         self.layout4.setColumnStretch(2, 10)
@@ -600,7 +596,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # add new item if not exist
             for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
                 """ NAME """
-                self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, QLabel(item_str))
+                label_cell = QLabel(item_str)
+                label_cell.setToolTip(item_str)
+                self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, label_cell)
                 self.selected_aquatic_animal_qtablewidget.setRowHeight(index, 27)
 
                 # get bio info
@@ -705,13 +703,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # general
             self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
             if self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]:
-                self.calc_hab_pushbutton.setEnabled(True)
+                self.progress_layout.run_stop_button.setEnabled(True)
 
             # save model selection calhab
             self.save_selected_aquatic_animal_list_prj()
 
         else:
-            self.calc_hab_pushbutton.setEnabled(False)
+            self.progress_layout.run_stop_button.setEnabled(False)
             if new_item_text_dict:
                 self.send_log.emit("Warning: " + self.tr("Create a .hab file before adding models."))
 
@@ -871,10 +869,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         We should not add a comma in the name of the selected fish.
         """
-        # disable the button
-        self.calc_hab_pushbutton.setEnabled(False)
-        self.send_log.emit(self.tr('# Calculating: habitat value...'))
-
         # get the figure options and the type of output to be created
         project_preferences = load_project_properties(self.path_prj)
 
@@ -919,30 +913,20 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if len(self.hdf5_merge) > 0:
                 hab_filename = self.hdf5_merge[ind]
             else:
-                self.calc_hab_pushbutton.setEnable(True)
                 self.send_log.emit('Error: ' + self.tr('No merged hydraulic files available.'))
                 return
-
-            # show progressbar
-            self.nativeParentWidget().progress_bar.setRange(0, 100)
-            self.nativeParentWidget().progress_bar.setValue(0)
-            self.nativeParentWidget().progress_bar.setVisible(True)
 
             # only useful if we want to also show the 2d figure in the GUI
             self.hdf5_file = hab_filename
             self.path_hdf5 = path_hdf5
 
-            # send the calculation of habitat and the creation of output
-            self.timer.start(100)  # to refresh progress info
-            self.stop = Event()
-            self.q = Queue()
-            self.progress_value = Value("d", 0)
-            self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
-                             args=(hab_filename, user_target_list, self.progress_value, self.q, False,
-                                   project_preferences,
-                                   self.stop))
-            self.p.name = "Habitat calculation"
-            self.p.start()
+            # process_manager
+            self.progress_layout.process_manager.set_hab_mode(self.path_prj,
+                                                                      user_target_list,
+                                                                      hab_filename,
+                                                                      load_project_properties(self.path_prj))
+            # process_prog_show
+            self.progress_layout.start()
 
             # log
             self.send_log.emit("py    file1='" + hab_filename + "'")
@@ -961,71 +945,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # self.send_log.emit("restart    type of calculation: " + str(run_choice))
         else:
             # disable the button
-            self.calc_hab_pushbutton.setEnabled(True)
+            self.progress_layout.run_stop_button.setEnabled(True)
             self.send_log.emit(self.tr('Warning: Nothing to compute !'))
-
-    def show_prog(self):
-        """
-        This function is linked with the timer started in run_habitat_value. It is run regulary and
-        check if the function on the second thread have finised created the figures. If yes,
-        this function create the 1d figure for the HABBY GUI.
-        """
-
-        # RUNNING
-        if self.p.is_alive():
-            self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
-            # send the message
-            self.send_log.emit("Process " +
-                               self.tr("'Habitat computation' is alive and run since ") + str(round(self.running_time)) + " sec.")
-            self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            self.nativeParentWidget().kill_process_action.setVisible(True)
-        else:
-            # FINISH (but can have known errors)
-            if not self.q.empty():
-                self.timer.stop()
-                self.mystdout = self.q.get()
-                error = self.send_err_log(True)
-
-                # known errors
-                if error:
-                    self.send_log.emit("clear status bar")
-                    self.running_time = 0
-                    self.nativeParentWidget().kill_process_action.setVisible(False)
-                    # give the possibility of sending a new simulation
-                    self.calc_hab_pushbutton.setEnabled(True)
-                else:
-                    # give the possibility of sending a new simulation
-                    self.calc_hab_pushbutton.setEnabled(True)
-
-                    self.send_log.emit(self.tr('Habitat computation is finished (computation time = ') + str(
-                        round(self.running_time)) + " s).")
-                    self.send_log.emit(self.tr("Outputs data can be displayed and exported from 'Data explorer' tab."))
-
-                    # put the timer back to zero and clear status bar
-                    self.running_time = 0
-                    self.send_log.emit("clear status bar")
-                    self.plot_new = False
-                    # refresh plot gui list file
-                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
-                    self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
-                    self.running_time = 0
-                    self.nativeParentWidget().kill_process_action.setVisible(False)
-                    # check_uncheck_allmodels_presence
-                    self.check_uncheck_allmodels_presence()
-
-            # CLEANING GUI
-            if not self.p.is_alive() and self.q.empty():
-                # enable the button to call this functin directly again
-                self.timer.stop()
-                self.send_log.emit("clear status bar")
-                self.nativeParentWidget().kill_process_action.setVisible(False)
-                self.running_time = 0
-                self.calc_hab_pushbutton.setEnabled(True)
-                # check_uncheck_allmodels_presence
-                self.check_uncheck_allmodels_presence()
-                # CRASH
-                if self.p.exitcode == 1:
-                    self.send_log.emit(self.tr("Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
 
 
 if __name__ == '__main__':

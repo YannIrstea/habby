@@ -28,9 +28,8 @@ from PyQt5.QtGui import QFont, QIcon
 from multiprocessing import Process, Value
 import sys
 from io import StringIO
-from src import hdf5_mod
 from src.tools_mod import DoubleClicOutputGroup
-from src.hydraulic_process_mod import MyProcessManager
+# from src.hydraulic_process_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties
 
 
@@ -346,7 +345,7 @@ class EstimhabW(StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
-        self.process_manager = MyProcessManager("plot")
+        # self.process_manager = MyProcessManager("plot")
         self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []

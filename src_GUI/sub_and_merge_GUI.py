@@ -18,7 +18,7 @@ import os
 from multiprocessing import Process, Queue, Value, Event
 import numpy as np
 from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtCore import pyqtSignal, QTimer, Qt
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, \
     QLabel, QGridLayout, \
     QLineEdit, QFileDialog, QSpacerItem, \
@@ -34,7 +34,8 @@ from src import hdf5_mod
 from src import substrate_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, save_project_properties
 from src.tools_mod import QGroupBoxCollapsible
-from src_GUI.tools_GUI import change_button_color, ProcessProgLayout
+from src_GUI.dev_tools_GUI import change_button_color, ProcessProgLayout
+
 np.set_printoptions(threshold=np.inf)
 
 
@@ -152,21 +153,12 @@ class SubstrateAndMerge(QWidget):
         self.model_type = 'SUBSTRATE'
         self.data_type = "SUBSTRATE"
         self.name_att = ''
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.show_prog)
-        self.running_time = 0
-        self.max_lengthshow = 90  # the maximum length of a file name to be show in full
-        self.nb_dim = 10  # just to ckeck
         self.hname2 = QLineEdit('Sub_CONST')
         self.hname2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        # order and name matters here!
-        # change with caution!
-        # roughness height if ok with George
         self.substrate_classification_codes = ['Cemagref', 'Sandre']
         self.substrate_classification_methods = ['coarser-dominant', 'percentage']
         self.pathfile_polygon = ''
         self.lasf_hdf5 = ''
-
         self.init_iu()
 
     def init_iu(self):
@@ -174,12 +166,13 @@ class SubstrateAndMerge(QWidget):
         Used in the initialization by __init__().
         """
 
+        widget_height = QComboBox().minimumSizeHint().height()
         # choose between loading substrate by polygon, point or constant
         l1 = QLabel(self.tr('Substrate mapping method from'))
         sub_spacer = QSpacerItem(1, 10)
-        self.polyg_radiobutton = QRadioButton(self.tr('polygons (.shp, .gpkg)'))
-        self.point_radiobutton = QRadioButton(self.tr('points (.txt, .shp, .gpkg)'))
-        self.constant_radiobutton = QRadioButton(self.tr('constant values (.txt)'))
+        self.polyg_radiobutton = QRadioButton(self.tr('polygons\n(.shp, .gpkg)'))
+        self.point_radiobutton = QRadioButton(self.tr('points\n(.txt, .shp, .gpkg)'))
+        self.constant_radiobutton = QRadioButton(self.tr('constant values\n(.txt)'))
         self.polyg_radiobutton.setChecked(True)
         self.polyg_radiobutton.clicked.connect(lambda: self.btnstate(self.polyg_radiobutton, self.point_radiobutton, self.constant_radiobutton))
         self.polyg_radiobutton.clicked.connect(self.add_polygon_widgets)
@@ -189,11 +182,16 @@ class SubstrateAndMerge(QWidget):
         self.constant_radiobutton.clicked.connect(self.add_const_widgets)
 
         # POLYGON (0 line)
-        filetitle_polygon_label = QLabel(self.tr('File'))
+        filetitle_polygon_label = QLabel(self.tr('File (.shp, .gpkg)'))
         self.file_polygon_label = QLabel("", self)
         self.file_polygon_label.setToolTip(self.pathfile_polygon)
-        self.sub_choosefile_polygon = QPushButton(self.tr('Choose file (.shp, .gpkg)'), self)
+        self.sub_choosefile_polygon = QPushButton(self.tr('...'), self)
+        self.sub_choosefile_polygon.setFixedHeight(widget_height)
+        self.sub_choosefile_polygon.setFixedWidth(widget_height)
         self.sub_choosefile_polygon.clicked.connect(lambda: self.show_dialog_substrate("polygon"))
+        self.selection_layout_polygon = QHBoxLayout()  # selection_layout
+        self.selection_layout_polygon.addWidget(self.file_polygon_label)
+        self.selection_layout_polygon.addWidget(self.sub_choosefile_polygon)
         # POLYGON (1 line)
         classification_codetitle_polygon_label = QLabel(self.tr('Classification code'))
         self.sub_classification_code_polygon_label = QLabel(self.tr('unknown'))
@@ -210,19 +208,21 @@ class SubstrateAndMerge(QWidget):
         hab_filenametitle_polygon_label = QLabel(self.tr('.sub file name'))
         self.polygon_hname = QLineEdit('')  # hdf5 name
         self.polygon_hname.returnPressed.connect(lambda: self.load_sub_gui('polygon'))
-        self.load_polygon_substrate_pushbutton = QPushButton(self.tr('Create .sub file'), self)
-        change_button_color(self.load_polygon_substrate_pushbutton, "#47B5E6")
-        self.load_polygon_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('polygon'))
-        self.load_polygon_substrate_pushbutton.setEnabled(False)
 
         # POINT (0 line)
-        filetitle_point_label = QLabel(self.tr('File'))
+        filetitle_point_label = QLabel(self.tr('File (.txt, .shp, .gpkg)'))
         self.file_point_label = QLabel(self.namefile[0], self)
         self.file_point_label.setToolTip(self.pathfile[0])
-        self.sub_choosefile_point = QPushButton(self.tr('Choose file (.txt, .shp, .gpkg)'), self)
+        self.sub_choosefile_point = QPushButton(self.tr('...'), self)
+        self.sub_choosefile_point.setFixedHeight(widget_height)
+        self.sub_choosefile_point.setFixedWidth(widget_height)
         self.sub_choosefile_point.clicked.connect(lambda: self.show_dialog_substrate("point"))
         self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setToolTip(self.pathfile[0]))
         self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setText(self.namefile[0]))
+        self.selection_layout_point = QHBoxLayout()  # selection_layout
+        self.selection_layout_point.addWidget(self.file_point_label)
+        self.selection_layout_point.addWidget(self.sub_choosefile_point)
+
         # POINT (1 line)
         classification_codetitle_point_label = QLabel(self.tr('Classification code'))
         self.sub_classification_code_point_label = QLabel(self.tr('unknown'))
@@ -239,19 +239,20 @@ class SubstrateAndMerge(QWidget):
         hab_filenametitle_point_label = QLabel(self.tr('.sub file name'))
         self.point_hname = QLineEdit('')  # hdf5 name
         self.point_hname.returnPressed.connect(lambda: self.load_sub_gui('point'))
-        # progress_layout.run_stop_button = QPushButton(self.tr('Create .sub file'), self)
-        # change_button_color(self.load_point_substrate_pushbutton, "#47B5E6")
-        # self.load_point_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('point'))
-        # self.load_point_substrate_pushbutton.setEnabled(False)
 
         # CONSTANT (0 line)
-        filetitle_constant_label = QLabel(self.tr('File'))
+        filetitle_constant_label = QLabel(self.tr('File (.txt)'))
         self.file_constant_label = QLabel(self.namefile[0], self)
         self.file_constant_label.setToolTip(self.pathfile[0])
-        self.sub_choosefile_constant = QPushButton(self.tr('Choose file (.txt)'), self)
+        self.sub_choosefile_constant = QPushButton(self.tr('...'), self)
+        self.sub_choosefile_constant.setFixedHeight(widget_height)
+        self.sub_choosefile_constant.setFixedWidth(widget_height)
         self.sub_choosefile_constant.clicked.connect(lambda: self.show_dialog_substrate("constant"))
         self.sub_choosefile_constant.clicked.connect(lambda: self.file_constant_label.setToolTip(self.pathfile[0]))
         self.sub_choosefile_constant.clicked.connect(lambda: self.file_constant_label.setText(self.namefile[0]))
+        self.selection_layout_constant = QHBoxLayout()  # selection_layout
+        self.selection_layout_constant.addWidget(self.file_constant_label)
+        self.selection_layout_constant.addWidget(self.sub_choosefile_constant)
         # CONSTANT (1 line)
         classification_codetitle_constant_label = QLabel(self.tr('Classification code'))
         self.sub_classification_code_constant_label = QLabel(self.tr('unknown'))
@@ -265,10 +266,6 @@ class SubstrateAndMerge(QWidget):
         hab_filenametitle_constant_label = QLabel(self.tr('.sub file name'))
         self.constant_hname = QLineEdit('')  # hdf5 name
         self.constant_hname.returnPressed.connect(lambda: self.load_sub_gui('constant'))
-        self.load_constant_substrate_pushbutton = QPushButton(self.tr('Create .sub file'), self)
-        change_button_color(self.load_constant_substrate_pushbutton, "#47B5E6")
-        self.load_constant_substrate_pushbutton.clicked.connect(lambda: self.load_sub_gui('constant'))
-        self.load_constant_substrate_pushbutton.setEnabled(False)
 
         # COMMON
         last_sub_file_title_label = QLabel(self.tr('Last file created'))
@@ -282,10 +279,11 @@ class SubstrateAndMerge(QWidget):
         self.input_hyd_combobox.currentIndexChanged.connect(self.create_hdf5_merge_name)
         self.input_sub_combobox = QComboBox()
         self.input_sub_combobox.currentIndexChanged.connect(self.create_hdf5_merge_name)
-        self.load_hab_pushbutton = QPushButton(self.tr("Create .hab file"), self)
-        change_button_color(self.load_hab_pushbutton, "#47B5E6")
-        self.load_hab_pushbutton.clicked.connect(self.compute_merge)
-        self.load_hab_pushbutton.setEnabled(False)
+        # self.load_hab_pushbutton = QPushButton(self.tr("Create .hab file"), self)
+        # change_button_color(self.load_hab_pushbutton, "#47B5E6")
+        # self.load_hab_pushbutton.clicked.connect(self.compute_merge)
+        # self.load_hab_pushbutton.setEnabled(False)
+
         # get possible substrate from the project file
         self.update_sub_hdf5_name()
         # file name output
@@ -304,15 +302,26 @@ class SubstrateAndMerge(QWidget):
         self.setPalette(p)
 
         # progress_layout
-        self.progress_layout = ProcessProgLayout(lambda: self.load_sub_gui('point'),
+        self.progress_layout_polygon = ProcessProgLayout(lambda: self.load_sub_gui('polygon'),
                                                  send_log=self.send_log,
-                                                 process_type="sub")  # load_polygon_substrate_pushbutton
-
+                                                 process_type="sub",
+                                                 send_refresh_filenames=self.drop_hydro)  # load_polygon_substrate_pushbutton
+        self.progress_layout_point = ProcessProgLayout(lambda: self.load_sub_gui('point'),
+                                                 send_log=self.send_log,
+                                                 process_type="sub",
+                                                 send_refresh_filenames=self.drop_hydro)  # load_polygon_substrate_pushbutton
+        self.progress_layout_constant = ProcessProgLayout(lambda: self.load_sub_gui('constant'),
+                                                 send_log=self.send_log,
+                                                 process_type="sub",
+                                                 send_refresh_filenames=self.drop_hydro)  # load_polygon_substrate_pushbutton
+        self.progress_layout_merge = ProcessProgLayout(self.compute_merge,
+                                                 send_log=self.send_log,
+                                                 process_type="merge",
+                                                 send_refresh_filenames=self.drop_merge)  # load_polygon_substrate_pushbutton
         # POLYGON GROUP
         self.layout_polygon = QGridLayout()  # 4 rows et 3 columns
         self.layout_polygon.addWidget(filetitle_polygon_label, 0, 0)  # 0 line
-        self.layout_polygon.addWidget(self.file_polygon_label, 0, 1)  # 0 line
-        self.layout_polygon.addWidget(self.sub_choosefile_polygon, 0, 2)  # 0 line
+        self.layout_polygon.addLayout(self.selection_layout_polygon, 0, 1)
         self.layout_polygon.addWidget(classification_codetitle_polygon_label, 1, 0)  # 1 line
         self.layout_polygon.addWidget(self.sub_classification_code_polygon_label, 1, 1)  # 1 line
         self.layout_polygon.addWidget(classification_methodtitle_polygon_label, 2, 0)  # 2 line
@@ -323,16 +332,15 @@ class SubstrateAndMerge(QWidget):
         self.layout_polygon.addWidget(self.epsg_polygon_label, 4, 1)  # 4 line
         self.layout_polygon.addWidget(hab_filenametitle_polygon_label, 5, 0)  # 5 line
         self.layout_polygon.addWidget(self.polygon_hname, 5, 1)  # 5 line
-        # self.layout_polygon.addWidget(self.load_polygon_substrate_pushbutton, 5, 2)  # 5 line
-        # [self.layout_polygon.setRowMinimumHeight(i, 30) for i in range(self.layout_polygon.rowCount())]
-        self.polygon_group = QGroupBox(self.tr('From polygons'))
+        self.layout_polygon.addLayout(self.progress_layout_polygon, 6, 0, 1, 2)
+        # [self.layout_polygon.setRowMinimumHeight(i, widget_height) for i in range(self.layout_polygon.rowCount())]
+        self.polygon_group = QGroupBox(self.tr('Polygons'))
         self.polygon_group.setLayout(self.layout_polygon)
 
         # POINT GROUP
         self.layout_point = QGridLayout()  # 4 rows et 3 columns
         self.layout_point.addWidget(filetitle_point_label, 0, 0)  # 0 line
-        self.layout_point.addWidget(self.file_point_label, 0, 1)  # 0 line
-        self.layout_point.addWidget(self.sub_choosefile_point, 0, 2)  # 0 line
+        self.layout_point.addLayout(self.selection_layout_point, 0, 1)  # 0 line
         self.layout_point.addWidget(classification_codetitle_point_label, 1, 0)  # 1 line
         self.layout_point.addWidget(self.sub_classification_code_point_label, 1, 1)  # 1 line
         self.layout_point.addWidget(classification_methodtitle_point_label, 2, 0)  # 2 line
@@ -343,16 +351,15 @@ class SubstrateAndMerge(QWidget):
         self.layout_point.addWidget(self.epsg_point_label, 4, 1)  # 4 line
         self.layout_point.addWidget(hab_filenametitle_point_label, 5, 0)  # 5 line
         self.layout_point.addWidget(self.point_hname, 5, 1)  # 5 line
-        # self.layout_point.addWidget(self.load_point_substrate_pushbutton, 5, 2)  # 5 line
-        [self.layout_point.setRowMinimumHeight(i, 30) for i in range(self.layout_point.rowCount())]
-        self.point_group = QGroupBox(self.tr('From points'))
+        self.layout_point.addLayout(self.progress_layout_point, 6, 0, 1, 2)
+        # [self.layout_point.setRowMinimumHeight(i, widget_height) for i in range(self.layout_point.rowCount())]
+        self.point_group = QGroupBox(self.tr('Points'))
         self.point_group.setLayout(self.layout_point)
 
         # CONSTANT GROUP
         self.layout_constant = QGridLayout()  # 4 rows et 3 columns
         self.layout_constant.addWidget(filetitle_constant_label, 0, 0)  # 0 line
-        self.layout_constant.addWidget(self.file_constant_label, 0, 1)  # 0 line
-        self.layout_constant.addWidget(self.sub_choosefile_constant, 0, 2)  # 0 line
+        self.layout_constant.addLayout(self.selection_layout_constant, 0, 1)  # 0 line
         self.layout_constant.addWidget(classification_codetitle_constant_label, 1, 0)  # 1 line
         self.layout_constant.addWidget(self.sub_classification_code_constant_label, 1, 1)  # 1 line
         self.layout_constant.addWidget(classification_methodtitle_constant_label, 2, 0)  # 2 line
@@ -363,9 +370,9 @@ class SubstrateAndMerge(QWidget):
         self.layout_constant.addWidget(QLabel(""), 4, 1)  # 4 line
         self.layout_constant.addWidget(hab_filenametitle_constant_label, 5, 0)  # 5 line
         self.layout_constant.addWidget(self.constant_hname, 5, 1)  # 5 line
-        # self.layout_constant.addWidget(self.load_constant_substrate_pushbutton, 5, 2)  # 5 line
-        [self.layout_constant.setRowMinimumHeight(i, 30) for i in range(self.layout_constant.rowCount())]
-        self.constant_group = QGroupBox(self.tr('From constant values'))
+        self.layout_constant.addLayout(self.progress_layout_constant, 6, 0, 1, 2)
+        # [self.layout_constant.setRowMinimumHeight(i, widget_height) for i in range(self.layout_constant.rowCount())]
+        self.constant_group = QGroupBox(self.tr('Constant values'))
         self.constant_group.setLayout(self.layout_constant)
 
         # SUBSTRATE GROUP
@@ -378,7 +385,7 @@ class SubstrateAndMerge(QWidget):
         self.layout_sub.addWidget(self.polygon_group, 2, 0, 1, 4)  # index row, index column, nb row, nb column
         self.layout_sub.addWidget(self.point_group, 3, 0, 1, 4)  # index row, index column, nb row, nb column
         self.layout_sub.addWidget(self.constant_group, 4, 0, 1, 4)  # index row, index column, nb row, nb column
-        self.layout_sub.addItem(sub_spacer, 5, 0, 1, 4)  # index row, index column, nb row, nb column
+        self.layout_sub.addItem(sub_spacer, 5, 0, 1, 4)  # index row, index column, nb row, nb columna
         laste_hdf5_sub_layout = QHBoxLayout()
         laste_hdf5_sub_layout.addWidget(
             last_sub_file_title_label)  # ,     6, 0, 1, 1)  # index row, index column, nb row, nb column
@@ -386,8 +393,7 @@ class SubstrateAndMerge(QWidget):
             QSpacerItem(45, 1))  # ,     6, 0, 1, 1)  # index row, index column, nb row, nb column
         laste_hdf5_sub_layout.addWidget(
             self.last_sub_file_name_label)  # ,    6, 1, 1, 1, Qt.AlignLeft)  # index row, index column, nb row, nb column
-        self.layout_sub.addLayout(self.progress_layout, 6, 0, 1, 4)
-        self.layout_sub.addItem(laste_hdf5_sub_layout, 7, 0, 1, 4, Qt.AlignLeft)
+        self.layout_sub.addItem(laste_hdf5_sub_layout, 6, 0, 1, 4, Qt.AlignLeft)
         self.point_group.hide()
         self.constant_group.hide()
         susbtrate_group = QGroupBoxCollapsible()
@@ -403,10 +409,10 @@ class SubstrateAndMerge(QWidget):
         self.layout_merge.addWidget(self.input_sub_combobox, 1, 1)
         self.layout_merge.addWidget(hdf5_merge_label, 2, 0)
         self.layout_merge.addWidget(self.hdf5_merge_lineedit, 2, 1)
-        self.layout_merge.addWidget(self.load_hab_pushbutton, 2, 2)
-        self.layout_merge.addWidget(last_hab_created_title_label, 3, 0)
-        self.layout_merge.addWidget(self.last_merge_file_name_label, 3, 1)
-        [self.layout_merge.setRowMinimumHeight(i, 30) for i in range(self.layout_merge.rowCount())]
+        self.layout_merge.addLayout(self.progress_layout_merge, 3, 0, 1, 2)
+        self.layout_merge.addWidget(last_hab_created_title_label, 4, 0)
+        self.layout_merge.addWidget(self.last_merge_file_name_label, 4, 1)
+        # [self.layout_merge.setRowMinimumHeight(i, 30) for i in range(self.layout_merge.rowCount())]
         merge_group = QGroupBoxCollapsible()
         merge_group.setTitle(self.tr('Merging of hydraulic and substrate data'))
         merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
@@ -571,8 +577,9 @@ class SubstrateAndMerge(QWidget):
 
     def add_polygon_widgets(self):
         """
-         This functions shows the widgets
+        This functions shows the widgets
         """
+        # self.progress_layout.change_run_function(lambda: self.load_sub_gui('polygon'))
         self.polygon_group.show()
         self.point_group.hide()
         self.constant_group.hide()
@@ -581,6 +588,7 @@ class SubstrateAndMerge(QWidget):
         """
          This functions shows the widgets
         """
+        # self.progress_layout.change_run_function(lambda: self.load_sub_gui('point'))
         self.polygon_group.hide()
         self.point_group.show()
         self.constant_group.hide()
@@ -589,6 +597,7 @@ class SubstrateAndMerge(QWidget):
         """
         This function shows the widgets realted to the loading of constatns subtrate
         """
+        # self.progress_layout.change_run_function(lambda: self.load_sub_gui('constant'))
         self.polygon_group.hide()
         self.point_group.hide()
         self.constant_group.show()
@@ -689,7 +698,7 @@ class SubstrateAndMerge(QWidget):
                     self.epsg_polygon_label.setText(sub_description["epsg_code"])
                     self.polygon_hname.setText(self.name_hdf5_polygon)
                     self.polygon_hname.setFocus()
-                    self.progress_layout.run_stop_button.setEnabled(True)
+                    self.progress_layout_polygon.run_stop_button.setEnabled(True)
 
                 # POINT
                 elif substrate_mapping_method == "point":
@@ -707,7 +716,7 @@ class SubstrateAndMerge(QWidget):
                     self.epsg_point_label.setText(sub_description["epsg_code"])
                     self.point_hname.setText(self.name_hdf5_point)
                     self.point_hname.setFocus()
-                    self.load_point_substrate_pushbutton.setEnabled(True)
+                    self.progress_layout_point.run_stop_button.setEnabled(True)
 
                 # CONSTANT
                 elif substrate_mapping_method == "constant":
@@ -724,7 +733,7 @@ class SubstrateAndMerge(QWidget):
                     self.valuesdata_constant_label.setText(sub_description["sub_default_values"])
                     self.constant_hname.setText(self.name_hdf5_constant)
                     self.constant_hname.setFocus()
-                    self.load_constant_substrate_pushbutton.setEnabled(True)
+                    self.progress_layout_constant.run_stop_button.setEnabled(True)
 
     def load_sub_gui(self, sub_mapping_method):
         """
@@ -744,6 +753,7 @@ class SubstrateAndMerge(QWidget):
         self.data_type = "SUBSTRATE"
         # if hdf5_filename_output empty: msg
         if sub_mapping_method == 'polygon':
+            self.name_hdf5 = self.polygon_hname.text()
             # input_filename
             if self.file_polygon_label.text() == "unknown file":
                 self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
@@ -753,6 +763,7 @@ class SubstrateAndMerge(QWidget):
                 self.send_log.emit('Error: ' + self.tr('.sub output filename is empty. Please specify it.'))
                 return
         if sub_mapping_method == 'point':
+            self.name_hdf5 = self.point_hname.text()
             # input_filename
             if self.file_point_label.text() == "unknown file":
                 self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
@@ -762,6 +773,7 @@ class SubstrateAndMerge(QWidget):
                 self.send_log.emit('Error: ' + self.tr('.sub output filename is empty. Please specify it.'))
                 return
         if sub_mapping_method == 'constant':
+            self.name_hdf5 = self.constant_hname.text()
             # input_filename
             if self.file_constant_label.text() == "unknown file":
                 self.send_log.emit('Error: ' + self.tr('No input file has been selected.'))
@@ -772,57 +784,46 @@ class SubstrateAndMerge(QWidget):
                 return
 
         if self.sub_description:
-            # info
-            self.timer.start(100)
-
-            # show progressbar
-            self.nativeParentWidget().progress_bar.setRange(0, 100)
-            self.nativeParentWidget().progress_bar.setValue(0)
-            self.nativeParentWidget().progress_bar.setVisible(True)
-
-            # polygon case
-            if sub_mapping_method == 'polygon':
-                # block button substrate
-                self.progress_layout.run_stop_button.setEnabled(False)  # substrate
-                self.name_hdf5 = self.polygon_hname.text()
-
-            # point case
-            if sub_mapping_method == 'point':
-                # block button substrate
-                self.load_point_substrate_pushbutton.setEnabled(False)  # substrate
-                self.name_hdf5 = self.point_hname.text()
-
-            # constante case
-            if sub_mapping_method == 'constant':
-                # block button substrate
-                self.load_constant_substrate_pushbutton.setEnabled(False)  # substrate
-                self.name_hdf5 = self.constant_hname.text()
-
-            # save path and name substrate
-            self.save_xml(0)  # txt filename in xml
-
             # change hdf5_name
             self.sub_description["name_hdf5"] = self.name_hdf5
 
-            # load substrate shp (and triangulation)
-            self.stop = Event()
-            self.q = Queue()
-            self.progress_value = Value("d", 0)
-            self.p = Process(target=substrate_mod.load_sub,
-                             args=(self.sub_description,
-                                   self.progress_value,
-                                   self.q,
-                                   False,
-                                   self.project_preferences,
-                                   self.stop))
-            self.p.name = "Substrate data loading from shapefile"
-            self.p.start()
+            # polygon case
+            if sub_mapping_method == 'polygon':
+                # process_manager
+                self.progress_layout_polygon.process_manager.set_sub_mode(self.path_prj,
+                                                                  self.sub_description,
+                                                                  self.project_preferences)
+                # process_prog_show
+                self.progress_layout_polygon.start()
+
+            # point case
+            if sub_mapping_method == 'point':
+                self.name_hdf5 = self.point_hname.text()
+                # process_manager
+                self.progress_layout_point.process_manager.set_sub_mode(self.path_prj,
+                                                                  self.sub_description,
+                                                                  self.project_preferences)
+                # process_prog_show
+                self.progress_layout_point.start()
+
+            # constante case
+            if sub_mapping_method == 'constant':
+                self.name_hdf5 = self.constant_hname.text()
+                # process_manager
+                self.progress_layout_constant.process_manager.set_sub_mode(self.path_prj,
+                                                                  self.sub_description,
+                                                                  self.project_preferences)
+                # process_prog_show
+                self.progress_layout_constant.start()
+
+            # save path and name substrate
+            self.save_xml(0)  # txt filename in xml
 
             # copy_shapefiles
             path_input = self.find_path_input()
 
             # log info
-            self.send_log.emit(self.tr('# Loading: Substrate data ...'))
+            # self.send_log.emit(self.tr('# Loading: Substrate data ...'))
             # self.send_err_log()
             self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
             self.send_log.emit("py    path1=r'" + path_input + "'")
@@ -856,7 +857,7 @@ class SubstrateAndMerge(QWidget):
             if hasattr(self, "hdf5_merge_lineedit"):
                 self.hdf5_merge_lineedit.setText(name_hdf5merge)
                 self.hdf5_merge_lineedit.setFocus()
-                self.load_hab_pushbutton.setEnabled(True)
+                self.progress_layout_merge.run_stop_button.setEnabled(True)
 
     def log_txt(self, code_type):
         """
@@ -916,13 +917,6 @@ class SubstrateAndMerge(QWidget):
             self.send_log.emit(self.tr('Error: .hab filename output is empty. Please specify it.'))
             return
 
-        # show progressbar
-        self.nativeParentWidget().progress_bar.setRange(0, 100)
-        self.nativeParentWidget().progress_bar.setValue(0)
-        self.nativeParentWidget().progress_bar.setVisible(True)  # show progressbar
-
-        self.send_log.emit(self.tr('# Merging: substrate and hydraulic grid...'))
-
         # get useful data
         path_hdf5 = self.find_path_hdf5()
         if self.input_hyd_combobox.currentText():
@@ -945,31 +939,14 @@ class SubstrateAndMerge(QWidget):
             nb = nb + 1
             self.name_hdf5 = self.hdf5_merge_lineedit.text() + "_" + str(nb)
 
-        # get the figure options and the type of output to be created
-        project_preferences = load_project_properties(self.path_prj)
-
-        # block button merge
-        self.load_hab_pushbutton.setEnabled(False)  # merge
-
-        # for error management and figures
-        self.timer.start(100)
-
-        # run the function
-        self.stop = Event()
-        self.q = Queue()
-        self.progress_value = Value("d", 0)
-        self.p = Process(target=src.merge.merge_grid_and_save,
-                         args=(hdf5_name_hyd,
-                               hdf5_name_sub,
-                               self.name_hdf5,
-                               self.path_prj,
-                               self.progress_value,
-                               self.q,
-                               False,
-                               project_preferences,
-                               self.stop))
-        self.p.name = "Hydraulic and substrate data merging"
-        self.p.start()
+        # process_manager
+        self.progress_layout_merge.process_manager.set_merge_mode(self.path_prj,
+                                                                  hdf5_name_hyd,
+                                                                  hdf5_name_sub,
+                                                                  self.name_hdf5,
+                                                                  load_project_properties(self.path_prj))
+        # process_prog_show
+        self.progress_layout_merge.start()
 
         # log
         self.send_log.emit("py    file_hyd=r'" + self.input_hyd_combobox.currentText() + "'")
@@ -981,125 +958,3 @@ class SubstrateAndMerge(QWidget):
         self.send_log.emit("restart    file_hyd: r" + self.input_hyd_combobox.currentText())
         self.send_log.emit("restart    file_sub: r" + os.path.join(path_hdf5,
                                                                    self.input_sub_combobox.currentText()))
-
-    def show_prog(self):
-        """
-        This function is call regularly by the methods which have a second thread (so moslty the function
-        to load the hydrological data). To call this function regularly, the variable self.timer of QTimer type is used.
-        The variable self.timer is connected to this function in the initiation of SubHydroW() and so in the initiation
-        of all class which inherits from SubHydroW().
-
-        This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
-        messages.
-        """
-        # RUNNING
-        if self.p.is_alive():
-            self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
-            # get the language
-            self.nativeParentWidget().kill_process_action.setVisible(True)
-
-            # MERGE
-            if self.model_type == 'HABITAT':
-                self.send_log.emit("Process " +
-                                   QCoreApplication.translate("SubHydroW", "'Merge Grid' is alive and run since ") + str(round(self.running_time)) + " sec")
-                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            # SUBSTRATE
-            elif self.model_type == 'SUBSTRATE':
-                self.send_log.emit("Process " +
-                                   QCoreApplication.translate("SubHydroW", "'Substrate' is alive and run since ") + str(round(self.running_time)) + " sec")
-                self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-
-        else:
-            # FINISH (but can have known errors)
-            if not self.q.empty():
-                # manage error
-                self.timer.stop()
-                queue_back = self.q.get()
-                if queue_back == "const_sub":  # sub cst case
-                    const_sub = True
-                else:
-                    self.mystdout = queue_back
-                    const_sub = False
-                error = self.send_err_log(True)
-
-                # known errors
-                if error:
-                    self.send_log.emit("clear status bar")
-                    self.running_time = 0
-                    self.nativeParentWidget().kill_process_action.setVisible(False)
-                    # MERGE
-                    if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                        # unblock button merge
-                        self.load_hab_pushbutton.setEnabled(True)  # merge
-                    # SUBSTRATE
-                    elif self.model_type == 'SUBSTRATE':
-                        # unblock button substrate
-                        self.progress_layout.run_stop_button.setEnabled(True)  # substrate
-                        self.load_point_substrate_pushbutton.setEnabled(True)  # substrate
-                        self.load_constant_substrate_pushbutton.setEnabled(True)  # substrate
-
-                elif not error:
-                    # MERGE
-                    if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                        self.send_log.emit(
-                            QCoreApplication.translate("SubHydroW", "Merging of substrate and hydraulic grid finished (computation time = ") + str(
-                                round(self.running_time)) + " s).")
-                        self.drop_merge.emit()
-                        # update last name
-                        self.name_last_hdf5("HABITAT")
-                        # unblock button merge
-                        self.load_hab_pushbutton.setEnabled(True)  # merge
-
-                    # SUBSTRATE
-                    elif self.model_type == 'SUBSTRATE':
-                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Loading of substrate data finished (computation time = ") + str(
-                            round(self.running_time)) + " s).")
-                        self.drop_merge.emit()
-                        # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
-                        self.update_sub_hdf5_name()
-                        # update last name
-                        self.name_last_hdf5("SUBSTRATE")
-                        # unblock button substrate
-                        self.progress_layout.run_stop_button.setEnabled(True)
-                        self.load_point_substrate_pushbutton.setEnabled(True)
-                        self.load_constant_substrate_pushbutton.setEnabled(True)
-
-                    # send round(c) to attribute .hyd
-                    hdf5_hyd = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=True)
-                    hdf5_hyd.set_hdf5_attributes([os.path.splitext(self.name_hdf5)[1][1:] + "_time_creation [s]"],
-                                                 [round(self.running_time)])
-
-                    # general
-                    self.nativeParentWidget().progress_bar.setValue(100)
-                    self.nativeParentWidget().kill_process_action.setVisible(False)
-                    if not const_sub:
-                        self.send_log.emit(QCoreApplication.translate("SubHydroW", "Outputs data can be displayed and exported from 'Data explorer' tab."))
-                    if const_sub:
-                        self.update_sub_hdf5_name()
-                    self.send_log.emit("clear status bar")
-                    # refresh plot gui list file
-                    self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
-                    self.running_time = 0
-
-            # CLEANING GUI
-            if not self.p.is_alive() and self.q.empty():
-                self.timer.stop()
-                self.send_log.emit("clear status bar")
-                self.nativeParentWidget().kill_process_action.setVisible(False)
-                self.running_time = 0
-                # MERGE
-                if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                    # unblock button merge
-                    self.load_hab_pushbutton.setEnabled(True)  # merge
-                # SUBSTRATE
-                elif self.model_type == 'SUBSTRATE':
-                    # unblock button substrate
-                    self.progress_layout.run_stop_button.setEnabled(True)  # substrate
-                    progress_layout.run_stop_button.setEnabled(True)  # substrate
-                    self.load_constant_substrate_pushbutton.setEnabled(True)  # substrate
-
-                # CRASH
-                if self.p.exitcode == 1:
-                    self.send_log.emit(QCoreApplication.translate("SubHydroW",
-                                                                  "Error : Process crashed !! Restart HABBY. Retry. If same, contact the HABBY team."))
-

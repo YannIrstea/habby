@@ -16,48 +16,18 @@ https://github.com/YannIrstea/habby
 """
 import os
 
-from PyQt5.QtCore import pyqtSignal, Qt, QAbstractTableModel, QRect, QPoint, QVariant, QObject, QEvent
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeySequence
-from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, QProgressBar, \
-    QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, QStyleOptionTab, QListWidgetItem, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, QTabBar, QStylePainter, QStyle, QApplication
+from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, QSpacerItem, QComboBox, QMessageBox, QFrame, QHeaderView, QLineEdit, QGridLayout, QFileDialog, \
+    QListWidgetItem, \
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView
 
 from src.tools_mod import QGroupBoxCollapsible
-from src.hydraulic_process_mod import MyProcessManager
+from src.process_manager_mod import MyProcessManager
 from src import hdf5_mod
 from src import tools_mod
 from src.project_properties_mod import load_project_properties
 from src.variable_unit_mod import HydraulicVariableUnitManagement
-from src.hydraulic_process_mod import ProcessProgShow
-
-
-def change_button_color(button, color):
-    """change_button_color
-
-        Change a button's color
-    :param button: target button
-    :type button: QPushButton
-    :param color: new color (any format)
-    :type color: str
-    :return: None
-    """
-    style_sheet = button.styleSheet()
-    pairs = [pair.replace(' ', '') for pair in style_sheet.split(';') if pair]
-
-    style_dict = {}
-    for pair in pairs:
-        key, value = pair.split(':')
-        style_dict[key] = value
-
-    style_dict['background-color'] = color
-    style_sheet = '{}'.format(style_dict)
-
-    chars_to_remove = ('{', '}', '\'')
-    for char in chars_to_remove:
-        style_sheet = style_sheet.replace(char, '')
-    style_sheet = style_sheet.replace(',', ';')
-
-    button.setStyleSheet(style_sheet)
+from src_GUI.dev_tools_GUI import change_button_color, MyTableModel, ProcessProgShow
 
 
 class ToolsTab(QScrollArea):
@@ -145,6 +115,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.process_prog_show = ProcessProgShow(send_log=self.send_log,
                                                  # progressbar=self.nativeParentWidget().progress_bar,
                                                  # progress_label=self.progress_label,
+                                                 run_function=self.plot_chronicle,
                                                  computation_pushbutton=self.plot_chronicle_qpushbutton)
 
     def init_ui(self):
@@ -673,154 +644,3 @@ class OtherToolToCreate(QGroupBoxCollapsible):
         #print("test_function_dev")
         1 / 0
         #print("test_function_dev")
-
-
-class MyTableModel(QStandardItemModel):
-    def __init__(self, data_to_table, horiz_headers, vertical_headers, source, parent=None, *args):
-        QAbstractTableModel.__init__(self, parent, *args)
-        # save source
-        self.source = source
-        # model data for table view
-        if data_to_table and horiz_headers and vertical_headers:
-            for row_index in range(len(vertical_headers)):
-                line_string_list = []
-                for column_index in range(len(horiz_headers)):
-                    line_string_list.append(QStandardItem(data_to_table[row_index][column_index]))
-                self.appendRow(line_string_list)
-            # save data to export and plot
-            self.rownames = vertical_headers
-            self.colnames = horiz_headers
-            # headers
-            horiz_headers = [head.replace("_", "\n") for head in horiz_headers]
-            for head_index, head in enumerate(horiz_headers):
-                if "all\nstages" in head:
-                    horiz_headers[head_index] = head.replace("all\nstages", "all_stages")
-            self.setHorizontalHeaderLabels(horiz_headers)
-            self.setVerticalHeaderLabels(vertical_headers)
-
-    def get_data_from_column(self, column):
-        col_index = self.colnames.index(column)
-        data_to_get = []
-        for row_nb in range(len(self.rownames)):
-            data_to_get.append(self.item(row_nb, col_index).text())
-        return data_to_get
-
-
-# The table model class
-class MySimpleTableModel(QAbstractTableModel):
-    def __init__(self, datain, parent=None):
-        QAbstractTableModel.__init__(self, parent)
-        self.arraydata = datain
-
-    def rowCount(self, parent):
-        return len(self.arraydata)
-
-    def columnCount(self, parent):
-        return len(self.arraydata[0])
-
-    def data(self, index, role):
-        if not index.isValid():
-            return QVariant()
-        elif role == Qt.EditRole:
-            print("edit mode")
-            return None
-        elif role != Qt.DisplayRole:
-            return None
-        return self.arraydata[index.row()][index.column()]
-
-
-class LeftHorizontalTabBar(QTabBar):
-    def tabSizeHint(self, index):
-        s = QTabBar.tabSizeHint(self, index)
-        s.transpose()
-        return s
-
-    def paintEvent(self, event):
-        painter = QStylePainter(self)
-        opt = QStyleOptionTab()
-
-        for i in range(self.count()):
-            self.initStyleOption(opt, i)
-            painter.drawControl(QStyle.CE_TabBarTabShape, opt)
-            painter.save()
-
-            s = opt.rect.size()
-            s.transpose()
-            r = QRect(QPoint(), s)
-            r.moveCenter(opt.rect.center())
-            opt.rect = r
-
-            c = self.tabRect(i).center()
-            painter.translate(c)
-            painter.rotate(90)
-            painter.translate(-c)
-            painter.drawControl(QStyle.CE_TabBarTabLabel, opt)
-            painter.restore()
-
-
-class QListWidgetClipboard(QListWidget):
-    def __init__(self):
-        super().__init__()
-
-    def keyPressEvent(self, event):
-        if event.matches(QKeySequence.Copy):
-            clipboard = QApplication.clipboard()
-            string_to_clipboard = ""
-            for item in self.selectedItems():
-                string_to_clipboard = string_to_clipboard + item.text() + "\n"
-            clipboard.setText(string_to_clipboard)
-        else:
-            QListWidget.keyPressEvent(self, event)
-
-
-class EnterPressEvent(QObject):
-    enter_signal = pyqtSignal()
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.KeyPress and event.key() == 16777220:
-            self.enter_signal.emit()
-            return True  # ENTER
-        else:
-            # standard event processing
-            return QObject.eventFilter(self, obj, event)
-
-
-class ProcessProgLayout(QHBoxLayout):
-    def __init__(self, run_function, send_log, process_type):
-        super().__init__()
-        # send_log
-        self.send_log = send_log
-        # progressbar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0.0)
-        self.progress_bar.setRange(0.0, 100.0)
-        self.progress_bar.setTextVisible(False)
-
-        # progress_label
-        self.progress_label = QLabel()
-        self.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
-
-        # run_stop_button
-        self.run_stop_button = QPushButton(self.tr("run"))
-        change_button_color(self.run_stop_button, "#47B5E6")
-        self.run_stop_button.clicked.connect(run_function)  # self.collect_data_from_gui_and_plot
-        self.run_stop_button.setEnabled(False)
-
-        # layout
-        self.addWidget(self.progress_bar)
-        self.addWidget(self.progress_label)
-        self.addWidget(self.run_stop_button)
-
-        # process_manager
-        self.process_manager = MyProcessManager(process_type)
-
-        # process_prog_show
-        self.process_prog_show = ProcessProgShow(send_log=self.send_log,
-                                                 progressbar=self.progress_bar,
-                                                 progress_label=self.progress_label,
-                                                 computation_pushbutton=self.run_stop_button,
-                                                 run_function=run_function)
-
-    def start(self):
-
-        self.process_prog_show.start_show_prog(self.process_manager)
