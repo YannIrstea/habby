@@ -20,8 +20,160 @@ from datetime import datetime
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from lxml import etree as ET
+from multiprocessing import Value
+from matplotlib import pyplot as plt
+import matplotlib as mpl
+import time
 
 from src import hdf5_mod
+from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
+
+
+def export_report(args):
+    xmlfile, hab_animal_type, project_preferences = args
+
+    information_model_dict = get_biomodels_informations_for_database(xmlfile)
+
+    # read additionnal info
+    attributes = ['Description', 'Image', 'French_common_name',
+                  'English_common_name', ]
+    # careful: description is last data returned
+    path_bio = os.path.dirname(xmlfile)
+    path_im_bio = path_bio
+    xmlfile = os.path.basename(xmlfile)
+    data = load_xml_name(path_bio, attributes, [xmlfile])
+
+    # create figure
+    fake_value = Value("d", 0)
+
+    if information_model_dict["ModelType"] != "bivariate suitability index models":
+        # fish
+        if hab_animal_type == "fish":
+            # read pref
+            h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
+                read_pref(xmlfile, hab_animal_type)
+            # plot
+            fig, axe_curve = plot_suitability_curve(fake_value,
+                                                    h_all,
+                                                    vel_all,
+                                                    sub_all,
+                                                    information_model_dict["CdBiologicalModel"],
+                                                    name_fish,
+                                                    stages,
+                                                    information_model_dict["substrate_type"],
+                                                    sub_code,
+                                                    project_preferences,
+                                                    True)
+        # invertebrate
+        else:
+            # open the pref
+            shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
+                read_pref(xmlfile, hab_animal_type)
+            # plot
+            fig, axe_curve = plot_suitability_curve_invertebrate(fake_value,
+                                                                 shear_stress_all, hem_all, hv_all,
+                                                                 code_fish, name_fish,
+                                                                 stages, project_preferences, True)
+    else:
+        # open the pref
+        [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = read_pref(xmlfile,
+                                                                                       hab_animal_type)
+        state_fake = Value("d", 0)
+        fig, axe_curve = plot_suitability_curve_bivariate(state_fake,
+                                                          h_all,
+                                                          vel_all,
+                                                          pref_values_all,
+                                                          code_fish,
+                                                          name_fish,
+                                                          stages,
+                                                          project_preferences,
+                                                          True)
+    # get axe and fig
+    # fig = plt.gcf()
+    # axe_curve = plt.gca()
+
+    # modification of the orginal preference fig
+    # (0,0) is bottom left - 1 is the end of the page in x and y direction
+    # plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
+    plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
+    # position for the image
+
+    # HABBY and date
+    plt.figtext(0.8, 0.97, 'HABBY - ' + time.strftime("%d %b %Y"))
+
+    # REPORT title
+    plt.figtext(0.1, 0.92, "REPORT - " + name_fish,
+                fontsize=55,
+                weight='bold',
+                bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
+
+    # Informations title
+    list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
+                     qt_tr.translate("hdf5_mod", "Common Name:"),
+                     qt_tr.translate("hdf5_mod", "Code biological model:"),
+                     qt_tr.translate("hdf5_mod", "ONEMA fish code:"),
+                     qt_tr.translate("hdf5_mod", "Stage chosen:"),
+                     qt_tr.translate("hdf5_mod", "Description:")]
+    list_of_title_str = "\n\n".join(list_of_title)
+    plt.figtext(0.1, 0.7,
+                list_of_title_str,
+                weight='bold',
+                fontsize=32)
+
+    # Informations text
+    text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + information_model_dict[
+        "CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
+    for idx, s in enumerate(stages):
+        text_all += s + ', '
+    text_all = text_all[:-2] + '\n\n'
+    plt.figtext(0.4, 0.7, text_all, fontsize=32)
+
+    # description
+    newax = fig.add_axes([0.4, 0.55, 0.56, 0.16], anchor='C',
+                         zorder=-1,
+                         frameon=True)
+    newax.name = "description"
+    newax.xaxis.set_ticks([])  # remove ticks
+    newax.yaxis.set_ticks([])  # remove ticks
+    if len(data[0][-1]) > 350:
+        decription_str = data[0][-1][:350] + '...'
+    else:
+        decription_str = data[0][-1]
+    newax.text(0.0, 1.0, decription_str,  # 0.4, 0.71,
+               wrap=True,
+               fontsize=32,
+               # bbox={'facecolor': 'grey', 'alpha': 0.15},
+               va='top',
+               ha="left")
+
+    # add a fish image
+    if path_im_bio:
+        fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
+        if os.path.isfile(fish_im_name):
+            im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
+            newax = fig.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
+                                 zorder=-1)
+            newax.imshow(im)
+            newax.axis('off')
+
+    # move suptitle
+    fig.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
+                 x=0.5, y=0.54,
+                 fontsize=32,
+                 weight='bold')
+
+    # filename
+    filename = os.path.join(project_preferences['path_figure'], 'report_' + information_model_dict["CdBiologicalModel"] +
+                            project_preferences["format"])
+
+    # save
+    try:
+        plt.savefig(filename)
+        plt.close(fig)
+        plt.clf()
+    except PermissionError:
+        print(
+            'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
 
 
 def get_biomodels_informations_for_database(path_xml):
@@ -72,7 +224,8 @@ def get_biomodels_informations_for_database(path_xml):
     if guild == "@guild":
         # get all fish guild code alternative
         CdAlternative = guild_element.getchildren()[0].text
-        CdAlternativefishs = [guild_element.getchildren()[i].find("CdAlternative").text for i in [1, len(guild_element.getchildren()) - 1]]
+        CdAlternativefishs = [guild_element.getchildren()[i].find("CdAlternative").text for i in
+                              [1, len(guild_element.getchildren()) - 1]]
         CdAlternative = [CdAlternative + " (" + ", ".join(CdAlternativefishs) + ")"]
     else:
         CdAlternative = [root.find('.//CdAlternative').text]
@@ -120,7 +273,8 @@ def get_biomodels_informations_for_database(path_xml):
             if shear_presence:
                 hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "HEM")
             if not height_presence and not velocity_presence and not shear_presence:
-                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "Neglect")  # 'Input' sera le nom de classe dans QLinguist et 'Neglect' le string à traduire.
+                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod",
+                                                              "Neglect")  # 'Input' sera le nom de classe dans QLinguist et 'Neglect' le string à traduire.
             # available
             if height_presence and velocity_presence:
                 hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "HV"))
@@ -144,10 +298,10 @@ def get_biomodels_informations_for_database(path_xml):
         substrate_type_available = [[qt_tr.translate("bio_info_mod", "Neglect")]] * len(stage_and_size)
     else:
         substrate_type_available = [[qt_tr.translate("bio_info_mod", "Coarser-Dominant"),
-                               qt_tr.translate("bio_info_mod", 'Coarser'),
-                               qt_tr.translate("bio_info_mod", 'Dominant'),
-                               qt_tr.translate("bio_info_mod", 'Percentage'),
-                               qt_tr.translate("bio_info_mod", 'Neglect')]] * len(stage_and_size)
+                                     qt_tr.translate("bio_info_mod", 'Coarser'),
+                                     qt_tr.translate("bio_info_mod", 'Dominant'),
+                                     qt_tr.translate("bio_info_mod", 'Percentage'),
+                                     qt_tr.translate("bio_info_mod", 'Neglect')]] * len(stage_and_size)
 
     # LatinName
     if guild == "@guild":
@@ -156,7 +310,6 @@ def get_biomodels_informations_for_database(path_xml):
         LatinName = root.find(".//LatinName").text
         if "," in LatinName:
             LatinName = LatinName.replace(",", ".")
-
 
     # modification_date
     modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
@@ -334,7 +487,7 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                 data[i] = root.find(".//" + att)
                 # None is null for python 3
                 if data[i] is not None:
-                    #print("data[i]", preffile, data[i])
+                    # print("data[i]", preffile, data[i])
                     if data[i].text:
                         data[i] = data[i].text.strip()
                     else:
@@ -482,7 +635,7 @@ def get_hydrosignature(xmlfile):
             print('Warning: no hydrosignature found in the xml file (3). \n')
             return error_list
     else:
-        #print('Warning: no hydrosignature found in the xml file (4). \n')
+        # print('Warning: no hydrosignature found in the xml file (4). \n')
         return error_list
 
     # if data found, plot the image
@@ -605,7 +758,7 @@ def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
                           + xml_name + '.\n')
                     return failload
                 # manage units
-                height = change_unit(height,  pref_hei_i.getchildren()[0].attrib["Unit"])
+                height = change_unit(height, pref_hei_i.getchildren()[0].attrib["Unit"])
                 h_all.append(height)
         else:
             pref_hei = root.findall(".//HeightOfWaterValues")

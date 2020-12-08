@@ -666,7 +666,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
     if types_plot == "image export":
-        plt.close()
+        plt.close(fig)
 
 
 def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_number, types, project_preferences):
@@ -2159,7 +2159,7 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
         # fig.canvas.flush_events()
         plt.show()
     if project_preferences['type_plot'] == "image export":
-        plt.close()
+        plt.close(fig)
 
 
 def update_scalebar(event):
