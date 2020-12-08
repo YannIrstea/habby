@@ -637,6 +637,8 @@ class ModelInfoGroup(QGroupBox):
         if len(self.hydrau_description_list) > 1:
             text_load_button = text_load_button + "s"
         self.progress_layout.run_stop_button.setText(text_load_button)
+        self.progress_layout.progress_bar.setValue(0.0)
+        self.progress_layout.progress_label.setText("{0:.0f}/{1:.0f}".format(0.0, len(self.hydrau_description_list)))
         self.reach_name_combobox.blockSignals(False)
 
     def update_unit_from_reach(self):
@@ -744,7 +746,6 @@ class ModelInfoGroup(QGroupBox):
             self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = self.name_hdf5
             if self.name_hdf5 == "":
                 self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
-                # self.progress_layout.run_stop_button.setEnabled(True)
                 return
 
             # check if extension is set by user (multi hdf5 case)

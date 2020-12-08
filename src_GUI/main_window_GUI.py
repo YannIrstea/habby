@@ -2186,6 +2186,7 @@ class CentralW(QWidget):
             self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.substrate_tab.sub_and_merge.drop_hydro.connect(self.update_combobox_filenames)
             self.substrate_tab.sub_and_merge.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.bioinfo_tab.allmodels_presence.connect(self.update_combobox_filenames)
             self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
 
     def write_log(self, text_log):

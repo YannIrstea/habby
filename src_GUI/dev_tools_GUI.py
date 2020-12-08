@@ -244,6 +244,7 @@ class ProcessProgShow(QObject):
         self.computation_pushbutton.setText(self.tr("stop"))
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.stop_by_user)
+
         # log
         self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computing ") + "...")
         self.timer.start(100)
@@ -286,12 +287,9 @@ class ProcessProgShow(QObject):
             if error:
                 # log
                 self.send_log.emit(self.process_manager.process_type_gui +
-                    self.tr(" computation(s) finished with error(s) (computation time = ") + str(
-                        round(self.process_manager.process_list.total_time)) + " s).")
+                    self.tr(" computation(s) finished with error(s)."))
             else:
-                # logself.tr("Computing ") + self.process_manager.process_type_gui + "..."
-                self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computing finished (computation time = ") + str(
-                    round(self.process_manager.process_list.total_time)) + " s).")
+                self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computing finished."))
 
         if self.send_refresh_filenames is not None:
             # update_gui

@@ -164,7 +164,8 @@ class ComputingGroup(QGroupBoxCollapsible):
         # progress_layout
         self.progress_layout = ProcessProgLayout(self.compute,
                                                  send_log=self.send_log,
-                                                 process_type="hs")
+                                                 process_type="hs",
+                                                 send_refresh_filenames=self.send_refresh_filenames)
 
         grid_layout = QGridLayout()
         grid_layout.addWidget(input_class_label, 2, 0, Qt.AlignLeft)
@@ -243,6 +244,9 @@ class ComputingGroup(QGroupBoxCollapsible):
             # enable run button
             if self.input_class_filename.text():
                 self.progress_layout.run_stop_button.setEnabled(True)
+                self.progress_layout.progress_bar.setValue(0.0)
+                self.progress_layout.progress_label.setText(
+                    "{0:.0f}/{1:.0f}".format(0.0, len(selection)))
             else:
                 self.progress_layout.run_stop_button.setEnabled(False)
         else:

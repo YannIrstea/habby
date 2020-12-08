@@ -41,6 +41,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
     to find path_im and path_bio (the path where to save image) and to manage lists.
     """
     get_list_merge = pyqtSignal()
+    allmodels_presence = pyqtSignal()
     """
      A Pyqtsignal which indicates to chronice_GUI.py that the merge list should be changed. In Main_Windows.py,
      the new list of merge file is found and send to the ChonicleGui class.
@@ -197,7 +198,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # progress_layout
         self.progress_layout = ProcessProgLayout(self.run_habitat_value,
                                                  send_log=self.send_log,
-                                                 process_type="hab")  # load_polygon_substrate_pushbutton
+                                                 process_type="hab",
+                                                 send_refresh_filenames=self.allmodels_presence)  # load_polygon_substrate_pushbutton
 
         # 5 column
         self.presence_scrollbar = self.presence_qtablewidget.verticalScrollBar()
@@ -470,6 +472,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             item_checkbox.setChecked(False)
 
     def check_uncheck_allmodels_presence(self):
+        print("check_uncheck_allmodels_presence")
         self.get_current_hab_informations()
         for model_index in range(self.selected_aquatic_animal_qtablewidget.rowCount()):
             self.check_if_model_exist_in_hab(model_index)
@@ -704,6 +707,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
             if self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]:
                 self.progress_layout.run_stop_button.setEnabled(True)
+                self.progress_layout.progress_bar.setValue(0.0)
+                self.progress_layout.progress_label.setText(
+                    "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
             # save model selection calhab
             self.save_selected_aquatic_animal_list_prj()
@@ -855,7 +861,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # save
         save_project_properties(self.path_prj, project_preferences)
 
-        # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
         self.m_all.blockSignals(False)
 
@@ -946,6 +951,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         else:
             # disable the button
             self.progress_layout.run_stop_button.setEnabled(True)
+            self.progress_layout.progress_bar.setValue(0.0)
+            self.progress_layout.progress_label.setText(
+                "{0:.0f}/{1:.0f}".format(0.0, 1.0))
             self.send_log.emit(self.tr('Warning: Nothing to compute !'))
 
 

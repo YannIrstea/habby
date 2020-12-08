@@ -699,6 +699,9 @@ class SubstrateAndMerge(QWidget):
                     self.polygon_hname.setText(self.name_hdf5_polygon)
                     self.polygon_hname.setFocus()
                     self.progress_layout_polygon.run_stop_button.setEnabled(True)
+                    self.progress_layout_polygon.progress_bar.setValue(0.0)
+                    self.progress_layout_polygon.progress_label.setText(
+                        "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
                 # POINT
                 elif substrate_mapping_method == "point":
@@ -717,6 +720,9 @@ class SubstrateAndMerge(QWidget):
                     self.point_hname.setText(self.name_hdf5_point)
                     self.point_hname.setFocus()
                     self.progress_layout_point.run_stop_button.setEnabled(True)
+                    self.progress_layout_point.progress_bar.setValue(0.0)
+                    self.progress_layout_point.progress_label.setText(
+                        "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
                 # CONSTANT
                 elif substrate_mapping_method == "constant":
@@ -734,6 +740,9 @@ class SubstrateAndMerge(QWidget):
                     self.constant_hname.setText(self.name_hdf5_constant)
                     self.constant_hname.setFocus()
                     self.progress_layout_constant.run_stop_button.setEnabled(True)
+                    self.progress_layout_constant.progress_bar.setValue(0.0)
+                    self.progress_layout_constant.progress_label.setText(
+                        "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
     def load_sub_gui(self, sub_mapping_method):
         """
@@ -858,6 +867,9 @@ class SubstrateAndMerge(QWidget):
                 self.hdf5_merge_lineedit.setText(name_hdf5merge)
                 self.hdf5_merge_lineedit.setFocus()
                 self.progress_layout_merge.run_stop_button.setEnabled(True)
+                self.progress_layout_merge.progress_bar.setValue(0.0)
+                self.progress_layout_merge.progress_label.setText(
+                    "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
     def log_txt(self, code_type):
         """
