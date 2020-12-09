@@ -18,6 +18,7 @@ from PyQt5.QtCore import QAbstractTableModel, QRect, QPoint, QObject, pyqtSignal
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QKeySequence
 from PyQt5.QtWidgets import QTabBar, QStylePainter, QStyleOptionTab, QStyle, QListWidget, QApplication, QHBoxLayout, \
     QComboBox, QProgressBar, QLabel, QPushButton
+from time import sleep
 
 from src.process_manager_mod import MyProcessManager
 
@@ -281,13 +282,11 @@ class ProcessProgShow(QObject):
 
         if self.process_manager.process_list.stop_by_user:
             # log
-            self.send_log.emit(self.process_manager.process_type_gui + self.tr(
-                " computation(s) stopped by user (computation time = ") + str(round(self.process_manager.process_list.total_time)) + " s).")
+            self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computation(s) stopped by user."))
         else:
             if error:
                 # log
-                self.send_log.emit(self.process_manager.process_type_gui +
-                    self.tr(" computation(s) finished with error(s)."))
+                self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computation(s) finished with error(s)."))
             else:
                 self.send_log.emit(self.process_manager.process_type_gui + self.tr(" computing finished."))
 

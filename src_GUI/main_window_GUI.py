@@ -2096,8 +2096,11 @@ class CentralW(QWidget):
         # bio_model_explorer_dialog
         if hasattr(self.parent(), "bio_model_explorer_dialog"):
             if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
-                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager"):
-                    self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager.close_all_plot()
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager_sc_plot"):
+                    self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_plot.stop_by_user()
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab,"process_manager_sc_hs_plot"):
+                    self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_hs_plot.stop_by_user()
+
         # data_explorer_tab
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_group'):
@@ -2112,7 +2115,7 @@ class CentralW(QWidget):
         if hasattr(self, 'hs_tab'):
             if hasattr(self.hs_tab, 'computing_group'):
                 if hasattr(self.hs_tab.computing_group, 'process_manager'):
-                    self.hs_tab.computing_group.process_manager.close_all_hs()
+                    self.hs_tab.computing_group.process_manager.stop_by_user()
             if hasattr(self.hs_tab, 'visual_group'):
                 if hasattr(self.hs_tab.visual_group, 'process_manager'):
                     self.hs_tab.visual_group.process_manager.stop_by_user()

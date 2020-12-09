@@ -19,7 +19,7 @@ from copy import deepcopy
 from multiprocessing import Value
 from multiprocessing import Process
 from multiprocessing import Queue
-
+import numpy as np
 from PyQt5.QtCore import QThread, QObject
 
 from src import plot_mod
@@ -27,6 +27,7 @@ from src.calcul_hab_mod import calc_hab_and_output
 from src.hdf5_mod import Hdf5Management
 from src.hydraulic_process_mod import load_hydraulic_cut_to_hdf5, merge_grid_and_save, load_data_and_compute_hs
 from src.substrate_mod import load_sub
+from src.bio_info_mod import read_pref, get_hydrosignature
 from src.tools_mod import create_map_plot_string_dict, compute_interpolation, export_text_interpolatevalues
 
 
@@ -93,8 +94,6 @@ class MyProcessManager(QThread):
                                q=q)
             self.process_list.append(my_process)
 
-        self.add_send_log_to_each_process()
-
     # sub
     def set_sub_mode(self, path_prj, sub_description, project_preferences):
         # # check plot process done
@@ -120,8 +119,6 @@ class MyProcessManager(QThread):
                            progress_value=progress_value,
                            q=q)
         self.process_list.append(my_process)
-
-        self.add_send_log_to_each_process()
 
     # merge
     def set_merge_mode(self, path_prj, hdf5_name_hyd, hdf5_name_sub, name_hdf5, project_preferences):
@@ -154,8 +151,6 @@ class MyProcessManager(QThread):
                                q=q)
         self.process_list.append(my_process)
 
-        self.add_send_log_to_each_process()
-
     # hab
     def set_hab_mode(self, path_prj, user_target_list, name_hdf5, project_preferences):
         # # check plot process done
@@ -183,8 +178,6 @@ class MyProcessManager(QThread):
                                progress_value=progress_value,
                                q=q)
         self.process_list.append(my_process)
-
-        self.add_send_log_to_each_process()
 
     # plot
     def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_preferences):
@@ -314,7 +307,6 @@ class MyProcessManager(QThread):
                                                            progress_value=progress_value,
                                                            q=q)
                                     self.process_list.append(my_process)
-        self.add_send_log_to_each_process()
 
     # export
     def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
@@ -447,7 +439,6 @@ class MyProcessManager(QThread):
             #                                   args=(state,),
             #                                   name="export_gpkg")
             #     self.process_list.append([export_gpkg_process, state])
-        self.add_send_log_to_each_process()
 
     # hs
     def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
@@ -473,7 +464,6 @@ class MyProcessManager(QThread):
                                    progress_value=progress_value,
                                    q=q)
             self.process_list.append(my_process)
-        self.add_send_log_to_each_process()
 
     # hs plot
     def load_data_and_append_hs_plot_process(self):
@@ -525,6 +515,120 @@ class MyProcessManager(QThread):
                                        q=q)
                 self.process_list.append(my_process)
 
+    # sc_plot
+    def set_sc_plot_mode(self, path_prj, plot_attr, project_preferences):
+        # # check plot process done
+        if self.check_all_process_closed():
+            self.__init__(self.process_type)
+        else:
+            self.add_plots(plot_attr.nb_plot)
+        self.path_prj = path_prj
+        self.plot_attr = plot_attr
+        self.project_preferences = project_preferences
+
+    def load_data_and_append_sc_plot_process(self):
+        # class MyProcess
+        progress_value = Value("d", 0.0)
+        q = Queue()
+
+        # univariate
+        if self.plot_attr.information_model_dict["ModelType"] == "univariate suitability index curves":
+            # fish
+            if self.plot_attr.aquatic_animal_type == "fish":
+                # open the pref
+                h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile,
+                                                                                                         self.plot_attr.aquatic_animal_type,
+                                                                                                         self.plot_attr.selected_fish_stage)
+                my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve,
+                                                 args=(progress_value,
+                                              h_all,
+                                              vel_all,
+                                              sub_all,
+                                              self.plot_attr.information_model_dict["CdBiologicalModel"],
+                                              name_fish,
+                                              stages,
+                                              self.plot_attr.sub_type,
+                                              sub_code,
+                                              self.project_preferences,
+                                              False),
+                                                 name="plot_suitability_curve"),
+                                       progress_value=progress_value,
+                                       q=q)
+
+            # invertebrate
+            # elif plot_attr.aquatic_animal_type == "invertebrate":
+            else:
+                # open the pref
+                shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile,
+                                                                                                            self.plot_attr.aquatic_animal_type)
+                my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_invertebrate,
+                                        args=(progress_value,
+                                              shear_stress_all,
+                                              hem_all,
+                                              hv_all,
+                                              self.plot_attr.information_model_dict["CdBiologicalModel"],
+                                              name_fish,
+                                              stages,
+                                              self.project_preferences,
+                                              False),
+                                        name="plot_suitability_curve_invertebrate"),
+                                       progress_value=progress_value,
+                                       q=q)
+        # bivariate
+        else:
+            # open the pref
+            h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile,
+                                                                                                      self.plot_attr.aquatic_animal_type)
+            my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_bivariate,
+                                    args=(progress_value,
+                                          h_all,
+                                          vel_all,
+                                          pref_values_all,
+                                          self.plot_attr.information_model_dict["CdBiologicalModel"],
+                                          name_fish,
+                                          stages,
+                                          self.project_preferences,
+                                          False),
+                                    name="plot_suitability_curve_bivariate"),
+                                       progress_value=progress_value,
+                                       q=q)
+
+        self.process_list.append(my_process)
+
+    # sc_hs_plot
+    def set_sc_hs_plot_mode(self, path_prj, plot_attr, project_preferences):
+        # # check plot process done
+        if self.check_all_process_closed():
+            self.__init__(self.process_type)
+        else:
+            self.add_plots(plot_attr.nb_plot)
+        self.path_prj = path_prj
+        self.plot_attr = plot_attr
+        self.project_preferences = project_preferences
+
+    def load_data_and_append_sc_hs_plot_process(self):
+        # class MyProcess
+        progress_value = Value("d", 0.0)
+        q = Queue()
+
+        # get data
+        data, vclass, hclass = get_hydrosignature(self.plot_attr.xmlfile)
+        if isinstance(data, np.ndarray):
+            my_process = MyProcess(Process(target=plot_mod.plot_hydrosignature,
+                                             args=(progress_value,
+                                                   data,
+                                                   vclass,
+                                                   hclass,
+                                                   self.plot_attr.fishname,
+                                                   "from suitability curve",
+                                                   self.project_preferences,
+                                                   self.project_preferences["hs_axe_mod"]),
+                                         name="plot_suitability_curve"),
+                               progress_value=progress_value,
+                               q=q)
+
+            self.process_list.append(my_process)
+
     # interpolation
     def set_interpolation_hdf5_mode(self, path_prj, names_hdf5, interp_attr, project_preferences):
         # # check plot process done
@@ -570,7 +674,6 @@ class MyProcessManager(QThread):
 
         # append to list
         self.process_list.append(my_process)
-        self.add_send_log_to_each_process()
 
     def load_data_and_append_interpolation_export_process(self):
         self.hdf5 = Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=False)
@@ -603,7 +706,6 @@ class MyProcessManager(QThread):
 
         # append to list
         self.process_list.append(my_process)
-        self.add_send_log_to_each_process()
 
     def add_plots(self, plus):
         self.plot_production_stopped = False
@@ -627,6 +729,10 @@ class MyProcessManager(QThread):
             self.hab_process()
         elif self.process_type == "plot":
             self.load_data_and_append_plot_process()
+        elif self.process_type == "sc_plot":
+            self.load_data_and_append_sc_plot_process()
+        elif self.process_type == "sc_hs_plot":
+            self.load_data_and_append_sc_hs_plot_process()
         elif self.process_type == "export":
             self.load_data_and_append_export_process()
         elif self.process_type == "hs":
@@ -639,13 +745,16 @@ class MyProcessManager(QThread):
             elif self.interp_attr.mode == "export":
                 self.load_data_and_append_interpolation_export_process()
 
+        self.add_send_log_to_each_process()
+
         # all cases
         self.process_list.start()
         self.all_process_runned = True
 
     def add_send_log_to_each_process(self):
-        for process in self.process_list:
-            process.send_log = self.send_log
+        if hasattr(self, "send_log"):
+            for process in self.process_list:
+                process.send_log = self.send_log
 
     def close_all_plot(self):
         # remove plots not started
@@ -712,7 +821,7 @@ class MyProcessManager(QThread):
                 if process.p.is_alive():
                     process.p.terminate()
                     process.state = self.tr("stopped")
-                    if self.process_type == "plot":
+                    if self.process_type in {"plot", "hs_plot"}:
                         pass
                     else:
                         process.get_total_time()
@@ -819,18 +928,18 @@ class MyProcess(QObject):
                         print("- " + self.tr(self.p.name + " closed by user after ") + str(
                             round(self.total_time)) + " s")
                     else:
-                        self.send_log.emit("- " + self.tr(self.p.name + " stopped (computation time = ") + str(
+                        self.send_log.emit("- " + self.tr(self.p.name + " stopped (process time = ") + str(
                             round(self.total_time)) + " s).")
             else:
                 if not error:
                     if self.progress_value.value == 100:
-                        self.send_log.emit("- " + self.tr(self.p.name + " done (computation time = ") + str(
+                        self.send_log.emit("- " + self.tr(self.p.name + " done (process time = ") + str(
                             round(self.total_time)) + " s).")
                     else:
-                        self.send_log.emit("- " + self.tr(self.p.name + " crashed (computation time = ") + str(
+                        self.send_log.emit("- " + self.tr(self.p.name + " crashed (process time = ") + str(
                             round(self.total_time)) + " s).")
         else:
-            print("- " + self.tr(self.p.name + " " + self.state + " (computation time = ") + str(
+            print("- " + self.tr(self.p.name + " " + self.state + " (process time = ") + str(
                             round(self.total_time)) + " s).")
 
     def send_err_log(self, check_ok=False):

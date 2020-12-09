@@ -550,8 +550,9 @@ class BioModelInfoSelection(QScrollArea):
         self.msg2 = QMessageBox()
         self.init_iu()
         self.lang = 0
-        self.process_manager = MyProcessManager("plot")
         self.animal_picture_path = None
+        self.process_manager_sc_plot = MyProcessManager("sc_plot")
+        self.process_manager_sc_hs_plot = MyProcessManager("sc_hs_plot")
 
     def init_iu(self):
         # insist on white background color (for linux, mac)
@@ -850,83 +851,24 @@ class BioModelInfoSelection(QScrollArea):
             self.send_log.emit("Warning: " + self.tr("No fish selected to show Habitat Suitability Index"))
             return
 
+        plot_attr = lambda: None
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ShiftModifier:
-            selected_fish_stage = None
+            plot_attr.selected_fish_stage = None
         else:
-            selected_fish_stage = self.selected_fish_stage
+            plot_attr.selected_fish_stage = self.selected_fish_stage
+        plot_attr.i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
+        plot_attr.aquatic_animal_type = self.biological_models_dict_gui["aquatic_animal_type"][plot_attr.i]
+        plot_attr.xmlfile = self.biological_models_dict_gui["path_xml"][plot_attr.i]
+        plot_attr.information_model_dict = bio_info_mod.get_biomodels_informations_for_database(plot_attr.xmlfile)
+        plot_attr.sub_type = self.biological_models_dict_gui["substrate_type"][plot_attr.i]
+        plot_attr.nb_plot = 1
 
-        # get the file
-        i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
-        xmlfile = self.biological_models_dict_gui["path_xml"][i]
-        aquatic_animal_type = self.biological_models_dict_gui["aquatic_animal_type"][i]
+        self.process_manager_sc_plot.set_sc_plot_mode(self.path_prj,
+                                                 plot_attr,
+                                                 load_project_properties(self.path_prj))
 
-        information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xmlfile)
-        # plot the pref
-        project_preferences = load_project_properties(self.path_prj)
-        # check plot process done
-        if self.process_manager.check_all_process_closed():
-            self.process_manager.new_plots()
-        else:
-            self.process_manager.add_plots(1)
-        state = Value("i", 0)
-        # univariate
-        if information_model_dict["ModelType"] == "univariate suitability index curves":
-            # fish
-            if aquatic_animal_type == "fish":
-                # open the pref
-                h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
-                                                                                                 aquatic_animal_type,
-                                                                                               selected_fish_stage)
-                sub_type = self.biological_models_dict_gui["substrate_type"][i]
-                curve_process = Process(target=plot_mod.plot_suitability_curve,
-                                        args=(state,
-                                              h_all,
-                                              vel_all,
-                                              sub_all,
-                                              information_model_dict["CdBiologicalModel"],
-                                              name_fish,
-                                              stages,
-                                              sub_type,
-                                              sub_code,
-                                              project_preferences,
-                                              False),
-                                        name="plot_suitability_curve")
-            # invertebrate
-            if aquatic_animal_type == "invertebrate":
-                # open the pref
-                shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
-                                                                                                 aquatic_animal_type)
-                curve_process = Process(target=plot_mod.plot_suitability_curve_invertebrate,
-                                        args=(state,
-                                              shear_stress_all,
-                                              hem_all,
-                                              hv_all,
-                                              information_model_dict["CdBiologicalModel"],
-                                              name_fish,
-                                              stages,
-                                              project_preferences,
-                                              False),
-                                        name="plot_suitability_curve_invertebrate")
-        # bivariate
-        else:
-            # open the pref
-            h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = bio_info_mod.read_pref(xmlfile,
-                                                                                                    aquatic_animal_type)
-            curve_process = Process(target=plot_mod.plot_suitability_curve_bivariate,
-                                    args=(state,
-                                              h_all,
-                                              vel_all,
-                                              pref_values_all,
-                                              information_model_dict["CdBiologicalModel"],
-                                              name_fish,
-                                              stages,
-                                              project_preferences,
-                                              False),
-                                        name="plot_suitability_curve_bivariate")
-        # append
-        self.process_manager.append((curve_process, state))
-        self.process_manager.start()
+        self.process_manager_sc_plot.start()
 
     def show_hydrosignature(self):
         """
@@ -940,28 +882,16 @@ class BioModelInfoSelection(QScrollArea):
 
         # get the file
         i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
-        fishname = self.biological_models_dict_gui["latin_name"][i]
-        xmlfile = self.biological_models_dict_gui["path_xml"][i]
 
-        # get data
-        data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
-        if isinstance(data, np.ndarray):
-            # check plot process done
-            if self.process_manager.check_all_process_closed():
-                self.process_manager.new_plots()
-            else:
-                self.process_manager.add_plots()
-            project_preferences = load_project_properties(self.path_prj)
-            state = Value("i", 0)
-            hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
-                                             args=(state,
-                                                   data,
-                                                   vclass,
-                                                   hclass,
-                                                   fishname,
-                                                   project_preferences))
-            self.process_manager.append((hydrosignature_process, state))
-            self.process_manager.start()
+        plot_attr = lambda: None
+        plot_attr.fishname = self.biological_models_dict_gui["latin_name"][i]
+        plot_attr.xmlfile = self.biological_models_dict_gui["path_xml"][i]
+
+        self.process_manager_sc_hs_plot.set_sc_hs_plot_mode(self.path_prj,
+                                                 plot_attr,
+                                                 load_project_properties(self.path_prj))
+
+        self.process_manager_sc_hs_plot.start()
 
     def add_selected_to_main(self):
         # source

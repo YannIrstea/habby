@@ -2097,7 +2097,7 @@ class Hdf5Management:
                     hab_animal_type_list,
                     [self.project_preferences] * len(xmlfiles))
 
-                pool = Pool()
+                pool = Pool(4)
                 pool.map(bio_info_mod.export_report, input_data)
 
             if state is not None:

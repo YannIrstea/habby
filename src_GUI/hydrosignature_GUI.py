@@ -238,15 +238,19 @@ class ComputingGroup(QGroupBoxCollapsible):
         else:
             self.progress_layout.run_stop_button.setEnabled(False)
 
+        self.progress_layout.progress_bar.setValue(0.0)
+        self.progress_layout.progress_label.setText(
+            "{0:.0f}/{1:.0f}".format(0.0, len(self.file_selection_listwidget.selectedItems())))
+
     def names_hdf5_change(self):
         selection = self.file_selection_listwidget.selectedItems()
+        self.progress_layout.progress_bar.setValue(0.0)
+        self.progress_layout.progress_label.setText(
+            "{0:.0f}/{1:.0f}".format(0.0, len(selection)))
         if selection:
             # enable run button
             if self.input_class_filename.text():
                 self.progress_layout.run_stop_button.setEnabled(True)
-                self.progress_layout.progress_bar.setValue(0.0)
-                self.progress_layout.progress_label.setText(
-                    "{0:.0f}/{1:.0f}".format(0.0, len(selection)))
             else:
                 self.progress_layout.run_stop_button.setEnabled(False)
         else:
@@ -355,6 +359,15 @@ class VisualGroup(QGroupBoxCollapsible):
         self.axe_mod_choosen = 1
         self.setTitle(title)
         self.init_ui()
+        self.process_prog_show_input = ProcessProgShow(send_log=self.send_log,
+                                                 run_function=self.plot_hs_class,
+                                                 computation_pushbutton=self.input_class_plot_button)
+        self.process_prog_show_area = ProcessProgShow(send_log=self.send_log,
+                                                 run_function=self.plot_hs_area,
+                                                 computation_pushbutton=self.result_plot_button_area)
+        self.process_prog_show_volume = ProcessProgShow(send_log=self.send_log,
+                                                 run_function=self.plot_hs_volume,
+                                                 computation_pushbutton=self.result_plot_button_volume)
 
     def init_ui(self):
         # file_selection
@@ -447,11 +460,11 @@ class VisualGroup(QGroupBoxCollapsible):
         self.result_tableview.verticalHeader().setVisible(False)
         self.result_tableview.horizontalHeader().setVisible(False)
         self.result_plot_button_area = QPushButton(self.tr("Show area"))
-        self.result_plot_button_area.clicked.connect(lambda: self.plot_hs_result("area"))
+        self.result_plot_button_area.clicked.connect(self.plot_hs_area)
         self.result_plot_button_area.setEnabled(False)
         change_button_color(self.result_plot_button_area, "#47B5E6")
         self.result_plot_button_volume = QPushButton(self.tr("Show volume"))
-        self.result_plot_button_volume.clicked.connect(lambda: self.plot_hs_result("volume"))
+        self.result_plot_button_volume.clicked.connect(self.plot_hs_volume)
         self.result_plot_button_volume.setEnabled(False)
         change_button_color(self.result_plot_button_volume, "#47B5E6")
         pushbutton_layout = QVBoxLayout()
@@ -585,16 +598,16 @@ class VisualGroup(QGroupBoxCollapsible):
                                                 load_project_properties(self.path_prj))
 
         # process_prog_show
-        self.process_prog_show.start_show_prog(self.process_manager)
+        self.process_prog_show_input.start_show_prog(self.process_manager)
 
         # start thread
         self.process_manager.start()
 
-    def plot_hs_result(self, type):
+    def plot_hs_area(self):
         plot_attr = lambda: None
 
         plot_attr.axe_mod_choosen = self.axe_mod_choosen
-        plot_attr.hs_plot_type = type
+        plot_attr.hs_plot_type = "area"
         plot_attr.reach = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
         plot_attr.units = [element.row() for element in self.units_QListWidget.selectedIndexes()]
         plot_attr.nb_plot = len(plot_attr.units)
@@ -606,7 +619,28 @@ class VisualGroup(QGroupBoxCollapsible):
                                                 load_project_properties(self.path_prj))
 
         # process_prog_show
-        self.process_prog_show.start_show_prog(self.process_manager)
+        self.process_prog_show_area.start_show_prog(self.process_manager)
+
+        # start thread
+        self.process_manager.start()
+
+    def plot_hs_volume(self):
+        plot_attr = lambda: None
+
+        plot_attr.axe_mod_choosen = self.axe_mod_choosen
+        plot_attr.hs_plot_type = "volume"
+        plot_attr.reach = [element.row() for element in self.reach_QListWidget.selectedIndexes()]
+        plot_attr.units = [element.row() for element in self.units_QListWidget.selectedIndexes()]
+        plot_attr.nb_plot = len(plot_attr.units)
+
+        # process_manager
+        self.process_manager.set_plot_hdf5_mode(self.path_prj,
+                                                [self.file_selection_listwidget.selectedItems()[0].text()],
+                                                plot_attr,
+                                                load_project_properties(self.path_prj))
+
+        # process_prog_show
+        self.process_prog_show_volume.start_show_prog(self.process_manager)
 
         # start thread
         self.process_manager.start()
