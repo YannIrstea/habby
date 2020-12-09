@@ -24,7 +24,7 @@ from src.plot_mod import plot_to_check_mesh_merging
 
 
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
-          coeffgrid, delta_mesh, progress_value):
+          coeffgrid, delta_mesh, progress_value=None):
     """
     Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
@@ -371,7 +371,8 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             decalnewpointmerge += len(nxynewpoint)
 
         # progress
-        progress_value.value = progress_value.value + delta_mesh
+        if progress_value is not None:
+            progress_value.value = progress_value.value + delta_mesh
 
     # get rid of duplicate points
     merge_xy = np.array(xymerge)
