@@ -632,6 +632,9 @@ class Data2d(list):
                         # compute hydraulic_head
                         elif node_variable.name == self.hvum.hydraulic_head.name:
                             self[reach_number][unit_number].c_node_hydraulic_head()
+                        # compute hydraulic_head_level
+                        elif node_variable.name == self.hvum.hydraulic_head_level.name:
+                            self[reach_number][unit_number].c_node_hydraulic_head_level()
                         # compute conveyance
                         elif node_variable.name == self.hvum.conveyance.name:
                             self[reach_number][unit_number].c_node_conveyance()
@@ -665,6 +668,9 @@ class Data2d(list):
                         # compute hydraulic_head
                         elif mesh_variable.name == self.hvum.hydraulic_head.name:
                             self[reach_number][unit_number].c_mesh_hydraulic_head()
+                        # compute hydraulic_head_level
+                        elif mesh_variable.name == self.hvum.hydraulic_head_level.name:
+                            self[reach_number][unit_number].c_mesh_hydraulic_head_level()
                         # compute conveyance
                         elif mesh_variable.name == self.hvum.conveyance.name:
                             self[reach_number][unit_number].c_mesh_conveyance()
@@ -1133,6 +1139,18 @@ class Unit(dict):
         else:
             self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head.name)
 
+    def c_mesh_hydraulic_head_level(self):
+        mesh_colnames = self["mesh"]["data"].columns.tolist()
+        # if v and h mesh existing
+        if self.hvum.h.name in mesh_colnames and self.hvum.v.name in mesh_colnames:
+            # compute hydraulic_head_level = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
+            self["mesh"]["data"][self.hvum.hydraulic_head_level.name] = (self["mesh"]["data"][self.hvum.z.name] +
+                                                                   self["mesh"]["data"][self.hvum.h.name]) + (
+                    (self["mesh"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
+        # compute mesh mean
+        else:
+            self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head_level.name)
+
     def c_mesh_conveyance(self):
         mesh_colnames = self["mesh"]["data"].columns.tolist()
         # if v and h mesh existing
@@ -1280,9 +1298,14 @@ class Unit(dict):
                 0)  # divid by 0 return Nan
 
     def c_node_hydraulic_head(self):
-        # TODO: add z for 3d pvd
         # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
         self["node"]["data"][self.hvum.hydraulic_head.name] = self["node"]["data"][self.hvum.h.name] + (
+                (self["node"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
+
+    def c_node_hydraulic_head_level(self):
+        # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))
+        self["node"]["data"][self.hvum.hydraulic_head_level.name] = (self["node"]["data"][self.hvum.z.name] +
+                                                               self["node"]["data"][self.hvum.h.name]) + (
                 (self["node"]["data"][self.hvum.v.name] ** 2) / (2 * self.hvum.g.value))
 
     def c_node_conveyance(self):

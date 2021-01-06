@@ -338,7 +338,7 @@ class ProjectPropertiesDialog(QDialog):
                      self.hvum.h.name_gui,
                      self.hvum.v.name_gui,
                      self.hvum.level.name_gui,
-                     self.hvum.hydraulic_head.name_gui,
+                     self.hvum.hydraulic_head_level.name_gui,
                      self.hvum.conveyance.name_gui,
                      self.hvum.froude.name_gui
                      ]
