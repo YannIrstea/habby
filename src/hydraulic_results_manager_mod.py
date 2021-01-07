@@ -54,6 +54,12 @@ class HydraulicModelInformation:
         else:
             return None
 
+    def get_attribute_name_from_name_models_gui(self, name_gui):
+        if name_gui in self.name_models_gui_list:
+            return self.attribute_models_list[self.name_models_gui_list.index(name_gui)]
+        else:
+            return None
+
     def get_class_mod_name_from_attribute_name(self, attribute_name):
         if attribute_name in self.attribute_models_list:
             return self.class_mod_models_list[self.attribute_models_list.index(attribute_name)]

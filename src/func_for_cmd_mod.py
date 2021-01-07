@@ -212,6 +212,82 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             print("# CREATE_PROJECT finished")
 
     # ----------------------------------------------------------------------------------
+    elif 'CREATE_HYD' in all_arg[0]:
+        # remove the first arg CREATE_HYD
+        all_arg = all_arg[1:]
+
+        # optionnal args
+        units_string = None
+        outputfilename = None
+
+        # get args
+        for arg in all_arg:
+            # model
+            model_arg_name = 'model='
+            if arg[:len(model_arg_name)] == model_arg_name:
+                model_name = arg[len(model_arg_name):]
+            # inputfile
+            inputfile_arg_name = 'inputfile='
+            if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
+                filename_path = arg[len(inputfile_arg_name):]
+                if "," in filename_path:
+                    path = os.path.dirname(filename_path)
+                    filename = os.path.basename(filename_path)
+                    filename_path = []
+                    for filename in filename.split(","):
+                        filename_path.append(os.path.join(path, filename))
+                else:
+                    filename_path = [filename_path]
+            # outputfilename
+            outputfilename_arg_name = 'outputfilename='
+            if arg[:len(outputfilename_arg_name)] == outputfilename_arg_name:
+                outputfilename = arg[len(outputfilename_arg_name):]
+            # cut
+            cut_arg_name = 'cut='
+            if arg[:len(cut_arg_name)] == cut_arg_name:
+                cut = eval(arg[len(cut_arg_name):])
+                project_preferences['cut_mesh_partialy_dry'] = cut
+
+        # # get_hydrau_description_from_source
+        hydraulic_model_information = HydraulicModelInformation()
+        hsra_value = hydraulic_process_mod.HydraulicSimulationResultsAnalyzer(filename_path,
+                                                                              project_preferences["path_prj"],
+                                                                              hydraulic_model_information.get_attribute_name_from_name_models_gui(model_name),
+                                                                              2)
+
+        # outputfilename
+        if outputfilename:
+            hsra_value.hydrau_description_list[0]["hdf5_name"] = outputfilename
+        else:
+            # change suffix
+            if not project_preferences["cut_mesh_partialy_dry"]:
+                namehdf5_old, exthdf5_old = os.path.splitext(hsra_value.hydrau_description_list[0]["hdf5_name"])
+                hsra_value.hydrau_description_list[0]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
+        # warnings
+        if hsra_value.warning_list:
+            for warn in hsra_value.warning_list:
+                print(warn)
+
+        # error
+        if type(hsra_value.hydrau_description_list[0]) == str:
+            print("Error")
+            return
+
+        # run process
+        progress_value = Value("d", 0)
+        q = Queue()
+        p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
+                    args=(hsra_value.hydrau_description_list[0],
+                               progress_value,
+                               q,
+                               True,
+                               project_preferences),
+                    name=hsra_value.hydrau_description_list[0]["hdf5_name"] + " creation")
+
+        cli_start_process_and_print_progress(p, progress_value)
+
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_TELEMAC':
         # remove the first arg LOAD_TELEMAC
         all_arg = all_arg[1:]
@@ -272,15 +348,13 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         # run process
         progress_value = Value("d", 0)
-        stop = Event()
         q = Queue()
         p = Process(target=hydraulic_process_mod.load_hydraulic_cut_to_hdf5,
-                    args=(hsra_value.hydrau_description_list,
+                    args=(hsra_value.hydrau_description_list[0],
                                progress_value,
                                q,
                                True,
-                               project_preferences,
-                                stop),
+                               project_preferences),
                     name="TELEMAC")
 
         cli_start_process_and_print_progress(p, progress_value)

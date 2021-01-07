@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import os.path
 import sys
+# sys.setrecursionlimit(25000)
 from io import StringIO
 
 import numpy as np
@@ -790,38 +791,38 @@ class HydraulicSimulationResultsAnalyzer:
 
 
 def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
-    """ ONE HDF5 """
-    # one case (one hdf5 produced)
-    if len(description_from_indexHYDRAU_file) == 1:
-        filename_path = os.path.join(description_from_indexHYDRAU_file[0]["path_prj"], "input", "indexHYDRAU.txt")
+    if type(description_from_indexHYDRAU_file) == dict:
+        """ ONE HDF5 """
+        # one case (one hdf5 produced)
+        filename_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", "indexHYDRAU.txt")
         # telemac case
-        telemac_case = description_from_indexHYDRAU_file[0]["hydrau_case"]
+        telemac_case = description_from_indexHYDRAU_file["hydrau_case"]
 
         # column filename
-        filename_column = description_from_indexHYDRAU_file[0]["filename_source"].split(", ")
+        filename_column = description_from_indexHYDRAU_file["filename_source"].split(", ")
 
         # nb_row
         nb_row = len(filename_column)
 
         """ CASE unknown """
         if telemac_case == "unknown":
-            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
 
             # headers
             headers = "filename" + "\t" + "T[" + time_unit + "]"
 
             # first line
-            if description_from_indexHYDRAU_file[0]["unit_list"] == \
-                    description_from_indexHYDRAU_file[0]["unit_list_full"]:
+            if description_from_indexHYDRAU_file["unit_list"] == \
+                    description_from_indexHYDRAU_file["unit_list_full"]:
                 unit_data = "all"
             else:
-                index = [i for i, item in enumerate(description_from_indexHYDRAU_file[0]["unit_list_full"]) if
-                         item in description_from_indexHYDRAU_file[0]["unit_list"]]
+                index = [i for i, item in enumerate(description_from_indexHYDRAU_file["unit_list_full"]) if
+                         item in description_from_indexHYDRAU_file["unit_list"]]
                 my_sequences = []
                 for idx, item in enumerate(index):
                     if not idx or item - 1 != my_sequences[-1][-1]:
@@ -831,9 +832,9 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 from_to_string_list = []
                 for sequence in my_sequences:
                     start = min(sequence)
-                    start_string = description_from_indexHYDRAU_file[0]["unit_list_full"][start]
+                    start_string = description_from_indexHYDRAU_file["unit_list_full"][start]
                     end = max(sequence)
-                    end_string = description_from_indexHYDRAU_file[0]["unit_list_full"][end]
+                    end_string = description_from_indexHYDRAU_file["unit_list_full"][end]
                     if start == end:
                         start_end_string = start_string
                     if start != end:
@@ -847,24 +848,24 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
 
         """ CASE 1.a """
         if telemac_case == "1.a":
-            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
             # first line
-            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"][0])
+            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file["unit_list"][0])
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
 
@@ -873,25 +874,25 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
 
         """ CASE 1.b """
         if telemac_case == "1.b":
-            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
             # first line
-            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"][0])
-            linetowrite = linetowrite + "\t" + description_from_indexHYDRAU_file[0]["unit_list_full"][0]
+            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file["unit_list"][0])
+            linetowrite = linetowrite + "\t" + description_from_indexHYDRAU_file["unit_list_full"][0]
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
             # text
@@ -899,18 +900,18 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
 
         """ CASE 2.a """
         if telemac_case == "2.a":
-            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
             if reach_column_presence:
@@ -918,9 +919,9 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
             # lines
             linetowrite = ""
             for row in range(nb_row):
-                if description_from_indexHYDRAU_file[0]["unit_list_tf"][row]:
+                if description_from_indexHYDRAU_file["unit_list_tf"][row]:
                     linetowrite += filename_column[row] + "\t" + str(
-                        description_from_indexHYDRAU_file[0]["unit_list_full"][row])
+                        description_from_indexHYDRAU_file["unit_list_full"][row])
                     if reach_column_presence:
                         linetowrite = linetowrite + "\t" + reach_column + "\n"
                     else:
@@ -933,18 +934,18 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
 
         """ CASE 2.b """
         if telemac_case == "2.b":
-            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
             if reach_column_presence:
@@ -953,8 +954,8 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
             linetowrite = ""
             for row in range(nb_row):
                 linetowrite += filename_column[row] + "\t" + str(
-                    description_from_indexHYDRAU_file[0]["unit_list"][row]) + "\t" + \
-                               description_from_indexHYDRAU_file[0]["timestep_list"][row]
+                    description_from_indexHYDRAU_file["unit_list"][row]) + "\t" + \
+                               description_from_indexHYDRAU_file["timestep_list"][row]
                 if reach_column_presence:
                     linetowrite = linetowrite + "\t" + reach_column + "\n"
                 else:
@@ -967,30 +968,30 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
 
         """ CASE 3.a 3.b """
         if telemac_case == "3.a" or telemac_case == "3.b":
-            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
             # headers
             headers = "filename" + "\t" + "T[" + time_unit + "]"
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
 
             # first line
-            if description_from_indexHYDRAU_file[0]["unit_list"] == description_from_indexHYDRAU_file[0][
+            if description_from_indexHYDRAU_file["unit_list"] == description_from_indexHYDRAU_file[
                 "unit_list_full"]:
                 unit_data = "all"
             else:
-                index = [i for i, item in enumerate(description_from_indexHYDRAU_file[0]["unit_list_full"]) if
-                         item in description_from_indexHYDRAU_file[0]["unit_list"]]
+                index = [i for i, item in enumerate(description_from_indexHYDRAU_file["unit_list_full"]) if
+                         item in description_from_indexHYDRAU_file["unit_list"]]
                 my_sequences = []
                 for idx, item in enumerate(index):
                     if not idx or item - 1 != my_sequences[-1][-1]:
@@ -1000,9 +1001,9 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 from_to_string_list = []
                 for sequence in my_sequences:
                     start = min(sequence)
-                    start_string = description_from_indexHYDRAU_file[0]["unit_list_full"][start]
+                    start_string = description_from_indexHYDRAU_file["unit_list_full"][start]
                     end = max(sequence)
-                    end_string = description_from_indexHYDRAU_file[0]["unit_list_full"][end]
+                    end_string = description_from_indexHYDRAU_file["unit_list_full"][end]
                     if start == end:
                         start_end_string = start_string
                     if start != end:
@@ -1020,9 +1021,9 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
         with open(filename_path, 'wt') as f:
             f.write(text)
 
-    """ MULTI HDF5 """
-    # multi case (several hdf5 produced)
-    if len(description_from_indexHYDRAU_file) > 1:
+    else:
+        """ MULTI HDF5 """
+        # multi case (several hdf5 produced)
         if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
             reach_column_presence = False
         else:
