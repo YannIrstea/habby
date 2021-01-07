@@ -30,7 +30,7 @@ import shutil
 from pandas import DataFrame
 
 from src import bio_info_mod
-from src import plot_mod
+from src import export_manager
 from src import hl_mod
 from src import paraview_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
@@ -1922,6 +1922,9 @@ class Hdf5Management:
                                                   'The path to the text file is not found. Text files not created \n'))
 
             # for all reach
+            name_list = []
+            hvum_list = []
+            unit_data_list = []
             for reach_number in range(self.data_2d.reach_number):
                 # for all units
                 for unit_number in range(self.data_2d.unit_number):
@@ -1938,48 +1941,16 @@ class Hdf5Management:
                                 print('Error: ' + qt_tr.translate("hdf5_mod",
                                                                   'Could not modify text file as it is open in another program. \n'))
                                 return
-                    name = os.path.join(self.path_txt, name)
+                    name_list.append(os.path.join(self.path_txt, name))
+                    hvum_list.append(self.data_2d.hvum)
+                    unit_data_list.append(self.data_2d[reach_number][unit_number])
 
-                    # open text to write
-                    with open(name, 'wt', encoding='utf-8') as f:
-                        # header 1
-                        text_to_write_str_list = [
-                            qt_tr.translate("hdf5_mod", "node1"),
-                            qt_tr.translate("hdf5_mod", "node2"),
-                            qt_tr.translate("hdf5_mod", "node3")]
-                        text_to_write_str_list.extend(self.data_2d.hvum.all_final_variable_list.meshs().names())
-                        text_to_write_str = "\t".join(text_to_write_str_list)
-                        text_to_write_str += '\n'
-                        f.write(text_to_write_str)
-
-                        # header 2
-                        text_to_write_str = "[]\t[]\t[]\t["
-                        text_to_write_str += ']\t['.join(self.data_2d.hvum.all_final_variable_list.meshs().units())
-                        f.write(text_to_write_str)
-
-                        # data
-                        text_to_write_str = ""
-                        # for each mesh
-                        for mesh_num in range(0, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
-                            node1 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][
-                                0]  # node num
-                            node2 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][1]
-                            node3 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][2]
-                            text_to_write_str += '\n'
-                            text_to_write_str += f"{str(node1)}\t{str(node2)}\t{str(node3)}\t"
-                            data_list = []
-                            for mesh_variable_name in self.data_2d.hvum.all_final_variable_list.meshs().names():
-                                data_list.append(str(
-                                    self.data_2d[reach_number][unit_number]["mesh"]["data"][mesh_variable_name][mesh_num]))
-                            text_to_write_str += "\t".join(data_list)
-
-                        # change decimal point
-                        locale = QLocale()
-                        if locale.decimalPoint() == ",":
-                            text_to_write_str = text_to_write_str.replace('.', ',')
-
-                        # write file
-                        f.write(text_to_write_str)
+            # Pool
+            input_data = zip(name_list,
+                             hvum_list,
+                             unit_data_list)
+            pool = Pool(4)
+            pool.map(export_manager.export_mesh_txt, input_data)
 
             if state is not None:
                 state.value = 100.0  # process finished
@@ -1998,6 +1969,9 @@ class Hdf5Management:
                                                   'The path to the text file is not found. Text files not created \n'))
 
             # for all reach
+            name_list = []
+            hvum_list = []
+            unit_data_list = []
             for reach_number in range(self.data_2d.reach_number):
                 # for all units
                 for unit_number in range(self.data_2d.unit_number):
@@ -2014,42 +1988,16 @@ class Hdf5Management:
                                 print('Error: ' + qt_tr.translate("hdf5_mod",
                                                                   'Could not modify text file as it is open in another program. \n'))
                                 return
-                    name = os.path.join(self.path_txt, name)
+                    name_list.append(os.path.join(self.path_txt, name))
+                    hvum_list.append(self.data_2d.hvum)
+                    unit_data_list.append(self.data_2d[reach_number][unit_number])
 
-                    # open text to write
-                    with open(name, 'wt', encoding='utf-8') as f:
-                        # header 1
-                        text_to_write_str = "x\ty\t"
-                        text_to_write_str += "\t".join(self.data_2d.hvum.all_final_variable_list.nodes().names())
-                        text_to_write_str += '\n'
-                        f.write(text_to_write_str)
-
-                        # header 2 2
-                        text_to_write_str = '[m]\t[m]\t['
-                        text_to_write_str += "]\t[".join(self.data_2d.hvum.all_final_variable_list.nodes().units())
-                        text_to_write_str += "]"
-                        f.write(text_to_write_str)
-
-                        # data
-                        text_to_write_str = ""
-                        # for each point
-                        for point_num in range(0, len(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])):
-                            text_to_write_str += '\n'
-                            # data geom (get the triangle coordinates)
-                            x = str(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][0])
-                            y = str(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][1])
-                            text_to_write_str += f"{x}\t{y}"
-                            for node_variable_name in self.data_2d.hvum.all_final_variable_list.nodes().names():
-                                text_to_write_str += "\t" + str(
-                                    self.data_2d[reach_number][unit_number]["node"]["data"][node_variable_name][point_num])
-
-                        # change decimal point
-                        locale = QLocale()
-                        if locale.decimalPoint() == ",":
-                            text_to_write_str = text_to_write_str.replace('.', ',')
-
-                        # write file
-                        f.write(text_to_write_str)
+            # Pool
+            input_data = zip(name_list,
+                             hvum_list,
+                             unit_data_list)
+            pool = Pool(4)
+            pool.map(export_manager.export_point_txt, input_data)
 
             if state is not None:
                 state.value = 100.0  # process finished
