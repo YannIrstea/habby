@@ -43,6 +43,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.multi_reach = False # ?
         self.reach_number = 1
         self.reach_name_list = ["unknown"]
+        # simulation info
+        self.simulation_name = "unknown"
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
                                                     attribute_list=["Coordnts"],

@@ -111,10 +111,15 @@ class ProjectPropertiesDialog(QDialog):
         self.variables_units_hyd.setObjectName("variables_units_hyd")
         self.variables_units_hab.setObjectName("variables_units_hab")
 
-        self.detailled_text_hyd = QCheckBox("")
-        self.detailled_text_hab = QCheckBox("")
-        self.detailled_text_hyd.setObjectName("detailled_text_hyd")
-        self.detailled_text_hab.setObjectName("detailled_text_hab")
+        self.mesh_detailled_text_hyd = QCheckBox("")
+        self.mesh_detailled_text_hyd.setObjectName("mesh_detailled_text_hyd")
+        self.point_detailled_text_hyd = QCheckBox("")
+        self.point_detailled_text_hyd.setObjectName("point_detailled_text_hyd")
+
+        self.mesh_detailled_text_hab = QCheckBox("")
+        self.mesh_detailled_text_hab.setObjectName("mesh_detailled_text_hab")
+        self.point_detailled_text_hab = QCheckBox("")
+        self.point_detailled_text_hab.setObjectName("point_detailled_text_hab")
 
         self.fish_information_hab = QCheckBox("")
         self.fish_information_hab.setObjectName("fish_information_hab")
@@ -128,8 +133,10 @@ class ProjectPropertiesDialog(QDialog):
                                      self.elevation_whole_profile_hyd,
                                      self.variables_units_hyd,
                                      self.variables_units_hab,
-                                     self.detailled_text_hyd,
-                                     self.detailled_text_hab,
+                                     self.mesh_detailled_text_hyd,
+                                     self.point_detailled_text_hyd,
+                                     self.mesh_detailled_text_hab,
+                                     self.point_detailled_text_hab,
                                      self.fish_information_hab]
 
         self.checkbox_list_set = list(set([checkbox.objectName()[:-4] for checkbox in self.output_checkbox_list]))
@@ -257,13 +264,18 @@ class ProjectPropertiesDialog(QDialog):
         self.layout_available_exports.addWidget(QHLine(), 9, 0, 1, 4)
         # row 10
         self.layout_available_exports.addWidget(QLabel("Text (.txt)"), 10, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Detailled txt file")), 10, 1)
-        self.layout_available_exports.addWidget(self.detailled_text_hyd, 10, 2, Qt.AlignCenter)
-        self.layout_available_exports.addWidget(self.detailled_text_hab, 10, 3, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh detailled txt file")), 10, 1)
+        self.layout_available_exports.addWidget(self.mesh_detailled_text_hyd, 10, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(self.mesh_detailled_text_hab, 10, 3, Qt.AlignCenter)
         # row 11
-        self.layout_available_exports.addWidget(QLabel("Text (.pdf)"), 11, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Fish informations")), 11, 1)
-        self.layout_available_exports.addWidget(self.fish_information_hab, 11, 3, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(QLabel("Text (.txt)"), 11, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Point detailled txt file")), 11, 1)
+        self.layout_available_exports.addWidget(self.point_detailled_text_hyd, 11, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(self.point_detailled_text_hab, 11, 3, Qt.AlignCenter)
+        # row 11
+        self.layout_available_exports.addWidget(QLabel("Text (.pdf)"), 12, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Fish informations")), 12, 1)
+        self.layout_available_exports.addWidget(self.fish_information_hab, 12, 3, Qt.AlignCenter)
 
         # figure options
         layout_figures = QFormLayout()

@@ -17,8 +17,8 @@ https://github.com/YannIrstea/habby
 from PyQt5.QtCore import QLocale
 
 
-def export_point_txt(args):
-    name, hvum, unit_data = args
+def export_point_txt(name, hvum, unit_data):
+    # name, hvum, unit_data = args
     # open text to write
     with open(name, 'wt', encoding='utf-8') as f:
         # header 1
@@ -55,8 +55,8 @@ def export_point_txt(args):
         f.write(text_to_write_str)
 
 
-def export_mesh_txt(args):
-    name, hvum, unit_data = args
+def export_mesh_txt(name, hvum, unit_data):
+    # name, hvum, unit_data = args
     # open text to write
     with open(name, 'wt', encoding='utf-8') as f:
         # header 1

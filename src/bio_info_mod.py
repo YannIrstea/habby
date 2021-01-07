@@ -29,8 +29,10 @@ from src import hdf5_mod
 from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
 
 
-def export_report(args):
-    xmlfile, hab_animal_type, project_preferences = args
+def export_report(xmlfile, hab_animal_type, project_preferences):
+    # plt.close()
+    plt.rcParams['figure.figsize'] = 21, 29.7  # a4
+    plt.rcParams['font.size'] = 24
 
     information_model_dict = get_biomodels_informations_for_database(xmlfile)
 
@@ -129,9 +131,8 @@ def export_report(args):
     plt.figtext(0.4, 0.7, text_all, fontsize=32)
 
     # description
-    newax = fig.add_axes([0.4, 0.55, 0.56, 0.16], anchor='C',
-                         zorder=-1,
-                         frameon=True)
+    newax = fig.add_axes([0.4, 0.55, 0.30, 0.16], anchor='C',
+                         zorder=-1, frameon=False)
     newax.name = "description"
     newax.xaxis.set_ticks([])  # remove ticks
     newax.yaxis.set_ticks([])  # remove ticks
@@ -142,9 +143,10 @@ def export_report(args):
     newax.text(0.0, 1.0, decription_str,  # 0.4, 0.71,
                wrap=True,
                fontsize=32,
-               # bbox={'facecolor': 'grey', 'alpha': 0.15},
+               # bbox={'facecolor': 'grey',
+               #       'alpha': 0.15},
                va='top',
-               ha="left")
+               ha="left")  #, transform=newax.transAxes
 
     # add a fish image
     if path_im_bio:

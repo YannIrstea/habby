@@ -68,7 +68,8 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['elevation_whole_profile'] = [all_export_enabled, all_export_enabled]  # mesh .stl of topography whole profile (vertical_exaggeration)
     project_preferences['variables_units'] = [all_export_enabled, all_export_enabled]  # mesh .pvd and .vtu by unit (vertical_exaggeration)
     project_preferences['habitat_text'] = [False, True]  # .txt with detail values by mesh
-    project_preferences['detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
+    project_preferences['mesh_detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
+    project_preferences['point_detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
     project_preferences['fish_information'] = [all_export_enabled, all_export_enabled]  # image of fish informations
     project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
     project_preferences['pvd_variable_z'] = HydraulicVariableUnitManagement().level.name_gui
@@ -305,7 +306,8 @@ def enable_disable_all_exports(path_prj, enabled=False):
                              "point_units",  # GPKG
                              "elevation_whole_profile",  # stl
                              "variables_units",  # PVD
-                             "detailled_text",  # txt
+                             "mesh_detailled_text",
+                             "point_detailled_text",
                              "fish_information"]
 
     # load_project_properties

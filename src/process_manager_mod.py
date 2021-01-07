@@ -392,13 +392,23 @@ class MyProcessManager(QThread):
                 self.process_list.append(my_process)
 
             # export_detailled_txt
-            if export_dict["detailled_text"]:
+            if export_dict["mesh_detailled_text"]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_txt,
+                my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_mesh_txt,
                                                  args=(progress_value,),
-                                                 name="export_detailled_txt"),
+                                                 name="mesh_detailled_text"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+            if export_dict["point_detailled_text"]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_point_txt,
+                                                 args=(progress_value,),
+                                                 name="point_detailled_text"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
@@ -925,21 +935,21 @@ class MyProcess(QObject):
             if self.state == self.tr("stopped"):
                 if not error:
                     if self.progress_value.value == 100:
-                        print("- " + self.tr(self.p.name + " closed by user after ") + str(
+                        print("- " + self.tr(self.p.name.replace("_", " ") + " closed by user after ") + str(
                             round(self.total_time)) + " s")
                     else:
-                        self.send_log.emit("- " + self.tr(self.p.name + " stopped (process time = ") + str(
+                        self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " stopped (process time = ") + str(
                             round(self.total_time)) + " s).")
             else:
                 if not error:
                     if self.progress_value.value == 100:
-                        self.send_log.emit("- " + self.tr(self.p.name + " done (process time = ") + str(
+                        self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " done (process time = ") + str(
                             round(self.total_time)) + " s).")
                     else:
-                        self.send_log.emit("- " + self.tr(self.p.name + " crashed (process time = ") + str(
+                        self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " crashed (process time = ") + str(
                             round(self.total_time)) + " s).")
         else:
-            print("- " + self.tr(self.p.name + " " + self.state + " (process time = ") + str(
+            print("- " + self.tr(self.p.name.replace("_", " ") + " " + self.state + " (process time = ") + str(
                             round(self.total_time)) + " s).")
 
     def send_err_log(self, check_ok=False):

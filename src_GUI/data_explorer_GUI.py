@@ -922,7 +922,8 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                           "point_units",
                                           "elevation_whole_profile",
                                           "variables_units",
-                                          "detailled_text",
+                                      "mesh_detailled_text",
+                                      "point_detailled_text",
                                           "fish_information"]
         self.export_production_stoped = False
         self.init_ui()
@@ -952,16 +953,20 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.variables_units_hyd = QCheckBox("")
         self.variables_units_hyd.setObjectName("variables_units_hyd")
         self.variables_units_hyd.stateChanged.connect(self.count_export)
-        self.detailled_text_hyd = QCheckBox("")
-        self.detailled_text_hyd.setObjectName("detailled_text_hyd")
-        self.detailled_text_hyd.stateChanged.connect(self.count_export)
+        self.mesh_detailled_text_hyd = QCheckBox("")
+        self.mesh_detailled_text_hyd.setObjectName("mesh_detailled_text_hyd")
+        self.mesh_detailled_text_hyd.stateChanged.connect(self.count_export)
+        self.point_detailled_text_hyd = QCheckBox("")
+        self.point_detailled_text_hyd.setObjectName("point_detailled_text_hyd")
+        self.point_detailled_text_hyd.stateChanged.connect(self.count_export)
         self.hyd_checkbox_list = [self.mesh_whole_profile_hyd,
                                   self.point_whole_profile_hyd,
                                   self.mesh_units_hyd,
                                   self.point_units_hyd,
                                   self.elevation_whole_profile_hyd,
                                   self.variables_units_hyd,
-                                  self.detailled_text_hyd]
+                                  self.mesh_detailled_text_hyd,
+                                  self.point_detailled_text_hyd]
 
         """ hab_export widgets """
         self.mesh_units_hab = QCheckBox("")
@@ -979,9 +984,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.habitat_text_hab = QCheckBox("")
         self.habitat_text_hab.setObjectName("habitat_text_hab")
         self.habitat_text_hab.stateChanged.connect(self.count_export)
-        self.detailled_text_hab = QCheckBox("")
-        self.detailled_text_hab.setObjectName("detailled_text_hab")
-        self.detailled_text_hab.stateChanged.connect(self.count_export)
+        self.mesh_detailled_text_hab = QCheckBox("")
+        self.mesh_detailled_text_hab.setObjectName("mesh_detailled_text_hab")
+        self.mesh_detailled_text_hab.stateChanged.connect(self.count_export)
+        self.point_detailled_text_hab = QCheckBox("")
+        self.point_detailled_text_hab.setObjectName("point_detailled_text_hab")
+        self.point_detailled_text_hab.stateChanged.connect(self.count_export)
         self.fish_information_hab = QCheckBox("")
         self.fish_information_hab.setObjectName("fish_information_hab")
         self.fish_information_hab.stateChanged.connect(self.count_export)
@@ -990,7 +998,8 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                   self.elevation_whole_profile_hab,
                                   self.variables_units_hab,
                                   self.habitat_text_hab,
-                                  self.detailled_text_hab,
+                                  self.mesh_detailled_text_hab,
+                                  self.point_detailled_text_hab,
                                   self.fish_information_hab]
 
         # progress_layout
@@ -1035,8 +1044,12 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hyd_export_layout.addWidget(QHLine(), 8, 0, 1, 3)
         # row 9
         self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 9, 0)
-        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled mesh and points")), 9, 1)
-        self.hyd_export_layout.addWidget(self.detailled_text_hyd, 9, 2, Qt.AlignCenter)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled mesh")), 9, 1)
+        self.hyd_export_layout.addWidget(self.mesh_detailled_text_hyd, 9, 2, Qt.AlignCenter)
+        # row 10
+        self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 10, 0)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled point")), 10, 1)
+        self.hyd_export_layout.addWidget(self.point_detailled_text_hyd, 10, 2, Qt.AlignCenter)
         self.hyd_export_layout.setColumnStretch(0, 3)
         self.hyd_export_layout.setColumnStretch(1, 3)
         self.hyd_export_layout.setColumnStretch(2, 1)
@@ -1073,14 +1086,18 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hab_export_layout.addWidget(self.habitat_text_hab, 10, 2, Qt.AlignCenter)
         # row 11
         self.hab_export_layout.addWidget(QLabel("Text (.txt)"), 11, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled habitat values")), 11, 1)
-        self.hab_export_layout.addWidget(self.detailled_text_hab, 11, 2, Qt.AlignCenter)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled mesh")), 11, 1)
+        self.hab_export_layout.addWidget(self.mesh_detailled_text_hab, 11, 2, Qt.AlignCenter)
         # row 12
-        self.hab_export_layout.addWidget(QHLine(), 12, 0, 1, 4)
+        self.hab_export_layout.addWidget(QLabel("Text (.txt)"), 12, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled point")), 12, 1)
+        self.hab_export_layout.addWidget(self.point_detailled_text_hab, 12, 2, Qt.AlignCenter)
         # row 13
-        self.hab_export_layout.addWidget(QLabel(self.tr("Report (figure extension)")), 13, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 13, 1)
-        self.hab_export_layout.addWidget(self.fish_information_hab, 13, 2, Qt.AlignCenter)
+        self.hab_export_layout.addWidget(QHLine(), 13, 0, 1, 4)
+        # row 14
+        self.hab_export_layout.addWidget(QLabel(self.tr("Report (figure extension)")), 14, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 14, 1)
+        self.hab_export_layout.addWidget(self.fish_information_hab, 14, 2, Qt.AlignCenter)
         self.hab_export_layout.setColumnStretch(0, 3)
         self.hab_export_layout.setColumnStretch(1, 3)
         self.hab_export_layout.setColumnStretch(2, 1)

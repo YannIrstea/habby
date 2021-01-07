@@ -77,7 +77,8 @@ class Hdf5Management:
                                       "point_units",  # GPKG
                                       "elevation_whole_profile",  # stl
                                       "variables_units",  # PVD
-                                      "detailled_text",  # txt
+                                      "mesh_detailled_text",
+                                      "point_detailled_text",
                                       "fish_information"]  # pdf
         # export filenames
         self.basename_output_reach_unit = []
@@ -1902,105 +1903,89 @@ class Hdf5Management:
         if state is not None:
             state.value = 100.0  # process finished
 
-    def export_detailled_txt(self, state=None):
-        self.export_detailled_mesh_txt()
-        self.export_detailled_point_txt()
-        if state is not None:
-            state.value = 100.0  # process finished
-
     def export_detailled_mesh_txt(self, state=None):
         """
         detailled mesh
         """
-        # INDEX IF HYD OR HAB
-        index = 0
-        if self.extension == ".hab":
-            index = 1
-        if self.project_preferences['detailled_text'][index]:
-            if not os.path.exists(self.path_txt):
-                print('Error: ' + qt_tr.translate("hdf5_mod",
-                                                  'The path to the text file is not found. Text files not created \n'))
+        if not os.path.exists(self.path_txt):
+            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                              'The path to the text file is not found. Text files not created \n'))
 
-            # for all reach
-            name_list = []
-            hvum_list = []
-            unit_data_list = []
-            for reach_number in range(self.data_2d.reach_number):
-                # for all units
-                for unit_number in range(self.data_2d.unit_number):
-                    name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
-                                                                                                        "detailled_mesh") + ".txt"
-                    if os.path.isfile(os.path.join(self.path_txt, name)):
-                        if not self.project_preferences['erase_id']:
-                            name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
-                                "hdf5_mod", "detailled_mesh") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                        else:
-                            try:
-                                os.remove(os.path.join(self.path_txt, name))
-                            except PermissionError:
-                                print('Error: ' + qt_tr.translate("hdf5_mod",
-                                                                  'Could not modify text file as it is open in another program. \n'))
-                                return
-                    name_list.append(os.path.join(self.path_txt, name))
-                    hvum_list.append(self.data_2d.hvum)
-                    unit_data_list.append(self.data_2d[reach_number][unit_number])
+        # for all reach
+        name_list = []
+        hvum_list = []
+        unit_data_list = []
+        for reach_number in range(self.data_2d.reach_number):
+            # for all units
+            for unit_number in range(self.data_2d.unit_number):
+                name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
+                                                                                                    "detailled_mesh") + ".txt"
+                if os.path.isfile(os.path.join(self.path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
+                            "hdf5_mod", "detailled_mesh") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        try:
+                            os.remove(os.path.join(self.path_txt, name))
+                        except PermissionError:
+                            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                                              'Could not modify text file as it is open in another program. \n'))
+                            return
+                name_list.append(os.path.join(self.path_txt, name))
+                hvum_list.append(self.data_2d.hvum)
+                unit_data_list.append(self.data_2d[reach_number][unit_number])
 
-            # Pool
-            input_data = zip(name_list,
-                             hvum_list,
-                             unit_data_list)
-            pool = Pool(4)
-            pool.map(export_manager.export_mesh_txt, input_data)
+        # Pool
+        input_data = zip(name_list,
+                         hvum_list,
+                         unit_data_list)
+        pool = Pool(4)
+        pool.starmap(export_manager.export_mesh_txt, input_data)
 
-            if state is not None:
-                state.value = 100.0  # process finished
+        if state is not None:
+            state.value = 100.0  # process finished
 
     def export_detailled_point_txt(self, state=None):
         """
          detailled mesh
          """
-        # INDEX IF HYD OR HAB
-        index = 0
-        if self.extension == ".hab":
-            index = 1
-        if self.project_preferences['detailled_text'][index]:
-            if not os.path.exists(self.path_txt):
-                print('Error: ' + qt_tr.translate("hdf5_mod",
-                                                  'The path to the text file is not found. Text files not created \n'))
+        if not os.path.exists(self.path_txt):
+            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                              'The path to the text file is not found. Text files not created \n'))
 
-            # for all reach
-            name_list = []
-            hvum_list = []
-            unit_data_list = []
-            for reach_number in range(self.data_2d.reach_number):
-                # for all units
-                for unit_number in range(self.data_2d.unit_number):
-                    name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
-                                                                                                        "detailled_point") + ".txt"
-                    if os.path.isfile(os.path.join(self.path_txt, name)):
-                        if not self.project_preferences['erase_id']:
-                            name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
-                                "hdf5_mod", "detailled_point") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                        else:
-                            try:
-                                os.remove(os.path.join(self.path_txt, name))
-                            except PermissionError:
-                                print('Error: ' + qt_tr.translate("hdf5_mod",
-                                                                  'Could not modify text file as it is open in another program. \n'))
-                                return
-                    name_list.append(os.path.join(self.path_txt, name))
-                    hvum_list.append(self.data_2d.hvum)
-                    unit_data_list.append(self.data_2d[reach_number][unit_number])
+        # for all reach
+        name_list = []
+        hvum_list = []
+        unit_data_list = []
+        for reach_number in range(self.data_2d.reach_number):
+            # for all units
+            for unit_number in range(self.data_2d.unit_number):
+                name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
+                                                                                                    "detailled_point") + ".txt"
+                if os.path.isfile(os.path.join(self.path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
+                            "hdf5_mod", "detailled_point") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        try:
+                            os.remove(os.path.join(self.path_txt, name))
+                        except PermissionError:
+                            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                                              'Could not modify text file as it is open in another program. \n'))
+                            return
+                name_list.append(os.path.join(self.path_txt, name))
+                hvum_list.append(self.data_2d.hvum)
+                unit_data_list.append(self.data_2d[reach_number][unit_number])
 
-            # Pool
-            input_data = zip(name_list,
-                             hvum_list,
-                             unit_data_list)
-            pool = Pool(4)
-            pool.map(export_manager.export_point_txt, input_data)
+        # Pool
+        input_data = zip(name_list,
+                         hvum_list,
+                         unit_data_list)
+        pool = Pool(4)
+        pool.starmap(export_manager.export_point_txt, input_data)
 
-            if state is not None:
-                state.value = 100.0  # process finished
+        if state is not None:
+            state.value = 100.0  # process finished
 
     def export_report(self, state=None):
         """
@@ -2030,10 +2015,6 @@ class Hdf5Management:
                 prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
                 xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
 
-                # plt.close()
-                plt.rcParams['figure.figsize'] = 21, 29.7  # a4
-                plt.rcParams['font.size'] = 24
-
                 # # create the pdf
                 # for idx, xmlfile in enumerate(xmlfiles):
                 #
@@ -2046,7 +2027,7 @@ class Hdf5Management:
                     [self.project_preferences] * len(xmlfiles))
 
                 pool = Pool(4)
-                pool.map(bio_info_mod.export_report, input_data)
+                pool.starmap(bio_info_mod.export_report, input_data)
 
             if state is not None:
                 state.value = 100.0  # process finished

@@ -755,8 +755,9 @@ class HydraulicVariableUnitManagement:
             mesh = True
         if project_preferences["point_units"][index]:
             node = True
-        if project_preferences["detailled_text"][index]:
+        if project_preferences["mesh_detailled_text"][index]:
             mesh = True
+        if project_preferences["point_detailled_text"][index]:
             node = True
         if project_preferences["variables_units"][index]:
             mesh = True
