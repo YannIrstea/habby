@@ -1044,11 +1044,11 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hyd_export_layout.addWidget(QHLine(), 8, 0, 1, 3)
         # row 9
         self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 9, 0)
-        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled mesh")), 9, 1)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Mesh detailled ")), 9, 1)
         self.hyd_export_layout.addWidget(self.mesh_detailled_text_hyd, 9, 2, Qt.AlignCenter)
         # row 10
         self.hyd_export_layout.addWidget(QLabel("Text (.txt)"), 10, 0)
-        self.hyd_export_layout.addWidget(QLabel(self.tr("Detailled point")), 10, 1)
+        self.hyd_export_layout.addWidget(QLabel(self.tr("Point detailled")), 10, 1)
         self.hyd_export_layout.addWidget(self.point_detailled_text_hyd, 10, 2, Qt.AlignCenter)
         self.hyd_export_layout.setColumnStretch(0, 3)
         self.hyd_export_layout.setColumnStretch(1, 3)
@@ -1086,11 +1086,11 @@ class DataExporterGroup(QGroupBoxCollapsible):
         self.hab_export_layout.addWidget(self.habitat_text_hab, 10, 2, Qt.AlignCenter)
         # row 11
         self.hab_export_layout.addWidget(QLabel("Text (.txt)"), 11, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled mesh")), 11, 1)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Mesh detailled ")), 11, 1)
         self.hab_export_layout.addWidget(self.mesh_detailled_text_hab, 11, 2, Qt.AlignCenter)
         # row 12
         self.hab_export_layout.addWidget(QLabel("Text (.txt)"), 12, 0)
-        self.hab_export_layout.addWidget(QLabel(self.tr("Detailled point")), 12, 1)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Point detailled")), 12, 1)
         self.hab_export_layout.addWidget(self.point_detailled_text_hab, 12, 2, Qt.AlignCenter)
         # row 13
         self.hab_export_layout.addWidget(QHLine(), 13, 0, 1, 4)

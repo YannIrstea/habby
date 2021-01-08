@@ -264,12 +264,12 @@ class ProjectPropertiesDialog(QDialog):
         self.layout_available_exports.addWidget(QHLine(), 9, 0, 1, 4)
         # row 10
         self.layout_available_exports.addWidget(QLabel("Text (.txt)"), 10, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh detailled txt file")), 10, 1)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh detailled")), 10, 1)
         self.layout_available_exports.addWidget(self.mesh_detailled_text_hyd, 10, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(self.mesh_detailled_text_hab, 10, 3, Qt.AlignCenter)
         # row 11
         self.layout_available_exports.addWidget(QLabel("Text (.txt)"), 11, 0)
-        self.layout_available_exports.addWidget(QLabel(self.tr("Point detailled txt file")), 11, 1)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Point detailled")), 11, 1)
         self.layout_available_exports.addWidget(self.point_detailled_text_hyd, 11, 2, Qt.AlignCenter)
         self.layout_available_exports.addWidget(self.point_detailled_text_hab, 11, 3, Qt.AlignCenter)
         # row 11
