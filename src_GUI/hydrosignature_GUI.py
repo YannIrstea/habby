@@ -74,7 +74,7 @@ class HsTab(QScrollArea):
         # computing
         self.computing_group = ComputingGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Computing"))
         self.computing_group.setChecked(False)
-        self.computing_group.send_refresh_filenames.connect(self.refresh_filenames)
+        # self.computing_group.send_refresh_filenames.connect(self.refresh_filenames)
 
         # visual
         self.visual_group = VisualGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Visualisation"))
@@ -123,6 +123,8 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.init_ui()
         input_class_file_info = self.read_attribute_xml("HS_input_class")
         self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
+        # process_manager
+        self.process_manager = MyProcessManager("hs")
 
     def init_ui(self):
         # file_selection
@@ -189,6 +191,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.setLayout(general_layout)
 
     def update_gui(self):
+        selected_file_names = [selection_el.text() for selection_el in self.file_selection_listwidget.selectedItems()]
         # computing_group
         hyd_names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
         hab_names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
@@ -198,8 +201,14 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.hs_computed_listwidget.blockSignals(True)
         self.hs_computed_listwidget.clear()
         if names:
-            self.file_selection_listwidget.addItems(names)
             for name in names:
+                # filename
+                item_name = QListWidgetItem()
+                item_name.setText(name)
+                self.file_selection_listwidget.addItem(item_name)
+                if name in selected_file_names:
+                    item_name.setSelected(True)
+                # check
                 item = QListWidgetItem()
                 item.setText("")
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
@@ -213,6 +222,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                 except:
                     self.send_log.emit(self.tr("Error: " + name + " file seems to be corrupted. Delete it with HABBY or manually."))
                 self.hs_computed_listwidget.addItem(item)
+
                 item.setTextAlignment(Qt.AlignCenter)
 
         self.file_selection_listwidget.blockSignals(False)
@@ -323,9 +333,7 @@ class ComputingGroup(QGroupBoxCollapsible):
             save_project_properties(self.path_prj, self.project_preferences)  # save_project_properties
 
     def compute(self):
-        if self.file_selection_listwidget.currentItem():
-            # process_manager
-            self.process_manager = MyProcessManager("hs")
+        if len(self.file_selection_listwidget.selectedItems()) > 0:
             hydrosignature_description = dict(hs_export_mesh=self.hs_export_mesh_checkbox.isChecked(),
                                               hdf5_name_list=[selection_el.text() for selection_el in
                                                               self.file_selection_listwidget.selectedItems()],
