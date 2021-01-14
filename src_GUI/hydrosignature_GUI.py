@@ -24,7 +24,6 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, \
     QCheckBox, QListWidgetItem, QRadioButton, QListView, QProgressBar
 
-from src.tools_mod import QGroupBoxCollapsible
 from src.hydraulic_process_mod import load_hs_and_compare
 from src.process_manager_mod import MyProcessManager
 from src import hdf5_mod
@@ -32,31 +31,25 @@ from src import plot_mod
 from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
     load_specific_properties
 from src import hydrosignature
-from src_GUI.dev_tools_GUI import change_button_color, ProcessProgLayout, ProcessProgShow
-from src_GUI.data_explorer_GUI import MyTableModel
+from src_GUI.dev_tools_GUI import change_button_color, MyTableModel, \
+    QGroupBoxCollapsible
+from src_GUI.process_manager_GUI import ProcessProgLayout, ProcessProgShow
 
 
 class HsTab(QScrollArea):
     """
-    This class contains the tab with Graphic production biological information (the curves of preference).
+    Tool tab
     """
-    send_log = pyqtSignal(str, name='send_log')
-    """
-    A PyQt signal to send the log.
-    """
-
-    def __init__(self, path_prj, name_prj):
+    def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
         self.tab_name = "hs"
         self.tab_position = 6
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
+        self.send_log = send_log
         self.msg2 = QMessageBox()
         self.init_iu()
-
-        # refresh_filenames
-        #self.refresh_filenames()
 
     def init_iu(self):
         # insist on white background color (for linux, mac)
@@ -74,7 +67,6 @@ class HsTab(QScrollArea):
         # computing
         self.computing_group = ComputingGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Computing"))
         self.computing_group.setChecked(False)
-        # self.computing_group.send_refresh_filenames.connect(self.refresh_filenames)
 
         # visual
         self.visual_group = VisualGroup(self.path_prj, self.name_prj, self.send_log, self.tr("Visualisation"))
@@ -85,7 +77,6 @@ class HsTab(QScrollArea):
         self.compare_group.setChecked(False)
 
         # vertical layout
-        self.setWidget(tools_frame)
         global_layout = QVBoxLayout()
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
@@ -93,8 +84,9 @@ class HsTab(QScrollArea):
         global_layout.addWidget(self.visual_group)
         global_layout.addWidget(self.compare_group)
         global_layout.addStretch()
+        self.setWidget(tools_frame)
 
-    def refresh_filenames(self):
+    def refresh_gui(self):
         # computing_group
         self.computing_group.update_gui()
 
@@ -103,6 +95,10 @@ class HsTab(QScrollArea):
 
         # compare_group
         self.compare_group.update_gui()
+
+    def kill_process(self):
+        self.computing_group.process_manager.stop_by_user()
+        self.visual_group.process_manager.stop_by_user()
 
 
 class ComputingGroup(QGroupBoxCollapsible):
@@ -701,6 +697,7 @@ class CompareGroup(QGroupBoxCollapsible):
         units_layout_1.addWidget(units_label_1)
         units_layout_1.addWidget(self.units_QListWidget_1)
         selection_group_1 = QGroupBox(self.tr("First"))
+        selection_group_1.setStyleSheet("QGroupBox { font-weight: normal; } ")
         selection_layout_1 = QHBoxLayout()
         selection_layout_1.addLayout(file_selection_layout_1)
         selection_layout_1.addLayout(reach_layout_1)
@@ -734,6 +731,7 @@ class CompareGroup(QGroupBoxCollapsible):
         units_layout_2.addWidget(units_label_2)
         units_layout_2.addWidget(self.units_QListWidget_2)
         selection_group_2 = QGroupBox(self.tr("Second"))
+        selection_group_2.setStyleSheet("QGroupBox { font-weight: normal; } ")
         selection_layout_2 = QHBoxLayout()
         selection_layout_2.addLayout(file_selection_layout_2)
         selection_layout_2.addLayout(reach_layout_2)

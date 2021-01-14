@@ -23,10 +23,9 @@ from copy import deepcopy
 from glob import glob
 import shutil
 import numpy as np
-from PyQt5.QtCore import QTranslator, QObject, pyqtSignal, QEvent, QCoreApplication as qt_tr
-from PyQt5.QtWidgets import QApplication, QGroupBox, QFrame
+from PyQt5.QtCore import QTranslator, QCoreApplication as qt_tr
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QLocale
-import multiprocessing
 
 from src.project_properties_mod import load_project_properties
 
@@ -675,56 +674,4 @@ def frange(start, stop, step):
 # https://gdal.org/doxygen/ogr__core_8h.html
 polygon_type_values = (3, 2003, 3003, 0x80000003, -2147483645)  # wkbPolygon, wkbPolygonM, wkbPolygonZM, wkbPolygon25D, wkbPolygon25D
 point_type_values = (1, 2001, 3001, 0x80000001, -2147483647)  # wkbPoint, wkbPointM, wkbPointZM, wkbPoint25D, wkbPoint25D
-
-
-""" GUI """
-
-
-class QGroupBoxCollapsible(QGroupBox):
-    def __init__(self):
-        super().__init__()
-        # group title
-        self.setCheckable(True)
-        self.setStyleSheet('QGroupBox::indicator {width: 20px; height: 20px;}'
-                           
-            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'  # close
-            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-                           
-            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'  # open
-            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-        )
-        #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
-        self.toggled.connect(self.toggle_group)
-        self.setChecked(True)
-
-    def toggle_group(self, checked):
-        if checked:
-            self.setFlat(False)
-            self.setFixedHeight(self.sizeHint().height())
-        else:
-            self.setFlat(True)
-            self.setFixedHeight(23)
-
-
-class QHLine(QFrame):
-    def __init__(self):
-        super(QHLine, self).__init__()
-        self.setFrameShape(QFrame.HLine)
-        self.setFrameShadow(QFrame.Sunken)
-
-
-class DoubleClicOutputGroup(QObject):
-    double_clic_signal = pyqtSignal()
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.MouseButtonDblClick:
-            self.double_clic_signal.emit()
-            return True  # eat double click
-        else:
-            # standard event processing
-            return QObject.eventFilter(self, obj, event)
 

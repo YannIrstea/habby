@@ -28,7 +28,7 @@ from PyQt5.QtGui import QFont, QIcon
 from multiprocessing import Process, Value
 import sys
 from io import StringIO
-from src.tools_mod import DoubleClicOutputGroup
+from src_GUI.dev_tools_GUI import DoubleClicOutputGroup
 # from src.hydraulic_process_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties
 

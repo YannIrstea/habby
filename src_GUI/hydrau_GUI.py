@@ -31,7 +31,8 @@ from PyQt5.QtWidgets import QPushButton, \
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
 from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
-from src_GUI.dev_tools_GUI import QListWidgetClipboard, ProcessProgLayout
+from src_GUI.dev_tools_GUI import QListWidgetClipboard
+from src_GUI.process_manager_GUI import ProcessProgLayout
 
 np.set_printoptions(threshold=np.inf)
 

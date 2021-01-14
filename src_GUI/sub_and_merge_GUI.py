@@ -33,8 +33,8 @@ import src.tools_mod
 from src import hdf5_mod
 from src import substrate_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, save_project_properties
-from src.tools_mod import QGroupBoxCollapsible
-from src_GUI.dev_tools_GUI import change_button_color, ProcessProgLayout
+from src_GUI.dev_tools_GUI import change_button_color, QGroupBoxCollapsible
+from src_GUI.process_manager_GUI import ProcessProgLayout
 
 np.set_printoptions(threshold=np.inf)
 

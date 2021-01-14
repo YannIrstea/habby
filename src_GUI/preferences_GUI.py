@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QSizePolicy, QGroupBox, QDialog, QPushButton, QLabel
 import numpy as np
 import os
 
-from src.tools_mod import DoubleClicOutputGroup, QHLine
+from src_GUI.dev_tools_GUI import QHLine, DoubleClicOutputGroup
 from src.project_properties_mod import load_project_properties, create_default_project_properties_dict, \
     save_project_properties
 from src.variable_unit_mod import HydraulicVariableUnitManagement

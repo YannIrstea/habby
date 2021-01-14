@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
     QSizePolicy, QFrame, QCheckBox, QWidget
 
 from src_GUI import estimhab_GUI
-from src_GUI.dev_tools_GUI import ProcessProgLayout
+from src_GUI.process_manager_GUI import ProcessProgLayout
 from src import calcul_hab_mod
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties

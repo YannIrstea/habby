@@ -16,17 +16,15 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Value
-from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel, QTimer
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
     QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QListWidgetItem, QRadioButton
 
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties
-from src.tools_mod import QHLine, DoubleClicOutputGroup
-from src_GUI.tools_GUI import QGroupBoxCollapsible
-from src_GUI.dev_tools_GUI import ProcessProgLayout
+from src_GUI.dev_tools_GUI import MyTableModel, QGroupBoxCollapsible, QHLine, DoubleClicOutputGroup
+from src_GUI.process_manager_GUI import ProcessProgLayout
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
@@ -1345,20 +1343,3 @@ class FileInformation(QGroupBoxCollapsible):
         self.setLayout(attributes_layout)
 
 
-class MyTableModel(QAbstractTableModel):
-    def __init__(self, datain, parent=None, *args):
-        QAbstractTableModel.__init__(self, parent, *args)
-        self.arraydata = datain
-
-    def rowCount(self, parent):
-        return len(self.arraydata)
-
-    def columnCount(self, parent):
-        return len(self.arraydata[0])
-
-    def data(self, index, role):
-        if not index.isValid():
-            return QVariant()
-        elif role != Qt.DisplayRole:
-            return QVariant()
-        return QVariant(self.arraydata[index.row()][index.column()])

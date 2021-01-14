@@ -43,8 +43,9 @@ from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 from src_GUI import about_GUI
-from src_GUI import hydrosignature_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
+from src_GUI.process_manager_GUI import ProcessProgLayout
+from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties,\
     create_project_structure, save_project_properties
 from habby import HABBY_VERSION_STR
@@ -285,11 +286,12 @@ class MainWindows(QMainWindow):
 
         :param event: managed by the operating system.
         """
-        isalive = self.kill_process(close=False, isalive=True)
-        if isalive:
+        process_alive_list = self.central_widget.get_process_alive_list()
+
+        if process_alive_list:
             qm = QMessageBox
             ret = qm.question(self,
-                              self.tr(", ".join(isalive) + " still running"),
+                              self.tr(", ".join(process_alive_list) + " still running"),
                               self.tr("Do you really want to leave HABBY ?\nAll alive processes and figure windows will be closed."),
                               qm.Yes | qm.No)
             if ret == QMessageBox.Yes:
@@ -302,13 +304,11 @@ class MainWindows(QMainWindow):
 
         self.end_concurrency()
 
-        # close all process plot
+        # close all process
         if hasattr(self, "central_widget"):
+            self.central_widget.kill_process_plot_list()
             self.central_widget.kill_process_list()
             self.central_widget.save_info_projet()
-
-        # close all process data (security)
-        self.kill_process(close=True, isalive=False)
 
         # save wind_position if not fullscreen or not maximazed
         if self.isMaximized() or self.isFullScreen():
@@ -1309,9 +1309,9 @@ class MainWindows(QMainWindow):
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
         closeAction.triggered.connect(self.central_widget.kill_process_plot_list)
 
-        self.kill_process_action = QAction(icon_kill, self.tr('Stop current process'), self)
-        self.kill_process_action.triggered.connect(partial(self.kill_process, close=True, isalive=False))
-        self.kill_process_action.setVisible(False)
+        # self.kill_process_action = QAction(icon_kill, self.tr('Stop current process'), self)
+        # self.kill_process_action.triggered.connect(partial(self.kill_process, close=True, isalive=False))
+        # self.kill_process_action.setVisible(False)
         spacer_toolbar = QWidget()
         spacer_toolbar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -1324,7 +1324,7 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(self.seeAction)
         self.toolbar.addAction(closeAction)
         self.toolbar.addWidget(spacer_toolbar)
-        self.toolbar.addAction(self.kill_process_action)
+        # self.toolbar.addAction(self.kill_process_action)
 
     def open_project_properties(self):
         #"open_project_properties", self.sender())
@@ -1396,15 +1396,6 @@ class MainWindows(QMainWindow):
                     self.central_widget.tools_tab.__init__(self.path_prj, self.name_prj)
             else:
                 self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
-
-            # hs_tab
-            if hasattr(self.central_widget, "hs_tab"):
-                if not self.central_widget.hs_tab:
-                    self.central_widget.hs_tab = hydrosignature_GUI.HsTab(self.path_prj, self.name_prj)
-                else:
-                    self.central_widget.hs_tab.__init__(self.path_prj, self.name_prj)
-            else:
-                self.central_widget.hs_tab = hydrosignature_GUI.HsTab(self.path_prj, self.name_prj)
 
             if hasattr(self.central_widget, "statmod_tab"):
                 if not self.central_widget.statmod_tab:
@@ -1492,9 +1483,6 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.insertTab(self.central_widget.tools_tab.tab_position,
                                                          self.central_widget.tools_tab,
                                                          self.tr("Tools"))  # 5
-                self.central_widget.tab_widget.insertTab(self.central_widget.hs_tab.tab_position,
-                                                         self.central_widget.hs_tab,
-                                                         self.tr("Hydrosignature"))  # 6
 
             self.physic_tabs = True
         # save xml
@@ -1731,53 +1719,6 @@ class MainWindows(QMainWindow):
         elif operatingsystem() == 'Darwin':
             call(['open', path_choosen])
 
-    def kill_process(self, close=True, isalive=False):
-        """
-        method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
-        """
-        process_object = None
-        stop_object = None
-        tab_list = [
-            ("hydro_tab", "model_group"),
-            ("substrate_tab", "sub_and_merge"),
-            "bioinfo_tab",
-            # ("hs_tab", "computing_group"),
-            ("hs_tab", "compare_group")]
-        alive = []
-        # loop
-        if hasattr(self, "central_widget"):
-            central_widget_attrib = getattr(self, "central_widget")
-            for tabs in tab_list:
-                # hydraulic tabs, substrate, calc hab, hs_tab
-                if type(tabs) == tuple:
-                    if hasattr(central_widget_attrib, tabs[0]):
-                        process_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).p
-                        stop_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).stop
-                # data_explorer and tools tabs
-                else:
-                    if hasattr(central_widget_attrib, tabs):
-                        process_object = getattr(central_widget_attrib, tabs).p
-                        stop_object = getattr(central_widget_attrib, tabs).stop
-
-                if process_object:
-                    if process_object.is_alive():
-                        alive.append(process_object.name)
-                        if close:
-                            stop_object.set()
-                            sleep(1)
-                            if process_object.is_alive():
-                                process_object.terminate()
-                            self.central_widget.write_log("Warning: " + process_object.name +
-                                                          self.tr(" process has been stopped by the user." +
-                                                          " The files produced by this process can be damaged."))
-                            # hide button
-                            self.kill_process_action.setVisible(False)
-
-        # hide button
-        self.kill_process_action.setVisible(False)
-        if isalive:
-            return alive
-
     # LOG
 
     def clear_log(self):
@@ -1966,7 +1907,6 @@ class CentralW(QWidget):
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
-            self.hs_tab = hydrosignature_GUI.HsTab(path_prj, name_prj)
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
@@ -2073,7 +2013,6 @@ class CentralW(QWidget):
                 self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
                 self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
-                self.tab_widget.addTab(self.hs_tab, self.tr("Hydrosignature"))  # 6
             if go_stat:
                 self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 7
                 self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 8
@@ -2089,10 +2028,23 @@ class CentralW(QWidget):
 
         #self.tab_widget.setStyleSheet("QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
 
+    def get_process_alive_list(self):
+        process_alive_list = []
+        for process_prog_layout in self.findChildren(ProcessProgLayout):
+            if process_prog_layout.process_prog_show.process_manager is not None:
+                if process_prog_layout.process_prog_show.process_manager.isRunning():
+                    process_alive_list.append(process_prog_layout.process_prog_show.process_manager.process_type_gui)
+        return process_alive_list
+
     def kill_process_plot_list(self):
         """
         method to close the images opened in HABBY and managed by matplotlib
         """
+        # for process_prog_layout in self.findChildren(ProcessProgLayout):
+        #     if process_prog_layout.process_prog_show.process_manager is not None:
+        #         if "plot" in process_prog_layout.process_prog_show.process_manager.process_type:
+        #             process_prog_layout.stop_by_user()
+
         # bio_model_explorer_dialog
         if hasattr(self.parent(), "bio_model_explorer_dialog"):
             if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
@@ -2108,17 +2060,18 @@ class CentralW(QWidget):
                     self.data_explorer_tab.data_explorer_frame.plot_group.progress_layout.process_manager.stop_by_user()
         # tools_tab
         if hasattr(self, 'tools_tab'):
-            if hasattr(self.tools_tab, 'interpolation_group'):
-                if hasattr(self.tools_tab.interpolation_group, 'process_manager'):
-                    self.tools_tab.interpolation_group.process_manager.stop_by_user()
-        # hs_tab
-        if hasattr(self, 'hs_tab'):
-            if hasattr(self.hs_tab, 'computing_group'):
-                if hasattr(self.hs_tab.computing_group, 'process_manager'):
-                    self.hs_tab.computing_group.process_manager.stop_by_user()
-            if hasattr(self.hs_tab, 'visual_group'):
-                if hasattr(self.hs_tab.visual_group, 'process_manager'):
-                    self.hs_tab.visual_group.process_manager.stop_by_user()
+            # interpolation_tab
+            if hasattr(self.tools_tab, 'interpolation_tab'):
+                if hasattr(self.tools_tab.interpolation_tab, 'process_manager'):
+                    self.tools_tab.interpolation_tab.process_manager.stop_by_user()
+            # hs_tab
+            if hasattr(self.tools_tab, 'hs_tab'):
+                if hasattr(self.tools_tab.hs_tab, 'computing_group'):
+                    if hasattr(self.tools_tab.hs_tab.computing_group, 'process_manager'):
+                        self.tools_tab.hs_tab.computing_group.process_manager.stop_by_user()
+                if hasattr(self.tools_tab.hs_tab, 'visual_group'):
+                    if hasattr(self.tools_tab.hs_tab.visual_group, 'process_manager'):
+                        self.tools_tab.hs_tab.visual_group.process_manager.stop_by_user()
         # estimhab
         if hasattr(self, 'statmod_tab'):
             if hasattr(self.statmod_tab, 'process_manager'):
@@ -2143,17 +2096,18 @@ class CentralW(QWidget):
                     self.data_explorer_tab.data_explorer_frame.dataexporter_group.progress_layout.process_manager.stop_by_user()
         # tools_tab
         if hasattr(self, 'tools_tab'):
-            if hasattr(self.tools_tab, 'interpolation_group'):
-                if hasattr(self.tools_tab.interpolation_group, 'process_manager'):
-                    self.tools_tab.interpolation_group.process_manager.stop_by_user()
-        # hs_tab
-        if hasattr(self, 'hs_tab'):
-            if hasattr(self.hs_tab, 'computing_group'):
-                if hasattr(self.hs_tab.computing_group, 'process_manager'):
-                    self.hs_tab.computing_group.process_manager.close_all_hs()
-            if hasattr(self.hs_tab, 'visual_group'):
-                if hasattr(self.hs_tab.visual_group, 'process_manager'):
-                    self.hs_tab.visual_group.process_manager.stop_by_user()
+            # interpolation_tab
+            if hasattr(self.tools_tab, 'interpolation_tab'):
+                if hasattr(self.tools_tab.interpolation_tab, 'process_manager'):
+                    self.tools_tab.interpolation_tab.process_manager.stop_by_user()
+            # hs_tab
+            if hasattr(self.tools_tab, 'hs_tab'):
+                if hasattr(self.tools_tab.hs_tab, 'computing_group'):
+                    if hasattr(self.tools_tab.hs_tab.computing_group, 'process_manager'):
+                        self.tools_tab.hs_tab.computing_group.process_manager.close_all_hs()
+                if hasattr(self.tools_tab.hs_tab, 'visual_group'):
+                    if hasattr(self.tools_tab.hs_tab.visual_group, 'process_manager'):
+                        self.tools_tab.hs_tab.visual_group.process_manager.stop_by_user()
         # estimhab
         if hasattr(self, 'statmod_tab'):
             if hasattr(self.statmod_tab, 'process_manager'):
@@ -2175,7 +2129,6 @@ class CentralW(QWidget):
             self.fstress_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
             self.tools_tab.send_log.connect(self.write_log)
-            self.hs_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
@@ -2186,12 +2139,12 @@ class CentralW(QWidget):
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
-            self.hs_tab.computing_group.send_refresh_filenames.connect(self.update_combobox_filenames)
+            self.tools_tab.hs_tab.computing_group.send_refresh_filenames.connect(self.update_combobox_filenames)
             self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.substrate_tab.sub_and_merge.drop_hydro.connect(self.update_combobox_filenames)
             self.substrate_tab.sub_and_merge.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.bioinfo_tab.allmodels_presence.connect(self.update_combobox_filenames)
-            self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
+            self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_gui)
 
     def write_log(self, text_log):
         """
@@ -2363,7 +2316,7 @@ class CentralW(QWidget):
 
             self.data_explorer_tab.refresh_type()
 
-            self.hs_tab.refresh_filenames()
+            self.tools_tab.refresh_gui()
 
     def save_info_projet(self):
         """
@@ -2420,11 +2373,7 @@ class CentralW(QWidget):
         # tools_tab
         if hasattr(self, "tools_tab"):
             if self.tab_widget.currentIndex() == self.tools_tab.tab_position:
-                self.tools_tab.refresh_hab_filenames()
-        # hs_tab
-        if hasattr(self, "hs_tab"):
-            if self.tab_widget.currentIndex() == self.hs_tab.tab_position:
-                self.hs_tab.refresh_filenames()
+                self.tools_tab.refresh_gui()
 
 
 class EmptyTab(QWidget):
