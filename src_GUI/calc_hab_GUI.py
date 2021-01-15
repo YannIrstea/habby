@@ -121,9 +121,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # the available merged data
         l0 = QLabel(self.tr('Habitat file(s)'))
-        self.m_all = QComboBox()
-        self.m_all.currentTextChanged.connect(lambda: self.fill_selected_models_listwidets([]))
-        self.m_all.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.habitat_file_combobox = QComboBox()
+        self.habitat_file_combobox.currentTextChanged.connect(lambda: self.fill_selected_models_listwidets([]))
+        self.habitat_file_combobox.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         # create lists with the possible fishes
         # right buttons for both QListWidget managed in the MainWindows class
@@ -228,7 +228,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4 = QGridLayout(content_widget)
         layout_prov_input = QHBoxLayout()
         layout_prov_input.addWidget(l0)
-        layout_prov_input.addWidget(self.m_all)
+        layout_prov_input.addWidget(self.habitat_file_combobox)
         self.layout4.addLayout(layout_prov_input, 0, 0, 1, 4, Qt.AlignLeft)  #
 
         layout_prov = QGridLayout()
@@ -749,8 +749,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def get_current_hab_informations(self):
         # create hdf5 class
-        if self.m_all.currentText():
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.m_all.currentText(), new=False, edit=False)
+        if self.habitat_file_combobox.currentText():
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.habitat_file_combobox.currentText(), new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             # init
             required_dict = dict(
@@ -832,9 +832,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         except:
             self.send_log.emit("Warning: " + self.tr("The .habby project file is not well-formed."))
             return
-
-        self.m_all.blockSignals(True)
-        self.m_all.clear()
+        current_file = self.habitat_file_combobox.currentText()
+        self.habitat_file_combobox.blockSignals(True)
+        self.habitat_file_combobox.clear()
         self.tooltip = []
         self.hdf5_merge = []
 
@@ -848,8 +848,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     [sub_ini, hydro_ini] = hdf5_mod.get_initial_files(path_hdf5, f)
                     hydro_ini = os.path.basename(hydro_ini)
                     textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate: ' + sub_ini
-                    self.m_all.addItem(f)
-                    self.m_all.setItemData(idx, textini, Qt.ToolTipRole)
+                    self.habitat_file_combobox.addItem(f)
+                    self.habitat_file_combobox.setItemData(idx, textini, Qt.ToolTipRole)
                     self.tooltip.append(textini)
                     name = f
                     self.hdf5_merge.append(name)
@@ -858,11 +858,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     # remove
                     project_preferences["HABITAT"]["hdf5"].remove(f)
 
+        if current_file and current_file in files:
+            self.habitat_file_combobox.setCurrentIndex(files.index(current_file))
         # save
         save_project_properties(self.path_prj, project_preferences)
 
         self.get_list_merge.emit()
-        self.m_all.blockSignals(False)
+        self.habitat_file_combobox.blockSignals(False)
 
         # check_uncheck_allmodels_presence
         self.fill_selected_models_listwidets([])
@@ -914,7 +916,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if user_target_list:
             # get the name of the merged file
             path_hdf5 = self.find_path_hdf5_est()
-            ind = self.m_all.currentIndex()
+            ind = self.habitat_file_combobox.currentIndex()
             if len(self.hdf5_merge) > 0:
                 hab_filename = self.hdf5_merge[ind]
             else:
