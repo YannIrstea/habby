@@ -10,7 +10,7 @@ Iber 2D	False	iber2d	IBER2D	Iber2dResult	iber2d_mod	2	horizontal			BSV	FV explic
 River 2D	False	river2d	River2D	River2dResult	river2d_mod	2													.cdg, .txt		http://www.river2d.ualberta.ca/
 SW2D	False	sw2d	SW2D	Sw2dResult	sw2d_mod	2					FV								.geo, .res, .txt		https://sw2d.wordpress.com
 BASEMENT 2D	True	basement2d	Basement2D	BasementResult	basement_mod	2													.h5, .txt		https://basement.ethz.ch/
-TXT 1D-2D	True	ascii	ASCII	AsciiResult	ascii_mod	2		n										double	.txt		https://github.com/YannIrstea/habby
+TXT 1D-2D	False	ascii	ASCII	AsciiResult	ascii_mod	2		n										double	.txt		https://github.com/YannIrstea/habby
 FullSWOF	False	fullswof	FullSWOF	FullSwof	fullswof_mod	2															https://sourcesup.renater.fr/projects/fullswof-2d/
 Flood Modeller	False	floodmodeller	Flood Modeller	FloodModeller	floodmodeller_mod	2															https://www.floodmodeller.com/
 Mike 21	False	mike21	Mike 21	Mike21	mike21_mod	2															https://www.mikepoweredbydhi.com/products/mike-21
