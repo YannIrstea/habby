@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QMessageBox, QFrame, QTabWidget,\
     QVBoxLayout, QSizePolicy, QScrollArea
 
 from src import hdf5_mod
-from src_GUI.Interpolation_GUI import InterpolationTab
+from src_GUI.interpolation_GUI import InterpolationTab
 from src_GUI.hydrosignature_GUI import HsTab
 from src_GUI.new_tool_tab_to_create_GUI import OtherToolToCreateTab
 
