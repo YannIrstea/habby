@@ -1850,7 +1850,6 @@ def cli_merge(arguments, project_preferences):
         outputfilename = os.path.splitext(hdf5_name_hyd)[0] + "_" + os.path.splitext(hdf5_name_sub)[0] + ".hab"
 
     # run the function
-    stop = Event()
     q = Queue()
     progress_value = Value("d", 0)
     p = Process(target=src.hydraulic_process_mod.merge_grid_and_save,
@@ -1861,8 +1860,7 @@ def cli_merge(arguments, project_preferences):
                       progress_value,
                       q,
                       True,
-                      project_preferences,
-                      stop),
+                      project_preferences),
                 name="MERGE_GRID_SUB")
     cli_start_process_and_print_progress(p, progress_value)
 
