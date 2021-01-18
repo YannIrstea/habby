@@ -156,7 +156,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                     model_dimension=str(self.nb_dim),
                                                     epsg_code=hsr.epsg_code,
                                                     variable_name_unit_dict=hsr.hvum.software_detected_list,
-                                                    unit_list=unit_list,
+                                                    unit_list=list(unit_list),
                                                     unit_list_full=unit_list,
                                                     unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
                                                     unit_number=str(hsr.timestep_nb),
