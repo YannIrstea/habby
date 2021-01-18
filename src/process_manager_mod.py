@@ -15,10 +15,10 @@ https://github.com/YannIrstea/habby
 
 """
 import time
+import os
 from copy import deepcopy
-from multiprocessing import Value
-from multiprocessing import Process
-from multiprocessing import Queue
+from multiprocessing import Value, Queue, Process
+import psutil
 import numpy as np
 from PyQt5.QtCore import QThread, QObject
 
@@ -841,6 +841,9 @@ class MyProcessManager(QThread):
 
             self.terminate()
 
+            # child process
+            kill_proc_tree(os.getpid())
+
 
 class MyProcessList(list):
     """
@@ -905,6 +908,15 @@ class MyProcessList(list):
     def get_total_time(self):
         # thread
         self.total_time = time.clock() - self.start_time
+
+
+def kill_proc_tree(pid, including_parent=False):
+    parent = psutil.Process(pid)
+    for child in parent.children(recursive=True):
+        if "python" in child.name():
+            child.kill()
+    if including_parent:
+        parent.kill()
 
 
 class MyProcess(QObject):

@@ -22,11 +22,10 @@ from io import StringIO
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from pandas import DataFrame
-from multiprocessing import Pool
+from multiprocessing import Pool, Lock
 
-from src.merge import merge
+from src.merge import merge, setup
 from src.hydrosignature import hscomparison
-# from src.process_manager_mod import MyProcessManager
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key, get_translator
 from src.project_properties_mod import create_default_project_properties_dict
 from src import hdf5_mod
@@ -1476,7 +1475,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             sub_default_list = []
             coeffgrid_list = []
             delta_mesh_list = []
-            progress_value_list = []
             # progress
             delta_reach = 80 / hdf5_hydro.data_2d.reach_number
             # for each reach
@@ -1487,22 +1485,8 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                 for unit_number in range(0, hdf5_hydro.data_2d.unit_number):
                     # progress
                     delta_mesh = delta_unit / hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"].shape[0]
-                    # # merge
-                    # merge_xy, merge_data_node, merge_tin, merge_i_whole_profile, merge_data_mesh, merge_data_sub = merge(
-                    #     hyd_xy=hdf5_hydro.data_2d[reach_number][unit_number]["node"]["xy"],
-                    #     hyd_data_node=hdf5_hydro.data_2d[reach_number][unit_number]["node"]["data"].to_numpy(),
-                    #     hyd_tin=hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"],
-                    #     iwholeprofile=hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"],
-                    #     hyd_data_mesh=hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["data"].to_numpy(),
-                    #     sub_xy=hdf5_sub.data_2d[0][0]["node"]["xy"],
-                    #     sub_tin=hdf5_sub.data_2d[0][0]["mesh"]["tin"],
-                    #     sub_data=hdf5_sub.data_2d[0][0]["mesh"]["data"].to_numpy(),
-                    #     sub_default=np.array(hdf5_sub.data_2d.sub_default_values),
-                    #     coeffgrid=10,
-                    #     delta_mesh=delta_mesh,
-                    #     progress_value=progress_value)
 
-                    # conta args to list
+                    # conta args to list to Pool
                     hyd_xy_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["node"]["xy"])
                     hyd_data_node_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["node"]["data"].to_numpy())
                     hyd_tin_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"])
@@ -1514,7 +1498,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     sub_default_list.append(np.array(hdf5_sub.data_2d.sub_default_values))
                     coeffgrid_list.append(10)
                     delta_mesh_list.append(delta_mesh)
-                    progress_value_list.append(progress_value)
 
             # Compute Pool
             input_data = zip(hyd_xy_list,
@@ -1526,9 +1509,12 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                              sub_tin_list,
                              sub_data_list,
                              sub_default_list,
-                             coeffgrid_list) # delta_mesh_list, progress_value_list
+                             coeffgrid_list,
+                             delta_mesh_list)
 
-            pool = Pool(4)
+            # start jobs
+            lock = Lock()  # to share progress_value
+            pool = Pool(processes=4, initializer=setup, initargs=[progress_value, lock])
             results = pool.starmap(merge, input_data)
 
             # for each reach

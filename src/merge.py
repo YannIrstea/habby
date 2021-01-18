@@ -23,8 +23,14 @@ from datetime import datetime
 from src.plot_mod import plot_to_check_mesh_merging
 
 
+def setup(t, l):
+    global progress_value, lock
+    progress_value = t
+    lock = l
+
+
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
-          coeffgrid, delta_mesh=None, progress_value=None):
+          coeffgrid, delta_mesh=None):
     """
     Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
@@ -371,7 +377,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             decalnewpointmerge += len(nxynewpoint)
 
         # progress
-        if progress_value is not None:
+        with lock:
             progress_value.value = progress_value.value + delta_mesh
 
     # get rid of duplicate points
