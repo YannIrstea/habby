@@ -234,8 +234,7 @@ def load_project_properties(path_prj):
     elif not os.path.isfile(project_file_abs_path):  # the project is not found
         print('Warning: No project file (.habby) found.\n')
     else:
-        with open(project_file_abs_path, "r") as read_file:
-            project_preferences = json.load(read_file)
+        project_preferences = json.load(open(project_file_abs_path, "r"))
 
     # check if project move
     if path_prj != project_preferences["path_prj"]:  # update all path
