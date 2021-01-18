@@ -34,7 +34,7 @@ from src import stathab_mod
 from src import substrate_mod
 from src import fstress_mod
 from src.variable_unit_mod import HydraulicVariableUnitList
-from src.bio_info_mod import get_biomodels_informations_for_database
+from src.bio_info_mod import get_biomodels_informations_for_database, check_if_habitat_variable_is_valid
 from src import lammi_mod
 from src import hydraulic_process_mod
 from src.hydrosignature import hydraulic_class_from_file
@@ -1316,21 +1316,19 @@ def cli_calc_hab(arguments, project_preferences):
         hyd_opt = run_choice["hyd_opt"][i]
         sub_opt = run_choice["sub_opt"][i]
 
-        if hyd_opt == "Neglect" and sub_opt == "Neglect":
-            print('Warning: ' + pref_file + "_" + stage + " model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed.")
-            continue
-        information_model_dict = get_biomodels_informations_for_database(pref_file)
+        # check_if_habitat_variable_is_valid
+        if check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
+            # append_new_habitat_variable
+            information_model_dict = get_biomodels_informations_for_database(pref_file)
+            user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
+                                                         stage,
+                                                         hyd_opt,
+                                                         sub_opt,
+                                                         information_model_dict["aquatic_animal_type"],
+                                                         information_model_dict["ModelType"],
+                                                         pref_file)
 
-        # append_new_habitat_variable
-        user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
-                                                     stage,
-                                                     hyd_opt,
-                                                     sub_opt,
-                                                     information_model_dict["aquatic_animal_type"],
-                                                     information_model_dict["ModelType"],
-                                                     pref_file)
-
-    if hab_filename:
+    if user_target_list:
         # run calculation
         progress_value = Value("d", 0)
         stop = Event()

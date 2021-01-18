@@ -200,10 +200,10 @@ def get_biomodels_informations_for_database(path_xml):
             docxml = ET.parse(path_xml)
             root = docxml.getroot()
         except IOError:
-            print("Warning: the xml file does not exist \n")
+            print("Error: " + path_xml + " file not exist.")
             return
     except ET.ParseError:
-        print("Warning: the xml file is not well-formed.\n")
+        print("Error: the xml file is not well-formed.")
         return
 
     # CdBiologicalModel
@@ -341,6 +341,41 @@ def get_biomodels_informations_for_database(path_xml):
                                   path_img=path_img)
 
     return information_model_dict
+
+
+def check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
+    # valid
+    valid = True
+    hyd_opt_valid = ("HV", "H", "V", "Neglect")
+    sub_opt_valid = ("Coarser-Dominant", "Coarser", "Dominant", "Neglect")
+
+    # warning
+    if hyd_opt == "Neglect" and sub_opt == "Neglect":
+        print('Error: ' + pref_file + "_" + stage + " model options are Neglect and Neglect for hydraulic and "
+                                                      "substrate options.")
+        valid = False
+
+    # pref_file exist ?
+    information_model_dict = get_biomodels_informations_for_database(pref_file)
+    if information_model_dict is None:  # file not exist
+        valid = False
+    else:
+        # stage exist ?
+        if stage not in information_model_dict["stage_and_size"]:
+            print("Error: " + stage + " not exist in existing stages : " + ", ".join(information_model_dict["stage_and_size"]))
+            valid = False
+
+    # hyd_opt exist ?
+    if hyd_opt not in hyd_opt_valid:
+        print("Error: " + hyd_opt + " not exist in hydraulic options : " + ", ".join(hyd_opt_valid))
+        valid = False
+
+    # sub_opt exist ?
+    if sub_opt not in sub_opt_valid:
+        print("Error: " + sub_opt + " not exist in substrate options : " + ", ".join(sub_opt_valid))
+        valid = False
+
+    return valid
 
 
 def get_name_stage_codebio_fromstr(item_str):
@@ -593,7 +628,7 @@ def get_hydrosignature(xmlfile):
             docxml = ET.parse(xmlfile)
             root = docxml.getroot()
         except IOError:
-            print("Warning: the xml file does not exist \n")
+            print("Error: the xml file does not exist \n")
             return error_list
     except ET.ParseError:
         print("Warning: the xml file is not well-formed.\n")
