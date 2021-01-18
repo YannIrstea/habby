@@ -610,9 +610,9 @@ class FigureProducerGroup(QGroupBoxCollapsible):
 
         # PLOT GROUP
         plot_layout = QHBoxLayout()
-        plot_layout.addLayout(self.reach_hdf5_layout, 1)  # stretch factor
-        plot_layout.addLayout(self.units_layout, 1)  # stretch factor
-        plot_layout.addLayout(self.variable_hdf5_layout, 4)  # stretch factor
+        plot_layout.addLayout(self.reach_hdf5_layout, 10)  # stretch factor
+        plot_layout.addLayout(self.units_layout, 15)  # stretch factor
+        plot_layout.addLayout(self.variable_hdf5_layout, 40)  # stretch factor
         plot_layout.addLayout(self.export_type_layout)
         plot_layout2 = QVBoxLayout()
         plot_type_layout = QHBoxLayout()
