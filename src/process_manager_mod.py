@@ -910,15 +910,6 @@ class MyProcessList(list):
         self.total_time = time.clock() - self.start_time
 
 
-def kill_proc_tree(pid, including_parent=False):
-    parent = psutil.Process(pid)
-    for child in parent.children(recursive=True):
-        if "python" in child.name():
-            child.kill()
-    if including_parent:
-        parent.kill()
-
-
 class MyProcess(QObject):
     """
     Represent one process
@@ -989,3 +980,12 @@ class MyProcess(QObject):
                 error = True
         if check_ok:
             return error
+
+
+def kill_proc_tree(pid, including_parent=False):
+    parent = psutil.Process(pid)
+    for child in parent.children(recursive=True):
+        if "python" in child.name():
+            child.kill()
+    if including_parent:
+        parent.kill()

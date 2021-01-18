@@ -20,42 +20,31 @@ import os
 import time
 from copy import deepcopy
 import h5py
-
 import matplotlib
 import numpy as np
-
-import src.calcul_hab_mod
-import src.hydraulic_process_mod
-import src.merge
-import src.substrate_mod
-
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue, Event
 from shutil import copyfile
 
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
-from src import mascaret_mod
-from src import hec_ras1D_mod
-from src import rubar1d2d_mod
-from src import sw2d_mod
-from src import iber2d_mod
-from src import river2d_mod
 from src import hdf5_mod
-from src import hec_ras2D_mod
 from src import estimhab_mod
 from src import stathab_mod
 from src import substrate_mod
 from src import fstress_mod
-from src import calcul_hab_mod
 from src.variable_unit_mod import HydraulicVariableUnitList
 from src.bio_info_mod import get_biomodels_informations_for_database
 from src import lammi_mod
-from src import ascii_mod
 from src import hydraulic_process_mod
 from src.hydrosignature import hydraulic_class_from_file
 from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_properties_dict, load_project_properties, change_specific_properties
+from src.process_manager_mod import kill_proc_tree
+import src.calcul_hab_mod
+import src.hydraulic_process_mod
+import src.merge
+import src.substrate_mod
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -1352,8 +1341,7 @@ def cli_calc_hab(arguments, project_preferences):
                           progress_value,
                           q,
                           True,
-                          project_preferences,
-                          stop),
+                          project_preferences),
                     name="RUN_HABITAT")
         cli_start_process_and_print_progress(p, progress_value)
 
