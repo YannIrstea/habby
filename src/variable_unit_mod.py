@@ -783,6 +783,9 @@ class HydraulicVariableUnitManagement:
         """
         self.all_final_variable_list = HydraulicVariableUnitList()
 
+        if user_target_list == "all":
+            user_target_list = deepcopy(self.hdf5_and_computable_list)
+
         # wish hdf5 (node and mesh)
         for variable_wish in user_target_list.hdf5s():
             self.all_final_variable_list.append(variable_wish)

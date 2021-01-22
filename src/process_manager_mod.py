@@ -346,26 +346,74 @@ class MyProcessManager(QThread):
                 export_dict[key[:-4]] = self.export_dict[key]
             # export_gpkg
             export_gpkg = False
+            export_gpkg_mesh_whole_profile = False
+            export_gpkg_point_whole_profile = False
+            export_gpkg_mesh_units = False
+            export_gpkg_point_units = False
             if self.hdf5.hdf5_type == "hydraulic":
                 if True in (export_dict["mesh_whole_profile"],
                              export_dict["point_whole_profile"],
                              export_dict["mesh_units"],
                              export_dict["point_units"]):
                     export_gpkg = True
+                    if export_dict["mesh_whole_profile"]:
+                        export_gpkg_mesh_whole_profile = True
+                    if export_dict["point_whole_profile"]:
+                        export_gpkg_point_whole_profile = True
+                    if export_dict["mesh_units"]:
+                        export_gpkg_mesh_units = True
+                    if export_dict["point_units"]:
+                        export_gpkg_point_units = True
+
             elif self.hdf5.hdf5_type == "habitat":
                 if True in (export_dict["mesh_units"],
                             export_dict["point_units"]):
                     export_gpkg = True
+                    if export_dict["mesh_units"]:
+                        export_gpkg_mesh_units = True
+                    if export_dict["point_units"]:
+                        export_gpkg_point_units = True
             if export_gpkg:
-                # class MyProcess
-                progress_value = Value("d", 0.0)
-                q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg,
-                                                 args=(progress_value,),
-                                                 name="export_gpkg"),
-                                       progress_value=progress_value,
-                                       q=q)
-                self.process_list.append(my_process)
+                if export_gpkg_mesh_whole_profile:
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_whole_profile,
+                                                     args=(progress_value,),
+                                                     name="export_gpkg_mesh_whole_profile"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
+                if export_gpkg_point_whole_profile:
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_whole_profile,
+                                                     args=(progress_value,),
+                                                     name="export_gpkg_point_whole_profile"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
+                if export_gpkg_mesh_units:
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_units,
+                                                     args=(progress_value,),
+                                                     name="export_gpkg_mesh_units"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
+                if export_gpkg_point_units:
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_units,
+                                                     args=(progress_value,),
+                                                     name="export_gpkg_point_units"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
 
             # export_stl
             if export_dict["elevation_whole_profile"]:
@@ -438,17 +486,6 @@ class MyProcessManager(QThread):
                                            progress_value=progress_value,
                                            q=q)
                     self.process_list.append(my_process)
-
-            # FAKE
-            # if self.export_dict["mesh_units" + self.hdf5.extension[1:]] or self.export_dict["point_units" + self.hdf5.extension[1:]]:
-            #     # append fake first
-            #     for fake_num in range(1, total_gpkg_export):
-            #         self.process_list.append([Process(name="fake_gpkg" + str(fake_num)), Value("i", 1)])
-            #     state = Value("i", 0)
-            #     export_gpkg_process = Process(target=self.hdf5.export_gpkg,
-            #                                   args=(state,),
-            #                                   name="export_gpkg")
-            #     self.process_list.append([export_gpkg_process, state])
 
     # hs
     def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
@@ -839,10 +876,10 @@ class MyProcessManager(QThread):
             # get_total_time
             self.process_list.get_total_time()
 
-            self.terminate()
-
             # child process
             kill_proc_tree(os.getpid())
+
+            self.terminate()
 
 
 class MyProcessList(list):

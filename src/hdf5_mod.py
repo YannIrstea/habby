@@ -17,15 +17,13 @@ https://github.com/YannIrstea/habby
 import os
 import time
 import h5py
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from PyQt5.QtCore import QLocale
 from osgeo import ogr
 from osgeo import osr
 from stl import mesh
-from multiprocessing import Value, Pool
+from multiprocessing import Value, Pool, Lock
 import shutil
 from pandas import DataFrame
 
@@ -33,6 +31,7 @@ from src import bio_info_mod
 from src import export_manager
 from src import hl_mod
 from src import paraview_mod
+from src.export_manager import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, setup
 from src.project_properties_mod import load_project_properties, save_project_properties
 from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
 from src.data_2d_mod import Data2d
@@ -1296,377 +1295,238 @@ class Hdf5Management:
         self.estimhab_dict = estimhab_dict
 
     # EXPORT GPKG
-    def export_gpkg(self, state=None):
-        # INDEX IF HYD OR HAB
-        index = 0
-        if self.extension == ".hab":
-            index = 1
-
-        # default exports activated ? (when hyd, hab file created)
-        mesh_whole_profile_tf = self.project_preferences['mesh_whole_profile'][index]
-        mesh_units_tf = self.project_preferences['mesh_units'][index]
-        point_whole_profile_tf = self.project_preferences['point_whole_profile'][index]
-        point_units_tf = self.project_preferences['point_units'][index]
-
-        if not mesh_whole_profile_tf and not mesh_units_tf and not point_whole_profile_tf and not point_units_tf:
-            if state is not None:
-                state.value = 100.0  # process finished
-            return
-
-        # Mapping between OGR and Python data types
-        OGRTypes_dict = {np.int64: ogr.OFTInteger64,
-                         np.float64: ogr.OFTReal}
-
-        # CRS
-        crs = osr.SpatialReference()
-        if self.hdf5_type == "hydraulic":
-            if self.data_2d.epsg_code != "unknown":
-                try:
-                    crs.ImportFromEPSG(int(self.data_2d.epsg_code))
-                except:
-                    print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "),
-                          self.data_2d.epsg_code)
-        if self.hdf5_type == "habitat":
-            if self.data_2d.epsg_code != "unknown":
-                try:
-                    crs.ImportFromEPSG(int(self.data_2d.epsg_code))
-                except:
-                    print("Warning: " + qt_tr.translate("hdf5_mod", "Can't write .prj from EPSG code : "),
-                          self.data_2d.epsg_code)
+    def export_gpkg_mesh_whole_profile(self, state=None):
+        # progress
+        delta_reach = 80 / self.data_2d.reach_number
 
         # for each reach : one gpkg
         for reach_number in range(0, self.data_2d.reach_number):
             # name
             filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
-            driver = ogr.GetDriverByName('GPKG')  # GPKG
+            filename_path = os.path.join(self.path_shp, filename)
 
-            # file not exist : create it
-            if not os.path.isfile(os.path.join(self.path_shp, filename)):
-                # gpkg file creation
-                ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
-                layer_names = []
+            # for all units
+            filename_path_list = []
+            layer_name_list = []
+            crs_list = []
+            unit_data_list = []
+            delta_mesh_list = []
+            for unit_number in range(0, self.data_2d_whole.unit_number):
+                # layer_name
+                if not self.data_2d.hyd_varying_mesh:
+                    # progress
+                    delta_unit = delta_reach
+                    layer_name = "mesh_wholeprofile_allunits"
+                else:
+                    # progress
+                    delta_unit = delta_reach / self.data_2d.unit_number
+                    layer_name = "mesh_wholeprofile_" + self.data_2d_whole.unit_list[reach_number][
+                        unit_number]
 
-            # file exist
-            else:
-                # if .hyd
-                if self.hdf5_type == "hydraulic":
-                    # if erase_id == True : remove and create
-                    if self.project_preferences['erase_id']:
-                        try:
-                            os.remove(os.path.join(self.path_shp, filename))
-                        except PermissionError:
-                            print(
-                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                            return
-                    # if erase_id == False : create with new name
-                    else:
-                        filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_allunits_" + time.strftime(
-                            "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
+                # hvum copy
+                self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
-                    # gpkg file creation
-                    ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
-                    layer_names = []
+                # append args to list
+                filename_path_list.append(filename_path.split(".")[0])
+                layer_name_list.append(layer_name)
+                crs_list.append(self.data_2d.epsg_code)
+                unit_data_list.append(self.data_2d_whole[reach_number][unit_number])
+                delta_mesh_list.append(
+                    delta_unit / self.data_2d_whole[reach_number][unit_number]["mesh"]["tin"].shape[0])
 
-                # if .hab
-                if self.hdf5_type == "habitat":
-                    # no fish
-                    if not self.data_2d.hvum.all_final_variable_list.habs():
-                        # if erase_id == True
-                        if self.project_preferences['erase_id']:
-                            try:
-                                os.remove(os.path.join(self.path_shp, filename))
-                            except PermissionError:
-                                print(
-                                    'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                                return
-                        # if erase_id == False
-                        else:
-                            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_allunits_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
+                # stop loop in this case (if one unit in whole profile)
+                if not self.data_2d.hyd_varying_mesh:
+                    break
 
-                        # gpkg file creation
-                        ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
-                        layer_names = []
+            # conca to Pool
+            input_data = zip(filename_path_list,
+                             layer_name_list,
+                             crs_list,
+                             unit_data_list,
+                             [True] * len(filename_path_list),
+                             delta_mesh_list)
 
-                    # fish
-                    else:
-                        # if erase_id == True
-                        if self.project_preferences['erase_id']:
-                            # gpkg file update
-                            ds = driver.Open(os.path.join(self.path_shp, filename), 1)
-                            layer_names = [ds.GetLayer(i).GetName() for i in range(ds.GetLayerCount())]
-                        # if erase_id == False
-                        else:
-                            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_allunits_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
-                            # gpkg file creation
-                            ds = driver.CreateDataSource(os.path.join(self.path_shp, filename))
-                            layer_names = []
+            # Pool
+            lock = Lock()  # to share progress_value
+            if state is None:
+                state = Value("d", 0.0)
+            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool.starmap(export_mesh_layer_to_gpkg, input_data)
 
-            # DATA 2D WHOLE PROFILE mesh
-            if mesh_whole_profile_tf:  # only on .hyd creation
-                # for all units
-                for unit_number in range(0, self.data_2d_whole.unit_number):
-                    # layer_name
-                    if not self.data_2d.hyd_varying_mesh:
-                        layer_name = "mesh_wholeprofile_allunits"
-                    else:
-                        layer_name = "mesh_wholeprofile_" + self.data_2d_whole.unit_list[reach_number][
-                            unit_number]
+            # merge_gpkg_to_one
+            merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
 
-                    # create layer
-                    if not crs.ExportToWkt():  # '' == crs unknown
-                        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPolygon)
-                    else:  # crs known
-                        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon)
-                    # create fields (no width no precision to be specified with GPKG)
-                    layer.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))  # Add one attribute
-                    defn = layer.GetLayerDefn()
-                    layer.StartTransaction()  # faster
+        if state is not None:
+            state.value = 100.0  # process finished
 
-                    # for each mesh
-                    for mesh_num in range(0, len(self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
-                        node1 = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][
-                            0]  # node num
-                        node2 = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][1]
-                        node3 = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][2]
-                        # data geom (get the triangle coordinates)
-                        p1 = list(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node1].tolist() + [
-                            self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][node1]])
-                        p2 = list(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node2].tolist() + [
-                            self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][node2]])
-                        p3 = list(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node3].tolist() + [
-                            self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][node3]])
-                        # Create triangle
-                        ring = ogr.Geometry(ogr.wkbLinearRing)
-                        ring.AddPoint(*p1)
-                        ring.AddPoint(*p2)
-                        ring.AddPoint(*p3)
-                        ring.AddPoint(*p1)
-                        # Create polygon
-                        poly = ogr.Geometry(ogr.wkbPolygon)
-                        poly.AddGeometry(ring)
-                        # Create a new feature
-                        feat = ogr.Feature(defn)
-                        feat.SetField('ID', mesh_num)
-                        # set geometry
-                        feat.SetGeometry(poly)
-                        # create
-                        layer.CreateFeature(feat)
+    def export_gpkg_mesh_units(self, state=None):
+        # progress
+        delta_reach = 80 / self.data_2d.reach_number
 
-                    # Save and close everything
-                    layer.CommitTransaction()  # faster
+        # for each reach : one gpkg
+        for reach_number in range(0, self.data_2d.reach_number):
+            # name
+            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
+            filename_path = os.path.join(self.path_shp, filename)
 
-                    # stop loop in this case (if one unit in whole profile)
-                    if not self.data_2d.hyd_varying_mesh:
-                        break
+            # for all units
+            filename_path_list = []
+            layer_name_list = []
+            crs_list = []
+            unit_data_list = []
+            delta_mesh_list = []
+            for unit_number in range(0, self.data_2d.unit_number):
+                # layer_name
+                layer_name = "mesh_" + self.units_name_output[reach_number][unit_number]
 
-            # DATA 2D mesh
-            if mesh_units_tf:
-                # for each unit
-                for unit_number in range(0, self.data_2d.unit_number):
-                    # name
-                    layer_name = "mesh_" + self.units_name_output[reach_number][unit_number]
-                    layer_exist = False
+                # progress
+                delta_unit = delta_reach / self.data_2d.unit_number
 
-                    # if layer exist
-                    if layer_name in layer_names:
-                        layer_exist = True
-                        if self.data_2d.hvum.all_final_variable_list.habs():
-                            layer = ds.GetLayer(layer_name)
-                            layer_defn = layer.GetLayerDefn()
-                            field_names = [layer_defn.GetFieldDefn(i).GetName() for i in
-                                           range(layer_defn.GetFieldCount())]
-                            # erase all fish field
-                            for fish_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.habs()):
-                                if animal.name in field_names:
-                                    field_index = field_names.index(animal.name)
-                                    layer.DeleteField(field_index)  # delete all features attribute of specified field
-                                    field_names = [layer_defn.GetFieldDefn(i).GetName() for i in
-                                                   range(layer_defn.GetFieldCount())]  # refresh list
-                            # create all fish field
-                            for fish_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.habs()):
-                                new_field = ogr.FieldDefn(animal.name, ogr.OFTReal)
-                                layer.CreateField(new_field)
-                            # add fish data for each mesh
-                            layer.StartTransaction()  # faster
-                            for mesh_num in range(0,
-                                                  len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
-                                feature = layer.GetFeature(mesh_num + 1)  # 1 because gpkg start at 1
-                                for fish_num, animal in enumerate(self.data_2d.hvum.hdf5_and_computable_list.habs()):
-                                    data = self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name][mesh_num]
-                                    feature.SetField(animal.name, data)
-                                layer.SetFeature(feature)
-                            layer.CommitTransaction()  # faster
+                # hvum copy
+                self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
-                    # if layer not exist
-                    if not layer_exist or not self.data_2d.hvum.all_final_variable_list.habs():  # not exist or merge case
-                        # create layer
-                        if not crs.ExportToWkt():  # '' == crs unknown
-                            layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPolygon)
-                        else:  # crs known
-                            layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon)
+                # append args to list
+                filename_path_list.append(filename_path.split(".")[0])
+                layer_name_list.append(layer_name)
+                crs_list.append(self.data_2d.epsg_code)
+                unit_data_list.append(self.data_2d[reach_number][unit_number])
+                delta_mesh_list.append(delta_unit / self.data_2d[reach_number][unit_number]["mesh"]["tin"].shape[0])
 
-                        # create fields (no width no precision to be specified with GPKG)
-                        for mesh_variable in self.data_2d.hvum.all_final_variable_list.no_habs().meshs():
-                            layer.CreateField(ogr.FieldDefn(mesh_variable.name_gui, OGRTypes_dict[mesh_variable.dtype]))
+            # conca to Pool
+            input_data = zip(filename_path_list,
+                             layer_name_list,
+                             crs_list,
+                             unit_data_list,
+                             [False] * len(filename_path_list),
+                             delta_mesh_list)
 
-                        defn = layer.GetLayerDefn()
-                        if self.hdf5_type == "habitat":
-                            # fish
-                            if self.data_2d.hvum.all_final_variable_list.habs():
-                                for fish_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.habs()):
-                                    layer.CreateField(ogr.FieldDefn(animal.name_gui, OGRTypes_dict[animal.dtype]))
-                        layer.StartTransaction()  # faster
+            # Pool
+            lock = Lock()  # to share progress_value
+            if state is None:
+                state = Value("d", 0.0)
+            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool.starmap(export_mesh_layer_to_gpkg, input_data)
 
-                        # for each mesh
-                        for mesh_num in range(0, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name])):
-                            node1 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][
-                                0]  # node num
-                            node2 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][1]
-                            node3 = self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name][mesh_num][2]
-                            # data geom (get the triangle coordinates)
-                            p1 = list(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node1].tolist() + [
-                                self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][node1]])
-                            p2 = list(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node2].tolist() + [
-                                self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][node2]])
-                            p3 = list(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][node3].tolist() + [
-                                self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][node3]])
+            # merge_gpkg_to_one
+            merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
 
-                            # Create triangle
-                            ring = ogr.Geometry(ogr.wkbLinearRing)
-                            ring.AddPoint(*p1)
-                            ring.AddPoint(*p2)
-                            ring.AddPoint(*p3)
-                            ring.AddPoint(*p1)
-                            # Create polygon
-                            poly = ogr.Geometry(ogr.wkbPolygon)
-                            poly.AddGeometry(ring)
-                            # Create a new feature
-                            feat = ogr.Feature(defn)
+        if state is not None:
+            state.value = 100.0  # process finished
 
-                            # variables
-                            for mesh_variable in self.data_2d.hvum.all_final_variable_list.no_habs().meshs():
-                                # convert NumPy values to a native Python type
-                                data_field = self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
-                                                     mesh_variable.name][mesh_num].item()
-                                feat.SetField(mesh_variable.name_gui, data_field)
+    def export_gpkg_point_whole_profile(self, state=None):
+        # progress
+        delta_reach = 80 / self.data_2d.reach_number
 
-                            if self.hdf5_type == "habitat":
-                                # fish
-                                if self.data_2d.hvum.all_final_variable_list.habs():
-                                    for fish_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.habs()):
-                                        feat.SetField(animal.name,
-                                                      self.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name][mesh_num])
-                            # set geometry
-                            feat.SetGeometry(poly)
-                            # create
-                            layer.CreateFeature(feat)
+        # for each reach : one gpkg
+        for reach_number in range(0, self.data_2d.reach_number):
+            # name
+            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
+            filename_path = os.path.join(self.path_shp, filename)
 
-                        # close layer
-                        layer.CommitTransaction()  # faster
+            # for all units
+            filename_path_list = []
+            layer_name_list = []
+            crs_list = []
+            unit_data_list = []
+            delta_node_list = []
+            for unit_number in range(0, self.data_2d_whole.unit_number):
+                # layer_name
+                if not self.data_2d.hyd_varying_mesh:
+                    # progress
+                    delta_unit = delta_reach
+                    layer_name = "node_wholeprofile_allunits"
+                else:
+                    # progress
+                    delta_unit = delta_reach / self.data_2d.unit_number
+                    layer_name = "node_wholeprofile_" + self.data_2d_whole.unit_list[reach_number][
+                        unit_number]
 
-            # DATA 2D WHOLE PROFILE point
-            if point_whole_profile_tf:  # only on .hyd creation
-                # for all units (selected or all)
-                for unit_number in range(0, self.data_2d_whole.unit_number):
-                    # layer_name
-                    if not self.data_2d.hyd_varying_mesh:
-                        layer_name = "point_wholeprofile_allunits"
-                    else:
-                        layer_name = "point_wholeprofile_" + \
-                                     self.data_2d_whole.unit_list[reach_number][unit_number]
+                # hvum copy
+                self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
-                    # create layer
-                    if not crs.ExportToWkt():  # '' == crs unknown
-                        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
-                    else:  # crs known
-                        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint,
-                                               options=['DESCRIPTION=testaaaaa'])
-                    # create fields (no width no precision to be specified with GPKG)
-                    layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
-                    defn = layer.GetLayerDefn()
-                    layer.StartTransaction()  # faster
+                # append args to list
+                filename_path_list.append(filename_path.split(".")[0])
+                layer_name_list.append(layer_name)
+                crs_list.append(self.data_2d.epsg_code)
+                unit_data_list.append(self.data_2d_whole[reach_number][unit_number])
+                delta_node_list.append(
+                    delta_unit / self.data_2d_whole[reach_number][unit_number]["node"]["xy"].shape[0])
 
-                    # for each point
-                    for point_num in range(0, len(self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])):
-                        # data geom (get the triangle coordinates)
-                        x = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][0]
-                        y = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][1]
-                        z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name][point_num]
-                        # Create a point
-                        point = ogr.Geometry(ogr.wkbPoint)
-                        point.AddPoint(x, y, z)
-                        # Create a new feature
-                        feat = ogr.Feature(defn)
-                        feat.SetField('elevation', z)
-                        # set geometry
-                        feat.SetGeometry(point)
-                        # create
-                        layer.CreateFeature(feat)
+                # stop loop in this case (if one unit in whole profile)
+                if not self.data_2d.hyd_varying_mesh:
+                    break
 
-                    # Save and close everything
-                    layer.CommitTransaction()  # faster
+            # conca to Pool
+            input_data = zip(filename_path_list,
+                             layer_name_list,
+                             crs_list,
+                             unit_data_list,
+                             [True] * len(filename_path_list),
+                             delta_node_list)
 
-                    # stop loop in this case (if one unit in whole profile)
-                    if not self.data_2d.hyd_varying_mesh:
-                        break
+            # Pool
+            lock = Lock()  # to share progress_value
+            if state is None:
+                state = Value("d", 0.0)
+            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool.starmap(export_node_layer_to_gpkg, input_data)
 
-            # DATA 2D point
-            if point_units_tf:
-                # for each unit
-                for unit_number in range(0, self.data_2d.unit_number):
-                    # name
-                    layer_name = "point_" + self.units_name_output[reach_number][unit_number]
-                    layer_exist = False
+            # merge_gpkg_to_one
+            merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
 
-                    # if layer exist
-                    if layer_name in layer_names:
-                        layer_exist = True
+        if state is not None:
+            state.value = 100.0  # process finished
 
-                    # if layer not exist
-                    if not layer_exist or not self.data_2d.hvum.all_final_variable_list.habs():  # not exist or merge case
-                        # create layer
-                        if not crs.ExportToWkt():  # '' == crs unknown
-                            layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint)
-                        else:  # crs known
-                            layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint)
+    def export_gpkg_point_units(self, state=None):
+        # progress
+        delta_reach = 80 / self.data_2d.reach_number
 
-                        # create fields (no width no precision to be specified with GPKG)
-                        for node_variable in self.data_2d.hvum.all_final_variable_list.no_habs().nodes():
-                            layer.CreateField(ogr.FieldDefn(node_variable.name_gui, OGRTypes_dict[node_variable.dtype]))
+        # for each reach : one gpkg
+        for reach_number in range(0, self.data_2d.reach_number):
+            # name
+            filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
+            filename_path = os.path.join(self.path_shp, filename)
 
-                        defn = layer.GetLayerDefn()
-                        layer.StartTransaction()  # faster
+            # for all units
+            filename_path_list = []
+            layer_name_list = []
+            crs_list = []
+            unit_data_list = []
+            delta_node_list = []
+            for unit_number in range(0, self.data_2d.unit_number):
+                # layer_name
+                layer_name = "node_" + self.units_name_output[reach_number][unit_number]
 
-                        # for each point
-                        for point_num in range(0, len(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name])):
-                            # data geom (get the triangle coordinates)
-                            x = self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][0]
-                            y = self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][point_num][1]
-                            z = self.data_2d[reach_number][unit_number]["node"]["data"][self.data_2d.hvum.z.name][point_num]
+                # progress
+                delta_unit = delta_reach / self.data_2d.unit_number
 
-                            # Create a point
-                            point = ogr.Geometry(ogr.wkbPoint)
-                            point.AddPoint(x, y, z)
-                            # Create a new feature
-                            feat = ogr.Feature(defn)
+                # hvum copy
+                self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
-                            for node_variable in self.data_2d.hvum.all_final_variable_list.no_habs().nodes():
-                                feat.SetField(node_variable.name_gui,
-                                              self.data_2d[reach_number][unit_number][node_variable.position]["data"][
-                                                  node_variable.name][point_num])
+                # append args to list
+                filename_path_list.append(filename_path.split(".")[0])
+                layer_name_list.append(layer_name)
+                crs_list.append(self.data_2d.epsg_code)
+                unit_data_list.append(self.data_2d[reach_number][unit_number])
+                delta_node_list.append(delta_unit / self.data_2d[reach_number][unit_number]["node"]["xy"].shape[0])
 
-                            # set geometry
-                            feat.SetGeometry(point)
-                            # create
-                            layer.CreateFeature(feat)
+            # conca to Pool
+            input_data = zip(filename_path_list,
+                             layer_name_list,
+                             crs_list,
+                             unit_data_list,
+                             [False] * len(filename_path_list),
+                             delta_node_list)
 
-                        # Save and close everything
-                        layer.CommitTransaction()  # faster
+            # Pool
+            lock = Lock()  # to share progress_value
+            if state is None:
+                state = Value("d", 0.0)
+            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool.starmap(export_node_layer_to_gpkg, input_data)
 
-            # close file
-            ds.Destroy()
+            # merge_gpkg_to_one
+            merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
 
         if state is not None:
             state.value = 100.0  # process finished
