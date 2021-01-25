@@ -29,6 +29,7 @@ from src_GUI import estimhab_GUI
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
 import matplotlib as mpl
+from src.bio_info_mod import read_pref
 
 
 class Stathab:
@@ -604,10 +605,8 @@ class Stathab:
         nbclaq = 50  # number of discharge value where the data have to be calculated
         nbclass = 20  # number of height and velcoity class (do not change without changing dist_h_trop and _dist_v_trop)
 
-        # get the preference info based on the files known
-        code_fish = self.fish_chosen
-        [datah_all, datav_all] = load_pref_trop_uni(code_fish, path_bio)
-        nb_fish = len(datah_all)
+        # TODO: loop on fishs
+        nb_fish = len(self.fish_chosen)
         hv_hv = np.zeros((nb_reach, nb_fish, nbclaq))
         wua_hv = np.zeros((nb_reach, nb_fish, nbclaq))
         hv_h = np.zeros((nb_reach, nb_fish, nbclaq))
@@ -657,23 +656,30 @@ class Stathab:
                 [v_dist, v_born] = self.dist_v_trop(vs, hs, self.data_ii[r][1], self.data_ii[r][2])
 
                 # calculate J
-                for f in range(0, nb_fish):
+                for fish_num in range(0, nb_fish):
+                    # get the preference info based on the files known
+                    xml_filename = self.fish_chosen[fish_num].split(" - ")[-1] + ".xml"
+                    xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
+                    h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
+                    stage = self.fish_chosen[fish_num].split(" - ")[-2]
+                    stage_index = stages.index(stage)
+
                     # to be checked
-                    pref_h = np.interp(h_born, datah_all[f][:, 0], datah_all[f][:, 1])
-                    pref_v = np.interp(v_born, datav_all[f][:, 0], datav_all[f][:, 1])
-                    hv_dist=np.outer(h_dist* v_dist)
-                    pref_hv=np.outer(pref_h* pref_v)
-                    hv_hv[r, f, qind]=np.sum(hv_dist*pref_hv)
-                    wua_hv[r, f, qind]=hv_hv[r, f, qind]* ws #WUA/m of river
-                    hv_h[r, f, qind] = np.sum(pref_h * h_dist)
-                    hv_v[r, f, qind] = np.sum(pref_v * v_dist)
-                    wua_h[r, f, qind] =hv_h[r, f, qind]* ws #WUA/m of river
-                    wua_v[r, f, qind] =hv_v[r, f, qind]* ws #WUA/m of river
+                    pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
+                    pref_v = np.interp(v_born, vel_all[stage_index][0], vel_all[stage_index][1])
+                    hv_dist = np.outer(h_dist, v_dist)
+                    pref_hv = np.outer(pref_h, pref_v)
+                    hv_hv[r, fish_num, qind] = np.sum(hv_dist * pref_hv)
+                    wua_hv[r, fish_num, qind] = hv_hv[r, fish_num, qind] * ws  # WUA/m of river
+                    hv_h[r, fish_num, qind] = np.sum(pref_h * h_dist)
+                    hv_v[r, fish_num, qind] = np.sum(pref_v * v_dist)
+                    wua_h[r, fish_num, qind] = hv_h[r, fish_num, qind] * ws #WUA/m of river
+                    wua_v[r, fish_num, qind] = hv_v[r, fish_num, qind] * ws  # WUA/m of river
                 self.h_all.append(hmod)
                 self.v_all.append(vmod)
                 self.w_all.append(wmod)
                 self.q_all.append(qmod)
-        self.j_all={'hv_hv':hv_hv,'wua_hv':wua_hv,'hv_h':hv_h,'wua_h':wua_h,'hv_v':hv_v,'wua_v':wua_v}
+        self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
 
         self.load_ok = True
 
