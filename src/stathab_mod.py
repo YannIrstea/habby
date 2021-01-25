@@ -27,7 +27,7 @@ import h5py
 from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import hdf5_mod
-from src.project_properties_mod import load_project_properties
+from src.project_properties_mod import load_project_properties, save_project_properties
 import matplotlib as mpl
 
 
@@ -60,6 +60,7 @@ class Stathab:
         self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
         self.name_reach = []  # the name of the reaches of the river
         self.path_im = path_prj  # path where to save the image
+        self.path_hdf5 = os.path.join(path_prj, name_prj, "hdf5")
         self.load_ok = False  # a boolean to manage the errors
         #  during the load of the files and the hdf5 creation and calculation
         self.path_prj = path_prj
@@ -363,8 +364,8 @@ class Stathab:
 
         # create an empty hdf5 file using all default prop.
         fname_no_path = self.name_prj + '_STATHAB' + '.hab'
-        path_hdf5 = self.find_path_hdf5_stat()
-        fname = os.path.join(path_hdf5, fname_no_path)
+        # path_hdf5 = self.find_path_hdf5_stat()
+        fname = os.path.join(self.path_hdf5, fname_no_path)
         try:
             file = h5py.File(fname, 'w')
         except OSError:
@@ -442,29 +443,33 @@ class Stathab:
             fname_no_path = ''
 
         # write info in the xml project file
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if not os.path.isfile(filename_prj):
+        if not os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             print('Error: No project saved. Please create a project first in the Start tab.\n')
             return
         else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_prj, parser)
-            root = doc.getroot()
-            child = root.find(".//Stathab")
-            if child is None:
-                stathab_element = ET.SubElement(root, "Stathab")
-                hdf5file = ET.SubElement(stathab_element, "hdf5Stathab")
-                hdf5file.text = fname_no_path
-                hdf5file.set('riverint', str(self.riverint))  # attribute
-            else:
-                hdf5file = root.find(".//hdf5Stathab")
-                if hdf5file is None:
-                    hdf5file = ET.SubElement(child, "hdf5Stathab")
-                    hdf5file.text = fname_no_path
-                else:
-                    hdf5file.text = fname_no_path
-                hdf5file.set('riverint', str(self.riverint))  # attribute
-            doc.write(filename_prj, pretty_print=True)
+            # change path_last_file_loaded, model_type (path)
+            project_preferences = load_project_properties(self.path_prj)  # load_project_properties
+            project_preferences["path_last_file_loaded"] = self.dir_name  # change value
+            project_preferences["STATHAB"]["path"] = fname_no_path  # change value
+            save_project_properties(self.path_prj, project_preferences)  # save_project_properties
+            # parser = ET.XMLParser(remove_blank_text=True)
+            # doc = ET.parse(filename_prj, parser)
+            # root = doc.getroot()
+            # child = root.find(".//Stathab")
+            # if child is None:
+            #     stathab_element = ET.SubElement(root, "Stathab")
+            #     hdf5file = ET.SubElement(stathab_element, "hdf5Stathab")
+            #     hdf5file.text = fname_no_path
+            #     hdf5file.set('riverint', str(self.riverint))  # attribute
+            # else:
+            #     hdf5file = root.find(".//hdf5Stathab")
+            #     if hdf5file is None:
+            #         hdf5file = ET.SubElement(child, "hdf5Stathab")
+            #         hdf5file.text = fname_no_path
+            #     else:
+            #         hdf5file.text = fname_no_path
+            #     hdf5file.set('riverint', str(self.riverint))  # attribute
+            # doc.write(filename_prj, pretty_print=True)
 
     def stathab_calc(self, path_pref='.', name_pref='Pref_latin.txt'):
         """

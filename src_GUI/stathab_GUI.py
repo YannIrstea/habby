@@ -24,12 +24,13 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
 from PyQt5.QtGui import QFont
 import sys
 import copy
+from lxml import etree as ET
 
 import src.tools_mod
 from src import stathab_mod
 from src import hdf5_mod
 from src_GUI import estimhab_GUI
-from lxml import etree as ET
+from src.project_properties_mod import change_specific_properties, load_project_properties
 
 
 class StathabW(estimhab_GUI.StatModUseful):
@@ -283,6 +284,9 @@ class StathabW(estimhab_GUI.StatModUseful):
         load_from_txt_gui() when done.
 
         """
+        # load last dir
+        self.dir_name = load_project_properties(self.path_prj)["path_last_file_loaded"]
+
         # get the directory
         self.dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.dir_name)
         if self.dir_name == '':  # cancel case
@@ -299,36 +303,12 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.fish_selected = []
         self.firstitemreach = []
 
-        # save the directory in the project file
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
         if not os.path.isfile(filename_prj):
             self.send_log.emit('Error: No project saved. Please create a project first in the General tab.')
             return
         else:
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_prj, parser)
-            root = doc.getroot()
-            child = root.find(".//Stathab")
-            if child is None:
-                stathab_element = ET.SubElement(root, "Stathab")
-                dirxml = ET.SubElement(stathab_element, "DirStathab")
-                dirxml.text = self.dir_name
-                typeload = ET.SubElement(stathab_element, "TypeloadStathab")  # last load from txt or hdf5?
-                typeload.text = 'txt'
-            else:
-                dirxml = root.find(".//DirStathab")
-                if child is None:
-                    dirxml = ET.SubElement(child, "DirStathab")
-                    dirxml.text = self.dir_name
-                else:
-                    dirxml.text = self.dir_name
-                dirxml = root.find(".//TypeloadStathab")
-                if child is None:
-                    dirxml = ET.SubElement(child, "TypeloadStathab")  # last load from txt or hdf5?
-                    dirxml.text = 'txt'
-                else:
-                    dirxml.text = 'txt'
-            doc.write(filename_prj, pretty_print=True)
+            change_specific_properties(self.path_prj, ["path_last_file_loaded"], [self.dir_name])
 
             # fill the lists with the existing files
             self.load_from_txt_gui()
@@ -545,11 +525,11 @@ class StathabW(estimhab_GUI.StatModUseful):
         for r in range(0, len(name_fish)):
             self.list_f.addItem(name_fish[r])
 
-        # load now the text data, create the hdf5 and wrtie in the xml project file
+        # load now the text data, create the hdf5 and write in the project file
         if self.list_needed.count() > 0:
             self.send_log.emit('Error: Found only a part of the needed STATHAB files. '
                                'Need to re-load before execution\n')
-            self.mystathab.save_xml_stathab(True)
+            # self.mystathab.save_xml_stathab(True)
             return
         self.list_needed.addItem('All files found')
         self.send_log.emit('# Found all STATHAB files. Load Now.')
@@ -557,7 +537,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.load_stathab_from_txt(self.listrivname, end_file_reach_here, file_name_all_reach_here,
                                              self.dir_name)
         self.mystathab.create_hdf5()
-        self.mystathab.save_xml_stathab()
+        # self.mystathab.save_xml_stathab()
         sys.stdout = sys.__stdout__
         self.send_err_log()
 

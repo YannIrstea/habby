@@ -211,22 +211,20 @@ class StatModUseful(QScrollArea):
         path_hdf5 is in the project folder in the folder 'hdf5'.
         """
 
-        path_text = 'no_path'
+        # filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
+        # if os.path.isfile(filename_path_pro):
+        #     parser = ET.XMLParser(remove_blank_text=True)
+        #     doc = ET.parse(filename_path_pro, parser)
+        #     root = doc.getroot()
+        #     child = root.find(".//path_text")
+        #     if child is None:
+        #         path_text = os.path.join(self.path_prj, r'/output/text')
+        #     else:
+        #         path_text = os.path.join(self.path_prj, child.text)
+        # else:
+        #     self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//path_text")
-            if child is None:
-                path_text = os.path.join(self.path_prj, r'/output/text')
-            else:
-                path_text = os.path.join(self.path_prj, child.text)
-        else:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
-
-        return path_text
+        return os.path.join(self.path_prj, "output", "text")
 
     def find_path_output_est(self, att):
         """
@@ -262,20 +260,22 @@ class StatModUseful(QScrollArea):
         path_input indicates the folder 'input' in the project folder.
         """
 
-        path_input = 'no_path'
-
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if os.path.isfile(filename_path_pro):
-            parser = ET.XMLParser(remove_blank_text=True)
-            doc = ET.parse(filename_path_pro, parser)
-            root = doc.getroot()
-            child = root.find(".//path_input")
-            if child is None:
-                path_input = os.path.join(self.path_prj, r'/input')
-            else:
-                path_input = os.path.join(self.path_prj, child.text)
-        else:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
+        # path_input = 'no_path'
+        #
+        # filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
+        # if os.path.isfile(filename_path_pro):
+        #     parser = ET.XMLParser(remove_blank_text=True)
+        #     doc = ET.parse(filename_path_pro, parser)
+        #     root = doc.getroot()
+        #     child = root.find(".//path_input")
+        #     if child is None:
+        #         path_input = os.path.join(self.path_prj, r'/input')
+        #     else:
+        #         path_input = os.path.join(self.path_prj, child.text)
+        # else:
+        #     self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
+        project_preferences = load_project_properties(self.path_prj)
+        path_input = project_preferences['path_input']
 
         return path_input
 

@@ -45,7 +45,6 @@ from src_GUI import fstress_GUI
 from src_GUI import about_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src_GUI.process_manager_GUI import ProcessProgLayout
-from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties,\
     create_project_structure, save_project_properties
 from habby import HABBY_VERSION_STR
