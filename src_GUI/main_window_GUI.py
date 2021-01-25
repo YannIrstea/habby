@@ -339,7 +339,7 @@ class MainWindows(QMainWindow):
                         self.central_widget.hydro_tab.model_list_combobox.model().item(model_index + 1).setEnabled(False)
 
             # disable_model_statistic
-            self.statisticmodelaction.setEnabled(False)
+            # self.statisticmodelaction.setEnabled(False)
             if hasattr(self.central_widget, "statmod_tab"):
                 self.central_widget.statmod_tab.setEnabled(True)
             # if hasattr(self.central_widget, "statmod_tab"):
@@ -373,9 +373,11 @@ class MainWindows(QMainWindow):
         self.createnew = CreateNewProjectDialog(self.lang, self.physic_tabs, self.stat_tabs, pathprj_old)
         self.createnew.create_project.connect(self.create_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
-        if self.beta:
-            self.createnew.project_type_combobox.model().item(1).setEnabled(False)
-            self.createnew.project_type_combobox.model().item(2).setEnabled(False)
+
+        ## disable_model_statistic
+        # if self.beta:
+        #     self.createnew.project_type_combobox.model().item(1).setEnabled(False)
+        #     self.createnew.project_type_combobox.model().item(2).setEnabled(False)
         self.createnew.show()
 
     def open_existing_project_dialog(self):
