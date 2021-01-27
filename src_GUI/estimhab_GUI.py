@@ -551,7 +551,7 @@ class EstimhabW(StatModUseful):
         self.total_lineedit_number = self.total_lineedit_number + 1
 
     def reset_hydraulic_data_input_group(self):
-        print("reset_hydraulic_data_input_group")
+        # print("reset_hydraulic_data_input_group")
         # remove txt in lineedit
         self.eq1.setText("")
         self.eq2.setText("")
@@ -809,26 +809,9 @@ class EstimhabW(StatModUseful):
         self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
                          args=(estimhab_dict, project_preferences, self.path_prj,
                                state))
-        self.process_manager.append((self.p, state))
-
-        # wait end process
-        while state.value != 1:
-            pass
-
-        fname_no_path = self.name_prj + '_ESTIMHAB' + '.hab'
-        fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(fnamep, parser)
-        root = doc.getroot()
-        tree = ET.ElementTree(root)
-        child = root.find(".//ESTIMHAB_data")
-        # test if there is already estimhab data in the project
-        if child is None:
-            child = ET.SubElement(root, "ESTIMHAB_data")
-            child.text = fname_no_path
-        else:
-            child.text = fname_no_path
-        tree.write(fnamep, pretty_print=True)
+        self.p.start()
+        # self.process_manager.append((self.p, state))
+        self.p.join()
 
         # log info
         str_found = mystdout.getvalue()

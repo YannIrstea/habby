@@ -45,6 +45,10 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):
     hdf5 = hdf5_mod.Hdf5Management(path_prj, filename, new=True)
     hdf5.create_hdf5_estimhab(estimhab_dict, project_preferences)
 
+    # load
+    hdf5 = hdf5_mod.Hdf5Management(path_prj, filename, new=False)
+    hdf5.load_hdf5_estimhab()
+
     # export
     hdf5.export_estimhab()
 
@@ -153,7 +157,7 @@ def estimhab(estimhab_dict, qt_tr):
         # load xml file
         filename = os.path.join(path_bio, fish_xml[f])
         if os.path.isfile(filename):
-            parser = ET.XMLParser(remove_blank_text=True)
+            parser = ET.XMLParser()
             doc = ET.parse(filename, parser)
             root = doc.getroot()
         else:

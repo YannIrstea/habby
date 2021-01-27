@@ -1263,9 +1263,6 @@ class Hdf5Management:
         # close
         self.close_file()
 
-        # load
-        self.load_hdf5_estimhab()
-
     def load_hdf5_estimhab(self):
         # load dataset
         estimhab_dict = dict(q=self.file_object["qmes"][:].flatten().tolist(),
