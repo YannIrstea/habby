@@ -676,6 +676,37 @@ class MyProcessManager(QThread):
 
             self.process_list.append(my_process)
 
+    # estimhab_plot
+    def set_estimhab_plot_mode(self, path_prj, plot_attr, project_preferences):
+        # # check plot process done
+        if self.check_all_process_closed():
+            self.__init__(self.process_type)
+        else:
+            self.add_plots(plot_attr.nb_plot)
+        self.path_prj = path_prj
+        self.plot_attr = plot_attr
+        self.project_preferences = project_preferences
+
+    def load_data_and_append_estimhab_plot_process(self):
+        # class MyProcess
+        progress_value = Value("d", 0.0)
+        q = Queue()
+
+        # load
+        hdf5 = Hdf5Management(self.path_prj, self.plot_attr.name_hdf5, new=False)
+        hdf5.load_hdf5_estimhab()
+
+        # plot
+        my_process = MyProcess(Process(target=plot_mod.plot_estimhab,
+                                         args=(progress_value,
+                                               hdf5.estimhab_dict,
+                                               self.project_preferences),
+                                     name="plot_suitability_curve"),
+                           progress_value=progress_value,
+                           q=q)
+
+        self.process_list.append(my_process)
+
     # interpolation
     def set_interpolation_hdf5_mode(self, path_prj, names_hdf5, interp_attr, project_preferences):
         # # check plot process done
@@ -780,6 +811,8 @@ class MyProcessManager(QThread):
             self.load_data_and_append_sc_plot_process()
         elif self.process_type == "sc_hs_plot":
             self.load_data_and_append_sc_hs_plot_process()
+        elif self.process_type == "estimhab_plot":
+            self.load_data_and_append_estimhab_plot_process()
         elif self.process_type == "export":
             self.load_data_and_append_export_process()
         elif self.process_type == "hs":

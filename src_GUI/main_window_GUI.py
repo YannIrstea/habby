@@ -339,10 +339,10 @@ class MainWindows(QMainWindow):
 
             # disable_model_statistic
             # self.statisticmodelaction.setEnabled(False)
-            if hasattr(self.central_widget, "statmod_tab"):
-                self.central_widget.statmod_tab.setEnabled(True)
-            # if hasattr(self.central_widget, "statmod_tab"):
-            #     self.central_widget.statmod_tab.setEnabled(True)
+            if hasattr(self.central_widget, "estimhab_tab"):
+                self.central_widget.estimhab_tab.setEnabled(True)
+            # if hasattr(self.central_widget, "estimhab_tab"):
+            #     self.central_widget.estimhab_tab.setEnabled(True)
             # if hasattr(self.central_widget, "stathab_tab"):
             #     self.central_widget.stathab_tab.setEnabled(False)
             # if hasattr(self.central_widget, "fstress_tab"):
@@ -554,7 +554,7 @@ class MainWindows(QMainWindow):
         if project_preferences["STATHAB"]["hdf5"]:  # if there is data for STATHAB
             self.central_widget.stathab_tab.load_from_hdf5_gui()
         if project_preferences["ESTIMHAB"]["hdf5"]:  # if there is data for STATHAB
-            self.central_widget.statmod_tab.open_estimhab_hdf5()
+            self.central_widget.estimhab_tab.open_estimhab_hdf5()
 
         # update hydro
         self.central_widget.update_combobox_filenames()
@@ -1398,13 +1398,13 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
-            if hasattr(self.central_widget, "statmod_tab"):
-                if not self.central_widget.statmod_tab:
-                    self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+            if hasattr(self.central_widget, "estimhab_tab"):
+                if not self.central_widget.estimhab_tab:
+                    self.central_widget.estimhab_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
                 else:
-                    self.central_widget.statmod_tab.__init__(self.path_prj, self.name_prj)
+                    self.central_widget.estimhab_tab.__init__(self.path_prj, self.name_prj)
             else:
-                self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+                self.central_widget.estimhab_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
 
             if hasattr(self.central_widget, "stathab_tab"):
                 if not self.central_widget.stathab_tab:
@@ -1506,8 +1506,8 @@ class MainWindows(QMainWindow):
                     self.stat_tabs = False
         elif not self.stat_tabs:
             if self.name_prj:
-                self.central_widget.tab_widget.insertTab(self.central_widget.statmod_tab.tab_position,
-                                                         self.central_widget.statmod_tab,
+                self.central_widget.tab_widget.insertTab(self.central_widget.estimhab_tab.tab_position,
+                                                         self.central_widget.estimhab_tab,
                                                          self.tr("ESTIMHAB"))  # 6
                 self.central_widget.tab_widget.insertTab(self.central_widget.stathab_tab.tab_position,
                                                          self.central_widget.stathab_tab,
@@ -1908,7 +1908,7 @@ class CentralW(QWidget):
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
-            self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
+            self.estimhab_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
 
@@ -2015,7 +2015,7 @@ class CentralW(QWidget):
                 self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
             if go_stat:
-                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 7
+                self.tab_widget.addTab(self.estimhab_tab, self.tr("ESTIMHAB"))  # 7
                 self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 8
                 self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 9
             if go_research:
@@ -2049,7 +2049,7 @@ class CentralW(QWidget):
         # bio_model_explorer_dialog
         if hasattr(self.parent(), "bio_model_explorer_dialog"):
             if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
-                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager_sc_plot"):
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager"):
                     self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_plot.stop_by_user()
                 if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab,"process_manager_sc_hs_plot"):
                     self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_hs_plot.stop_by_user()
@@ -2074,9 +2074,9 @@ class CentralW(QWidget):
                     if hasattr(self.tools_tab.hs_tab.visual_group, 'process_manager'):
                         self.tools_tab.hs_tab.visual_group.process_manager.stop_by_user()
         # estimhab
-        if hasattr(self, 'statmod_tab'):
-            if hasattr(self.statmod_tab, 'process_manager'):
-                self.statmod_tab.process_manager.close_all_plot()
+        if hasattr(self, 'estimhab_tab'):
+            if hasattr(self.estimhab_tab, 'process_manager'):
+                self.estimhab_tab.process_manager.stop_by_user()
 
     def kill_process_list(self):
         """
@@ -2110,9 +2110,9 @@ class CentralW(QWidget):
                     if hasattr(self.tools_tab.hs_tab.visual_group, 'process_manager'):
                         self.tools_tab.hs_tab.visual_group.process_manager.stop_by_user()
         # estimhab
-        if hasattr(self, 'statmod_tab'):
-            if hasattr(self.statmod_tab, 'process_manager'):
-                self.statmod_tab.process_manager.close_all_plot()
+        if hasattr(self, 'estimhab_tab'):
+            if hasattr(self.estimhab_tab, 'process_manager'):
+                self.estimhab_tab.process_manager.stop_by_user()
 
     def connect_signal_log(self):
         """
@@ -2124,7 +2124,7 @@ class CentralW(QWidget):
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.hydro_tab.send_log.connect(self.write_log)
             self.substrate_tab.send_log.connect(self.write_log)
-            self.statmod_tab.send_log.connect(self.write_log)
+            self.estimhab_tab.send_log.connect(self.write_log)
             self.stathab_tab.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)

@@ -29,7 +29,7 @@ from multiprocessing import Process, Value
 import sys
 from io import StringIO
 from src_GUI.dev_tools_GUI import DoubleClicOutputGroup
-# from src.hydraulic_process_mod import MyProcessManager
+from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties
 
 
@@ -345,12 +345,12 @@ class EstimhabW(StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
-        # self.process_manager = MyProcessManager("plot")
         self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []
         self.filenames = []  # a list which link the name of the fish name and the xml file
         self.init_iu()
+        self.process_manager = MyProcessManager("estimhab_plot")  # SC (Suitability Curve)
 
     def init_iu(self):
 
@@ -812,6 +812,18 @@ class EstimhabW(StatModUseful):
         self.p.start()
         # self.process_manager.append((self.p, state))
         self.p.join()
+
+
+        # plot
+        plot_attr = lambda: None
+        plot_attr.name_hdf5 = self.name_prj + '_ESTIMHAB' + '.hab'
+        plot_attr.nb_plot = 1
+
+        self.process_manager.set_estimhab_plot_mode(self.path_prj,
+                                                    plot_attr,
+                                                    load_project_properties(self.path_prj))
+        self.process_manager.start()
+
 
         # log info
         str_found = mystdout.getvalue()

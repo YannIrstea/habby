@@ -1283,7 +1283,7 @@ class Hdf5Management:
 
         # targ
         for k in ["q_all", "h_all", "w_all", "vel_all", "VH", "SPU"]:
-            estimhab_dict["targ_" + k] = self.file_object["targ_" + k][:]
+            estimhab_dict["targ_" + k] = self.file_object["targ_" + k][:].tolist()
 
         # close file
         self.close_file()

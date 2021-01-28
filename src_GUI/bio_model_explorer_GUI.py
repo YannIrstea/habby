@@ -551,8 +551,8 @@ class BioModelInfoSelection(QScrollArea):
         self.init_iu()
         self.lang = 0
         self.animal_picture_path = None
-        self.process_manager_sc_plot = MyProcessManager("sc_plot")
-        self.process_manager_sc_hs_plot = MyProcessManager("sc_hs_plot")
+        self.process_manager_sc_plot = MyProcessManager("sc_plot")  # SC (Suitability Curve)
+        self.process_manager_sc_hs_plot = MyProcessManager("sc_hs_plot")  # SC (Suitability Curve)
 
     def init_iu(self):
         # insist on white background color (for linux, mac)

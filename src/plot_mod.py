@@ -877,8 +877,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
 
     # VH
     ax_vh.set_title("ESTIMHAB - HABBY")
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
+    if estimhab_dict["targ_q_all"]:
+        for q_tar in estimhab_dict["targ_q_all"]:
             ax_vh.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
@@ -893,8 +893,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # SPU
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
+    if estimhab_dict["targ_q_all"]:
+        for q_tar in estimhab_dict["targ_q_all"]:
             ax_spu.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
@@ -908,8 +908,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # H
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
+    if estimhab_dict["targ_q_all"]:
+        for q_tar in estimhab_dict["targ_q_all"]:
             ax_h.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
@@ -920,8 +920,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # W
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
+    if estimhab_dict["targ_q_all"]:
+        for q_tar in estimhab_dict["targ_q_all"]:
             ax_w.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
@@ -932,8 +932,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # V
-    if estimhab_dict["qtarg"]:
-        for q_tar in estimhab_dict["qtarg"]:
+    if estimhab_dict["targ_q_all"]:
+        for q_tar in estimhab_dict["targ_q_all"]:
             ax_v.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
@@ -944,8 +944,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
     ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
 
-    # qtarg
-    if estimhab_dict["qtarg"]:
+    # targ_q_all
+    if estimhab_dict["targ_q_all"]:
         labels = ["Qtarg [m$^{3}$/sec]"]
         fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
                    labels=labels,
