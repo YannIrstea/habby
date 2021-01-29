@@ -17,7 +17,6 @@ https://github.com/YannIrstea/habby
 import os
 from src import estimhab_mod
 import glob
-import matplotlib.pyplot as plt
 
 from lxml import etree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
@@ -30,7 +29,7 @@ import sys
 from io import StringIO
 from src_GUI.dev_tools_GUI import DoubleClicOutputGroup
 from src.process_manager_mod import MyProcessManager
-from src.project_properties_mod import load_project_properties
+from src.project_properties_mod import load_project_properties, change_specific_properties, load_specific_properties
 
 
 class StatModUseful(QScrollArea):
@@ -348,9 +347,11 @@ class EstimhabW(StatModUseful):
         self.total_lineedit_number = 1
         self.VH = []
         self.SPU = []
-        self.filenames = []  # a list which link the name of the fish name and the xml file
         self.init_iu()
         self.process_manager = MyProcessManager("estimhab_plot")  # SC (Suitability Curve)
+        self.read_estimhab_dict()
+        self.fill_input_data()
+        self.fill_fish_name()
 
     def init_iu(self):
 
@@ -534,12 +535,6 @@ class EstimhabW(StatModUseful):
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
-        # load the data if it exist already
-        self.open_estimhab_hdf5()
-
-        # add all fish name from a directory to the QListWidget self.list_f
-        self.read_fish_name()
-
     def add_new_qtarget(self):
         # count existing number of lineedit
         total_widget_number = self.q2target_layout.count()
@@ -576,23 +571,28 @@ class EstimhabW(StatModUseful):
     def reset_models_group(self):
         if self.selected_aquatic_animal_qtablewidget.count() > 0:
             self.selected_aquatic_animal_qtablewidget.clear()
-            self.read_fish_name()
+            self.fill_fish_name()
 
-    def read_fish_name(self):
+    def read_estimhab_dict(self):
+        """
+        This function opens the hdf5 data created by estimhab
+        """
+        # load_project_properties
+        self.estimhab_dict = load_specific_properties(self.path_prj,
+                                                      ["ESTIMHAB"])[0]
+
+    def fill_fish_name(self):
         """
         This function reads all latin fish name from the xml files which are contained in the biological directory
-        related to estimhab.
+        related to estimhab and fill GUI fish names
         """
-
         all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
 
-        # get selected fish
-        selected_fish = []
-        for index in range(self.selected_aquatic_animal_qtablewidget.count()):
-            selected_fish.append(self.selected_aquatic_animal_qtablewidget.item(index).text())
+        if self.estimhab_dict:
+            selected_fish = self.estimhab_dict["fish_list"]
+        else:
+            selected_fish = []
 
-        fish_names = []
-        xml_file_to_keep = []
         for f in all_xmlfile:
             # open xml
             try:
@@ -620,72 +620,38 @@ class EstimhabW(StatModUseful):
             if stage != 'all_stage':
                 fish_name += ' ' + stage
 
-            # check if selected
+            # check if not selected
             if fish_name not in selected_fish:
                 # add to the list
                 item = QListWidgetItem(fish_name)
                 item.setData(1, f)
                 self.list_f.addItem(item)
+            else:
+                # add to the list
+                item2 = QListWidgetItem(fish_name)
+                item2.setData(1, f)
+                self.selected_aquatic_animal_qtablewidget.addItem(item2)
 
-                fish_names.append(fish_name)
-                xml_file_to_keep.append(f)
-        # remove xml files
-        for xml_file in reversed(all_xmlfile):
-            if xml_file not in xml_file_to_keep:
-                all_xmlfile.remove(xml_file)
-
-        # remember fish name and xml filename
-        self.filenames = [fish_names, all_xmlfile]
-
-    def open_estimhab_hdf5(self):
-        """
-        This function opens the hdf5 data created by estimhab
-        """
-
-        fname = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if os.path.isfile(fname):
-            aa = 1
-            # parser = ET.XMLParser(remove_blank_text=True)
-            # doc = ET.parse(fname, parser)
-            # root = doc.getroot()
-            # child = root.find(".//ESTIMHAB_data")
-            # if child is not None:  # if there is data for ESTIHAB
-            #     fname_h5 = child.text
-            #     path_hdf5 = self.find_path_hdf5_est()
-            #     fname_h5 = os.path.join(path_hdf5, fname_h5)
-            #     if os.path.isfile(fname_h5):
-            #         # create hdf5
-            #         hdf5 = hdf5_mod.Hdf5Management(self.path_prj,
-            #                                        fname_h5)
-            #         hdf5.load_hdf5_estimhab()
-            #
-            #         # chosen fish
-            #         for i in range(0, len(hdf5.estimhab_dict["fish_list"])):
-            #             item = QListWidgetItem(hdf5.estimhab_dict["fish_list"][i])
-            #             item.setData(1, hdf5.estimhab_dict["xml_list"][i])
-            #             self.selected_aquatic_animal_qtablewidget.addItem(item)
-            #
-            #         # input data
-            #         self.eq1.setText(str(hdf5.estimhab_dict["q"][0]))
-            #         self.eq2.setText(str(hdf5.estimhab_dict["q"][1]))
-            #         self.eh1.setText(str(hdf5.estimhab_dict["h"][0]))
-            #         self.eh2.setText(str(hdf5.estimhab_dict["h"][1]))
-            #         self.ew1.setText(str(hdf5.estimhab_dict["w"][0]))
-            #         self.ew2.setText(str(hdf5.estimhab_dict["w"][1]))
-            #         self.eq50.setText(str(hdf5.estimhab_dict["q50"]))
-            #         self.eqmin.setText(str(hdf5.estimhab_dict["qrange"][0]))
-            #         self.eqmax.setText(str(hdf5.estimhab_dict["qrange"][1]))
-            #         self.esub.setText(str(hdf5.estimhab_dict["substrate"]))
-            #         # qtarg
-            #         if len(hdf5.estimhab_dict["targ_q_all"]) > 0:
-            #             self.eqtarget.setText(str(hdf5.estimhab_dict["targ_q_all"][0]))
-            #             while self.total_lineedit_number != len(hdf5.estimhab_dict["targ_q_all"]):
-            #                 self.add_new_qtarget()
-            #             for qtarg_num, qtarg_value in enumerate(hdf5.estimhab_dict["targ_q_all"][1:]):
-            #                 getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
-
-        else:
-            self.send_log.emit('Error: ' + self.tr('The hdf5 file related to ESTIMHAB does not exist.'))
+    def fill_input_data(self):
+        if self.estimhab_dict:
+            # input data
+            self.eq1.setText(str(self.estimhab_dict["q"][0]))
+            self.eq2.setText(str(self.estimhab_dict["q"][1]))
+            self.eh1.setText(str(self.estimhab_dict["h"][0]))
+            self.eh2.setText(str(self.estimhab_dict["h"][1]))
+            self.ew1.setText(str(self.estimhab_dict["w"][0]))
+            self.ew2.setText(str(self.estimhab_dict["w"][1]))
+            self.eq50.setText(str(self.estimhab_dict["q50"]))
+            self.eqmin.setText(str(self.estimhab_dict["qrange"][0]))
+            self.eqmax.setText(str(self.estimhab_dict["qrange"][1]))
+            self.esub.setText(str(self.estimhab_dict["substrate"]))
+            # qtarg
+            if len(self.estimhab_dict["qtarg"]) > 0:
+                self.eqtarget.setText(str(self.estimhab_dict["qtarg"][0]))
+                while self.total_lineedit_number != len(self.estimhab_dict["qtarg"]):
+                    self.add_new_qtarget()
+                for qtarg_num, qtarg_value in enumerate(self.estimhab_dict["qtarg"][1:]):
+                    getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
 
     def change_folder(self):
         """
@@ -793,7 +759,7 @@ class EstimhabW(StatModUseful):
         project_preferences = load_project_properties(self.path_prj)
         sys.stdout = mystdout = StringIO()
 
-        estimhab_dict = dict(q=q,
+        self.estimhab_dict = dict(q=q,
                              w=w,
                              h=h,
                              q50=q50,
@@ -804,10 +770,15 @@ class EstimhabW(StatModUseful):
                              xml_list=fish_list,
                              fish_list=fish_name2)
 
-        state = Value("d", 0)
+        # change_specific_properties
+        change_specific_properties(self.path_prj,
+                                   ["ESTIMHAB"],
+                                   [self.estimhab_dict])
 
+        # process
+        state = Value("d", 0)
         self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
-                         args=(estimhab_dict, project_preferences, self.path_prj,
+                         args=(self.estimhab_dict, project_preferences, self.path_prj,
                                state))
         self.p.start()
         # self.process_manager.append((self.p, state))

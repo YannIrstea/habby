@@ -547,14 +547,11 @@ class MainWindows(QMainWindow):
         self.central_widget.name_prj = self.name_prj
 
         # recreate new widget
-        #print("recreate_tabs_attributes1")
         self.recreate_tabs_attributes()
 
-        # update estimhab and stathab
-        if project_preferences["STATHAB"]["hdf5"]:  # if there is data for STATHAB
-            self.central_widget.stathab_tab.load_from_hdf5_gui()
-        if project_preferences["ESTIMHAB"]["hdf5"]:  # if there is data for STATHAB
-            self.central_widget.estimhab_tab.open_estimhab_hdf5()
+        # # update estimhab and stathab
+        # if project_preferences["STATHAB"]["hdf5"]:  # if there is data for STATHAB
+        #     self.central_widget.stathab_tab.load_from_hdf5_gui()
 
         # update hydro
         self.central_widget.update_combobox_filenames()
