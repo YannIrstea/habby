@@ -27,7 +27,8 @@ from PyQt5.QtGui import QFont, QIcon
 from multiprocessing import Process, Value
 import sys
 from io import StringIO
-from src_GUI.dev_tools_GUI import DoubleClicOutputGroup
+
+from src_GUI.dev_tools_GUI import DoubleClicOutputGroup, change_button_color
 from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties, change_specific_properties, load_specific_properties
 
@@ -48,6 +49,7 @@ class StatModUseful(QScrollArea):
     """
 
     def __init__(self):
+        super().__init__()
         self.path_bio = 'biology'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
@@ -67,8 +69,6 @@ class StatModUseful(QScrollArea):
         self.msge = QMessageBox()
         self.fish_selected = []
         self.qall = []  # q1 q2 qmin qmax q50. Value cannot be added directly because of stathab.
-
-        super().__init__()
 
     def add_fish(self):
         """
@@ -353,6 +353,19 @@ class EstimhabW(StatModUseful):
         self.fill_input_data()
         self.fill_fish_name()
 
+        self.eq1.textChanged.connect(self.check_if_ready_to_compute)
+        self.eq2.textChanged.connect(self.check_if_ready_to_compute)
+        self.ew1.textChanged.connect(self.check_if_ready_to_compute)
+        self.ew2.textChanged.connect(self.check_if_ready_to_compute)
+        self.eh1.textChanged.connect(self.check_if_ready_to_compute)
+        self.eh2.textChanged.connect(self.check_if_ready_to_compute)
+        self.eq50.textChanged.connect(self.check_if_ready_to_compute)
+        self.eqmin.textChanged.connect(self.check_if_ready_to_compute)
+        self.eqmax.textChanged.connect(self.check_if_ready_to_compute)
+        self.esub.textChanged.connect(self.check_if_ready_to_compute)
+        self.selected_aquatic_animal_qtablewidget.model().rowsInserted.connect(self.check_if_ready_to_compute)
+        self.selected_aquatic_animal_qtablewidget.model().rowsRemoved.connect(self.check_if_ready_to_compute)
+
     def init_iu(self):
 
         """
@@ -478,9 +491,9 @@ class EstimhabW(StatModUseful):
         self.setPalette(p)
 
         # send model
-        button1 = QPushButton(self.tr('Run and save ESTIMHAB'), self)
-        button1.setStyleSheet("background-color: #47B5E6; color: black")
-        button1.clicked.connect(self.run_estmihab)
+        self.run_stop_button = QPushButton(self.tr('Run and save ESTIMHAB'), self)
+        self.run_stop_button.clicked.connect(self.run_estmihab)
+        change_button_color(self.run_stop_button, "#47B5E6")
 
         # empty frame scrolable
         content_widget = QFrame()
@@ -519,7 +532,7 @@ class EstimhabW(StatModUseful):
         models_layout.addWidget(selected_model_label, 0, 1)
         models_layout.addWidget(self.list_f, 1, 0)
         models_layout.addWidget(self.selected_aquatic_animal_qtablewidget, 1, 1)
-        models_layout.addWidget(button1, 2, 1)
+        models_layout.addWidget(self.run_stop_button, 2, 1)
         self.doubleclick_models_group = DoubleClicOutputGroup()
         models_group.installEventFilter(self.doubleclick_models_group)
         self.doubleclick_models_group.double_clic_signal.connect(self.reset_models_group)
@@ -575,7 +588,7 @@ class EstimhabW(StatModUseful):
 
     def read_estimhab_dict(self):
         """
-        This function opens the hdf5 data created by estimhab
+        This function opens the json data created by estimhab
         """
         # load_project_properties
         self.estimhab_dict = load_specific_properties(self.path_prj,
@@ -652,6 +665,25 @@ class EstimhabW(StatModUseful):
                     self.add_new_qtarget()
                 for qtarg_num, qtarg_value in enumerate(self.estimhab_dict["qtarg"][1:]):
                     getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
+
+    def check_if_ready_to_compute(self):
+        print("check_if_ready_to_compute")
+        all_string_selection = (self.eq1.text(),
+        self.eq2.text(),
+        self.ew1.text(),
+        self.ew2.text(),
+        self.eh1.text(),
+        self.eh2.text(),
+        self.eq50.text(),
+        self.eqmin.text(),
+        self.eqmax.text(),
+        self.target_lineedit_list[0].text(),
+        self.esub.text())
+
+        if self.selected_aquatic_animal_qtablewidget.count() > 0 and "" not in all_string_selection:
+            self.run_stop_button.setEnabled(True)
+        else:
+            self.run_stop_button.setEnabled(False)
 
     def change_folder(self):
         """
@@ -794,7 +826,6 @@ class EstimhabW(StatModUseful):
                                                     plot_attr,
                                                     load_project_properties(self.path_prj))
         self.process_manager.start()
-
 
         # log info
         str_found = mystdout.getvalue()
