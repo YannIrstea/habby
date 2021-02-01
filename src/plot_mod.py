@@ -986,6 +986,9 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     # show
     plt.show()
 
+    # remove file
+    os.remove(os.path.join(path_prj, "hdf5", os.path.basename(path_prj) + '_ESTIMHAB' + '.hab'))
+
 
 # all cases
 def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
