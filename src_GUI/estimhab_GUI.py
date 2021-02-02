@@ -64,6 +64,7 @@ class StatModUseful(QScrollArea):
         self.add_qtarget_button = QPushButton()
         self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "plus.png")))
         self.add_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+        self.add_qtarget_button.setToolTip(self.tr("Double click to reset the outpout data group."))
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
         self.msge = QMessageBox()
@@ -500,6 +501,7 @@ class EstimhabW(StatModUseful):
 
         # hydraulic_data_group
         hydraulic_data_group = QGroupBox(self.tr('Hydraulic data input'))
+        hydraulic_data_group.setToolTip(self.tr("Double click to reset the input data group."))
         hydraulic_data_layout = QGridLayout(hydraulic_data_group)
         hydraulic_data_layout.addLayout(q1_layout, 0, 0)
         hydraulic_data_layout.addLayout(w1_layout, 0, 1)
@@ -515,7 +517,8 @@ class EstimhabW(StatModUseful):
         self.doubleclick_input_group.double_clic_signal.connect(self.reset_hydraulic_data_input_group)
 
         # hydraulic_data_output_group
-        hydraulic_data_output_group = QGroupBox(self.tr('Hydraulic data desired'))
+        hydraulic_data_output_group = QGroupBox(self.tr('Hydraulic data output'))
+        hydraulic_data_output_group.setToolTip(self.tr("Double click to reset the outpout data group."))
         hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
         hydraulic_data_layout.addLayout(q1out_layout, 0, 0)
         hydraulic_data_layout.addLayout(q2out_layout, 0, 1)
@@ -667,19 +670,18 @@ class EstimhabW(StatModUseful):
                     getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
 
     def check_if_ready_to_compute(self):
-        print("check_if_ready_to_compute")
         all_string_selection = (self.eq1.text(),
-        self.eq2.text(),
-        self.ew1.text(),
-        self.ew2.text(),
-        self.eh1.text(),
-        self.eh2.text(),
-        self.eq50.text(),
-        self.eqmin.text(),
-        self.eqmax.text(),
-        self.target_lineedit_list[0].text(),
-        self.esub.text())
-
+                                self.eq2.text(),
+                                self.ew1.text(),
+                                self.ew2.text(),
+                                self.eh1.text(),
+                                self.eh2.text(),
+                                self.eq50.text(),
+                                self.eqmin.text(),
+                                self.eqmax.text(),
+                                self.target_lineedit_list[0].text(),
+                                self.esub.text())
+        # minimum one fish and string in input lineedits to enable run_stop_button
         if self.selected_aquatic_animal_qtablewidget.count() > 0 and "" not in all_string_selection:
             self.run_stop_button.setEnabled(True)
         else:
