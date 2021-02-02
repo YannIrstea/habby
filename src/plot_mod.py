@@ -869,14 +869,14 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     # prepare color
     color_list, style_list = get_colors_styles_line_from_nb_input(len(estimhab_dict["fish_list"]))
 
-    # plot
-    fig, (ax_vh, ax_spu, ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=5,
+    """ plot hv """
+    fig, (ax_vh, ax_spu) = plt.subplots(ncols=1, nrows=2,
                                                           sharex="all",
-                                                          gridspec_kw={'height_ratios': [3, 3, 1, 1, 1]})
-    fig.canvas.set_window_title('ESTIMHAB - HABBY')
+                                                          gridspec_kw={'height_ratios': [3, 3]})
+    fig.canvas.set_window_title('ESTIMHAB input - HABBY')
 
     # VH
-    ax_vh.set_title("ESTIMHAB - HABBY")
+    ax_vh.set_title("ESTIMHAB input - HABBY")
     if estimhab_dict["targ_q_all"]:
         for q_tar in estimhab_dict["targ_q_all"]:
             ax_vh.axvline(x=q_tar,
@@ -907,6 +907,42 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     ax_spu.set_ylabel(qt_tr.translate("plot_mod", "WUA by 100 m\n[m²]"))
     ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
+    # targ_q_all
+    if estimhab_dict["targ_q_all"]:
+        labels = ["Qtarg [m$^{3}$/sec]"]
+        fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
+                   labels=labels,
+                   loc="lower left",
+                   borderaxespad=0.5,
+                   fancybox=False,
+                   bbox_to_anchor=(0.73, 0.1))
+
+    # LEGEND
+    handles, labels = ax_vh.get_legend_handles_labels()
+    fig.legend(handles=handles,
+               labels=labels,
+               loc="center left",
+               borderaxespad=0.5,
+               fancybox=False,
+               bbox_to_anchor=(0.73, 0.5))
+
+    plt.subplots_adjust(right=0.73)
+
+    # save image
+    name_pict = "Estimhab_hv" + project_preferences['format']
+    if os.path.exists(os.path.join(path_im, name_pict)):
+        if not erase1:
+            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+    plt.savefig(os.path.join(path_im, name_pict),
+                dpi=project_preferences['resolution'],
+                transparent=True)
+
+    """ plot hyd data """
+    fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
+                                                          sharex="all",
+                                                          gridspec_kw={'height_ratios': [1, 1, 1]})
+    fig2.canvas.set_window_title('ESTIMHAB output - HABBY')
+    ax_h.set_title("ESTIMHAB output - HABBY")
     # H
     if estimhab_dict["targ_q_all"]:
         for q_tar in estimhab_dict["targ_q_all"]:
@@ -947,32 +983,20 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     # targ_q_all
     if estimhab_dict["targ_q_all"]:
         labels = ["Qtarg [m$^{3}$/sec]"]
-        fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
+        fig2.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
                    labels=labels,
                    loc="lower left",
                    borderaxespad=0.5,
                    fancybox=False,
                    bbox_to_anchor=(0.73, 0.1))
 
-    # LEGEND
-    handles, labels = ax_vh.get_legend_handles_labels()
-    fig.legend(handles=handles,
-               labels=labels,
-               loc="center left",
-               borderaxespad=0.5,
-               fancybox=False,
-               bbox_to_anchor=(0.73, 0.5))
-
     plt.subplots_adjust(right=0.73)
 
-    # name with date and time
-    name_pict = "Estimhab" + project_preferences['format']
-
+    # save image
+    name_pict = "Estimhab_input" + project_preferences['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
             name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-
-    # save image
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)

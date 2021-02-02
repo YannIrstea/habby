@@ -835,7 +835,7 @@ class EstimhabW(StatModUseful):
                 self.send_log.emit(str_found[i])
 
         self.send_log.emit(
-            self.tr("ESTIMHAB computation done. Figure and text files created."))
+            self.tr("ESTIMHAB computation done. Figure and text files created in output project folder."))
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')
