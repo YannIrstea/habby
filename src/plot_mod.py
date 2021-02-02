@@ -873,10 +873,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     fig, (ax_vh, ax_spu) = plt.subplots(ncols=1, nrows=2,
                                                           sharex="all",
                                                           gridspec_kw={'height_ratios': [3, 3]})
-    fig.canvas.set_window_title('ESTIMHAB input - HABBY')
+    fig.canvas.set_window_title('ESTIMHAB output - HABBY')
 
     # VH
-    ax_vh.set_title("ESTIMHAB input - HABBY")
+    ax_vh.set_title("ESTIMHAB output - HABBY")
     if estimhab_dict["targ_q_all"]:
         for q_tar in estimhab_dict["targ_q_all"]:
             ax_vh.axvline(x=q_tar,
@@ -941,8 +941,8 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
                                                           sharex="all",
                                                           gridspec_kw={'height_ratios': [1, 1, 1]})
-    fig2.canvas.set_window_title('ESTIMHAB output - HABBY')
-    ax_h.set_title("ESTIMHAB output - HABBY")
+    fig2.canvas.set_window_title('ESTIMHAB input - HABBY')
+    ax_h.set_title("ESTIMHAB input - HABBY")
     # H
     if estimhab_dict["targ_q_all"]:
         for q_tar in estimhab_dict["targ_q_all"]:

@@ -22,7 +22,7 @@ from lxml import etree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
     QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, \
-    QAbstractItemView, QMessageBox, QScrollArea, QFrame
+    QAbstractItemView, QMessageBox, QScrollArea, QFrame, QApplication
 from PyQt5.QtGui import QFont, QIcon
 from multiprocessing import Process, Value
 import sys
@@ -59,12 +59,17 @@ class StatModUseful(QScrollArea):
         self.eh2 = QLineEdit()
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
-        self.eqtarget = QLineEdit()
-        self.target_lineedit_list = [self.eqtarget]
+        self.target_lineedit_list = []
         self.add_qtarget_button = QPushButton()
         self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "plus.png")))
         self.add_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-        self.add_qtarget_button.setToolTip(self.tr("Double click to reset the outpout data group."))
+        self.add_qtarget_button.setToolTip(self.tr("Click to add one target discharge."))
+        # self.add_qtarget_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.remove_qtarget_button = QPushButton()
+        self.remove_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "moins.png")))
+        self.remove_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+        self.remove_qtarget_button.setToolTip(self.tr("Click to remove one target discharge."))
+
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
         self.msge = QMessageBox()
@@ -353,6 +358,7 @@ class EstimhabW(StatModUseful):
         self.read_estimhab_dict()
         self.fill_input_data()
         self.fill_fish_name()
+        self.check_if_ready_to_compute()
 
         self.eq1.textChanged.connect(self.check_if_ready_to_compute)
         self.eq2.textChanged.connect(self.check_if_ready_to_compute)
@@ -467,10 +473,10 @@ class EstimhabW(StatModUseful):
 
         self.q2target_layout = QHBoxLayout()
         self.q2target_layout.addWidget(QLabel(self.tr("Qtarget [m<sup>3</sup>/s]")))
-        self.q2target_layout.addWidget(self.eqtarget)
         self.q2target_layout.addWidget(self.add_qtarget_button)
+        self.q2target_layout.addWidget(self.remove_qtarget_button)
         self.add_qtarget_button.clicked.connect(self.add_new_qtarget)
-        self.eqtarget.setFixedWidth(self.lineedit_width)
+        self.remove_qtarget_button.clicked.connect(self.remove_one_qtarget)
 
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -495,6 +501,7 @@ class EstimhabW(StatModUseful):
         self.run_stop_button = QPushButton(self.tr('Run and save ESTIMHAB'), self)
         self.run_stop_button.clicked.connect(self.run_estmihab)
         change_button_color(self.run_stop_button, "#47B5E6")
+        self.run_stop_button.setEnabled(False)
 
         # empty frame scrolable
         content_widget = QFrame()
@@ -517,7 +524,7 @@ class EstimhabW(StatModUseful):
         self.doubleclick_input_group.double_clic_signal.connect(self.reset_hydraulic_data_input_group)
 
         # hydraulic_data_output_group
-        hydraulic_data_output_group = QGroupBox(self.tr('Hydraulic data output'))
+        hydraulic_data_output_group = QGroupBox(self.tr('Desired hydraulic output data'))
         hydraulic_data_output_group.setToolTip(self.tr("Double click to reset the outpout data group."))
         hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
         hydraulic_data_layout.addLayout(q1out_layout, 0, 0)
@@ -554,15 +561,23 @@ class EstimhabW(StatModUseful):
     def add_new_qtarget(self):
         # count existing number of lineedit
         total_widget_number = self.q2target_layout.count()
-        self.total_lineedit_number = total_widget_number - 2  # first : qlabel and last : qpushbutton
-        setattr(self, 'new_qtarget' + str(total_widget_number - 1), QLineEdit())
-        getattr(self, 'new_qtarget' + str(total_widget_number - 1)).setFixedWidth(self.lineedit_width)
-        self.target_lineedit_list.append(getattr(self, 'new_qtarget' + str(total_widget_number - 1)))
-        self.q2target_layout.insertWidget(total_widget_number - 1, getattr(self, 'new_qtarget' + str(total_widget_number - 1)))
-        self.total_lineedit_number = self.total_lineedit_number + 1
+        self.total_lineedit_number = total_widget_number - 2  # - first : qlabel and plus and moins button + New lineedit
+        lineedit_name = 'new_qtarget' + str(self.total_lineedit_number)
+        setattr(self, lineedit_name, QLineEdit())
+        getattr(self, lineedit_name).setFixedWidth(self.lineedit_width)
+        self.target_lineedit_list.append(getattr(self, lineedit_name))
+        self.q2target_layout.insertWidget(total_widget_number - 2, getattr(self, lineedit_name))
+
+    def remove_one_qtarget(self):
+        # count existing number of lineedit
+        total_widget_number = self.q2target_layout.count()
+        self.total_lineedit_number = total_widget_number - 3  # - first : qlabel and plus and moins button - New lineedit
+        if self.total_lineedit_number > 0:
+            self.target_lineedit_list.pop(-1)
+            self.q2target_layout.itemAt(total_widget_number - 3).widget().setParent(None)
+            self.total_lineedit_number = self.total_lineedit_number - 1
 
     def reset_hydraulic_data_input_group(self):
-        # print("reset_hydraulic_data_input_group")
         # remove txt in lineedit
         self.eq1.setText("")
         self.eq2.setText("")
@@ -577,12 +592,11 @@ class EstimhabW(StatModUseful):
         # remove txt in lineedit
         self.eqmin.setText("")
         self.eqmax.setText("")
-        self.eqtarget.setText("")
         # remove lineedits qtarget
-        for i in reversed(range(2, self.q2target_layout.count() - 1)):
+        for i in reversed(range(1, self.q2target_layout.count() - 1)):
             self.q2target_layout.itemAt(i).widget().setParent(None)
             self.total_lineedit_number = self.total_lineedit_number - 1
-        self.target_lineedit_list = [self.eqtarget]
+        self.target_lineedit_list = []
 
     def reset_models_group(self):
         if self.selected_aquatic_animal_qtablewidget.count() > 0:
@@ -663,7 +677,6 @@ class EstimhabW(StatModUseful):
             self.esub.setText(str(self.estimhab_dict["substrate"]))
             # qtarg
             if len(self.estimhab_dict["qtarg"]) > 0:
-                self.eqtarget.setText(str(self.estimhab_dict["qtarg"][0]))
                 while self.total_lineedit_number != len(self.estimhab_dict["qtarg"]):
                     self.add_new_qtarget()
                 for qtarg_num, qtarg_value in enumerate(self.estimhab_dict["qtarg"][1:]):
@@ -679,7 +692,6 @@ class EstimhabW(StatModUseful):
                                 self.eq50.text(),
                                 self.eqmin.text(),
                                 self.eqmax.text(),
-                                self.target_lineedit_list[0].text(),
                                 self.esub.text())
         # minimum one fish and string in input lineedits to enable run_stop_button
         if self.selected_aquatic_animal_qtablewidget.count() > 0 and "" not in all_string_selection:
