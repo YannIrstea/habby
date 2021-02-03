@@ -727,10 +727,10 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     # plot
     title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Unit : ")
     if len(sim_name) == 1:
-        plot_window_title = title + str(sim_name[0]) + " " + unit_type
+        plot_window_title = title + str(sim_name[0]) + " "
     if len(sim_name) > 1:
         plot_window_title = title + ", ".join(
-            map(str, sim_name[::10])) + ".. " + unit_type
+            map(str, sim_name[::10])) + ".. "
 
     if not is_constant:
         fig, ax = plt.subplots(3, 1, sharex=True)
@@ -777,7 +777,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data, [])  #, rotation=rot
         if not date_presence and is_constant:
-            ax[1].set_xticks(x_data, sim_name)
+            ax[1].set_xticklabels(sim_name)
     elif len(sim_name) < 100:
         ax[1].set_xticks(x_data[::3], [])
         if not date_presence and is_constant:

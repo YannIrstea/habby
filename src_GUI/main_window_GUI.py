@@ -16,8 +16,6 @@ https://github.com/YannIrstea/habby
 """
 import os
 import shutil
-from time import sleep
-from functools import partial
 from platform import system as operatingsystem
 from subprocess import call
 from webbrowser import open as wbopen
@@ -735,7 +733,6 @@ class MainWindows(QMainWindow):
                                    preference_names=["language"],
                                    preference_values=[self.lang])
 
-        self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
         self.preferences_dialog.set_pref_gui_from_dict(default=True)
         self.check_version_dialog = about_GUI.CheckVersionDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
         self.soft_information_dialog = about_GUI.SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
@@ -953,7 +950,7 @@ class MainWindows(QMainWindow):
                 self.central_widget.bioinfo_tab.lang = 'Spanish'
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        if self.path_prj:
+        if os.path.exists(self.path_prj):
             change_specific_properties(self.path_prj,
                                        preference_names=["language"],
                                        preference_values=[self.lang])
@@ -2232,7 +2229,7 @@ class CentralW(QWidget):
             self.parent().statusBar().showMessage(text_log)
         elif text_log == 'clear status bar':
             self.parent().statusBar().clearMessage()
-            self.parent().progress_bar.setVisible(False)  # hide progressbar
+            self.parent().progress_bar.setVisible(False)  # hide progress_bar
         # other case not accounted for
         else:
             self.scrolldown_log()
@@ -2345,7 +2342,7 @@ class CentralW(QWidget):
         Careful, the order of the tab is important here.
         """
 
-        if self.old_ind_tab == 0:
+        if self.old_ind_tab == 0 and os.path.exists(self.path_prj):
             self.save_info_projet()
         # elif self.old_ind_tab == self.opttab:
         #     self.output_tab.save_preferences()
