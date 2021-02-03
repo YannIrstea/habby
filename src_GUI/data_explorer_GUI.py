@@ -1240,15 +1240,10 @@ class DataExporterGroup(QGroupBoxCollapsible):
             for key in export_dict.keys():
                 project_preferences[key[:-4]][index_dict] = export_dict[key]
 
-            # remove suffix
-            for key in export_dict.keys():
-                project_preferences[key[:-4]][index_dict] = export_dict[key]
-
             if True in export_dict.values():
 
                 self.progress_layout.process_manager.set_export_hdf5_mode(self.path_prj,
                                                                           names_hdf5,
-                                                                          export_dict,
                                                                           project_preferences)
 
                 # process_prog_show

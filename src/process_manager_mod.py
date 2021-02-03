@@ -28,6 +28,7 @@ from src.hdf5_mod import Hdf5Management
 from src.hydraulic_process_mod import load_hydraulic_cut_to_hdf5, merge_grid_and_save, load_data_and_compute_hs
 from src.substrate_mod import load_sub
 from src.bio_info_mod import read_pref, get_hydrosignature
+from src.project_properties_mod import available_export_list
 from src.tools_mod import create_map_plot_string_dict, compute_interpolation, export_text_interpolatevalues
 
 
@@ -68,13 +69,14 @@ class MyProcessManager(QThread):
 
     # hyd
     def set_hyd_mode(self, path_prj, hydrau_description_multiple, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
-            self.__init__(self.process_type)
+            self.__init__("hyd")
         else:
             self.add_plots(1)
         self.path_prj = path_prj
         self.hydrau_description_multiple = hydrau_description_multiple
+        self.names_hdf5 = [hydrau_description["hdf5_name"] for hydrau_description in self.hydrau_description_multiple]
         self.project_preferences = project_preferences
 
     def hyd_process(self):
@@ -96,9 +98,9 @@ class MyProcessManager(QThread):
 
     # sub
     def set_sub_mode(self, path_prj, sub_description, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
-            self.__init__(self.process_type)
+            self.__init__("sub")
         else:
             self.add_plots(1)
         self.path_prj = path_prj
@@ -122,9 +124,9 @@ class MyProcessManager(QThread):
 
     # merge
     def set_merge_mode(self, path_prj, hdf5_name_hyd, hdf5_name_sub, name_hdf5, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
-            self.__init__(self.process_type)
+            self.__init__("merge")
         else:
             self.add_plots(1)
         self.path_prj = path_prj
@@ -153,9 +155,9 @@ class MyProcessManager(QThread):
 
     # hab
     def set_hab_mode(self, path_prj, user_target_list, name_hdf5, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
-            self.__init__(self.process_type)
+            self.__init__("hab")
         else:
             self.add_plots(1)
         self.path_prj = path_prj
@@ -181,7 +183,7 @@ class MyProcessManager(QThread):
 
     # plot
     def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
         else:
@@ -309,17 +311,31 @@ class MyProcessManager(QThread):
                                     self.process_list.append(my_process)
 
     # export
-    def set_export_hdf5_mode(self, path_prj, names_hdf5, export_dict, project_preferences):
-        # # check plot process done
+    def set_export_hdf5_mode(self, path_prj, names_hdf5, project_preferences):
+        self.export_available = [""]
+        # check_all_process_closed
         if self.check_all_process_closed():
-            self.__init__(self.process_type)
+            self.__init__("export")
         else:
-            self.__init__(self.process_type)
+            self.__init__("export")
         self.path_prj = path_prj
         self.names_hdf5 = names_hdf5
-        self.export_dict = export_dict
         self.project_preferences = project_preferences
         self.export_hdf5_mode = True
+
+    def check_if_one_default_export_is_enabled(self):
+        if self.process_type == "hyd":
+            index_export = 0
+        elif self.process_type in ("merge", "hab"):
+            index_export = 1
+
+        one_default_export_is_enabled = False
+        for key in available_export_list:
+            if self.project_preferences[key][index_export]:
+                one_default_export_is_enabled = True
+                break
+
+        return one_default_export_is_enabled
 
     def load_data_and_append_export_process(self):
         for name_hdf5 in self.names_hdf5:
@@ -328,167 +344,129 @@ class MyProcessManager(QThread):
             """ LOADING """
             # hydraulic
             if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
+                index_export = 0
                 self.hdf5.load_hdf5_hyd(whole_profil=True,
                                         user_target_list=self.project_preferences)
-            # substrate
-            elif self.hdf5.hdf5_type == "substrate":  # load substrate data
-                self.hdf5.load_hdf5_sub()
+
             # habitat
             elif self.hdf5.hdf5_type == "habitat":  # load habitat data
+                index_export = 1
                 self.hdf5.load_hdf5_hab(whole_profil=True,
                                         user_target_list=self.project_preferences)
-                # total_gpkg_export = sum([self.export_dict["mesh_units_hab"], self.export_dict["point_units_hab"]])
 
             """ APPEND PROCESS """
-            # remove suffix
-            export_dict = dict()
-            for key in self.export_dict.keys():
-                export_dict[key[:-4]] = self.export_dict[key]
-            # export_gpkg
-            export_gpkg = False
-            export_gpkg_mesh_whole_profile = False
-            export_gpkg_point_whole_profile = False
-            export_gpkg_mesh_units = False
-            export_gpkg_point_units = False
-            if self.hdf5.hdf5_type == "hydraulic":
-                if True in (export_dict["mesh_whole_profile"],
-                             export_dict["point_whole_profile"],
-                             export_dict["mesh_units"],
-                             export_dict["point_units"]):
-                    export_gpkg = True
-                    if export_dict["mesh_whole_profile"]:
-                        export_gpkg_mesh_whole_profile = True
-                    if export_dict["point_whole_profile"]:
-                        export_gpkg_point_whole_profile = True
-                    if export_dict["mesh_units"]:
-                        export_gpkg_mesh_units = True
-                    if export_dict["point_units"]:
-                        export_gpkg_point_units = True
-
-            elif self.hdf5.hdf5_type == "habitat":
-                if True in (export_dict["mesh_units"],
-                            export_dict["point_units"]):
-                    export_gpkg = True
-                    if export_dict["mesh_units"]:
-                        export_gpkg_mesh_units = True
-                    if export_dict["point_units"]:
-                        export_gpkg_point_units = True
-            if export_gpkg:
-                if export_gpkg_mesh_whole_profile:
-                    # class MyProcess
-                    progress_value = Value("d", 0.0)
-                    q = Queue()
-                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_whole_profile,
-                                                     args=(progress_value,),
-                                                     name="export_gpkg_mesh_whole_profile"),
-                                           progress_value=progress_value,
-                                           q=q)
-                    self.process_list.append(my_process)
-                if export_gpkg_point_whole_profile:
-                    # class MyProcess
-                    progress_value = Value("d", 0.0)
-                    q = Queue()
-                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_whole_profile,
-                                                     args=(progress_value,),
-                                                     name="export_gpkg_point_whole_profile"),
-                                           progress_value=progress_value,
-                                           q=q)
-                    self.process_list.append(my_process)
-                if export_gpkg_mesh_units:
-                    # class MyProcess
-                    progress_value = Value("d", 0.0)
-                    q = Queue()
-                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_units,
-                                                     args=(progress_value,),
-                                                     name="export_gpkg_mesh_units"),
-                                           progress_value=progress_value,
-                                           q=q)
-                    self.process_list.append(my_process)
-                if export_gpkg_point_units:
-                    # class MyProcess
-                    progress_value = Value("d", 0.0)
-                    q = Queue()
-                    my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_units,
-                                                     args=(progress_value,),
-                                                     name="export_gpkg_point_units"),
-                                           progress_value=progress_value,
-                                           q=q)
-                    self.process_list.append(my_process)
+            if self.project_preferences["mesh_whole_profile"][index_export]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_whole_profile,
+                                                 args=(progress_value,),
+                                                 name="gpkg_mesh_whole_profile"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+            if self.project_preferences["point_whole_profile"][index_export]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_whole_profile,
+                                                 args=(progress_value,),
+                                                 name="gpkg_point_whole_profile"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+            if self.project_preferences["mesh_units"][index_export]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_units,
+                                                 args=(progress_value,),
+                                                 name="gpkg_mesh_units"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
+            if self.project_preferences["point_units"][index_export]:
+                # class MyProcess
+                progress_value = Value("d", 0.0)
+                q = Queue()
+                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_units,
+                                                 args=(progress_value,),
+                                                 name="gpkg_point_units"),
+                                       progress_value=progress_value,
+                                       q=q)
+                self.process_list.append(my_process)
 
             # export_stl
-            if export_dict["elevation_whole_profile"]:
+            if self.project_preferences["elevation_whole_profile"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_stl,
                                              args=(progress_value,),
-                                             name="export_stl"),
+                                             name="stl_whole_profile"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
 
             # export_paraview
-            if export_dict["variables_units"]:
+            if self.project_preferences["variables_units"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_paraview,
                                                  args=(progress_value,),
-                                                 name="export_paraview"),
+                                                 name="paraview_mesh_units"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
 
-            # export_detailled_txt
-            if export_dict["mesh_detailled_text"]:
+            # mesh_detailled_text
+            if self.project_preferences["mesh_detailled_text"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_mesh_txt,
                                                  args=(progress_value,),
-                                                 name="mesh_detailled_text"),
+                                                 name="txt_mesh_units"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
-            if export_dict["point_detailled_text"]:
+
+            # point_detailled_text
+            if self.project_preferences["point_detailled_text"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
                 my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_point_txt,
                                                  args=(progress_value,),
-                                                 name="point_detailled_text"),
+                                                 name="txt_point_units"),
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
 
             # habitat
             if self.hdf5.hdf5_type == "habitat":  # load habitat data
-                # export_spu_txt
-                if export_dict["habitat_text"]:
-                    # class MyProcess
-                    progress_value = Value("d", 0.0)
-                    q = Queue()
-                    my_process = MyProcess(p=Process(target=self.hdf5.export_spu_txt,
-                                                     args=(progress_value,),
-                                                     name="export_spu_txt"),
-                                           progress_value=progress_value,
-                                           q=q)
-                    self.process_list.append(my_process)
-
                 # fish_information_hab
-                if export_dict["fish_information"]:
-                    # class MyProcess
-                    progress_value = Value("d", 0.0)
-                    q = Queue()
-                    my_process = MyProcess(p=Process(target=self.hdf5.export_report,
-                                                     args=(progress_value,),
-                                                     name="export_report"),
-                                           progress_value=progress_value,
-                                           q=q)
-                    self.process_list.append(my_process)
+                if self.project_preferences["fish_information"][index_export]:
+                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.habs():
+                        # class MyProcess
+                        progress_value = Value("d", 0.0)
+                        q = Queue()
+                        my_process = MyProcess(p=Process(target=self.hdf5.export_report,
+                                                         args=(progress_value,),
+                                                         name="report_suitability_curve"),
+                                               progress_value=progress_value,
+                                               q=q)
+                        self.process_list.append(my_process)
 
     # hs
     def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
+        # check_all_process_closed
+        if self.check_all_process_closed():
+            self.__init__("hs")
+        else:
+            self.add_plots(1)
+
         self.path_prj = path_prj
         self.hs_description_dict = hs_description_dict
         self.project_preferences = project_preferences
@@ -564,7 +542,7 @@ class MyProcessManager(QThread):
 
     # sc_plot
     def set_sc_plot_mode(self, path_prj, plot_attr, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
         else:
@@ -644,7 +622,7 @@ class MyProcessManager(QThread):
 
     # sc_hs_plot
     def set_sc_hs_plot_mode(self, path_prj, plot_attr, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
         else:
@@ -678,7 +656,7 @@ class MyProcessManager(QThread):
 
     # estimhab_plot
     def set_estimhab_plot_mode(self, path_prj, plot_attr, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
         else:
@@ -709,7 +687,7 @@ class MyProcessManager(QThread):
 
     # interpolation
     def set_interpolation_hdf5_mode(self, path_prj, names_hdf5, interp_attr, project_preferences):
-        # # check plot process done
+        # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__("interpolation")
         else:
@@ -895,16 +873,33 @@ class MyProcessManager(QThread):
             # wait all started
             while not self.process_list.all_started:
                 pass
-
             # terminate
             for process in self.process_list:
                 if process.p.is_alive():
-                    process.p.terminate()
-                    process.state = self.tr("stopped")
-                    if self.process_type in {"plot", "hs_plot"}:
-                        pass
-                    else:
-                        process.get_total_time()
+                    # not started
+                    if process.progress_value.value == 0.0:
+                        process.state = self.tr("not started")
+                        if self.process_type in {"plot", "hs_plot"}:
+                            pass
+                        else:
+                            process.get_total_time()
+                    # started ==> terminate
+                    elif process.progress_value.value != 0.0:
+                        process.p.terminate()
+                        process.state = self.tr("stopped")
+                        if self.process_type in {"plot", "hs_plot"}:
+                            pass
+                        else:
+                            process.get_total_time()
+                else:
+                    # not started
+                    if process.progress_value.value == 0.0:
+                        process.state = self.tr("not started")
+                        if self.process_type in {"plot", "hs_plot"}:
+                            pass
+                        else:
+                            process.get_total_time()
+
 
             # get_total_time
             self.process_list.get_total_time()
@@ -944,10 +939,10 @@ class MyProcessList(list):
             if not self.stop_by_user:
                 if process.progress_value.value == 0.0:
                     process.p.start()
+                    self.get_progress_value()
         self.all_started = True
 
         # get progress value
-        self.get_progress_value()
         while self.nb_finished != self.nb_total:
             if self.stop_by_user:
                 break
@@ -1013,6 +1008,8 @@ class MyProcess(QObject):
                     else:
                         self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " stopped (process time = ") + str(
                             round(self.total_time)) + " s).")
+            elif self.state == self.tr("not started"):
+                self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " not started."))
             else:
                 if not error:
                     if self.progress_value.value == 100:
@@ -1055,7 +1052,17 @@ class MyProcess(QObject):
 def kill_proc_tree(pid, including_parent=False):
     parent = psutil.Process(pid)
     for child in parent.children(recursive=True):
-        if "python" in child.name():
-            child.kill()
+        try:
+            if "python" in child.name():
+                child.kill()
+        except psutil.NoSuchProcess:
+            pass
     if including_parent:
         parent.kill()
+
+
+def limit_cpu():
+    "is called at every process start"
+    p = psutil.Process(os.getpid())
+    # set to lowest priority, this is windows only, on Unix use ps.nice(19)
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)

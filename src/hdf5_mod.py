@@ -78,6 +78,7 @@ class Hdf5Management:
                                       "variables_units",  # PVD
                                       "mesh_detailled_text",
                                       "point_detailled_text",
+                                      "habitat_text",
                                       "fish_information"]  # pdf
         # export filenames
         self.basename_output_reach_unit = []
@@ -1530,134 +1531,209 @@ class Hdf5Management:
 
     # EXPORT 3D
     def export_stl(self, state=None):
-        # INDEX IF HYD OR HAB
-        index = 0
-        if self.extension == ".hab":
-            index = 1
-        if self.project_preferences['elevation_whole_profile'][index]:
-            """ create stl whole profile (to see topography) """
-            # for all reach
-            for reach_number in range(self.data_2d_whole.reach_number):
-                # for all units
-                for unit_number in range(self.data_2d_whole.unit_number):
-                    # get data
-                    xy = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name]
-                    z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name] * self.project_preferences[
-                        "vertical_exaggeration"]
-                    tin = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]
-                    xyz = np.column_stack([xy, z])
-                    # Create the mesh
-                    stl_file = mesh.Mesh(np.zeros(tin.shape[0], dtype=mesh.Mesh.dtype))
-                    for i, f in enumerate(tin):
-                        for j in range(3):
-                            stl_file.vectors[i][j] = xyz[f[j], :]
-                    # filename
-                    name_file = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + \
-                                self.data_2d_whole.unit_list[reach_number][
-                                    unit_number] + "_wholeprofile_mesh.stl"
+        """ create stl whole profile (to see topography) """
+        # for all reach
+        for reach_number in range(self.data_2d_whole.reach_number):
+            # for all units
+            for unit_number in range(self.data_2d_whole.unit_number):
+                # get data
+                xy = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name]
+                z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name] * self.project_preferences[
+                    "vertical_exaggeration"]
+                tin = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]
+                xyz = np.column_stack([xy, z])
+                # Create the mesh
+                stl_file = mesh.Mesh(np.zeros(tin.shape[0], dtype=mesh.Mesh.dtype))
+                for i, f in enumerate(tin):
+                    for j in range(3):
+                        stl_file.vectors[i][j] = xyz[f[j], :]
+                # filename
+                name_file = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + \
+                            self.data_2d_whole.unit_list[reach_number][
+                                unit_number] + "_wholeprofile_mesh.stl"
 
-                    if self.project_preferences['erase_id']:  # erase file if exist ?
-                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
-                            try:
-                                os.remove(os.path.join(self.path_visualisation, name_file))
-                            except PermissionError:
-                                print(
-                                    'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                                return
-                    else:
-                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
-                            name_file = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.shp'
-                    # Write the mesh to file "cube.stl"
-                    stl_file.save(os.path.join(self.path_visualisation,
-                                               name_file))
+                if self.project_preferences['erase_id']:  # erase file if exist ?
+                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                        try:
+                            os.remove(os.path.join(self.path_visualisation, name_file))
+                        except PermissionError:
+                            print(
+                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                            return
+                else:
+                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                        name_file = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S") + '.shp'
+                # Write the mesh to file "cube.stl"
+                stl_file.save(os.path.join(self.path_visualisation,
+                                           name_file))
+
         if state is not None:
             state.value = 100.0  # process finished
 
     def export_paraview(self, state=None):
-        # INDEX IF HYD OR HAB
-        index = 0
-        if self.extension == ".hab":
-            index = 1
-        if self.project_preferences['variables_units'][index]:
-            file_names_all = []
-            part_timestep_indice = []
-            pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(self.project_preferences["pvd_variable_z"])
+        file_names_all = []
+        part_timestep_indice = []
+        pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(self.project_preferences["pvd_variable_z"])
 
-            # for all reach
-            for reach_number in range(self.data_2d.reach_number):
-                # for all units
-                for unit_number in range(self.data_2d.unit_number):
-                    part_timestep_indice.append((reach_number, unit_number))
-                    # create one vtu file by time step
-                    x = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 0])
-                    y = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 1])
-                    z = np.ascontiguousarray(
-                        self.data_2d[reach_number][unit_number]["node"]["data"][pvd_variable_z.name].to_numpy() *
-                        self.project_preferences["vertical_exaggeration"])
-                    connectivity = np.reshape(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name],
-                                              (len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3,))
-                    offsets = np.arange(3, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3 + 3,
-                                        3)
-                    offsets = np.array(list(map(int, offsets)), dtype=np.int64)
-                    cell_types = np.zeros(
-                        len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]), ) + 5  # triangle
-                    cell_types = np.array(list((map(int, cell_types))), dtype=np.int64)
+        # for all reach
+        for reach_number in range(self.data_2d.reach_number):
+            # for all units
+            for unit_number in range(self.data_2d.unit_number):
+                part_timestep_indice.append((reach_number, unit_number))
+                # create one vtu file by time step
+                x = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 0])
+                y = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 1])
+                z = np.ascontiguousarray(
+                    self.data_2d[reach_number][unit_number]["node"]["data"][pvd_variable_z.name].to_numpy() *
+                    self.project_preferences["vertical_exaggeration"])
+                connectivity = np.reshape(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name],
+                                          (len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3,))
+                offsets = np.arange(3, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3 + 3,
+                                    3)
+                offsets = np.array(list(map(int, offsets)), dtype=np.int64)
+                cell_types = np.zeros(
+                    len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]), ) + 5  # triangle
+                cell_types = np.array(list((map(int, cell_types))), dtype=np.int64)
 
-                    cellData = {}
+                cellData = {}
 
-                    # hyd variables mesh
-                    for mesh_variable in self.data_2d.hvum.all_final_variable_list.meshs():
-                        cellData[mesh_variable.name_gui] = \
-                            self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
-                                mesh_variable.name].to_numpy()
+                # hyd variables mesh
+                for mesh_variable in self.data_2d.hvum.all_final_variable_list.meshs():
+                    cellData[mesh_variable.name_gui] = \
+                        self.data_2d[reach_number][unit_number][mesh_variable.position]["data"][
+                            mesh_variable.name].to_numpy()
 
-                    # create the grid and the vtu files
-                    name_file = os.path.join(self.path_visualisation,
-                                             self.basename_output_reach_unit[reach_number][unit_number] + "_" +
-                                             self.project_preferences['pvd_variable_z'])
-                    if self.project_preferences['erase_id']:  # erase file if exist ?
-                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
-                            try:
-                                os.remove(os.path.join(self.path_visualisation, name_file))
-                            except PermissionError:
-                                print(
-                                    'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                                return
-                    else:
-                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
-                            name_file = os.path.join(self.path_visualisation,
-                                                     self.basename_output_reach_unit[reach_number][unit_number] + "_" +
-                                                     self.project_preferences['pvd_variable_z']) + "_" + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S")
-                    file_names_all.append(name_file + ".vtu")
-                    hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
-                                                 cellData)
+                # create the grid and the vtu files
+                name_file = os.path.join(self.path_visualisation,
+                                         self.basename_output_reach_unit[reach_number][unit_number] + "_" +
+                                         self.project_preferences['pvd_variable_z'])
+                if self.project_preferences['erase_id']:  # erase file if exist ?
+                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                        try:
+                            os.remove(os.path.join(self.path_visualisation, name_file))
+                        except PermissionError:
+                            print(
+                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                            return
+                else:
+                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                        name_file = os.path.join(self.path_visualisation,
+                                                 self.basename_output_reach_unit[reach_number][unit_number] + "_" +
+                                                 self.project_preferences['pvd_variable_z']) + "_" + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S")
+                file_names_all.append(name_file + ".vtu")
+                hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
+                                             cellData)
 
-            # create the "grouping" file to read all time step together
-            name_here = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + self.project_preferences[
-                'pvd_variable_z'] + ".pvd"
-            file_names_all = list(map(os.path.basename, file_names_all))
-            if self.project_preferences['erase_id']:  # erase file if exist ?
-                if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
-                    try:
-                        os.remove(os.path.join(self.path_visualisation, name_here))
-                    except PermissionError:
-                        print(
-                            'Error: The file .pvd is currently open in an other program. Could not be re-written \n')
-                        return
-            else:
-                if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
-                    name_here = self.basename + "_" + self.reach_name[reach_number] + "_" + self.project_preferences[
-                        'pvd_variable_z'] + "_" + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + '.pvd'
-            paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
-                                  part_timestep_indice)
+        # create the "grouping" file to read all time step together
+        name_here = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + self.project_preferences[
+            'pvd_variable_z'] + ".pvd"
+        file_names_all = list(map(os.path.basename, file_names_all))
+        if self.project_preferences['erase_id']:  # erase file if exist ?
+            if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
+                try:
+                    os.remove(os.path.join(self.path_visualisation, name_here))
+                except PermissionError:
+                    print(
+                        'Error: The file .pvd is currently open in an other program. Could not be re-written \n')
+                    return
+        else:
+            if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
+                name_here = self.basename + "_" + self.reach_name[reach_number] + "_" + self.project_preferences[
+                    'pvd_variable_z'] + "_" + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + '.pvd'
+        paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
+                              part_timestep_indice)
 
-            if state is not None:
-                state.value = 100.0  # process finished
+        if state is not None:
+            state.value = 100.0  # process finished
 
     # EXPORT TXT
+    def export_detailled_mesh_txt(self, state=None):
+        """
+        detailled mesh
+        """
+        if not os.path.exists(self.path_txt):
+            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                              'The path to the text file is not found. Text files not created \n'))
+
+        # for all reach
+        name_list = []
+        hvum_list = []
+        unit_data_list = []
+        for reach_number in range(self.data_2d.reach_number):
+            # for all units
+            for unit_number in range(self.data_2d.unit_number):
+                name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
+                                                                                                    "detailled_mesh") + ".txt"
+                if os.path.isfile(os.path.join(self.path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
+                            "hdf5_mod", "detailled_mesh") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        try:
+                            os.remove(os.path.join(self.path_txt, name))
+                        except PermissionError:
+                            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                                              'Could not modify text file as it is open in another program. \n'))
+                            return
+                name_list.append(os.path.join(self.path_txt, name))
+                hvum_list.append(self.data_2d.hvum)
+                unit_data_list.append(self.data_2d[reach_number][unit_number])
+
+        # Pool
+        input_data = zip(name_list,
+                         hvum_list,
+                         unit_data_list)
+        pool = Pool(processes=4)
+        pool.starmap(export_manager.export_mesh_txt, input_data)
+
+        if state is not None:
+            state.value = 100.0  # process finished
+
+    def export_detailled_point_txt(self, state=None):
+        """
+         detailled mesh
+         """
+        if not os.path.exists(self.path_txt):
+            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                              'The path to the text file is not found. Text files not created \n'))
+
+        # for all reach
+        name_list = []
+        hvum_list = []
+        unit_data_list = []
+        for reach_number in range(self.data_2d.reach_number):
+            # for all units
+            for unit_number in range(self.data_2d.unit_number):
+                name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
+                                                                                                    "detailled_point") + ".txt"
+                if os.path.isfile(os.path.join(self.path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
+                            "hdf5_mod", "detailled_point") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        try:
+                            os.remove(os.path.join(self.path_txt, name))
+                        except PermissionError:
+                            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                                              'Could not modify text file as it is open in another program. \n'))
+                            return
+                name_list.append(os.path.join(self.path_txt, name))
+                hvum_list.append(self.data_2d.hvum)
+                unit_data_list.append(self.data_2d[reach_number][unit_number])
+
+        # Pool
+        input_data = zip(name_list,
+                         hvum_list,
+                         unit_data_list)
+        pool = Pool(processes=4)
+        pool.starmap(export_manager.export_point_txt, input_data)
+
+        if state is not None:
+            state.value = 100.0  # process finished
+
     def export_spu_txt(self, state=None):
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
@@ -1760,90 +1836,6 @@ class Hdf5Management:
         if state is not None:
             state.value = 100.0  # process finished
 
-    def export_detailled_mesh_txt(self, state=None):
-        """
-        detailled mesh
-        """
-        if not os.path.exists(self.path_txt):
-            print('Error: ' + qt_tr.translate("hdf5_mod",
-                                              'The path to the text file is not found. Text files not created \n'))
-
-        # for all reach
-        name_list = []
-        hvum_list = []
-        unit_data_list = []
-        for reach_number in range(self.data_2d.reach_number):
-            # for all units
-            for unit_number in range(self.data_2d.unit_number):
-                name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
-                                                                                                    "detailled_mesh") + ".txt"
-                if os.path.isfile(os.path.join(self.path_txt, name)):
-                    if not self.project_preferences['erase_id']:
-                        name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
-                            "hdf5_mod", "detailled_mesh") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                    else:
-                        try:
-                            os.remove(os.path.join(self.path_txt, name))
-                        except PermissionError:
-                            print('Error: ' + qt_tr.translate("hdf5_mod",
-                                                              'Could not modify text file as it is open in another program. \n'))
-                            return
-                name_list.append(os.path.join(self.path_txt, name))
-                hvum_list.append(self.data_2d.hvum)
-                unit_data_list.append(self.data_2d[reach_number][unit_number])
-
-        # Pool
-        input_data = zip(name_list,
-                         hvum_list,
-                         unit_data_list)
-        pool = Pool(4)
-        pool.starmap(export_manager.export_mesh_txt, input_data)
-
-        if state is not None:
-            state.value = 100.0  # process finished
-
-    def export_detailled_point_txt(self, state=None):
-        """
-         detailled mesh
-         """
-        if not os.path.exists(self.path_txt):
-            print('Error: ' + qt_tr.translate("hdf5_mod",
-                                              'The path to the text file is not found. Text files not created \n'))
-
-        # for all reach
-        name_list = []
-        hvum_list = []
-        unit_data_list = []
-        for reach_number in range(self.data_2d.reach_number):
-            # for all units
-            for unit_number in range(self.data_2d.unit_number):
-                name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
-                                                                                                    "detailled_point") + ".txt"
-                if os.path.isfile(os.path.join(self.path_txt, name)):
-                    if not self.project_preferences['erase_id']:
-                        name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
-                            "hdf5_mod", "detailled_point") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                    else:
-                        try:
-                            os.remove(os.path.join(self.path_txt, name))
-                        except PermissionError:
-                            print('Error: ' + qt_tr.translate("hdf5_mod",
-                                                              'Could not modify text file as it is open in another program. \n'))
-                            return
-                name_list.append(os.path.join(self.path_txt, name))
-                hvum_list.append(self.data_2d.hvum)
-                unit_data_list.append(self.data_2d[reach_number][unit_number])
-
-        # Pool
-        input_data = zip(name_list,
-                         hvum_list,
-                         unit_data_list)
-        pool = Pool(4)
-        pool.starmap(export_manager.export_point_txt, input_data)
-
-        if state is not None:
-            state.value = 100.0  # process finished
-
     def export_report(self, state=None):
         """
         # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
@@ -1859,35 +1851,29 @@ class Hdf5Management:
         :param path_out: the path where to save the .pdf file
             (usually other_outputs)
         """
-        # INDEX IF HYD OR HAB
-        index = 0
-        if self.extension == ".hab":
-            index = 1
-        if self.project_preferences['fish_information'][index]:
-            if self.data_2d.hvum.hdf5_and_computable_list.habs():
-                # get data
-                xmlfiles = self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()
-                hab_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
-                # remove duplicates xml
-                prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
-                xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
+        # get data
+        xmlfiles = self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()
+        hab_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
+        # remove duplicates xml
+        prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
+        xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
 
-                # # create the pdf
-                # for idx, xmlfile in enumerate(xmlfiles):
-                #
-                #     bio_info_mod.export_report(xmlfile,
-                #                                hab_animal_type_list[idx],
-                #                                self.project_preferences)
+        # # create the pdf
+        # for idx, xmlfile in enumerate(xmlfiles):
+        #
+        #     bio_info_mod.export_report(xmlfile,
+        #                                hab_animal_type_list[idx],
+        #                                self.project_preferences)
 
-                input_data = zip(xmlfiles,
-                    hab_animal_type_list,
-                    [self.project_preferences] * len(xmlfiles))
+        input_data = zip(xmlfiles,
+            hab_animal_type_list,
+            [self.project_preferences] * len(xmlfiles))
 
-                pool = Pool(4)
-                pool.starmap(bio_info_mod.export_report, input_data)
+        pool = Pool(processes=4)
+        pool.starmap(bio_info_mod.export_report, input_data)
 
-            if state is not None:
-                state.value = 100.0  # process finished
+        if state is not None:
+            state.value = 100.0  # process finished
 
     def export_estimhab(self):
         # text files output

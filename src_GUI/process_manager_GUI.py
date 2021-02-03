@@ -27,7 +27,7 @@ class ProcessProgLayout(QHBoxLayout):
         widget_height = QComboBox().minimumSizeHint().height()
         # send_log
         self.send_log = send_log
-        # progressbar
+        # progress_bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setMaximumHeight(widget_height)
         self.progress_bar.setValue(0.0)
@@ -78,9 +78,9 @@ class ProcessProgShow(QObject):
         self.send_log = send_log
         self.send_refresh_filenames = send_refresh_filenames
         if type(progressbar) == QProgressBar:
-            self.progressbar = progressbar
+            self.progress_bar = progressbar
         else:
-            self.progressbar = QProgressBar()
+            self.progress_bar = QProgressBar()
         if type(progress_label) == QLabel:
             self.progress_label = progress_label
         else:
@@ -144,20 +144,27 @@ class ProcessProgShow(QObject):
             self.show_not_running_prog()
 
     def show_running_prog(self):
-        # progressbar
-        self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
-        if self.current_finished != self.process_manager.process_list.nb_finished:
-            # new
-            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
-                                                                 self.process_manager.process_list.nb_total))
-            self.current_finished = self.process_manager.process_list.nb_finished
+        if self.process_manager.process_list.progress_value == 0.0:
+            self.progress_bar.setMinimum(0)
+            self.progress_bar.setMaximum(0)
+            self.progress_bar.setValue(0)
+        else:
+            self.progress_bar.setRange(0.0, 100.0)
+            # progress_bar
+            self.progress_bar.setValue(int(self.process_manager.process_list.progress_value))
+            if self.current_finished != self.process_manager.process_list.nb_finished:
+                # new
+                self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
+                                                                     self.process_manager.process_list.nb_total))
+                self.current_finished = self.process_manager.process_list.nb_finished
 
     def show_not_running_prog(self):
         error = False
         # stop show_prog
         self.timer.stop()
 
-        self.progressbar.setValue(int(self.process_manager.process_list.progress_value))
+        self.progress_bar.setRange(0.0, 100.0)
+        self.progress_bar.setValue(int(self.process_manager.process_list.progress_value))
         self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
                                                              self.process_manager.process_list.nb_total))
         self.computation_pushbutton.setText(self.tr("run"))
@@ -180,6 +187,25 @@ class ProcessProgShow(QObject):
             self.send_refresh_filenames.emit()
 
         self.computation_pushbutton.setText(self.original_pushbutton_text)
+
+        # start default exports
+        if not self.process_manager.process_list.stop_by_user and not error:
+            if self.process_manager.process_type in ["hyd", "merge", "hab"]:
+                # original_process_type = self.process_manager.process_type
+                # if default EXPORT enable
+                if self.process_manager.check_if_one_default_export_is_enabled():
+                    # names_hdf5
+                    if self.process_manager.process_type in ["hyd"]:
+                        names_hdf5 = self.process_manager.names_hdf5
+                    else:
+                        names_hdf5 = [self.process_manager.name_hdf5]
+                    # export mode
+                    self.process_manager.process_type = "export"
+                    self.process_manager.set_export_hdf5_mode(self.process_manager.path_prj,
+                                                              names_hdf5,
+                                                              self.process_manager.project_preferences)
+                    # re start_show_prog
+                    self.start_show_prog(self.process_manager)
 
     def stop_by_user(self):
         self.process_manager.stop_by_user()

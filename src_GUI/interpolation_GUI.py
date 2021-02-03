@@ -44,7 +44,7 @@ class InterpolationTab(QScrollArea):
         self.process_manager = MyProcessManager("interpolation")
         self.init_ui()
         self.process_prog_show = ProcessProgShow(send_log=self.send_log,
-                                                 # progressbar=self.nativeParentWidget().progress_bar,
+                                                 # progress_bar=self.nativeParentWidget().progress_bar,
                                                  # progress_label=self.progress_label,
                                                  run_function=self.plot_chronicle,
                                                  computation_pushbutton=self.plot_chronicle_qpushbutton)

@@ -25,8 +25,18 @@ operatingsystem_str = operatingsystem()
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
+available_export_list = ["mesh_whole_profile",  # GPKG
+                         "point_whole_profile",  # GPKG
+                         "mesh_units",  # GPKG
+                         "point_units",  # GPKG
+                         "elevation_whole_profile",  # stl
+                         "variables_units",  # PVD
+                         "mesh_detailled_text",
+                         "point_detailled_text",
+                         "fish_information"]
 
-def create_default_project_properties_dict(all_export_enabled=False):
+
+def create_default_project_properties_dict(all_export_enabled=True):
     """
     This function creates the default dictionnary of project user preferences.
     """
@@ -71,6 +81,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['mesh_detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
     project_preferences['point_detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
     project_preferences['fish_information'] = [all_export_enabled, all_export_enabled]  # image of fish informations
+
     project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
     project_preferences['pvd_variable_z'] = HydraulicVariableUnitManagement().level.name_gui
 
@@ -300,16 +311,6 @@ def load_specific_properties(path_prj, preference_names):
 
 
 def enable_disable_all_exports(path_prj, enabled=False):
-    available_export_list = ["mesh_whole_profile",  # GPKG
-                             "point_whole_profile",  # GPKG
-                             "mesh_units",  # GPKG
-                             "point_units",  # GPKG
-                             "elevation_whole_profile",  # stl
-                             "variables_units",  # PVD
-                             "mesh_detailled_text",
-                             "point_detailled_text",
-                             "fish_information"]
-
     # load_project_properties
     project_preferences = load_project_properties(path_prj)
 

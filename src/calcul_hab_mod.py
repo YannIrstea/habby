@@ -377,21 +377,8 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             nb_export += 1
         export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
 
-    # if True in export_dict.values():
-    #     export_dict["habitat_text_hab"] = True
-    #     export_dict["nb_export"] = nb_export
-    #     process_manager = MyProcessManager("export")
-    #     process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
-    #                                       [hdf5.filename],
-    #                                       export_dict,
-    #                                       project_preferences)
-    #     process_manager.start()
-    #
-    #     while process_manager.isRunning():
-    #         if process_manager.all_process_runned:
-    #             process_manager.close_all_export()
-    #             process_manager.terminate()
-    #             return
+    # export_spu_txt
+    hdf5.export_spu_txt(progress_value)
 
     # progress
     progress_value.value = 100
