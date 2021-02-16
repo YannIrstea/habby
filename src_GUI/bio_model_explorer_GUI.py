@@ -15,7 +15,6 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from multiprocessing import Process, Value
 
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
@@ -30,7 +29,6 @@ from platform import system as operatingsystem
 from lxml import etree as ET
 
 from src import bio_info_mod
-from src import plot_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties
 from src.user_preferences_mod import user_preferences
 from src.process_manager_mod import MyProcessManager

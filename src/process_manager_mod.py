@@ -772,9 +772,10 @@ class MyProcessManager(QThread):
         self.process_list.append(process)
 
     def run(self):
+        # import pydevd
+        # pydevd.settrace(suspend=True, trace_only_current_thread=True)
         self.thread_started = True
         self.plot_production_stopped = False
-
         if self.process_type == "hyd":
             self.hyd_process()
         elif self.process_type == "sub":
@@ -806,7 +807,7 @@ class MyProcessManager(QThread):
         self.add_send_log_to_each_process()
 
         # all cases
-        self.process_list.start()
+        self.process_list.start_all_process()
         self.all_process_runned = True
 
     def add_send_log_to_each_process(self):
@@ -924,7 +925,7 @@ class MyProcessList(list):
         self.start_time = time.clock()
         self.total_time = 0
 
-    def start(self):
+    def start_all_process(self):
         # init
         self.nb_total = len(self)
         self.nb_finished = 0

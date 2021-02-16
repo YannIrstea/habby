@@ -194,7 +194,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                             s_pref_c = np.array([1] * ikle_t.shape[0])
                         else:
                             # convert classification code sandre to cemagref
-                            # TODO: no input data conversion if pref curve is sandre or antoher
+                            # TODO: no input data conversion if pref curve is sandre or another
 
                             sub_t = np.empty(shape=(ikle_t.shape[0], len(
                                 hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())),

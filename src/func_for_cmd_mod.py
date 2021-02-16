@@ -1402,7 +1402,7 @@ def cli_compute_hs(arguments, project_preferences):
 
 def cli_start_process_and_print_progress(process, progress_value):
     start_time = time.time()
-    process.start()
+    process.start_all_process()
     while process.is_alive():
         running_time = time.time() - start_time
         print(process.name + " running " + str(round(progress_value.value, 1)) + " %, since " + str(round(running_time)) + " s.\r", end="")

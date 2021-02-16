@@ -813,10 +813,13 @@ def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
                     sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
                     sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
                     sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
-                    if pref_sub_i.getchildren()[0].attrib['ClassificationName'] == "Code EVHA 2.0 (GINOT 1998)":
+                    if pref_sub_i.getchildren()[0].attrib['ClassificationName'] in ("Code EVHA 2.0 (GINOT 1998)",
+                                                                                    "Code Cemagref (Malavoi 1989)"):
                         sub_code.append("Cemagref")
+                    elif pref_sub_i.getchildren()[0].attrib['ClassificationName'] in ("Code Sandre (Malavoi et Souchon 1989)"):
+                        sub_code.append("Sandre")
                     else:  # TODO : if another code
-                        sub_code.append("Cemagref")
+                        print("Error: Substrate ClassificationName not recognized :", pref_sub_i.getchildren()[0].attrib['ClassificationName'])
                     if not sub[0]:
                         # case without substrate
                         sub = [[0, 1], [1, 1]]

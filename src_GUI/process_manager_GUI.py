@@ -14,7 +14,7 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import QObject, QTimer
+from PyQt5.QtCore import QObject, QTimer, QCoreApplication
 from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QProgressBar, QLabel, QPushButton
 
 from src.process_manager_mod import MyProcessManager
@@ -51,7 +51,9 @@ class ProcessProgLayout(QHBoxLayout):
         self.addWidget(self.run_stop_button)
 
         # process_manager
+        # app = QCoreApplication([])
         self.process_manager = MyProcessManager(process_type)
+        # self.process_manager.finished.connect(app.exit)
 
         # process_prog_show
         self.process_prog_show = ProcessProgShow(send_log=self.send_log,
@@ -61,7 +63,7 @@ class ProcessProgLayout(QHBoxLayout):
                                                  computation_pushbutton=self.run_stop_button,
                                                  run_function=run_function)
 
-    def start(self):
+    def start_process(self):
         self.process_prog_show.start_show_prog(self.process_manager)
 
     def stop_by_user(self):
