@@ -768,7 +768,7 @@ class ModelInfoGroup(QGroupBox):
             self.progress_layout.process_manager.set_hyd_mode(self.path_prj, hydrau_description_multiple, self.project_preferences)
 
             # process_prog_show
-            self.progress_layout.start()
+            self.progress_layout.start_process()
 
             #self.send_err_log()
             self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")

@@ -933,7 +933,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                                       hab_filename,
                                                                       load_project_properties(self.path_prj))
             # process_prog_show
-            self.progress_layout.start()
+            self.progress_layout.start_process()
 
             # log
             self.send_log.emit("py    file1='" + hab_filename + "'")

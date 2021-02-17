@@ -897,7 +897,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             self.progress_layout.process_manager.set_plot_hdf5_mode(self.path_prj, names_hdf5, plot_attr, project_preferences)
 
             # process_prog_show
-            self.progress_layout.start()
+            self.progress_layout.start_process()
 
 
 class DataExporterGroup(QGroupBoxCollapsible):
@@ -1247,7 +1247,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
                                                                           project_preferences)
 
                 # process_prog_show
-                self.progress_layout.start()
+                self.progress_layout.start_process()
 
 
 class HabitatValueRemover(QGroupBoxCollapsible):

@@ -341,7 +341,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                                                                   self.project_preferences)
 
             # start thread
-            self.progress_layout.start()
+            self.progress_layout.start_process()
 
     def stop_compute(self):
         # stop_by_user

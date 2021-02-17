@@ -73,9 +73,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         It is very similar to EstihabW but it is possible to get more than one river and it can load the data from
         folder.
         """
-
         # load data
-        l001 = QLabel(self.tr(' <b> Load Data From Files</br>'))
+        l001 = QLabel(self.tr('Load Data From Files'))
         self.loadtxt = QPushButton(self.tr('Text File: listriv.txt'))
         self.loadtxt.clicked.connect(self.load_txt)
         self.loadh5 = QPushButton(self.tr('Habitat file (.hab)'))
@@ -88,7 +87,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.setPalette(p)
 
         # select river
-        l002 = QLabel(self.tr('<b> Rivers or Reaches Names </b>'))
+        l002 = QLabel(self.tr('Rivers or Reaches Names'))
         self.riv = QComboBox()
         self.riv.setCurrentIndex(0)
         self.riv.currentIndexChanged.connect(self.show_data_one_river)
@@ -98,26 +97,21 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.errriv.clicked.connect(self.erase_name)
 
         # Data hydrological (QLineEdit in the init of StatModUseful)
-        l1 = QLabel(self.tr('<b>Hydrological Data</b>'))
+        l1 = QLabel(self.tr('Hydrological Data'))
         l2 = QLabel('Q [m<sup>3</sup>/s]')
         l3 = QLabel(self.tr('Width [m]'))
         l4 = QLabel(self.tr('Height [m]'))
-        l7 = QLabel(self.tr('<b> Discharge range [m<sup>3</sup>/s]</b> (Qmin and Qmax)'))
+        l7 = QLabel(self.tr('Discharge range [m<sup>3</sup>/s] (Qmin and Qmax)'))
 
-        # data invertabrate type
-        l10 = QLabel(self.tr('<b>Available invertebrate species</b>'))
-        l11 = QLabel(self.tr('Selected Species'))
-        self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list_f.itemClicked.connect(self.add_fish)
-        self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
-        self.list_f.itemActivated.connect(self.add_fish)
-        self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
-        self.fishall = QPushButton(self.tr('Select all species'))
-        self.fishall.clicked.connect(self.add_all_fish)
+        # data invertabrate models
+        l10 = QLabel(self.tr('Selected models'))
+
+        # explore_bio_model
+        self.explore_bio_model_pushbutton = QPushButton(self.tr('Choose biological models'))
+        self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
         # run model
-        self.button1 = QPushButton(self.tr('Save and Run FStress'))
+        self.button1 = QPushButton(self.tr('Run FStress'))
         self.button1.setStyleSheet("background-color: #47B5E6; color: black")
         self.button1.clicked.connect(self.runsave_fstress)
         # self.button2 = QPushButton(self.tr('Save river data'), self)
@@ -140,6 +134,9 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # empty frame scrolable
         content_widget = QFrame()
+
+        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
 
         # layout
         self.layout3 = QGridLayout(content_widget)
@@ -166,10 +163,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.layout3.addWidget(self.eqmin, 10, 0)
         self.layout3.addWidget(self.eqmax, 10, 1)
         self.layout3.addWidget(l10, 11, 0)
-        self.layout3.addWidget(l11, 11, 1)
-        self.layout3.addWidget(self.list_f, 12, 0)
-        self.layout3.addWidget(self.selected_aquatic_animal_qtablewidget, 12, 1)
-        self.layout3.addWidget(self.fishall, 13, 0)
+        self.layout3.addWidget(self.selected_aquatic_animal_qtablewidget, 12, 0)
+        self.layout3.addWidget(self.explore_bio_model_pushbutton, 13, 0)
         self.layout3.addWidget(self.button1, 13, 2)
         # self.layout3.addWidget(self.button2, 13, 1)
 
@@ -620,6 +615,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.send_log.emit('Error: qhw.txt file not found.(2)')
             self.qhw.append([])
 
+
     def load_all_fish(self):
         """
         This function find the preference file, load the preference coefficient for each invertebrate and show their name
@@ -672,6 +668,17 @@ class FstressW(estimhab_GUI.StatModUseful):
                     names_latin.append(abbrev)
             self.list_f.addItems(names_latin)
             self.latin_names = names_latin
+
+    def open_bio_model_explorer(self):
+        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("fstress")
+
+    def fill_selected_models_listwidets(self, new_item_text_list):
+        # add new item if not exist
+        for item_str in new_item_text_list["selected_aquatic_animal_list"]:
+            if item_str not in self.fish_selected:
+                # add it to selected
+                self.selected_aquatic_animal_qtablewidget.addItem(item_str)
+                self.fish_selected.append(item_str)
 
     def runsave_fstress(self):
         """

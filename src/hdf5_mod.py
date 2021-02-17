@@ -20,8 +20,6 @@ import h5py
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from PyQt5.QtCore import QLocale
-from osgeo import ogr
-from osgeo import osr
 from stl import mesh
 from multiprocessing import Value, Pool, Lock
 import shutil
@@ -1360,7 +1358,6 @@ class Hdf5Management:
     def export_gpkg_mesh_units(self, state=None):
         # progress
         delta_reach = 80 / self.data_2d.reach_number
-
         # for each reach : one gpkg
         for reach_number in range(0, self.data_2d.reach_number):
             # name

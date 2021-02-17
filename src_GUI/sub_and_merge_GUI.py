@@ -803,7 +803,7 @@ class SubstrateAndMerge(QWidget):
                                                                   self.sub_description,
                                                                   self.project_preferences)
                 # process_prog_show
-                self.progress_layout_polygon.start()
+                self.progress_layout_polygon.start_process()
 
             # point case
             if sub_mapping_method == 'point':
@@ -813,7 +813,7 @@ class SubstrateAndMerge(QWidget):
                                                                   self.sub_description,
                                                                   self.project_preferences)
                 # process_prog_show
-                self.progress_layout_point.start()
+                self.progress_layout_point.start_process()
 
             # constante case
             if sub_mapping_method == 'constant':
@@ -823,7 +823,7 @@ class SubstrateAndMerge(QWidget):
                                                                   self.sub_description,
                                                                   self.project_preferences)
                 # process_prog_show
-                self.progress_layout_constant.start()
+                self.progress_layout_constant.start_process()
 
             # save path and name substrate
             self.save_xml(0)  # txt filename in xml
@@ -958,7 +958,7 @@ class SubstrateAndMerge(QWidget):
                                                                   self.name_hdf5,
                                                                   load_project_properties(self.path_prj))
         # process_prog_show
-        self.progress_layout_merge.start()
+        self.progress_layout_merge.start_process()
 
         # log
         self.send_log.emit("py    file_hyd=r'" + self.input_hyd_combobox.currentText() + "'")

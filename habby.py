@@ -20,7 +20,7 @@ import sys
 import traceback
 import time
 from datetime import datetime
-from PyQt5.QtGui import QPixmap, QPainter
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QGraphicsOpacityEffect
 from appdirs import AppDirs
 

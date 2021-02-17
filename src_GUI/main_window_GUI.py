@@ -897,8 +897,11 @@ class MainWindows(QMainWindow):
         if item_dict["source_str"] == "calc_hab":
             self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict)
 
-        if item_dict["source_str"] == "stat_hab":
+        elif item_dict["source_str"] == "stat_hab":
             self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict)
+
+        elif item_dict["source_str"] == "fstress":
+            self.central_widget.fstress_tab.fill_selected_models_listwidets(item_dict)
 
     def setlangue(self, nb_lang):
         """
@@ -2043,7 +2046,7 @@ class CentralW(QWidget):
         # bio_model_explorer_dialog
         if hasattr(self.parent(), "bio_model_explorer_dialog"):
             if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
-                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager"):
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager_sc_plot"):
                     self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_plot.stop_by_user()
                 if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab,"process_manager_sc_hs_plot"):
                     self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_hs_plot.stop_by_user()
