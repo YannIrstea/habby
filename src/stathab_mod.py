@@ -495,22 +495,39 @@ class Stathab:
         coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
 
         fish_chosen2 = np.array(self.fish_chosen)  # so we can use np.any
-        if np.any(fish_chosen2 == 'all_fish'):
-            coeff = coeff_all
-            self.fish_chosen = name_fish
-            find_one_fish = True
-        else:
-            for f in range(0, len(self.fish_chosen)):
-                if self.fish_chosen[f] in name_fish:
-                    ind_fish = name_fish.index(self.fish_chosen[f])
-                    coeff[f, :] = coeff_all[ind_fish, :]
-                    find_one_fish = True
-                else:
-                    print('Warning: One fish species was not found in the '
-                          'Preference file. Fish name: ' + self.fish_chosen[f] + '\n')
-        if not find_one_fish:
-            print('Error: No fish species have been given or the fish species could not be found.\n')
-            return -99
+
+        #EN TRAVAUX .il faudra boucler sur les poissons....
+        fish_num=0
+        # get the preference info based on the files known
+        xml_filename = self.fish_chosen[fish_num].split(" - ")[-1] + ".xml"
+        xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
+        h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
+        stage = self.fish_chosen[fish_num].split(" - ")[-2]
+        stage_index = stages.index(stage)
+
+        # to be checked
+        # pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
+        # pref_v = np.interp(v_born, vel_all[stage_index][0], vel_all[stage_index][1])
+
+
+
+        #BLOQUE par YLC
+        # if np.any(fish_chosen2 == 'all_fish'):
+        #     coeff = coeff_all
+        #     self.fish_chosen = name_fish
+        #     find_one_fish = True
+        # else:
+        #     for f in range(0, len(self.fish_chosen)):
+        #         if self.fish_chosen[f] in name_fish:
+        #             ind_fish = name_fish.index(self.fish_chosen[f])
+        #             coeff[f, :] = coeff_all[ind_fish, :]
+        #             find_one_fish = True
+        #         else:
+        #             print('Warning: One fish species was not found in the '
+        #                   'Preference file. Fish name: ' + self.fish_chosen[f] + '\n')
+        # if not find_one_fish:
+        #     print('Error: No fish species have been given or the fish species could not be found.\n')
+        #     return -99
 
         # the biological preference index for all reach, all species
         self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
@@ -552,8 +569,19 @@ class Stathab:
             sh0 = self.find_sh0_maxvrais(disthmes_r, h0)
 
             # check if discharge are coherent
-            if min(qlist_r) < qwh_r[0, 0] / 10 or max(qlist_r) > qwh_r[1, 0] * 5:
+            if min(qlist_r) < qwh_r[0, 0] / 10 or max(qlist_r) > qwh_r[-1, 0] * 5:
                 print('Warning: Discharge range is far from measured discharge. Results might be unrealisitc. \n')
+
+            # #YLC test
+            # nbclass=(len(self.lim_all[0]) - 1) # il faut ici que meme nombre de classes h et v
+            # check=np.zeros((nbclass*nbclaq,3))
+            result=np.zeros(((nbclaq,10)))
+
+            # YLC
+            h_born = (self.lim_all[0][0: -1] + self.lim_all[0][1: ]) / 2
+            v_born = (self.lim_all[1][0: -1] + self.lim_all[1][1:]) / 2
+            pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
+            pref_v = np.interp(v_born, vel_all[stage_index][0], vel_all[stage_index][1])
 
             # for all discharge
             for qind in range(0, nbclaq):
@@ -571,15 +599,47 @@ class Stathab:
                 vclass[:, qind] = ws * dist_vs * hs
                 hclass[:, qind] = dist_hs * ws
                 rclass[:, qind] = dist_gs * ws
+
+                # # YLC test
+                # check[qind*nbclass:(qind+1)*nbclass,0] = qmod[qind]
+                # check[qind * nbclass:(qind + 1) * nbclass,1] =dist_hs
+                # check[qind * nbclass:(qind + 1) * nbclass,2] =dist_vs
+                # titi=3
+                if (np.sum(dist_hs)-1)> 1E-12:
+                    toto=9
+                if (np.sum(dist_vs) - 1) > 1E-12:
+                    toto = 9
+                #vh_v	spu_v	vh_h	spu_h	vh_hv	spu_hv
+                vh_h=np.sum(dist_hs*pref_h)
+                spu_h=vh_h*ws
+                vh_v=np.sum(dist_vs*pref_v)
+                spu_v=vh_v*ws
+                vh_hv=vh_h*vh_v
+                spu_hv=vh_hv*ws
+                result[qind,:]=[qmod[qind][0],ws,hs,vs,vh_v,spu_v,vh_h,spu_h,vh_hv,spu_hv
+]
+                titi=4
+
+
+
+                #YLC en TRAVAUX
                 # calculate the biological preference index
-                j = coeff[:, 0] * v
-                for vc in range(0, len(vclass[:, qind])):
-                    j += vclass[vc, qind] * coeff[:, vc + 1]
-                for hc in range(0, len(hclass[:, qind])):
-                    j += hclass[hc, qind] * coeff[:, hc + len(vclass[:, qind]) + 1]
-                for rc in range(0, len(rclass[:, qind])):
-                    j += rclass[rc, qind] * coeff[:, rc + len(hclass[:, qind]) + len(vclass[:, qind]) + 1]
-                self.j_all[r, :, qind] = j
+                # j = coeff[:, 0] * v
+                # for vc in range(0, len(vclass[:, qind])):
+                #     j += vclass[vc, qind] * coeff[:, vc + 1]
+                # for hc in range(0, len(hclass[:, qind])):
+                #     j += hclass[hc, qind] * coeff[:, hc + len(vclass[:, qind]) + 1]
+                # for rc in range(0, len(rclass[:, qind])):
+                #     j += rclass[rc, qind] * coeff[:, rc + len(hclass[:, qind]) + len(vclass[:, qind]) + 1]
+                # self.j_all[r, :, qind] = j
+            # # YLC test
+            # f_chk = open('C:\w\check.txt', 'a')
+            # np.savetxt(f_chk, check)
+            # f_chk.close()
+            f_chk2 = open('C:\w\check2.txt', 'a')
+            np.savetxt(f_chk2, result)
+            f_chk2.close()
+
             self.vclass_all.append(vclass)
             self.hclass_all.append(hclass)
             self.rclass_all.append(rclass)
