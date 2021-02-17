@@ -2043,7 +2043,7 @@ class CentralW(QWidget):
         # bio_model_explorer_dialog
         if hasattr(self.parent(), "bio_model_explorer_dialog"):
             if hasattr(self.parent().bio_model_explorer_dialog, "bio_model_infoselection_tab"):
-                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager"):
+                if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab, "process_manager_sc_plot"):
                     self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_plot.stop_by_user()
                 if hasattr(self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab,"process_manager_sc_hs_plot"):
                     self.parent().bio_model_explorer_dialog.bio_model_infoselection_tab.process_manager_sc_hs_plot.stop_by_user()

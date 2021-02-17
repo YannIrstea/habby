@@ -901,7 +901,6 @@ class MyProcessManager(QThread):
                         else:
                             process.get_total_time()
 
-
             # get_total_time
             self.process_list.get_total_time()
 
