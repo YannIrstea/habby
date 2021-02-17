@@ -897,8 +897,11 @@ class MainWindows(QMainWindow):
         if item_dict["source_str"] == "calc_hab":
             self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict)
 
-        if item_dict["source_str"] == "stat_hab":
+        elif item_dict["source_str"] == "stat_hab":
             self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict)
+
+        elif item_dict["source_str"] == "fstress":
+            self.central_widget.fstress_tab.fill_selected_models_listwidets(item_dict)
 
     def setlangue(self, nb_lang):
         """

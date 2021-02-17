@@ -72,6 +72,7 @@ class StatModUseful(QScrollArea):
 
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
+
         self.msge = QMessageBox()
         self.fish_selected = []
         self.qall = []  # q1 q2 qmin qmax q50. Value cannot be added directly because of stathab.
@@ -498,7 +499,7 @@ class EstimhabW(StatModUseful):
         self.setPalette(p)
 
         # send model
-        self.run_stop_button = QPushButton(self.tr('Run and save ESTIMHAB'), self)
+        self.run_stop_button = QPushButton(self.tr('Run ESTIMHAB'), self)
         self.run_stop_button.clicked.connect(self.run_estmihab)
         change_button_color(self.run_stop_button, "#47B5E6")
         self.run_stop_button.setEnabled(False)

@@ -114,6 +114,18 @@ class BioModelExplorerWindow(QDialog):
         self.move(rect_geom.topLeft())
         # fill_first_time
         self.bio_model_filter_tab.fill_first_time()
+
+        # if fstress
+        if self.source_str == "fstress":
+            # block
+            self.bio_model_filter_tab.aquatic_animal_type_listwidget.clearSelection()
+            for item_num in range(self.bio_model_filter_tab.aquatic_animal_type_listwidget.count()):
+                if str(self.bio_model_filter_tab.aquatic_animal_type_listwidget.item(item_num).text()) == "invertebrate":
+                    self.bio_model_filter_tab.aquatic_animal_type_listwidget.item(item_num).setSelected(True)
+            self.bio_model_filter_tab.aquatic_animal_type_listwidget.setEnabled(False)
+        else:
+            self.bio_model_filter_tab.aquatic_animal_type_listwidget.setEnabled(True)
+
         self.setModal(True)
         self.show()
 

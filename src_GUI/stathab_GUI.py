@@ -177,12 +177,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         #self.fishall = QPushButton(self.tr('Select all fishes'))
         # not used anymore (not really helpful). I let it ehre anyway for completness.
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
-        self.runb = QPushButton(self.tr("Save and run Stathab"))
+        self.runb = QPushButton(self.tr("Run Stathab"))
         self.runb.setStyleSheet("background-color: #47B5E6; color: black")
-        self.butfig = QPushButton(self.tr("Create Figure Again"))
-        self.butfig.clicked.connect(self.recreate_image)
-        if len(self.mystathab.q_all) == 0:
-            self.butfig.setDisabled(True)
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -214,8 +210,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.runb.clicked.connect(self.run_stathab_gui)
         self.list_re.itemClicked.connect(self.reach_selected)
         self.list_f.itemClicked.connect(self.add_fish)
-        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
+        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
         self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
         self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -268,10 +264,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(l6, 4, 0)
         # self.layout.addWidget(loadhdf5b, 5, 2)
         self.layout.addWidget(self.selected_aquatic_animal_qtablewidget, 5, 0, 2, 1)
-        self.layout.addWidget(self.runb, 6, 2)
+        self.layout.addWidget(self.runb, 7, 2)
         self.layout.addWidget(self.explore_bio_model_pushbutton, 7, 0)
-        #self.layout.addWidget(self.fishall, 7, 1)
-        self.layout.addWidget(self.butfig, 7, 2)
 
         # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
@@ -924,7 +918,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.savetxt_stathab()
         self.mystathab.savefig_stahab(False)
         self.show_fig.emit()
-        self.butfig.setDisabled(False)
 
         # log information
         sys.stdout = sys.__stdout__
@@ -948,19 +941,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.send_log.emit("restart RUN_STATHAB")
         self.send_log.emit("restart    folder: " + self.dir_name)
         self.send_log.emit("restart    river type: " + str(self.riverint))
-
-    def recreate_image(self):
-        """
-        This function redo the figures from Stahtab
-        """
-
-        if len(self.mystathab.q_all) > 0:
-            self.mystathab.savefig_stahab(False)
-            plt.show()
-            #self.show_fig.emit()
-        else:
-
-            self.send_log.emit('Error: No data found for figures. \n')
 
 
 if __name__ == '__main__':
