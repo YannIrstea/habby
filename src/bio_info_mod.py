@@ -832,7 +832,7 @@ def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
             for pref_sub_i in pref_sub:
                 sub_all.append(list(map(float, pref_sub_i.text.split(" "))))
 
-    # fish case
+    # invertebrate sub_all
     if aquatic_animal_type == "invertebrate":
         sub_code = []
         # shear_stress_all, hem_all, hv_all
@@ -880,11 +880,11 @@ def change_unit(data, unit):
 
     if unit == 'Centimeter' or unit == "CentimeterPerSecond":
         data[0] = [x / 100 for x in data[0]]
-    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Code EVHA 2.0 (GINOT 1998)":
+    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Code EVHA 2.0 (GINOT 1998)" or unit == "Code Sandre (Malavoi et Souchon 1989)":
         pass
     elif unit == "Millimeter":
         data[0] = [x / 1000 for x in data[0]]
     else:
-        print('Warning: Unit not recognized \n')
+        print('Warning: Unit not recognized')
 
     return data

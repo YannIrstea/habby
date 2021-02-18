@@ -193,9 +193,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         if animal.sub_opt == "Neglect":
                             s_pref_c = np.array([1] * ikle_t.shape[0])
                         else:
-                            # convert classification code sandre to cemagref
-                            # TODO: no input data conversion if pref curve is sandre or another
-
+                            # conca to on numpy array
                             sub_t = np.empty(shape=(ikle_t.shape[0], len(
                                 hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())),
                                              dtype=np.int64)
@@ -204,11 +202,6 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                 sub_t[:, sub_class_num] = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][
                                     sub_class_name]
 
-                            if hdf5.data_2d.sub_classification_code == "Sandre":
-                                if hdf5.data_2d.sub_classification_method == "percentage":
-                                    sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
-                                else:
-                                    sub_t = sandre_to_cemagref_array(sub_t)
                             # Coarser-Dominant
                             if animal.sub_opt == "Coarser-Dominant":
                                 if hdf5.data_2d.sub_classification_method == "percentage":

@@ -1137,8 +1137,8 @@ def sandre_to_cemagref_array(records_sandre_array):
     :param records_sandre_array: all records sandre
     :return: records_cemagref_array: all records cemagref
     """
-    sandre_cemagref = np.array([1,2,3,3,4,4,5,5,6,6,7,8])
-    records_cemagref_array=sandre_cemagref[records_sandre_array-1]
+    sandre_cemagref = np.array([1, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8])
+    records_cemagref_array = sandre_cemagref[records_sandre_array - 1]
     return records_cemagref_array
 
 

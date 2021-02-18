@@ -119,7 +119,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[0] + ' [' + sub_code[0] + ']')
             ax[2].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
             ax[2].set_ylim([-0.1, 1.1])
-            ax[2].set_xlim([0.4, 8.6])
+            ax[2].set_xlim([0.4, len(sub_values) + 0.6])
 
     # multi stage
     else:
@@ -172,7 +172,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
                 ax[s, 2].set_xlabel(
                     qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[s] + ' [' + sub_code[s] + ']')
                 ax[s, 2].set_ylim([-0.1, 1.1])
-                ax[s, 2].set_xlim([0.4, 8.6])
+                ax[s, 2].set_xlim([0.4, len(sub[0][0]) + 0.6])
 
     # all cases
     plt.tight_layout()
