@@ -1091,7 +1091,8 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
 
     # ax_map plot
     n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
+    norm = mpl.colors.Normalize(vmin=data_min,
+                                vmax=data_max)
     patches = []
     for i in range(0, n):
         verts = []
@@ -1105,8 +1106,9 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     ax_map.add_collection(data_ploted)
 
     # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+    color_bar = fig.colorbar(data_ploted,
+                             cax=ax_legend,
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1811,7 +1813,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -1838,91 +1840,16 @@ def plot_map_substrate_coarser(state, data_xy, data_tin, data_plot, plot_string_
     colorbar_label = plot_string_dict["colorbar_label"]
 
     # prepare data
-    unziped = list(zip(*data_plot))
-    data_plot = unziped[0]  # substrate_coarser
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
     decimal_nb = 0
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
+    extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = mpl.cm.get_cmap(project_preferences['color_map'])
-    if data_description["sub_classification_code"] == "Cemagref":
+    if light_data_2d.sub_classification_code == "Cemagref":
         max_class = 8
         listcathegories = list(range(1, max_class + 2))
-    if data_description["sub_classification_code"] == "Sandre":
-        max_class = 12
-        listcathegories = list(range(1, max_class + 2))
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    n = len(data_plot)
-    norm = mpl.colors.BoundaryNorm(listcathegories, cmap.N)
-    patches = []
-    for i in range(0, n):
-        verts = []
-        for j in range(0, 3):
-            verts_j = data_xy[int(data_tin[i][j]), :]
-            verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)
-        patches.append(polygon)
-    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    data_ploted.set_array(masked_array)
-    ax_map.add_collection(data_ploted)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    listcathegories_stick = [x + 0.5 for x in range(1, color_bar.vmax)]
-    listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
-    color_bar.set_ticks(listcathegories_stick)
-    color_bar.set_ticklabels(listcathegories_stick_label)
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_substrate_dominant(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    """
-    The function to plot the substrate data, which was loaded before. This function will only work if the substrate
-    data is given using the cemagref code.
-
-    :param data_xy: the coordinate of the point
-    :param data_tin: the connectivity table
-    :param sub_pg: the information on subtrate by element for the "coarser part"
-    :param sub_dom: the information on subtrate by element for the "dominant part"
-    :param project_preferences: the figure option as a doctionnary
-    :param xtxt: if the data was given in txt form, the orignal x data
-    :param ytxt: if the data was given in txt form, the orignal y data
-    :param subtxt: if the data was given in txt form, the orignal sub data
-    :param path_im: the path where to save the figure
-    :param reach_number: If we plot more than one reach, this is the reach number
-    """
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # prepare data
-    unziped = list(zip(*data_plot))
-    data_plot = unziped[1]  # substrate_dominant
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    decimal_nb = 0
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])
-    if data_description["sub_classification_code"] == "Cemagref":
-        max_class = 8
-        listcathegories = list(range(1, max_class + 2))
-    if data_description["sub_classification_code"] == "Sandre":
+    if light_data_2d.sub_classification_code == "Sandre":
         max_class = 12
         listcathegories = list(range(1, max_class + 2))
 

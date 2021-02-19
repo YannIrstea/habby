@@ -265,19 +265,34 @@ class MyProcessManager(QThread):
                                     # class MyProcess
                                     progress_value = Value("d", 0.0)
                                     q = Queue()
-                                    my_process = MyProcess(p=Process(target=getattr(plot_mod, "plot_map_" + variable.position),
-                                                               args=(
-                                                                   progress_value,
-                                                                   self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
-                                                                   self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
-                                                                   self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
-                                                                   plot_string_dict,
-                                                                   light_data_2d,
-                                                                   self.project_preferences
-                                                               ),
-                                                               name=variable.name_gui),
-                                                           progress_value=progress_value,
-                                                           q=q)
+                                    if variable.name in (self.hvum.sub_coarser.name, self.hvum.sub_dom.name):
+                                        my_process = MyProcess(p=Process(target=getattr(plot_mod, "plot_map_substrate"),
+                                                                   args=(
+                                                                       progress_value,
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
+                                                                       plot_string_dict,
+                                                                       light_data_2d,
+                                                                       self.project_preferences
+                                                                   ),
+                                                                   name=variable.name_gui),
+                                                               progress_value=progress_value,
+                                                               q=q)
+                                    else:
+                                        my_process = MyProcess(p=Process(target=getattr(plot_mod, "plot_map_" + variable.position),
+                                                                   args=(
+                                                                       progress_value,
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
+                                                                       plot_string_dict,
+                                                                       light_data_2d,
+                                                                       self.project_preferences
+                                                                   ),
+                                                                   name=variable.name_gui),
+                                                               progress_value=progress_value,
+                                                               q=q)
                                     self.process_list.append(my_process)
 
                             # plot animal map
