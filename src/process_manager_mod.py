@@ -1010,7 +1010,7 @@ class MyProcess(QObject):
         self.total_time = time.time() - self.start_time  # total time in s
         self.total_time_computed = True
         self.mystdout = None
-        print(self.send_log, self.mystdout, self.q.empty())
+        # print(self.send_log, self.mystdout, self.q.empty())
         if self.send_log is not None:
             error = False
             if not self.q.empty():
