@@ -20,6 +20,7 @@ from io import StringIO
 from glob import glob
 from shutil import copy as sh_copy
 from shutil import rmtree
+from time import sleep
 import numpy as np
 import triangle as tr
 from PyQt5.QtCore import QCoreApplication as qt_tr
@@ -67,8 +68,12 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         except PermissionError:
             print("Error: Can't remove " + os.path.splitext(filename_source)[0] +
                   " folder in 'input' project folder, as it file(s) opened in another program.")
+            # warnings
             if not print_cmd:
-                q.put(mystdout)
+                sys.stdout = sys.__stdout__
+                if q and not print_cmd:
+                    q.put(mystdout)
+                    sleep(0.1)  # to wait q.put() ..
             return
 
     # create folder
@@ -86,10 +91,14 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     elif sub_description["sub_mapping_method"] == "point":
         data_2d = load_sub_txt(sub_description, progress_value)
 
-    if not data_2d and not print_cmd:
-        q.put(mystdout)
+    if not data_2d:
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q and not print_cmd:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
         return
-
     data_2d.hvum = HydraulicVariableUnitManagement()
     data_2d.hvum.detect_variable_from_sub_description(sub_description)
     if sub_description["sub_mapping_method"] != "constant":
@@ -112,16 +121,15 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     hdf5 = hdf5_mod.Hdf5Management(sub_description["path_prj"], sub_description["name_hdf5"], new=True)
     hdf5.create_hdf5_sub(data_2d)
 
-    # prog
-    progress_value.value = 100
-
+    # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q and not print_cmd:
-        q.put(mystdout)
-        return
-    else:
-        return
+        if q and not print_cmd:
+            q.put(mystdout)
+            sleep(0.1)  # to wait q.put() ..
+
+    # prog
+    progress_value.value = 100.0
 
 
 def load_sub_txt(sub_description, progress_value):

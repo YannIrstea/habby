@@ -17,13 +17,12 @@ https://github.com/YannIrstea/habby
 import os
 import sys
 from io import StringIO
-
+from time import sleep
 import numpy as np
 from scipy.interpolate import interp1d, griddata
 
 import src.tools_mod
 from src import hdf5_mod, bio_info_mod
-# from src.process_manager_mod import MyProcessManager
 from src.substrate_mod import sandre_to_cemagref_by_percentage_array, sandre_to_cemagref_array, \
     pref_substrate_coarser_from_percentage_description, pref_substrate_dominant_from_percentage_description
 from src.tools_mod import get_translator
@@ -61,11 +60,9 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
     If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
     """
-    # print("calc_hab_and_output")
     # print output
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-    # print("calc_hab_and_output2")
 
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
@@ -76,11 +73,13 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     # if exists
     if not os.path.exists(os.path.join(project_preferences['path_prj'], "hdf5", hab_filename)):
         print('Error: ' + qt_tr.translate("calcul_hab_mod", "The specified file : " + hab_filename + " don't exist."))
-        if q and not print_cmd:
-            q.put(mystdout)
-            return
-        else:
-            return
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q and not print_cmd:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
+        return
 
     # load data and get variable to compute
     hdf5_path = os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5"))
@@ -88,7 +87,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     hdf5.load_hdf5_hab(user_target_list=animal_variable_list)
 
     # progress
-    delta_reach = (80 - progress_value.value) / hdf5.data_2d.reach_number
+    delta_reach = (80 / hdf5.data_2d.reach_number)
 
     # for each reach
     for reach_number in range(hdf5.data_2d.reach_number):
@@ -195,7 +194,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         if animal.sub_opt == "Neglect":
                             s_pref_c = np.array([1] * ikle_t.shape[0])
                         else:
-                            # conca to on numpy array
+                            # conca substrate data_2d to on numpy array
                             sub_t = np.empty(shape=(ikle_t.shape[0], len(
                                 hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())),
                                              dtype=np.int64)
@@ -203,8 +202,24 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                     hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()):
                                 sub_t[:, sub_class_num] = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][
                                     sub_class_name]
-                            # print("Warning: i_sub", len(hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()))
-                            # print("Warning: i_model_bio_sub", information_model_dict.keys())
+
+                            # substrate_classification_code
+                            hsi_sub_classification_code = sub_code[stage_index]
+                            data_2d_sub_classification_code = hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()[0].unit
+
+                            # # sub_classification_code conversion ?
+                            # print("------------------------")
+                            # print("Warning: data_2d", data_2d_sub_classification_code)
+                            # print("Warning: hsi", hsi_sub_classification_code)
+                            if data_2d_sub_classification_code == "Sandre" and hsi_sub_classification_code == "Cemagref":
+                                # convert substrate data_2d to Cemagref
+                                if len(hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()) > 2: # percentage
+                                    sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
+                                else:
+                                    sub_t = sandre_to_cemagref_array(sub_t)
+                            elif data_2d_sub_classification_code == "Cemagref" and hsi_sub_classification_code == "Sandre":
+                                # convert substrate hsi to Cemagref
+                                pref_sub = sandre_to_cemagref_by_percentage_array(pref_sub)
 
                             # Coarser-Dominant
                             if animal.sub_opt == "Coarser-Dominant":
@@ -313,35 +328,35 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 # progress
                 progress_value.value = int(progress_value.value + delta_animal)
 
-        # WARNINGS
-        if warning_range_list:
-            warning_range_list = list(set(warning_range_list))
-            warning_range_list.sort()
-            # get unit name
-            unit_names = []
-            for warning_unit_num in warning_range_list:
-                unit_names.append(hdf5.data_2d.unit_list[reach_number][warning_unit_num])
-            print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
-                                                 "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
-                "calcul_hab_mod",
-                ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
-                  ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
-                                                                          " of reach : ") +
-                  hdf5.data_2d.reach_list[reach_number])
-        # WARNINGS HEM
-        if animal.aquatic_animal_type == "invertebrate":
-            if warning_shearstress_list:
-                warning_shearstress_list.sort()
-                # get unit name
-                unit_names = []
-                for warning_unit_num in warning_shearstress_list:
-                    unit_names.append(hdf5.data_2d.unit_list[reach_number][warning_unit_num])
-                print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
-                                                     "Unknown habitat values produced for ") + name_fish + qt_tr.translate(
-                    "calcul_hab_mod", ", the shear stress data present unknown values in unit(s) : ") +
-                      ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
-                                                                              " of reach : ") +
-                      hdf5.data_2d.reach_list[reach_number])
+                # WARNINGS
+                if warning_range_list:
+                    warning_range_list = list(set(warning_range_list))
+                    warning_range_list.sort()
+                    # get unit name
+                    unit_names = []
+                    for warning_unit_num in warning_range_list:
+                        unit_names.append(hdf5.data_2d.unit_list[reach_number][warning_unit_num])
+                    print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
+                                                         "Unknown habitat values produced for ") + name_fish + " " + animal.stage + qt_tr.translate(
+                        "calcul_hab_mod",
+                        ", his suitability curve range is not sufficient according to the hydraulics of unit(s) : ") +
+                          ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
+                                                                                  " of reach : ") +
+                          hdf5.data_2d.reach_list[reach_number])
+                # WARNINGS HEM
+                if animal.aquatic_animal_type == "invertebrate":
+                    if warning_shearstress_list:
+                        warning_shearstress_list.sort()
+                        # get unit name
+                        unit_names = []
+                        for warning_unit_num in warning_shearstress_list:
+                            unit_names.append(hdf5.data_2d.unit_list[reach_number][warning_unit_num])
+                        print(f"Warning: " + qt_tr.translate("calcul_hab_mod",
+                                                             "Unknown habitat values produced for ") + name_fish + " " + animal.stage + qt_tr.translate(
+                            "calcul_hab_mod", ", the shear stress data present unknown values in unit(s) : ") +
+                              ", ".join(str(x) for x in unit_names) + qt_tr.translate("calcul_hab_mod",
+                                                                                      " of reach : ") +
+                              hdf5.data_2d.reach_list[reach_number])
 
     # progress
     progress_value.value = 90
@@ -375,15 +390,14 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
 
     # export_spu_txt
-    hdf5.export_spu_txt(progress_value)
+    hdf5.export_spu_txt()
 
-    # progress
-    progress_value.value = 100
-
+    # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q and not print_cmd:
-        q.put(mystdout)
-        return
-    else:
-        return
+        if q and not print_cmd:
+            q.put(mystdout)
+            sleep(1)  # to wait q.put() ..
+
+    # prog
+    progress_value.value = 100.0
