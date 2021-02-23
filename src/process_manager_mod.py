@@ -936,7 +936,7 @@ class MyProcessList(list):
         self.all_started = False
         self.stop_by_user = False
         self.progress_value = 0.0
-        self.start_time = time.clock()
+        self.start_time = time.time()
         self.total_time = 0
 
     def start_all_process(self):
@@ -946,7 +946,7 @@ class MyProcessList(list):
         self.all_started = False
         self.stop_by_user = False
         self.progress_value = 0.0
-        self.start_time = time.clock()
+        self.start_time = time.time()
         self.total_time = 0
 
         # start
@@ -987,7 +987,7 @@ class MyProcessList(list):
 
     def get_total_time(self):
         # thread
-        self.total_time = time.clock() - self.start_time
+        self.total_time = time.time() - self.start_time
 
 
 class MyProcess(QObject):
@@ -1001,20 +1001,22 @@ class MyProcess(QObject):
         self.p = p  # process
         self.progress_value = progress_value  # progress value in float (Value class)
         self.q = q  # string to get if warning or error
-        self.start_time = time.clock()  # start time in s
+        self.start_time = time.time()  # start time in s
         self.total_time = 0  # total time in s
         self.total_time_computed = False
         self.send_log = None
 
     def get_total_time(self):
-        self.total_time = time.clock() - self.start_time  # total time in s
+        self.total_time = time.time() - self.start_time  # total time in s
         self.total_time_computed = True
+        self.mystdout = None
+        print(self.send_log, self.mystdout, self.q.empty())
         if self.send_log is not None:
-            self.mystdout = None
             error = False
             if not self.q.empty():
                 self.mystdout = self.q.get()
                 error = self.send_err_log(True)
+                print(error)
             if self.state == self.tr("stopped"):
                 if not error:
                     if self.progress_value.value == 100:

@@ -680,9 +680,9 @@ def main():
     path = r'C:\Users\diane.von-gunten\HABBY\test_data'
     filename = 'Muncie.p04.hdf'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    a = time.clock()
+    a = time.time()
     [v, h, elev, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
-    b = time.clock()
+    b = time.time()
     print('Time to load data:' + str(b - a) + 'sec')
     figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [50], [0])
 

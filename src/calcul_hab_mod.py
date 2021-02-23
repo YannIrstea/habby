@@ -61,9 +61,11 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
     If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
     """
+    # print("calc_hab_and_output")
     # print output
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+    # print("calc_hab_and_output2")
 
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
@@ -201,6 +203,8 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                     hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()):
                                 sub_t[:, sub_class_num] = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][
                                     sub_class_name]
+                            # print("Warning: i_sub", len(hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()))
+                            # print("Warning: i_model_bio_sub", information_model_dict.keys())
 
                             # Coarser-Dominant
                             if animal.sub_opt == "Coarser-Dominant":
