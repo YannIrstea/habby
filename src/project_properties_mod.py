@@ -71,16 +71,16 @@ def create_default_project_properties_dict(all_export_enabled=True):
     project_preferences['mode'] = ""  # GUI or CLI
 
     # output (first element list == for .hyd and second element list == for .hab)
-    project_preferences['mesh_whole_profile'] = [all_export_enabled, all_export_enabled]  # shapefile mesh whole profile
-    project_preferences['point_whole_profile'] = [all_export_enabled, all_export_enabled]  # shapefile point whole profile
+    project_preferences['mesh_whole_profile'] = [all_export_enabled, False]  # shapefile mesh whole profile
+    project_preferences['point_whole_profile'] = [all_export_enabled, False]  # shapefile point whole profile
     project_preferences['mesh_units'] = [all_export_enabled, all_export_enabled]  # shapefile mesh by unit
     project_preferences['point_units'] = [all_export_enabled, all_export_enabled]  # shapefile point by unit
-    project_preferences['elevation_whole_profile'] = [all_export_enabled, all_export_enabled]  # mesh .stl of topography whole profile (vertical_exaggeration)
+    project_preferences['elevation_whole_profile'] = [all_export_enabled, False]  # mesh .stl of topography whole profile (vertical_exaggeration)
     project_preferences['variables_units'] = [all_export_enabled, all_export_enabled]  # mesh .pvd and .vtu by unit (vertical_exaggeration)
     project_preferences['habitat_text'] = [False, True]  # .txt with detail values by mesh
     project_preferences['mesh_detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
     project_preferences['point_detailled_text'] = [all_export_enabled, all_export_enabled]  # .txt with detail values by mesh
-    project_preferences['fish_information'] = [all_export_enabled, all_export_enabled]  # image of fish informations
+    project_preferences['fish_information'] = [False, all_export_enabled]  # image of fish informations
 
     project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
     project_preferences['pvd_variable_z'] = HydraulicVariableUnitManagement().level.name_gui

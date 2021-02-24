@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import os.path
 import sys
-# sys.setrecursionlimit(25000)
+from time import sleep
 from io import StringIO
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
@@ -1152,9 +1152,15 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
             # load first reach
             data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[i])
             # check error
-            if not data_2d_source and not print_cmd:
-                q.put(mystdout)
+            if not data_2d_source:
+                # warnings
+                if not print_cmd:
+                    sys.stdout = sys.__stdout__
+                    if q and not print_cmd:
+                        q.put(mystdout)
+                        sleep(0.1)  # to wait q.put() ..
                 return
+
             data_2d.add_reach(data_2d_source, [0])
         # multi_reach from one files (HEC-RAS 2d, ASCII, .. ?)
         elif len(hydrau_description["reach_list"]) > 1 and len(filename_source) == 1:
@@ -1166,8 +1172,13 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
             # load data
             data_2d_source, description_from_source = hsr.load_hydraulic(timestep_wish_list[0])
             # check error
-            if not data_2d_source and not print_cmd:
-                q.put(mystdout)
+            if not data_2d_source:
+                # warnings
+                if not print_cmd:
+                    sys.stdout = sys.__stdout__
+                    if q and not print_cmd:
+                        q.put(mystdout)
+                        sleep(0.1)  # to wait q.put() ..
                 return
             for reach_number in range(data_2d_source.reach_number):
                 # data_2d
@@ -1209,8 +1220,12 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.remove_dry_mesh()
     if data_2d.unit_number == 0:
         print("Error: All selected units or timestep are entirely dry.")
+        # warnings
         if not print_cmd:
-            q.put(mystdout)
+            sys.stdout = sys.__stdout__
+            if q and not print_cmd:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
         return
 
     """ semi_wetted_mesh_cutting """
@@ -1220,8 +1235,12 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                                          delta_file)
     if data_2d.unit_number == 0:
         print("Error: All selected units or timestep are not hydraulically operable.")
+        # warnings
         if not print_cmd:
-            q.put(mystdout)
+            sys.stdout = sys.__stdout__
+            if q and not print_cmd:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
         return
 
     """ bank hydraulic aberations  """
@@ -1299,32 +1318,14 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
             nb_export += 1
         export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][project_preferences_index]
 
-    # if True in export_dict.values():
-    #     export_dict["habitat_text_hab"] = False
-    #     export_dict["nb_export"] = nb_export
-    #     process_manager = MyProcessManager("export")
-    #     process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
-    #                                       [hdf5.filename],
-    #                                       export_dict,
-    #                                       project_preferences)
-    #     process_manager.start()
-    #
-    #     while process_manager.isRunning():
-    #         if process_manager.all_process_runned:
-    #             process_manager.close_all_export()
-    #             process_manager.terminate()
-    #             return
-
-    # prog
-    progress_value.value = 100.0
-
+    # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
         if q and not print_cmd:
             q.put(mystdout)
-            return
-        else:
-            return
+            sleep(0.1)  # to wait q.put() ..
+
+    progress_value.value = 100.0
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False,
@@ -1361,15 +1362,23 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     if not os.path.exists(os.path.join(path_prj, "hdf5", hdf5_name_hyd)):
         print('Error: ' + qt_tr.translate("mesh_management_mod",
                                           "The specified file : " + hdf5_name_hyd + " don't exist."))
-        if q and not print_cmd:
-            q.put(mystdout)
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q and not print_cmd:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
         return
 
     if not os.path.exists(os.path.join(path_prj, "hdf5", hdf5_name_sub)):
         print('Error: ' + qt_tr.translate("mesh_management_mod",
                                           "The specified file : " + hdf5_name_sub + " don't exist."))
-        if q and not print_cmd:
-            q.put(mystdout)
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q and not print_cmd:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
         return
 
     # load hdf5 hydro
@@ -1616,16 +1625,15 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     #             process_manager.terminate()
     #             return
 
-    # progress
-    progress_value.value = 100
-
+    # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
         if q and not print_cmd:
             q.put(mystdout)
-            return
-        else:
-            return
+            sleep(0.1)  # to wait q.put() ..
+
+    # prog
+    progress_value.value = 100.0
 
 
 def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -1659,21 +1667,24 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
                     False,
                     hydrosignature_description["hs_export_txt"])
         # check error
-        if not hdf5.hs_calculated and not print_cmd:
-            q.put(mystdout)
-            progress_value.value = 100
+        if not hdf5.hs_calculated:
+            # warnings
+            if not print_cmd:
+                sys.stdout = sys.__stdout__
+                if q and not print_cmd:
+                    q.put(mystdout)
+                    sleep(0.1)  # to wait q.put() ..
             return
 
-    # prog
-    progress_value.value = 100
-
+    # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
         if q and not print_cmd:
             q.put(mystdout)
-            return
-        else:
-            return
+            sleep(0.1)  # to wait q.put() ..
+
+    # prog
+    progress_value.value = 100.0
 
 
 def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,

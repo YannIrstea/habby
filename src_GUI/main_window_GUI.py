@@ -1541,7 +1541,7 @@ class MainWindows(QMainWindow):
             self.research_tabs = True
 
     def open_web_site(self):
-        wbopen("https://github.com/YannIrstea/habby")
+        wbopen("https://habby.wiki.inrae.fr")
 
     def open_issue_web_site(self):
         """

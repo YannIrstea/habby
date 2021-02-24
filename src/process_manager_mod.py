@@ -265,19 +265,34 @@ class MyProcessManager(QThread):
                                     # class MyProcess
                                     progress_value = Value("d", 0.0)
                                     q = Queue()
-                                    my_process = MyProcess(p=Process(target=getattr(plot_mod, "plot_map_" + variable.position),
-                                                               args=(
-                                                                   progress_value,
-                                                                   self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
-                                                                   self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
-                                                                   self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
-                                                                   plot_string_dict,
-                                                                   light_data_2d,
-                                                                   self.project_preferences
-                                                               ),
-                                                               name=variable.name_gui),
-                                                           progress_value=progress_value,
-                                                           q=q)
+                                    if variable.name in (self.hvum.sub_coarser.name, self.hvum.sub_dom.name):
+                                        my_process = MyProcess(p=Process(target=getattr(plot_mod, "plot_map_substrate"),
+                                                                   args=(
+                                                                       progress_value,
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
+                                                                       plot_string_dict,
+                                                                       light_data_2d,
+                                                                       self.project_preferences
+                                                                   ),
+                                                                   name=variable.name_gui),
+                                                               progress_value=progress_value,
+                                                               q=q)
+                                    else:
+                                        my_process = MyProcess(p=Process(target=getattr(plot_mod, "plot_map_" + variable.position),
+                                                                   args=(
+                                                                       progress_value,
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["node"]["xy"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"],
+                                                                       self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
+                                                                       plot_string_dict,
+                                                                       light_data_2d,
+                                                                       self.project_preferences
+                                                                   ),
+                                                                   name=variable.name_gui),
+                                                               progress_value=progress_value,
+                                                               q=q)
                                     self.process_list.append(my_process)
 
                             # plot animal map
@@ -921,7 +936,7 @@ class MyProcessList(list):
         self.all_started = False
         self.stop_by_user = False
         self.progress_value = 0.0
-        self.start_time = time.clock()
+        self.start_time = time.time()
         self.total_time = 0
 
     def start_all_process(self):
@@ -931,7 +946,7 @@ class MyProcessList(list):
         self.all_started = False
         self.stop_by_user = False
         self.progress_value = 0.0
-        self.start_time = time.clock()
+        self.start_time = time.time()
         self.total_time = 0
 
         # start
@@ -972,7 +987,7 @@ class MyProcessList(list):
 
     def get_total_time(self):
         # thread
-        self.total_time = time.clock() - self.start_time
+        self.total_time = time.time() - self.start_time
 
 
 class MyProcess(QObject):
@@ -986,16 +1001,17 @@ class MyProcess(QObject):
         self.p = p  # process
         self.progress_value = progress_value  # progress value in float (Value class)
         self.q = q  # string to get if warning or error
-        self.start_time = time.clock()  # start time in s
+        self.start_time = time.time()  # start time in s
         self.total_time = 0  # total time in s
         self.total_time_computed = False
         self.send_log = None
 
     def get_total_time(self):
-        self.total_time = time.clock() - self.start_time  # total time in s
+        self.total_time = time.time() - self.start_time  # total time in s
         self.total_time_computed = True
+        self.mystdout = None
+        # print(self.p.name, self.send_log, self.q.empty())
         if self.send_log is not None:
-            self.mystdout = None
             error = False
             if not self.q.empty():
                 self.mystdout = self.q.get()
@@ -1003,23 +1019,23 @@ class MyProcess(QObject):
             if self.state == self.tr("stopped"):
                 if not error:
                     if self.progress_value.value == 100:
-                        print("- " + self.tr(self.p.name.replace("_", " ") + " closed by user after ") + str(
+                        print("- " + self.p.name.replace("_", " ") + self.tr(" closed by user after ") + str(
                             round(self.total_time)) + " s")
                     else:
-                        self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " stopped (process time = ") + str(
+                        self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" stopped (process time = ") + str(
                             round(self.total_time)) + " s).")
             elif self.state == self.tr("not started"):
-                self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " not started."))
+                self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " " + self.tr("not started.")))
             else:
                 if not error:
                     if self.progress_value.value == 100:
-                        self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " done (process time = ") + str(
+                        self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" done (process time = ") + str(
                             round(self.total_time)) + " s).")
                     else:
-                        self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " crashed (process time = ") + str(
+                        self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
                             round(self.total_time)) + " s).")
         else:
-            print("- " + self.tr(self.p.name.replace("_", " ") + " " + self.state + " (process time = ") + str(
+            print("- " + self.p.name.replace("_", " ") + " " + self.state + self.tr(" (process time = ") + str(
                             round(self.total_time)) + " s).")
 
     def send_err_log(self, check_ok=False):
