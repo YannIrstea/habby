@@ -1,8 +1,7 @@
  is a 1D hydraulic model with Bed Evolution capabilities.
 Author(s): IRSTEA
-Licence: Unknown (Nonfree software)
+Licence: Unknown (Non-free software)
 MORE INFO
 Input:
 - .rbe xml file for the geometry
 - profilX.Y ASCII file for the hydraulic results
-
