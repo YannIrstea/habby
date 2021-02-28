@@ -1,31 +1,19 @@
 <?xml version="1.0"?>
 <root>
-<Fish>
-
-<CdAppelTaxon SchemeAgencyID="SANDRE">2125</CdAppelTaxon>
-
-<LatinName>Phoxinus phoxinus</LatinName>
-
-
--<ComNames>
-
-<ComName Language="French">Vairon</ComName>
-
-<ComName Language="English">Minnow</ComName>
-
-</ComNames>
-
-<CdAlternative OrgCdAlternative="ONEMA">VAI</CdAlternative>
-
-</Fish>
-
-<estimhab>
-<stage> all_stage </stage>
-<coeff_q> 0.08 -20.37 </coeff_q>
-<func_q> 0 </func_q>
-<coeff_const> 1.14 </coeff_const> 
-<var_const> </var_const>
-</estimhab>
-
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">2125</CdAppelTaxon>
+      <LatinName>Phoxinus phoxinus</LatinName>
+      <ComNames>
+         <ComName Language="French">Vairon</ComName>
+         <ComName Language="English">Minnow</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">VAI</CdAlternative>
+   </Fish>
+   <estimhab>
+      <stage>all_stage</stage>
+      <coeff_q>0.08 -20.37</coeff_q>
+      <func_q>0</func_q>
+      <coeff_const>1.14</coeff_const>
+      <var_const></var_const>
+   </estimhab>
 </root>
-
