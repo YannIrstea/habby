@@ -1,43 +1,43 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <BiologicalModel>
-<CdBiologicalModel>BFUS01</CdBiologicalModel>
-<Country>France</Country>
-<MadeBy>Irstea Former Cemagref</MadeBy>
-<Invertebrate>
-<CdAppelTaxon SchemeAgencyID="SANDRE">368</CdAppelTaxon>
-<LatinName>Baetis fuscatus (Linnaeus, 1760)</LatinName>
-<ComNames>
-  <ComName Language="French">Éphémère à deux filets</ComName>
-  <ComName Language="English"></ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="Irstea Lyon">BFUS</CdAlternative >
-</Invertebrate>
-<General>
-<CreationYear>2019</CreationYear>
-<Description Language="French">
-<![CDATA[
-Origine: 
-Réanalyse des données Doledec et al. (2007) et Merigoux et al. (2009) avec ajouts de données issues du suivi RHONECO et Lignon du Forêz.
-Référence: Forcellini et al. (2019, in prep)
-Espèce holo-européenne (Buffagni et al., 2019), épipotamal (freshwaterecology.info; Moog, O., 1995), présente jusqu'à une altitude de 1000 mètres (freshwaterecology.info; Buffagni et al., 2019).
+   <CdBiologicalModel>BFUS01</CdBiologicalModel>
+   <Country>France</Country>
+   <MadeBy>Irstea Former Cemagref</MadeBy>
+   <Invertebrate>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">368</CdAppelTaxon>
+      <LatinName>Baetis fuscatus (Linnaeus, 1760)</LatinName>
+      <ComNames>
+         <ComName Language="French">Éphémère à deux filets</ComName>
+         <ComName Language="English"></ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="Irstea Lyon">BFUS</CdAlternative>
+   </Invertebrate>
+   <General>
+      <CreationYear>2019</CreationYear>
+      <Description Language="French">
+         <![CDATA[
+         Origine:
+         Réanalyse des données Doledec et al. (2007) et Merigoux et al. (2009) avec ajouts de données issues du suivi RHONECO et Lignon du Forêz.
+         Référence: Forcellini et al. (2019, in prep)
+         Espèce holo-européenne (Buffagni et al., 2019), épipotamal (freshwaterecology.info; Moog, O., 1995), présente jusqu'à une altitude de 1000 mètres (freshwaterecology.info; Buffagni et al., 2019).
 
-Doledec, S., Lamouroux, N., Fuchs, U., & Merigoux, S. (2007). Modelling the hydraulic preferences of benthic macroinvertebrates in small European streams. Freshwater Biology, 52(1), 145-164.
-Mérigoux, S., Lamouroux, N., Olivier, J. M., & Doledec, S. (2009). Invertebrate hydraulic preferences and predicted impacts of changes in discharge in a large river. Freshwater Biology, 54(6), 1343-1356.
-Buffagni, A., Armanini, D.G., Cazzola, M., Alba-Tercedor, J., López-Rodríguez, M.J., Murphy, J., Sandin, L. & Schmidt-Kloiber, A. (2019): Dataset "Ephemeroptera". www.freshwaterecology.info - the taxa and autecology database for freshwater organisms, version 7.0 (accessed on 04.06.2019).
-Schmidt-Kloiber, A. & Hering D. (2015): www.freshwaterecology.info - an online tool that unifies, standardises and codifies more than 20,000 European freshwater organisms and their ecological preferences. Ecological Indicators 53: 271-282. doi: 10.1016/j.ecolind.2015.02.007.
- ]]>
-</Description>
-<Image>BFUS01.png</Image>
-</General>
-<ModelType Type="univariate suitability index curves">
-<Stages>
-<Stage Type="larva">
-<PreferenceShearStress>
-<MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7 17.9</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
-<HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</HemisphereNumber>
-<PreferenceValues>0.11 0.16 0.21 0.28 0.37 0.48 0.60 0.73 0.84 0.93 0.98 1 0.98 0.93 0.86 0.78 0.69 0.60 0.51 0.44 0.37</PreferenceValues>
-</PreferenceShearStress>
-</Stage>
-</Stages>
-</ModelType>
+         Doledec, S., Lamouroux, N., Fuchs, U., & Merigoux, S. (2007). Modelling the hydraulic preferences of benthic macroinvertebrates in small European streams. Freshwater Biology, 52(1), 145-164.
+         Mérigoux, S., Lamouroux, N., Olivier, J. M., & Doledec, S. (2009). Invertebrate hydraulic preferences and predicted impacts of changes in discharge in a large river. Freshwater Biology, 54(6), 1343-1356.
+         Buffagni, A., Armanini, D.G., Cazzola, M., Alba-Tercedor, J., López-Rodríguez, M.J., Murphy, J., Sandin, L. & Schmidt-Kloiber, A. (2019): Dataset "Ephemeroptera". www.freshwaterecology.info - the taxa and autecology database for freshwater organisms, version 7.0 (accessed on 04.06.2019).
+         Schmidt-Kloiber, A. & Hering D. (2015): www.freshwaterecology.info - an online tool that unifies, standardises and codifies more than 20,000 European freshwater organisms and their ecological preferences. Ecological Indicators 53: 271-282. doi: 10.1016/j.ecolind.2015.02.007.
+          ]]>
+      </Description>
+      <Image>BFUS01.png</Image>
+   </General>
+   <ModelType Type="univariate suitability index curves">
+      <Stages>
+         <Stage Type="larva">
+            <PreferenceShearStress>
+               <MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7 17.9</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
+               <HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</HemisphereNumber>
+               <PreferenceValues>0.11 0.16 0.21 0.28 0.37 0.48 0.60 0.73 0.84 0.93 0.98 1 0.98 0.93 0.86 0.78 0.69 0.60 0.51 0.44 0.37</PreferenceValues>
+            </PreferenceShearStress>
+         </Stage>
+      </Stages>
+   </ModelType>
 </BiologicalModel>

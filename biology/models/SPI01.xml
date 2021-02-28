@@ -1,59 +1,59 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <BiologicalModel>
-<CdBiologicalModel>SPI01</CdBiologicalModel>
-<Country>France</Country>
-<MadeBy>Irstea Former Cemagref</MadeBy>
-<Fish>
-<CdAppelTaxon SchemeAgencyID="SANDRE">2088</CdAppelTaxon>
-<LatinName>Alburnoides bipunctatus</LatinName>
-<ComNames>
-  <ComName Language="French">Spirlin</ComName>
-  <ComName Language="English">Stream bleak (Schneider)</ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="ONEMA">SPI</CdAlternative >
-</Fish>
-<General>
-<CreationYear>1999</CreationYear>
-<Description Language="French">
-<![CDATA[
-Origine: Traitement de la base de données des 1601 ambiances. Données récoltées sur le Rhône, l'Ain, l'Ardèche, la Drôme,  la Loire et la Garonne. 
- Classes de taille : 0-7, >7 cm. 
- Référence: CEMAGREF, LHQ. Lamouroux et al., 1999. 
- Mise en forme : ECOGEA 2008.
-]]>
-</Description>
-<Image>SPI01.png</Image>
-</General>
-<ModelType Type="univariate suitability index curves">
-<Stages>
-<Stage Type="juvenile">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-<PreferenceValues>0 0.89 0.89 0.97 1 0.63 0.63</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
-<PreferenceValues>0.77 0.77 1 0.72 0.55 0.28 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>0.49 0.49 0.49 0.49 0.88 0.98 1 0.96</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-<Stage Type="adult">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-<PreferenceValues>0 0.54 0.54 0.84 1 0.7 0.7</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
-<PreferenceValues>0.3 0.3 0.83 0.89 1 0.92 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>0.31 0.31 0.31 0.31 0.43 0.77 1 0.89</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-</Stages>
-</ModelType>
+   <CdBiologicalModel>SPI01</CdBiologicalModel>
+   <Country>France</Country>
+   <MadeBy>Irstea Former Cemagref</MadeBy>
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">2088</CdAppelTaxon>
+      <LatinName>Alburnoides bipunctatus</LatinName>
+      <ComNames>
+         <ComName Language="French">Spirlin</ComName>
+         <ComName Language="English">Stream bleak (Schneider)</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">SPI</CdAlternative>
+   </Fish>
+   <General>
+      <CreationYear>1999</CreationYear>
+      <Description Language="French">
+         <![CDATA[
+         Origine: Traitement de la base de données des 1601 ambiances. Données récoltées sur le Rhône, l'Ain, l'Ardèche, la Drôme,  la Loire et la Garonne.
+          Classes de taille : 0-7, >7 cm.
+          Référence: CEMAGREF, LHQ. Lamouroux et al., 1999.
+          Mise en forme : ECOGEA 2008.
+         ]]>
+         </Description>
+      <Image>SPI01.png</Image>
+   </General>
+   <ModelType Type="univariate suitability index curves">
+      <Stages>
+         <Stage Type="juvenile">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+               <PreferenceValues>0 0.89 0.89 0.97 1 0.63 0.63</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
+               <PreferenceValues>0.77 0.77 1 0.72 0.55 0.28 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>0.49 0.49 0.49 0.49 0.88 0.98 1 0.96</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+         <Stage Type="adult">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+               <PreferenceValues>0 0.54 0.54 0.84 1 0.7 0.7</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
+               <PreferenceValues>0.3 0.3 0.83 0.89 1 0.92 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>0.31 0.31 0.31 0.31 0.43 0.77 1 0.89</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+      </Stages>
+   </ModelType>
 </BiologicalModel>

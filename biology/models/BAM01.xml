@@ -1,86 +1,86 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <BiologicalModel>
-<CdBiologicalModel>BAM01</CdBiologicalModel>
-<Country>France</Country>
-<MadeBy>Irstea Former Cemagref</MadeBy>
-<Fish>
-<CdAppelTaxon SchemeAgencyID="SANDRE">2097</CdAppelTaxon>
-<LatinName>Barbus meridionalis</LatinName>
-<ComNames>
-  <ComName Language="French">Barbeau méridional</ComName>
-  <ComName Language="English">Mediterranean barbel</ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="ONEMA">BAM</CdAlternative >
-</Fish>
-<General>
-<CreationYear>2012</CreationYear>
-<Description Language="French">
-<![CDATA[
-Origine: Pêches électriques réalisées sur le Loup et les Paillons(406 ambiances). 
-Irstea Aix en Provence, CG et Fédération de pêche des Alpes Maritimes, ONEMA. 
-Traitement de base de données et calculs de préférences faits par l'Irstea. 
-Surface moyenne des ambiances : 9.6 m² ; min : 0.5 m² ; max : 65.8 m². 
-Profondeur moyenne de l'ensemble : 0.30 m , et vitesse moyenne : 0.27 m/s. 
-Vitesse maximale dans les ambiances : 1.55 m/s ; Hauteur maximale : 1.99 m. 
-Alevins: sujets de moins d'un an, de moins de 45 mm. 
-Juvéniles: sujets de plus d'un an non encore reproductifs (45 à 120 mm). 
-Adultes: sujets en âge de se reproduire (> à 120 mm). 
-Mode de calcul : LLD (log(1000*densité+1)), et hydrosignatures. 
-Ambiances où des barbeaux méridionaux ont été prélevés : 
-182 ambiances avec et sans-abris, 883 poissons.
-]]>
-</Description>
-<Image>BAM01.png</Image>
-</General>
-<ModelType Type="univariate suitability index curves">
-<Stages>
-<Stage Type="fry">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 7.5 12.5 17.5 22.5 27.5 32.5 42.5 47.5 90</HeightOfWaterValues>
-<PreferenceValues>0 1 0.35 0.14 0.14 0.11 0.07 0.08 0 0</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 7.5 12.5 17.5 32.5 52.5 90</VelocityValues>
-<PreferenceValues>1 1 0.67 0.23 0.17 0.11 0 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>0.1 0.1 0.1 0.57 0.21 1 0.4 0.1</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-<Stage Type="juvenile">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 27.5 57.5 67.5 87.5 90</HeightOfWaterValues>
-<PreferenceValues>0 0.46 0.64 0.96 1 0.8 0.8</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 12.5 22.5 32.5 42.5 47.5 62.5 72.5 90</VelocityValues>
-<PreferenceValues>0 0.57 0.57 0.59 0.6 0.87 1 0 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>0.1 0.1 0.67 0.24 0.39 0.82 0.88 1</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-<Stage Type="adult">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 37.5 47.5 62.5 82.5 90</HeightOfWaterValues>
-<PreferenceValues>0 0.24 0.52 0.5 0.93 1 1</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 7.5 22.5 32.5 37.5 52.5 72.5 77.5 90</VelocityValues>
-<PreferenceValues>0 0.38 0.41 0.46 0.51 1 0.96 0 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>0.1 0.1 0.23 0.18 0.18 0.53 0.72 1</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-</Stages>
-</ModelType>
-<HydrosignatureOfTheSamplingData Type="Area" calculation_mode="Mean">
-<HeightOfWaterClasses Unit="Meter" UnitSymbol="m">0 0.2 0.4 0.6 0.8 1 1.2 1.4 2</HeightOfWaterClasses>
-<VelocityClasses Unit="MeterPerSecond" UnitSymbol="m/s">0 0.2 0.4 0.6 0.8 1 1.2 1.4 1.6</VelocityClasses>
-<HydrosignatureValues Type="Percentages" DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing">15.6096429457982 9.45594012270194 7.00823403865344 2.66673999708704 0.78970729224395 0.236569230433334 2.47989739414879E-02 9.85298381377791E-06 14.8665668920813 14.8691917959 7.68265326229307 2.49701266299472 0.985295425880266 0.191747398010747 4.61168701273051E-02 0.005903185588857 8.82276324164846 5.31145807490333 1.04819822746342 0.346425167185377 1.03595551142785E-02 5.54743199123892E-03 0 0 3.34745196191652 0.917714489489237 0.163233772424298 0.029993770281859 0 0 0 0 1.69498880627087 0.473499570321815 2.15598937291567E-02 2.40906227806673E-03 0 0 0 0 0.578816706653966 0.170245475657759 5.21960494404675E-04 0 0 0 0 0 8.74379399641065E-02 2.75319426520016E-02 0 0 0 0 0 0 3.71300253482869E-03 0 0 0 0 0 0 0</HydrosignatureValues>
-</HydrosignatureOfTheSamplingData>
+   <CdBiologicalModel>BAM01</CdBiologicalModel>
+   <Country>France</Country>
+   <MadeBy>Irstea Former Cemagref</MadeBy>
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">2097</CdAppelTaxon>
+      <LatinName>Barbus meridionalis</LatinName>
+      <ComNames>
+      <ComName Language="French">Barbeau méridional</ComName>
+      <ComName Language="English">Mediterranean barbel</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">BAM</CdAlternative>
+   </Fish>
+   <General>
+      <CreationYear>2012</CreationYear>
+      <Description Language="French">
+         <![CDATA[
+         Origine: Pêches électriques réalisées sur le Loup et les Paillons(406 ambiances).
+         Irstea Aix en Provence, CG et Fédération de pêche des Alpes Maritimes, ONEMA.
+         Traitement de base de données et calculs de préférences faits par l'Irstea.
+         Surface moyenne des ambiances : 9.6 m² ; min : 0.5 m² ; max : 65.8 m².
+         Profondeur moyenne de l'ensemble : 0.30 m , et vitesse moyenne : 0.27 m/s.
+         Vitesse maximale dans les ambiances : 1.55 m/s ; Hauteur maximale : 1.99 m.
+         Alevins: sujets de moins d'un an, de moins de 45 mm.
+         Juvéniles: sujets de plus d'un an non encore reproductifs (45 à 120 mm).
+         Adultes: sujets en âge de se reproduire (> à 120 mm).
+         Mode de calcul : LLD (log(1000*densité+1)), et hydrosignatures.
+         Ambiances où des barbeaux méridionaux ont été prélevés :
+         182 ambiances avec et sans-abris, 883 poissons.
+         ]]>
+      </Description>
+      <Image>BAM01.png</Image>
+   </General>
+   <ModelType Type="univariate suitability index curves">
+      <Stages>
+         <Stage Type="fry">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 7.5 12.5 17.5 22.5 27.5 32.5 42.5 47.5 90</HeightOfWaterValues>
+               <PreferenceValues>0 1 0.35 0.14 0.14 0.11 0.07 0.08 0 0</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 7.5 12.5 17.5 32.5 52.5 90</VelocityValues>
+               <PreferenceValues>1 1 0.67 0.23 0.17 0.11 0 0</PreferenceValues>
+            </PreferenceVelocity>
+               <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>0.1 0.1 0.1 0.57 0.21 1 0.4 0.1</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+         <Stage Type="juvenile">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 27.5 57.5 67.5 87.5 90</HeightOfWaterValues>
+               <PreferenceValues>0 0.46 0.64 0.96 1 0.8 0.8</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 12.5 22.5 32.5 42.5 47.5 62.5 72.5 90</VelocityValues>
+               <PreferenceValues>0 0.57 0.57 0.59 0.6 0.87 1 0 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>0.1 0.1 0.67 0.24 0.39 0.82 0.88 1</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+         <Stage Type="adult">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 37.5 47.5 62.5 82.5 90</HeightOfWaterValues>
+               <PreferenceValues>0 0.24 0.52 0.5 0.93 1 1</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 7.5 22.5 32.5 37.5 52.5 72.5 77.5 90</VelocityValues>
+               <PreferenceValues>0 0.38 0.41 0.46 0.51 1 0.96 0 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>0.1 0.1 0.23 0.18 0.18 0.53 0.72 1</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+      </Stages>
+   </ModelType>
+   <HydrosignatureOfTheSamplingData Type="Area" calculation_mode="Mean">
+      <HeightOfWaterClasses Unit="Meter" UnitSymbol="m">0 0.2 0.4 0.6 0.8 1 1.2 1.4 2</HeightOfWaterClasses>
+      <VelocityClasses Unit="MeterPerSecond" UnitSymbol="m/s">0 0.2 0.4 0.6 0.8 1 1.2 1.4 1.6</VelocityClasses>
+      <HydrosignatureValues Type="Percentages" DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing">15.6096429457982 9.45594012270194 7.00823403865344 2.66673999708704 0.78970729224395 0.236569230433334 2.47989739414879E-02 9.85298381377791E-06 14.8665668920813 14.8691917959 7.68265326229307 2.49701266299472 0.985295425880266 0.191747398010747 4.61168701273051E-02 0.005903185588857 8.82276324164846 5.31145807490333 1.04819822746342 0.346425167185377 1.03595551142785E-02 5.54743199123892E-03 0 0 3.34745196191652 0.917714489489237 0.163233772424298 0.029993770281859 0 0 0 0 1.69498880627087 0.473499570321815 2.15598937291567E-02 2.40906227806673E-03 0 0 0 0 0.578816706653966 0.170245475657759 5.21960494404675E-04 0 0 0 0 0 8.74379399641065E-02 2.75319426520016E-02 0 0 0 0 0 0 3.71300253482869E-03 0 0 0 0 0 0 0</HydrosignatureValues>
+   </HydrosignatureOfTheSamplingData>
 </BiologicalModel>

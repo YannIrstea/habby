@@ -1,46 +1,46 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <BiologicalModel>
-<CdBiologicalModel>GOU01</CdBiologicalModel>
-<Country>France</Country>
-<MadeBy>Irstea Former Cemagref</MadeBy>
-<Fish>
-<CdAppelTaxon SchemeAgencyID="SANDRE">2113</CdAppelTaxon>
-<LatinName>Gobio gobio</LatinName>
-<ComNames>
-  <ComName Language="French">Goujon</ComName>
-  <ComName Language="English">Gudgeon</ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="ONEMA">GOU</CdAlternative >
-</Fish>
-<General>
-<CreationYear>1998</CreationYear>
-<Description Language="French">
-<![CDATA[
-Origine: Traitement de la base de données des 1601 ambiances. 
-Données récoltées sur le Rhône, l'Ain, l'Ardèche, la Drôme, la Loire et la Garonne. 
-Référence: CEMAGREF, LHQ. Capra et al., 1998. 
-Pas de subdivision en taxons. 
-La courbe vaut pour l'ensemble de l'espèce.
-]]>
-</Description>
-<Image>GOU01.png</Image>
-</General>
-<ModelType Type="univariate suitability index curves">
-<Stages>
-<Stage Type="all_stages">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-<PreferenceValues>0 0.76 0.76 1 0.95 0.36 0.36</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
-<PreferenceValues>1 1 0.85 0.75 0.67 0.44 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>1 1 1 1 0.98 0.91 0.83 0.78</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-</Stages>
-</ModelType>
+   <CdBiologicalModel>GOU01</CdBiologicalModel>
+   <Country>France</Country>
+   <MadeBy>Irstea Former Cemagref</MadeBy>
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">2113</CdAppelTaxon>
+      <LatinName>Gobio gobio</LatinName>
+      <ComNames>
+         <ComName Language="French">Goujon</ComName>
+         <ComName Language="English">Gudgeon</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">GOU</CdAlternative>
+   </Fish>
+   <General>
+      <CreationYear>1998</CreationYear>
+      <Description Language="French">
+         <![CDATA[
+         Origine: Traitement de la base de données des 1601 ambiances.
+         Données récoltées sur le Rhône, l'Ain, l'Ardèche, la Drôme, la Loire et la Garonne.
+         Référence: CEMAGREF, LHQ. Capra et al., 1998.
+         Pas de subdivision en taxons.
+         La courbe vaut pour l'ensemble de l'espèce.
+         ]]>
+      </Description>
+      <Image>GOU01.png</Image>
+   </General>
+   <ModelType Type="univariate suitability index curves">
+      <Stages>
+         <Stage Type="all_stages">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+               <PreferenceValues>0 0.76 0.76 1 0.95 0.36 0.36</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
+               <PreferenceValues>1 1 0.85 0.75 0.67 0.44 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>1 1 1 1 0.98 0.91 0.83 0.78</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+      </Stages>
+   </ModelType>
 </BiologicalModel>

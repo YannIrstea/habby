@@ -1,58 +1,58 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <BiologicalModel>
-<CdBiologicalModel>APR02b</CdBiologicalModel>
-<Country>France</Country>
-<MadeBy>INRAE Former Irstea Former Cemagref</MadeBy>
-<Fish>
-<CdAppelTaxon SchemeAgencyID="SANDRE">2197</CdAppelTaxon>
-<LatinName>Zingel asper</LatinName>
-<ComNames>
-  <ComName Language="French">apron du Rhône</ComName>
-  <ComName Language="English">Rhone streber</ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="ONEMA">APR</CdAlternative >
-</Fish>
-<General>
-<CreationYear>2021</CreationYear>
-<Description Language="French">
-<![CDATA[
-ATTENTION ces courbes sont à considérer comme des courbes d’occupations 
-et non pas de préférences pour des 0+ d’aprons dans les conditions d’hydrosignatures précisées.
-Origine: Pêches électriques réalisées en 10 nuits de septembre 2020.
-Sur l’Ardèche et la Beaume (1279 points).
-INRAE Aix en Provence, Fédération de pêche de l’Ardèche
-AAPPMA Ardèche, CEN RA Ardèche.
-Calculs des courbes d’occupations faits par l'INRAE.
-Profondeur moyenne : 0.44 m, vitesse moyenne : 0.17 m/s.
-Vitesse maximale: 1.2 m/s ; Hauteur maximale : 1.6 m.
-1079 aprons 0+ LT[mm] dans l’intervalle [50,100[
-100 aprons 1+ (et plus) LT[mm] dans l’intervalle [115,170[
-100 mesures sans aprons
-]]>
-</Description>
-<Image>APR01b.png</Image>
-</General>
-<ModelType Type="univariate suitability index curves">
-<Stages>
-<Stage Type="[50,100[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Meter" UnitSymbol="m">0 0.025 0.075 0.125 0.175 0.225 0.275 0.325 0.375 0.425 0.475 0.525 0.575 0.625 0.675 0.725 0.775 0.825 0.875 0.925 0.975 1.025 1.075 1.125 1.175 1.225 1.275 1.325 1.375 1.6</HeightOfWaterValues>
-<PreferenceValues>0 0 0.08974 0.22564 0.5 0.62308 0.87949 0.93590 1 0.82564 0.7 0.53590 0.46667 0.34359 0.30769 0.21282 0.16667 0.11282 0.07179 0.05897 0.05385 0.05128 0.03846 0.03077 0.02821 0.01795 0.00769 0.00256 0.00513 0.00769</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="MeterPerSecond" UnitSymbol="m/s">0 0.025 0.075 0.125 0.175 0.225 0.275 0.325 0.375 0.425 0.475 0.525 0.575 0.625 0.675 0.725 0.775 0.825 0.875 0.925 0.975 1.025 1.075 1.125 1.175 1.225 1.275 1.325 1.375 1.5</VelocityValues>
-<PreferenceValues>0 1 0.83176 0.67453 0.51730 0.42925 0.34277 0.26730 0.21384 0.18711 0.17610 0.14623 0.09906 0.04874 0.04403 0.03774 0.04403 0.02987 0.02044 0.00629 0 0 0 0 0 0 0 0 0 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code Sandre (Malavoi et Souchon 1989)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12</SubstrateValues>
-<PreferenceValues>0 0 0.00877193 0.00877193 0.007675439 0.007675439 0.103070175 0.460526316 1 0.513157895 0.208333333 0.048245614</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-</Stages>
-</ModelType>
-<HydrosignatureOfTheSamplingData Type="Area" calculation_mode="Mean">
-<HeightOfWaterClasses Unit="Meter" UnitSymbol="m">0 0.2 0.4 0.6 0.8 1 1.2 1.4 3</HeightOfWaterClasses>
-<VelocityClasses Unit="MeterPerSecond" UnitSymbol="m/s">0 0.2 0.4 0.6 0.8 1 1.2 1.4 5</VelocityClasses>
-<HydrosignatureValues Type="Percentages" DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing">3.36200156372166 2.65832681782643 1.56372165754496 0.469116497263487 7.81860828772478E-02 0 0 0 21.3448006254887 12.0406567630962 6.02032838154808 1.6419077404222 0.703674745895231 0.156372165754496 7.81860828772478E-02 0 18.2173573103988 7.03674745895231 2.65832681782643 0.625488663017983 0.390930414386239 0 0 0 10.4769351055512 1.6419077404222 0.781860828772478 7.81860828772478E-02 0.234558248631744 0 0 0 4.30023455824863 0.156372165754496 0 0.234558248631744 0 0 0 0 2.03283815480844 0 0 0 0 0 0 0 0.547302580140735 0 0 0 0 0 0 0 0.469116497263487 0 0 0 0 0 0 0 </HydrosignatureValues>
-</HydrosignatureOfTheSamplingData>
+   <CdBiologicalModel>APR02b</CdBiologicalModel>
+   <Country>France</Country>
+   <MadeBy>INRAE Former Irstea Former Cemagref</MadeBy>
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">2197</CdAppelTaxon>
+      <LatinName>Zingel asper</LatinName>
+      <ComNames>
+         <ComName Language="French">apron du Rhône</ComName>
+         <ComName Language="English">Rhone streber</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">APR</CdAlternative>
+   </Fish>
+   <General>
+      <CreationYear>2021</CreationYear>
+      <Description Language="French">
+         <![CDATA[
+         ATTENTION ces courbes sont à considérer comme des courbes d’occupations
+         et non pas de préférences pour des 0+ d’aprons dans les conditions d’hydrosignatures précisées.
+         Origine: Pêches électriques réalisées en 10 nuits de septembre 2020.
+         Sur l’Ardèche et la Beaume (1279 points).
+         INRAE Aix en Provence, Fédération de pêche de l’Ardèche
+         AAPPMA Ardèche, CEN RA Ardèche.
+         Calculs des courbes d’occupations faits par l'INRAE.
+         Profondeur moyenne : 0.44 m, vitesse moyenne : 0.17 m/s.
+         Vitesse maximale: 1.2 m/s ; Hauteur maximale : 1.6 m.
+         1079 aprons 0+ LT[mm] dans l’intervalle [50,100[
+         100 aprons 1+ (et plus) LT[mm] dans l’intervalle [115,170[
+         100 mesures sans aprons
+         ]]>
+      </Description>
+      <Image>APR01b.png</Image>
+   </General>
+   <ModelType Type="univariate suitability index curves">
+      <Stages>
+         <Stage Type="[50,100[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Meter" UnitSymbol="m">0 0.025 0.075 0.125 0.175 0.225 0.275 0.325 0.375 0.425 0.475 0.525 0.575 0.625 0.675 0.725 0.775 0.825 0.875 0.925 0.975 1.025 1.075 1.125 1.175 1.225 1.275 1.325 1.375 1.6</HeightOfWaterValues>
+               <PreferenceValues>0 0 0.08974 0.22564 0.5 0.62308 0.87949 0.93590 1 0.82564 0.7 0.53590 0.46667 0.34359 0.30769 0.21282 0.16667 0.11282 0.07179 0.05897 0.05385 0.05128 0.03846 0.03077 0.02821 0.01795 0.00769 0.00256 0.00513 0.00769</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="MeterPerSecond" UnitSymbol="m/s">0 0.025 0.075 0.125 0.175 0.225 0.275 0.325 0.375 0.425 0.475 0.525 0.575 0.625 0.675 0.725 0.775 0.825 0.875 0.925 0.975 1.025 1.075 1.125 1.175 1.225 1.275 1.325 1.375 1.5</VelocityValues>
+               <PreferenceValues>0 1 0.83176 0.67453 0.51730 0.42925 0.34277 0.26730 0.21384 0.18711 0.17610 0.14623 0.09906 0.04874 0.04403 0.03774 0.04403 0.02987 0.02044 0.00629 0 0 0 0 0 0 0 0 0 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code Sandre (Malavoi et Souchon 1989)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12</SubstrateValues>
+               <PreferenceValues>0 0 0.00877193 0.00877193 0.007675439 0.007675439 0.103070175 0.460526316 1 0.513157895 0.208333333 0.048245614</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+      </Stages>
+   </ModelType>
+   <HydrosignatureOfTheSamplingData Type="Area" calculation_mode="Mean">
+      <HeightOfWaterClasses Unit="Meter" UnitSymbol="m">0 0.2 0.4 0.6 0.8 1 1.2 1.4 3</HeightOfWaterClasses>
+      <VelocityClasses Unit="MeterPerSecond" UnitSymbol="m/s">0 0.2 0.4 0.6 0.8 1 1.2 1.4 5</VelocityClasses>
+      <HydrosignatureValues Type="Percentages" DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing">3.36200156372166 2.65832681782643 1.56372165754496 0.469116497263487 7.81860828772478E-02 0 0 0 21.3448006254887 12.0406567630962 6.02032838154808 1.6419077404222 0.703674745895231 0.156372165754496 7.81860828772478E-02 0 18.2173573103988 7.03674745895231 2.65832681782643 0.625488663017983 0.390930414386239 0 0 0 10.4769351055512 1.6419077404222 0.781860828772478 7.81860828772478E-02 0.234558248631744 0 0 0 4.30023455824863 0.156372165754496 0 0.234558248631744 0 0 0 0 2.03283815480844 0 0 0 0 0 0 0 0.547302580140735 0 0 0 0 0 0 0 0.469116497263487 0 0 0 0 0 0 0 </HydrosignatureValues>
+   </HydrosignatureOfTheSamplingData>
 </BiologicalModel>
