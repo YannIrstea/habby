@@ -1,24 +1,21 @@
 <?xml version="1.0"?>
 <root>
--<Fish>
-<CdAppelTaxon SchemeAgencyID="SANDRE">---</CdAppelTaxon>
-<LatinName>Guilde rive</LatinName>
--<ComNames>
-<ComName Language="French">Guilde rive</ComName>
-<ComName Language="English">Bank guild</ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="ONEMA">---</CdAlternative>
-</Fish>
-<Pref_courbe>
-</Pref_courbe>
-
-<estimhab>
-<stage> all_stage </stage>
-<coeff_q> +4.17 -23.61 </coeff_q>
-<func_q> 1 </func_q>
-<coeff_const> 0.103 -0.01 </coeff_const> 
-<var_const> 5 </var_const>
-</estimhab>
-
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">---</CdAppelTaxon>
+      <LatinName>Guilde rive</LatinName>
+      <ComNames>
+         <ComName Language="French">Guilde rive</ComName>
+         <ComName Language="English">Bank guild</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">---</CdAlternative>
+   </Fish>
+   <Pref_courbe>
+   </Pref_courbe>
+   <estimhab>
+      <stage>all_stage</stage>
+      <coeff_q>4.17 -23.61</coeff_q>
+      <func_q>1</func_q>
+      <coeff_const>0.103 -0.01</coeff_const>
+      <var_const>5</var_const>
+   </estimhab>
 </root>
-

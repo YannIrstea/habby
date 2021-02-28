@@ -1,24 +1,21 @@
 <?xml version="1.0"?>
 <root>
--<Fish>
-<CdAppelTaxon SchemeAgencyID="SANDRE">---</CdAppelTaxon>
-<LatinName>Guilde radier</LatinName>
--<ComNames>
-<ComName Language="French">Guilde radier</ComName>
-<ComName Language="English">Riffle guild</ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="ONEMA">---</CdAlternative>
-</Fish>
-<Pref_courbe>
-</Pref_courbe>
-
-<estimhab>
-<stage> all_stage </stage>
-<coeff_q> 0.09 -15.13 </coeff_q>
-<func_q> 0 </func_q>
-<coeff_const> 1.074 0.281 0.3 </coeff_const> 
-<var_const> 5 7 </var_const>
-</estimhab>
-
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">---</CdAppelTaxon>
+      <LatinName>Guilde radier</LatinName>
+      <ComNames>
+         <ComName Language="French">Guilde radier</ComName>
+         <ComName Language="English">Riffle guild</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">---</CdAlternative>
+   </Fish>
+   <Pref_courbe>
+   </Pref_courbe>
+   <estimhab>
+      <stage>all_stage</stage>
+      <coeff_q>0.09 -15.13</coeff_q>
+      <func_q>0</func_q>
+      <coeff_const>1.074 0.281 0.3</coeff_const>
+      <var_const>5 7</var_const>
+   </estimhab>
 </root>
-
