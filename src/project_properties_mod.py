@@ -36,7 +36,7 @@ available_export_list = ["mesh_whole_profile",  # GPKG
                          "fish_information"]
 
 
-def create_default_project_properties_dict(all_export_enabled=True):
+def create_default_project_properties_dict(all_export_enabled=False):
     """
     This function creates the default dictionnary of project user preferences.
     """
