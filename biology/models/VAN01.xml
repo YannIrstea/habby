@@ -1,73 +1,73 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <BiologicalModel>
-<CdBiologicalModel>VAN01</CdBiologicalModel>
-<Country>France</Country>
-<MadeBy>Irstea Former Cemagref</MadeBy>
-<Fish>
-<CdAppelTaxon SchemeAgencyID="SANDRE">2122</CdAppelTaxon>
-<LatinName>Leuciscus leuciscus</LatinName>
-<ComNames>
-  <ComName Language="French">Vandoise</ComName>
-  <ComName Language="English">Dace</ComName>
-</ComNames>
-<CdAlternative OrgCdAlternative="ONEMA">VAN</CdAlternative >
-</Fish>
-<General>
-<CreationYear>1999</CreationYear>
-<Description Language="French">
-<![CDATA[
- Origine: Traitement de la base de données des 1601 ambiances. Données récoltées sur le Rhône, l'Ain, l'Ardèche, la Drôme,  la Loire et la Garonne. 
- Classes de taille : 0-8.5, 8.5-19, >19 cm. 
- Référence: CEMAGREF, LHQ. Lamouroux et al., 1999. 
- Mise en forme : ECOGEA 2008.
-]]>
-</Description>
-<Image>VAN01.png</Image>
-</General>
-<ModelType Type="univariate suitability index curves">
-<Stages>
-<Stage Type="fry">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-<PreferenceValues>0 0.21 0.21 1 0.58 0.33 0.33</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
-<PreferenceValues>1 1 0.81 0.62 0.19 0.24 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>1 1 1 1 0.65 0.54 0.31 0.58</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-<Stage Type="juvenile">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-<PreferenceValues>0 0 0 0.38 1 0.96 0.96</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 300</VelocityValues>
-<PreferenceValues>0.64 0.64 1 0.64 0.54 0.14 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>1 1 1 1 0.77 0.69 0.81 0.96</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-<Stage Type="adult">
-<PreferenceHeightOfWater>
-<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-<PreferenceValues>0 0.32 0.32 0.68 0.47 1 1</PreferenceValues>
-</PreferenceHeightOfWater>
-<PreferenceVelocity>
-<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 300</VelocityValues>
-<PreferenceValues>0.48 0.48 1 0.48 0.52 0.29 0</PreferenceValues>
-</PreferenceVelocity>
-<PreferenceSubstrate>
-<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-<PreferenceValues>1 1 1 1 0.5 0.5 0.38 0.42</PreferenceValues>
-</PreferenceSubstrate>
-</Stage>
-</Stages>
-</ModelType>
+   <CdBiologicalModel>VAN01</CdBiologicalModel>
+   <Country>France</Country>
+   <MadeBy>Irstea Former Cemagref</MadeBy>
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">2122</CdAppelTaxon>
+      <LatinName>Leuciscus leuciscus</LatinName>
+      <ComNames>
+         <ComName Language="French">Vandoise</ComName>
+         <ComName Language="English">Dace</ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">VAN</CdAlternative>
+   </Fish>
+   <General>
+      <CreationYear>1999</CreationYear>
+      <Description Language="French">
+         <![CDATA[
+          Origine: Traitement de la base de données des 1601 ambiances. Données récoltées sur le Rhône, l'Ain, l'Ardèche, la Drôme,  la Loire et la Garonne.
+          Classes de taille : 0-8.5, 8.5-19, >19 cm.
+          Référence: CEMAGREF, LHQ. Lamouroux et al., 1999.
+          Mise en forme : ECOGEA 2008.
+         ]]>
+      </Description>
+      <Image>VAN01.png</Image>
+   </General>
+   <ModelType Type="univariate suitability index curves">
+      <Stages>
+         <Stage Type="fry">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+               <PreferenceValues>0 0.21 0.21 1 0.58 0.33 0.33</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
+               <PreferenceValues>1 1 0.81 0.62 0.19 0.24 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>1 1 1 1 0.65 0.54 0.31 0.58</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+         <Stage Type="juvenile">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+               <PreferenceValues>0 0 0 0.38 1 0.96 0.96</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 300</VelocityValues>
+               <PreferenceValues>0.64 0.64 1 0.64 0.54 0.14 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>1 1 1 1 0.77 0.69 0.81 0.96</PreferenceValues>
+         </PreferenceSubstrate>
+         </Stage>
+         <Stage Type="adult">
+            <PreferenceHeightOfWater>
+               <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+               <PreferenceValues>0 0.32 0.32 0.68 0.47 1 1</PreferenceValues>
+            </PreferenceHeightOfWater>
+            <PreferenceVelocity>
+               <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 300</VelocityValues>
+               <PreferenceValues>0.48 0.48 1 0.48 0.52 0.29 0</PreferenceValues>
+            </PreferenceVelocity>
+            <PreferenceSubstrate>
+               <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+               <PreferenceValues>1 1 1 1 0.5 0.5 0.38 0.42</PreferenceValues>
+            </PreferenceSubstrate>
+         </Stage>
+      </Stages>
+   </ModelType>
 </BiologicalModel>

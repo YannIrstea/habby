@@ -1,31 +1,19 @@
 <?xml version="1.0"?>
 <root>
-<Fish>
-
-<CdAppelTaxon SchemeAgencyID="SANDRE">2221</CdAppelTaxon>
-
-<LatinName>Salmo trutta fario</LatinName>
-
-
--<ComNames>
-
-<ComName Language="French">Truite de rivière</ComName>
-
-<ComName Language="English">Brown trout </ComName>
-
-</ComNames>
-
-<CdAlternative OrgCdAlternative="ONEMA">TRF</CdAlternative>
-
-</Fish>
-
-<estimhab>
-<stage> juvenile </stage>
-<coeff_q> 0.05 -28.67 </coeff_q>
-<func_q> 0 </func_q>
-<coeff_const> 0.4 -0.21 -0.12  </coeff_const> 
-<var_const> 5 7 </var_const>
-</estimhab>
-
+   <Fish>
+      <CdAppelTaxon SchemeAgencyID="SANDRE">2221</CdAppelTaxon>
+      <LatinName>Salmo trutta fario</LatinName>
+      <ComNames>
+         <ComName Language="French">Truite de rivière</ComName>
+         <ComName Language="English">Brown trout </ComName>
+      </ComNames>
+      <CdAlternative OrgCdAlternative="ONEMA">TRF</CdAlternative>
+   </Fish>
+   <estimhab>
+      <stage> juvenile </stage>
+      <coeff_q>0.05 -28.67</coeff_q>
+      <func_q>0</func_q>
+      <coeff_const>0.4 -0.21 -0.12</coeff_const>
+      <var_const>5 7</var_const>
+   </estimhab>
 </root>
-

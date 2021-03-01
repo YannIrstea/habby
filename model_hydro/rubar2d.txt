@@ -1,6 +1,6 @@
  is a 2D hydraulic model.
 Author(s): IRSTEA
-Licence: Unknown (Nonfree software)
+Licence: Unknown (Non-free software)
 MORE INFO
 Input:
 - .mai or .dat for the mesh of the geometry
