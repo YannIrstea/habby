@@ -587,7 +587,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.units_layout.addWidget(self.units_QListWidget)
 
         # export_type_QComboBox
-        self.export_type_QLabel = QLabel(self.tr('View or export :'))
+        self.export_type_QLabel = QLabel(self.tr('mode'))
         self.export_type_QComboBox = QComboBox()
         self.export_type_QComboBox.addItems(["interactive", "image export", "both"])
         self.export_type_QComboBox.currentIndexChanged.connect(self.count_plot)

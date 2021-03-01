@@ -634,9 +634,9 @@ class ModelInfoGroup(QGroupBox):
         if "sub" in self.hydrau_description_list[self.input_file_combobox.currentIndex()].keys():
             if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
                 extension = "hab"
-        text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" ." + extension + " file")
+        text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" file ") + "." + extension
         if len(self.hydrau_description_list) > 1:
-            text_load_button = text_load_button + "s"
+            text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" files ") + "." + extension
         self.progress_layout.run_stop_button.setText(text_load_button)
         self.progress_layout.progress_bar.setValue(0.0)
         self.progress_layout.progress_label.setText("{0:.0f}/{1:.0f}".format(0.0, len(self.hydrau_description_list)))

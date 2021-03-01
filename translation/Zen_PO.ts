@@ -211,57 +211,57 @@
         <translation type="obsolete">Computar valor de habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="248"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="249"/>
         <source>hydraulic mode</source>
         <translation>opção hidráulica</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="254"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="255"/>
         <source>substrate mode</source>
         <translation>opção do substrato</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="295"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="296"/>
         <source>Warning: too many information for the GUI</source>
         <translation>Alerta: informação demais para a interface</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="708"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="709"/>
         <source>Biological models choosen (</source>
         <translation>Modelos biológicos escolhidos</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="571"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="572"/>
         <source>No models added (no selection).</source>
         <translation>.Nenhum modelo adicionado (nenhuma seleção).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="587"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="588"/>
         <source>Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values).</source>
         <translation>Opção de cálculo hidráulico HEM desabilitada para cálculo de habitat  (dados hidráulicos no arquivo .hab não são de tipo 2D ou não contêm valores z).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="596"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="597"/>
         <source>Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage).</source>
         <translation>Opção de cálculo de porcentagem de substrato desabilitada para cálculo de habitat (método de classificação de substrato no arquivo .hab não está em porcentagem).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="721"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="722"/>
         <source>Create a .hab file before adding models.</source>
         <translation>Crie um arquivo .hab antes de acrescentar modelos.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="831"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="832"/>
         <source>The .habby project file does not exist.</source>
         <translation>O arquivo .habby de projeto não existe.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="834"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="835"/>
         <source>The .habby project file is not well-formed.</source>
         <translation>O arquivo .habby de projeto não está bem formatado.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="858"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="859"/>
         <source>, this .hab file has been deleted by the user.</source>
         <translation>, este arquivo .hab foi deletado pelo usuário.</translation>
     </message>
@@ -271,17 +271,17 @@
         <translation type="obsolete"># Calculando: valor de habitat...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="903"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="904"/>
         <source> model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed.</source>
         <translation> tem opções de modelo &quot;Negligenciar&quot; para a hidráulica e para o substrato. Este cálculo não correrá bem.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="924"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="925"/>
         <source>No merged hydraulic files available.</source>
         <translation>Nenhum arquivo hidráulico fundido disponível.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="960"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="961"/>
         <source>Warning: Nothing to compute !</source>
         <translation>Aviso: Nada a calcular!</translation>
     </message>
@@ -306,14 +306,19 @@
         <translation type="obsolete">Erro: Falha no processo!! Reinicie HABBY. Tente novamente. Se o erro persistir, contate a equipe HABBY.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="641"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="642"/>
         <source>.hab data not adapted :
 not 2d data, not z node data or no shear_stress data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="666"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="667"/>
         <source>.hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="204"/>
+        <source>Compute habitat</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1215,7 +1220,7 @@ profundidade e velocidade de corrente (Lecoarer 2007).</translation>
     <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="590"/>
         <source>View or export :</source>
-        <translation>Visualizar ou exportar:</translation>
+        <translation type="obsolete">Visualizar ou exportar:</translation>
     </message>
     <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="967"/>
@@ -1314,6 +1319,11 @@ NB: Não há limite para o número de exportações.</translation>
         <location filename="../src_GUI/data_explorer_GUI.py" line="971"/>
         <source>Figure(s) done.</source>
         <translation type="obsolete">Figura(s) concluída(s).</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="590"/>
+        <source>mode</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3109,12 +3119,12 @@ Feche-os e tente novamente.</translation>
         <translation type="unfinished">Criar arquivo .hyd</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="644"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="646"/>
         <source>Create </source>
         <translation type="unfinished">Criar </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="644"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="646"/>
         <source> .</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3128,6 +3138,16 @@ Feche-os e tente novamente.</translation>
         <source>.hyd output filename is empty. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="644"/>
+        <source> file </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="646"/>
+        <source> files </source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MyProcess</name>
@@ -3137,19 +3157,49 @@ Feche-os e tente novamente.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1018"/>
+        <location filename="../src/process_manager_mod.py" line="1019"/>
         <source>stopped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1026"/>
+        <location filename="../src/process_manager_mod.py" line="1027"/>
         <source>not started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1060"/>
+        <location filename="../src/process_manager_mod.py" line="1061"/>
         <source>Warning: too many information for the GUI</source>
         <translation type="unfinished">Alerta: informação demais para a interface</translation>
+    </message>
+    <message>
+        <location filename="../src/process_manager_mod.py" line="1022"/>
+        <source> closed by user after </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/process_manager_mod.py" line="1025"/>
+        <source> stopped (process time = </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/process_manager_mod.py" line="1028"/>
+        <source>not started.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/process_manager_mod.py" line="1032"/>
+        <source> done (process time = </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/process_manager_mod.py" line="1035"/>
+        <source> crashed (process time = </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/process_manager_mod.py" line="1038"/>
+        <source> (process time = </source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4208,33 +4258,33 @@ Feche-os e tente novamente.</translation>
         <translation type="obsolete">Último arquivo criado</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="565"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="570"/>
         <source>The project is not saved. Save the project in the General tab.</source>
         <translation type="unfinished">O projeto não está salvo. Salve o projeto na aba Geral.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="547"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="552"/>
         <source>The project is not saved. Save the project in the General tab before calling hdf5 files. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="564"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="569"/>
         <source>Save the path to the copied inputs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="462"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="467"/>
         <source>Warning: too many information for the GUI</source>
         <translation type="unfinished">Alerta: informação demais para a interface</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="475"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="480"/>
         <source>no file</source>
         <translation type="unfinished">nenhum arquivo</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="478"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="483"/>
         <source>The project is not saved. Save the project in the General tab before saving hydraulic data. 
 </source>
         <translation type="unfinished"></translation>
@@ -4346,7 +4396,7 @@ Feche-os e tente novamente.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="378"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="383"/>
         <source>Constant values</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4376,86 +4426,96 @@ Feche-os e tente novamente.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="340"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="345"/>
         <source>Polygons</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="359"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="364"/>
         <source>Points</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="403"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="408"/>
         <source>Substrate data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="420"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="425"/>
         <source>Merging of hydraulic and substrate data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="640"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="645"/>
         <source>Select file</source>
         <translation type="unfinished">Selecionar arquivo</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="665"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="670"/>
         <source>File type</source>
         <translation type="unfinished">Tipo de arquivo</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="659"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="664"/>
         <source>The selected file has no extension. If you know this file, change its extension manually to  or </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="666"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="671"/>
         <source>Needed type for the file to be loaded:  ,</source>
         <translation type="unfinished">É preciso fornecer o tipo para carregar o arquivo:  ,</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="793"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="798"/>
         <source>No input file has been selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="797"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="802"/>
         <source>.sub output filename is empty. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="885"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="890"/>
         <source># Load: Substrate data - text file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="924"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="929"/>
         <source>Error: no input .hyd file selected. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="929"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="934"/>
         <source>Error: no input .sub file selected. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="934"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="939"/>
         <source>Error: .hab filename output is empty. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="942"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="947"/>
         <source>No hydrological file available 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="948"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="953"/>
         <source>No substrate file available 
 </source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="322"/>
+        <source>Create .sub file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="327"/>
+        <source>Create .hab file</source>
+        <translation type="unfinished">Criar arquivo .hab</translation>
     </message>
 </context>
 <context>
@@ -4714,27 +4774,27 @@ Feche-os e tente novamente.</translation>
 <context>
     <name>calcul_hab_mod</name>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="262"/>
+        <location filename="../src/calcul_hab_mod.py" line="281"/>
         <source>One time step misses substrate, velocity or water height value.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="335"/>
+        <location filename="../src/calcul_hab_mod.py" line="354"/>
         <source>Unknown habitat values produced for </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="320"/>
+        <location filename="../src/calcul_hab_mod.py" line="339"/>
         <source>, his suitability curve range is not sufficient according to the hydraulics of unit(s) : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="335"/>
+        <location filename="../src/calcul_hab_mod.py" line="354"/>
         <source> of reach : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="335"/>
+        <location filename="../src/calcul_hab_mod.py" line="354"/>
         <source>, the shear stress data present unknown values in unit(s) : </source>
         <translation type="unfinished"></translation>
     </message>
@@ -4888,67 +4948,67 @@ Feche-os e tente novamente.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1500"/>
+        <location filename="../src/substrate_mod.py" line="1508"/>
         <source>The selected shapefile is not accompanied by its habby .txt file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1612"/>
+        <location filename="../src/substrate_mod.py" line="1620"/>
         <source>The classification code in .txt file is not recognized : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1617"/>
+        <location filename="../src/substrate_mod.py" line="1625"/>
         <source>The name &apos;substrate_classification_code=&apos; is not found in .txt file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1625"/>
+        <location filename="../src/substrate_mod.py" line="1633"/>
         <source>The classification method in .txt file is not recognized : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1631"/>
+        <location filename="../src/substrate_mod.py" line="1639"/>
         <source>The name &apos;substrate_classification_method=&apos; is not found in .txt file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1568"/>
+        <location filename="../src/substrate_mod.py" line="1576"/>
         <source>Default values can&apos;t be converted to integer : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1574"/>
+        <location filename="../src/substrate_mod.py" line="1582"/>
         <source>The name &apos;default_values=&apos; is not found in .txt file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1434"/>
+        <location filename="../src/substrate_mod.py" line="1442"/>
         <source>The selected file don&apos;t exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1440"/>
+        <location filename="../src/substrate_mod.py" line="1448"/>
         <source>This text file is not a valid point substrate.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1449"/>
+        <location filename="../src/substrate_mod.py" line="1457"/>
         <source>The name &apos;EPSG=&apos; is not found in .txt file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1599"/>
+        <location filename="../src/substrate_mod.py" line="1607"/>
         <source>The selected text file don&apos;t exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1643"/>
+        <location filename="../src/substrate_mod.py" line="1651"/>
         <source>Constant values can&apos;t be converted to integer : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1648"/>
+        <location filename="../src/substrate_mod.py" line="1656"/>
         <source>The name &apos;constant_values=&apos; is not found in .txt file.</source>
         <translation type="unfinished"></translation>
     </message>

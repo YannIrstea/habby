@@ -200,6 +200,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                  send_log=self.send_log,
                                                  process_type="hab",
                                                  send_refresh_filenames=self.allmodels_presence)  # load_polygon_substrate_pushbutton
+        self.progress_layout.run_stop_button.setText(self.tr("Compute habitat"))
 
         # 5 column
         self.presence_scrollbar = self.presence_qtablewidget.verticalScrollBar()

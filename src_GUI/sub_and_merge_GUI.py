@@ -306,18 +306,23 @@ class SubstrateAndMerge(QWidget):
                                                  send_log=self.send_log,
                                                  process_type="sub",
                                                  send_refresh_filenames=self.drop_hydro)  # load_polygon_substrate_pushbutton
+        self.progress_layout_polygon.run_stop_button.setText(self.tr("Create .sub file"))
         self.progress_layout_point = ProcessProgLayout(lambda: self.load_sub_gui('point'),
                                                  send_log=self.send_log,
                                                  process_type="sub",
                                                  send_refresh_filenames=self.drop_hydro)  # load_polygon_substrate_pushbutton
+        self.progress_layout_point.run_stop_button.setText(self.tr("Create .sub file"))
         self.progress_layout_constant = ProcessProgLayout(lambda: self.load_sub_gui('constant'),
                                                  send_log=self.send_log,
                                                  process_type="sub",
                                                  send_refresh_filenames=self.drop_hydro)  # load_polygon_substrate_pushbutton
+        self.progress_layout_constant.run_stop_button.setText(self.tr("Create .sub file"))
         self.progress_layout_merge = ProcessProgLayout(self.compute_merge,
                                                  send_log=self.send_log,
                                                  process_type="merge",
                                                  send_refresh_filenames=self.drop_merge)  # load_polygon_substrate_pushbutton
+        self.progress_layout_merge.run_stop_button.setText(self.tr("Create .hab file"))
+
         # POLYGON GROUP
         self.layout_polygon = QGridLayout()  # 4 rows et 3 columns
         self.layout_polygon.addWidget(filetitle_polygon_label, 0, 0)  # 0 line
