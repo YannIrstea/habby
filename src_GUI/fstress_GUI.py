@@ -615,7 +615,6 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.send_log.emit('Error: qhw.txt file not found.(2)')
             self.qhw.append([])
 
-
     def load_all_fish(self):
         """
         This function find the preference file, load the preference coefficient for each invertebrate and show their name
