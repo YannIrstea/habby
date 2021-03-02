@@ -177,7 +177,7 @@ class HydraulicSimulationResultsAnalyzer:
             selectedfiles_textfiles_matching = False
 
             # read text file
-            with open(self.index_hydrau_file_path, 'rt') as f:
+            with open(self.index_hydrau_file_path, 'rt', encoding="utf-8") as f:
                 dataraw = f.read()
             # get epsg code
             epsg_code = dataraw.split("\n")[0].split("EPSG=")[1].strip()
@@ -1017,7 +1017,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
             text = epsg_code + "\n" + headers + "\n" + linetowrite
 
         # write text file
-        with open(filename_path, 'wt') as f:
+        with open(filename_path, 'wt', encoding="utf-8") as f:
             f.write(text)
 
     else:
@@ -1092,7 +1092,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 text = text + "\n" + linetowrite
 
         # write text file
-        with open(filename_path, 'wt') as f:
+        with open(filename_path, 'wt', encoding="utf-8") as f:
             f.write(text)
 
 
