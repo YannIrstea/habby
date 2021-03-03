@@ -19,7 +19,7 @@ from multiprocessing import Process, Queue, Value, Event
 
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QGroupBox, \
     QComboBox, QTableWidget, \
     QSizePolicy, QFrame, QCheckBox, QWidget
 
@@ -232,13 +232,15 @@ class BioInfo(estimhab_GUI.StatModUseful):
         layout_prov_input.addWidget(self.habitat_file_combobox)
         self.layout4.addLayout(layout_prov_input, 0, 0, 1, 4, Qt.AlignLeft)  #
 
+        model_groupbox = QGroupBox(self.tr("Model to compute"))
         layout_prov = QGridLayout()
         layout_prov.addWidget(self.explore_bio_model_pushbutton, 0, 0)
         layout_prov.addWidget(self.create_duplicate_from_selection_pushbutton, 1, 0)
         layout_prov.addWidget(self.remove_all_bio_model_pushbutton, 0, 1)
         layout_prov.addWidget(self.remove_sel_bio_model_pushbutton, 1, 1)
         layout_prov.addWidget(self.remove_duplicate_model_pushbutton, 2, 1)
-        self.layout4.addLayout(layout_prov, 1, 0, 1, 4, Qt.AlignLeft)  #
+        model_groupbox.setLayout(layout_prov)
+        self.layout4.addWidget(model_groupbox, 1, 0, 1, 4, Qt.AlignLeft)  #
 
         # 1 column
         self.layout4.addWidget(self.bio_model_choosen_title_label, 2, 0)
