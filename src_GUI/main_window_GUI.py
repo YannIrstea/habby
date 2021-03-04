@@ -999,6 +999,8 @@ class MainWindows(QMainWindow):
             user_preferences.data["language"] = language
             user_preferences.save_user_preferences_json()
 
+        self.run_as_beta_version()
+
         # open at the old tab
         self.central_widget.tab_widget.setCurrentIndex(ind_tab)
 
