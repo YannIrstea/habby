@@ -1,2 +1,0 @@
--r requirements.txt
-GDAL==2.4.0

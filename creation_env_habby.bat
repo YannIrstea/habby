@@ -1,44 +1,29 @@
-:: install python + pip install virtualenv if use
+:::::::::::::::::::::::::::: PYTHON PATH and GDAL wheel filename ::::::::::::::::::::::::::::
+SET python_source_path=%HOMEPATH%\AppData\Local\Programs\Python\Python39\python.exe
+SET gdal_wheel_path="C:\habby_dev\dependence\GDAL-3.2.1-cp39-cp39-win_amd64.whl"
 
+:::::::::::::::::::::::::::: HABBY PYTHON VIRTUAL ENV PATH :::::::::::::::
+SET habby_dev_path=C:\habby_dev
+SET envir_virtuel_path=%habby_dev_path%\env_virtuels\env_habby_dev_pip
+SET habby_path=%habby_dev_path%\habby
 
-:::::::::::::::::::::::::::: CREATION ENVIRONNEMENT VIRTUEL POUR HABBY :::::::::::::::
-SET python_source_path=C:\Users\Leonardo\AppData\Local\Programs\Python\Python37-32\python.exe
-SET envir_virtuel_path=C:\habby_dev\env_virtuels\env_habby_dev
-SET habby_path=C:\habby_dev\habby
+:::::::::::::::::::::::::::: HABBY PYTHON VIRTUAL ENV CREATION :::::::::::::::
+%python_source_path% -m venv %envir_virtuel_path%
 
-:::::::::::::::::::::::::::: CREATION ENVIRONNEMENT VIRTUEL POUR HABBY :::::::::::::::
-python -m venv %envir_virtuel_path%
-
-:::::::::::::::::::::::::::: ACTIVATION ENVIRONNEMENT VIRTUEL :::::::::::::::
-call %envir_virtuel_path%\Scripts\activate.bat
+:::::::::::::::::::::::::::: HABBY PYTHON VIRTUAL ENV CREATION ACTIVATION :::::::::::::::
+::call %envir_virtuel_path%\Scripts\activate.bat
 ::call %envir_virtuel_path%\Scripts\Deactivate
 
-
-:::::::::::::::::::::::::::: INSTALLATION MODULES POUR HABBY :::::::::::::::
+:::::::::::::::::::::::::::: HABBY PYTHON VIRTUAL ENV CREATION MODULE INSTALLATION :::::::::::::::
 %envir_virtuel_path%/Scripts/python.exe -m pip install --upgrade pip
 %envir_virtuel_path%/Scripts/pip install setuptools --upgrade
-%envir_virtuel_path%/Scripts/pip install -r requ_windows.txt
-::%envir_virtuel_path%/Scripts/pip install numpy==1.15.3
-::%envir_virtuel_path%/Scripts/pip install PyQt5==5.11.3
-::%envir_virtuel_path%/Scripts/pip install h5py==2.8.0rc1
-::%envir_virtuel_path%/Scripts/pip install matplotlib==3.0.0
-::%envir_virtuel_path%/Scripts/pip install scipy==1.1.0
-:: pour triangle : avoir prealablement installer ca : "go.microsoft.com/fwlink/?LinkId=691126&fixForIE=.exe." ou via la .whl
-::%envir_virtuel_path%/Scripts/pip install triangle==20170429  
-::%envir_virtuel_path%/Scripts/pip install %envir_virtuel_path%/packages_python_wheel/GDAL-2.4.1-cp36-cp36m-win_amd64.whl
-::%envir_virtuel_path%/Scripts/pip install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
-::%envir_virtuel_path%/Scripts/pip install cx_Freeze==5.1.1
-
+%envir_virtuel_path%/Scripts/pip install -r requirements.txt
+:: gdal : dowload wheel from : https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal and set install it with pip
+%envir_virtuel_path%/Scripts/pip install %gdal_wheel_path%
 
 :::::::::::::::::::::::::::: RUN HABBY :::::::::::::::
 cd %habby_path%
 %envir_virtuel_path%/Scripts/python habby.py
-
-
-
-::pyinstaller --windowed --onefile --icon=homer.ico PyProcessMemoryAnalysis.py
-
-
 
 :: Get console open to see details
 @pause 
