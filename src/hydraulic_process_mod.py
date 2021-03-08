@@ -22,7 +22,7 @@ from io import StringIO
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from pandas import DataFrame
-from multiprocessing import Pool, Lock
+from multiprocessing import Pool, Lock, cpu_count
 
 from src.merge import merge, setup
 from src.hydrosignature import hscomparison
@@ -1523,7 +1523,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
 
             # start jobs
             lock = Lock()  # to share progress_value
-            pool = Pool(processes=4, initializer=setup, initargs=[progress_value, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[progress_value, lock])
             results = pool.starmap(merge, input_data)
 
             # for each reach

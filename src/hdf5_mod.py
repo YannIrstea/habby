@@ -21,7 +21,7 @@ import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from PyQt5.QtCore import QLocale
 from stl import mesh
-from multiprocessing import Value, Pool, Lock
+from multiprocessing import Value, Pool, Lock, cpu_count
 import shutil
 from pandas import DataFrame
 
@@ -1346,7 +1346,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_mesh_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1399,7 +1399,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_mesh_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1463,7 +1463,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_node_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1517,7 +1517,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_node_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1683,7 +1683,7 @@ class Hdf5Management:
         input_data = zip(name_list,
                          hvum_list,
                          unit_data_list)
-        pool = Pool(processes=4)
+        pool = Pool(processes=2)
         pool.starmap(export_manager.export_mesh_txt, input_data)
 
         if state is not None:
@@ -1725,7 +1725,7 @@ class Hdf5Management:
         input_data = zip(name_list,
                          hvum_list,
                          unit_data_list)
-        pool = Pool(processes=4)
+        pool = Pool(processes=2)
         pool.starmap(export_manager.export_point_txt, input_data)
 
         if state is not None:
@@ -1866,7 +1866,7 @@ class Hdf5Management:
             hab_animal_type_list,
             [self.project_preferences] * len(xmlfiles))
 
-        pool = Pool(processes=4)
+        pool = Pool(processes=2)
         pool.starmap(bio_info_mod.export_report, input_data)
 
         if state is not None:

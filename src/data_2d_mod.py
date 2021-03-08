@@ -408,6 +408,8 @@ class Data2d(list):
                 # all meshes are entirely wet
                 if all(mikle_keep):
                     print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
+                    # progress
+                    progress_value.value = progress_value.value + delta_unit
                     continue
                 # we cut the dry meshes and  the partially ones
                 else:
