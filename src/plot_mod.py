@@ -754,13 +754,13 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
     ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
     if len(sim_name) < 25:
-        ax[0].set_xticks(x_data, [])  #, rotation=rot
+        ax[0].set_xticks(x_data)  #, rotation=rot
     elif len(sim_name) < 100:
-        ax[0].set_xticks(x_data[::3], [])
+        ax[0].set_xticks(x_data[::3])
     elif len(sim_name) < 200:
-        ax[0].set_xticks(x_data[::10], [])
+        ax[0].set_xticks(x_data[::10])
     else:
-        ax[0].set_xticks(x_data[::20], [])
+        ax[0].set_xticks(x_data[::20])
     # remove ticks labels
     ax[0].xaxis.set_ticklabels([])
 
@@ -776,19 +776,19 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
     ax[1].set_ylim([-0.1, 1.1])
     if len(sim_name) < 25:
-        ax[1].set_xticks(x_data, [])  #, rotation=rot
+        ax[1].set_xticks(x_data)  #, rotation=rot
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name)
     elif len(sim_name) < 100:
-        ax[1].set_xticks(x_data[::3], [])
+        ax[1].set_xticks(x_data[::3])
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name[::3])
     elif len(sim_name) < 200:
-        ax[1].set_xticks(x_data[::10], [])
+        ax[1].set_xticks(x_data[::10])
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name[::10])
     else:
-        ax[1].set_xticks(x_data[::20], [])
+        ax[1].set_xticks(x_data[::20])
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name[::20])
     if date_presence or not is_constant:
