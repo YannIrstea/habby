@@ -15,10 +15,17 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from PyQt5.QtCore import QLocale
+import time
+from multiprocessing import Value
+import matplotlib as mpl
+from PyQt5.QtCore import QLocale, QCoreApplication as qt_tr
 import numpy as np
+from matplotlib import pyplot as plt
 from osgeo import ogr
 from osgeo import osr
+
+from src.bio_info_mod import get_biomodels_informations_for_database, read_pref
+from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
 
 
 def setup(t, l):
@@ -27,10 +34,166 @@ def setup(t, l):
     lock = l
 
 
+""" animal report """
+
+
+def export_report(xmlfile, hab_animal_type, project_preferences, delta_animal):
+    # plt.close()
+    plt.rcParams['figure.figsize'] = 21, 29.7  # a4
+    plt.rcParams['font.size'] = 24
+
+    information_model_dict = get_biomodels_informations_for_database(xmlfile)
+
+    # read additionnal info
+    attributes = ['Description', 'Image', 'French_common_name',
+                  'English_common_name', ]
+    # careful: description is last data returned
+    path_bio = os.path.dirname(xmlfile)
+    path_im_bio = path_bio
+    xmlfile = os.path.basename(xmlfile)
+    # data = load_xml_name(path_bio, attributes, [xmlfile])
+
+    # create figure
+    fake_value = Value("d", 0)
+
+    if information_model_dict["ModelType"] != "bivariate suitability index models":
+        # fish
+        if hab_animal_type == "fish":
+            # read pref
+            h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
+                read_pref(xmlfile, hab_animal_type)
+            # plot
+            fig, axe_curve = plot_suitability_curve(fake_value,
+                                                    h_all,
+                                                    vel_all,
+                                                    sub_all,
+                                                    information_model_dict["CdBiologicalModel"],
+                                                    name_fish,
+                                                    stages,
+                                                    information_model_dict["substrate_type"],
+                                                    sub_code,
+                                                    project_preferences,
+                                                    True)
+        # invertebrate
+        else:
+            # open the pref
+            shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
+                read_pref(xmlfile, hab_animal_type)
+            # plot
+            fig, axe_curve = plot_suitability_curve_invertebrate(fake_value,
+                                                                 shear_stress_all, hem_all, hv_all,
+                                                                 code_fish, name_fish,
+                                                                 stages, project_preferences, True)
+    else:
+        # open the pref
+        [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = read_pref(xmlfile,
+                                                                                       hab_animal_type)
+        state_fake = Value("d", 0)
+        fig, axe_curve = plot_suitability_curve_bivariate(state_fake,
+                                                          h_all,
+                                                          vel_all,
+                                                          pref_values_all,
+                                                          code_fish,
+                                                          name_fish,
+                                                          stages,
+                                                          project_preferences,
+                                                          True)
+    # get axe and fig
+    # fig = plt.gcf()
+    # axe_curve = plt.gca()
+
+    # modification of the orginal preference fig
+    # (0,0) is bottom left - 1 is the end of the page in x and y direction
+    # plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
+    plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
+    # position for the image
+
+    # HABBY and date
+    plt.figtext(0.8, 0.97, 'HABBY - ' + time.strftime("%d %b %Y"))
+
+    # REPORT title
+    plt.figtext(0.1, 0.92, "REPORT - " + name_fish,
+                fontsize=55,
+                weight='bold',
+                bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
+
+    # Informations title
+    list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
+                     qt_tr.translate("hdf5_mod", "Common Name:"),
+                     qt_tr.translate("hdf5_mod", "Code biological model:"),
+                     qt_tr.translate("hdf5_mod", "ONEMA fish code:"),
+                     qt_tr.translate("hdf5_mod", "Stage chosen:"),
+                     qt_tr.translate("hdf5_mod", "Description:")]
+    list_of_title_str = "\n\n".join(list_of_title)
+    plt.figtext(0.1, 0.7,
+                list_of_title_str,
+                weight='bold',
+                fontsize=32)
+
+    # Informations text
+    text_all = name_fish + '\n\n' + information_model_dict["common_name_dict"][1] + '\n\n' + information_model_dict[
+        "CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
+    for idx, s in enumerate(stages):
+        text_all += s + ', '
+    text_all = text_all[:-2] + '\n\n'
+    plt.figtext(0.4, 0.7, text_all, fontsize=32)
+
+    # description
+    newax = fig.add_axes([0.4, 0.55, 0.30, 0.16], anchor='C',
+                         zorder=-1, frameon=False)
+    newax.name = "description"
+    newax.xaxis.set_ticks([])  # remove ticks
+    newax.yaxis.set_ticks([])  # remove ticks
+    if len(information_model_dict["description"]) > 350:
+        decription_str = information_model_dict["description"][:350] + '...'
+    else:
+        decription_str = information_model_dict["description"]
+    newax.text(0.0, 1.0, decription_str,  # 0.4, 0.71,
+               wrap=True,
+               fontsize=32,
+               # bbox={'facecolor': 'grey',
+               #       'alpha': 0.15},
+               va='top',
+               ha="left")  #, transform=newax.transAxes
+
+    # add a fish image
+    if path_im_bio:
+        fish_im_name = os.path.join(os.getcwd(), information_model_dict["path_img"])
+        if os.path.isfile(fish_im_name):
+            im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
+            newax = fig.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
+                                 zorder=-1)
+            newax.imshow(im)
+            newax.axis('off')
+
+    # move suptitle
+    fig.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
+                 x=0.5, y=0.54,
+                 fontsize=32,
+                 weight='bold')
+
+    # filename
+    filename = os.path.join(project_preferences['path_figure'], 'report_' + information_model_dict["CdBiologicalModel"] +
+                            project_preferences["format"])
+
+    # save
+    try:
+        plt.savefig(filename)
+        plt.close(fig)
+        plt.clf()
+    except PermissionError:
+        print(
+            'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
+
+    # progress
+    with lock:
+        progress_value.value = progress_value.value + delta_animal
+
+
 """ txt """
 
 
-def export_point_txt(name, hvum, unit_data):
+def export_point_txt(name, hvum, unit_data, delta_node):
     # name, hvum, unit_data = args
     # open text to write
     with open(name, 'wt', encoding='utf-8') as f:
@@ -59,6 +222,10 @@ def export_point_txt(name, hvum, unit_data):
                 text_to_write_str += "\t" + str(
                     unit_data["node"]["data"][node_variable_name][point_num])
 
+            # progress
+            with lock:
+                progress_value.value = progress_value.value + delta_node
+
         # change decimal point
         locale = QLocale()
         if locale.decimalPoint() == ",":
@@ -68,7 +235,7 @@ def export_point_txt(name, hvum, unit_data):
         f.write(text_to_write_str)
 
 
-def export_mesh_txt(name, hvum, unit_data):
+def export_mesh_txt(name, hvum, unit_data, delta_mesh):
     # name, hvum, unit_data = args
     # open text to write
     with open(name, 'wt', encoding='utf-8') as f:
@@ -99,6 +266,10 @@ def export_mesh_txt(name, hvum, unit_data):
                 data_list.append(str(
                     unit_data["mesh"]["data"][mesh_variable_name][mesh_num]))
             text_to_write_str += "\t".join(data_list)
+
+            # progress
+            with lock:
+                progress_value.value = progress_value.value + delta_mesh
 
         # change decimal point
         locale = QLocale()
@@ -307,5 +478,4 @@ if __name__ == '__main__':
                              user_target_list=load_project_properties(path_prj))
     hdf5_hydro.export_gpkg_mesh_whole_profile()
     # hdf5_hydro.export_gpkg_mesh_units()
-
 
