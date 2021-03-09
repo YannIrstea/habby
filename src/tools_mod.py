@@ -152,6 +152,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
         spu = np.array(animal.wua[reach_number])
         inter_data_model["hv_" + animal.name] = spu / wet_area
         inter_data_model["spu_" + animal.name] = spu
+        inter_data_model["si_" + animal.name] = animal.percent_area_unknown[reach_number]
 
     # copy chonicle to interpolated
     chronicle_interpolated = deepcopy(chronicle)
@@ -159,6 +160,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
     for animal in animal_list:
         chronicle_interpolated["hv_" + animal.name] = []
         chronicle_interpolated["spu_" + animal.name] = []
+        chronicle_interpolated["si_" + animal.name] = []
     # copy for round for table gui
     chronicle_gui = deepcopy(chronicle_interpolated)
     # get min max
@@ -174,22 +176,34 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
                     chronicle_gui["hv_" + animal.name].append("")
                     chronicle_interpolated["spu_" + animal.name].append(None)
                     chronicle_gui["spu_" + animal.name].append("")
+                    chronicle_interpolated["si_" + animal.name].append(None)
+                    chronicle_gui["si_" + animal.name].append("")
                 else:
                     data_interp_hv = np.interp(q_value_to_est,
                                                inter_data_model["unit"],
                                                inter_data_model["hv_" + animal.name])
                     chronicle_interpolated["hv_" + animal.name].append(data_interp_hv)
                     chronicle_gui["hv_" + animal.name].append("{0:.2f}".format(data_interp_hv))
+
                     data_interp_spu = np.interp(q_value_to_est,
                                                 inter_data_model["unit"],
                                                 inter_data_model["spu_" + animal.name])
                     chronicle_interpolated["spu_" + animal.name].append(data_interp_spu)
                     chronicle_gui["spu_" + animal.name].append("{0:.0f}".format(data_interp_spu))
-            if q_value_to_est == None:
+
+                    data_interp_si = np.interp(q_value_to_est,
+                                                inter_data_model["unit"],
+                                                inter_data_model["si_" + animal.name])
+                    chronicle_interpolated["si_" + animal.name].append(data_interp_si)
+                    chronicle_gui["si_" + animal.name].append("{0:.0f}".format(data_interp_si))
+
+            if q_value_to_est is None:
                 chronicle_interpolated["hv_" + animal.name].append(None)
                 chronicle_gui["hv_" + animal.name].append("")
                 chronicle_interpolated["spu_" + animal.name].append(None)
                 chronicle_gui["spu_" + animal.name].append("")
+                chronicle_interpolated["si_" + animal.name].append(None)
+                chronicle_gui["si_" + animal.name].append("")
 
     # round for GUI
     if rounddata:
@@ -232,6 +246,8 @@ def export_text_interpolatevalues(state, data_to_table, horiz_headers, vertical_
             fish_names[fish_num] = fish_name.replace("hv_", "")
         if "spu_" in fish_name:
             fish_names[fish_num] = fish_name.replace("spu_", "")
+        if "si_" in fish_name:
+            fish_names[fish_num] = fish_name.replace("si_", "")
 
     # header 1
     if project_preferences['language'] == 0:
@@ -247,19 +263,22 @@ def export_text_interpolatevalues(state, data_to_table, horiz_headers, vertical_
         else:
             header = 'troncon\tunit'
     if project_preferences['language'] == 0:
-        header += "".join(['\tHV' + str(i) for i in range(int(len(fish_names) / 2))])
-        header += "".join(['\tWUA' + str(i) for i in range(int(len(fish_names) / 2))])
+        header += "".join(['\tHV' + str(i) for i in range(int(len(fish_names) / 3))])
+        header += "".join(['\tWUA' + str(i) for i in range(int(len(fish_names) / 3))])
+        header += "".join(['\tUA' + str(i) for i in range(int(len(fish_names) / 3))])
     else:
-        header += "".join(['\tVH' + str(i) for i in range(int(len(fish_names) / 2))])
-        header += "".join(['\tSPU' + str(i) for i in range(int(len(fish_names) / 2))])
+        header += "".join(['\tVH' + str(i) for i in range(int(len(fish_names) / 3))])
+        header += "".join(['\tSPU' + str(i) for i in range(int(len(fish_names) / 3))])
+        header += "".join(['\tSI' + str(i) for i in range(int(len(fish_names) / 3))])
     header += '\n'
     # header 2
     if len(types.keys()) > 1:  # date
         header += '[]\t[' + date_type + ']\t[' + unit_type + ']'
     else:
         header += '[]\t[' + unit_type + ']'
-    header += "".join(['\t[]' for _ in range(int(len(fish_names) / 2))])
-    header += "".join(['\t[m2]' for _ in range(int(len(fish_names) / 2))])
+    header += "".join(['\t[]' for _ in range(int(len(fish_names) / 3))])
+    header += "".join(['\t[m2]' for _ in range(int(len(fish_names) / 3))])
+    header += "".join(['\t[%]' for _ in range(int(len(fish_names) / 3))])
     header += '\n'
     # header 3
     if len(types.keys()) > 1:  # date
