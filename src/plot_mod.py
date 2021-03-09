@@ -30,6 +30,7 @@ from matplotlib import colors
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import mplcursors
 from PIL import Image
+from copy import copy
 # from mayavi import mlab
 
 from src import tools_mod
@@ -290,7 +291,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
 
     # title and filename
     title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
@@ -1034,7 +1035,7 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1083,7 +1084,7 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1277,7 +1278,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1332,7 +1333,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1381,7 +1382,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1430,7 +1431,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1479,7 +1480,7 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1528,7 +1529,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1577,7 +1578,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1628,7 +1629,7 @@ def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_descripti
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1685,7 +1686,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1734,7 +1735,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1783,7 +1784,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1903,7 +1904,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = light_data_2d.data_extent # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map

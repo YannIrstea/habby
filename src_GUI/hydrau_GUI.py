@@ -361,7 +361,7 @@ class ModelInfoGroup(QGroupBox):
             self.clean_gui()
             # extensions
             # self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
-            self.result_file_title_label.setText(self.tr('Result file (' + self.extension + ')'))
+            self.result_file_title_label.setText(self.tr('Result file (') + self.extension + ')')
             self.name_last_hdf5(self.model_type)
             self.show()
 

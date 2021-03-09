@@ -41,7 +41,7 @@ class ProcessProgLayout(QHBoxLayout):
         # run_stop_button
         self.run_stop_button = QPushButton(self.tr("run"))
         self.run_stop_button.setMaximumHeight(widget_height)
-        change_button_color(self.run_stop_button, "#47B5E6")
+        change_button_color(self.run_stop_button, "#47B5E6")#47B5E6
         self.run_stop_button.clicked.connect(run_function)  # self.collect_data_from_gui_and_plot
         self.run_stop_button.setEnabled(False)
 
