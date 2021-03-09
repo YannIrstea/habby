@@ -489,7 +489,8 @@ class Stathab:
             [0.00001, 0.0001, 0.00028, 0.00125, 0.005, 0.012, 0.024, 0.048, 0.096, 0.192, 0.640, 1.536])  # WHY?
         nb_reach = len(self.name_reach)
         find_one_fish = False
-        [name_fish, coeff_all] = load_pref(name_pref, path_pref)
+        #TODO  plus utile basé sur  Pref_latin.txt load_pref ne servira plus
+        # [name_fish, coeff_all] = load_pref(name_pref, path_pref)
 
         # choose which fish are studied
         coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
