@@ -31,7 +31,7 @@ from src import hl_mod
 from src import paraview_mod
 from src.export_manager import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, setup
 from src.project_properties_mod import load_project_properties, save_project_properties
-from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
+from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles, strip_accents
 from src.data_2d_mod import Data2d
 from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
 
@@ -378,7 +378,7 @@ class Hdf5Management:
                 self.basename_output_reach_unit.append([])
                 self.units_name_output.append([])
                 for unit_number in range(self.data_2d.unit_number):
-                    reach_name = self.data_2d[reach_number][unit_number].reach_name
+                    reach_name = strip_accents(self.data_2d[reach_number][unit_number].reach_name)
                     unit_name = self.data_2d[reach_number][unit_number].unit_name
                     self.basename_output_reach_unit[reach_number].append(self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
                     if unit_type != 'unknown':
@@ -1545,9 +1545,9 @@ class Hdf5Management:
                     for j in range(3):
                         stl_file.vectors[i][j] = xyz[f[j], :]
                 # filename
-                name_file = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + \
+                name_file = strip_accents(self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + \
                             self.data_2d_whole.unit_list[reach_number][
-                                unit_number] + "_wholeprofile_mesh.stl"
+                                unit_number] + "_wholeprofile_mesh.stl")
 
                 if self.project_preferences['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
@@ -1624,7 +1624,7 @@ class Hdf5Management:
                                              cellData)
 
         # create the "grouping" file to read all time step together
-        name_here = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + self.project_preferences[
+        name_here = self.basename + "_" + strip_accents(self.data_2d.reach_list[reach_number]) + "_" + self.project_preferences[
             'pvd_variable_z'] + ".pvd"
         file_names_all = list(map(os.path.basename, file_names_all))
         if self.project_preferences['erase_id']:  # erase file if exist ?

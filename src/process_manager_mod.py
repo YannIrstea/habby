@@ -229,7 +229,7 @@ class MyProcessManager(QThread):
             for reach_name in reach:
                 reach_number = light_data_2d.reach_list.index(reach_name)
 
-                # hab data (HV and WUA)
+                # hab data (HV and WUA) not maps
                 if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stopped:
                     # class MyProcess
                     progress_value = Value("d", 0.0)

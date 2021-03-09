@@ -26,6 +26,7 @@ import numpy as np
 from PyQt5.QtCore import QTranslator, QCoreApplication as qt_tr
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QLocale
+import unicodedata
 
 from src.project_properties_mod import load_project_properties
 
@@ -648,6 +649,12 @@ def frange(start, stop, step):
     while i <= stop:
         yield i
         i += step
+
+
+def strip_accents(s):
+    return ''.join(c for c in unicodedata.normalize('NFD', s)
+                   if unicodedata.category(c) != 'Mn')
+
 
 #
 # OGRwkbGeometryType = dict(
