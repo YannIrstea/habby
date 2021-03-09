@@ -30,6 +30,7 @@ from matplotlib import colors
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import mplcursors
 from PIL import Image
+from copy import copy
 # from mayavi import mlab
 
 from src import tools_mod
@@ -290,7 +291,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
     mpl.rcParams['axes.grid'] = project_preferences['grid']
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
 
     # title and filename
     title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
@@ -518,6 +519,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
         vh = data_bar2 / area_all[reach_number]
         ax[1].bar(y_pos, vh)
         ax[1].set_xticks(y_pos)
+        ax[1].set_ylim([-0.1, 1.1])
         # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
         # ax[1].xaxis.set_tick_params(rotation=15)
         ax[1].set_xticklabels([])
@@ -593,6 +595,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
                      linestyle=style_list[fish_index],
                        marker=mar)
 
+        ax[1].set_ylim([-0.1, 1.1])
         ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI (WUA/A) []'))
         ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value'))
         if len(unit_name) < 25:
@@ -733,9 +736,9 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
             map(str, sim_name[::10])) + ".. "
 
     if not is_constant:
-        fig, ax = plt.subplots(3, 1, sharex=True)
+        fig, ax = plt.subplots(4, 1, sharex=True)
     else:
-        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig, ax = plt.subplots(3, 1, sharex=True)
     fig.canvas.set_window_title(plot_window_title)
 
     # SPU
@@ -753,13 +756,13 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
     ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
     if len(sim_name) < 25:
-        ax[0].set_xticks(x_data, [])  #, rotation=rot
+        ax[0].set_xticks(x_data)  #, rotation=rot
     elif len(sim_name) < 100:
-        ax[0].set_xticks(x_data[::3], [])
+        ax[0].set_xticks(x_data[::3])
     elif len(sim_name) < 200:
-        ax[0].set_xticks(x_data[::10], [])
+        ax[0].set_xticks(x_data[::10])
     else:
-        ax[0].set_xticks(x_data[::20], [])
+        ax[0].set_xticks(x_data[::20])
     # remove ticks labels
     ax[0].xaxis.set_ticklabels([])
 
@@ -775,58 +778,70 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
     ax[1].set_ylim([-0.1, 1.1])
     if len(sim_name) < 25:
-        ax[1].set_xticks(x_data, [])  #, rotation=rot
+        ax[1].set_xticks(x_data)  #, rotation=rot
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name)
     elif len(sim_name) < 100:
-        ax[1].set_xticks(x_data[::3], [])
+        ax[1].set_xticks(x_data[::3])
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name[::3])
     elif len(sim_name) < 200:
-        ax[1].set_xticks(x_data[::10], [])
+        ax[1].set_xticks(x_data[::10])
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name[::10])
     else:
-        ax[1].set_xticks(x_data[::20], [])
+        ax[1].set_xticks(x_data[::20])
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name[::20])
     if date_presence or not is_constant:
         # remove ticks labels
         ax[1].xaxis.set_ticklabels([])
+
+    # % inconnu
+    for name_fish_num, animal in enumerate(animal_list):
+        y_data_hv = data_to_table["si_" + animal.name]
+        ax[2].plot(x_data, y_data_hv,
+                   color=color_list[name_fish_num],
+                   linestyle=style_list[name_fish_num],
+                   label=animal.name.replace('_', ' '),
+                   marker=mar)
+    ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
+    ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
     # all case
     if is_constant:
-        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type.replace("m3/s", "$m^3$/s") + ']')
+        ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type.replace("m3/s", "$m^3$/s") + ']')
 
     # unit
     if not is_constant:
-        ax[2].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
-        ax[2].set_title(qt_tr.translate("plot_mod", "Units"))
+        ax[3].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
+        ax[3].set_title(qt_tr.translate("plot_mod", "Units"))
         if date_presence:
-            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Chronicle [') + date_type + ']')
+            ax[3].set_xlabel(qt_tr.translate("plot_mod", 'Chronicle [') + date_type + ']')
         if not date_presence:
             if not is_constant:
-                ax[2].set_xlabel("")
+                ax[3].set_xlabel("")
             if is_constant:
-                ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
+                ax[3].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
 
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
+        ax[3].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
         if len(sim_name) < 25:
-            ax[2].set_xticks(x_data, sim_name)  # , rotation=45
+            ax[3].set_xticks(x_data)  # , rotation=45
+            ax[3].set_xticklabels(sim_name)
         elif len(sim_name) < 100:
-            ax[2].set_xticks(x_data[::3])
-            ax[2].set_xticklabels(sim_name[::3])
+            ax[3].set_xticks(x_data[::3])
+            ax[3].set_xticklabels(sim_name[::3])
         elif len(sim_name) < 200:
-            ax[2].set_xticks(x_data[::10])
-            ax[2].set_xticklabels(sim_name[::10])
+            ax[3].set_xticks(x_data[::10])
+            ax[3].set_xticklabels(sim_name[::10])
         else:
-            ax[2].set_xticks(x_data[::20])
-            ax[2].set_xticklabels(sim_name[::20])
-        ax[2].tick_params(axis='x', rotation=45)
+            ax[3].set_xticks(x_data[::20])
+            ax[3].set_xticklabels(sim_name[::20])
+        ax[3].tick_params(axis='x', rotation=45)
         if not date_presence and not is_constant:
             # remove ticks labels
-            ax[2].xaxis.set_ticklabels([])
+            ax[3].xaxis.set_ticklabels([])
         if date_presence:
-            ax[2].xaxis.set_major_formatter(date_format_mpl)
+            ax[3].xaxis.set_major_formatter(date_format_mpl)
 
     # LEGEND
     handles, labels = ax[0].get_legend_handles_labels()
@@ -1034,7 +1049,7 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1083,7 +1098,7 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1277,7 +1292,7 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1332,7 +1347,7 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1381,7 +1396,7 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1430,7 +1445,7 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1479,7 +1494,7 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1528,7 +1543,7 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1577,7 +1592,7 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1628,7 +1643,7 @@ def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_descripti
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1685,7 +1700,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1734,7 +1749,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1783,7 +1798,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1903,7 +1918,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = light_data_2d.data_extent # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map

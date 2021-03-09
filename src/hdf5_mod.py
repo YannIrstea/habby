@@ -21,17 +21,16 @@ import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from PyQt5.QtCore import QLocale
 from stl import mesh
-from multiprocessing import Value, Pool, Lock
+from multiprocessing import Value, Pool, Lock, cpu_count
 import shutil
 from pandas import DataFrame
 
-from src import bio_info_mod
-from src import export_manager
-from src import hl_mod
-from src import paraview_mod
-from src.export_manager import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, setup
+from src.hl_mod import unstructuredGridToVTK
+from src.paraview_mod import writePVD
+from src.export_manager import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, export_mesh_txt,\
+    setup, export_point_txt, export_report
 from src.project_properties_mod import load_project_properties, save_project_properties
-from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles
+from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles, strip_accents
 from src.data_2d_mod import Data2d
 from src.hydrosignature import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
 
@@ -378,7 +377,7 @@ class Hdf5Management:
                 self.basename_output_reach_unit.append([])
                 self.units_name_output.append([])
                 for unit_number in range(self.data_2d.unit_number):
-                    reach_name = self.data_2d[reach_number][unit_number].reach_name
+                    reach_name = strip_accents(self.data_2d[reach_number][unit_number].reach_name)
                     unit_name = self.data_2d[reach_number][unit_number].unit_name
                     self.basename_output_reach_unit[reach_number].append(self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
                     if unit_type != 'unknown':
@@ -1346,7 +1345,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_mesh_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1399,7 +1398,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_mesh_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1463,7 +1462,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_node_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1517,7 +1516,7 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
             pool.starmap(export_node_layer_to_gpkg, input_data)
 
             # merge_gpkg_to_one
@@ -1545,9 +1544,9 @@ class Hdf5Management:
                     for j in range(3):
                         stl_file.vectors[i][j] = xyz[f[j], :]
                 # filename
-                name_file = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + \
+                name_file = strip_accents(self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + \
                             self.data_2d_whole.unit_list[reach_number][
-                                unit_number] + "_wholeprofile_mesh.stl"
+                                unit_number] + "_wholeprofile_mesh.stl")
 
                 if self.project_preferences['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
@@ -1620,11 +1619,11 @@ class Hdf5Management:
                                                  self.project_preferences['pvd_variable_z']) + "_" + time.strftime(
                             "%d_%m_%Y_at_%H_%M_%S")
                 file_names_all.append(name_file + ".vtu")
-                hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
+                unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
                                              cellData)
 
         # create the "grouping" file to read all time step together
-        name_here = self.basename + "_" + self.data_2d.reach_list[reach_number] + "_" + self.project_preferences[
+        name_here = self.basename + "_" + strip_accents(self.data_2d.reach_list[reach_number]) + "_" + self.project_preferences[
             'pvd_variable_z'] + ".pvd"
         file_names_all = list(map(os.path.basename, file_names_all))
         if self.project_preferences['erase_id']:  # erase file if exist ?
@@ -1640,7 +1639,7 @@ class Hdf5Management:
                 name_here = self.basename + "_" + self.reach_name[reach_number] + "_" + self.project_preferences[
                     'pvd_variable_z'] + "_" + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + '.pvd'
-        paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
+        writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
                               part_timestep_indice)
 
         if state is not None:
@@ -1654,12 +1653,17 @@ class Hdf5Management:
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
+        # progress
+        delta_reach = 100 / self.data_2d.reach_number
 
         # for all reach
         name_list = []
         hvum_list = []
         unit_data_list = []
+        delta_mesh_list = []
         for reach_number in range(self.data_2d.reach_number):
+            # progress
+            delta_unit = delta_reach / self.data_2d.unit_number
             # for all units
             for unit_number in range(self.data_2d.unit_number):
                 name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
@@ -1678,13 +1682,18 @@ class Hdf5Management:
                 name_list.append(os.path.join(self.path_txt, name))
                 hvum_list.append(self.data_2d.hvum)
                 unit_data_list.append(self.data_2d[reach_number][unit_number])
+                delta_mesh_list.append(delta_unit / self.data_2d[reach_number][unit_number]["mesh"]["tin"].shape[0])
 
         # Pool
         input_data = zip(name_list,
                          hvum_list,
-                         unit_data_list)
-        pool = Pool(processes=4)
-        pool.starmap(export_manager.export_mesh_txt, input_data)
+                         unit_data_list,
+                         delta_mesh_list)
+        lock = Lock()  # to share progress_value
+        if state is None:
+            state = Value("d", 0.0)
+        pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
+        pool.starmap(export_mesh_txt, input_data)
 
         if state is not None:
             state.value = 100.0  # process finished
@@ -1696,12 +1705,18 @@ class Hdf5Management:
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
+        # progress
+        delta_reach = 100 / self.data_2d.reach_number
 
         # for all reach
         name_list = []
         hvum_list = []
         unit_data_list = []
+        delta_node_list = []
         for reach_number in range(self.data_2d.reach_number):
+            # progress
+            delta_unit = delta_reach / self.data_2d.unit_number
+
             # for all units
             for unit_number in range(self.data_2d.unit_number):
                 name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
@@ -1720,13 +1735,18 @@ class Hdf5Management:
                 name_list.append(os.path.join(self.path_txt, name))
                 hvum_list.append(self.data_2d.hvum)
                 unit_data_list.append(self.data_2d[reach_number][unit_number])
+                delta_node_list.append(delta_unit / self.data_2d[reach_number][unit_number]["node"]["xy"].shape[0])
 
         # Pool
         input_data = zip(name_list,
                          hvum_list,
-                         unit_data_list)
-        pool = Pool(processes=4)
-        pool.starmap(export_manager.export_point_txt, input_data)
+                         unit_data_list,
+                         delta_node_list)
+        lock = Lock()  # to share progress_value
+        if state is None:
+            state = Value("d", 0.0)
+        pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
+        pool.starmap(export_point_txt, input_data)
 
         if state is not None:
             state.value = 100.0  # process finished
@@ -1855,19 +1875,16 @@ class Hdf5Management:
         prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
         xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
 
-        # # create the pdf
-        # for idx, xmlfile in enumerate(xmlfiles):
-        #
-        #     bio_info_mod.export_report(xmlfile,
-        #                                hab_animal_type_list[idx],
-        #                                self.project_preferences)
-
         input_data = zip(xmlfiles,
             hab_animal_type_list,
-            [self.project_preferences] * len(xmlfiles))
+            [self.project_preferences] * len(xmlfiles),
+                         [100 / len(xmlfiles)] * len(xmlfiles))
 
-        pool = Pool(processes=4)
-        pool.starmap(bio_info_mod.export_report, input_data)
+        lock = Lock()  # to share progress_value
+        if state is None:
+            state = Value("d", 0.0)
+        pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
+        pool.starmap(export_report, input_data)
 
         if state is not None:
             state.value = 100.0  # process finished

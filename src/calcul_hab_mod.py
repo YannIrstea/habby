@@ -215,7 +215,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                             # print("Warning: hsi", hsi_sub_classification_code)
                             if data_2d_sub_classification_code == "Sandre" and hsi_sub_classification_code == "Cemagref":
                                 # convert substrate data_2d to Cemagref
-                                if len(hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()) > 2: # percentage
+                                if len(hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()) > 2:  # percentage
                                     sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
                                 else:
                                     sub_t = sandre_to_cemagref_array(sub_t)
@@ -231,7 +231,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                     s_pref_c_dom = pref_substrate_dominant_from_percentage_description(
                                         pref_sub[1], sub_t)
                                     s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                                elif hdf5.data_description["sub_classification_method"] == "coarser-dominant":
+                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
                                     s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
                                     s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
                                     s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
@@ -262,7 +262,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         try:
                             # HV
                             if "H" in animal.hyd_opt and "V" in animal.hyd_opt:
-                                hv = h_pref_c * v_pref_c * 1
+                                hv = h_pref_c * v_pref_c * s_pref_c
                                 hv[h_pref_c == 0] = 0
                                 hv[v_pref_c == 0] = 0
                                 hv[s_pref_c == 0] = 0

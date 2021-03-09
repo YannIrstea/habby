@@ -20,162 +20,7 @@ from datetime import datetime
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from lxml import etree as ET
-from multiprocessing import Value
-from matplotlib import pyplot as plt
-import matplotlib as mpl
-import time
-
-from src import hdf5_mod
-from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
-
-
-def export_report(xmlfile, hab_animal_type, project_preferences):
-    # plt.close()
-    plt.rcParams['figure.figsize'] = 21, 29.7  # a4
-    plt.rcParams['font.size'] = 24
-
-    information_model_dict = get_biomodels_informations_for_database(xmlfile)
-
-    # read additionnal info
-    attributes = ['Description', 'Image', 'French_common_name',
-                  'English_common_name', ]
-    # careful: description is last data returned
-    path_bio = os.path.dirname(xmlfile)
-    path_im_bio = path_bio
-    xmlfile = os.path.basename(xmlfile)
-    data = load_xml_name(path_bio, attributes, [xmlfile])
-
-    # create figure
-    fake_value = Value("d", 0)
-
-    if information_model_dict["ModelType"] != "bivariate suitability index models":
-        # fish
-        if hab_animal_type == "fish":
-            # read pref
-            h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = \
-                read_pref(xmlfile, hab_animal_type)
-            # plot
-            fig, axe_curve = plot_suitability_curve(fake_value,
-                                                    h_all,
-                                                    vel_all,
-                                                    sub_all,
-                                                    information_model_dict["CdBiologicalModel"],
-                                                    name_fish,
-                                                    stages,
-                                                    information_model_dict["substrate_type"],
-                                                    sub_code,
-                                                    project_preferences,
-                                                    True)
-        # invertebrate
-        else:
-            # open the pref
-            shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = \
-                read_pref(xmlfile, hab_animal_type)
-            # plot
-            fig, axe_curve = plot_suitability_curve_invertebrate(fake_value,
-                                                                 shear_stress_all, hem_all, hv_all,
-                                                                 code_fish, name_fish,
-                                                                 stages, project_preferences, True)
-    else:
-        # open the pref
-        [h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages] = read_pref(xmlfile,
-                                                                                       hab_animal_type)
-        state_fake = Value("d", 0)
-        fig, axe_curve = plot_suitability_curve_bivariate(state_fake,
-                                                          h_all,
-                                                          vel_all,
-                                                          pref_values_all,
-                                                          code_fish,
-                                                          name_fish,
-                                                          stages,
-                                                          project_preferences,
-                                                          True)
-    # get axe and fig
-    # fig = plt.gcf()
-    # axe_curve = plt.gca()
-
-    # modification of the orginal preference fig
-    # (0,0) is bottom left - 1 is the end of the page in x and y direction
-    # plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
-    plt.tight_layout(rect=[0.02, 0.02, 0.98, 0.53])
-    # position for the image
-
-    # HABBY and date
-    plt.figtext(0.8, 0.97, 'HABBY - ' + time.strftime("%d %b %Y"))
-
-    # REPORT title
-    plt.figtext(0.1, 0.92, "REPORT - " + name_fish,
-                fontsize=55,
-                weight='bold',
-                bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
-
-    # Informations title
-    list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
-                     qt_tr.translate("hdf5_mod", "Common Name:"),
-                     qt_tr.translate("hdf5_mod", "Code biological model:"),
-                     qt_tr.translate("hdf5_mod", "ONEMA fish code:"),
-                     qt_tr.translate("hdf5_mod", "Stage chosen:"),
-                     qt_tr.translate("hdf5_mod", "Description:")]
-    list_of_title_str = "\n\n".join(list_of_title)
-    plt.figtext(0.1, 0.7,
-                list_of_title_str,
-                weight='bold',
-                fontsize=32)
-
-    # Informations text
-    text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + information_model_dict[
-        "CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
-    for idx, s in enumerate(stages):
-        text_all += s + ', '
-    text_all = text_all[:-2] + '\n\n'
-    plt.figtext(0.4, 0.7, text_all, fontsize=32)
-
-    # description
-    newax = fig.add_axes([0.4, 0.55, 0.30, 0.16], anchor='C',
-                         zorder=-1, frameon=False)
-    newax.name = "description"
-    newax.xaxis.set_ticks([])  # remove ticks
-    newax.yaxis.set_ticks([])  # remove ticks
-    if len(data[0][-1]) > 350:
-        decription_str = data[0][-1][:350] + '...'
-    else:
-        decription_str = data[0][-1]
-    newax.text(0.0, 1.0, decription_str,  # 0.4, 0.71,
-               wrap=True,
-               fontsize=32,
-               # bbox={'facecolor': 'grey',
-               #       'alpha': 0.15},
-               va='top',
-               ha="left")  #, transform=newax.transAxes
-
-    # add a fish image
-    if path_im_bio:
-        fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
-        if os.path.isfile(fish_im_name):
-            im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
-            newax = fig.add_axes([0.078, 0.55, 0.25, 0.13], anchor='C',
-                                 zorder=-1)
-            newax.imshow(im)
-            newax.axis('off')
-
-    # move suptitle
-    fig.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
-                 x=0.5, y=0.54,
-                 fontsize=32,
-                 weight='bold')
-
-    # filename
-    filename = os.path.join(project_preferences['path_figure'], 'report_' + information_model_dict["CdBiologicalModel"] +
-                            project_preferences["format"])
-
-    # save
-    try:
-        plt.savefig(filename)
-        plt.close(fig)
-        plt.clf()
-    except PermissionError:
-        print(
-            'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
+import re
 
 
 def get_biomodels_informations_for_database(path_xml):
@@ -323,6 +168,16 @@ def get_biomodels_informations_for_database(path_xml):
     else:
         path_img = None
 
+    # Description
+    description = root.find(".//Description").text.strip()
+    description = re.sub("\s\s+", "\n", description)
+
+    # Common_name
+    common_name_el_list = root.findall('.//ComName')
+    common_name_list = []
+    for common_name in common_name_el_list:
+        common_name_list.append(common_name.text)
+
     # to dict
     information_model_dict = dict(country=country,
                                   aquatic_animal_type=aquatic_animal_type,
@@ -338,7 +193,9 @@ def get_biomodels_informations_for_database(path_xml):
                                   CdAlternative=CdAlternative,
                                   LatinName=LatinName,
                                   modification_date=modification_date,
-                                  path_img=path_img)
+                                  path_img=path_img,
+                                  description=description,
+                                  common_name_dict=common_name_list)
 
     return information_model_dict
 
@@ -416,146 +273,6 @@ def execute_request(path_bio, name_database, request):
         return
 
     return res
-
-
-def load_xml_name(path_bio, attributes, preffiles=[]):
-    """
-    This function looks for all preference curves found in the path_bio folder.
-    It extract the fish name and the stage.
-    to be corrected if more than one language. The name of attribute_acc
-    should be coherent with the one from the xml
-    file apart from the common name which should be in
-    the form language_common_name (so we can wirte something in the
-    GUI to get all langugage if we get something else than English or French).
-
-    If one use the argument preffiles, only part of the xml file are loaded.
-    Otherwise all xml file are loaded.
-
-    Careful, the first attribute is relgated at the last place of
-    the list return. This is confusing but it is really
-    useful for the GUI.
-
-    :param path_bio: the path to the biological function
-    :param attributes: the list of attribute which should be possible to search
-        from the GUI or, more generally
-        which should be in data-fish which is returned.
-    :param preffiles: If there is a list of string there,
-        it only read this files
-    :return: the list of stage/fish species with the info from [name for GUi,
-        s, xmlfilename, attribute_acc without s]
-    """
-    import sys
-    sys.stdout = sys.__stdout__
-    stages = []
-
-    if not preffiles:
-        # get all xml name
-        preffiles = hdf5_mod.get_all_filename(path_bio, '.xml')
-        if len(preffiles) < 1:
-            print('Error: no xml preference file found.\
-                Please check the biology folder. \n')
-            return
-
-    # for all xml file
-    found_one = False
-
-    data_fish = []
-    for preffile in preffiles:
-        data = [None] * len(attributes)
-        # load the file
-        try:
-            try:
-                docxml = ET.parse(os.path.join(path_bio, preffile))
-                root = docxml.getroot()
-            except IOError:
-                print("Warning: the xml file " + preffile
-                      + " does not exist \n")
-                break
-        except ET.ParseError:
-            print("Warning: the xml file " + preffile
-                  + " is not well-formed.\n")
-            break
-
-        i = -1
-        all_ok = True
-        for att in attributes:
-            att_langue = att.split('_')
-            # special attribute
-            if att == 'Stage':  # this should be the first attribute as i ==-1
-                stages = root.findall(".//Stage")
-                if len(stages) == 0:
-                    print('no stage found in ' + preffile + "\n")
-                    all_ok = False
-                    break
-                else:
-                    try:
-                        stages = [s.attrib['Type'] for s in stages]
-                    except KeyError:
-                        print('no stage found in ' + preffile + "\n")
-                        all_ok = False
-                        break
-            elif len(att_langue) == 3 and att_langue[1] == 'common' and \
-                    att_langue[2] == 'name':
-                b = root.findall('.//ComName')
-                if b is not None:
-                    for bi in b:
-                        try:
-                            if bi.attrib['Language'] == att_langue[0]:
-                                if bi.text:
-                                    data[i] = bi.text.strip()
-                                else:
-                                    data[i] = "-"
-                        except KeyError:
-                            all_ok = False
-                            break
-            elif att == 'Code_ONEMA':
-                data[i] = root.find('.//CdAlternative')
-                if data[i] is not None:
-                    if data[i].attrib['OrgCdAlternative']:
-                        if data[i].attrib['OrgCdAlternative'] == 'ONEMA':
-                            data[i] = data[i].text.strip()
-            elif att == 'Code_Sandre':
-                data[i] = root.find('.//CdAppelTaxon')
-                if data[i] is not None:
-                    data[i] = data[i].text.strip()
-            # normal attributes
-            # the tag figure_hydrosignature is None (Null) by default
-            else:
-                data[i] = root.find(".//" + att)
-                # None is null for python 3
-                if data[i] is not None:
-                    # print("data[i]", preffile, data[i])
-                    if data[i].text:
-                        data[i] = data[i].text.strip()
-                    else:
-                        data[i] = "-"
-            i += 1
-        if not all_ok:
-            break
-
-        # put data in the new list
-        if stages:
-            for s in stages:
-                # careful the char :
-                # is necessary for the function  show_info_fish()
-                # from bio_info_GUI
-                data_s = [data[4] + ': ' + s + ' - '
-                          + data[5], s, preffile]
-                #  order mattter HERE! (ind: +3)
-                data_s.extend(data)
-                data_fish.append(data_s)
-        else:
-            data_fish.append(data)
-        found_one = True
-
-    if not found_one:
-        print('Error: No preference file could be read.\
-            Please check the biology folder.\n')
-
-    data_fish = np.array(data_fish)
-
-    preffiles = []  # mutable arg.
-    return data_fish
 
 
 def get_stage(names_bio, path_bio):
