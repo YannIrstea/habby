@@ -434,7 +434,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.get_current_hab_informations()
 
         # get info
-        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
         index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
@@ -455,7 +455,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def check_if_model_exist_in_hab(self, model_index):
         # 1 column
-        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
         # 2 column
         hyd_opt_str = self.hyd_mode_qtablewidget.cellWidget(model_index, 0).currentText()
@@ -503,7 +503,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.get_current_hab_informations()
 
         # get info
-        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
         index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
@@ -729,7 +729,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # get items
             for index in index_to_duplicate_list:
                 # get text
-                label = self.selected_aquatic_animal_qtablewidget.cellWidget(index, 0)
+                label = self.selected_aquatic_animal_qtablewidget.item(index, 0)
                 label_text = label.text()
 
                 # get hyd modes + current
@@ -897,7 +897,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 hyd_opt = self.hyd_mode_qtablewidget.cellWidget(i, 0).currentText()
                 sub_opt = self.sub_mode_qtablewidget.cellWidget(i, 0).currentText()
                 # get info from 1 list widget
-                label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
+                label = self.selected_aquatic_animal_qtablewidget.item(i, 0)
                 fish_item_text = label.text()
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
                 if hyd_opt == "Neglect" and sub_opt == "Neglect":
