@@ -565,7 +565,7 @@ class ModelInfoGroup(QGroupBox):
 
             # get_hydrau_description_from_source
             hsra_value = HydraulicSimulationResultsAnalyzer(filename_list[0],
-                                                               self.path_prj,
+                                                           self.path_prj,
                                                                self.model_type,
                                                                self.nb_dim)
 
