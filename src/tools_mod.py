@@ -195,7 +195,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
                                                 inter_data_model["unit"],
                                                 inter_data_model["si_" + animal.name])
                     chronicle_interpolated["si_" + animal.name].append(data_interp_si)
-                    chronicle_gui["si_" + animal.name].append("{0:.0f}".format(data_interp_si))
+                    chronicle_gui["si_" + animal.name].append("{0:.2f}".format(data_interp_si))
 
             if q_value_to_est is None:
                 chronicle_interpolated["hv_" + animal.name].append(None)
