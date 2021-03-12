@@ -74,9 +74,9 @@ def read_chronicle_from_text_file(chronicle_filepath):
         if 'DATE' in headers[i].upper():  # Date
             date_index = i
             date_type = headers[date_index][headers[date_index].find('[') + 1:headers[date_index].find(']')]
-        if 'UNIT[' in headers[i].upper() and ']' in headers[i]:  # Q
+        if 'Q[' in headers[i].upper() and ']' in headers[i]:  # Q
             units_index = i
-            unit_type = headers[units_index][headers[units_index].find('[') + 1:headers[units_index].find(']')]
+            unit_type = headers[units_index]
 
     if units_index is None:
         return False, "Error : Interpolation not done. 'unit[' header not found in " + chronicle_filepath + "."
@@ -124,7 +124,7 @@ def check_matching_units(unit_type, types):
     for key in types.keys():
         if "units" in key:
             unit_chronicle_type = types[key]
-            unit_chronicle_type = unit_chronicle_type.replace("m<sup>3</sup>/s", "m3/s")
+            unit_chronicle_type = unit_chronicle_type.replace("m<sup>3</sup>/s", "m3/s")[unit_chronicle_type.find('[') + 1:unit_chronicle_type.find(']')]
 
     # check matching units type ok
     if unit_hdf5_type == unit_chronicle_type:
@@ -163,6 +163,9 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
         chronicle_interpolated["si_" + animal.name] = []
     # copy for round for table gui
     chronicle_gui = deepcopy(chronicle_interpolated)
+    # rename unit key
+    chronicle_gui[types["units"]] = chronicle_gui.pop("units")
+
     # get min max
     q_min = min(inter_data_model["unit"])
     q_max = max(inter_data_model["unit"])
@@ -195,7 +198,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
                                                 inter_data_model["unit"],
                                                 inter_data_model["si_" + animal.name])
                     chronicle_interpolated["si_" + animal.name].append(data_interp_si)
-                    chronicle_gui["si_" + animal.name].append("{0:.2f}".format(data_interp_si))
+                    chronicle_gui["si_" + animal.name].append("{0:.1f}".format(data_interp_si))
 
             if q_value_to_est is None:
                 chronicle_interpolated["hv_" + animal.name].append(None)
@@ -204,6 +207,10 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
                 chronicle_gui["spu_" + animal.name].append("")
                 chronicle_interpolated["si_" + animal.name].append(None)
                 chronicle_gui["si_" + animal.name].append("")
+
+    # alpha order
+    # chronicle_gui = {key: value for key, value in sorted(chronicle_gui.items())}
+    # chronicle_interpolated = {key: value for key, value in sorted(chronicle_interpolated.items())}
 
     # round for GUI
     if rounddata:
@@ -216,7 +223,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
             horiz_headers = list(chronicle_gui.keys())[1:]
             vertical_headers = list(map(str, chronicle_gui["date"]))
             del chronicle_gui["date"]
-            chronicle_gui["units"] = list(map(str, chronicle_gui["units"]))
+            chronicle_gui[types["units"]] = list(map(str, chronicle_gui[types["units"]]))
             data_to_table = list(zip(*chronicle_gui.values()))
     # not round to export text and plot
     if not rounddata:
@@ -228,7 +235,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
             horiz_headers = list(chronicle_interpolated.keys())[1:]
             vertical_headers = list(map(str, chronicle_interpolated["date"]))
             del chronicle_interpolated["date"]
-            chronicle_interpolated["units"] = list(map(str, chronicle_interpolated["units"]))
+            chronicle_interpolated[types["units"]] = list(map(str, chronicle_interpolated[types["units"]]))
             data_to_table = chronicle_interpolated
     return data_to_table, horiz_headers, vertical_headers
 

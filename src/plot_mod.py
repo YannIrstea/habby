@@ -723,7 +723,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     color_list, style_list = get_colors_styles_line_from_nb_input(len(animal_list))
 
     reach_name = data_2d[reach_number][0].reach_name
-    unit_type = data_2d.unit_type[data_2d.unit_type.find('[') + 1:data_2d.unit_type.find(']')]
+    unit_type = data_2d.unit_type
     unit_type = unit_type.replace("m3/s", "$m^3$/s")
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
 
@@ -809,11 +809,11 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
     # all case
     if is_constant:
-        ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type.replace("m3/s", "$m^3$/s") + ']')
+        ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired ') + unit_type)
 
     # unit
     if not is_constant:
-        ax[3].plot(x_data, data_to_table["units"], label="unit [" + unit_type + "]", marker=mar)
+        ax[3].plot(x_data, data_to_table["units"], label=unit_type, marker=mar)
         ax[3].set_title(qt_tr.translate("plot_mod", "Units"))
         if date_presence:
             ax[3].set_xlabel(qt_tr.translate("plot_mod", 'Chronicle [') + date_type + ']')
@@ -821,9 +821,9 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
             if not is_constant:
                 ax[3].set_xlabel("")
             if is_constant:
-                ax[3].set_xlabel(qt_tr.translate("plot_mod", 'Desired units [') + unit_type + ']')
+                ax[3].set_xlabel(qt_tr.translate("plot_mod", 'Desired ') + unit_type)
 
-        ax[3].set_ylabel(qt_tr.translate("plot_mod", 'units [') + unit_type + ']')
+        ax[3].set_ylabel(unit_type)
         if len(sim_name) < 25:
             ax[3].set_xticks(x_data)  # , rotation=45
             ax[3].set_xticklabels(sim_name)
