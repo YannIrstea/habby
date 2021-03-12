@@ -252,7 +252,7 @@ class ModelInfoGroup(QGroupBox):
         else:
             self.exe_cmd = '"' + sys.executable + '"'
         self.mystdout = None
-
+        self.drop_hydro.connect(lambda: self.name_last_hdf5(self.model_type))
         self.init_ui()
 
     def init_ui(self):
