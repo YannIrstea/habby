@@ -2179,11 +2179,11 @@ def compute_scale_value(fig, ax_map):
     return scale_computed_num_cm, scale_computed_str
 
 
-def create_gif_from_files(state, variable, reach_name, unit_names, data_description, project_preferences):
-    name_hdf5 = data_description["name_hdf5"]
+def create_gif_from_files(state, variable, reach_name, unit_names, name_hdf5, project_preferences):
     path_im = project_preferences['path_figure']
 
     list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + '_' + unit_name.replace(".", "_") + "_" + variable.replace(" ", "_") + "_map" + project_preferences['format']) for unit_name in unit_names]
+    print("list_of_file_path", list_of_file_path)
     list_of_exist_tf = [False] * len(list_of_file_path)
 
     while not all(list_of_exist_tf):
