@@ -325,6 +325,21 @@ class MyProcessManager(QThread):
                                                            q=q)
                                     self.process_list.append(my_process)
 
+                # # class MyProcess
+                # progress_value = Value("d", 0.0)
+                # q = Queue()
+                # my_process = MyProcess(p=Process(target=plot_mod.create_gif_from_files,
+                #                                  args=(progress_value,
+                #                                animal.name,
+                #                                reach_name,
+                #                                units,
+                #                                light_data_2d.filename,
+                #                                self.project_preferences),
+                #                                  name=animal.name),
+                #                        progress_value=progress_value,
+                #                        q=q)
+                # self.process_list.append(my_process)
+
     # export
     def set_export_hdf5_mode(self, path_prj, names_hdf5, project_preferences):
         self.export_available = [""]

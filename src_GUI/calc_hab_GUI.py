@@ -20,18 +20,17 @@ from multiprocessing import Process, Queue, Value, Event
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QGroupBox, \
-    QComboBox, QTableWidget, \
+    QComboBox, QTableWidget, QTableWidgetItem, \
     QSizePolicy, QFrame, QCheckBox, QWidget
 
 from src_GUI import estimhab_GUI
 from src_GUI.process_manager_GUI import ProcessProgLayout
-from src import calcul_hab_mod
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
-from src.variable_unit_mod import HydraulicVariableUnitList, HydraulicVariable
+from src.variable_unit_mod import HydraulicVariableUnitList
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -435,7 +434,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.get_current_hab_informations()
 
         # get info
-        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
         index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
@@ -456,7 +455,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def check_if_model_exist_in_hab(self, model_index):
         # 1 column
-        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
         # 2 column
         hyd_opt_str = self.hyd_mode_qtablewidget.cellWidget(model_index, 0).currentText()
@@ -504,7 +503,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.get_current_hab_informations()
 
         # get info
-        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
         index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
@@ -602,9 +601,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # add new item if not exist
             for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
                 """ NAME """
-                label_cell = QLabel(item_str)
+                label_cell = QTableWidgetItem(item_str)
                 label_cell.setToolTip(item_str)
-                self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, label_cell)
+                self.selected_aquatic_animal_qtablewidget.setItem(index, 0, label_cell)
                 self.selected_aquatic_animal_qtablewidget.setRowHeight(index, 27)
 
                 # get bio info
@@ -730,7 +729,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # get items
             for index in index_to_duplicate_list:
                 # get text
-                label = self.selected_aquatic_animal_qtablewidget.cellWidget(index, 0)
+                label = self.selected_aquatic_animal_qtablewidget.item(index, 0)
                 label_text = label.text()
 
                 # get hyd modes + current
@@ -898,7 +897,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 hyd_opt = self.hyd_mode_qtablewidget.cellWidget(i, 0).currentText()
                 sub_opt = self.sub_mode_qtablewidget.cellWidget(i, 0).currentText()
                 # get info from 1 list widget
-                label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
+                label = self.selected_aquatic_animal_qtablewidget.item(i, 0)
                 fish_item_text = label.text()
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
                 if hyd_opt == "Neglect" and sub_opt == "Neglect":
