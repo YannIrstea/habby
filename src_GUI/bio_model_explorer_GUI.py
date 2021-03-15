@@ -15,7 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-
+import re
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent
 from PyQt5.QtGui import QPixmap, QIcon, QFont
@@ -820,10 +820,14 @@ class BioModelInfoSelection(QScrollArea):
             found = False
             for d in data:
                 if d.attrib['Language'] == self.lang:
-                    self.description_textedit.setText(d.text[2:-1])
+                    description = d.text
+                    description = re.sub("\s\s+", "\n", description)
+                    self.description_textedit.setText(description[1:-1])
                     found = True
             if not found:
-                self.description_textedit.setText(data[0].text[2:-1])
+                description = data[0].text
+                description = re.sub("\s\s+", "\n", description)
+                self.description_textedit.setText(description[1:-1])
 
         if img_file:
             if os.path.isfile(img_file):
