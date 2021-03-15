@@ -1608,10 +1608,15 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method, pat
                 "Error: " + qt_tr.translate("hydro_input_file_mod", "The selected text file don't exist."))
             return False, warning_list
         if os.path.isfile(os.path.join(dirname, blob + ".txt")):
-            with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
-                dataraw = f.read()
-            substrate_classification_code_raw, substrate_classification_method_raw, constant_values_raw = dataraw.split(
-                "\n")
+            try:
+                with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
+                    dataraw = f.read()
+                substrate_classification_code_raw, substrate_classification_method_raw, constant_values_raw = dataraw.split(
+                    "\n")
+            except:
+                warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                "Can't read content file."))
+                return False, warning_list
             # classification code
             if "substrate_classification_code=" in substrate_classification_code_raw:
                 substrate_classification_code = \
