@@ -240,10 +240,13 @@ def load_project_properties(path_prj):
     project_file_abs_path = os.path.join(path_prj, name_prj + '.habby')
 
     if not os.path.isfile(project_file_abs_path) and name_prj != '':  # no project exists
-        pass
+        project_preferences = create_default_project_properties_dict()
+        print('Warning: No project file (.habby) found.\n')
     elif name_prj == '':
-        pass
+        project_preferences = create_default_project_properties_dict()
+        print('Warning: No project file (.habby) found.\n')
     elif not os.path.isfile(project_file_abs_path):  # the project is not found
+        project_preferences = create_default_project_properties_dict()
         print('Warning: No project file (.habby) found.\n')
     else:
         project_preferences = json.load(open(project_file_abs_path, "r"))
