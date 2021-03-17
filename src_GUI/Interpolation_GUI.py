@@ -146,7 +146,7 @@ class InterpolationTab(QScrollArea):
         self.require_unit_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.require_unit_qtableview.verticalHeader().setVisible(True)
         self.require_unit_qtableview.horizontalHeader().setVisible(True)
-        self.require_unit_qtableview.setMinimumHeight(150)
+        self.require_unit_qtableview.setMinimumHeight(350)
         mytablemodel = MyTableModelHab("", "", "", "")
         self.require_unit_qtableview.setModel(mytablemodel)
 
@@ -164,15 +164,16 @@ class InterpolationTab(QScrollArea):
         """ Available data """
         available_data_layout = QHBoxLayout()
         available_data_layout.addLayout(available_firstlayout)
-        available_data_group = QGroupBoxCollapsible(self.tr("Available data"))
-        available_data_group.setChecked(False)
-        available_data_group.setLayout(available_data_layout)
+        self.available_data_group = QGroupBoxCollapsible(self.tr("Available data"))
+        self.available_data_group.setChecked(True)
+        self.available_data_group.setLayout(available_data_layout)
 
         """ Required data """
         self.require_data_layout = QVBoxLayout()
-        require_data_group = QGroupBoxCollapsible(self.tr("Desired data"))
-        require_data_group.setChecked(False)
-        require_data_group.setLayout(self.require_data_layout)
+        self.require_data_group = QGroupBoxCollapsible(self.tr("Desired data"))
+        self.require_data_group.hide()
+        self.require_data_group.setChecked(False)
+        self.require_data_group.setLayout(self.require_data_layout)
 
         require_first_layout = QHBoxLayout()
         require_first_layout.addWidget(fromsequence_group)
@@ -180,8 +181,9 @@ class InterpolationTab(QScrollArea):
         self.require_data_layout.addLayout(require_first_layout)
 
         """ Interpolated results """
-        interpolated_results_group = QGroupBoxCollapsible(self.tr("Interpolated results"))
-        interpolated_results_group.setChecked(False)
+        self.interpolated_results_group = QGroupBoxCollapsible(self.tr("Interpolated results"))
+        self.interpolated_results_group.hide()
+        self.interpolated_results_group.setChecked(False)
         require_unit_layout = QVBoxLayout()
         require_unit_layout.addWidget(require_units_qlabel)
         require_unit_layout.addWidget(self.require_unit_qtableview)
@@ -194,31 +196,34 @@ class InterpolationTab(QScrollArea):
 
         unit_hv_layout = QHBoxLayout()
         unit_hv_layout.addLayout(require_unit_layout)
-        interpolated_results_group.setLayout(unit_hv_layout)
+        self.interpolated_results_group.setLayout(unit_hv_layout)
 
         # vertical layout
         global_layout = QVBoxLayout()
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
-        global_layout.addWidget(available_data_group)
-        global_layout.addWidget(require_data_group)
-        global_layout.addWidget(interpolated_results_group)
+        global_layout.addWidget(self.available_data_group)
+        global_layout.addWidget(self.require_data_group)
+        global_layout.addWidget(self.interpolated_results_group)
         # global_layout.addStretch()
         self.setWidget(tools_frame)
+        self.refresh_gui()
 
     def refresh_gui(self):
         # get list of file name by type
         names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
         current_index = self.hab_filenames_qcombobox.currentIndex()
-        self.hab_filenames_qcombobox.blockSignals(True)
+        # self.hab_filenames_qcombobox.blockSignals(True)
         self.hab_filenames_qcombobox.clear()
         if names:
+            if current_index == -1:
+                current_index = 1
             # append_empty_element_to_list
             names = [""] + names
             # change list widget
             self.hab_filenames_qcombobox.addItems(names)
             self.hab_filenames_qcombobox.setCurrentIndex(current_index)
-        self.hab_filenames_qcombobox.blockSignals(False)
+        # self.hab_filenames_qcombobox.blockSignals(False)
 
     def disable_and_clean_group_widgets(self, disable):
         """
@@ -226,6 +231,8 @@ class InterpolationTab(QScrollArea):
         :param checker:
         :return:
         """
+        self.require_data_group.show()
+        self.require_data_group.setChecked(True)
         # available
         self.unit_min_qlabel.setText("")
         self.unit_max_qlabel.setText("")
@@ -242,6 +249,7 @@ class InterpolationTab(QScrollArea):
         self.fromtext_qpushbutton.setDisabled(disable)
         self.require_unit_qtableview.model().clear()
         if disable:
+            self.interpolated_results_group.hide()
             # disable pushbutton
             self.plot_chronicle_qpushbutton.setDisabled(disable)
             self.export_txt_chronicle_qpushbutton.setDisabled(disable)
@@ -255,6 +263,7 @@ class InterpolationTab(QScrollArea):
         if not hdf5name:
             # clean
             self.hab_reach_qcombobox.clear()
+            self.require_data_group.hide()
         # file
         if hdf5name:
             # clean
@@ -366,7 +375,7 @@ class InterpolationTab(QScrollArea):
 
             # types
             text_unit = self.unit_type_qlabel.text()
-            types_from_seq = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
+            types_from_seq = dict(units=text_unit)  # #[text_unit.find('[') + 1:text_unit.find(']')]
 
             # display
             self.create_model_array_and_display(chonicle_from_seq, types_from_seq, source="seq")
@@ -427,6 +436,8 @@ class InterpolationTab(QScrollArea):
                                                                                          chronicle,
                                                                                          types,
                                                                                          rounddata=True)
+            for horiz_header_num, horiz_header in enumerate(horiz_headers):
+                horiz_headers[horiz_header_num] = horiz_header.replace("m<sup>3</sup>/s", "m3/s")
 
             self.mytablemodel = MyTableModelHab(data_to_table, horiz_headers, vertical_headers, source=source)
             self.require_unit_qtableview.model().clear()
@@ -443,6 +454,8 @@ class InterpolationTab(QScrollArea):
             # disable pushbutton
             self.plot_chronicle_qpushbutton.setEnabled(True)
             self.export_txt_chronicle_qpushbutton.setEnabled(True)
+            self.interpolated_results_group.show()
+            self.interpolated_results_group.setChecked(True)
 
     def export_empty_text_file(self):
         hdf5name = self.hab_filenames_qcombobox.currentText()
@@ -576,6 +589,3 @@ class InterpolationTab(QScrollArea):
 
             # start thread
             self.process_manager.start()
-
-    def kill_process(self):
-        self.process_prog_show.stop_by_user()

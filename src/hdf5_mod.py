@@ -1790,7 +1790,7 @@ class Hdf5Management:
                     else:
                         header = 'troncon\tunit\taire_troncon'
                     if self.project_preferences['language'] == 0:
-                        header += "".join(['\tHV' for _ in range(len(animal_list))])
+                        header += "".join(['\tHSI' for _ in range(len(animal_list))])
                         header += "".join(['\tWUA' for _ in range(len(animal_list))])
                         header += "".join(['\t%unknown' for _ in range(len(animal_list))])
                     else:

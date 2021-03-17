@@ -1610,7 +1610,7 @@ def get_sub_description_from_source(filename_path, substrate_mapping_method, pat
         if os.path.isfile(os.path.join(dirname, blob + ".txt")):
             try:
                 with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
-                    dataraw = f.read()
+                    dataraw = f.read().strip()
                 substrate_classification_code_raw, substrate_classification_method_raw, constant_values_raw = dataraw.split(
                     "\n")
             except:

@@ -123,8 +123,8 @@ def check_matching_units(unit_type, types):
     unit_hdf5_type = unit_type[unit_type.find('[') + 1:unit_type.find(']')]
     for key in types.keys():
         if "units" in key:
-            unit_chronicle_type = types[key]
-            unit_chronicle_type = unit_chronicle_type.replace("m<sup>3</sup>/s", "m3/s")[unit_chronicle_type.find('[') + 1:unit_chronicle_type.find(']')]
+            unit_chronicle_type = types[key].replace("m<sup>3</sup>/s", "m3/s")
+            unit_chronicle_type = unit_chronicle_type[unit_chronicle_type.find('[') + 1:unit_chronicle_type.find(']')]
 
     # check matching units type ok
     if unit_hdf5_type == unit_chronicle_type:
@@ -163,8 +163,8 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
         chronicle_interpolated["si_" + animal.name] = []
     # copy for round for table gui
     chronicle_gui = deepcopy(chronicle_interpolated)
-    # rename unit key
-    chronicle_gui[types["units"]] = chronicle_gui.pop("units")
+    # rename unit key and preserve the ordering
+    chronicle_gui = {types["units"] if k == "units" else k: v for k, v in chronicle_gui.items()}
 
     # get min max
     q_min = min(inter_data_model["unit"])
@@ -216,8 +216,8 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
     if rounddata:
         if not date_presence:
             horiz_headers = list(chronicle_gui.keys())[1:]
-            vertical_headers = list(map(str, chronicle_gui["units"]))
-            del chronicle_gui["units"]
+            vertical_headers = list(map(str, chronicle_gui[types["units"]]))
+            del chronicle_gui[types["units"]]
             data_to_table = list(zip(*chronicle_gui.values()))
         if date_presence:
             horiz_headers = list(chronicle_gui.keys())[1:]
@@ -235,8 +235,9 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
             horiz_headers = list(chronicle_interpolated.keys())[1:]
             vertical_headers = list(map(str, chronicle_interpolated["date"]))
             del chronicle_interpolated["date"]
-            chronicle_interpolated[types["units"]] = list(map(str, chronicle_interpolated[types["units"]]))
+            chronicle_interpolated[types["units"]] = list(map(str, chronicle_interpolated["units"]))
             data_to_table = chronicle_interpolated
+
     return data_to_table, horiz_headers, vertical_headers
 
 
@@ -327,7 +328,6 @@ def export_text_interpolatevalues(state, data_to_table, horiz_headers, vertical_
         with open(output_full_path, 'wt') as f:
             f.write(text)
         state.value = 100  # process finished
-        print("Interpolated text file has been exported in 'output/text' project folder.")
     except:
         print('Error: ' + 'File not exported as it may be opened by another program.')
 
