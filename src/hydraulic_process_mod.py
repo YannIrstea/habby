@@ -1598,7 +1598,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     progress_value.value = 90
 
     # create hdf5 hab
-    data_2d_merge["filename"] = hdf5_name_hab
+    data_2d_merge.filename = hdf5_name_hab
     hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hab, new=True)
     hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_preferences)
 
