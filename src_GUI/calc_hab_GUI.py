@@ -246,13 +246,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.selected_aquatic_animal_qtablewidget, 3, 0)
         # 2 column
         layout_prov2 = QHBoxLayout()
-        layout_prov2.addWidget(QLabel(self.tr("hydraulic mode")))
+        layout_prov2.addWidget(QLabel(self.tr("hydraulic option")))
         layout_prov2.addWidget(self.general_option_hyd_combobox)
         self.layout4.addLayout(layout_prov2, 2, 1)
         self.layout4.addWidget(self.hyd_mode_qtablewidget, 3, 1)
         # 3 column
         layout_prov3 = QHBoxLayout()
-        layout_prov3.addWidget(QLabel(self.tr("substrate mode")))
+        layout_prov3.addWidget(QLabel(self.tr("substrate option")))
         layout_prov3.addWidget(self.general_option_sub_combobox)
         self.layout4.addLayout(layout_prov3, 2, 2)
         self.layout4.addWidget(self.sub_mode_qtablewidget, 3, 2)
