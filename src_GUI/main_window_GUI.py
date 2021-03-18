@@ -1805,7 +1805,8 @@ class CreateNewProjectDialog(QDialog):
         self.e1 = QLineEdit(self.default_name)
         l2 = QLabel(self.tr('Projects folder: '))
         self.e2 = QLineEdit(self.default_fold)
-        button2 = QPushButton(self.tr('Change folder'), self)
+        button2 = QPushButton("...", self)
+        button2.setToolTip(self.tr("Change folder"))
         button2.clicked.connect(self.setfolder)
         self.button3 = QPushButton(self.tr('Create project'))
         self.button3.clicked.connect(self.create_project)  # is a PyQtSignal
