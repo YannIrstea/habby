@@ -273,8 +273,8 @@ class SubstrateAndMerge(QWidget):
         self.name_last_hdf5("SUBSTRATE")
 
         # MERGE
-        l9 = QLabel(self.tr("Hydraulic data (.hyd)"))
-        l10 = QLabel(self.tr("Substrate data (.sub)"))
+        l9 = QLabel(self.tr(".hyd file name"))
+        l10 = QLabel(self.tr(".sub file name"))
         self.input_hyd_combobox = QComboBox()
         self.input_hyd_combobox.currentIndexChanged.connect(self.create_hdf5_merge_name)
         self.input_sub_combobox = QComboBox()

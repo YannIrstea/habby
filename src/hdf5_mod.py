@@ -2098,30 +2098,33 @@ def get_filename_by_type_physic(type, path):
                               substrate=".sub",
                               habitat=".hab")
     filenames = []
-    for file in os.listdir(path):
-        if file.endswith(type_and_extension[type]):
-            # check if not statistic
-            if file.endswith(".hab"):
-                if not "ESTIMHAB" in file:  # physic
+    if os.path.exists(path):
+        for file in os.listdir(path):
+            if file.endswith(type_and_extension[type]):
+                # check if not statistic
+                if file.endswith(".hab"):
+                    if not "ESTIMHAB" in file:  # physic
+                        filenames.append(file)
+                else:
                     filenames.append(file)
-            else:
-                filenames.append(file)
     filenames.sort()
     return filenames
 
 
 def get_filename_hs(path):
     filenames = []
-    for file in os.listdir(path):
-        if file.endswith(".hyd") or file.endswith(".hab"):
-            path_prj = os.path.dirname(path)
-            try:
-                hdf5 = Hdf5Management(path_prj, file, new=False, edit=False)
-                hdf5.close_file()
-                if hdf5.hs_calculated:
-                    filenames.append(file)
-            except:
-               print("Error: " + file + " file seems to be corrupted. Delete it with HABBY or manually.")
+
+    if os.path.exists(path):
+        for file in os.listdir(path):
+            if file.endswith(".hyd") or file.endswith(".hab"):
+                path_prj = os.path.dirname(path)
+                try:
+                    hdf5 = Hdf5Management(path_prj, file, new=False, edit=False)
+                    hdf5.close_file()
+                    if hdf5.hs_calculated:
+                        filenames.append(file)
+                except:
+                   print("Error: " + file + " file seems to be corrupted. Delete it with HABBY or manually.")
 
     filenames.sort()
     return filenames

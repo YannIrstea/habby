@@ -364,12 +364,12 @@
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="249"/>
         <source>hydraulic mode</source>
-        <translation>Option hydraulique</translation>
+        <translation type="obsolete">Option hydraulique</translation>
     </message>
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="255"/>
         <source>substrate mode</source>
-        <translation>Option substrat</translation>
+        <translation type="obsolete">Option substrat</translation>
     </message>
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="709"/>
@@ -542,6 +542,16 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <source>Model to compute</source>
         <translation>Modèle(s) à calculer</translation>
     </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="249"/>
+        <source>hydraulic option</source>
+        <translation>option hydraulique</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="255"/>
+        <source>substrate option</source>
+        <translation>option substrat</translation>
+    </message>
 </context>
 <context>
     <name>BioModelExplorerWindow</name>
@@ -689,7 +699,7 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="840"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="844"/>
         <source>no image file</source>
         <translation>pas de fichier d&apos;image</translation>
     </message>
@@ -704,7 +714,7 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <translation type="obsolete">Aucun poisson sélectionné pour créer des courbes de préférences.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="903"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="907"/>
         <source>No fish selected to hydrosignature.</source>
         <translation>Aucun modèle n&apos;a été sélectionné pour l&apos;hydrosignature.</translation>
     </message>
@@ -773,7 +783,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation>Information du modèle</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="874"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="878"/>
         <source>No fish selected to show Habitat Suitability Index</source>
         <translation>Pas de modèle sélectionné pour afficher la courbe de préférence</translation>
     </message>
@@ -3427,87 +3437,87 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation>Données souhaitées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="183"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="184"/>
         <source>Interpolated results</source>
         <translation>Résultats interpolés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="274"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="283"/>
         <source>Error: This file contain date unit. To be interpolated, file must contain discharge or timestep unit.</source>
         <translation>Erreur: Ce fichier contient des unités de type date. Pour être interpolé, le fichier doit contenir des unités de débit ou de temps.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="318"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="327"/>
         <source>Interpolation need at least two time/discharge unit. Their is only one is this file.</source>
         <translation>L&apos;interpolation a besoin d&apos;au minimum 2 unités (temps ou débit). il y en a qu&apos;un seul dans ce fichier.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="334"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="343"/>
         <source>The sequence values must be specified (from, to and by).</source>
         <translation>Les valeurs de séquence doivent être spécifiées (min, max et par).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="339"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="348"/>
         <source>The sequence values must be of numerical type.</source>
         <translation>Les valeurs de séquence doivent être de type numérique.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="344"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="353"/>
         <source>Max sequence value must be strictly greater than min sequence value.</source>
         <translation>La valeur maximale de la séquence doit être strictement supérieure à la valeur minimale de la séquence.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="349"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="358"/>
         <source>By sequence value must be strictly greater than 0.</source>
         <translation>La valeur de séquence &apos;par&apos; doit être strictement supérieure à 0.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="378"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="387"/>
         <source>No fish selected.</source>
         <translation>Pas de modèle sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="382"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="391"/>
         <source>Select file</source>
         <translation>Sélectionner un fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="419"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="428"/>
         <source>Interpolation not done.</source>
         <translation>Interpolation non effectuée.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="442"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="453"/>
         <source>Interpolation done. Interpolated values can now be view in graphic and export in text file.</source>
         <translation>Interpolation terminée. Les valeurs interpolées peuvent maintenant être visualisées sous forme graphique et exportées sous forme de fichier texte.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="463"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="476"/>
         <source>Empty text has been exported in &apos;output/text&apos; project folder. Open and fill it with the desired values and then import it in HABBY.</source>
         <translation>Le fichier texte vide a été exporté dans le dossier &apos;output/text&apos; du projet. Ouvrez-le et remplissez-le avec les valeurs souhaitées, puis importez-le dans HABBY.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="466"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="479"/>
         <source>The file has not been exported as it may be opened by another program.</source>
         <translation>Le fichier n&apos;a pas été exporté car il est peut être ouvert par un autre programme.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="532"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="545"/>
         <source>No .hab selected.</source>
         <translation>Pas de .hab sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="484"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="497"/>
         <source>You cannot display more than 32 habitat values per graph. Current selected : </source>
         <translation>Vous ne pouvez pas afficher plus de 32 valeurs d&apos;habitat par figure. Actuellement sélectionnées : </translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="484"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="497"/>
         <source>Only the first 32 will be displayed.</source>
         <translation>Seulement les 32 premiers seront affichés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="484"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="497"/>
         <source>You have to re-compute interpolation with 32 selected habitat values at maximum. There is no limit for txt exports.</source>
         <translation>Il faut re-calculer l&apos;interpolation avec un maximum de 32 valeurs d&apos;habitat sélectionnées. il n&apos;y a pas de limite pour les exports txt.</translation>
     </message>
@@ -4903,52 +4913,52 @@ Fermez-les et réessayez.</translation>
 <context>
     <name>MyProcess</name>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1000"/>
+        <location filename="../src/process_manager_mod.py" line="1015"/>
         <source>started</source>
         <translation>commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1019"/>
+        <location filename="../src/process_manager_mod.py" line="1034"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1027"/>
+        <location filename="../src/process_manager_mod.py" line="1042"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1061"/>
+        <location filename="../src/process_manager_mod.py" line="1076"/>
         <source>Warning: too many information for the GUI</source>
         <translation>Warning: Trop d&apos;information pour l&apos;interface graphique</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1022"/>
+        <location filename="../src/process_manager_mod.py" line="1037"/>
         <source> closed by user after </source>
         <translation> stoppé par l&apos;utilisateur aprés </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1025"/>
+        <location filename="../src/process_manager_mod.py" line="1040"/>
         <source> stopped (process time = </source>
         <translation> stoppé (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1028"/>
+        <location filename="../src/process_manager_mod.py" line="1043"/>
         <source>not started.</source>
         <translation>non commencé </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1032"/>
+        <location filename="../src/process_manager_mod.py" line="1047"/>
         <source> done (process time = </source>
         <translation> finit (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1035"/>
+        <location filename="../src/process_manager_mod.py" line="1050"/>
         <source> crashed (process time = </source>
         <translation> crash (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1038"/>
+        <location filename="../src/process_manager_mod.py" line="1053"/>
         <source> (process time = </source>
         <translation>(temps de calcul = </translation>
     </message>
@@ -5049,22 +5059,22 @@ Fermez-les et réessayez.</translation>
         <translation>surface inconnue</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="732"/>
+        <location filename="../src/process_manager_mod.py" line="747"/>
         <source>interpolated figure</source>
         <translation>figure interpolée</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="766"/>
+        <location filename="../src/process_manager_mod.py" line="781"/>
         <source>interpolated export</source>
         <translation>export interpolé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="913"/>
+        <location filename="../src/process_manager_mod.py" line="928"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="905"/>
+        <location filename="../src/process_manager_mod.py" line="920"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
@@ -6804,7 +6814,7 @@ Fermez-les et réessayez.</translation>
         <translation>Code EPSG</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="266"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="277"/>
         <source>.sub file name</source>
         <translation>nom de fichier .sub</translation>
     </message>
@@ -6836,12 +6846,12 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src_GUI/sub_and_merge_GUI.py" line="276"/>
         <source>Hydraulic data (.hyd)</source>
-        <translation>Données hydrauliques (.hyd)</translation>
+        <translation type="obsolete">Données hydrauliques (.hyd)</translation>
     </message>
     <message>
         <location filename="../src_GUI/sub_and_merge_GUI.py" line="277"/>
         <source>Substrate data (.sub)</source>
-        <translation>Données substrat (.sub)</translation>
+        <translation type="obsolete">Données substrat (.sub)</translation>
     </message>
     <message>
         <location filename="../src_GUI/sub_and_merge_GUI.py" line="290"/>
@@ -6941,6 +6951,11 @@ Fermez-les et réessayez.</translation>
         <location filename="../src_GUI/sub_and_merge_GUI.py" line="324"/>
         <source>Create .hab file</source>
         <translation>Créer un fichier .hab</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="276"/>
+        <source>.hyd file name</source>
+        <translation>nom de fichier .hyd</translation>
     </message>
 </context>
 <context>
@@ -8433,7 +8448,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete"> n&apos;ont pas été trouvé (2)</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2148"/>
+        <location filename="../src/hdf5_mod.py" line="2151"/>
         <source>No project found by load_hdf5</source>
         <translation>Aucun projet trouvé par load_hdf5</translation>
     </message>
@@ -8443,14 +8458,14 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Aucun jeu de donnée d&apos;habitat dans ce fichier .hab.</translation>
     </message>
     <message>
-        <location filename="../src/tools_mod.py" line="430"/>
+        <location filename="../src/tools_mod.py" line="437"/>
         <source>Folder not found to copy inputs 
 </source>
         <translation>Dossier non trouvé pour copier les entrées 
 </translation>
     </message>
     <message>
-        <location filename="../src/tools_mod.py" line="434"/>
+        <location filename="../src/tools_mod.py" line="441"/>
         <source>The number of file to be copied is not equal to the number of paths</source>
         <translation>Le nombre de fichiers à copier n&apos;est pas égal au nombre de chemins d&apos;accès</translation>
     </message>
@@ -8632,22 +8647,22 @@ Fermez-les et réessayez.</translation>
         <translation>Le fichier shapefile sélectionné n&apos;est pas accompagné de son fichier .txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1620"/>
+        <location filename="../src/substrate_mod.py" line="1625"/>
         <source>The classification code in .txt file is not recognized : </source>
         <translation>Le code de classification du fichier .txt n&apos;est pas reconnu : </translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1625"/>
+        <location filename="../src/substrate_mod.py" line="1630"/>
         <source>The name &apos;substrate_classification_code=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;substrate_classification_code=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1633"/>
+        <location filename="../src/substrate_mod.py" line="1638"/>
         <source>The classification method in .txt file is not recognized : </source>
         <translation>La méthode de classification dans le fichier.txt n&apos;est pas reconnue : </translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1639"/>
+        <location filename="../src/substrate_mod.py" line="1644"/>
         <source>The name &apos;substrate_classification_method=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;substrat_classification_method=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
     </message>
@@ -8682,14 +8697,19 @@ Fermez-les et réessayez.</translation>
         <translation>Le fichier texte sélectionné n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1651"/>
+        <location filename="../src/substrate_mod.py" line="1656"/>
         <source>Constant values can&apos;t be converted to integer : </source>
         <translation>Les valeurs constantes ne peuvent pas être converties en nombre entier : </translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1656"/>
+        <location filename="../src/substrate_mod.py" line="1661"/>
         <source>The name &apos;constant_values=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;constant_values=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
+    </message>
+    <message>
+        <location filename="../src/substrate_mod.py" line="1617"/>
+        <source>Can&apos;t read content file.</source>
+        <translation>Impossibilité de lire le contenu du fichier.</translation>
     </message>
 </context>
 <context>
@@ -8782,12 +8802,12 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/plot_mod.py" line="824"/>
         <source>Desired units [</source>
-        <translation>Unités souhaitées [</translation>
+        <translation type="obsolete">Unités souhaitées [</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="826"/>
         <source>units [</source>
-        <translation>unités [</translation>
+        <translation type="obsolete">unités [</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="819"/>
@@ -9153,6 +9173,11 @@ Fermez-les et réessayez.</translation>
         <location filename="../src/plot_mod.py" line="731"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Unit : </source>
         <translation>VH et SPU interpolées - Unité : </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="824"/>
+        <source>Desired </source>
+        <translation>Souhaité(e)</translation>
     </message>
 </context>
 <context>

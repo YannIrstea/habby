@@ -1598,6 +1598,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     progress_value.value = 90
 
     # create hdf5 hab
+    data_2d_merge.filename = hdf5_name_hab
     hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hab, new=True)
     hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_preferences)
 
@@ -1608,22 +1609,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         if project_preferences[key][1]:
             nb_export += 1
         export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
-
-    # if True in export_dict.values():
-    #     export_dict["habitat_text_hab"] = False
-    #     export_dict["nb_export"] = nb_export
-    #     process_manager = MyProcessManager("export")
-    #     process_manager.set_export_hdf5_mode(project_preferences['path_prj'],
-    #                                       [hdf5.filename],
-    #                                       export_dict,
-    #                                       project_preferences)
-    #     process_manager.start()
-    #
-    #     while process_manager.isRunning():
-    #         if process_manager.all_process_runned:
-    #             process_manager.close_all_export()
-    #             process_manager.terminate()
-    #             return
 
     # warnings
     if not print_cmd:
