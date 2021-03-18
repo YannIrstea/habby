@@ -430,6 +430,13 @@ class MainWindows(QMainWindow):
             self.physic_tabs = True
             self.stat_tabs = True
 
+        if not os.path.exists(path_folder_prj):
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Projects folder error"))
+            self.msg2.setText(self.tr("Projects folder specify not exist. Please fix it before creating project. "))
+            self.msg2.exec_()
+            return
+
         # path
         path_prj = os.path.join(path_folder_prj, name_prj)
 
