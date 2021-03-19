@@ -35,8 +35,8 @@ from src.tools_mod import create_map_plot_string_dict, compute_interpolation, ex
 class MyProcessManager(QThread):
     """
     """
-    def __init__(self, type, parent=None):
-        QThread.__init__(self, parent)
+    def __init__(self, type):
+        QThread.__init__(self)
         self.plot_production_stopped = False
         self.thread_started = False
         self.all_process_runned = False
@@ -801,7 +801,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def run(self):
+    def start(self):
         # import pydevd
         # pydevd.settrace(suspend=True, trace_only_current_thread=True)
         self.thread_started = True
