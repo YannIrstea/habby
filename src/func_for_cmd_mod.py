@@ -1140,6 +1140,7 @@ def cli_load_hyd(arguments, project_preferences):
 
     # # get_hydrau_description_from_source
     hydraulic_model_information = HydraulicModelInformation()
+
     hsra_value = hydraulic_process_mod.HydraulicSimulationResultsAnalyzer(filename_path,
                                                                           project_preferences["path_prj"],
                                                                           hydraulic_model_information.get_attribute_name_from_name_models_gui(
@@ -1162,7 +1163,7 @@ def cli_load_hyd(arguments, project_preferences):
 
     # error
     if type(hsra_value.hydrau_description_list[0]) == str:
-        print("Error")
+        print(hsra_value.hydrau_description_list)
         return
 
     # run process
