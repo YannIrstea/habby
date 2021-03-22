@@ -132,7 +132,7 @@ class InterpolationTab(QScrollArea):
 
         # txt layout
         fromtext_group = QGroupBox(self.tr("from .txt file"))
-        self.fromtext_qpushbutton = QPushButton(self.tr('run'))
+        self.fromtext_qpushbutton = QPushButton(self.tr('load and run'))
         change_button_color(self.fromtext_qpushbutton, "#47B5E6")
         self.fromtext_qpushbutton.clicked.connect(self.display_required_units_from_txtfile)
         fromtext_layout = QHBoxLayout()

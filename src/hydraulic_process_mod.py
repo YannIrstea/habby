@@ -82,6 +82,12 @@ class HydraulicSimulationResultsAnalyzer:
             self.index_hydrau_file_selected = True
 
     def get_hydrau_description_from_source(self):
+        # check if input file exist
+        for file_path in self.filename_path_list:
+            if not os.path.exists(file_path):
+                self.hydrau_description_list = "Error: " + file_path + " doesn't exist."
+                return
+
         # indexHYDRAU.txt absence
         if not self.index_hydrau_file_exist:
             self.warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod",

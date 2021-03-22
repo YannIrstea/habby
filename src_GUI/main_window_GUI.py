@@ -48,6 +48,7 @@ from src.project_properties_mod import load_project_properties, load_specific_pr
 from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
 from src import hdf5_mod
+from src.about_mod import get_last_version_number_from_github
 
 
 class MainWindows(QMainWindow):
@@ -265,12 +266,13 @@ class MainWindows(QMainWindow):
         else:
             self.actual_theme = "classic"
 
-
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
         self.change_theme()
+
+        self.check_need_of_update_sofware()
 
         self.check_concurrency()
 
@@ -429,6 +431,13 @@ class MainWindows(QMainWindow):
         elif project_type == self.tr("both"):
             self.physic_tabs = True
             self.stat_tabs = True
+
+        if not os.path.exists(path_folder_prj):
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Projects folder error"))
+            self.msg2.setText(self.tr("Projects folder specify not exist. Please fix it before creating project. "))
+            self.msg2.exec_()
+            return
 
         # path
         path_prj = os.path.join(path_folder_prj, name_prj)
@@ -859,14 +868,34 @@ class MainWindows(QMainWindow):
                 self.central_widget.write_log(
                     'Warning: ' + self.tr('The same project is open in another instance of HABBY.'
                                           ' This could results in fatal and unexpected error. '
-                                          'It is strongly adivsed to close the other instance of HABBY.'))
-                self.central_widget.write_log(
-                    'Warning: ' + self.tr('This message could also appear if HABBY was not closed properly'
+                                          'It is strongly adivsed to close the other instance of HABBY. This message could also appear if HABBY was not closed properly'
                                           '. In this case, please close and re-open HABBY.\n'))
 
             else:
                 with open(filename, 'wt') as f:
                     f.write('open')
+
+    def check_need_of_update_sofware(self):
+        last_float = 0
+        actual_float = 0
+        last = get_last_version_number_from_github()
+        actual = HABBY_VERSION_STR
+
+        if last == "unknown":  # no internet acces
+            pass
+        else:
+            try:
+                last_float = float(last)
+            except:
+                print("Error: Can't convert last version to float number :", last)
+            try:
+                actual_float = float(actual)
+            except:
+                print("Error: Can't convert actual version to float number :", actual)
+
+            if actual_float < last_float:
+                self.central_widget.write_log(self.tr("Warning: A new version of the HABBY software is available! "
+                                                                                               "It is strongly advised to update from " + str(actual_float) + " to " + str(last_float) + " and take into consideration the latest changes."))
 
     def end_concurrency(self):
         """
@@ -1784,8 +1813,12 @@ class CreateNewProjectDialog(QDialog):
         user_document_path = os.path.join(user_path, "Documents")
         if os.path.exists(user_document_path):
             self.default_fold = os.path.join(user_document_path, "HABBY_projects")
+
         else:
             self.default_fold = os.path.join(user_path, "HABBY_projects")
+
+        if not os.path.exists(self.default_fold):
+            os.makedirs(self.default_fold)
 
         if oldpath_prj and os.path.isdir(oldpath_prj) and os.path.dirname(oldpath_prj) != "":
             self.default_fold = os.path.dirname(oldpath_prj)
@@ -1805,7 +1838,8 @@ class CreateNewProjectDialog(QDialog):
         self.e1 = QLineEdit(self.default_name)
         l2 = QLabel(self.tr('Projects folder: '))
         self.e2 = QLineEdit(self.default_fold)
-        button2 = QPushButton(self.tr('Change folder'), self)
+        button2 = QPushButton("...", self)
+        button2.setToolTip(self.tr("Change folder"))
         button2.clicked.connect(self.setfolder)
         self.button3 = QPushButton(self.tr('Create project'))
         self.button3.clicked.connect(self.create_project)  # is a PyQtSignal

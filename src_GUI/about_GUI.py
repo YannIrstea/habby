@@ -14,11 +14,7 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-import ssl
 import os
-from csv import reader as csvreader
-import numpy as np
-import urllib.request
 from platform import platform as OS_VERSION_STR
 from osgeo.gdal import __version__ as GDAL_VERSION_STR
 from triangle import __version__ as TRIANGLE_VERSION_STR
@@ -27,15 +23,15 @@ from h5py.version import hdf5_version as HDF5_VERSION_STR
 from qdarkstyle import __version__ as QDARKSTYLE_VERSION_STR
 from PyQt5.Qt import PYQT_VERSION_STR
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QPixmap, QIcon, QTextCursor, QColor
-from PyQt5.QtWidgets import QMainWindow, QTableWidget, QDialog, QAbstractItemView, QHeaderView, QPushButton, QListWidget, \
-    QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QTableWidgetItem, QTextEdit, \
-    QFileDialog, QMessageBox, QFrame, QMenu, QToolBar, QProgressBar, QScrollArea, QHBoxLayout
+from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtWidgets import QTableWidget, QDialog, QAbstractItemView, QHeaderView, QPushButton, \
+    QLabel, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QTableWidgetItem, \
+    QFrame, QScrollArea, QHBoxLayout
 
 import src_GUI.dev_tools_GUI
 from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
-from src_GUI import tools_GUI
+from src.about_mod import get_last_version_number_from_github
 
 
 class CheckVersionDialog(QDialog):
@@ -96,17 +92,8 @@ class CheckVersionDialog(QDialog):
         self.setModal(True)
 
     def get_last_version_number_from_github(self):
-        last_version_str = "unknown"
-        ssl._create_default_https_context = ssl._create_unverified_context
-        try:
-            url_github = 'https://api.github.com/repos/YannIrstea/habby/tags'
-            with urllib.request.urlopen(url_github) as response:
-                html = response.read()
-                last_version_str = eval(html)[0]["name"][1:]
-                self.last_version_label.setText(last_version_str)
-        except:
-            print("no internet access")
-            self.last_version_label.setText(last_version_str)
+        last_version_str = get_last_version_number_from_github()
+        self.last_version_label.setText(last_version_str)
 
     def showEvent(self, event):
         # do stuff here
