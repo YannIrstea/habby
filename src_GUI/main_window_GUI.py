@@ -48,6 +48,7 @@ from src.project_properties_mod import load_project_properties, load_specific_pr
 from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
 from src import hdf5_mod
+from src.about_mod import get_last_version_number_from_github
 
 
 class MainWindows(QMainWindow):
@@ -265,12 +266,13 @@ class MainWindows(QMainWindow):
         else:
             self.actual_theme = "classic"
 
-
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
         self.change_theme()
+
+        self.check_need_of_update_sofware()
 
         self.check_concurrency()
 
@@ -866,14 +868,34 @@ class MainWindows(QMainWindow):
                 self.central_widget.write_log(
                     'Warning: ' + self.tr('The same project is open in another instance of HABBY.'
                                           ' This could results in fatal and unexpected error. '
-                                          'It is strongly adivsed to close the other instance of HABBY.'))
-                self.central_widget.write_log(
-                    'Warning: ' + self.tr('This message could also appear if HABBY was not closed properly'
+                                          'It is strongly adivsed to close the other instance of HABBY. This message could also appear if HABBY was not closed properly'
                                           '. In this case, please close and re-open HABBY.\n'))
 
             else:
                 with open(filename, 'wt') as f:
                     f.write('open')
+
+    def check_need_of_update_sofware(self):
+        last_float = 0
+        actual_float = 0
+        last = get_last_version_number_from_github()
+        actual = HABBY_VERSION_STR
+
+        if last == "unknown":  # no internet acces
+            pass
+        else:
+            try:
+                last_float = float(last)
+            except:
+                print("Error: Can't convert last version to float number :", last)
+            try:
+                actual_float = float(actual)
+            except:
+                print("Error: Can't convert actual version to float number :", actual)
+
+            if actual_float < last_float:
+                self.central_widget.write_log(self.tr("Warning: A new version of the HABBY software is available! "
+                                                                                               "It is strongly advised to update from " + str(actual_float) + " to " + str(last_float) + " and take into consideration the latest changes."))
 
     def end_concurrency(self):
         """
