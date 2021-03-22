@@ -1813,8 +1813,12 @@ class CreateNewProjectDialog(QDialog):
         user_document_path = os.path.join(user_path, "Documents")
         if os.path.exists(user_document_path):
             self.default_fold = os.path.join(user_document_path, "HABBY_projects")
+
         else:
             self.default_fold = os.path.join(user_path, "HABBY_projects")
+
+        if not os.path.exists(self.default_fold):
+            os.makedirs(self.default_fold)
 
         if oldpath_prj and os.path.isdir(oldpath_prj) and os.path.dirname(oldpath_prj) != "":
             self.default_fold = os.path.dirname(oldpath_prj)
