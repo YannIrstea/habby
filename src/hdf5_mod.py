@@ -1681,7 +1681,7 @@ class Hdf5Management:
                             return
                 name_list.append(os.path.join(self.path_txt, name))
                 hvum_list.append(self.data_2d.hvum)
-                unit_data_list.append(self.data_2d[reach_number][unit_number])
+                unit_data_list.append(self.data_2d[reach_number][unit_number]["mesh"])
                 delta_mesh_list.append(delta_unit / self.data_2d[reach_number][unit_number]["mesh"]["tin"].shape[0])
 
         # Pool
@@ -1692,6 +1692,10 @@ class Hdf5Management:
         lock = Lock()  # to share progress_value
         if state is None:
             state = Value("d", 0.0)
+
+        # part
+        # cpu_count_value = cpu_count - 1 /
+
         pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
         pool.starmap(export_mesh_txt, input_data)
 
@@ -1734,7 +1738,7 @@ class Hdf5Management:
                             return
                 name_list.append(os.path.join(self.path_txt, name))
                 hvum_list.append(self.data_2d.hvum)
-                unit_data_list.append(self.data_2d[reach_number][unit_number])
+                unit_data_list.append(self.data_2d[reach_number][unit_number]["node"])
                 delta_node_list.append(delta_unit / self.data_2d[reach_number][unit_number]["node"]["xy"].shape[0])
 
         # Pool

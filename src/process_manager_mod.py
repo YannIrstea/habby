@@ -802,8 +802,6 @@ class MyProcessManager(QThread):
         self.process_list.append(process)
 
     def start(self):  # run : disable debugger and enable progress_bar, start:enable debugger and disable progress_bar
-        # import pydevd
-        # pydevd.settrace(suspend=True, trace_only_current_thread=True)
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":
