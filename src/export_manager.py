@@ -195,6 +195,10 @@ def export_report(xmlfile, hab_animal_type, project_preferences, delta_animal):
 
 def export_point_txt(name, hvum, unit_data_node, delta_node):
     # name, hvum, unit_data = args
+
+    # convert all pandas data to str
+    unit_data_node["data"] = unit_data_node["data"].astype(np.str)
+
     # open text to write
     with open(name, 'wt', encoding='utf-8') as f:
         # header 1
@@ -219,8 +223,7 @@ def export_point_txt(name, hvum, unit_data_node, delta_node):
             y = str(unit_data_node[hvum.xy.name][point_num][1])
             text_to_write_str += f"{x}\t{y}"
             for node_variable_name in hvum.all_final_variable_list.nodes().names():
-                text_to_write_str += "\t" + str(
-                    unit_data_node["data"][node_variable_name][point_num])
+                text_to_write_str += "\t" + unit_data_node["data"][node_variable_name][point_num]
 
             # progress
             with lock:
@@ -238,6 +241,9 @@ def export_point_txt(name, hvum, unit_data_node, delta_node):
 def export_mesh_txt(name, hvum, unit_data_mesh, delta_mesh):
     # name, hvum, unit_data_mesh = args
     # open text to write
+    # convert all pandas data to str
+    unit_data_mesh["data"] = unit_data_mesh["data"].astype(np.str)
+
     with open(name, 'wt', encoding='utf-8') as f:
         # header 1
         text_to_write_str_list = ["node1", "node2", "node3"]
@@ -259,11 +265,9 @@ def export_mesh_txt(name, hvum, unit_data_mesh, delta_mesh):
             node2 = unit_data_mesh[hvum.tin.name][mesh_num][1]
             node3 = unit_data_mesh[hvum.tin.name][mesh_num][2]
             text_to_write_str += '\n'
-            text_to_write_str += f"{str(node1)}\t{str(node2)}\t{str(node3)}\t"
-            data_list = []
+            text_to_write_str += f"{node1.__str__()}\t{node2.__str__()}\t{node3.__str__()}\t"
             for mesh_variable_name in hvum.all_final_variable_list.meshs().names():
-                data_list.append(str(unit_data_mesh["data"][mesh_variable_name][mesh_num]))
-            text_to_write_str += "\t".join(data_list)
+                text_to_write_str += "\t" + unit_data_mesh["data"][mesh_variable_name][mesh_num]
 
             # progress
             with lock:
