@@ -817,12 +817,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Accueil</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2019"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2045"/>
         <source>Hydraulic</source>
         <translation>Hydraulique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2020"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2046"/>
         <source>Substrate</source>
         <translation>Substrat</translation>
     </message>
@@ -837,17 +837,17 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Biologie</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2029"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2055"/>
         <source>Research 1</source>
         <translation>Recherche 1</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2030"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2056"/>
         <source>Research 2</source>
         <translation>Recherche 2</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2021"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2047"/>
         <source>Habitat Calc.</source>
         <translation>Calc. Habitat</translation>
     </message>
@@ -889,32 +889,32 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Créer ou ouvrir un projet. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2022"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2048"/>
         <source>Data explorer</source>
         <translation>Explorateur de données</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2023"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2049"/>
         <source>Tools</source>
         <translation>Outils</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2025"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2051"/>
         <source>ESTIMHAB</source>
         <translation>ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2026"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2052"/>
         <source>STATHAB</source>
         <translation>STATHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2027"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2053"/>
         <source>FStress</source>
         <translation>FStress</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2034"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2060"/>
         <source>Project</source>
         <translation>Projet</translation>
     </message>
@@ -924,7 +924,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Créer ou ouvrir un projet HABBY.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2343"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2369"/>
         <source>The project file is not found. 
 </source>
         <translation>Le fichier de projet n&apos;est pas trouvé. 
@@ -955,7 +955,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Créer ou ouvrer un projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1959"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1985"/>
         <source>HABBY says :</source>
         <translation>HABBY dit :</translation>
     </message>
@@ -968,7 +968,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Actuel</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="72"/>
+        <location filename="../src_GUI/about_GUI.py" line="68"/>
         <source>Last</source>
         <translation>Dernier</translation>
     </message>
@@ -978,7 +978,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Ok</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="82"/>
+        <location filename="../src_GUI/about_GUI.py" line="78"/>
         <source>HABBY version</source>
         <translation>Version d&apos;HABBY</translation>
     </message>
@@ -988,17 +988,17 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">A propos</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="75"/>
+        <location filename="../src_GUI/about_GUI.py" line="71"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="69"/>
+        <location filename="../src_GUI/about_GUI.py" line="65"/>
         <source>Current</source>
         <translation>Actuelle</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="93"/>
+        <location filename="../src_GUI/about_GUI.py" line="89"/>
         <source>Check HABBY version</source>
         <translation>Recherche mise à jours</translation>
     </message>
@@ -1234,32 +1234,32 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Ouvrir le dossier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1845"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1871"/>
         <source>HABBY- New Project</source>
         <translation>HABBY- Nouveau Projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1811"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1837"/>
         <source>Project name: </source>
         <translation>Nom de projet: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1813"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1839"/>
         <source>Projects folder: </source>
         <translation>Répertoire du projet: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1816"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1842"/>
         <source>Change folder</source>
         <translation>Changer de répertoire</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1818"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1844"/>
         <source>Create project</source>
         <translation>Créer un projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1822"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1848"/>
         <source>Project type</source>
         <translation>Type de projet</translation>
     </message>
@@ -1274,22 +1274,22 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1857"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1883"/>
         <source>Select directory</source>
         <translation>Choisir un répertoire</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1824"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1850"/>
         <source>physical</source>
         <translation>physique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1824"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1850"/>
         <source>statistical</source>
         <translation>statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1824"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1850"/>
         <source>both</source>
         <translation>les deux</translation>
     </message>
@@ -1493,7 +1493,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2405"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2431"/>
         <source>I am a button</source>
         <translation>Je suis un bouton</translation>
     </message>
@@ -3639,7 +3639,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Sortie</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1036"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1058"/>
         <source>Exit application</source>
         <translation>Sortir de l&apos;application</translation>
     </message>
@@ -3649,7 +3649,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Ouvrir un Projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1046"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1068"/>
         <source>Open an exisiting project</source>
         <translation>Ouvrir un projet existant</translation>
     </message>
@@ -3659,7 +3659,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Nouveau projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1304"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1326"/>
         <source>Create a new project</source>
         <translation>Créer un nouveau projet</translation>
     </message>
@@ -3689,7 +3689,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Effacer la fenêtre du log/registre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1078"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1100"/>
         <source>Empty the log windows at the bottom of the main window. Do not erase the .log file.</source>
         <translation>Efface la fenêtre du registre (ou log) qui se trouve en bas de la fenêtre principale d&apos;HABBY. Cette commande n&apos;efface pas le fichier qui contient les infos sur le log.</translation>
     </message>
@@ -3699,7 +3699,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Ne pas sauver le registre (log)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1082"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1104"/>
         <source>The .log file will not be updated further.</source>
         <translation>The fichier &apos;log&apos; ne sera plus mis à jour.</translation>
     </message>
@@ -3709,7 +3709,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Sauver le Registre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1085"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1107"/>
         <source>Events will be written to the .log file.</source>
         <translation>Les évenements seront écrit dans le fichier .log.</translation>
     </message>
@@ -3764,27 +3764,27 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Cache les options &quot;recherche&quot;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1102"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1124"/>
         <source>&amp;English</source>
         <translation>&amp;Anglais</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1103"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1125"/>
         <source>click here for English</source>
         <translation>Cliquez ici pour avoir la version anglaise d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1105"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1127"/>
         <source>&amp;French</source>
         <translation>&amp;Français</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1106"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1128"/>
         <source>click here for French</source>
         <translation>Cliquez ici pour avoir la version française d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1031"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1053"/>
         <source>Help</source>
         <translation>Aide</translation>
     </message>
@@ -3809,7 +3809,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1076"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1098"/>
         <source>Log</source>
         <translation>Journal de bord</translation>
     </message>
@@ -3824,17 +3824,17 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Options &quot;Recherche&quot;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1198"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1220"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="655"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="657"/>
         <source>Path to project</source>
         <translation>Chemin d&apos;accès au projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="656"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="658"/>
         <source>The directory indicated in the project path does not exists. Project not saved.</source>
         <translation>Le répertoire indiqué dans le fichier projet n&apos;existe pas. Le projet n&apos;est pas sauvé.</translation>
     </message>
@@ -3899,12 +3899,12 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Registre effacé dans cette fenêtre &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1750"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1772"/>
         <source>This log will not be saved anymore in the .log file. &lt;br&gt;</source>
         <translation>Le journal de bord ne sera plus sauvé dans le fichier log à partir de maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1750"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1772"/>
         <source>This log will not be saved anymore in the restart file. &lt;br&gt;</source>
         <translation>Le journal de bord ne sera plus sauvé dans le fichier restart à partir de maintenant. &lt;br&gt;</translation>
     </message>
@@ -3914,32 +3914,32 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Le registre sera sauvé dans le fichier &quot;log&quot; depuis maintenant. &lt;br&gt;Le registre sera sauvé dans le fichier &quot;restart&quot; depuis maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1768"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1790"/>
         <source>Log Info</source>
         <translation>Information du journal de bord</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1769"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1791"/>
         <source>Information related to the .log file are incomplete. Please check.</source>
         <translation>Les informations liées au fichier log sont incomplète. Il est nécessaire de corriger cela.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1684"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1706"/>
         <source>Save Hydrological Data</source>
         <translation>Sauver les données hydrauliques</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1685"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1707"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation>Le projet n&apos;est pas sauvé. Sauver le projet dans le tab &apos;Accueil&apos; avant de sauver des données.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1692"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1714"/>
         <source>Delete figure</source>
         <translation>Effacer les Images</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1693"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1715"/>
         <source>Are you sure that you want to delete all file in the folder: 
 </source>
         <translation>Etes-vous sûr de vouloir effacer tous les fichiers dans le dossier: 
@@ -3956,7 +3956,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Habby dit:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1098"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1120"/>
         <source>Close the current project without opening a new one</source>
         <translation>Ferme le projet actuel sans en ouvrir un nouveau</translation>
     </message>
@@ -3981,7 +3981,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Aide pour les Développeurs</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1300"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1322"/>
         <source>Open an existing project</source>
         <translation>Ouvrir un projet existant</translation>
     </message>
@@ -4006,12 +4006,12 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Fermer toutes les figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="488"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="490"/>
         <source>Permission Error</source>
         <translation>Erreur de Permission</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="489"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="491"/>
         <source>You do not have the permission to write in this folder. Choose another folder. 
 </source>
         <translation>Vous n&apos;avez pas la permission pour écrire dans ce dossier. Choissiez un autre dossier. 
@@ -4033,32 +4033,32 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Ouverture fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1548"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1570"/>
         <source>Research 1</source>
         <translation>Recherche 1</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1549"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1571"/>
         <source>Research 2</source>
         <translation>Recherche 2</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1108"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1130"/>
         <source>&amp;Spanish</source>
         <translation>&amp;Espagnol</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1109"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1131"/>
         <source>click here for Spanish</source>
         <translation>cliquez ici pour l&apos;espagnol</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1756"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1778"/>
         <source>This log will be saved in the .log file.&lt;br&gt; This log will be saved in the restart file. &lt;br&gt;</source>
         <translation>Le journal de bord est sauvé dans le fichier &quot;log&quot; jusqu&apos;à maintenant. &lt;br&gt;Le journal de bord est sauvé dans le fichier &quot;restart&quot; jusqu&apos;à maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1246"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1268"/>
         <source>HABBY </source>
         <translation>HABBY </translation>
     </message>
@@ -4073,7 +4073,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Le projet n&apos;est pas sauvé. Sauvez les projet dans l&apos;onglet de démarrage avant de sauver les données ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1030"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1052"/>
         <source>View</source>
         <translation>Vue</translation>
     </message>
@@ -4083,79 +4083,79 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Préférences</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="290"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="292"/>
         <source>, </source>
         <translation>, </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="290"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="292"/>
         <source>Do you really want to leave HABBY ?
 All alive processes and figure windows will be closed.</source>
         <translation>Voulez-vous vraiment quitter HABBY ?
 Tous les processus vivants et les fenêtres de figures seront fermés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1044"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1066"/>
         <source>Open</source>
         <translation>Ouvrir</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1040"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1062"/>
         <source>New</source>
         <translation>Nouveau</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1096"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1118"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1077"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1099"/>
         <source>Clear log</source>
         <translation>Nettoyage</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1081"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1103"/>
         <source>Do not save log</source>
         <translation>Ne pas sauvegarder</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1084"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1106"/>
         <source>Save log</source>
         <translation>Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1089"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1111"/>
         <source>Delete all figure files</source>
         <translation>Supprimer toutes les figures créées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1090"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1112"/>
         <source>Figures files of current project will be deleted</source>
         <translation>Les fichiers de figures du projet en cours seront supprimés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1092"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1114"/>
         <source>Close all figure windows</source>
         <translation>Fermer toutes les fenêtres de figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1316"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1338"/>
         <source>Close all open figure windows</source>
         <translation>Fermer toutes les fenêtres de figure ouverte</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1068"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1090"/>
         <source>Physical tabs</source>
         <translation>Onglet physique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1070"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1092"/>
         <source>Statistical tabs</source>
         <translation>Onglet statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1072"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1094"/>
         <source>Research tabs</source>
         <translation>Onglet recherche</translation>
     </message>
@@ -4170,22 +4170,22 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">sombre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1028"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1050"/>
         <source>Project</source>
         <translation>Projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1029"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1051"/>
         <source>Settings</source>
         <translation>Réglages</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1067"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1089"/>
         <source>Tabs</source>
         <translation>Onglets</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1174"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1196"/>
         <source>Open recent</source>
         <translation>Ouvrir récent</translation>
     </message>
@@ -4200,12 +4200,12 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">Thèmes</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1299"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1321"/>
         <source>Open project</source>
         <translation>Ouvrir un projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1303"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1325"/>
         <source>New project</source>
         <translation>Nouveau projet</translation>
     </message>
@@ -4215,7 +4215,7 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">Voir les fichiers du projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1315"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1337"/>
         <source>Close figure windows</source>
         <translation>Fermer les fenêtre de figure</translation>
     </message>
@@ -4225,47 +4225,47 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">Arrêter le processus en cours</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1478"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1500"/>
         <source>Hydraulic</source>
         <translation>Hydraulique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1481"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1503"/>
         <source>Substrate</source>
         <translation>Substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1484"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1506"/>
         <source>Habitat Calc.</source>
         <translation>Calc. habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1487"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1509"/>
         <source>Data explorer</source>
         <translation>Explorateur de données</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1490"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1512"/>
         <source>Tools</source>
         <translation>Outils</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1515"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1537"/>
         <source>ESTIMHAB</source>
         <translation>ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1518"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1540"/>
         <source>STATHAB</source>
         <translation>STATHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1521"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1543"/>
         <source>FStress</source>
         <translation>FStress</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1167"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1189"/>
         <source>About</source>
         <translation>A propos</translation>
     </message>
@@ -4302,14 +4302,14 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Fichier(s) supprimé(s).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="849"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="851"/>
         <source>Could not check if the project was open by another instance of HABBY (1) 
 </source>
         <translation>Impossible de vérifier si le projet était ouvert par une autre instance de HABBY (1) 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="861"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="863"/>
         <source>Could not check if the project was open by another instance of HABBY (2) 
 </source>
         <translation>Impossible de vérifier si le projet était ouvert par une autre instance de HABBY (2) 
@@ -4318,24 +4318,24 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="866"/>
         <source>The same project is open in another instance of HABBY. This could results in fatal and unexpected error. It is strongly adivsed to close the other instance of HABBY.</source>
-        <translation>Le même projet est ouvert dans une autre instance d&apos;HABBY. Cela pourrait entraîner des erreurs fatales et inattendues. Il est fortement conseillé de fermer l&apos;autre instance d&apos;HABBY.</translation>
+        <translation type="obsolete">Le même projet est ouvert dans une autre instance d&apos;HABBY. Cela pourrait entraîner des erreurs fatales et inattendues. Il est fortement conseillé de fermer l&apos;autre instance d&apos;HABBY.</translation>
     </message>
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="870"/>
         <source>This message could also appear if HABBY was not closed properly. In this case, please close and re-open HABBY.
 </source>
-        <translation>Ce message peut également apparaître si HABBY n&apos;a pas été fermé correctement. Dans ce cas, veuillez fermer et rouvrir HABBY.
+        <translation type="obsolete">Ce message peut également apparaître si HABBY n&apos;a pas été fermé correctement. Dans ce cas, veuillez fermer et rouvrir HABBY.
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="888"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="910"/>
         <source>Could not check if the project was open by another instance of HABBY (3) 
 </source>
         <translation>Impossible de vérifier si le projet était ouvert par une autre instance d&apos;HABBY (3) 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="660"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="662"/>
         <source>Project not saved.</source>
         <translation>Projet non sauvegardé.</translation>
     </message>
@@ -4357,7 +4357,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Projet enregistré ou ouvert avec succès.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="407"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="409"/>
         <source>File should be of type .habby
 </source>
         <translation>Le fichier doit être de type .habby
@@ -4383,7 +4383,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Impossible de tenir compte de la concomitance entre les projets en raison d&apos;un changement de chemin. Si vous avez une autre instance d&apos;HABBY ouverte, veuillez la fermer.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="453"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="455"/>
         <source>Project not created. Choose another project name.</source>
         <translation>Projet non créé. Choisissez un autre nom de projet.</translation>
     </message>
@@ -4421,7 +4421,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="818"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="820"/>
         <source>Old project and its files are opened by another programme.
 Close them and try again.</source>
         <translation>L&apos;ancien projet et ses fichiers sont ouverts par un autre programme.
@@ -4455,37 +4455,37 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Projet ouvert. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="812"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="814"/>
         <source>Create or open a project.</source>
         <translation>Créez ou ouvrez un projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="479"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="481"/>
         <source>Old project and its files are deleted.</source>
         <translation>L&apos;ancien projet et ses fichiers sont supprimés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="514"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="516"/>
         <source>Project created.</source>
         <translation>Projet créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="613"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="615"/>
         <source>Project opened.</source>
         <translation>Projet ouvert.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1310"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1332"/>
         <source>clic = See current HABBY project files / CTRL+clic == See user HABBY AppData files / SHIFT+clic = See HABBY installation files</source>
         <translation>clic = Voir les fichiers du projet HABBY courant / CTRL+clic == Voir les fichiers utilisateur AppData d&apos;HABBY / SHIFT+clic = Voir les fichiers d&apos;installation d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1628"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1650"/>
         <source>File(s) deleted. &lt;br&gt;</source>
         <translation>Fichier(s) supprimé(s). &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1666"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1688"/>
         <source>File renamed. &lt;br&gt;</source>
         <translation>Fichier renommé. &lt;br&gt;</translation>
     </message>
@@ -4495,171 +4495,188 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Un autre répertoire avec le nom </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="447"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="449"/>
         <source>Do you want to overwrite it and all its files ?</source>
         <translation>Vous voulez l&apos;écraser ainsi que tous ses fichiers ?</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="787"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="789"/>
         <source> project not found. It must have been moved or removed.</source>
         <translation> projet non trouvé. Il doit avoir été déplacé ou supprimé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1606"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1628"/>
         <source>Warning: Could not remove </source>
         <translation>Warning: Impossible de le supprimer </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="446"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="448"/>
         <source>Another folder with name </source>
         <translation>Un autre répertoire avec le nom </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="423"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="425"/>
         <source>physical</source>
         <translation>physique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="426"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="428"/>
         <source>statistical</source>
         <translation>statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="429"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="431"/>
         <source>both</source>
         <translation>les deux</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1034"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1056"/>
         <source>Exit HABBY</source>
         <translation>Fermer HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1063"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1085"/>
         <source>Properties</source>
         <translation>Propriétés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1088"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1110"/>
         <source>Figure management</source>
         <translation>Gestion des figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1134"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1156"/>
         <source>Toggle full screen mode</source>
         <translation>Basculer en mode plein écran</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1138"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1160"/>
         <source>Change theme</source>
         <translation>Changer de thème</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1708"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1730"/>
         <source>All figures are deleted.</source>
         <translation>Toute les figures sont supprimées.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="221"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="222"/>
         <source>Biological models database has been modified : </source>
         <translation>La base de données des modèles biologiques a été modifiée : </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="224"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="225"/>
         <source>Error: .habby file is corrupted : </source>
         <translation>Erreur: le fichier projet .habby est corrompu : </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="225"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="226"/>
         <source>Create or open another project.</source>
         <translation>Créer ou ouvrir un autre projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="531"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="533"/>
         <source>The selected project file does not exist.
 </source>
         <translation>Le fichier de projet sélectionné n&apos;existe pas.
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1143"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1165"/>
         <source>Help contents</source>
         <translation>Contenu de l&apos;aide</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1144"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1166"/>
         <source>Get help to use the program</source>
         <translation>Avoir de l&apos;aide pour utiliser le logiciel</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1149"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1171"/>
         <source>API documentation</source>
         <translation>API documentation</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1150"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1172"/>
         <source>Get help to develop or use the program</source>
         <translation>Avoir de l&apos;aide pour développer ou utiliser le logiciel</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1154"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1176"/>
         <source>Report an issue</source>
         <translation>Signaler un problème</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1155"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1177"/>
         <source>Report a repeatable problem</source>
         <translation>Signaler un problème répétable</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1158"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1180"/>
         <source>HABBY official website</source>
         <translation>Site officiel d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1159"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1181"/>
         <source>Open the HABBY official website</source>
         <translation>Ouvrir le site officiel d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1163"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1185"/>
         <source>Check HABBY version</source>
         <translation>Recherche mise à jours</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1164"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1186"/>
         <source>Check current and last HABBY version</source>
         <translation>Comparer la version actuelle d&apos;HABBY avec la dernière</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1168"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1190"/>
         <source>Get software informations</source>
         <translation>Avoir les informations du logiciel</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1111"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1133"/>
         <source>&amp;Portuguese</source>
         <translation>&amp;Portugais</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1112"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1134"/>
         <source>click here for Portuguese</source>
         <translation>Cliquez ici pour Portugais</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="611"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="613"/>
         <source>Warning: Current project is an old HABBY project. Working with this can lead to software crashes. It is advisable to recreate a new project.</source>
         <translation>Attention: Le projet courant est un vieux projet HABBY. Travailler avec ce dernier peut conduire à des plantages du logiciel. Il est conseillé de recréer un nouveau projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="435"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="437"/>
         <source>Projects folder error</source>
         <translation>Erreurde répertoire de projets</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="436"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="438"/>
         <source>Projects folder specify not exist. Please fix it before creating project. </source>
-        <translation>Le répertoire de projets spécifié n&apos;existe pas. Veuillez en renseigner un valide.</translation>
+        <translation>Le répertoire de projets spécifié n&apos;existe pas. Veuillez en renseigner un valide. </translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="868"/>
+        <source>The same project is open in another instance of HABBY. This could results in fatal and unexpected error. It is strongly adivsed to close the other instance of HABBY. This message could also appear if HABBY was not closed properly. In this case, please close and re-open HABBY.
+</source>
+        <translation>Le même projet est ouvert dans une autre instance d&apos;HABBY. Cela peut entraîner une erreur fatale et inattendue. Il est fortement conseillé de fermer l&apos;autre instance de HABBY. Ce message peut également apparaître si HABBY n&apos;a pas été fermé correctement. Dans ce cas, veuillez fermer et rouvrir le projet HABBY actuel.
+</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="897"/>
+        <source>Warning: A new version of the HABBY software is available! It is strongly advised to update from </source>
+        <translation>Attention : Une nouvelle version du logiciel HABBY est disponible ! Il est fortement conseillé de faire la mise à jour de la version </translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="897"/>
+        <source> to </source>
+        <translation> à la version </translation>
     </message>
 </context>
 <context>
@@ -4928,52 +4945,52 @@ Fermez-les et réessayez.</translation>
 <context>
     <name>MyProcess</name>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1015"/>
+        <location filename="../src/process_manager_mod.py" line="1013"/>
         <source>started</source>
         <translation>commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1034"/>
+        <location filename="../src/process_manager_mod.py" line="1032"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1042"/>
+        <location filename="../src/process_manager_mod.py" line="1040"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1076"/>
+        <location filename="../src/process_manager_mod.py" line="1074"/>
         <source>Warning: too many information for the GUI</source>
         <translation>Warning: Trop d&apos;information pour l&apos;interface graphique</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1037"/>
+        <location filename="../src/process_manager_mod.py" line="1035"/>
         <source> closed by user after </source>
         <translation> stoppé par l&apos;utilisateur aprés </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1040"/>
+        <location filename="../src/process_manager_mod.py" line="1038"/>
         <source> stopped (process time = </source>
         <translation> stoppé (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1043"/>
+        <location filename="../src/process_manager_mod.py" line="1041"/>
         <source>not started.</source>
         <translation>non commencé </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1047"/>
+        <location filename="../src/process_manager_mod.py" line="1045"/>
         <source> done (process time = </source>
         <translation> finit (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1050"/>
+        <location filename="../src/process_manager_mod.py" line="1048"/>
         <source> crashed (process time = </source>
         <translation> crash (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1053"/>
+        <location filename="../src/process_manager_mod.py" line="1051"/>
         <source> (process time = </source>
         <translation>(temps de calcul = </translation>
     </message>
@@ -5084,12 +5101,12 @@ Fermez-les et réessayez.</translation>
         <translation>export interpolé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="928"/>
+        <location filename="../src/process_manager_mod.py" line="926"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="920"/>
+        <location filename="../src/process_manager_mod.py" line="918"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
@@ -5201,7 +5218,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Espaisseur du trait</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="170"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="170"/>
         <source>Grid</source>
         <translation>Grille</translation>
     </message>
@@ -5256,14 +5273,14 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Format des Figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="179"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="179"/>
         <source>Resolution [dpi]</source>
         <translation>Résolution [dpi]</translation>
     </message>
     <message>
         <location filename="../src_GUI/preferences_GUI.py" line="183"/>
         <source>Type of fish name</source>
-        <translation>Type du nom de poissons</translation>
+        <translation type="obsolete">Type du nom de poissons</translation>
     </message>
     <message>
         <location filename="preferences_GUI.py" line="228"/>
@@ -5281,27 +5298,27 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Ne pas sauver les images</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="185"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="185"/>
         <source>Latin Name</source>
         <translation>Nom Latin</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="185"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="185"/>
         <source>French Common Name</source>
         <translation>Nom Commun Français</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="185"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="185"/>
         <source>English Common Name</source>
         <translation>Nom Commun Anglais</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="185"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="185"/>
         <source>Code ONEMA</source>
         <translation>Code ONEMA</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="189"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="189"/>
         <source>Markers for habitat figures</source>
         <translation>Marqueur (figure habitat)</translation>
     </message>
@@ -5336,7 +5353,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete"> &lt;b&gt; Options Génériques &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="72"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="72"/>
         <source>2D minimum water height [m]</source>
         <translation>Hauteur d&apos;eau minimale considérée comme nulle (2D) [m]</translation>
     </message>
@@ -5356,7 +5373,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Options de l&apos;image non sauvées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="68"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="68"/>
         <source>Cut hydraulic mesh partialy wet</source>
         <translation>Découpage des mailles hydrauliques partiellement mouillées</translation>
     </message>
@@ -5366,7 +5383,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Préférences non sauvegardées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="76"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="76"/>
         <source>Erase file if exist</source>
         <translation>Ecraser le fichier si existe</translation>
     </message>
@@ -5381,32 +5398,32 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="207"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="207"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="216"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="216"/>
         <source>Default exports</source>
         <translation>Exports par défaut</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="249"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="249"/>
         <source>Mesh whole profile</source>
         <translation>Maillage du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="233"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="233"/>
         <source>Point whole profile</source>
         <translation>Points du modèle complet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="254"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="254"/>
         <source>Mesh units</source>
         <translation>Maillage par unités</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="242"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="242"/>
         <source>Point units</source>
         <translation>Points par unités</translation>
     </message>
@@ -5416,12 +5433,12 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Fichier text détaillé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="277"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="277"/>
         <source>Fish informations</source>
         <translation>Information des modèles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="282"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="282"/>
         <source>Figures</source>
         <translation>Figures</translation>
     </message>
@@ -5441,7 +5458,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Voulez-vous vraiment sauvegarder et fermer les nouvelles préférences ?</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="564"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="564"/>
         <source>Create or open an HABBY project.</source>
         <translation>Créer ou ouvrir un projet HABBY.</translation>
     </message>
@@ -5451,17 +5468,17 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Voulez-vous vraiment fermer les préférences sans sauvegarder vos modifications ?</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="193"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="193"/>
         <source>Reset by default</source>
         <translation>Remettre par défaut</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="197"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="197"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="201"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="201"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
@@ -5471,74 +5488,74 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete"># Préférences sauvegardées.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="447"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="447"/>
         <source>The size of the figure should be in the format: num1,num2.
 </source>
         <translation>La taille de la figure doit être au format : num1,num2.
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="458"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="458"/>
         <source>Font size should be an integer. 
 </source>
         <translation>La taille de la police doit être un entier. 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="472"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="472"/>
         <source>Line width should be an integer. 
 </source>
         <translation>La largeur de ligne doit être un entier. 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="484"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="484"/>
         <source>The resolution should be an integer. 
 </source>
         <translation>La résolution doit être un entier. 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="486"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="486"/>
         <source>The resolution should be higher than zero 
 </source>
         <translation>La résolution doit être supérieure à zéro 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="489"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="489"/>
         <source>The resolution is higher than 2000 dpi. Figures might be very large.
 </source>
         <translation>La résolution est supérieure à 2000 dpi. Les chiffres peuvent être très élevés.
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="516"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="516"/>
         <source>Vertical exaggeration value must be superior than 1. Value set to 1.</source>
         <translation>La valeur de l&apos;exagération verticale doit être supérieure à 1, la valeur réglée à 1.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="520"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="520"/>
         <source>Vertical exaggeration value is not integer. Value set to 1.</source>
         <translation>La valeur de l&apos;exagération verticale n&apos;est pas un entier. Valeur réglée sur 1.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="530"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="530"/>
         <source>Minimum Height should be a number</source>
         <translation>La hauteur d&apos;eau minimale doit être un nombre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="98"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="98"/>
         <source>Exaggeration coefficient of z nodes values (all 3D)</source>
         <translation>Coefficient d&apos;exagération verticale des valeurs de z aux noeuds</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="108"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="108"/>
         <source>Choose the variable to assign to the z nodes (3D)</source>
         <translation>Sélectionner la variable à affecter aux nœuds z (3D)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="149"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="149"/>
         <source>width, height</source>
         <translation>largeur, hauteur</translation>
     </message>
@@ -5558,66 +5575,71 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Palette de couleur de carte 1</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="157"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="157"/>
         <source>Font size</source>
         <translation>Taille de police</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="161"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="161"/>
         <source>Font family</source>
         <translation>Famille de police</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="166"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="166"/>
         <source>Line width</source>
         <translation>Largeur de ligne</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="174"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="174"/>
         <source>Figure format</source>
         <translation>Format de figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="305"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="305"/>
         <source>Project properties</source>
         <translation>Propriétés du projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="465"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="465"/>
         <source>Font family not recognized. 
 </source>
         <translation>Famille de police non reconnue. 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="563"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="563"/>
         <source>Project properties unsaved</source>
         <translation>Propriétés du projet non sauvegardées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="571"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="571"/>
         <source># Project properties saved.</source>
         <translation># Propriétés du projet sauvegardées.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="146"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="146"/>
         <source>Figure size (w,h) [cm]</source>
         <translation>Taille des figures (l,h) [cm]</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="152"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="152"/>
         <source>Color map</source>
         <translation>Palette de couleur de carte</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="267"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="267"/>
         <source>Mesh detailled</source>
         <translation>Maillage détaillé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/preferences_GUI.py" line="272"/>
+        <location filename="../src_GUI/project_properties_GUI.py" line="272"/>
         <source>Point detailled</source>
         <translation>Point détaillé</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/project_properties_GUI.py" line="183"/>
+        <source>Type of animal name</source>
+        <translation>Type de nom d&apos;animal</translation>
     </message>
 </context>
 <context>
@@ -6185,92 +6207,92 @@ Fermez-les et réessayez.</translation>
 <context>
     <name>SoftInformationDialog</name>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="162"/>
+        <location filename="../src_GUI/about_GUI.py" line="149"/>
         <source>HABBY version</source>
         <translation>Version d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="346"/>
+        <location filename="../src_GUI/about_GUI.py" line="333"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="354"/>
+        <location filename="../src_GUI/about_GUI.py" line="341"/>
         <source>About</source>
         <translation>A propos</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="163"/>
+        <location filename="../src_GUI/about_GUI.py" line="150"/>
         <source>Qt version</source>
         <translation>Version de Qt</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="164"/>
+        <location filename="../src_GUI/about_GUI.py" line="151"/>
         <source>GDAL/OGR version</source>
         <translation>Version de GDAL/OGR</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="165"/>
+        <location filename="../src_GUI/about_GUI.py" line="152"/>
         <source>triangle version</source>
         <translation>Version de la librairie Python triangle</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="166"/>
+        <location filename="../src_GUI/about_GUI.py" line="153"/>
         <source>h5py version</source>
         <translation>Version de h5py</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="167"/>
+        <location filename="../src_GUI/about_GUI.py" line="154"/>
         <source>hdf5 version</source>
         <translation>Version de hdf5</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="168"/>
+        <location filename="../src_GUI/about_GUI.py" line="155"/>
         <source>qdarkstyle version</source>
         <translation>Version de qdarkstyle</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="169"/>
+        <location filename="../src_GUI/about_GUI.py" line="156"/>
         <source>OS version</source>
         <translation>Version de l&apos;OS</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="170"/>
+        <location filename="../src_GUI/about_GUI.py" line="157"/>
         <source>HABBY official web site</source>
         <translation>Site internet officiel d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="355"/>
+        <location filename="../src_GUI/about_GUI.py" line="342"/>
         <source>Developers</source>
         <translation>Développeurs</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="356"/>
+        <location filename="../src_GUI/about_GUI.py" line="343"/>
         <source>Contributors</source>
         <translation>Contributeurs</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="357"/>
+        <location filename="../src_GUI/about_GUI.py" line="344"/>
         <source>Acknowledgements</source>
         <translation>Remerciements</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="358"/>
+        <location filename="../src_GUI/about_GUI.py" line="345"/>
         <source>Translators</source>
         <translation>Traducteurs</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="359"/>
+        <location filename="../src_GUI/about_GUI.py" line="346"/>
         <source>Licence</source>
         <translation>Licence</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="378"/>
+        <location filename="../src_GUI/about_GUI.py" line="365"/>
         <source>About HABBY</source>
         <translation>A propos d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/about_GUI.py" line="171"/>
+        <location filename="../src_GUI/about_GUI.py" line="158"/>
         <source>HABBY github web site</source>
         <translation>Site github d&apos;HABBY</translation>
     </message>
@@ -8186,14 +8208,14 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">zut alors !</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1756"/>
+        <location filename="../src/hdf5_mod.py" line="1760"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation>Le chemin d&apos;accès au fichier texte n&apos;est pas trouvé. Fichiers texte non créés 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1778"/>
+        <location filename="../src/hdf5_mod.py" line="1782"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation>Impossible de modifier le fichier texte car il est ouvert dans un autre programme. 
@@ -8205,24 +8227,24 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Fermer le ou les .pdf pour mettre à jour les informations sur les poissons</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2013"/>
+        <location filename="../src/hdf5_mod.py" line="2017"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation>Le fichier doit être de type hdf5 (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2018"/>
+        <location filename="../src/hdf5_mod.py" line="2022"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation>Le fichier hdf5 n&apos;a pas pu être chargé.
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2044"/>
+        <location filename="../src/hdf5_mod.py" line="2048"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation>Aucun chemin vers le projet n&apos;a été donné, bien qu&apos;un chemin relatif ait été fourni</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2048"/>
+        <location filename="../src/hdf5_mod.py" line="2052"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation>hdf5 n&apos;a pas pu être ouvert. 
@@ -8463,7 +8485,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete"> n&apos;ont pas été trouvé (2)</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2151"/>
+        <location filename="../src/hdf5_mod.py" line="2155"/>
         <source>No project found by load_hdf5</source>
         <translation>Aucun projet trouvé par load_hdf5</translation>
     </message>
@@ -8604,7 +8626,7 @@ Fermez-les et réessayez.</translation>
         <translation>maillage_detaille</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1726"/>
+        <location filename="../src/hdf5_mod.py" line="1730"/>
         <source>detailled_point</source>
         <translation>point_detaille</translation>
     </message>
@@ -8647,7 +8669,7 @@ Fermez-les et réessayez.</translation>
 <context>
     <name>hydro_input_file_mod</name>
     <message>
-        <location filename="../src/hydraulic_process_mod.py" line="87"/>
+        <location filename="../src/hydraulic_process_mod.py" line="93"/>
         <source>indexHYDRAU.txt doesn&apos;t exist. It will be created in the &apos;input&apos; directory after the creation of the .hyd file. The latter will be filled in according to your choices.</source>
         <translation>indexHYDRAU.txt n&apos;existe pas. Il sera créé dans le répertoire&apos;input&apos; après la création du fichier.hyd. Ce dernier sera rempli en fonction de vos choix.</translation>
     </message>

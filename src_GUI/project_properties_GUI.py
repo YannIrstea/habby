@@ -180,7 +180,7 @@ class ProjectPropertiesDialog(QDialog):
         self.resolution_lineedit = QLineEdit("")
 
         # type_fishname
-        type_fishname_label = QLabel(self.tr('Type of fish name'))
+        type_fishname_label = QLabel(self.tr('Type of animal name'))
         self.type_fishname_combobox = QComboBox()
         self.type_fishname_combobox.addItems([self.tr('Latin Name'), self.tr('French Common Name'), self.tr('English Common Name'),
                                               self.tr('Code ONEMA')])  # order matters here, add stuff at the end!

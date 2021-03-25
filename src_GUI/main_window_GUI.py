@@ -35,7 +35,7 @@ from src_GUI import estimhab_GUI
 from src_GUI import sub_and_merge_GUI
 from src_GUI import hydrau_GUI
 from src_GUI import stathab_GUI
-from src_GUI import preferences_GUI
+from src_GUI import project_properties_GUI
 from src_GUI import data_explorer_GUI
 from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
@@ -254,7 +254,7 @@ class MainWindows(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-        self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
+        self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
 
         # check_version_dialog
         self.check_version_dialog = about_GUI.CheckVersionDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
@@ -895,7 +895,7 @@ class MainWindows(QMainWindow):
 
             if actual_float < last_float:
                 self.central_widget.write_log(self.tr("Warning: A new version of the HABBY software is available! "
-                                                                                               "It is strongly advised to update from " + str(actual_float) + " to " + str(last_float) + " and take into consideration the latest changes."))
+                                                                                               "It is strongly advised to update from " + str(actual_float) + self.tr(" to ") + str(last_float) + " and take into consideration the latest changes."))
 
     def end_concurrency(self):
         """
@@ -1466,7 +1466,7 @@ class MainWindows(QMainWindow):
 
             if hasattr(self, "preferences_dialog"):
                 if not self.preferences_dialog:
-                    self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
+                    self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                     self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
                 else:
@@ -1474,7 +1474,7 @@ class MainWindows(QMainWindow):
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                     self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
             else:
-                self.preferences_dialog = preferences_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
+                self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                 self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
 
