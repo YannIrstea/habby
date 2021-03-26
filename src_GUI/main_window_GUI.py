@@ -1161,20 +1161,21 @@ class MainWindows(QMainWindow):
         self.change_theme_action.triggered.connect(self.change_theme)
         self.change_theme_action.setShortcut('F12')
 
-        # user_help_action
-        user_help_action = QAction(self.tr('Help contents'), self)
-        user_help_action.setStatusTip(self.tr('Get help to use the program'))
-        user_help_action.triggered.connect(self.open_user_help)
-        user_help_action.setShortcut('F1')
+        # user_guide_action
+        user_guide_action = QAction(self.tr('User guide'), self)
+        user_guide_action.setStatusTip(self.tr('Open the user guide wiki page'))
+        user_guide_action.triggered.connect(self.open_user_guide)
+        user_guide_action.setShortcut('F1')
 
-        # dev_help_action
-        dev_help_action = QAction(self.tr('API documentation'), self)
-        dev_help_action.setStatusTip(self.tr('Get help to develop or use the program'))
-        dev_help_action.triggered.connect(self.open_dev_help)
+        # ref_manual_action
+        ref_manual_action = QAction(self.tr('Reference manual'), self)
+        ref_manual_action.setStatusTip(self.tr('Open the Reference manual wiki page'))
+        ref_manual_action.triggered.connect(self.open_ref_manual)
+        ref_manual_action.setShortcut('F2')
 
         # issue_action
         issue_action = QAction(self.tr('Report an issue'), self)
-        issue_action.setStatusTip(self.tr('Report a repeatable problem'))
+        issue_action.setStatusTip(self.tr('Report a repeatable problem on github page'))
         issue_action.triggered.connect(self.open_issue_web_site)
 
         home_page_action = QAction(self.tr('HABBY official website'), self)
@@ -1228,8 +1229,8 @@ class MainWindows(QMainWindow):
         view_menu.addAction(self.change_theme_action)
 
         # help menu
-        help_menu.addAction(user_help_action)
-        help_menu.addAction(dev_help_action)
+        help_menu.addAction(user_guide_action)
+        help_menu.addAction(ref_manual_action)
         help_menu.addSeparator()
         help_menu.addAction(issue_action)
         help_menu.addSeparator()
@@ -1590,23 +1591,33 @@ class MainWindows(QMainWindow):
         # show the pref
         self.soft_information_dialog.show()
 
-    def open_user_help(self):
+    def open_user_guide(self):
         """
-        This function open the html which form the help from HABBY. For the moment, it is the full documentation
-        with all the coding detail, but we should create a new html or a new pdf file which would be more practical
-        for the user.
+        open wiki user guide page
         """
-        filename_help = os.path.join(os.getcwd(), "doc", "_build", "html", "index.html")
-        wbopen(filename_help)
+        if self.lang == 0:
+            wiki_path = 'en'
+        elif self.lang == 1:
+            wiki_path = 'fr'
+        elif self.lang == 3:
+            wiki_path = 'po'
+        else:
+            wiki_path = 'en'
+        wbopen("https://habby.wiki.inrae.fr/" + wiki_path + ":guide_utilisateur")
 
-    def open_dev_help(self):
+    def open_ref_manual(self):
         """
-        This function open the html which form the help from HABBY. For the moment, it is the full documentation
-        with all the coding detail, but we should create a new html or a new pdf file which would be more practical
-        for the user.
+        open wiki ref manual
         """
-        filename_help = os.path.join(os.getcwd(), "doc", "_build", "html", "index.html")
-        wbopen(filename_help)
+        if self.lang == 0:
+            wiki_path = 'en'
+        elif self.lang == 1:
+            wiki_path = 'fr'
+        elif self.lang == 3:
+            wiki_path = 'po'
+        else:
+            wiki_path = 'en'
+        wbopen("https://habby.wiki.inrae.fr/" + wiki_path + ":manuel_reference")
 
     # DATA
 
