@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 from platform import system as operatingsystem
+from habby import HABBY_VERSION_STR
 
 # requirment.txt
 if operatingsystem() == 'Windows':
@@ -18,7 +19,7 @@ with open("README.md", "r", encoding='utf8') as fh:
 # INSTALL
 setup(
     name="HABBY",
-    version="0.26",
+    version=HABBY_VERSION_STR,
     description="Program to estimate aquatic habitats using hydraulic data and biological models",
     long_description=long_description,
     url="https://github.com/YannIrstea/habby",

@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "HABBY"
-#define MyAppVersion "0.26"
+#define MyAppVersion "1.00"
 #define MyAppPublisher "Irstea"
 #define MyAppURL "https://github.com/YannIrstea/habby"
 #define MyAppExeName "habby.exe"

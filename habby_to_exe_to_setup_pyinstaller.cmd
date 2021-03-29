@@ -6,13 +6,13 @@ if exist C:\ProgramData\Miniconda3\Scripts\activate.bat call C:\ProgramData\Mini
 :: PATHS
 SET habby_path=C:\habby_dev\habby
 SET envir_virtuels_path=C:\habby_dev\env_virtuels
-SET envir_virtuel_name=env_habby_dev
+SET envir_virtuel_name=env_habby_dev_pip
 
 ::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
 :: not conda
-::call %envir_virtuels_path%\%envir_virtuel_name%\Scripts\activate 
+call %envir_virtuels_path%\%envir_virtuel_name%\Scripts\activate
 :: conda
-call conda activate %envir_virtuels_path%\%envir_virtuel_name%
+::call conda activate %envir_virtuels_path%\%envir_virtuel_name%
 ::call %envir_virtuel_path%\Scripts\activate.bat
 
 ::::::::::: RUN COMPILATION :::::::::::::::::::
