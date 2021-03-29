@@ -715,7 +715,8 @@ class Hdf5Management:
         self.write_data_2d_info()
 
         # copy input files to input project folder
-        copy_hydrau_input_files(self.data_2d.path_filename_source,
+        if not project_preferences["restarted"]:
+            copy_hydrau_input_files(self.data_2d.path_filename_source,
                                 self.data_2d.filename_source,
                                 self.filename,
                                 os.path.join(project_preferences["path_prj"], "input"))
@@ -873,7 +874,7 @@ class Hdf5Management:
         self.write_data_2d_info()
 
         # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII)
-        if not hasattr(self.data_2d, "sub_filename_source"):
+        if not hasattr(self.data_2d, "sub_filename_source") and not project_preferences["restarted"]:
             copy_hydrau_input_files(self.data_2d.path_filename_source,
                                     self.data_2d.filename_source,
                                     self.filename,

@@ -867,7 +867,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 'Error: ' + self.tr('Selected variables and units not corresponding with figure type choices.'))
             return
         if self.nb_plot == 1 and self.total_fish_result > 32:
-            self.send_log.emit('Warning: ' + self.tr(
+            self.send_log.emit(self.tr('Warning: ') + self.tr(
                 'You cannot display more than 32 habitat values per graph. Current selected : ') + str(
                 self.total_fish_result) + self.tr(". Only the first 32 will be displayed."))
             # get 32 first element list
@@ -1292,7 +1292,7 @@ class HabitatValueRemover(QGroupBoxCollapsible):
         if len(file_selection) == 1:
             hdf5name = file_selection[0].text()
         else:
-            self.send_log.emit('Warning: ' + self.tr('No file selected.'))
+            self.send_log.emit(self.tr('Warning: ') + self.tr('No file selected.'))
             return
 
         # selected fish

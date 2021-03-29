@@ -487,7 +487,7 @@ class ProjectPropertiesDialog(QDialog):
             return
         if project_preferences['resolution'] > 2000:
             self.send_log.emit(
-                'Warning: ' + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
+                self.tr('Warning: ') + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
 
         # fish name type
         project_preferences['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())

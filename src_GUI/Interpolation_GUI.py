@@ -425,7 +425,7 @@ class InterpolationTab(QScrollArea):
         valid, text = tools_mod.check_matching_units(hdf5.data_2d.unit_type, types)
 
         if not valid:
-            self.send_log.emit("Warning : " + self.tr("Interpolation not done.") + text)
+            self.send_log.emit("Warning: " + self.tr("Interpolation not done.") + text)
             # disable pushbutton
             self.plot_chronicle_qpushbutton.setEnabled(False)
             self.export_txt_chronicle_qpushbutton.setEnabled(False)

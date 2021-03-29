@@ -238,7 +238,7 @@ def load_sub_txt(sub_description, progress_value):
             try:
                 crs.ImportFromEPSG(int(epsg_code))
             except:
-                print("Warning : Can't write .prj from EPSG code :", epsg_code)
+                print("Warning: Can't write .prj from EPSG code :", epsg_code)
 
         if not crs.ExportToWkt():  # '' == crs unknown
             layer = ds.CreateLayer(name=name, geom_type=ogr.wkbPoint)

@@ -183,7 +183,7 @@ def export_report(xmlfile, hab_animal_type, project_preferences, delta_animal):
         plt.clf()
     except PermissionError:
         print(
-            'Warning: ' + qt_tr.translate("hdf5_mod", 'Close ' + filename + ' to update fish information'))
+            'Warning: Close ' + filename + ' to update fish information')
 
     # progress
     with lock:
@@ -296,7 +296,7 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
         try:
             crs.ImportFromEPSG(int(epsg_code))
         except:
-            print("Warning: " + "hdf5_mod", "Can't write .prj from EPSG code : " + epsg_code)
+            print("Warning: Can't write .prj from EPSG code : " + epsg_code)
 
     driver = ogr.GetDriverByName('GPKG')  # GPKG
     ds = driver.CreateDataSource(filename_path + "_" + layer_name + ".gpkg")
@@ -376,7 +376,7 @@ def export_node_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
         try:
             crs.ImportFromEPSG(int(epsg_code))
         except:
-            print("Warning: " + "hdf5_mod", "Can't write .prj from EPSG code : " + epsg_code)
+            print("Warning: Can't write .prj from EPSG code : " + epsg_code)
 
     driver = ogr.GetDriverByName('GPKG')  # GPKG
     ds = driver.CreateDataSource(filename_path + "_" + layer_name + ".gpkg")

@@ -15,12 +15,11 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import shutil
 import json
 import sys
 from platform import system as operatingsystem
-
 operatingsystem_str = operatingsystem()
+from datetime import datetime
 
 from src.hydraulic_results_manager_mod import HydraulicModelInformation
 from src.variable_unit_mod import HydraulicVariableUnitManagement
@@ -31,9 +30,9 @@ available_export_list = ["mesh_whole_profile",  # GPKG
                          "point_units",  # GPKG
                          "elevation_whole_profile",  # stl
                          "variables_units",  # PVD
-                         "mesh_detailled_text",
-                         "point_detailled_text",
-                         "fish_information"]
+                         "mesh_detailled_text",  # txt
+                         "point_detailled_text",  # txt
+                         "fish_information"]  # pdf..
 
 
 def create_default_project_properties_dict(all_export_enabled=False):
@@ -47,9 +46,9 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['name_prj'] = ""
     project_preferences['path_prj'] = ""
     project_preferences['path_last_file_loaded'] = ""
-    project_preferences['file_log'] = ""
-    project_preferences['file_script'] = ""
-    project_preferences['file_restart'] = ""
+    project_preferences['restart_py_file'] = ""
+    project_preferences['restart_cli_file'] = ""
+    project_preferences['log_file'] = ""
     project_preferences['save_log'] = True
     project_preferences['user_name'] = ""
     project_preferences['description'] = ""
@@ -126,7 +125,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     return project_preferences
 
 
-def create_project_structure(path_prj, save_log, version_habby, user_name, description, mode="GUI"):
+def create_project_structure(path_prj, save_log, version_habby, user_name, description, mode="GUI", restarted=False):
     """
     create_project_structure
     :param path_prj:
@@ -151,16 +150,16 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     project_preferences["name_prj"] = name_prj
     project_preferences["path_prj"] = path_prj
     project_preferences["save_log"] = save_log
-    project_preferences["file_log"] = os.path.join(path_prj, name_prj + '.log')
+    project_preferences["log_file"] = os.path.join(path_prj, name_prj + '.log')
+    project_preferences["restart_py_file"] = os.path.join(path_prj, name_prj + '_restart.py')
     if operatingsystem_str == "Linux":
         script_ext = ".sh"
     elif operatingsystem_str == "Windows":
         script_ext = ".bat"
     else:
         script_ext = ".sh"
-
-    project_preferences["file_script"] = os.path.join(path_prj, name_prj + script_ext)
-    project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
+    project_preferences["restart_cli_file"] = os.path.join(path_prj, name_prj + "_restart" + script_ext)
+    project_preferences["restarted"] = restarted
     project_preferences["version_habby"] = version_habby
     project_preferences["user_name"] = user_name
     project_preferences["description"] = description
@@ -175,23 +174,36 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     # create .habby project file
     save_project_properties(path_prj, project_preferences)
 
-    # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
     if name_prj != '':
-        # log
-        shutil.copy(os.path.join('files_dep', 'log0.txt'), os.path.join(path_prj, name_prj + '.log'))
-        # restart
-        shutil.copy(os.path.join('files_dep', 'restart_log0.txt'), os.path.join(path_prj,
-                                                                              'restart_' + name_prj +
-                                                                              '.log'))
-        # script
-        path_prj_script = path_prj + "_restarted"
-        if sys.argv[0][-3:] == ".py":
-            cmd_str = '"' + sys.executable + '" "' + sys.argv[0] + '"' + ' CREATE_PROJECT path_prj="' + path_prj_script + '"'
-        else:
-            cmd_str = '"' + sys.executable + '"' + ' CREATE_PROJECT path_prj="' + path_prj_script + '"'
+        if not project_preferences["restarted"]:
+            # log file
+            with open(project_preferences["log_file"], "a", encoding='utf8') as myfile:
+                myfile.write("HABBY log file : " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n')
 
-        with open(project_preferences["file_script"], "w", encoding='utf8') as myfile:
-            myfile.write(cmd_str + "\n")
+            # restart_py_file
+            import_str = "import os\n" \
+                         F"os.chdir({repr(os.getcwd())})\n" \
+                         "from src.project_properties_mod import create_project_structure\n"
+            cmd_str = F"create_project_structure(path_prj={repr(path_prj + '_restarted')}, " \
+                      F"save_log={str(True)}, " \
+                      F"version_habby={repr(version_habby)}, " \
+                      F"user_name={repr(user_name)}, " \
+                      F"description={repr(description)}, " \
+                      F"mode={repr(mode)}, " \
+                      F"restarted=True)"
+            with open(project_preferences["restart_py_file"], "w", encoding='utf8') as myfile:
+                myfile.write(import_str + "\n")
+                myfile.write(cmd_str + "\n")
+
+            # restart_cli_file
+            path_prj_script = path_prj + "_restarted"
+            if sys.argv[0][-3:] == ".py":
+                cmd_str = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+            else:
+                cmd_str = '"' + sys.executable + '"'
+            cmd_str = cmd_str + ' CREATE_PROJECT path_prj="' + path_prj_script + '"' + " restarted=True"
+            with open(project_preferences["restart_cli_file"], "w", encoding='utf8') as myfile:
+                myfile.write(cmd_str + "\n")
 
     # create a default directory for the figures and the hdf5
     if not os.path.exists(project_preferences["path_input"]):
@@ -253,15 +265,15 @@ def load_project_properties(path_prj):
     if path_prj != project_preferences["path_prj"]:  # update all path
         project_preferences["name_prj"] = name_prj
         project_preferences["path_prj"] = path_prj
-        project_preferences["file_log"] = os.path.join(path_prj, name_prj + '.log')
+        project_preferences["restart_py_file"] = os.path.join(path_prj, name_prj + '_restart.py')
         if operatingsystem_str == "Linux":
             script_ext = ".sh"
         elif operatingsystem_str == "Windows":
             script_ext = ".bat"
         else:
             script_ext = ".sh"
-        project_preferences["file_script"] = os.path.join(path_prj, name_prj + script_ext)
-        project_preferences["file_restart"] = os.path.join(path_prj, 'restart_' + name_prj + '.log')
+        project_preferences["log_file"] = os.path.join(path_prj, name_prj + ".log")
+        project_preferences["restart_cli_file"] = os.path.join(path_prj, name_prj + "_restart" + script_ext)
         project_preferences["path_input"] = os.path.join(path_prj, 'input')  # path input
         project_preferences["path_hdf5"] = os.path.join(path_prj, 'hdf5')  # path hdf5
         project_preferences["path_figure"] = os.path.join(path_prj, 'output', 'figures')  # path figures

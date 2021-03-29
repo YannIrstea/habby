@@ -173,15 +173,19 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_PROJECT':
 
-
         all_export_enabled = False
         ##As a test measure, we may need to enable all_export_enabled, to be able to test exports
         for arg in all_arg:
-            if arg[:19]=="all_export_enabled=":
-                if arg[19:]=="False":
-                    all_export_enabled=False
+            if arg[:19] == "all_export_enabled=":
+                if arg[19:] == "False":
+                    all_export_enabled = False
                 else:
                     all_export_enabled = True
+            if arg[:10] == "restarted=":
+                if arg[10:] == "False":
+                    option_restart = False
+                else:
+                    option_restart = True
 
         if not os.path.exists(path_prj):
             create_project_structure(path_prj,
@@ -189,7 +193,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                                      version_habby=HABBY_VERSION,
                                      user_name="CLI",
                                      description="CLI-mode",
-                                     mode="CLI")
+                                     mode="CLI",
+                                     restarted=option_restart)
             change_specific_properties(path_prj,
                                        preference_names=["physic_tabs", "stat_tabs"],
                                        preference_values=[True, True])
@@ -786,9 +791,6 @@ def habby_restart(file_comm, name_prj, path_prj, path_bio):
                         name_prj = arg1[1].strip()
                         if not os.path.isdir(path_prj):
                             os.mkdir(path_prj)
-                        if not os.path.isfile(os.path.join(path_prj, name_prj + '.habby')):
-                            filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.habby'))
-                            copyfile(filename_empty, os.path.join(path_prj, name_prj + '.habby'))
 
                     else:
                         print('Error: the project folder is not found.\n')
@@ -1137,14 +1139,17 @@ def cli_load_hyd(arguments, project_preferences):
         if arg[:len(cut_arg_name)] == cut_arg_name:
             cut = eval(arg[len(cut_arg_name):])
             project_preferences['cut_mesh_partialy_dry'] = cut
+        # unit_list
+        unit_list_arg_name = 'unit_list='
+        if arg[:len(unit_list_arg_name)] == unit_list_arg_name:
+            unit_list = eval(arg[len(unit_list_arg_name):])
 
     # # get_hydrau_description_from_source
     hydraulic_model_information = HydraulicModelInformation()
 
     hsra_value = hydraulic_process_mod.HydraulicSimulationResultsAnalyzer(filename_path,
                                                                           project_preferences["path_prj"],
-                                                                          hydraulic_model_information.get_attribute_name_from_name_models_gui(
-                                                                              model_name),
+                                                                          model_name,
                                                                           2)
 
     # outputfilename

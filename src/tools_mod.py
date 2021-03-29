@@ -416,8 +416,6 @@ def copy_hydrau_input_files(path_filename_source, filename_source_str, hdf5_name
                 sh_copy(os.path.join(path_filename_source, file_to_copy), input_hdf5name_folder_path)
         else:
             sh_copy(os.path.join(path_filename_source, file), input_hdf5name_folder_path)
-    if os.path.exists(os.path.join(path_filename_source, "indexHYDRAU.txt")):
-        sh_copy(os.path.join(path_filename_source, "indexHYDRAU.txt"), input_hdf5name_folder_path)
 
 
 def copy_files(names, paths, path_input):

@@ -93,7 +93,7 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = str(HABBY_VERSION_STR)
-        self.beta = True  # if set to True : GUI beta version mode is runned (block fonctionality)
+        self.limited_edition = True  # if set to True : GUI version mode is runned with blocked fonctionalities
 
         # operating system
         self.myEnv = dict(os.environ)
@@ -219,14 +219,14 @@ class MainWindows(QMainWindow):
 
         # print modification biological database
         if user_preferences.diff_list:
-            self.central_widget.write_log("Warning: " + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
+            self.central_widget.write_log(self.tr("Warning: ") + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
 
         if self.habby_project_file_corrupted:
             self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' + filename_path))
             self.central_widget.write_log(self.tr('Create or open another project.'))
 
-        # run_as_beta_version
-        self.run_as_beta_version()
+        # run_as_limited_edition
+        self.run_as_limited_edition()
 
         # open window
         self.show()
@@ -324,13 +324,13 @@ class MainWindows(QMainWindow):
 
     # VERSION
 
-    def run_as_beta_version(self):
+    def run_as_limited_edition(self):
         """
-        Disable desired hydraulic and statistic models if not finished and change windowtitle for Habby beta version.
-        If True : run as beta
-        If False : run as stable release or dev.
+        Disable desired hydraulic and statistic models if not finished and change windowtitle for Habby run_as_limited_edition version.
+        If True : run as run_as_limited_edition
+        If False : run as full functionalities
         """
-        if self.beta:
+        if self.limited_edition:
             # self.name_models_gui_to_disable_list
             if hasattr(self.central_widget, "hydro_tab"):
                 for model_index in range(len(self.central_widget.hydro_tab.hydraulic_model_information.name_models_gui_list)):
@@ -348,14 +348,6 @@ class MainWindows(QMainWindow):
             # if hasattr(self.central_widget, "fstress_tab"):
             #     self.central_widget.fstress_tab.setEnabled(False)
 
-            # # change GUI title
-            windows_title = self.version
-            if "Beta" not in self.version:
-                windows_title = self.version + " Beta"
-            if self.name_prj:
-                self.setWindowTitle(self.tr('HABBY ') + windows_title + " - " + self.name_prj)
-            else:
-                self.setWindowTitle(self.tr('HABBY ') + windows_title)
 
     # PROJECT
 
@@ -373,10 +365,6 @@ class MainWindows(QMainWindow):
         self.createnew.create_project.connect(self.create_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
 
-        ## disable_model_statistic
-        # if self.beta:
-        #     self.createnew.project_type_combobox.model().item(1).setEnabled(False)
-        #     self.createnew.project_type_combobox.model().item(2).setEnabled(False)
         self.createnew.show()
 
     def open_existing_project_dialog(self):
@@ -453,7 +441,7 @@ class MainWindows(QMainWindow):
             # delete
             if res == QMessageBox.No:
                 self.central_widget.write_log(
-                    'Warning: ' + self.tr('Project not created. Choose another project name.'))
+                    self.tr('Warning: ') + self.tr('Project not created. Choose another project name.'))
                 self.createnew.close()
                 return
             if res == QMessageBox.Yes:
@@ -478,7 +466,7 @@ class MainWindows(QMainWindow):
                 self.central_widget.welcome_tab.user_name_lineedit.setText('')
                 self.createnew.close()
                 self.save_project()
-                self.central_widget.write_log('Warning: ' + self.tr('Old project and its files are deleted.'))
+                self.central_widget.write_log(self.tr('Warning: ') + self.tr('Old project and its files are deleted.'))
 
         # if not exist : create_project
         else:
@@ -748,19 +736,8 @@ class MainWindows(QMainWindow):
 
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()
-        # self.central_widget.write_log('# ' + self.tr('Log of HABBY started.'))
-        # self.central_widget.write_log('# ' + self.tr('Project saved or opened successfully.'))
-        self.central_widget.write_log("py    name_prj= r'" + self.name_prj + "'")
-        self.central_widget.write_log("py    path_prj= r'" + self.path_prj + "'")
-        self.central_widget.write_log("py    path_bio= r'" + os.path.join(os.getcwd(), self.path_bio_default) + "'")
-        self.central_widget.write_log("py    version_habby= " + str(self.version))
-        self.central_widget.write_log("restart NAME_PROJECT")
-        self.central_widget.write_log("restart    Name of the project: " + self.name_prj)
-        self.central_widget.write_log("restart    Path of the project: " + self.path_prj)
-        self.central_widget.write_log("restart    version habby: " + str(self.version))
 
-
-        self.run_as_beta_version()
+        self.run_as_limited_edition()
 
         # enabled lowest part
         self.central_widget.welcome_tab.current_prj_groupbox.setEnabled(True)
@@ -786,8 +763,7 @@ class MainWindows(QMainWindow):
         if os.path.exists(filename_path):
             self.open_project(filename_path)
         else:
-            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
-                "<FONT COLOR='#FF8C00'>Warning: " + filename_path + self.tr(' project not found. It must have been moved or removed.') + ' </br><br>')  # warning in orange
+            self.central_widget.write_log(self.tr("Warning:") + filename_path + self.tr(' project not found. It must have been moved or removed.'))
 
     def close_project(self):
         """
@@ -848,7 +824,7 @@ class MainWindows(QMainWindow):
             # open the text file
             filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
-                self.central_widget.write_log('Warning: ' + self.tr('Could not check if the project was open by '
+                self.central_widget.write_log(self.tr('Warning: ') + self.tr('Could not check if the project was open by '
                                                                     'another instance of HABBY (1) \n'))
                 if os.path.isdir(os.path.join(self.path_prj, 'hdf5')):
                     with open(filename, 'wt') as f:
@@ -861,12 +837,12 @@ class MainWindows(QMainWindow):
                     data = f.read()
             except IOError:
                 self.central_widget.write_log(
-                    'Warning: ' + self.tr('Could not check if the project was open by another '
+                    self.tr('Warning: ') + self.tr('Could not check if the project was open by another '
                                           'instance of HABBY (2) \n'))
                 return
             if data == 'open':
                 self.central_widget.write_log(
-                    'Warning: ' + self.tr('The same project is open in another instance of HABBY.'
+                    self.tr('Warning: ') + self.tr('The same project is open in another instance of HABBY.'
                                           ' This could results in fatal and unexpected error. '
                                           'It is strongly adivsed to close the other instance of HABBY. This message could also appear if HABBY was not closed properly'
                                           '. In this case, please close and re-open HABBY.\n'))
@@ -907,7 +883,7 @@ class MainWindows(QMainWindow):
             # open the text file
             filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
-                self.central_widget.write_log('Warning: ' + self.tr('Could not check if the project was open by '
+                self.central_widget.write_log(self.tr('Warning: ') + self.tr('Could not check if the project was open by '
                                                                     'another instance of HABBY (3) \n'))
                 return
 
@@ -1028,7 +1004,7 @@ class MainWindows(QMainWindow):
             user_preferences.data["language"] = language
             user_preferences.save_user_preferences_json()
 
-        self.run_as_beta_version()
+        self.run_as_limited_edition()
 
         # open at the old tab
         self.central_widget.tab_widget.setCurrentIndex(ind_tab)
@@ -1479,8 +1455,6 @@ class MainWindows(QMainWindow):
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                 self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
 
-            # # run_as_beta_version
-            # self.run_as_beta_version()
         else:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
 
@@ -1636,7 +1610,7 @@ class MainWindows(QMainWindow):
             try:
                 os.remove(os.path.join(self.path_prj, "hdf5", file_to_remove))
             except PermissionError:
-                print("Error: " + self.tr("Warning: Could not remove " + file_to_remove + " file. It might be used by another program."))
+                print(self.tr("Error: ") + self.tr("Could not remove " + file_to_remove + " file. It might be used by another program."))
 
             # refresh .habby project
             filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -2210,41 +2184,25 @@ class CentralW(QWidget):
 
         if logon = false, do not write in log.txt
         """
-        file_script = None
-        pathname_restartfile = None
-        pathname_logfile = None
+        log_file = None
+        restart_py_file = None
+        restart_cli_file = None
 
         # read xml file to find the path to the log file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(fname):
-            # file_log
-            logfile = load_specific_properties(self.path_prj, ["file_log"])[0]
-            if logfile:
-                pathname_logfile = logfile
-            else:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
-                                                                        "log file is not indicated in the .habby file. No log written. </br> <br>")
-                return
-            # file_script
-            file_script = load_specific_properties(self.path_prj, ["file_script"])[0]
-            if not file_script:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
-                                                                        "script file is not indicated in the .habby file. No log written. </br> <br>")
-                return
-            # restart log
-            restart = load_specific_properties(self.path_prj, ["file_restart"])[0]
-            if restart:
-                pathname_restartfile = restart
-            else:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
-                                                                        "restart file is not indicated in the xml file. No log written. </br> <br>")
-                return
+            # log_file
+            log_file = load_specific_properties(self.path_prj, ["log_file"])[0]
+            # restart_py_file
+            restart_py_file = load_specific_properties(self.path_prj, ["restart_py_file"])[0]
+            # restart_cli_file
+            restart_cli_file = load_specific_properties(self.path_prj, ["restart_cli_file"])[0]
         else:
-            # if only one tab, project not open, so it is normal that no log can be written.
+            # if only one tab, project not open, so it is normal that can be written.
             if self.tab_widget.count() > 1:
                 self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                    "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
-                    "found. no Log written. </br> <br>")
+                    "<FONT COLOR='#FF8C00'> " + self.tr("Warning: The project file is not "
+                    "found. No restart file created.") + " </br> <br>")
                 return
 
         # add comments to QTextEdit and .log file
@@ -2253,45 +2211,42 @@ class CentralW(QWidget):
             self.scrolldown_log()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 text_log[1:] + '</br><br>')  # "<FONT COLOR='#000000'>" +
-            self.write_log_file(text_log, pathname_logfile)
+            self.write_restart_py_file(text_log, restart_py_file)
+            self.write_log_file(text_log, log_file)
+
         # add python code to the .log file
         elif text_log[:2] == 'py':
-            self.write_log_file(text_log[2:], pathname_logfile)
+            self.write_restart_py_file(text_log[2:], restart_py_file)
+
         # add script code to the .log file
         elif text_log[:6] == 'script':
-            self.write_script_file(text_log[6:], file_script)
-        # add restart command to the restart file
-        elif text_log[:7] == 'restart':
-            self.write_log_file(text_log[7:], pathname_restartfile)
-        elif text_log[:5] == 'Error' or text_log[:6] == 'Erreur':
-            self.scrolldown_log()
-            self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
-            self.write_log_file('# ' + text_log, pathname_logfile)
-        # add warning
-        elif text_log[:7] == 'Warning':
-            self.scrolldown_log()
-            self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
-            self.write_log_file('# ' + text_log, pathname_logfile)
-        # update to check that processus is alive
-        elif text_log[:7] == 'Process':
-            self.parent().statusBar().showMessage(text_log)
-        elif text_log == 'clear status bar':
-            self.parent().statusBar().clearMessage()
-            self.parent().progress_bar.setVisible(False)  # hide progress_bar
+            self.write_restart_cli_file(text_log[6:], restart_cli_file)
+
+        # warning and error
+        elif ":" in text_log:
+            # error
+            if text_log[0:text_log.index(":")] == self.tr('Error'):
+                self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                    "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
+                self.write_restart_py_file('# ' + text_log, restart_py_file)
+                self.scrolldown_log()
+                self.write_log_file(text_log, log_file)
+            # warning
+            elif text_log[0:text_log.index(":")] == self.tr('Warning'):
+                self.scrolldown_log()
+                self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                    "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
+                self.write_restart_py_file('# ' + text_log, restart_py_file)
+                self.write_log_file(text_log, log_file)
         # other case not accounted for
         else:
             self.scrolldown_log()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 text_log + '</br><br>')  # "<FONT COLOR='#000000'>" +
+            self.write_log_file(text_log, log_file)
 
-    def write_log_file(self, text_log, pathname_logfile):
+    def write_restart_py_file(self, text_log, pathname_logfile):
         """
-        A function to write to the .log text. Called by write_log.
-
-        :param text_log: the text to be written (string)
-        :param pathname_logfile: the path+name where the log is
         """
         if self.logon:
             if pathname_logfile:
@@ -2302,26 +2257,20 @@ class CentralW(QWidget):
                     return
                 else:
                     self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                        "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
-                    shutil.copy(os.path.join('files_dep', 'log0.txt'),
-                                os.path.join(self.path_prj, self.name_prj + '.log'))
-                    shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
-                                os.path.join(self.path_prj, 'restart_' + self.name_prj + '.log'))
+                        "<FONT COLOR='#FF8C00'> " + self.tr("Warning: Restart python file not found. New created.") + " </br> <br>")
+                    # shutil.copy(os.path.join('files_dep', 'log0.txt'),
+                    #             os.path.join(self.path_prj, self.name_prj + '.log'))
+                    # shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
+                    #             os.path.join(self.path_prj, 'restart_' + self.name_prj + '.log'))
                     with open(pathname_logfile, "a", encoding='utf8') as myfile:
                         myfile.write("    name_project = " + self.name_prj + "\n")
-                    with open(pathname_logfile, "a", encoding='utf8') as myfile:
                         myfile.write("    path_project = " + self.path_prj + "\n")
-                    with open(pathname_logfile, "a", encoding='utf8') as myfile:
                         myfile.write('\n' + text_log)
 
         return
 
-    def write_script_file(self, text_log, pathname_scriptfile):
+    def write_restart_cli_file(self, text_log, pathname_scriptfile):
         """
-        A function to write to the .log text. Called by write_log.
-
-        :param text_log: the text to be written (string)
-        :param pathname_scriptfile: the path+name where the log is
         """
         if self.logon:
             if os.path.isfile(pathname_scriptfile):
@@ -2330,8 +2279,21 @@ class CentralW(QWidget):
             elif self.name_prj == '':
                 return
             else:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                    "<FONT COLOR='#FF8C00'> WARNING: Script file not found. New script created. </br> <br>")
+                self.write_log(self.tr("Warning: Restart CLI file not found. New created."))
+                with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
+                    myfile.write('\n' + text_log)
+
+    def write_log_file(self, text_log, pathname_scriptfile):
+        """
+        """
+        if self.logon:
+            if os.path.isfile(pathname_scriptfile):
+                with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
+                    myfile.write('\n' + text_log)
+            elif self.name_prj == '':
+                return
+            else:
+                self.write_log(self.tr("Warning: Log file not found. New created."))
                 with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
                     myfile.write('\n' + text_log)
 
@@ -2377,7 +2339,7 @@ class CentralW(QWidget):
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         if not os.path.isfile(fname):
-            self.write_log('Error: ' + self.tr('The project file is not found. \n'))
+            self.write_log(self.tr('Error: ') + self.tr('The project file is not found. \n'))
         else:
             change_specific_properties(self.path_prj,
                                        preference_names=["user_name", "description"],

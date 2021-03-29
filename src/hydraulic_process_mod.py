@@ -799,7 +799,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
     if type(description_from_indexHYDRAU_file) == dict:
         """ ONE HDF5 """
         # one case (one hdf5 produced)
-        filename_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", "indexHYDRAU.txt")
+        filename_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0], "indexHYDRAU.txt")
         # telemac case
         telemac_case = description_from_indexHYDRAU_file["hydrau_case"]
 
@@ -811,7 +811,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
 
         """ CASE unknown """
         if telemac_case == "unknown":
-            unit_type = description_from_indexHYDRAU_file["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
@@ -859,7 +859,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 reach_column_presence = True
                 reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
@@ -885,7 +885,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 reach_column_presence = True
                 reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
@@ -909,9 +909,9 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file["reach_list"][0]
 
-            unit_type = description_from_indexHYDRAU_file["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
@@ -923,10 +923,9 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 headers = headers + "\t" + "reachname"
             # lines
             linetowrite = ""
-            for row in range(nb_row):
-                if description_from_indexHYDRAU_file["unit_list_tf"][row]:
-                    linetowrite += filename_column[row] + "\t" + str(
-                        description_from_indexHYDRAU_file["unit_list_full"][row])
+            for hdf5_ind in range(len(description_from_indexHYDRAU_file["unit_list"])):
+                for row in range(nb_row):
+                    linetowrite += filename_column[row] + "\t" + str(description_from_indexHYDRAU_file["unit_list"][hdf5_ind][row])
                     if reach_column_presence:
                         linetowrite = linetowrite + "\t" + reach_column + "\n"
                     else:
@@ -945,7 +944,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 reach_column_presence = True
                 reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
@@ -979,7 +978,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 reach_column_presence = True
                 reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indexHYDRAU_file["unit_type"]
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
@@ -1035,7 +1034,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
             reach_column_presence = True
             reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
 
-        unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
+        unit_type = description_from_indexHYDRAU_file[0]["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
         start = unit_type.find('[')
         end = unit_type.find(']')
         time_unit = unit_type[start + 1:end]
@@ -1313,7 +1312,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                              project_preferences)
 
     # create_index_hydrau_text_file
-    if not hydrau_description["index_hydrau"]:
+    if not project_preferences["restarted"]:
         create_index_hydrau_text_file(hydrau_description)
 
     # export
@@ -1415,19 +1414,19 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                 return
         if not epsg_hyd.isdigit() and epsg_sub.isdigit():
             print(
-                "Warning : EPSG code of hydraulic data is unknown (" + epsg_hyd + ") "
+                "Warning: EPSG code of hydraulic data is unknown (" + epsg_hyd + ") "
                                                                                   "and EPSG code of substrate data is known (" + epsg_sub + "). " +
                 "The merging data will still be calculated.")
             hab_epsg_code = epsg_sub
         if epsg_hyd.isdigit() and not epsg_sub.isdigit():
             print(
-                "Warning : EPSG code of hydraulic data is known (" + epsg_hyd + ") "
+                "Warning: EPSG code of hydraulic data is known (" + epsg_hyd + ") "
                                                                                 "and EPSG code of substrate data is unknown (" + epsg_sub + "). " +
                 "The merging data will still be calculated.")
             hab_epsg_code = epsg_hyd
         if not epsg_hyd.isdigit() and not epsg_sub.isdigit():
             print(
-                "Warning : EPSG codes of hydraulic and substrate data are unknown : " + epsg_hyd + " ; "
+                "Warning: EPSG codes of hydraulic and substrate data are unknown : " + epsg_hyd + " ; "
                 + epsg_sub + ". The merging data will still be calculated.")
             hab_epsg_code = epsg_hyd
 
@@ -1436,7 +1435,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         extent_sub = hdf5_sub.data_2d.data_extent
         if (extent_hyd[2] < extent_sub[0] or extent_hyd[0] > extent_sub[2] or
                 extent_hyd[3] < extent_sub[1] or extent_hyd[1] > extent_sub[3]):
-            print("Warning : No intersection found between hydraulic and substrate data (from extent intersection).")
+            print("Warning: No intersection found between hydraulic and substrate data (from extent intersection).")
             extent_intersect = False
         else:
             extent_intersect = True
