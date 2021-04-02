@@ -972,7 +972,8 @@ class SubstrateAndMerge(QWidget):
         self.send_log.emit("script" + cmd_str)
 
         # py
-        cmd_str = F"\tfrom src.substrate_mod import get_sub_description_from_source, load_sub\n"
+        cmd_str = F"\t# CREATE_SUB\n" \
+                  F"\tfrom src.substrate_mod import get_sub_description_from_source, load_sub\n"
         cmd_str = cmd_str + F'\tsub_description, warning_list = get_sub_description_from_source(filename_path={repr(os.path.join(self.path_prj, "input", os.path.splitext(self.sub_description["filename_source"])[0], self.sub_description["filename_source"]))}, ' \
                   F"\tpath_prj={repr(path_prj_script)}, " \
                   F"\tsubstrate_mapping_method={repr(self.sub_description['sub_mapping_method'])})\n"
@@ -988,7 +989,7 @@ class SubstrateAndMerge(QWidget):
                             F"\tprogress_value=Value('d', 0), " \
                             F"\tq=Queue(), " \
                             F"\tprint_cmd=True, " \
-                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n\n"
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)
 
     def create_merge_script(self):
@@ -1009,16 +1010,15 @@ class SubstrateAndMerge(QWidget):
         self.send_log.emit("script" + cmd_str)
 
         # py
-        cmd_str = F"\tfrom src.hydraulic_process_mod import merge_grid_and_save\n"
-        cmd_str = cmd_str + F"\tq=Queue()\n" \
-                            F"\tprogress_value=Value('d', 0)\n" \
-                            F"\tmerge_grid_and_save(hdf5_name_hyd={repr(self.input_hyd_combobox.currentText())}, " \
+        cmd_str = F"\t# CREATE_HAB\n" \
+                  F"\tfrom src.hydraulic_process_mod import merge_grid_and_save\n"
+        cmd_str = cmd_str + F"\tmerge_grid_and_save(hdf5_name_hyd={repr(self.input_hyd_combobox.currentText())}, " \
                             F"\thdf5_name_sub={repr(self.input_sub_combobox.currentText())}, " \
                             F"\thdf5_name_hab={repr(self.name_hdf5)}, " \
                             F"\tpath_prj={repr(path_prj_script)}, " \
                             F"\tprogress_value=progress_value, " \
                             F"\tq=q, " \
                             F"\tprint_cmd=True, " \
-                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n\n"
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)
 

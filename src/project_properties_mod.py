@@ -175,13 +175,13 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     save_project_properties(path_prj, project_preferences)
 
     if name_prj != '':
+        # log file
+        with open(project_preferences["log_file"], "a", encoding='utf8') as myfile:
+            myfile.write("HABBY log file : " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n')
         if not project_preferences["restarted"]:
-            # log file
-            with open(project_preferences["log_file"], "a", encoding='utf8') as myfile:
-                myfile.write("HABBY log file : " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n')
-
             # restart_py_file
             import_str = "if __name__ == '__main__':\n" \
+                         "\t# CREATE_PROJECT\n" \
                          "\timport os\n" \
                          "\timport sys\n" \
                          F"\tos.chdir({repr(os.getcwd())})\n" \
@@ -197,7 +197,7 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
                       F"\trestarted=True)"
             with open(project_preferences["restart_py_file"], "w", encoding='utf8') as myfile:
                 myfile.write(import_str + "\n")
-                myfile.write(cmd_str + "\n\n")
+                myfile.write(cmd_str + "\n")
 
             # restart_cli_file
             path_prj_script = path_prj + "_restarted"

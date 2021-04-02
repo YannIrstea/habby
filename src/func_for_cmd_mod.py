@@ -1316,30 +1316,21 @@ def cli_calc_hab(arguments, project_preferences):
             run_choice["sub_opt"] = arg[8:].split(",")
 
     user_target_list = HydraulicVariableUnitList()
-
     for i in range(len(run_choice["pref_file_list"])):
-        # options
-        pref_file = run_choice["pref_file_list"][i]
-        stage = run_choice["stage_list"][i]
-        hyd_opt = run_choice["hyd_opt"][i]
-        sub_opt = run_choice["sub_opt"][i]
-
         # check_if_habitat_variable_is_valid
-        if check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
+        if check_if_habitat_variable_is_valid(run_choice["pref_file_list"][i], run_choice["stage_list"][i], run_choice["hyd_opt"][i], run_choice["sub_opt"][i]):
             # append_new_habitat_variable
-            information_model_dict = get_biomodels_informations_for_database(pref_file)
+            information_model_dict = get_biomodels_informations_for_database(run_choice["pref_file_list"][i])
             user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
-                                                         stage,
-                                                         hyd_opt,
-                                                         sub_opt,
+                                                         run_choice["stage_list"][i],
+                                                         run_choice["hyd_opt"][i],
+                                                         run_choice["sub_opt"][i],
                                                          information_model_dict["aquatic_animal_type"],
                                                          information_model_dict["ModelType"],
-                                                         pref_file)
-
+                                                         run_choice["pref_file_list"][i])
     if user_target_list:
         # run calculation
         progress_value = Value("d", 0)
-        stop = Event()
         q = Queue()
         p = Process(target=src.calcul_hab_mod.calc_hab_and_output,
                     args=(hab_filename,

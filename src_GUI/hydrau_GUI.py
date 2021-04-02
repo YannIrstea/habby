@@ -775,7 +775,8 @@ class ModelInfoGroup(QGroupBox):
         self.send_log.emit("script" + cmd_str)
 
         # py
-        cmd_str = F"\tfrom src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer, load_hydraulic_cut_to_hdf5\n\n"
+        cmd_str = F"\t# CREATE_HYD\n" \
+                  F"\tfrom src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer, load_hydraulic_cut_to_hdf5\n\n"
         cmd_str = cmd_str + F'\thsra_value = HydraulicSimulationResultsAnalyzer(filename_path_list=[{repr(os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt"))}], ' \
                   F"\tpath_prj={repr(path_prj_script)}, " \
                   F"\tmodel_type={repr(self.model_type)}, " \
@@ -787,5 +788,5 @@ class ModelInfoGroup(QGroupBox):
                             F"\tprogress_value=progress_value, " \
                             F"\tq=q, " \
                             F"\tprint_cmd=True, " \
-                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n\n"
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)

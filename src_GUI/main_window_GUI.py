@@ -2276,15 +2276,16 @@ class CentralW(QWidget):
         """
         """
         if self.logon:
-            if os.path.isfile(pathname_scriptfile):
-                with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
-                    myfile.write('\n' + text_log)
-            elif self.name_prj == '':
-                return
-            else:
-                self.write_log(self.tr("Warning: Log file not found. New created."))
-                with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
-                    myfile.write('\n' + text_log)
+            if pathname_scriptfile is not None:
+                if os.path.isfile(pathname_scriptfile):
+                    with open(pathname_scriptfile, "a", encoding='utf8') as myfile:
+                        myfile.write('\n' + text_log)
+                elif self.name_prj == '':
+                    return
+                else:
+                    self.write_log(self.tr("Warning: Log file not found. New created."))
+                    with open(pathname_scriptfile, "w", encoding='utf8') as myfile:
+                        myfile.write('\n' + text_log)
 
     def update_combobox_filenames(self):
         """
@@ -2328,7 +2329,7 @@ class CentralW(QWidget):
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         if not os.path.isfile(fname):
-            self.write_log(self.tr('Error: ') + self.tr('The project file is not found. \n'))
+            self.write_log(self.tr('Error: ') + self.tr(f'The project file is not found : {fname}\n'))
         else:
             change_specific_properties(self.path_prj,
                                        preference_names=["user_name", "description"],
