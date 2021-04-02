@@ -780,11 +780,12 @@ class Hdf5Management:
         self.close_file()
 
         # copy input files to input project folder
-        copy_shapefiles(
-            os.path.join(self.data_2d.path_filename_source, self.data_2d.filename_source),
-            self.filename,
-            os.path.join(self.path_prj, "input"),
-            remove=False)
+        if not self.project_preferences["restarted"]:
+            copy_shapefiles(
+                os.path.join(self.data_2d.path_filename_source, self.data_2d.filename_source),
+                self.filename,
+                os.path.join(self.path_prj, "input"),
+                remove=False)
 
         # save XML
         self.save_xml("SUBSTRATE", self.data_2d.path_filename_source)

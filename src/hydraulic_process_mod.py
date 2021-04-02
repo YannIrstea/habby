@@ -27,7 +27,7 @@ from multiprocessing import Pool, Lock, cpu_count
 from src.merge import merge, setup
 from src.hydrosignature import hscomparison
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key, get_translator
-from src.project_properties_mod import create_default_project_properties_dict
+from src.project_properties_mod import create_default_project_properties_dict, load_project_properties
 from src import hdf5_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsSelector
 from src.data_2d_mod import Data2d
@@ -1359,6 +1359,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
 
     # progress
     progress_value.value = 10
+
+    if not project_preferences:
+        project_preferences = load_project_properties(path_prj)
 
     # get_translator
     qt_tr = get_translator(project_preferences['path_prj'])

@@ -246,11 +246,6 @@ class ModelInfoGroup(QGroupBox):
         self.p = Process(target=None)
         self.model_index = None
         self.progress_value = Value("d", 0)
-        # get cmd
-        if sys.argv[0][-3:] == ".py":
-            self.exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
-        else:
-            self.exe_cmd = '"' + sys.executable + '"'
         self.mystdout = None
         self.drop_hydro.connect(lambda: self.name_last_hdf5(self.model_type))
         self.init_ui()
@@ -765,8 +760,12 @@ class ModelInfoGroup(QGroupBox):
         path_prj_script = self.path_prj + "_restarted"
 
         # cli
+        if sys.argv[0][-3:] == ".py":
+            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+        else:
+            exe_cmd = '"' + sys.executable + '"'
         script_function_name = "CREATE_HYD"
-        cmd_str = self.exe_cmd + ' ' + script_function_name + \
+        cmd_str = exe_cmd + ' ' + script_function_name + \
                   ' model="' + self.model_type + '"' + \
                   ' inputfile="' + os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt") + '"' + \
                   ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list']).replace("\'", "'").replace(' ', '') + \
@@ -776,19 +775,17 @@ class ModelInfoGroup(QGroupBox):
         self.send_log.emit("script" + cmd_str)
 
         # py
-        cmd_str = F"from multiprocessing import Value, Queue\n" \
-                  F"from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer, load_hydraulic_cut_to_hdf5\n" \
-                  F"from src.project_properties_mod import load_project_properties\n\n"
-        cmd_str = cmd_str + F'hsra_value = HydraulicSimulationResultsAnalyzer(filename_path_list=[{repr(os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt"))}], ' \
-                  F"path_prj={repr(path_prj_script)}, " \
-                  F"model_type={repr(self.model_type)}, " \
-                  F"nb_dim={repr(str(self.nb_dim))})\n"
-        cmd_str = cmd_str + F"for hdf5_file_index in range(0, len(hsra_value.hydrau_description_list)):\n" \
-                            F"\tprogress_value = Value('d', 0.0)\n" \
-                            F"\tq = Queue()\n" \
-                            F"\tload_hydraulic_cut_to_hdf5(hydrau_description=hsra_value.hydrau_description_list[hdf5_file_index], " \
-                            F"progress_value=progress_value, " \
-                            F"q=q, " \
-                            F"print_cmd=True, " \
-                            F"project_preferences=load_project_properties({repr(path_prj_script)}))"
+        cmd_str = F"\tfrom src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer, load_hydraulic_cut_to_hdf5\n\n"
+        cmd_str = cmd_str + F'\thsra_value = HydraulicSimulationResultsAnalyzer(filename_path_list=[{repr(os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt"))}], ' \
+                  F"\tpath_prj={repr(path_prj_script)}, " \
+                  F"\tmodel_type={repr(self.model_type)}, " \
+                  F"\tnb_dim={repr(str(self.nb_dim))})\n"
+        cmd_str = cmd_str + F"\tfor hdf5_file_index in range(0, len(hsra_value.hydrau_description_list)):\n" \
+                            F"\t\tprogress_value = Value('d', 0.0)\n" \
+                            F"\t\tq = Queue()\n" \
+                            F"\t\tload_hydraulic_cut_to_hdf5(hydrau_description=hsra_value.hydrau_description_list[hdf5_file_index], " \
+                            F"\tprogress_value=progress_value, " \
+                            F"\tq=q, " \
+                            F"\tprint_cmd=True, " \
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n\n"
         self.send_log.emit("py" + cmd_str)

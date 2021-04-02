@@ -2228,7 +2228,6 @@ class CentralW(QWidget):
             if text_log[0:text_log.index(":")] == self.tr('Error'):
                 self.tracking_journal_QTextEdit.textCursor().insertHtml(
                     "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
-                self.write_restart_py_file('# ' + text_log, restart_py_file)
                 self.scrolldown_log()
                 self.write_log_file(text_log, log_file)
             # warning
@@ -2236,7 +2235,6 @@ class CentralW(QWidget):
                 self.scrolldown_log()
                 self.tracking_journal_QTextEdit.textCursor().insertHtml(
                     "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
-                self.write_restart_py_file('# ' + text_log, restart_py_file)
                 self.write_log_file(text_log, log_file)
         # other case not accounted for
         else:
@@ -2257,16 +2255,7 @@ class CentralW(QWidget):
                     return
                 else:
                     self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                        "<FONT COLOR='#FF8C00'> " + self.tr("Warning: Restart python file not found. New created.") + " </br> <br>")
-                    # shutil.copy(os.path.join('files_dep', 'log0.txt'),
-                    #             os.path.join(self.path_prj, self.name_prj + '.log'))
-                    # shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
-                    #             os.path.join(self.path_prj, 'restart_' + self.name_prj + '.log'))
-                    with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                        myfile.write("    name_project = " + self.name_prj + "\n")
-                        myfile.write("    path_project = " + self.path_prj + "\n")
-                        myfile.write('\n' + text_log)
-
+                        "<FONT COLOR='#FF8C00'> " + self.tr("Error: Restart python file not found. New created.") + " </br> <br>")
         return
 
     def write_restart_cli_file(self, text_log, pathname_scriptfile):

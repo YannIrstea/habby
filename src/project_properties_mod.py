@@ -181,19 +181,23 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
                 myfile.write("HABBY log file : " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n')
 
             # restart_py_file
-            import_str = "import os\n" \
-                         F"os.chdir({repr(os.getcwd())})\n" \
-                         "from src.project_properties_mod import create_project_structure\n"
-            cmd_str = F"create_project_structure(path_prj={repr(path_prj + '_restarted')}, " \
-                      F"save_log={str(True)}, " \
-                      F"version_habby={repr(version_habby)}, " \
-                      F"user_name={repr(user_name)}, " \
-                      F"description={repr(description)}, " \
-                      F"mode={repr(mode)}, " \
-                      F"restarted=True)"
+            import_str = "if __name__ == '__main__':\n" \
+                         "\timport os\n" \
+                         "\timport sys\n" \
+                         F"\tos.chdir({repr(os.getcwd())})\n" \
+                         F"\tsys.path.append({repr(os.getcwd())})\n" \
+                         "\tfrom src.project_properties_mod import create_project_structure, load_project_properties\n" \
+                         "\tfrom multiprocessing import Value, Queue\n"
+            cmd_str = F"\tcreate_project_structure(path_prj={repr(path_prj + '_restarted')}, " \
+                      F"\tsave_log={str(True)}, " \
+                      F"\tversion_habby={repr(version_habby)}, " \
+                      F"\tuser_name={repr(user_name)}, " \
+                      F"\tdescription={repr(description)}, " \
+                      F"\tmode={repr(mode)}, " \
+                      F"\trestarted=True)"
             with open(project_preferences["restart_py_file"], "w", encoding='utf8') as myfile:
                 myfile.write(import_str + "\n")
-                myfile.write(cmd_str + "\n")
+                myfile.write(cmd_str + "\n\n")
 
             # restart_cli_file
             path_prj_script = path_prj + "_restarted"

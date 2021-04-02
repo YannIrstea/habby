@@ -423,7 +423,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # plt.show()
 
     # ----------------------------------------------------------------------------------
-    elif all_arg[0] == 'LOAD_SUB':
+    elif all_arg[0] == 'CREATE_SUB':
         # remove the first arg LOAD_SUB
         all_arg = all_arg[1:]
 
@@ -1227,10 +1227,6 @@ def cli_load_sub(arguments, project_preferences):
 
     # ok
     if sub_description:
-        # outputfilename
-        if outputfilename:
-            sub_description["hdf5_name"] = outputfilename
-
         # but warnings
         if warning_list:
             for warn in warning_list:
@@ -1240,7 +1236,6 @@ def cli_load_sub(arguments, project_preferences):
         sub_description["name_hdf5"] = name_hdf5
 
         # if shape data valid : load and save
-        stop = Event()
         q = Queue()
         progress_value = Value("d", 0)
         p = Process(target=substrate_mod.load_sub,
@@ -1248,8 +1243,7 @@ def cli_load_sub(arguments, project_preferences):
                           progress_value,
                           q,
                           True,
-                          project_preferences,
-                          stop),
+                          project_preferences),
                     name="LOAD_SUB")
         cli_start_process_and_print_progress(p, progress_value)
 
