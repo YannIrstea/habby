@@ -19,6 +19,7 @@ import urllib.request as urllib
 
 
 def get_last_version_number_from_github():
+    """Return the last version of HABBY solfware from github master tags."""
     last_version_str = "unknown"
     ssl._create_default_https_context = ssl._create_unverified_context
     try:

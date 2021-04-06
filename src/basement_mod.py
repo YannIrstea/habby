@@ -20,13 +20,19 @@ import h5py
 import pandas as pd
 
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
-from src.tools_mod import create_empty_data_2d_dict, frange
+from src.tools_mod import frange
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src import manage_grid_mod
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
-    """
+    """Represent Basement hydraulic simulation results.
+
+    Keyword arguments:
+    filename -- filename, type: str
+    folder_path -- relative path to filename, type: str
+    model_type -- type of hydraulic model, type: str
+    path_prj -- absolute path to project, type: str
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
@@ -112,9 +118,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             self.warning_list.append("Error: File not valid.")
 
     def get_simulation_info(self):
+        """Get simulation informations from file."""
         self.simulation_name = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]["simulation_name"]
 
     def get_hydraulic_variable_list(self):
+        """Get hydraulic variable list from file."""
         # #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
 
         # get list from source
@@ -124,13 +132,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
-        """
-        A function which load the telemac time step using the Selafin class.
+        """Get time step information from file."""
 
-        :param namefilet: the name of the selafin file (string)
-        :param pathfilet: the path to this file (string)
-        :return: timestep
-        """
         simulation_dict = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])
 
         timestep_float_list = list(frange(simulation_dict["SIMULATION"]["TIME"]["start"],
@@ -141,13 +144,12 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.timestep_unit = "time [s]"
 
     def load_hydraulic(self, timestep_name_wish_list):
-        """
-        A function which load the telemac data using the Selafin class.
+        """Retrun Data2d from file.
 
-        :param namefilet: the name of the selafin file (string)
-        :param pathfilet: the path to this file (string)
-        :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
+        Keyword arguments:
+        timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
         """
+
         # load specific timestep
         self.load_specific_timestep(timestep_name_wish_list)
 

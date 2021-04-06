@@ -37,12 +37,12 @@ from src.variable_unit_mod import HydraulicVariableUnitList
 from src.bio_info_mod import get_biomodels_informations_for_database, check_if_habitat_variable_is_valid
 from src import lammi_mod
 from src import hydraulic_process_mod
-from src.hydrosignature import hydraulic_class_from_file
+from src.hydrosignature_mod import hydraulic_class_from_file
 from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_properties_dict, load_project_properties, change_specific_properties
 import src.calcul_hab_mod
 import src.hydraulic_process_mod
-import src.merge
+import src.merge_mod
 import src.substrate_mod
 
 

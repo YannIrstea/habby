@@ -89,13 +89,13 @@ class HydraulicSimulationResultsSelector:
 
 class HydraulicSimulationResultsBase:
     def __init__(self, filename, folder_path, model_type, path_prj):
-        """
-        :param filename_path_list: list of absolute path file, type: list of str
-        :param path_prj: absolute path to project, type: str
-        :param model_type: type of hydraulic model, type: str
-        :param nb_dim: dimension number (1D/1.5D/2D), type: int
-        :return: hydrau_description_list, type: dict
-        :return: warnings list, type: list of str
+        """Represent hydraulic simulation results.
+
+        Keyword arguments:
+        filename -- filename, type: str
+        folder_path -- relative path to filename, type: str
+        model_type -- type of hydraulic model, type: str
+        path_prj -- absolute path to project, type: str
         """
         # HydraulicVariableUnit
         self.hvum = HydraulicVariableUnitManagement()

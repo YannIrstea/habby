@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
 from lxml import etree as ET
 import sys
 
-import src.merge
+import src.merge_mod
 import src.substrate_mod
 import src.tools_mod
 from src import hdf5_mod

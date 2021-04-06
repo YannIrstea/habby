@@ -24,8 +24,8 @@ from PyQt5.QtCore import QCoreApplication as qt_tr
 from pandas import DataFrame
 from multiprocessing import Pool, Lock, cpu_count
 
-from src.merge import merge, setup
-from src.hydrosignature import hscomparison
+from src.merge_mod import merge, setup
+from src.hydrosignature_mod import hscomparison
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key, get_translator
 from src.project_properties_mod import create_default_project_properties_dict, load_project_properties
 from src import hdf5_mod
