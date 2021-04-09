@@ -1391,7 +1391,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
 
     # load hdf5 hydro
     hdf5_hydro = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hyd, new=False, edit=False)
-    hdf5_hydro.load_hdf5_hyd(units_index="all", whole_profil=True)
+    hdf5_hydro.load_hdf5(units_index="all", whole_profil=True)
 
     # load hdf5 sub
     hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub, new=False, edit=False)

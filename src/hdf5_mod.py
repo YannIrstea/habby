@@ -647,6 +647,46 @@ class Hdf5Management:
                         # replace_variable
                         self.data_2d.hvum.hdf5_and_computable_list.replace_variable(animal)
 
+    # LOAD FILE
+    def load_hdf5(self, units_index="all", user_target_list="defaut", whole_profil=False):
+        # get_hdf5_attributes
+        self.get_hdf5_attributes(close_file=False)
+
+        # save unit_index for computing variables
+        self.units_index = units_index
+        if self.units_index == "all":
+            # load the number of time steps
+            self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
+
+        # variables
+        self.user_target_list = user_target_list
+        if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+                                                                       hdf5_type=self.hdf5_type)
+        elif type(self.user_target_list) == dict:  # project_preferences
+            self.project_preferences = self.user_target_list
+            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
+                                                                       hdf5_type=self.hdf5_type)
+        elif user_target_list is None:
+            pass
+        else:  # all
+            self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
+
+        # load_whole_profile
+        if whole_profil:
+            self.load_whole_profile()
+
+        if user_target_list is not None:
+            # load_data_2d
+            self.load_data_2d()
+
+        # close file
+        self.close_file()
+
+        # compute ?
+        if self.data_2d.hvum.all_final_variable_list.to_compute():
+            self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
+
     # HYDRAULIC
     def create_hdf5_hyd(self, data_2d, data_2d_whole, project_preferences):
         """
@@ -727,42 +767,6 @@ class Hdf5Management:
 
         # close file
         self.close_file()
-
-    def load_hdf5_hyd(self, units_index="all", user_target_list="defaut", whole_profil=False):
-        # get_hdf5_attributes
-        self.get_hdf5_attributes(close_file=False)
-
-        # save unit_index for computing variables
-        self.units_index = units_index
-        if self.units_index == "all":
-            # load the number of time steps
-            self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
-
-        # variables
-        self.user_target_list = user_target_list
-        if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
-        elif type(self.user_target_list) == dict:  # project_preferences
-            self.project_preferences = self.user_target_list
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
-        else:
-            self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
-
-        # load_whole_profile
-        if whole_profil:
-            self.load_whole_profile()
-
-        # load_data_2d
-        self.load_data_2d()
-
-        # close file
-        self.close_file()
-
-        # compute ?
-        if self.data_2d.hvum.all_final_variable_list.to_compute():
-            self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
 
     # SUBSTRATE
     def create_hdf5_sub(self, data_2d):
@@ -886,42 +890,6 @@ class Hdf5Management:
 
         # close file
         self.close_file()
-
-    def load_hdf5_hab(self, units_index="all", user_target_list="defaut", whole_profil=False):
-        # get_hdf5_attributes
-        self.get_hdf5_attributes(close_file=False)
-
-        # save unit_index for computing variables
-        self.units_index = units_index
-        if self.units_index == "all":
-            # load the number of time steps
-            self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
-
-        # variables
-        self.user_target_list = user_target_list
-        if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
-        elif type(self.user_target_list) == dict:  # project_preferences
-            self.project_preferences = self.user_target_list
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
-        else:
-            self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
-
-        # load_whole_profile
-        if whole_profil:
-            self.load_whole_profile()
-
-        # load_data_2d
-        self.load_data_2d()
-
-        # close file
-        self.close_file()
-
-        # compute ?
-        if self.data_2d.hvum.all_final_variable_list.to_compute():
-            self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
 
     def add_fish_hab(self, animal_variable_list):
         """
@@ -1291,8 +1259,16 @@ class Hdf5Management:
         # save attrivbute
         self.estimhab_dict = estimhab_dict
 
-    # EXPORT GPKG
+    """ EXPORT 2D """
+    def load_data_to_export(self, user_target_list, whole_profil=False):
+        self.create_or_open_file()
+        self.load_hdf5(whole_profil=whole_profil,
+                        user_target_list=user_target_list)
+
     def export_gpkg_mesh_whole_profile(self, state=None):
+        # load_data_top_export
+        self.load_data_to_export(user_target_list=None, whole_profil=True)
+
         # progress
         delta_reach = 80 / self.data_2d.reach_number
 
@@ -1347,8 +1323,15 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
-            pool.starmap(export_mesh_layer_to_gpkg, input_data)
+            if len(filename_path_list) > cpu_count():
+                cpu_value = cpu_count()
+            else:
+                cpu_value = len(filename_path_list)
+            pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
+            try:
+                pool.starmap(export_mesh_layer_to_gpkg, input_data)
+            except OSError:
+                print("Error: Insufficient system resources to complete " + "export_gpkg_mesh_whole_profile" ".")
 
             # merge_gpkg_to_one
             merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
@@ -1357,6 +1340,9 @@ class Hdf5Management:
             state.value = 100.0  # process finished
 
     def export_gpkg_mesh_units(self, state=None):
+        # load_data_top_export
+        self.load_data_to_export(user_target_list="all")
+
         # progress
         delta_reach = 80 / self.data_2d.reach_number
         # for each reach : one gpkg
@@ -1400,8 +1386,16 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
-            pool.starmap(export_mesh_layer_to_gpkg, input_data)
+            if len(filename_path_list) > cpu_count():
+                cpu_value = int(cpu_count() / 2)
+            else:
+                cpu_value = int(len(filename_path_list) / 2)
+            pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
+
+            try:
+                pool.starmap(export_mesh_layer_to_gpkg, input_data)
+            except OSError:
+                print("Error: Insufficient system resources to complete " + "export_gpkg_mesh_units" ".")
 
             # merge_gpkg_to_one
             merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
@@ -1410,6 +1404,9 @@ class Hdf5Management:
             state.value = 100.0  # process finished
 
     def export_gpkg_point_whole_profile(self, state=None):
+        # load_data_top_export
+        self.load_data_to_export(user_target_list=None, whole_profil=True)
+
         # progress
         delta_reach = 80 / self.data_2d.reach_number
 
@@ -1464,9 +1461,15 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
-            pool.starmap(export_node_layer_to_gpkg, input_data)
-
+            if len(filename_path_list) > cpu_count():
+                cpu_value = cpu_count()
+            else:
+                cpu_value = len(filename_path_list)
+            pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
+            try:
+                pool.starmap(export_node_layer_to_gpkg, input_data)
+            except OSError:
+                print("Error: Insufficient system resources to complete " + "export_gpkg_point_whole_profile" ".")
             # merge_gpkg_to_one
             merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
 
@@ -1474,6 +1477,9 @@ class Hdf5Management:
             state.value = 100.0  # process finished
 
     def export_gpkg_point_units(self, state=None):
+        # load_data_top_export
+        self.load_data_to_export(user_target_list="all")
+
         # progress
         delta_reach = 80 / self.data_2d.reach_number
 
@@ -1518,8 +1524,15 @@ class Hdf5Management:
             lock = Lock()  # to share progress_value
             if state is None:
                 state = Value("d", 0.0)
-            pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
-            pool.starmap(export_node_layer_to_gpkg, input_data)
+            if len(filename_path_list) > cpu_count():
+                cpu_value = int(cpu_count() / 2)
+            else:
+                cpu_value = int(len(filename_path_list) / 2)
+            pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
+            try:
+                pool.starmap(export_node_layer_to_gpkg, input_data)
+            except OSError:
+                print("Error: Insufficient system resources to complete " + "export_gpkg_point_units" ".")
 
             # merge_gpkg_to_one
             merge_gpkg_to_one(filename_path_list, layer_name_list, filename_path)
@@ -1527,9 +1540,11 @@ class Hdf5Management:
         if state is not None:
             state.value = 100.0  # process finished
 
-    # EXPORT 3D
     def export_stl(self, state=None):
         """ create stl whole profile (to see topography) """
+        # load_data_top_export
+        self.load_data_to_export(user_target_list=None, whole_profil=True)
+
         # for all reach
         for reach_number in range(self.data_2d_whole.reach_number):
             # for all units
@@ -1570,6 +1585,9 @@ class Hdf5Management:
             state.value = 100.0  # process finished
 
     def export_paraview(self, state=None):
+        # load_data_top_export
+        self.load_data_to_export(user_target_list="all")
+
         file_names_all = []
         part_timestep_indice = []
         pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(self.project_preferences["pvd_variable_z"])
@@ -1647,11 +1665,13 @@ class Hdf5Management:
         if state is not None:
             state.value = 100.0  # process finished
 
-    # EXPORT TXT
     def export_detailled_mesh_txt(self, state=None):
         """
         detailled mesh
         """
+        # load_data_top_export
+        self.load_data_to_export(user_target_list="all")
+
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
@@ -1696,10 +1716,12 @@ class Hdf5Management:
             state = Value("d", 0.0)
 
         # part
-        # cpu_count_value = cpu_count - 1 /
-
-        pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
-        pool.starmap(export_mesh_txt, input_data)
+        cpu_value = cpu_count()
+        pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
+        try:
+            pool.starmap(export_mesh_txt, input_data)
+        except OSError:
+            print("Error: Insufficient system resources to complete " + "export_detailled_mesh_txt" ".")
 
         if state is not None:
             state.value = 100.0  # process finished
@@ -1708,6 +1730,9 @@ class Hdf5Management:
         """
          detailled mesh
          """
+        # load_data_top_export
+        self.load_data_to_export(user_target_list="all")
+
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
@@ -1741,7 +1766,7 @@ class Hdf5Management:
                 name_list.append(os.path.join(self.path_txt, name))
                 hvum_list.append(self.data_2d.hvum)
                 unit_data_list.append(self.data_2d[reach_number][unit_number]["node"])
-                delta_node_list.append(delta_unit / self.data_2d[reach_number][unit_number]["node"]["xy"].shape[0])
+                delta_node_list.append(delta_unit)
 
         # Pool
         input_data = zip(name_list,
@@ -1751,13 +1776,63 @@ class Hdf5Management:
         lock = Lock()  # to share progress_value
         if state is None:
             state = Value("d", 0.0)
-        pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
-        pool.starmap(export_point_txt, input_data)
+        pool = Pool(processes=1, initializer=setup, initargs=[state, lock])
+        try:
+            pool.starmap(export_point_txt, input_data)
+        except OSError:
+            print("Error: Insufficient system resources to complete " + "export_detailled_point_txt" ".")
+
+        if state is not None:
+            state.value = 100.0  # process finished
+
+    def export_report(self, state=None):
+        """
+        # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
+        This functionc create a pdf with information about the fish.
+        It tries to follow the chosen language, but
+        the stage name are not translated and the decription are usually
+        only given in French.
+
+        :param xmlfiles: the name of the xmlfile (without the path!)
+        :param stages_chosen: the stage chosen (might not be all stages)
+        :param path_bio: the path with the biological xml file
+        :param path_im_bio: the path with the images of the fish
+        :param path_out: the path where to save the .pdf file
+            (usually other_outputs)
+        """
+        # load_data_top_export
+        self.load_data_to_export(user_target_list=None, whole_profil=False)
+
+        # remove duplicates xml
+        xmlfiles = list(set(self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()))
+        xmlfiles.sort()
+
+        for xmlfile in xmlfiles:
+            export_report(xmlfile, self.project_preferences, delta_animal=100 / len(xmlfiles))
+
+        # input_data = zip(xmlfiles,
+        #     [self.project_preferences] * len(xmlfiles),
+        #                  [100 / len(xmlfiles)] * len(xmlfiles))
+        #
+        # lock = Lock()  # to share progress_value
+        # if state is None:
+        #     state = Value("d", 0.0)
+        #
+        # if len(xmlfiles) > cpu_count():
+        #     cpu_value = cpu_count()
+        # else:
+        #     cpu_value = len(xmlfiles)
+        # pool = Pool(processes=4, initializer=setup, initargs=[state, lock])
+        # try:
+        #     pool.starmap(export_report, input_data)
+        # except OSError:
+        #     print("Error: Insufficient system resources to complete " + "export_report" ".")
 
         if state is not None:
             state.value = 100.0  # process finished
 
     def export_spu_txt(self, state=None):
+        """ export_spu_txt exported each calc hab """
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
@@ -1859,41 +1934,7 @@ class Hdf5Management:
         if state is not None:
             state.value = 100.0  # process finished
 
-    def export_report(self, state=None):
-        """
-        # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
-        This functionc create a pdf with information about the fish.
-        It tries to follow the chosen language, but
-        the stage name are not translated and the decription are usually
-        only given in French.
-
-        :param xmlfiles: the name of the xmlfile (without the path!)
-        :param stages_chosen: the stage chosen (might not be all stages)
-        :param path_bio: the path with the biological xml file
-        :param path_im_bio: the path with the images of the fish
-        :param path_out: the path where to save the .pdf file
-            (usually other_outputs)
-        """
-        # get data
-        xmlfiles = self.data_2d.hvum.hdf5_and_computable_list.habs().pref_files()
-        hab_animal_type_list = self.data_2d.hvum.hdf5_and_computable_list.habs().aquatic_animal_types()
-        # remove duplicates xml
-        prov_list = list(set(list(zip(xmlfiles, hab_animal_type_list))))
-        xmlfiles, hab_animal_type_list = ([a for a, b in prov_list], [b for a, b in prov_list])
-
-        input_data = zip(xmlfiles,
-            hab_animal_type_list,
-            [self.project_preferences] * len(xmlfiles),
-                         [100 / len(xmlfiles)] * len(xmlfiles))
-
-        lock = Lock()  # to share progress_value
-        if state is None:
-            state = Value("d", 0.0)
-        pool = Pool(processes=2, initializer=setup, initargs=[state, lock])
-        pool.starmap(export_report, input_data)
-
-        if state is not None:
-            state.value = 100.0  # process finished
+    """ EXPORT AUTRES """
 
     def export_estimhab(self):
         # text files output
@@ -2227,7 +2268,7 @@ def simple_export(data,format):
     # Takes as input the Hdf5management object data and the string format, and exports the data to the output folder
     # of the project
     if data.extension==".hyd":
-        data.load_hdf5_hyd(whole_profil=True)
+        data.load_hdf5(whole_profil=True)
         for name in data.available_export_list:
             data.project_preferences[name]=[True,True]
         data.get_variables_from_dict_and_compute()

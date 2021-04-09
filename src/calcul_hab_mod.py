@@ -84,7 +84,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     # load data and get variable to compute
     hdf5_path = os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5"))
     hdf5 = hdf5_mod.Hdf5Management(hdf5_path, hab_filename, new=False, edit=True)
-    hdf5.load_hdf5_hab(user_target_list=animal_variable_list)
+    hdf5.load_hdf5(user_target_list=animal_variable_list)
 
     # progress
     delta_animal = 80 / len(animal_variable_list)
@@ -96,8 +96,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(animal.pref_file)
         # load bio data
         pref_height, pref_vel, pref_sub, sub_code, code_fish, name_fish, stade_bios = bio_info_mod.read_pref(
-            animal.pref_file,
-            animal.aquatic_animal_type)
+            animal.pref_file)
         # search stage
         stage_index = None
         for i, stade_bio in enumerate(stade_bios):

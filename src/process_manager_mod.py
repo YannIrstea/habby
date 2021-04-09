@@ -202,21 +202,15 @@ class MyProcessManager(QThread):
             units_index = self.plot_attr.units_index
             units = self.plot_attr.units
 
-            # load hydraulic data
-            if self.hdf5.hdf5_type == "hydraulic":
-                self.hdf5.load_hdf5_hyd(units_index=units_index,
-                                        user_target_list=self.hvum.user_target_list,
-                                        whole_profil=True)
+            # load data
+            if self.hdf5.hdf5_type in ("hydraulic", "habitat"):
+                self.hdf5.load_hdf5(units_index=units_index,
+                                    user_target_list=self.hvum.user_target_list,
+                                    whole_profil=True)
 
             # load substrate data
             elif self.hdf5.hdf5_type == "substrate":
                 self.hdf5.load_hdf5_sub(user_target_list=self.hvum.user_target_list)
-
-            # load habitat data
-            elif self.hdf5.hdf5_type == "habitat":
-                self.hdf5.load_hdf5_hab(units_index=units_index,
-                                        user_target_list=self.hvum.user_target_list,
-                                        whole_profil=False)
 
             habitat_variable_list = self.hdf5.data_2d.hvum.all_final_variable_list.habs()
             light_data_2d = self.hdf5.data_2d.get_light_data_2d()
@@ -369,27 +363,23 @@ class MyProcessManager(QThread):
 
     def load_data_and_append_export_process(self):
         for name_hdf5 in self.names_hdf5:
-            self.hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
-
+            hdf5 = Hdf5Management(self.path_prj, name_hdf5, new=False, edit=False)
+            hdf5.close_file()
             """ LOADING """
             # hydraulic
-            if self.hdf5.hdf5_type == "hydraulic":  # load hydraulic data
+            if hdf5.hdf5_type == "hydraulic":  # load hydraulic data
                 index_export = 0
-                self.hdf5.load_hdf5_hyd(whole_profil=True,
-                                        user_target_list=self.project_preferences)
 
             # habitat
-            elif self.hdf5.hdf5_type == "habitat":  # load habitat data
+            elif hdf5.hdf5_type == "habitat":  # load habitat data
                 index_export = 1
-                self.hdf5.load_hdf5_hab(whole_profil=True,
-                                        user_target_list=self.project_preferences)
 
             """ APPEND PROCESS """
             if self.project_preferences["mesh_whole_profile"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_whole_profile,
+                my_process = MyProcess(p=Process(target=hdf5.export_gpkg_mesh_whole_profile,
                                                  args=(progress_value,),
                                                  name="gpkg_mesh_whole_profile"),
                                        progress_value=progress_value,
@@ -399,7 +389,7 @@ class MyProcessManager(QThread):
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_whole_profile,
+                my_process = MyProcess(p=Process(target=hdf5.export_gpkg_point_whole_profile,
                                                  args=(progress_value,),
                                                  name="gpkg_point_whole_profile"),
                                        progress_value=progress_value,
@@ -409,7 +399,7 @@ class MyProcessManager(QThread):
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_mesh_units,
+                my_process = MyProcess(p=Process(target=hdf5.export_gpkg_mesh_units,
                                                  args=(progress_value,),
                                                  name="gpkg_mesh_units"),
                                        progress_value=progress_value,
@@ -419,7 +409,7 @@ class MyProcessManager(QThread):
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_gpkg_point_units,
+                my_process = MyProcess(p=Process(target=hdf5.export_gpkg_point_units,
                                                  args=(progress_value,),
                                                  name="gpkg_point_units"),
                                        progress_value=progress_value,
@@ -431,7 +421,7 @@ class MyProcessManager(QThread):
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_stl,
+                my_process = MyProcess(p=Process(target=hdf5.export_stl,
                                              args=(progress_value,),
                                              name="stl_whole_profile"),
                                        progress_value=progress_value,
@@ -443,7 +433,7 @@ class MyProcessManager(QThread):
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_paraview,
+                my_process = MyProcess(p=Process(target=hdf5.export_paraview,
                                                  args=(progress_value,),
                                                  name="paraview_mesh_units"),
                                        progress_value=progress_value,
@@ -455,7 +445,7 @@ class MyProcessManager(QThread):
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_mesh_txt,
+                my_process = MyProcess(p=Process(target=hdf5.export_detailled_mesh_txt,
                                                  args=(progress_value,),
                                                  name="txt_mesh_units"),
                                        progress_value=progress_value,
@@ -467,7 +457,7 @@ class MyProcessManager(QThread):
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
-                my_process = MyProcess(p=Process(target=self.hdf5.export_detailled_point_txt,
+                my_process = MyProcess(p=Process(target=hdf5.export_detailled_point_txt,
                                                  args=(progress_value,),
                                                  name="txt_point_units"),
                                        progress_value=progress_value,
@@ -475,19 +465,18 @@ class MyProcessManager(QThread):
                 self.process_list.append(my_process)
 
             # habitat
-            if self.hdf5.hdf5_type == "habitat":  # load habitat data
+            if hdf5.hdf5_type == "habitat":  # load habitat data
                 # fish_information_hab
                 if self.project_preferences["fish_information"][index_export]:
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.habs():
-                        # class MyProcess
-                        progress_value = Value("d", 0.0)
-                        q = Queue()
-                        my_process = MyProcess(p=Process(target=self.hdf5.export_report,
-                                                         args=(progress_value,),
-                                                         name="report_suitability_curve"),
-                                               progress_value=progress_value,
-                                               q=q)
-                        self.process_list.append(my_process)
+                    # class MyProcess
+                    progress_value = Value("d", 0.0)
+                    q = Queue()
+                    my_process = MyProcess(p=Process(target=hdf5.export_report,
+                                                     args=(progress_value,),
+                                                     name="report_suitability_curve"),
+                                           progress_value=progress_value,
+                                           q=q)
+                    self.process_list.append(my_process)
 
     # hs
     def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
@@ -592,8 +581,7 @@ class MyProcessManager(QThread):
             if self.plot_attr.aquatic_animal_type == "fish":
                 # open the pref
                 h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile,
-                                                                                                         self.plot_attr.aquatic_animal_type,
-                                                                                                         self.plot_attr.selected_fish_stage)
+                                                                                            self.plot_attr.selected_fish_stage)
                 my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve,
                                                  args=(progress_value,
                                               h_all,
@@ -614,8 +602,7 @@ class MyProcessManager(QThread):
             # elif plot_attr.aquatic_animal_type == "invertebrate":
             else:
                 # open the pref
-                shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile,
-                                                                                                            self.plot_attr.aquatic_animal_type)
+                shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile)
                 my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_invertebrate,
                                         args=(progress_value,
                                               shear_stress_all,
@@ -632,8 +619,7 @@ class MyProcessManager(QThread):
         # bivariate
         else:
             # open the pref
-            h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile,
-                                                                                                      self.plot_attr.aquatic_animal_type)
+            h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = read_pref(self.plot_attr.xmlfile)
             my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_bivariate,
                                     args=(progress_value,
                                           h_all,
@@ -801,7 +787,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def run(self):  # run : disable debugger and enable progress_bar, start:enable debugger and disable progress_bar
+    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":
@@ -966,9 +952,10 @@ class MyProcessList(list):
         for process in self:
             if not self.stop_by_user:
                 if process.progress_value.value == 0.0:
-                    process.p.start()
+                    process.start_process()
                     self.get_progress_value()
         self.all_started = True
+        # print("all_started !!!")
 
         # get progress value
         while self.nb_finished != self.nb_total:
@@ -1014,10 +1001,18 @@ class MyProcess(QObject):
         self.p = p  # process
         self.progress_value = progress_value  # progress value in float (Value class)
         self.q = q  # string to get if warning or error
-        self.start_time = time.time()  # start time in s
+        self.init_start_time = time.time()  # start time in
+        self.start_time = None
         self.total_time = 0  # total time in s
         self.total_time_computed = False
         self.send_log = None
+
+    def start_process(self):
+        self.start_time = time.time()  # start time in s
+        self.p.start()
+        # if self.send_log is not None:
+        #     process_info = "- " + self.tr(self.p.name.replace("_", " ") + " started with " + str(psutil.Process(self.p.pid).memory_info()[0] / 1000000) + " Mo.")
+        #     self.send_log.emit(process_info)
 
     def get_total_time(self):
         self.total_time = time.time() - self.start_time  # total time in s

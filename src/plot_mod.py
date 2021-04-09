@@ -177,7 +177,8 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
 
     # all cases
     plt.tight_layout()
-    mplcursors.cursor()  # get data with mouse
+    if not get_fig:
+        mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
     state.value = 100  # process finished
@@ -186,8 +187,8 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
-    else:
-        return fig, ax
+    # else:
+    #     return fig, ax
 
 
 def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, project_preferences, get_fig=False):
@@ -249,7 +250,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     axarr.set_ylim([0.0, 1.0])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
-    mplcursors.cursor()  # get data with mouse
+    if not get_fig:
+        mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
     state.value = 100  # process finished
@@ -257,8 +259,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
-    else:
-        return fig, axarr
+    # else:
+    #     return fig, axarr
 
 
 def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish, name_fish, stade, project_preferences, get_fig=False):
@@ -295,8 +297,8 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
 
     # title and filename
     title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
-
     if len(stade) > 1:  # if you take this out, the command
+        print("Error: No figure for all stages.")
         # TODO : do pcolormesh for each stage
         _ = 1
     else:
@@ -322,8 +324,11 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         color_bar = plt.colorbar(meshcolor)
         color_bar.set_label(qt_tr.translate("plot_mod", 'HSI []'))
 
+        ax = [ax]
+
     plt.tight_layout()
-    mplcursors.cursor(meshcolor)  # get data with mouse
+    if not get_fig:
+        mplcursors.cursor(meshcolor)  # get data with mouse
 
     # output for plot_GUI
     state.value = 100  # process finished
@@ -331,8 +336,8 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
         plt.show()
-    else:
-        return fig, ax
+    # else:
+    #     return fig, ax
 
 
 def plot_hydrosignature(state, data, vclass, hclass, title, type, project_preferences, axe_mod_choosen=2):
