@@ -407,7 +407,7 @@ def get_hydrosignature(xmlfile):
     return data, vclass, hclass
 
 
-def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
+def read_pref(xmlfile, desired_stages=None):
     """
     This function reads the preference curve from the xml file and
      get the subtrate, height and velocity data.
@@ -449,6 +449,7 @@ def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
             stages.append(s.attrib["Type"])
     else:
         print('Error: No stage found in ' + xml_name + ' \n')
+        return failload
 
     # get the code of the fish
     code_fish = root.find('.//CdAlternative')
@@ -464,6 +465,14 @@ def read_pref(xmlfile, aquatic_animal_type="fish", desired_stages=None):
 
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
+
+    # aquatic_animal_type
+    if root.find(".//Fish") is not None:
+        aquatic_animal_type = "fish"
+    elif root.find(".//Invertebrate") is not None:
+        aquatic_animal_type = "invertebrate"
+    else:
+        print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
 
     # fish case
     if aquatic_animal_type == "fish":
