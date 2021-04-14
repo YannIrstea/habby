@@ -493,7 +493,7 @@ class Stathab:
         # [name_fish, coeff_all] = load_pref(name_pref, path_pref)
 
         # choose which fish are studied
-        coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
+        # coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
 
         fish_chosen2 = np.array(self.fish_chosen)  # so we can use np.any
 
