@@ -3359,17 +3359,45 @@ Close them and try again.</source>
     </message>
 </context>
 <context>
+    <name>export_manager_mod</name>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="122"/>
+        <source>Latin name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="123"/>
+        <source>Common Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="124"/>
+        <source>Code biological model:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="125"/>
+        <source>ONEMA fish code:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="126"/>
+        <source>Stage chosen:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="127"/>
+        <source>Description:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="170"/>
+        <source>Habitat Suitability Index</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>hdf5_mod</name>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1696"/>
-        <source>detailled_mesh</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1758"/>
-        <source>detailled_point</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../src/dev_tools_mod.py" line="102"/>
         <source>Folder not found to copy inputs 
@@ -3382,102 +3410,72 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/export_manager_mod.py" line="121"/>
-        <source>Latin name:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager_mod.py" line="122"/>
-        <source>Common Name:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager_mod.py" line="123"/>
-        <source>Code biological model:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager_mod.py" line="124"/>
-        <source>ONEMA fish code:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager_mod.py" line="125"/>
-        <source>Stage chosen:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager_mod.py" line="126"/>
-        <source>Description:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager_mod.py" line="169"/>
-        <source>Habitat Suitability Index</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="131"/>
+        <location filename="../src/hdf5_mod.py" line="132"/>
         <source>the hdf5 file could not be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="175"/>
+        <location filename="../src/hdf5_mod.py" line="178"/>
         <source>No project saved. Please create a project first in the General tab.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1004"/>
+        <location filename="../src/hdf5_mod.py" line="1009"/>
         <source>The number of time step is missing from : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1846"/>
+        <location filename="../src/hdf5_mod.py" line="1855"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1868"/>
+        <location filename="../src/hdf5_mod.py" line="1703"/>
+        <source>detailled_mesh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1877"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1804"/>
-        <source>Export report in progress.</source>
+        <location filename="../src/hdf5_mod.py" line="1767"/>
+        <source>detailled_point</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2069"/>
+        <location filename="../src/hdf5_mod.py" line="1817"/>
+        <source>Export report in progress!.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="2079"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2074"/>
+        <location filename="../src/hdf5_mod.py" line="2084"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2100"/>
+        <location filename="../src/hdf5_mod.py" line="2111"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2104"/>
+        <location filename="../src/hdf5_mod.py" line="2115"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2207"/>
+        <location filename="../src/hdf5_mod.py" line="2220"/>
         <source>No project found by load_hdf5</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1808"/>
-        <source>Export report in progress!.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3562,143 +3560,143 @@ Close them and try again.</source>
 <context>
     <name>plot_mod</name>
     <message>
-        <location filename="../src/plot_mod.py" line="653"/>
+        <location filename="../src/plot_mod.py" line="654"/>
         <source>HSI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="317"/>
+        <location filename="../src/plot_mod.py" line="318"/>
         <source>Water height [m]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="776"/>
+        <location filename="../src/plot_mod.py" line="777"/>
         <source>HSI []</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="162"/>
+        <location filename="../src/plot_mod.py" line="160"/>
         <source>Velocity [m/s]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="171"/>
+        <location filename="../src/plot_mod.py" line="169"/>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message encoding="UTF-8">
-        <location filename="../src/plot_mod.py" line="246"/>
+        <location filename="../src/plot_mod.py" line="247"/>
         <source>HEM [HFST] / shear stress [N/m²]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="318"/>
+        <location filename="../src/plot_mod.py" line="319"/>
         <source>Water velocity [m/s]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="487"/>
+        <location filename="../src/plot_mod.py" line="488"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="755"/>
+        <location filename="../src/plot_mod.py" line="756"/>
         <source>WUA [m$^2$]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="578"/>
+        <location filename="../src/plot_mod.py" line="579"/>
         <source>Weighted Usable Area - </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="599"/>
+        <location filename="../src/plot_mod.py" line="600"/>
         <source>HSI (WUA/A) []</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="527"/>
+        <location filename="../src/plot_mod.py" line="528"/>
         <source>Habitat value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="807"/>
+        <location filename="../src/plot_mod.py" line="808"/>
         <source>UA [%]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="808"/>
+        <location filename="../src/plot_mod.py" line="809"/>
         <source>Unknown area</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="600"/>
+        <location filename="../src/plot_mod.py" line="601"/>
         <source>Habitat Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="730"/>
+        <location filename="../src/plot_mod.py" line="731"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Unit : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="756"/>
+        <location filename="../src/plot_mod.py" line="757"/>
         <source>Weighted Usable Area interpolated - </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="777"/>
+        <location filename="../src/plot_mod.py" line="778"/>
         <source>Habitat Value interpolated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="816"/>
+        <location filename="../src/plot_mod.py" line="824"/>
+        <source>Desired </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="817"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="818"/>
+        <location filename="../src/plot_mod.py" line="819"/>
         <source>Chronicle [</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="904"/>
+        <location filename="../src/plot_mod.py" line="905"/>
         <source>Habitat Value
 []</source>
         <translation type="unfinished"></translation>
     </message>
     <message encoding="UTF-8">
-        <location filename="../src/plot_mod.py" line="919"/>
+        <location filename="../src/plot_mod.py" line="920"/>
         <source>WUA by 100 m
 [m²]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="967"/>
+        <location filename="../src/plot_mod.py" line="968"/>
         <source>height
 [m]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="979"/>
+        <location filename="../src/plot_mod.py" line="980"/>
         <source>width
 [m]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="991"/>
+        <location filename="../src/plot_mod.py" line="992"/>
         <source>velocity
 [m/s]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="993"/>
+        <location filename="../src/plot_mod.py" line="994"/>
         <source>Discharge [m$^{3}$/sec]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/plot_mod.py" line="823"/>
-        <source>Desired </source>
         <translation type="unfinished"></translation>
     </message>
 </context>

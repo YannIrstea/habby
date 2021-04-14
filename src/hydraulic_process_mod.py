@@ -94,7 +94,7 @@ def create_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indexHYDRAU_file["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file["reach_list"][0]
 
             unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
             start = unit_type.find('[')

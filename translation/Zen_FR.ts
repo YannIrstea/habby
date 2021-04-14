@@ -29,7 +29,7 @@
         <translation type="obsolete">Il manque le nombre de pas de temps de : </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1843"/>
+        <location filename="../src/hdf5_mod.py" line="1844"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation type="obsolete">Le chemin d&apos;accès au fichier texte n&apos;est pas trouvé. Fichiers texte non créés 
@@ -41,50 +41,239 @@
         <translation type="obsolete">maillage_detaille</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1865"/>
+        <location filename="../src/hdf5_mod.py" line="1866"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation type="obsolete">Impossible de modifier le fichier texte car il est ouvert dans un autre programme. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1754"/>
+        <location filename="../src/hdf5_mod.py" line="1757"/>
         <source>detailled_point</source>
         <translation type="obsolete">point_detaille</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1804"/>
+        <location filename="../src/hdf5_mod.py" line="1802"/>
         <source>Export report in progress.</source>
         <translation type="obsolete">Export rapport en cours.</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2066"/>
+        <location filename="../src/hdf5_mod.py" line="2067"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation type="obsolete">Le fichier doit être de type hdf5 (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2071"/>
+        <location filename="../src/hdf5_mod.py" line="2072"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation type="obsolete">Le fichier hdf5 n&apos;a pas pu être chargé.
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2097"/>
+        <location filename="../src/hdf5_mod.py" line="2098"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation type="obsolete">Aucun chemin vers le projet n&apos;a été donné, bien qu&apos;un chemin relatif ait été fourni</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2101"/>
+        <location filename="../src/hdf5_mod.py" line="2102"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation type="obsolete">hdf5 n&apos;a pas pu être ouvert. 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2204"/>
+        <location filename="../src/hdf5_mod.py" line="2205"/>
         <source>No project found by load_hdf5</source>
         <translation type="obsolete">Aucun projet trouvé par load_hdf5</translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="2075"/>
+        <source>The hdf5 file is not found. </source>
+        <translation type="obsolete">Le fichier hdf5 n&apos;est pas trouvé. </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="655"/>
+        <source>HSI</source>
+        <translation type="obsolete">VH</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="319"/>
+        <source>Water height [m]</source>
+        <translation type="obsolete">Hauteur d&apos;eau [m]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="778"/>
+        <source>HSI []</source>
+        <translation type="obsolete">VH []</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="161"/>
+        <source>Velocity [m/s]</source>
+        <translation type="obsolete">Vitesse [m/s]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="170"/>
+        <source>Substrate</source>
+        <translation type="obsolete">Substrat</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="248"/>
+        <source>HEM [HFST] / shear stress [N/mÂ²]</source>
+        <translation type="obsolete">HEM [HFST] / force tractrice [N/mÂ²]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="320"/>
+        <source>Water velocity [m/s]</source>
+        <translation type="obsolete">Vitesse de l&apos;eau [m/s]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="489"/>
+        <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
+        <translation type="obsolete">Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="757"/>
+        <source>WUA [m$^2$]</source>
+        <translation type="obsolete">SPU [m$^2$]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="580"/>
+        <source>Weighted Usable Area - </source>
+        <translation type="obsolete">Surface Pondérée Utile - </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="601"/>
+        <source>HSI (WUA/A) []</source>
+        <translation type="obsolete">VH (SPU/A) []</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="529"/>
+        <source>Habitat value</source>
+        <translation type="obsolete">Valeur d&apos;habitat</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="809"/>
+        <source>UA [%]</source>
+        <translation type="obsolete">SI [%]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="810"/>
+        <source>Unknown area</source>
+        <translation type="obsolete">Surface inconnue</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="602"/>
+        <source>Habitat Value</source>
+        <translation type="obsolete">Valeur d&apos;habitat</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="732"/>
+        <source>Habitat Value and Weighted Usable Area interpolated - Unit : </source>
+        <translation type="obsolete">VH et SPU interpolées - Unité : </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="758"/>
+        <source>Weighted Usable Area interpolated - </source>
+        <translation type="obsolete">Surface pondérée utile interpolée - </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="779"/>
+        <source>Habitat Value interpolated</source>
+        <translation type="obsolete">Valeur d&apos;habitat interpolée</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="825"/>
+        <source>Desired </source>
+        <translation type="obsolete">Souhaité(e) </translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="818"/>
+        <source>Units</source>
+        <translation type="obsolete">Unités</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="820"/>
+        <source>Chronicle [</source>
+        <translation type="obsolete">Chronique [</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="906"/>
+        <source>Habitat Value
+[]</source>
+        <translation type="obsolete">Valeur d&apos;habitat
+[]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="921"/>
+        <source>WUA by 100 m
+[mÂ²]</source>
+        <translation type="obsolete">SPU par 10 m [mÂ²]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="969"/>
+        <source>height
+[m]</source>
+        <translation type="obsolete">hauteur
+[m]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="981"/>
+        <source>width
+[m]</source>
+        <translation type="obsolete">largeur
+[m]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="993"/>
+        <source>velocity
+[m/s]</source>
+        <translation type="obsolete">vitesse
+[m/s]</translation>
+    </message>
+    <message>
+        <location filename="../src/plot_mod.py" line="995"/>
+        <source>Discharge [m$^{3}$/sec]</source>
+        <translation type="obsolete">Débit [m$^{3}$/sec]</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="118"/>
+        <source>Latin name:</source>
+        <translation type="obsolete">Nom latin :</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="119"/>
+        <source>Common Name:</source>
+        <translation type="obsolete">Nom commun :</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="120"/>
+        <source>Code biological model:</source>
+        <translation type="obsolete">Code de mogèle biologique:</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="121"/>
+        <source>ONEMA fish code:</source>
+        <translation type="obsolete">Code ONEMA :</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="122"/>
+        <source>Stage chosen:</source>
+        <translation type="obsolete">Stade choisi:</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="123"/>
+        <source>Description:</source>
+        <translation type="obsolete">Description:</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="166"/>
+        <source>Habitat Suitability Index</source>
+        <translation type="obsolete">Courbe de préférence</translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1696"/>
+        <source>detailled mesh</source>
+        <translation type="obsolete">maillage détaillé</translation>
     </message>
 </context>
 <context>
@@ -8390,14 +8579,52 @@ Fermez-les et réessayez.</translation>
     </message>
 </context>
 <context>
+    <name>export_manager_mod</name>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="122"/>
+        <source>Latin name:</source>
+        <translation>Nom latin :</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="123"/>
+        <source>Common Name:</source>
+        <translation>Nom commun :</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="124"/>
+        <source>Code biological model:</source>
+        <translation>Code de mogèle biologique:</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="125"/>
+        <source>ONEMA fish code:</source>
+        <translation>Code ONEMA :</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="126"/>
+        <source>Stage chosen:</source>
+        <translation>Stade choisi:</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="127"/>
+        <source>Description:</source>
+        <translation>Description:</translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="170"/>
+        <source>Habitat Suitability Index</source>
+        <translation>Courbe de préférence</translation>
+    </message>
+</context>
+<context>
     <name>hdf5_mod</name>
     <message>
-        <location filename="../src/hdf5_mod.py" line="131"/>
+        <location filename="../src/hdf5_mod.py" line="132"/>
         <source>the hdf5 file could not be loaded.</source>
         <translation>le fichier hdf5 n&apos;a pas pu être chargé.</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="175"/>
+        <location filename="../src/hdf5_mod.py" line="178"/>
         <source>No project saved. Please create a project first in the General tab.</source>
         <translation>Aucun projet enregistré. Veuillez d&apos;abord créer un projet dans l&apos;onglet &apos;Accueil&apos;.</translation>
     </message>
@@ -8421,7 +8648,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">pas d&apos;habitat dans </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1004"/>
+        <location filename="../src/hdf5_mod.py" line="1009"/>
         <source>The number of time step is missing from : </source>
         <translation>Il manque le nombre de pas de temps de : </translation>
     </message>
@@ -8441,14 +8668,14 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">zut alors !</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1846"/>
+        <location filename="../src/hdf5_mod.py" line="1855"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation>Le chemin d&apos;accès au fichier texte n&apos;est pas trouvé. Fichiers texte non créés 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1868"/>
+        <location filename="../src/hdf5_mod.py" line="1877"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation>Impossible de modifier le fichier texte car il est ouvert dans un autre programme. 
@@ -8460,24 +8687,24 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Fermer le ou les .pdf pour mettre à jour les informations sur les poissons</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2069"/>
+        <location filename="../src/hdf5_mod.py" line="2079"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation>Le fichier doit être de type hdf5 (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2074"/>
+        <location filename="../src/hdf5_mod.py" line="2084"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation>Le fichier hdf5 n&apos;a pas pu être chargé.
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2100"/>
+        <location filename="../src/hdf5_mod.py" line="2111"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation>Aucun chemin vers le projet n&apos;a été donné, bien qu&apos;un chemin relatif ait été fourni</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2104"/>
+        <location filename="../src/hdf5_mod.py" line="2115"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation>hdf5 n&apos;a pas pu être ouvert. 
@@ -8718,7 +8945,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete"> n&apos;ont pas été trouvé (2)</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2207"/>
+        <location filename="../src/hdf5_mod.py" line="2220"/>
         <source>No project found by load_hdf5</source>
         <translation>Aucun projet trouvé par load_hdf5</translation>
     </message>
@@ -8854,57 +9081,57 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">z</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1696"/>
+        <location filename="../src/hdf5_mod.py" line="1703"/>
         <source>detailled_mesh</source>
         <translation>maillage_detaille</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1758"/>
+        <location filename="../src/hdf5_mod.py" line="1767"/>
         <source>detailled_point</source>
         <translation>point_detaille</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="126"/>
         <source>Description:</source>
-        <translation>Description:</translation>
+        <translation type="obsolete">Description:</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="121"/>
         <source>Latin name:</source>
-        <translation>Nom latin :</translation>
+        <translation type="obsolete">Nom latin :</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="122"/>
         <source>Common Name:</source>
-        <translation>Nom commun :</translation>
+        <translation type="obsolete">Nom commun :</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="123"/>
         <source>Code biological model:</source>
-        <translation>Code de mogèle biologique:</translation>
+        <translation type="obsolete">Code de mogèle biologique:</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="124"/>
         <source>ONEMA fish code:</source>
-        <translation>Code ONEMA :</translation>
+        <translation type="obsolete">Code ONEMA :</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="125"/>
         <source>Stage chosen:</source>
-        <translation>Stade choisi:</translation>
+        <translation type="obsolete">Stade choisi:</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="169"/>
         <source>Habitat Suitability Index</source>
-        <translation>Courbe de préférence</translation>
+        <translation type="obsolete">Courbe de préférence</translation>
     </message>
     <message>
         <location filename="../src/hdf5_mod.py" line="1804"/>
         <source>Export report in progress.</source>
-        <translation>Export rapport en cours.</translation>
+        <translation type="obsolete">Export rapport en cours.</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1808"/>
+        <location filename="../src/hdf5_mod.py" line="1817"/>
         <source>Export report in progress!.</source>
         <translation>Export rapport en cours!.</translation>
     </message>
@@ -8995,7 +9222,7 @@ Fermez-les et réessayez.</translation>
 <context>
     <name>plot_mod</name>
     <message>
-        <location filename="../src/plot_mod.py" line="487"/>
+        <location filename="../src/plot_mod.py" line="488"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
         <translation>Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
     </message>
@@ -9005,7 +9232,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">SPU [m^2]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="578"/>
+        <location filename="../src/plot_mod.py" line="579"/>
         <source>Weighted Usable Area - </source>
         <translation>Surface Pondérée Utile - </translation>
     </message>
@@ -9025,7 +9252,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">SPU_</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="755"/>
+        <location filename="../src/plot_mod.py" line="756"/>
         <source>WUA [m$^2$]</source>
         <translation>SPU [m$^2$]</translation>
     </message>
@@ -9070,12 +9297,12 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">VH []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="777"/>
+        <location filename="../src/plot_mod.py" line="778"/>
         <source>Habitat Value interpolated</source>
         <translation>Valeur d&apos;habitat interpolée</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="816"/>
+        <location filename="../src/plot_mod.py" line="817"/>
         <source>Units</source>
         <translation>Unités</translation>
     </message>
@@ -9090,12 +9317,12 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="818"/>
+        <location filename="../src/plot_mod.py" line="819"/>
         <source>Chronicle [</source>
         <translation>Chronique [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="904"/>
+        <location filename="../src/plot_mod.py" line="905"/>
         <source>Habitat Value
 []</source>
         <translation>Valeur d&apos;habitat
@@ -9109,28 +9336,28 @@ Fermez-les et réessayez.</translation>
 [m²]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="967"/>
+        <location filename="../src/plot_mod.py" line="968"/>
         <source>height
 [m]</source>
         <translation>hauteur
 [m]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="979"/>
+        <location filename="../src/plot_mod.py" line="980"/>
         <source>width
 [m]</source>
         <translation>largeur
 [m]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="991"/>
+        <location filename="../src/plot_mod.py" line="992"/>
         <source>velocity
 [m/s]</source>
         <translation>vitesse
 [m/s]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="993"/>
+        <location filename="../src/plot_mod.py" line="994"/>
         <source>Discharge [m$^{3}$/sec]</source>
         <translation>Débit [m$^{3}$/sec]</translation>
     </message>
@@ -9140,7 +9367,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Courbe de préférence</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="317"/>
+        <location filename="../src/plot_mod.py" line="318"/>
         <source>Water height [m]</source>
         <translation>Hauteur d&apos;eau [m]</translation>
     </message>
@@ -9150,12 +9377,12 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Vitesse [m/sec]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="171"/>
+        <location filename="../src/plot_mod.py" line="169"/>
         <source>Substrate</source>
         <translation>Substrat</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="318"/>
+        <location filename="../src/plot_mod.py" line="319"/>
         <source>Water velocity [m/s]</source>
         <translation>Vitesse de l&apos;eau [m/s]</translation>
     </message>
@@ -9165,7 +9392,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Hydrosignature</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="527"/>
+        <location filename="../src/plot_mod.py" line="528"/>
         <source>Habitat value</source>
         <translation>Valeur d&apos;habitat</translation>
     </message>
@@ -9175,17 +9402,17 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Surface inconnue [%]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="808"/>
+        <location filename="../src/plot_mod.py" line="809"/>
         <source>Unknown area</source>
         <translation>Surface inconnue</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="600"/>
+        <location filename="../src/plot_mod.py" line="601"/>
         <source>Habitat Value</source>
         <translation>Valeur d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="756"/>
+        <location filename="../src/plot_mod.py" line="757"/>
         <source>Weighted Usable Area interpolated - </source>
         <translation>Surface pondérée utile interpolée - </translation>
     </message>
@@ -9425,39 +9652,39 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">substrat dominant</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="807"/>
+        <location filename="../src/plot_mod.py" line="808"/>
         <source>UA [%]</source>
         <translation>SI [%]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="599"/>
+        <location filename="../src/plot_mod.py" line="600"/>
         <source>HSI (WUA/A) []</source>
         <translation>VH (SPU/A) []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="776"/>
+        <location filename="../src/plot_mod.py" line="777"/>
         <source>HSI []</source>
         <translation>VH []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="653"/>
+        <location filename="../src/plot_mod.py" line="654"/>
         <source>HSI</source>
         <translation>VH</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="162"/>
+        <location filename="../src/plot_mod.py" line="160"/>
         <source>Velocity [m/s]</source>
         <translation>Vitesse [m/s]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="730"/>
+        <location filename="../src/plot_mod.py" line="731"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Unit : </source>
         <translation>VH et SPU interpolées - Unité : </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="823"/>
+        <location filename="../src/plot_mod.py" line="824"/>
         <source>Desired </source>
-        <translation>Souhaité(e)</translation>
+        <translation>Souhaité(e) </translation>
     </message>
 </context>
 <context>

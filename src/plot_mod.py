@@ -36,7 +36,7 @@ from src.translator_mod import get_translator
 
 
 # other
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, sub_type, sub_code, project_preferences, get_fig=False):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, sub_type, sub_code, project_preferences, get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
 
@@ -60,7 +60,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         if project_preferences['font_size'] > 7:
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
+    # qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -87,7 +87,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             fig, ax = plt.subplots(3, 1)
         else:  # no sub
             fig, ax = plt.subplots(2, 1)
-        fig.canvas.set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
+        plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
 
         # height
         ax[0].plot(height_values,
@@ -140,7 +140,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             fig, ax = plt.subplots(len(stade), 3, sharey='row')
         else:  # no sub
             fig, ax = plt.subplots(len(stade), 2, sharey='row')
-        fig.canvas.set_window_title(title_plot + name_fish + " - " + code_fish)
+        plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + code_fish)
 
         # plot
         for s in range(0, len(stade)):
@@ -191,7 +191,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         return fig, ax
 
 
-def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, project_preferences, get_fig=False):
+def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, project_preferences, get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
 
@@ -215,7 +215,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         if project_preferences['font_size'] > 7:
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
+    # qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -230,7 +230,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
                   name_fish + " - " + stade[0] + " - " + code_fish
 
     fig, axarr = plt.subplots(1, 1, sharey='row')
-    fig.canvas.set_window_title(title_plot)
+    plt.get_current_fig_manager().set_window_title(title_plot)
     # bar plot
     axarr.bar([x + 0.5 for x in hem_all[0]],
                          hv_all[0])
@@ -262,7 +262,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         return fig, axarr
 
 
-def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish, name_fish, stade, project_preferences, get_fig=False):
+def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish, name_fish, stade, project_preferences, get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
 
@@ -286,7 +286,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         if project_preferences['font_size'] > 7:
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
+    # qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -305,7 +305,7 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
 
         # pre plot
         fig, ax = plt.subplots(1, 1)
-        fig.canvas.set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
+        plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
 
         # plot
         meshcolor = ax.imshow(pref_values_array,
@@ -493,7 +493,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
         plot_window_title = plot_window_title[:80] + "..."
 
     fig, ax = plt.subplots(3, 1, sharex=True)
-    fig.canvas.set_window_title(plot_window_title)
+    plt.get_current_fig_manager().set_window_title(plot_window_title)
 
     # name_fish_origin = list(name_fish)
     # for id, n in enumerate(name_fish):
@@ -739,7 +739,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
         fig, ax = plt.subplots(4, 1, sharex=True)
     else:
         fig, ax = plt.subplots(3, 1, sharex=True)
-    fig.canvas.set_window_title(plot_window_title)
+    plt.get_current_fig_manager().set_window_title(plot_window_title)
 
     # SPU
     if len(types.keys()) > 1:  # date
@@ -886,7 +886,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     fig, (ax_vh, ax_spu) = plt.subplots(ncols=1, nrows=2,
                                                           sharex="all",
                                                           gridspec_kw={'height_ratios': [3, 3]})
-    fig.canvas.set_window_title('ESTIMHAB output - HABBY')
+    plt.get_current_fig_manager().set_window_title('ESTIMHAB output - HABBY')
 
     # VH
     ax_vh.set_title("ESTIMHAB output - HABBY")
@@ -1979,7 +1979,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     #plt.ion()
     # plot
     fig, ax_border = plt.subplots(1, 1)  # plot creation
-    fig.canvas.set_window_title(title)  # set windows title
+    plt.get_current_fig_manager().set_window_title(title)  # set windows title
 
     # ax_border
     ax_border.name = "border"
@@ -2305,3 +2305,11 @@ def remove_image(name, path, ext):
                 print('Warning: Figures used by an other program. could not be erased \n')
                 return False
     return True
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()

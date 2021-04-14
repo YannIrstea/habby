@@ -3,87 +3,87 @@
 <context>
     <name>BioInfo</name>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="122"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="125"/>
         <source>Habitat file(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="129"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="132"/>
         <source>Add models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="133"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="136"/>
         <source>Remove all models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="136"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="139"/>
         <source>Remove selected models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="139"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="142"/>
         <source>Create duplicate from selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="142"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="145"/>
         <source>Remove duplicates models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="146"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="149"/>
         <source>Biological models choosen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="189"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="192"/>
         <source>exist in .hab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="296"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="299"/>
         <source>Warning: too many information for the GUI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="709"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="712"/>
         <source>Biological models choosen (</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="572"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="575"/>
         <source>No models added (no selection).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="588"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="591"/>
         <source>Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="597"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="600"/>
         <source>Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="722"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="725"/>
         <source>Create a .hab file before adding models.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="832"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="835"/>
         <source>The .habby project file does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="835"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="838"/>
         <source>The .habby project file is not well-formed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="859"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="862"/>
         <source>, this .hab file has been deleted by the user.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -98,38 +98,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="961"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="947"/>
         <source>Warning: Nothing to compute !</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="642"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="645"/>
         <source>.hab data not adapted :
 not 2d data, not z node data or no shear_stress data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="667"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="670"/>
         <source>.hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="202"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="205"/>
         <source>Compute habitat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="234"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="237"/>
         <source>Model to compute</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="249"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="252"/>
         <source>hydraulic option</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="255"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="258"/>
         <source>substrate option</source>
         <translation type="unfinished"></translation>
     </message>
@@ -382,23 +382,17 @@ velocity cross grid (Lecoarer 2007).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2342"/>
-        <source>The project file is not found. 
-</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/main_window_GUI.py" line="2228"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2235"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2234"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2342"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2332"/>
         <source>Error: </source>
         <translation type="unfinished"></translation>
     </message>
@@ -408,18 +402,23 @@ velocity cross grid (Lecoarer 2007).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2259"/>
-        <source>Warning: Restart python file not found. New created.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2282"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2271"/>
         <source>Warning: Restart CLI file not found. New created.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2296"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2286"/>
         <source>Warning: Log file not found. New created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="2257"/>
+        <source>Error: Restart python file not found. New created.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="2332"/>
+        <source>The project file is not found : </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -726,11 +725,6 @@ velocity cross grid (Lecoarer 2007).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/data_explorer_GUI.py" line="1096"/>
-        <source>Report (figure extension)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="1097"/>
         <source>Fish informations</source>
         <translation type="unfinished"></translation>
@@ -760,11 +754,16 @@ velocity cross grid (Lecoarer 2007).</source>
         <source>Point detailled</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../src_GUI/data_explorer_GUI.py" line="1096"/>
+        <source>Report (</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2404"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2394"/>
         <source>I am a button</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1054,188 +1053,188 @@ NB : There is no limit for exports.</source>
 <context>
     <name>FstressW</name>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="57"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="58"/>
         <source>Default River</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="78"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="79"/>
         <source>Text File: listriv.txt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="80"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="81"/>
         <source>Habitat file (.hab)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="94"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="95"/>
         <source>Modify river name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="96"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="97"/>
         <source>Erase river</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="102"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="103"/>
         <source>Width [m]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="103"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="104"/>
         <source>Height [m]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="227"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="228"/>
         <source>Change River Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="227"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="228"/>
         <source>Enter the new river or reach name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="419"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="420"/>
         <source>Load all files?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="420"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="421"/>
         <source>We found more than one qhw file. Do you want to load all rivers?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="438"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="439"/>
         <source>Error: Only listriv file are accepted. Read Fstress documentation for more info.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="688"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="689"/>
         <source>#  Running: FStress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="693"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="694"/>
         <source>FStress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="694"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="695"/>
         <source>FStress data could not be transformed to float. Cannot run FStress.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="764"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="765"/>
         <source>run FStress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="720"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="721"/>
         <source>No fish selected. Cannot run FStress.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="729"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="730"/>
         <source>No discharge range. Cannot run FStress.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="736"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="737"/>
         <source>Minimum dicharge bigger or equal to max discharge. Cannot run FStress.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="743"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="744"/>
         <source>FStress needs two different measured discharge.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="750"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="751"/>
         <source>FStress needs two different measured height.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="757"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="758"/>
         <source>FStress needs two different measured width.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="765"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="766"/>
         <source>FStress do not accept negative value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="775"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="776"/>
         <source>run FSTRESS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="776"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="777"/>
         <source>Discharge, width, and height data are not coherent 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="77"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="78"/>
         <source>Load Data From Files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="90"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="91"/>
         <source>Rivers or Reaches Names</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="100"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="101"/>
         <source>Hydrological Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="104"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="105"/>
         <source>Discharge range [m&lt;sup&gt;3&lt;/sup&gt;/s] (Qmin and Qmax)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="107"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="108"/>
         <source>Selected models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="110"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="111"/>
         <source>Choose biological models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="114"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="115"/>
         <source>Run FStress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="443"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="444"/>
         <source>Warning: No river found in files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="587"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="588"/>
         <source>Warning: deb.txt file not found.(1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="591"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="592"/>
         <source>Warning: deb.txt file not found.(2)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="643"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="644"/>
         <source>Warning: Latin name of invertebrate could not be read (1).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/fstress_GUI.py" line="655"/>
+        <location filename="../src_GUI/fstress_GUI.py" line="656"/>
         <source>Warning: Latin name of invertebrate could not be read (2).</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1307,187 +1306,187 @@ NB : There is no limit for exports.</source>
 <context>
     <name>InterpolationTab</name>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="66"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="67"/>
         <source>Select an habitat file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="69"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="70"/>
         <source>Select a reach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="72"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="73"/>
         <source>unit min :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="73"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="74"/>
         <source>unit max :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="74"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="75"/>
         <source>unit type :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="78"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="79"/>
         <source>aquatic animal(s) :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="81"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="82"/>
         <source>export empty required text file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="106"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="107"/>
         <source>from a sequence</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="107"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="108"/>
         <source>min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="110"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="111"/>
         <source>max</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="113"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="114"/>
         <source>by</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="117"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="118"/>
         <source>[]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="159"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="160"/>
         <source>run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="134"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="135"/>
         <source>from .txt file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="143"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="144"/>
         <source>desired units and interpolated habitat values :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="153"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="154"/>
         <source>View interpolate chronicle :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="154"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="155"/>
         <source>Export interpolate chronicle :</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="167"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="168"/>
         <source>Available data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="173"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="174"/>
         <source>Desired data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="184"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="185"/>
         <source>Interpolated results</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="283"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="284"/>
         <source>Error: This file contain date unit. To be interpolated, file must contain discharge or timestep unit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="327"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="328"/>
         <source>Interpolation need at least two time/discharge unit. Their is only one is this file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="343"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="344"/>
         <source>The sequence values must be specified (from, to and by).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="348"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="349"/>
         <source>The sequence values must be of numerical type.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="353"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="354"/>
         <source>Max sequence value must be strictly greater than min sequence value.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="358"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="359"/>
         <source>By sequence value must be strictly greater than 0.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="387"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="388"/>
         <source>No fish selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="391"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="392"/>
         <source>Select file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="428"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="429"/>
         <source>Interpolation not done.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="453"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="454"/>
         <source>Interpolation done. Interpolated values can now be view in graphic and export in text file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="476"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="477"/>
         <source>Empty text has been exported in &apos;output/text&apos; project folder. Open and fill it with the desired values and then import it in HABBY.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="479"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="480"/>
         <source>The file has not been exported as it may be opened by another program.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="545"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="546"/>
         <source>No .hab selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="497"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="498"/>
         <source>You cannot display more than 32 habitat values per graph. Current selected : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="497"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="498"/>
         <source>Only the first 32 will be displayed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="497"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="498"/>
         <source>You have to re-compute interpolation with 32 selected habitat values at maximum. There is no limit for txt exports.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="135"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="136"/>
         <source>load and run</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2098,102 +2097,102 @@ Close them and try again.</source>
 <context>
     <name>ModelInfoGroup</name>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="259"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="254"/>
         <source>Result file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="537"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="532"/>
         <source>Select file(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="275"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="270"/>
         <source>Reach name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="279"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="274"/>
         <source>Unit name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="284"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="279"/>
         <source>Type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="311"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="306"/>
         <source>unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="288"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="283"/>
         <source>Number</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="300"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="295"/>
         <source>Mesh data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="305"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="300"/>
         <source>Node data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="310"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="305"/>
         <source>EPSG code</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="316"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="311"/>
         <source>.hyd file name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="321"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="316"/>
         <source>Last file created</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="322"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="317"/>
         <source>no file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="364"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="359"/>
         <source>Result file (</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="503"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="498"/>
         <source>Create .hyd file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="639"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="634"/>
         <source>Create </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="729"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="724"/>
         <source>No units selected for : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="736"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="731"/>
         <source>.hyd output filename is empty. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="637"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="632"/>
         <source> file </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="639"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="634"/>
         <source> files </source>
         <translation type="unfinished"></translation>
     </message>
@@ -2201,52 +2200,52 @@ Close them and try again.</source>
 <context>
     <name>MyProcess</name>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1013"/>
+        <location filename="../src/process_manager_mod.py" line="1001"/>
         <source>started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1032"/>
+        <location filename="../src/process_manager_mod.py" line="1028"/>
         <source>stopped</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1040"/>
+        <location filename="../src/process_manager_mod.py" line="1036"/>
         <source>not started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1074"/>
+        <location filename="../src/process_manager_mod.py" line="1070"/>
         <source>Warning: too many information for the GUI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1035"/>
+        <location filename="../src/process_manager_mod.py" line="1031"/>
         <source> closed by user after </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1038"/>
+        <location filename="../src/process_manager_mod.py" line="1034"/>
         <source> stopped (process time = </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1041"/>
+        <location filename="../src/process_manager_mod.py" line="1037"/>
         <source>not started.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1045"/>
+        <location filename="../src/process_manager_mod.py" line="1041"/>
         <source> done (process time = </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1048"/>
+        <location filename="../src/process_manager_mod.py" line="1044"/>
         <source> crashed (process time = </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1051"/>
+        <location filename="../src/process_manager_mod.py" line="1047"/>
         <source> (process time = </source>
         <translation type="unfinished"></translation>
     </message>
@@ -2254,92 +2253,92 @@ Close them and try again.</source>
 <context>
     <name>MyProcessManager</name>
     <message>
-        <location filename="../src/process_manager_mod.py" line="48"/>
+        <location filename="../src/process_manager_mod.py" line="49"/>
         <source>Hydraulic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="50"/>
+        <location filename="../src/process_manager_mod.py" line="51"/>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="52"/>
+        <location filename="../src/process_manager_mod.py" line="53"/>
         <source>Merge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="54"/>
+        <location filename="../src/process_manager_mod.py" line="55"/>
         <source>Habitat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="56"/>
+        <location filename="../src/process_manager_mod.py" line="57"/>
         <source>Hydrosignature</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="58"/>
+        <location filename="../src/process_manager_mod.py" line="59"/>
         <source>Export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="60"/>
+        <location filename="../src/process_manager_mod.py" line="61"/>
         <source>Figure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="62"/>
+        <location filename="../src/process_manager_mod.py" line="63"/>
         <source>Hydrosignature figure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="142"/>
+        <location filename="../src/process_manager_mod.py" line="143"/>
         <source> creation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="172"/>
+        <location filename="../src/process_manager_mod.py" line="173"/>
         <source> habitat calculation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="252"/>
+        <location filename="../src/process_manager_mod.py" line="247"/>
         <source>reach</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="252"/>
+        <location filename="../src/process_manager_mod.py" line="247"/>
         <source>unit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="301"/>
+        <location filename="../src/process_manager_mod.py" line="296"/>
         <source>HSI = </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="301"/>
+        <location filename="../src/process_manager_mod.py" line="296"/>
         <source>unknown area</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="747"/>
+        <location filename="../src/process_manager_mod.py" line="734"/>
         <source>interpolated figure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="781"/>
+        <location filename="../src/process_manager_mod.py" line="768"/>
         <source>interpolated export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="926"/>
+        <location filename="../src/process_manager_mod.py" line="913"/>
         <source>not started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="918"/>
+        <location filename="../src/process_manager_mod.py" line="905"/>
         <source>stopped</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2355,7 +2354,7 @@ Close them and try again.</source>
 <context>
     <name>ProcessProgLayout</name>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="42"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="43"/>
         <source>run</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2363,37 +2362,37 @@ Close them and try again.</source>
 <context>
     <name>ProcessProgShow</name>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="172"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="173"/>
         <source>run</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="118"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="119"/>
         <source>Warning: too many information for the GUI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="132"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="133"/>
         <source>stop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="137"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="138"/>
         <source> in progress </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="179"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="182"/>
         <source> stopped by user.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="183"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="186"/>
         <source> finished with error(s).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/process_manager_GUI.py" line="185"/>
+        <location filename="../src_GUI/process_manager_GUI.py" line="188"/>
         <source> finished.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2793,117 +2792,117 @@ Close them and try again.</source>
 <context>
     <name>StathabW</name>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="222"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="223"/>
         <source>No directory selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="233"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="234"/>
         <source>No hdf5 selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="108"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="109"/>
         <source>Temperate River - Default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="108"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="109"/>
         <source>Tropical River - Univariate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="109"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="110"/>
         <source>Tropical River - Bivariate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="405"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="406"/>
         <source>Stathab Input Files (.txt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="168"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="169"/>
         <source>Select directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="173"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="174"/>
         <source>Reaches</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="406"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="407"/>
         <source>File found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="407"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="408"/>
         <source>File still needed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="176"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="177"/>
         <source>Selected models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="179"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="180"/>
         <source>Load data from hdf5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="196"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="197"/>
         <source>Choose biological models</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="244"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="245"/>
         <source>Stathab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="230"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="231"/>
         <source>Stathab: The selected directory for stathab does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="245"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="246"/>
         <source>Stathab: The selected hdf5 file for stathab does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="285"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="286"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="670"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="671"/>
         <source>Stathab Input Files (.hdf5)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="675"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="676"/>
         <source>Data found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="676"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="677"/>
         <source>Data still needed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="855"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="856"/>
         <source>STATHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="856"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="857"/>
         <source>Unable to load the STATHAB data!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="180"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="181"/>
         <source>Run Stathab</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2943,7 +2942,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="436"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="431"/>
         <source>Warning: Too many information for the GUI</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3094,33 +3093,33 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="885"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="872"/>
         <source># Load: Substrate data - text file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="924"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="911"/>
         <source>Error: no input .hyd file selected. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="929"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="916"/>
         <source>Error: no input .sub file selected. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="934"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="921"/>
         <source>Error: .hab filename output is empty. Please specify it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="942"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="929"/>
         <source>No hydrological file available 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="948"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="935"/>
         <source>No substrate file available 
 </source>
         <translation type="unfinished"></translation>
@@ -3329,148 +3328,156 @@ Close them and try again.</source>
 <context>
     <name>estimhab_mod</name>
     <message>
-        <location filename="../src/estimhab_mod.py" line="122"/>
+        <location filename="../src/estimhab_mod.py" line="121"/>
         <source>The mininum discharge is higher or equal than the maximum.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/estimhab_mod.py" line="161"/>
+        <location filename="../src/estimhab_mod.py" line="160"/>
         <source>The xml file for the file </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/estimhab_mod.py" line="161"/>
+        <location filename="../src/estimhab_mod.py" line="160"/>
         <source> does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/estimhab_mod.py" line="172"/>
+        <location filename="../src/estimhab_mod.py" line="171"/>
         <source>Some data can not be read or are not number. Check the xml file </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/estimhab_mod.py" line="183"/>
+        <location filename="../src/estimhab_mod.py" line="182"/>
         <source>No function defined for Q</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>export_manager_mod</name>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="122"/>
+        <source>Latin name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="123"/>
+        <source>Common Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="124"/>
+        <source>Code biological model:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="125"/>
+        <source>ONEMA fish code:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="126"/>
+        <source>Stage chosen:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="127"/>
+        <source>Description:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/export_manager_mod.py" line="170"/>
+        <source>Habitat Suitability Index</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>hdf5_mod</name>
     <message>
-        <location filename="../src/hdf5_mod.py" line="130"/>
-        <source>the hdf5 file could not be loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="174"/>
-        <source>No project saved. Please create a project first in the General tab.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1034"/>
-        <source>The number of time step is missing from : </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1761"/>
-        <source>The path to the text file is not found. Text files not created 
-</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1783"/>
-        <source>Could not modify text file as it is open in another program. 
-</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1674"/>
-        <source>detailled_mesh</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="1731"/>
-        <source>detailled_point</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager.py" line="121"/>
-        <source>Latin name:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager.py" line="122"/>
-        <source>Common Name:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager.py" line="123"/>
-        <source>Code biological model:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager.py" line="124"/>
-        <source>ONEMA fish code:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager.py" line="125"/>
-        <source>Stage chosen:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager.py" line="126"/>
-        <source>Description:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/export_manager.py" line="170"/>
-        <source>Habitat Suitability Index</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="2018"/>
-        <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="2023"/>
-        <source>The hdf5 file could not be loaded.
-</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="2049"/>
-        <source>No path to the project given although a relative path was provided</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="2053"/>
-        <source>hdf5 file could not be open. 
-</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/hdf5_mod.py" line="2156"/>
-        <source>No project found by load_hdf5</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/tools_mod.py" line="435"/>
+        <location filename="../src/dev_tools_mod.py" line="102"/>
         <source>Folder not found to copy inputs 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/tools_mod.py" line="439"/>
+        <location filename="../src/dev_tools_mod.py" line="106"/>
         <source>The number of file to be copied is not equal to the number of paths</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="132"/>
+        <source>the hdf5 file could not be loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="178"/>
+        <source>No project saved. Please create a project first in the General tab.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1009"/>
+        <source>The number of time step is missing from : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1855"/>
+        <source>The path to the text file is not found. Text files not created 
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1703"/>
+        <source>detailled_mesh</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1877"/>
+        <source>Could not modify text file as it is open in another program. 
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1767"/>
+        <source>detailled_point</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="1817"/>
+        <source>Export report in progress!.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="2079"/>
+        <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="2084"/>
+        <source>The hdf5 file could not be loaded.
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="2111"/>
+        <source>No path to the project given although a relative path was provided</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="2115"/>
+        <source>hdf5 file could not be open. 
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hdf5_mod.py" line="2220"/>
+        <source>No project found by load_hdf5</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>hydro_input_file_mod</name>
     <message>
-        <location filename="../src/hydraulic_process_mod.py" line="93"/>
+        <location filename="../src/hydraulic_results_manager_mod.py" line="228"/>
         <source>indexHYDRAU.txt doesn&apos;t exist. It will be created in the &apos;input&apos; directory after the creation of the .hyd file. The latter will be filled in according to your choices.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3548,7 +3555,7 @@ Close them and try again.</source>
 <context>
     <name>plot_mod</name>
     <message>
-        <location filename="../src/plot_mod.py" line="653"/>
+        <location filename="../src/plot_mod.py" line="654"/>
         <source>HSI</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3563,12 +3570,12 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="164"/>
+        <location filename="../src/plot_mod.py" line="160"/>
         <source>Velocity [m/s]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="173"/>
+        <location filename="../src/plot_mod.py" line="169"/>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3583,7 +3590,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="487"/>
+        <location filename="../src/plot_mod.py" line="488"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
         <translation type="unfinished"></translation>
     </message>
@@ -3593,17 +3600,17 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="578"/>
+        <location filename="../src/plot_mod.py" line="579"/>
         <source>Weighted Usable Area - </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="599"/>
+        <location filename="../src/plot_mod.py" line="600"/>
         <source>HSI (WUA/A) []</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="527"/>
+        <location filename="../src/plot_mod.py" line="528"/>
         <source>Habitat value</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3618,7 +3625,7 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="600"/>
+        <location filename="../src/plot_mod.py" line="601"/>
         <source>Habitat Value</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3638,6 +3645,11 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../src/plot_mod.py" line="824"/>
+        <source>Desired </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/plot_mod.py" line="817"/>
         <source>Units</source>
         <translation type="unfinished"></translation>
@@ -3648,142 +3660,137 @@ Close them and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="907"/>
+        <location filename="../src/plot_mod.py" line="905"/>
         <source>Habitat Value
 []</source>
         <translation type="unfinished"></translation>
     </message>
     <message encoding="UTF-8">
-        <location filename="../src/plot_mod.py" line="922"/>
+        <location filename="../src/plot_mod.py" line="920"/>
         <source>WUA by 100 m
 [m²]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="970"/>
+        <location filename="../src/plot_mod.py" line="968"/>
         <source>height
 [m]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="982"/>
+        <location filename="../src/plot_mod.py" line="980"/>
         <source>width
 [m]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="994"/>
+        <location filename="../src/plot_mod.py" line="992"/>
         <source>velocity
 [m/s]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="996"/>
+        <location filename="../src/plot_mod.py" line="994"/>
         <source>Discharge [m$^{3}$/sec]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/plot_mod.py" line="824"/>
-        <source>Desired </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>rubar1d2d_mod</name>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="1439"/>
+        <location filename="../src/rubar1d2d_mod.py" line="1438"/>
         <source>The last time step is corrupted : one line data or more are missing. The last timestep is removed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="1466"/>
+        <location filename="../src/rubar1d2d_mod.py" line="1465"/>
         <source>Block data of timestep(s) corrumpted : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="1466"/>
+        <location filename="../src/rubar1d2d_mod.py" line="1465"/>
         <source>. They will be removed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="330"/>
+        <location filename="../src/rubar1d2d_mod.py" line="329"/>
         <source>Rubar data could not be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="521"/>
+        <location filename="../src/rubar1d2d_mod.py" line="520"/>
         <source>The number of profile is not the same in the geo file and the data file. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="686"/>
+        <location filename="../src/rubar1d2d_mod.py" line="685"/>
         <source>The fils does not seem to be of .rbe type.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="695"/>
+        <location filename="../src/rubar1d2d_mod.py" line="694"/>
         <source>the .rbe file cannot be open.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="702"/>
+        <location filename="../src/rubar1d2d_mod.py" line="701"/>
         <source>Sections data cannot be read from the .rbe file
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="714"/>
+        <location filename="../src/rubar1d2d_mod.py" line="713"/>
         <source>Point data cannot be read from the .rbe file
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="725"/>
+        <location filename="../src/rubar1d2d_mod.py" line="724"/>
         <source>The name of the profile could not be extracted from the .reb file.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="756"/>
+        <location filename="../src/rubar1d2d_mod.py" line="755"/>
         <source>The position of the river is not found in the .rbe file.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="806"/>
+        <location filename="../src/rubar1d2d_mod.py" line="805"/>
         <source>First indices is identical to another. Unlogical. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="860"/>
+        <location filename="../src/rubar1d2d_mod.py" line="859"/>
         <source>Vertical profile. One or more profiles were modified. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="994"/>
+        <location filename="../src/rubar1d2d_mod.py" line="993"/>
         <source>Too many reaches to plot them all. Only the ten first reaches plotted. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="1025"/>
+        <location filename="../src/rubar1d2d_mod.py" line="1024"/>
         <source>The fils does not seem to be of .dat type.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="1073"/>
+        <location filename="../src/rubar1d2d_mod.py" line="1072"/>
         <source>Some cells might be missing.
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/rubar1d2d_mod.py" line="1330"/>
+        <location filename="../src/rubar1d2d_mod.py" line="1329"/>
         <source>The fils does not seem to be of .tps type.
 </source>
         <translation type="unfinished"></translation>
@@ -3792,12 +3799,12 @@ Close them and try again.</source>
 <context>
     <name>telemac_mod</name>
     <message>
-        <location filename="../src/telemac_mod.py" line="226"/>
+        <location filename="../src/telemac_mod.py" line="235"/>
         <source>Cannot read </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/telemac_mod.py" line="206"/>
+        <location filename="../src/telemac_mod.py" line="215"/>
         <source> characters from your binary file. Maybe it is the wrong file format ?</source>
         <translation type="unfinished"></translation>
     </message>

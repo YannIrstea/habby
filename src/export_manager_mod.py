@@ -16,9 +16,8 @@ https://github.com/YannIrstea/habby
 """
 import os
 import time
-from multiprocessing import Value
 import matplotlib as mpl
-from PyQt5.QtCore import QLocale, QCoreApplication as qt_tr
+from PyQt5.QtCore import QLocale #, QCoreApplication as qt_tr
 import numpy as np
 from osgeo import ogr
 from osgeo import osr
@@ -26,8 +25,8 @@ from pandas import DataFrame
 from matplotlib import pyplot as plt
 
 from src.bio_info_mod import get_biomodels_informations_for_database, read_pref
-from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate, \
-    create_biomodel_plot_string_dict
+from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
+from src.translator_mod import get_translator
 
 locale = QLocale()
 
@@ -41,7 +40,9 @@ def setup(t, l):
 """ animal report """
 
 
-def export_report(xmlfile, project_preferences, delta_animal):
+def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_animal):
+    # qt_tr = get_translator(project_preferences['path_prj'])
+
     plt.close()
     plt.rcParams['figure.figsize'] = 21, 29.7  # a4
     plt.rcParams['font.size'] = 24
@@ -51,7 +52,6 @@ def export_report(xmlfile, project_preferences, delta_animal):
     path_bio = os.path.dirname(xmlfile)
     path_im_bio = path_bio
     xmlfile = os.path.basename(xmlfile)
-
 
     if information_model_dict["ModelType"] != "bivariate suitability index models":
         # fish
@@ -69,7 +69,8 @@ def export_report(xmlfile, project_preferences, delta_animal):
                                    information_model_dict["substrate_type"],
                                    sub_code,
                                    project_preferences,
-                                   True)
+                                   True,
+                                   qt_tr)
         # invertebrate
         else:
             # open the pref
@@ -83,7 +84,8 @@ def export_report(xmlfile, project_preferences, delta_animal):
                                                 name_fish,
                                                 stages,
                                                 project_preferences,
-                                                True)
+                                                True,
+                                                qt_tr)
     else:
         # open the pref
         h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = read_pref(xmlfile)
@@ -95,9 +97,9 @@ def export_report(xmlfile, project_preferences, delta_animal):
                                          name_fish,
                                          stages,
                                          project_preferences,
-                                         True)
+                                         True,
+                                   qt_tr)
 
-    print("BBB", xmlfile)
     # get axe and fig
     # fig = plt.gcf()
     # axe_curve = plt.gca()
@@ -118,12 +120,12 @@ def export_report(xmlfile, project_preferences, delta_animal):
                 bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
 
     # Informations title
-    list_of_title = [qt_tr.translate("hdf5_mod", "Latin name:"),
-                     qt_tr.translate("hdf5_mod", "Common Name:"),
-                     qt_tr.translate("hdf5_mod", "Code biological model:"),
-                     qt_tr.translate("hdf5_mod", "ONEMA fish code:"),
-                     qt_tr.translate("hdf5_mod", "Stage chosen:"),
-                     qt_tr.translate("hdf5_mod", "Description:")]
+    list_of_title = [qt_tr.translate("export_manager_mod", "Latin name:"),
+                     qt_tr.translate("export_manager_mod", "Common Name:"),
+                     qt_tr.translate("export_manager_mod", "Code biological model:"),
+                     qt_tr.translate("export_manager_mod", "ONEMA fish code:"),
+                     qt_tr.translate("export_manager_mod", "Stage chosen:"),
+                     qt_tr.translate("export_manager_mod", "Description:")]
     list_of_title_str = "\n\n".join(list_of_title)
     plt.figtext(0.1, 0.7,
                 list_of_title_str,
@@ -166,7 +168,7 @@ def export_report(xmlfile, project_preferences, delta_animal):
             newax.axis('off')
 
     # move suptitle
-    fig.suptitle(qt_tr.translate("hdf5_mod", 'Habitat Suitability Index'),
+    fig.suptitle(qt_tr.translate("export_manager_mod", 'Habitat Suitability Index'),
                  x=0.5, y=0.54,
                  fontsize=32,
                  weight='bold')
@@ -188,9 +190,9 @@ def export_report(xmlfile, project_preferences, delta_animal):
     # plt.clf()
     # plt.cla()
 
-    # # progress
+    # progress
     # with lock:
-    #     progress_value.value = progress_value.value + delta_animal
+    progress_value.value = progress_value.value + delta_animal
 
 
 """ txt """

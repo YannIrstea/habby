@@ -24,7 +24,7 @@ from src.project_properties_mod import load_project_properties
 
 def get_translator(path_prj):
     """
-    :param language: 0:EN, 1:FR, 2:ES
+    :param path_prj: path_prj
     :return: application with translate method.
     """
     # get language from project_preferences['language']
@@ -44,5 +44,12 @@ def get_translator(path_prj):
         input_file_translation = 'Zen_ES'
         languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
     app.installTranslator(languageTranslator)
-    print("get_translator", app, sys.argv, os.getcwd())
     return app
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()

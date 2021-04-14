@@ -1328,6 +1328,8 @@ class Hdf5Management:
                 cpu_value = cpu_count()
             else:
                 cpu_value = len(filename_path_list)
+            if cpu_value <= 0:
+                cpu_value = 1
             pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
             try:
                 pool.starmap(export_mesh_layer_to_gpkg, input_data)
@@ -1391,6 +1393,8 @@ class Hdf5Management:
                 cpu_value = int(cpu_count() / 2)
             else:
                 cpu_value = int(len(filename_path_list) / 2)
+            if cpu_value <= 0:
+                cpu_value = 1
             pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
 
             try:
@@ -1466,6 +1470,8 @@ class Hdf5Management:
                 cpu_value = cpu_count()
             else:
                 cpu_value = len(filename_path_list)
+            if cpu_value <= 0:
+                cpu_value = 1
             pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
             try:
                 pool.starmap(export_node_layer_to_gpkg, input_data)
@@ -1529,6 +1535,8 @@ class Hdf5Management:
                 cpu_value = int(cpu_count() / 2)
             else:
                 cpu_value = int(len(filename_path_list) / 2)
+            if cpu_value <= 0:
+                cpu_value = 1
             pool = Pool(processes=cpu_value, initializer=setup, initargs=[state, lock])
             try:
                 pool.starmap(export_node_layer_to_gpkg, input_data)
@@ -1801,12 +1809,12 @@ class Hdf5Management:
         :param path_out: the path where to save the .pdf file
             (usually other_outputs)
         """
-        print('1Error: ' + qt_tr.translate("hdf5_mod",
-                                          'Export report in progress.'))
+        # print(qt_tr.translate("hdf5_mod",
+        #                                   'Export report in progress.'))
         qt_tr2 = get_translator(self.path_prj)
 
-        print('2Error: ' + qt_tr2.translate("hdf5_mod",
-                                          'Export report in progress!.'))
+        # print('qt_tr2.translate("hdf5_mod",
+        #                                   'Export report in progress!.'))
         if state is not None:
             state.value = 1
         # load_data_top_export
@@ -1817,7 +1825,7 @@ class Hdf5Management:
         xmlfiles.sort()
 
         for xmlfile in xmlfiles:
-            export_report(xmlfile, self.project_preferences, delta_animal=100 / len(xmlfiles))
+            export_report(xmlfile, self.project_preferences, qt_tr2, state, delta_animal=100 / len(xmlfiles))
 
         # input_data = zip(xmlfiles,
         #     [self.project_preferences] * len(xmlfiles),
@@ -2304,3 +2312,11 @@ def simple_export(data,format):
 
     else:
         raise ValueError
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
