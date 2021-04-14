@@ -29,7 +29,8 @@ from src.hydraulic_process_mod import load_hydraulic_cut_to_hdf5, merge_grid_and
 from src.substrate_mod import load_sub
 from src.bio_info_mod import read_pref, get_hydrosignature
 from src.project_properties_mod import available_export_list
-from src.tools_mod import create_map_plot_string_dict, compute_interpolation, export_text_interpolatevalues
+from src.tools_mod import compute_interpolation, export_text_interpolatevalues
+from src.plot_mod import create_map_plot_string_dict
 
 
 class MyProcessManager(QThread):
@@ -787,7 +788,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
+    def start(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":

@@ -22,12 +22,15 @@ from copy import deepcopy
 import h5py
 import matplotlib
 import numpy as np
+
+import src.hydraulic_results_manager_mod
+
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue, Event
 from shutil import copyfile
 
-from src.hydraulic_results_manager_mod import HydraulicModelInformation
+from src.hydraulic_result_mod import HydraulicModelInformation
 from src import hdf5_mod
 from src import estimhab_mod
 from src import stathab_mod
@@ -1147,10 +1150,10 @@ def cli_load_hyd(arguments, project_preferences):
     # # get_hydrau_description_from_source
     hydraulic_model_information = HydraulicModelInformation()
 
-    hsra_value = hydraulic_process_mod.HydraulicSimulationResultsAnalyzer(filename_path,
-                                                                          project_preferences["path_prj"],
-                                                                          model_name,
-                                                                          2)
+    hsra_value = src.hydraulic_results_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
+                                                                                      project_preferences["path_prj"],
+                                                                                      model_name,
+                                                                                      2)
 
     # outputfilename
     if outputfilename:

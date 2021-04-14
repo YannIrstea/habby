@@ -21,7 +21,7 @@ from platform import system as operatingsystem
 operatingsystem_str = operatingsystem()
 from datetime import datetime
 
-from src.hydraulic_results_manager_mod import HydraulicModelInformation
+from src.hydraulic_result_mod import HydraulicModelInformation
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 available_export_list = ["mesh_whole_profile",  # GPKG

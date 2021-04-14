@@ -26,7 +26,6 @@ from matplotlib.pyplot import axis, plot, step, xlim, ylim, xlabel, ylabel, titl
     show, subplot, fill_between, savefig, close, rcParams, suptitle
 import matplotlib as mpl
 
-from src.tools_mod import create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
 from src import manage_grid_mod
 from src import hdf5_mod
 from src.project_properties_mod import create_default_project_properties_dict
@@ -102,15 +101,15 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
                                                                                                               interpo_choice,
                                                                                                               pro_add)
 
-    # get data_2d_whole_profile
-    data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1,  # always one reach
-                                            mesh_variables=[],
-                                            node_variables=["h", "v"])  # always one reach by file
-
-    # cut the grid to have the precise wet area and put data in new form
-    data_2d = create_empty_data_2d_dict(1,  # always one reach
-                                        mesh_variables=[],
-                                        node_variables=["h", "v"])
+    # # get data_2d_whole_profile
+    # data_2d_whole_profile = create_empty_data_2d_whole_profile_dict(1,  # always one reach
+    #                                         mesh_variables=[],
+    #                                         node_variables=["h", "v"])  # always one reach by file
+    #
+    # # cut the grid to have the precise wet area and put data in new form
+    # data_2d = create_empty_data_2d_dict(1,  # always one reach
+    #                                     mesh_variables=[],
+    #                                     node_variables=["h", "v"])
 
 
     # progress

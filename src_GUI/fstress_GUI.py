@@ -25,6 +25,7 @@ import sys
 import os
 from io import StringIO
 
+import src.dev_tools_mod
 import src.tools_mod
 from src_GUI import estimhab_GUI
 from src import fstress_mod
@@ -461,7 +462,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         paths = [self.path_fstress] * len(all_files)
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        src.tools_mod.copy_files(all_files, paths, new_dir)
+        src.dev_tools_mod.copy_files(all_files, paths, new_dir)
 
         # show the data for the selected river
         self.show_data_one_river()

@@ -21,7 +21,7 @@ from time import strftime
 
 from habby import AppDataFolders
 from src import bio_info_mod
-from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
+from src.dev_tools_mod import sort_homogoeneous_dict_list_by_on_key
 
 
 class UserPreferences(AppDataFolders):

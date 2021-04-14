@@ -19,7 +19,7 @@ import numpy as np
 
 from src import manage_grid_mod
 from src import mesh_management_mod
-from src.tools_mod import isstranumber
+from src.dev_tools_mod import isstranumber
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 from src.user_preferences_mod import user_preferences

@@ -30,9 +30,10 @@ from src.paraview_mod import writePVD
 from src.export_manager_mod import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, export_mesh_txt,\
     setup, export_point_txt, export_report
 from src.project_properties_mod import load_project_properties, save_project_properties
-from src.tools_mod import txt_file_convert_dot_to_comma, copy_hydrau_input_files, copy_shapefiles, strip_accents
+from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, txt_file_convert_dot_to_comma, strip_accents
 from src.data_2d_mod import Data2d
 from src.hydrosignature_mod import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
+from src.translator_mod import get_translator
 
 from habby import HABBY_VERSION_STR
 
@@ -1800,6 +1801,14 @@ class Hdf5Management:
         :param path_out: the path where to save the .pdf file
             (usually other_outputs)
         """
+        print('1Error: ' + qt_tr.translate("hdf5_mod",
+                                          'Export report in progress.'))
+        qt_tr2 = get_translator(self.path_prj)
+
+        print('2Error: ' + qt_tr2.translate("hdf5_mod",
+                                          'Export report in progress!.'))
+        if state is not None:
+            state.value = 1
         # load_data_top_export
         self.load_data_to_export(user_target_list=None, whole_profil=False)
 

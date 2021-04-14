@@ -28,8 +28,8 @@ from PyQt5.QtWidgets import QPushButton, \
     QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
 
-from src.hydraulic_results_manager_mod import HydraulicModelInformation
-from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsAnalyzer
+from src.hydraulic_result_mod import HydraulicModelInformation
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
 from src_GUI.dev_tools_GUI import QListWidgetClipboard
 from src_GUI.process_manager_GUI import ProcessProgLayout

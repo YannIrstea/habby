@@ -21,11 +21,12 @@ from time import sleep
 import numpy as np
 from scipy.interpolate import interp1d, griddata
 
+import src.dev_tools_mod
 import src.tools_mod
 from src import hdf5_mod, bio_info_mod
 from src.substrate_mod import sandre_to_cemagref_by_percentage_array, sandre_to_cemagref_array, \
     pref_substrate_coarser_from_percentage_description, pref_substrate_dominant_from_percentage_description
-from src.tools_mod import get_translator
+from src.translator_mod import get_translator
 
 
 def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False,
@@ -380,7 +381,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     if names:
         if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
             os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
-        src.tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input", "user_models"))
+        src.dev_tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input", "user_models"))
 
     # export
     export_dict = dict()

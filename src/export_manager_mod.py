@@ -26,7 +26,8 @@ from pandas import DataFrame
 from matplotlib import pyplot as plt
 
 from src.bio_info_mod import get_biomodels_informations_for_database, read_pref
-from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
+from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate, \
+    create_biomodel_plot_string_dict
 
 locale = QLocale()
 
@@ -51,10 +52,6 @@ def export_report(xmlfile, project_preferences, delta_animal):
     path_im_bio = path_bio
     xmlfile = os.path.basename(xmlfile)
 
-    # create figure
-    fake_value = Value("d", 0)
-
-    print("AAA", xmlfile)
 
     if information_model_dict["ModelType"] != "bivariate suitability index models":
         # fish
@@ -62,8 +59,7 @@ def export_report(xmlfile, project_preferences, delta_animal):
             # read pref
             h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
             # plot
-            print("a")
-            plot_suitability_curve(fake_value,
+            fig, axe_curve = plot_suitability_curve(None,
                                    h_all,
                                    vel_all,
                                    sub_all,
@@ -74,13 +70,12 @@ def export_report(xmlfile, project_preferences, delta_animal):
                                    sub_code,
                                    project_preferences,
                                    True)
-            print("b")
         # invertebrate
         else:
             # open the pref
             shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = read_pref(xmlfile)
             # plot
-            plot_suitability_curve_invertebrate(fake_value,
+            fig, axe_curve = plot_suitability_curve_invertebrate(None,
                                                 shear_stress_all,
                                                 hem_all,
                                                 hv_all,
@@ -92,7 +87,7 @@ def export_report(xmlfile, project_preferences, delta_animal):
     else:
         # open the pref
         h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = read_pref(xmlfile)
-        plot_suitability_curve_bivariate(fake_value,
+        fig, axe_curve = plot_suitability_curve_bivariate(None,
                                          h_all,
                                          vel_all,
                                          pref_values_all,
@@ -102,10 +97,10 @@ def export_report(xmlfile, project_preferences, delta_animal):
                                          project_preferences,
                                          True)
 
+    print("BBB", xmlfile)
     # get axe and fig
-    fig = plt.gcf()
+    # fig = plt.gcf()
     # axe_curve = plt.gca()
-    print("BBB", xmlfile, information_model_dict["ModelType"], fig)
 
     # modification of the orginal preference fig
     # (0,0) is bottom left - 1 is the end of the page in x and y direction
@@ -185,13 +180,13 @@ def export_report(xmlfile, project_preferences, delta_animal):
     try:
         plt.savefig(filename)
         plt.close(fig)
-        plt.clf()
+        # plt.clf()
     except PermissionError:
         print(
             'Warning: Close ' + filename + ' to update fish information')
 
-    plt.clf()
-    plt.cla()
+    # plt.clf()
+    # plt.cla()
 
     # # progress
     # with lock:

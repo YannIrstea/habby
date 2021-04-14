@@ -31,7 +31,7 @@ from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
-from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
+from src.dev_tools_mod import sort_homogoeneous_dict_list_by_on_key
 from src.variable_unit_mod import HydraulicVariableUnitList
 
 

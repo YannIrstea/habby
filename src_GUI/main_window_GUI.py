@@ -2329,7 +2329,7 @@ class CentralW(QWidget):
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
         if not os.path.isfile(fname):
-            self.write_log(self.tr('Error: ') + self.tr(f'The project file is not found : {fname}\n'))
+            self.write_log(self.tr('Error: ') + self.tr('The project file is not found : ') + f'{fname}\n')
         else:
             change_specific_properties(self.path_prj,
                                        preference_names=["user_name", "description"],
