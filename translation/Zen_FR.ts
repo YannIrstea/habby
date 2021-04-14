@@ -8593,7 +8593,7 @@ Fermez-les et réessayez.</translation>
     <message>
         <location filename="../src/export_manager_mod.py" line="124"/>
         <source>Code biological model:</source>
-        <translation>Code de mogèle biologique:</translation>
+        <translation>Code de modèle biologique:</translation>
     </message>
     <message>
         <location filename="../src/export_manager_mod.py" line="125"/>
