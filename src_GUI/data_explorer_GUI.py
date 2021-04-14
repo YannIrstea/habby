@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstract
     QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QListWidgetItem, QRadioButton
 
 from src import hdf5_mod
-from src.project_properties_mod import load_project_properties
+from src.project_properties_mod import load_project_properties, load_specific_properties
 from src_GUI.dev_tools_GUI import MyTableModel, QGroupBoxCollapsible, QHLine, DoubleClicOutputGroup
 from src_GUI.process_manager_GUI import ProcessProgLayout
 from src.variable_unit_mod import HydraulicVariableUnitManagement
@@ -867,7 +867,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 'Error: ' + self.tr('Selected variables and units not corresponding with figure type choices.'))
             return
         if self.nb_plot == 1 and self.total_fish_result > 32:
-            self.send_log.emit('Warning: ' + self.tr(
+            self.send_log.emit(self.tr('Warning: ') + self.tr(
                 'You cannot display more than 32 habitat values per graph. Current selected : ') + str(
                 self.total_fish_result) + self.tr(". Only the first 32 will be displayed."))
             # get 32 first element list
@@ -1093,7 +1093,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
         # row 13
         self.hab_export_layout.addWidget(QHLine(), 13, 0, 1, 4)
         # row 14
-        self.hab_export_layout.addWidget(QLabel(self.tr("Report (figure extension)")), 14, 0)
+        self.hab_export_layout.addWidget(QLabel(self.tr("Report (" + load_specific_properties(self.path_prj, ['format'])[0] + ")")), 14, 0)
         self.hab_export_layout.addWidget(QLabel(self.tr("Fish informations")), 14, 1)
         self.hab_export_layout.addWidget(self.fish_information_hab, 14, 2, Qt.AlignCenter)
         self.hab_export_layout.setColumnStretch(0, 3)
@@ -1292,7 +1292,7 @@ class HabitatValueRemover(QGroupBoxCollapsible):
         if len(file_selection) == 1:
             hdf5name = file_selection[0].text()
         else:
-            self.send_log.emit('Warning: ' + self.tr('No file selected.'))
+            self.send_log.emit(self.tr('Warning: ') + self.tr('No file selected.'))
             return
 
         # selected fish

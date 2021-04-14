@@ -32,12 +32,12 @@ from scipy.spatial import Voronoi
 import pandas as pd
 
 from src import hdf5_mod
-from src.tools_mod import polygon_type_values, point_type_values
+from src.dev_tools_mod import polygon_type_values, point_type_values
 from src.data_2d_mod import Data2d
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
-def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}, stop=object):
+def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     """
     :param sub_description: substrate description dict
     :param progress_value: progress value from multiprocessing
@@ -238,7 +238,7 @@ def load_sub_txt(sub_description, progress_value):
             try:
                 crs.ImportFromEPSG(int(epsg_code))
             except:
-                print("Warning : Can't write .prj from EPSG code :", epsg_code)
+                print("Warning: Can't write .prj from EPSG code :", epsg_code)
 
         if not crs.ExportToWkt():  # '' == crs unknown
             layer = ds.CreateLayer(name=name, geom_type=ogr.wkbPoint)

@@ -1,4 +1,5 @@
 """
+
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
@@ -15,6 +16,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
+import sys
 from multiprocessing import Process, Queue, Value, Event
 
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer
@@ -29,7 +31,7 @@ from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
-from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
+from src.dev_tools_mod import sort_homogoeneous_dict_list_by_on_key
 from src.variable_unit_mod import HydraulicVariableUnitList
 
 
@@ -100,6 +102,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                  hydraulic_mode_list=[],
                                                  substrate_mode_list=[])
         self.load_selected_aquatic_animal_dict()
+        self.user_target_list = HydraulicVariableUnitList()
 
         self.stop = Event()
         self.q = Queue()
@@ -878,9 +881,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         We should not add a comma in the name of the selected fish.
         """
-        # get the figure options and the type of output to be created
-        project_preferences = load_project_properties(self.path_prj)
-
         # remove duplicate
         self.remove_duplicates()
 
@@ -888,7 +888,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         pref_file_list = []
         stage_list = []
         name_fish_sel = ''  # for the xml project file
-        user_target_list = HydraulicVariableUnitList()
+        self.user_target_list = HydraulicVariableUnitList()
 
         for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # check if not exist
@@ -907,7 +907,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 name_fish_sel += fish_item_text + ","
 
                 # append_new_habitat_variable
-                user_target_list.append_new_habitat_variable(code_bio_model,
+                self.user_target_list.append_new_habitat_variable(code_bio_model,
                                                             stage,
                                                              hyd_opt,
                                                              sub_opt,
@@ -915,7 +915,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                              user_preferences.biological_models_dict["model_type"][index_fish],
                                                              user_preferences.biological_models_dict["path_xml"][index_fish])
 
-        if user_target_list:
+        if self.user_target_list:
             # get the name of the merged file
             path_hdf5 = self.find_path_hdf5_est()
             ind = self.habitat_file_combobox.currentIndex()
@@ -931,27 +931,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # process_manager
             self.progress_layout.process_manager.set_hab_mode(self.path_prj,
-                                                                      user_target_list,
+                                                                      self.user_target_list,
                                                                       hab_filename,
                                                                       load_project_properties(self.path_prj))
             # process_prog_show
             self.progress_layout.start_process()
 
-            # log
-            self.send_log.emit("py    file1='" + hab_filename + "'")
-            self.send_log.emit("py    path1= os.path.join(path_prj, 'hdf5')")
-            self.send_log.emit("py    pref_file_list= ['" + "', '".join(pref_file_list) + "']")
-            self.send_log.emit("py    stages= ['" + "', '".join(stage_list) + "']")
-            # self.send_log.emit("py    type=" + str(run_choice))
-            self.send_log.emit("py    name_fish1 = ['" + "', '".join(name_fish) + "']")
-            self.send_log.emit(
-                "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_file_list, stages, name_fish1, name_fish2, type, "
-                "path_bio, path_prj, path_prj, path_prj, path_prj, [], True, [])")
-            self.send_log.emit("restart RUN_HABITAT")
-            self.send_log.emit("restart    file1: " + hab_filename)
-            self.send_log.emit("restart    list of preference file: " + ",".join(pref_file_list))
-            self.send_log.emit("restart    stages chosen: " + ",".join(stage_list))
-            # self.send_log.emit("restart    type of calculation: " + str(run_choice))
+            self.create_script()
         else:
             # disable the button
             self.progress_layout.run_stop_button.setEnabled(True)
@@ -959,6 +945,53 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.progress_layout.progress_label.setText(
                 "{0:.0f}/{1:.0f}".format(0.0, 1.0))
             self.send_log.emit(self.tr('Warning: Nothing to compute !'))
+
+    def create_script(self):
+        # path_prj
+        path_prj_script = self.path_prj + "_restarted"
+
+        # cli
+        if sys.argv[0][-3:] == ".py":
+            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+        else:
+            exe_cmd = '"' + sys.executable + '"'
+        script_function_name = "RUN_HABITAT"
+        cmd_str = exe_cmd + ' ' + script_function_name + \
+                  ' hab=' + self.hdf5_file + \
+                  ' pref_file_list=' + ",".join(self.user_target_list.pref_files()) + \
+                  ' stage_list=' + ",".join(self.user_target_list.stages()) + \
+                  ' hyd_opt=' + ",".join([var.hyd_opt for var in self.user_target_list]) + \
+                  ' sub_opt=' + ",".join([var.sub_opt for var in self.user_target_list]) + \
+                  ' path_prj="' + path_prj_script + '"'
+        self.send_log.emit("script" + cmd_str)
+
+        # py
+        cmd_str = F"\t# RUN_HABITAT\n" \
+                  F"\tfrom src.bio_info_mod import get_biomodels_informations_for_database\n" \
+                  F"\tfrom src.calcul_hab_mod import calc_hab_and_output\n" \
+                  F"\tfrom src.variable_unit_mod import HydraulicVariableUnitList\n\n"
+        cmd_str = cmd_str + F"\trun_choice = dict()\n" \
+                            F"\trun_choice['pref_file_list'] = {repr(self.user_target_list.pref_files())}\n" \
+                            F"\trun_choice['stage_list'] = {repr(self.user_target_list.stages())}\n" \
+                            F"\trun_choice['hyd_opt'] = {repr([var.hyd_opt for var in self.user_target_list])}\n" \
+                            F"\trun_choice['sub_opt'] = {repr([var.sub_opt for var in self.user_target_list])}\n"
+        cmd_str = cmd_str + F"\tanimal_variable_list = HydraulicVariableUnitList()\n" \
+                            F"\tfor i in range(len(run_choice['pref_file_list'])):\n" \
+                            F"\t\tinformation_model_dict = get_biomodels_informations_for_database(run_choice['pref_file_list'][i])\n" \
+                            F"\t\tanimal_variable_list.append_new_habitat_variable(information_model_dict['CdBiologicalModel'], " \
+                            F"run_choice['stage_list'][i], run_choice['hyd_opt'][i], run_choice['sub_opt'][i], " \
+                            F"information_model_dict['aquatic_animal_type'], information_model_dict['ModelType'], " \
+                            F"run_choice['pref_file_list'][i])\n"
+        cmd_str = cmd_str + F"\tcalc_hab_and_output(hab_filename={repr(self.hdf5_file)}, " \
+                            F"animal_variable_list=animal_variable_list, " \
+                            F"progress_value=Value('d', 0), " \
+                            F"q=Queue(), " \
+                            F"print_cmd=True, " \
+                            F"project_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+        self.send_log.emit("py" + cmd_str)
+
+
+
 
 
 if __name__ == '__main__':

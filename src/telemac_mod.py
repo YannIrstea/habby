@@ -27,7 +27,13 @@ from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
-    """
+    """Represent Telemac hydraulic simulation results.
+
+    Keyword arguments:
+    filename -- filename, type: str
+    folder_path -- relative path to filename, type: str
+    model_type -- type of hydraulic model, type: str
+    path_prj -- absolute path to project, type: str
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
@@ -93,6 +99,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             self.warning_list.append("Error: File not valid.")
 
     def get_hydraulic_variable_list(self):
+        """Get hydraulic variable list from file."""
         # get list from source
         varnames = [varname.decode('utf-8') for varname in self.results_data_file.varnames]
 
@@ -100,16 +107,18 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
-        """
-        get_time_step
-        """
+        """Get time step information from file."""
+
         timestep_float_list = self.results_data_file.tags['times']
         self.timestep_name_list = list(map(str, timestep_float_list))  # always one reach
         self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "time [s]"
 
     def load_hydraulic(self, timestep_name_wish_list):
-        """
+        """Retrun Data2d from file.
+
+        Keyword arguments:
+        timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
         """
         self.load_specific_timestep(timestep_name_wish_list)
 

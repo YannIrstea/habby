@@ -180,7 +180,7 @@ class ProjectPropertiesDialog(QDialog):
         self.resolution_lineedit = QLineEdit("")
 
         # type_fishname
-        type_fishname_label = QLabel(self.tr('Type of fish name'))
+        type_fishname_label = QLabel(self.tr('Type of animal name'))
         self.type_fishname_combobox = QComboBox()
         self.type_fishname_combobox.addItems([self.tr('Latin Name'), self.tr('French Common Name'), self.tr('English Common Name'),
                                               self.tr('Code ONEMA')])  # order matters here, add stuff at the end!
@@ -487,7 +487,7 @@ class ProjectPropertiesDialog(QDialog):
             return
         if project_preferences['resolution'] > 2000:
             self.send_log.emit(
-                'Warning: ' + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
+                self.tr('Warning: ') + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
 
         # fish name type
         project_preferences['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())

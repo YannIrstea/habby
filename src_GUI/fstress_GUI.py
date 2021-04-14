@@ -25,6 +25,7 @@ import sys
 import os
 from io import StringIO
 
+import src.dev_tools_mod
 import src.tools_mod
 from src_GUI import estimhab_GUI
 from src import fstress_mod
@@ -440,7 +441,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             return
 
         if len(self.riv_name) == 0:
-            self.send_log.emit('Warning: No river found in files.')
+            self.send_log.emit(self.tr('Warning: No river found in files.'))
             return
 
         # update the list with the new river
@@ -461,7 +462,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         paths = [self.path_fstress] * len(all_files)
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        src.tools_mod.copy_files(all_files, paths, new_dir)
+        src.dev_tools_mod.copy_files(all_files, paths, new_dir)
 
         # show the data for the selected river
         self.show_data_one_river()
@@ -584,11 +585,11 @@ class FstressW(estimhab_GUI.StatModUseful):
 
                 self.qrange.append([qmin, qmax])
             else:
-                self.send_log.emit('Warning: deb.txt file not found.(1)')
+                self.send_log.emit(self.tr('Warning: deb.txt file not found.(1)'))
                 self.qrange.append([])
 
         else:
-            self.send_log.emit('Warning: deb.txt file not found.(2)')
+            self.send_log.emit(self.tr('Warning: deb.txt file not found.(2)'))
             self.qrange.append([])
 
         # qhw
@@ -640,7 +641,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # see if we can use latin name instead of acronym
         filename_bio = os.path.join(self.path_bio, self.latin_filename)
         if not os.path.isfile(filename_bio):
-            self.send_log.emit('Warning: Latin name of invertebrate could not be read (1).')
+            self.send_log.emit(self.tr('Warning: Latin name of invertebrate could not be read (1).'))
             # show the fish name as acronym
             self.list_f.addItems(self.all_inv_name)
         else:
@@ -652,7 +653,7 @@ class FstressW(estimhab_GUI.StatModUseful):
                 data_name[d] = data_name[d].split('\t')
                 if len(data_name[d]) != 2:
                     self.list_f.addItems(self.all_inv_name)
-                    self.send_log.emit('Warning: Latin name of invertebrate could not be read (2).')
+                    self.send_log.emit(self.tr('Warning: Latin name of invertebrate could not be read (2).'))
                     return
             data_name = np.array(data_name)
             names_latin = []

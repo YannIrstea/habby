@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import QScrollArea, QLabel, QComboBox, QListWidget, QAbstra
     QGridLayout, QGroupBox, QLineEdit, QHBoxLayout, QTableView, QSizePolicy, QListWidgetItem, QFileDialog, QHeaderView, \
     QFrame
 
+import src.dev_tools_mod
 from src import hdf5_mod, tools_mod
 from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties
@@ -344,7 +345,7 @@ class InterpolationTab(QScrollArea):
             return
 
         # is float string
-        if not tools_mod.isstranumber(from_sequ) or not tools_mod.isstranumber(to_sequ) or not tools_mod.isstranumber(by_sequ):
+        if not src.dev_tools_mod.isstranumber(from_sequ) or not src.dev_tools_mod.isstranumber(to_sequ) or not src.dev_tools_mod.isstranumber(by_sequ):
             self.send_log.emit('Error: ' + self.tr('The sequence values must be of numerical type.'))
             return
 
@@ -371,7 +372,7 @@ class InterpolationTab(QScrollArea):
             by_sequ = float(by_sequ)  # by
 
             # dict range
-            chonicle_from_seq = dict(units=list(tools_mod.frange(from_sequ, to_sequ, by_sequ)))
+            chonicle_from_seq = dict(units=list(src.dev_tools_mod.frange(from_sequ, to_sequ, by_sequ)))
 
             # types
             text_unit = self.unit_type_qlabel.text()
@@ -425,7 +426,7 @@ class InterpolationTab(QScrollArea):
         valid, text = tools_mod.check_matching_units(hdf5.data_2d.unit_type, types)
 
         if not valid:
-            self.send_log.emit("Warning : " + self.tr("Interpolation not done.") + text)
+            self.send_log.emit("Warning: " + self.tr("Interpolation not done.") + text)
             # disable pushbutton
             self.plot_chronicle_qpushbutton.setEnabled(False)
             self.export_txt_chronicle_qpushbutton.setEnabled(False)

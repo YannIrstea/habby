@@ -22,12 +22,15 @@ from copy import deepcopy
 import h5py
 import matplotlib
 import numpy as np
+
+import src.hydraulic_results_manager_mod
+
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue, Event
 from shutil import copyfile
 
-from src.hydraulic_results_manager_mod import HydraulicModelInformation
+from src.hydraulic_result_mod import HydraulicModelInformation
 from src import hdf5_mod
 from src import estimhab_mod
 from src import stathab_mod
@@ -37,12 +40,12 @@ from src.variable_unit_mod import HydraulicVariableUnitList
 from src.bio_info_mod import get_biomodels_informations_for_database, check_if_habitat_variable_is_valid
 from src import lammi_mod
 from src import hydraulic_process_mod
-from src.hydrosignature import hydraulic_class_from_file
+from src.hydrosignature_mod import hydraulic_class_from_file
 from src.project_properties_mod import create_project_structure, enable_disable_all_exports, \
     create_default_project_properties_dict, load_project_properties, change_specific_properties
 import src.calcul_hab_mod
 import src.hydraulic_process_mod
-import src.merge
+import src.merge_mod
 import src.substrate_mod
 
 
@@ -173,15 +176,19 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_PROJECT':
 
-
         all_export_enabled = False
         ##As a test measure, we may need to enable all_export_enabled, to be able to test exports
         for arg in all_arg:
-            if arg[:19]=="all_export_enabled=":
-                if arg[19:]=="False":
-                    all_export_enabled=False
+            if arg[:19] == "all_export_enabled=":
+                if arg[19:] == "False":
+                    all_export_enabled = False
                 else:
                     all_export_enabled = True
+            if arg[:10] == "restarted=":
+                if arg[10:] == "False":
+                    option_restart = False
+                else:
+                    option_restart = True
 
         if not os.path.exists(path_prj):
             create_project_structure(path_prj,
@@ -189,7 +196,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                                      version_habby=HABBY_VERSION,
                                      user_name="CLI",
                                      description="CLI-mode",
-                                     mode="CLI")
+                                     mode="CLI",
+                                     restarted=option_restart)
             change_specific_properties(path_prj,
                                        preference_names=["physic_tabs", "stat_tabs"],
                                        preference_values=[True, True])
@@ -418,7 +426,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # plt.show()
 
     # ----------------------------------------------------------------------------------
-    elif all_arg[0] == 'LOAD_SUB':
+    elif all_arg[0] == 'CREATE_SUB':
         # remove the first arg LOAD_SUB
         all_arg = all_arg[1:]
 
@@ -786,9 +794,6 @@ def habby_restart(file_comm, name_prj, path_prj, path_bio):
                         name_prj = arg1[1].strip()
                         if not os.path.isdir(path_prj):
                             os.mkdir(path_prj)
-                        if not os.path.isfile(os.path.join(path_prj, name_prj + '.habby')):
-                            filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.habby'))
-                            copyfile(filename_empty, os.path.join(path_prj, name_prj + '.habby'))
 
                     else:
                         print('Error: the project folder is not found.\n')
@@ -1137,15 +1142,18 @@ def cli_load_hyd(arguments, project_preferences):
         if arg[:len(cut_arg_name)] == cut_arg_name:
             cut = eval(arg[len(cut_arg_name):])
             project_preferences['cut_mesh_partialy_dry'] = cut
+        # unit_list
+        unit_list_arg_name = 'unit_list='
+        if arg[:len(unit_list_arg_name)] == unit_list_arg_name:
+            unit_list = eval(arg[len(unit_list_arg_name):])
 
     # # get_hydrau_description_from_source
     hydraulic_model_information = HydraulicModelInformation()
 
-    hsra_value = hydraulic_process_mod.HydraulicSimulationResultsAnalyzer(filename_path,
-                                                                          project_preferences["path_prj"],
-                                                                          hydraulic_model_information.get_attribute_name_from_name_models_gui(
-                                                                              model_name),
-                                                                          2)
+    hsra_value = src.hydraulic_results_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
+                                                                                      project_preferences["path_prj"],
+                                                                                      model_name,
+                                                                                      2)
 
     # outputfilename
     if outputfilename:
@@ -1222,10 +1230,6 @@ def cli_load_sub(arguments, project_preferences):
 
     # ok
     if sub_description:
-        # outputfilename
-        if outputfilename:
-            sub_description["hdf5_name"] = outputfilename
-
         # but warnings
         if warning_list:
             for warn in warning_list:
@@ -1235,7 +1239,6 @@ def cli_load_sub(arguments, project_preferences):
         sub_description["name_hdf5"] = name_hdf5
 
         # if shape data valid : load and save
-        stop = Event()
         q = Queue()
         progress_value = Value("d", 0)
         p = Process(target=substrate_mod.load_sub,
@@ -1243,8 +1246,7 @@ def cli_load_sub(arguments, project_preferences):
                           progress_value,
                           q,
                           True,
-                          project_preferences,
-                          stop),
+                          project_preferences),
                     name="LOAD_SUB")
         cli_start_process_and_print_progress(p, progress_value)
 
@@ -1317,30 +1319,21 @@ def cli_calc_hab(arguments, project_preferences):
             run_choice["sub_opt"] = arg[8:].split(",")
 
     user_target_list = HydraulicVariableUnitList()
-
     for i in range(len(run_choice["pref_file_list"])):
-        # options
-        pref_file = run_choice["pref_file_list"][i]
-        stage = run_choice["stage_list"][i]
-        hyd_opt = run_choice["hyd_opt"][i]
-        sub_opt = run_choice["sub_opt"][i]
-
         # check_if_habitat_variable_is_valid
-        if check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
+        if check_if_habitat_variable_is_valid(run_choice["pref_file_list"][i], run_choice["stage_list"][i], run_choice["hyd_opt"][i], run_choice["sub_opt"][i]):
             # append_new_habitat_variable
-            information_model_dict = get_biomodels_informations_for_database(pref_file)
+            information_model_dict = get_biomodels_informations_for_database(run_choice["pref_file_list"][i])
             user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
-                                                         stage,
-                                                         hyd_opt,
-                                                         sub_opt,
+                                                         run_choice["stage_list"][i],
+                                                         run_choice["hyd_opt"][i],
+                                                         run_choice["sub_opt"][i],
                                                          information_model_dict["aquatic_animal_type"],
                                                          information_model_dict["ModelType"],
-                                                         pref_file)
-
+                                                         run_choice["pref_file_list"][i])
     if user_target_list:
         # run calculation
         progress_value = Value("d", 0)
-        stop = Event()
         q = Queue()
         p = Process(target=src.calcul_hab_mod.calc_hab_and_output,
                     args=(hab_filename,

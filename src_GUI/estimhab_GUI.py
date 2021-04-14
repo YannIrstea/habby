@@ -183,7 +183,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_im = os.path.join(self.path_prj, child.text)
         else:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
+            self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_im
 
@@ -207,7 +207,7 @@ class StatModUseful(QScrollArea):
             # else:
             #     path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
+            self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_hdf5
 
@@ -256,7 +256,7 @@ class StatModUseful(QScrollArea):
             else:
                 path_out = os.path.join(self.path_prj, child.text)
         else:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
+            self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
 
         return path_out
 
@@ -301,7 +301,7 @@ class StatModUseful(QScrollArea):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
-                self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'too many information for the GUI.'))
+                self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", 'too many information for the GUI.'))
 
     def check_all_q(self):
         """
@@ -320,14 +320,14 @@ class StatModUseful(QScrollArea):
             q1 = self.qall[1]
 
         if q2 < 2 * q1:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Measured discharges are not very different. The results might '
+            self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", 'Measured discharges are not very different. The results might '
                                'not be realistic. \n'))
         if (self.qall[4] < q1 / 10 or self.qall[4] > 5 * q2) and self.qall[4] != -99:  # q50 not always necessary
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Q50 should be between q1/10 and 5*q2 for optimum results.'))
+            self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", 'Q50 should be between q1/10 and 5*q2 for optimum results.'))
         if self.qall[2] < q1 / 10 or self.qall[2] > 5 * q2:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (1).'))
+            self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (1).'))
         if self.qall[3] < q1 / 10 or self.qall[3] > 5 * q2:
-            self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (2).'))
+            self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", 'Discharge range should be between q1/10 and 5*q2 for optimum results (2).'))
 
 
 class EstimhabW(StatModUseful):
@@ -631,10 +631,10 @@ class EstimhabW(StatModUseful):
                     docxml = ET.parse(f)
                     root = docxml.getroot()
                 except IOError:
-                    self.send_log.emit("Warning: " + self.tr("The .habby project file ") + f + self.tr(" could not be open.\n"))
+                    self.send_log.emit(self.tr("Warning: ") + self.tr("The .habby project file ") + f + self.tr(" could not be open.\n"))
                     return
             except ET.ParseError:
-                self.send_log.emit("Warning: " + self.tr("The .habby project file ") + f + self.tr(" is not well-formed.\n"))
+                self.send_log.emit(self.tr("Warning: ") + self.tr("The .habby project file ") + f + self.tr(" is not well-formed.\n"))
                 return
 
             # find fish name

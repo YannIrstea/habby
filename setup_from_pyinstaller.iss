@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "HABBY"
-#define MyAppVersion "0.26"
+#define MyAppVersion "1.00"
 #define MyAppPublisher "Irstea"
 #define MyAppURL "https://github.com/YannIrstea/habby"
 #define MyAppExeName "habby.exe"
@@ -25,7 +25,7 @@ DisableProgramGroupPage=yes
 LicenseFile=Licence_CeCILL_V2.1-fr.txt
 InfoBeforeFile=disclamer.txt
 OutputDir=build\pyinstaller
-OutputBaseFilename=habby_setup
+OutputBaseFilename=HABBY-setup-64
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations = yes

@@ -18,8 +18,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 import os
 from src import hdf5_mod
-from src import plot_mod
-from src.tools_mod import get_translator
+from src.translator_mod import get_translator
 
 
 def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, state):

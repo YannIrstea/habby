@@ -30,7 +30,7 @@ from src import hdf5_mod
 from src import plot_mod
 from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
     load_specific_properties
-from src import hydrosignature
+from src import hydrosignature_mod
 from src_GUI.dev_tools_GUI import change_button_color, MyTableModel, \
     QGroupBoxCollapsible
 from src_GUI.process_manager_GUI import ProcessProgLayout, ProcessProgShow
@@ -230,7 +230,7 @@ class ComputingGroup(QGroupBoxCollapsible):
 
     def read_input_class(self, input_class_file):
         if os.path.exists(input_class_file):
-            self.classhv, warnings_list = hydrosignature.hydraulic_class_from_file(input_class_file)
+            self.classhv, warnings_list = hydrosignature_mod.hydraulic_class_from_file(input_class_file)
             if warnings_list:
                 for warning in warnings_list:
                     self.send_log.emit(warning)

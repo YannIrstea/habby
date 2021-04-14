@@ -14,8 +14,9 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import QObject, QTimer, QCoreApplication
+from PyQt5.QtCore import QObject, QTimer
 from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QProgressBar, QLabel, QPushButton
+from time import sleep
 
 from src.process_manager_mod import MyProcessManager
 from src_GUI.dev_tools_GUI import change_button_color
@@ -173,6 +174,8 @@ class ProcessProgShow(QObject):
         self.computation_pushbutton.setChecked(True)
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.run_function)
+
+        sleep(2)  # wait the last send_lod.emit because it's unorganized
 
         if self.process_manager.process_list.stop_by_user:
             # log

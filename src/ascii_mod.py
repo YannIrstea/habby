@@ -15,23 +15,24 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import sys
-from io import StringIO
-from copy import deepcopy
 import numpy as np
 
-from src import hdf5_mod
 from src import manage_grid_mod
 from src import mesh_management_mod
-from src.tools_mod import isstranumber, create_empty_data_2d_dict, create_empty_data_2d_whole_profile_dict
-from src.data_2d_mod import Data2d
+from src.dev_tools_mod import isstranumber
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 from src.user_preferences_mod import user_preferences
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
-    """
+    """Represent ASCII hydraulic simulation results.
+
+    Keyword arguments:
+    filename -- filename, type: str
+    folder_path -- relative path to filename, type: str
+    model_type -- type of hydraulic model, type: str
+    path_prj -- absolute path to project, type: str
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)

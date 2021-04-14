@@ -21,11 +21,12 @@ from time import sleep
 import numpy as np
 from scipy.interpolate import interp1d, griddata
 
+import src.dev_tools_mod
 import src.tools_mod
 from src import hdf5_mod, bio_info_mod
 from src.substrate_mod import sandre_to_cemagref_by_percentage_array, sandre_to_cemagref_array, \
     pref_substrate_coarser_from_percentage_description, pref_substrate_dominant_from_percentage_description
-from src.tools_mod import get_translator
+from src.translator_mod import get_translator
 
 
 def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False,
@@ -84,7 +85,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     # load data and get variable to compute
     hdf5_path = os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5"))
     hdf5 = hdf5_mod.Hdf5Management(hdf5_path, hab_filename, new=False, edit=True)
-    hdf5.load_hdf5_hab(user_target_list=animal_variable_list)
+    hdf5.load_hdf5(user_target_list=animal_variable_list)
 
     # progress
     delta_animal = 80 / len(animal_variable_list)
@@ -96,8 +97,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         information_model_dict = bio_info_mod.get_biomodels_informations_for_database(animal.pref_file)
         # load bio data
         pref_height, pref_vel, pref_sub, sub_code, code_fish, name_fish, stade_bios = bio_info_mod.read_pref(
-            animal.pref_file,
-            animal.aquatic_animal_type)
+            animal.pref_file)
         # search stage
         stage_index = None
         for i, stade_bio in enumerate(stade_bios):
@@ -381,7 +381,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     if names:
         if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
             os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
-        src.tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input", "user_models"))
+        src.dev_tools_mod.copy_files(names, paths, os.path.join(hdf5.path_prj, "input", "user_models"))
 
     # export
     export_dict = dict()

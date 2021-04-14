@@ -26,6 +26,7 @@ import sys
 import copy
 from lxml import etree as ET
 
+import src.dev_tools_mod
 import src.tools_mod
 from src import stathab_mod
 from src import hdf5_mod
@@ -542,7 +543,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         paths = [self.dir_name] * len(all_files)
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        src.tools_mod.copy_files(all_files, paths, new_dir)
+        src.dev_tools_mod.copy_files(all_files, paths, new_dir)
 
         # log info
         if not self.mystathab.load_ok:

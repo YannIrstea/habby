@@ -31,10 +31,8 @@ from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import mplcursors
 from PIL import Image
 from copy import copy
-# from mayavi import mlab
 
-from src import tools_mod
-from src.tools_mod import get_translator
+from src.translator_mod import get_translator
 
 
 # other
@@ -54,8 +52,6 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     """
 
     mpl.rcParams['pdf.fonttype'] = 42
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
-                                                     "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
         default_size = plt.rcParams['figure.figsize']
@@ -177,10 +173,15 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
 
     # all cases
     plt.tight_layout()
-    mplcursors.cursor()  # get data with mouse
+    if not get_fig:
+        mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
-    state.value = 100  # process finished
+    if state is not None:
+        state.value = 100  # process finished
+
+    # qt_tr.quit()
+    qt_tr.exit()
 
     # show ?
     if not get_fig:
@@ -205,7 +206,6 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         (to modfied it more)
     """
 
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
@@ -249,7 +249,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     axarr.set_ylim([0.0, 1.0])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
-    mplcursors.cursor()  # get data with mouse
+    if not get_fig:
+        mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
     state.value = 100  # process finished
@@ -276,7 +277,6 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         (to modfied it more)
     """
 
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
@@ -295,8 +295,8 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
 
     # title and filename
     title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
-
     if len(stade) > 1:  # if you take this out, the command
+        print("Error: No figure for all stages.")
         # TODO : do pcolormesh for each stage
         _ = 1
     else:
@@ -322,8 +322,11 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         color_bar = plt.colorbar(meshcolor)
         color_bar.set_label(qt_tr.translate("plot_mod", 'HSI []'))
 
+        ax = [ax]
+
     plt.tight_layout()
-    mplcursors.cursor(meshcolor)  # get data with mouse
+    if not get_fig:
+        mplcursors.cursor(meshcolor)  # get data with mouse
 
     # output for plot_GUI
     state.value = 100  # process finished
@@ -336,7 +339,6 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
 
 
 def plot_hydrosignature(state, data, vclass, hclass, title, type, project_preferences, axe_mod_choosen=2):
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['font.family'] = project_preferences['font_family']
@@ -450,7 +452,6 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
     """
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     default_size = plt.rcParams['figure.figsize']
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
@@ -554,7 +555,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
             if not project_preferences['erase_id']:
                 filename = filename + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+                test = remove_image(filename, path_im, project_preferences['format'])
                 if not test:
                     return
             plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
@@ -656,7 +657,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
             if not erase1:
                 filename = filename + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                test = tools_mod.remove_image(filename, path_im, project_preferences['format'])
+                test = remove_image(filename, path_im, project_preferences['format'])
                 if not test:
                     return
             plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
@@ -687,7 +688,6 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     """
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output", "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
@@ -866,8 +866,6 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
     path_prj = project_preferences['path_prj']
-    mpl.rcParams["savefig.directory"] = os.path.join(project_preferences["path_prj"], "output",
-                                                     "figures")  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
@@ -1965,8 +1963,6 @@ lwd_rect = 1.0
 
 
 def mpl_map_change_parameters(project_preferences):
-    # set mpl parameters
-    mpl.rcParams["savefig.directory"] = project_preferences['path_figure']  # change default path to save
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
@@ -2113,7 +2109,7 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
                         dpi=project_preferences['resolution'], transparent=True)
 
         else:
-            test = tools_mod.remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
+            test = remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
             if not test:
                 return
             plt.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
@@ -2245,3 +2241,67 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr, variable_info=""):
+    # colorbar_label and variable_info
+    if variable_info:
+        colorbar_label = variable_info.split(" = ")[0] + " [" + variable_unit + "]"
+        variable_info = " (" + variable_info + ")"
+    else:
+        colorbar_label = "[" + variable_unit + "]"
+
+    # plot_string_dict
+    plot_string_dict = dict(reach_name=reach_name,
+                            unit_name=unit_name,
+                            title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
+                            variable_title=variable.replace("_", " ") + ' [' + variable_unit + ']' + " " + variable_info,
+                            reach_title=string_tr[0] + " : " + reach_name,
+                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s", "$m^3$/s") + "]",
+                            colorbar_label=colorbar_label,
+                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_") + "_map"
+                            )
+    return plot_string_dict
+
+
+def create_biomodel_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr, variable_info=""):
+    # colorbar_label and variable_info
+    if variable_info:
+        colorbar_label = variable_info.split(" = ")[0] + " [" + variable_unit + "]"
+        variable_info = " (" + variable_info + ")"
+    else:
+        colorbar_label = "[" + variable_unit + "]"
+
+    # plot_string_dict
+    plot_string_dict = dict(reach_name=reach_name,
+                            unit_name=unit_name,
+                            title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
+                            variable_title=variable.replace("_", " ") + ' [' + variable_unit + ']' + " " + variable_info,
+                            reach_title=string_tr[0] + " : " + reach_name,
+                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s", "$m^3$/s") + "]",
+                            colorbar_label=colorbar_label,
+                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_") + "_map"
+                            )
+    return plot_string_dict
+
+
+def remove_image(name, path, ext):
+    """
+    This is a small function used to erase images if erase_id is True. We have a function because different format
+    czan be used and because it is done often in the functions above.
+
+    :param name: the name of the file t be erase (without the extension)
+    :param path: the path to the file
+    :param format1: the type of format
+    :return:
+    """
+    ext = [ext]
+
+    for e in ext:
+        if os.path.isfile(os.path.join(path, name + e)):
+            try:
+                os.remove(os.path.join(path, name + e))
+            except PermissionError:
+                print('Warning: Figures used by an other program. could not be erased \n')
+                return False
+    return True

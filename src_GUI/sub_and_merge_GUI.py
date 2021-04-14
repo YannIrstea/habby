@@ -26,12 +26,12 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
     QRadioButton, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
 from lxml import etree as ET
+import sys
 
-import src.merge
+import src.merge_mod
 import src.substrate_mod
 import src.tools_mod
 from src import hdf5_mod
-from src import substrate_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, save_project_properties
 from src_GUI.dev_tools_GUI import change_button_color, QGroupBoxCollapsible
 from src_GUI.process_manager_GUI import ProcessProgLayout
@@ -833,20 +833,7 @@ class SubstrateAndMerge(QWidget):
             # save path and name substrate
             self.save_xml(0)  # txt filename in xml
 
-            # copy_shapefiles
-            path_input = self.find_path_input()
-
-            # log info
-            # self.send_log.emit(self.tr('# Loading: Substrate data ...'))
-            # self.send_err_log()
-            self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-            self.send_log.emit("py    path1=r'" + path_input + "'")
-            self.send_log.emit("py    type='" + self.sub_description["sub_classification_code"] + "'")
-            self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_sig"
-                               "(file1, path1, type)\n")
-            self.send_log.emit("restart LOAD_SUB_SHP")
-            self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-            self.send_log.emit("restart    sub_classification_code: " + self.sub_description["sub_classification_code"])
+            self.create_sub_script()
 
     def update_sub_hdf5_name(self):
         """
@@ -965,13 +952,73 @@ class SubstrateAndMerge(QWidget):
         # process_prog_show
         self.progress_layout_merge.start_process()
 
-        # log
-        self.send_log.emit("py    file_hyd=r'" + self.input_hyd_combobox.currentText() + "'")
-        self.send_log.emit("py    name_sub=r'" + self.input_sub_combobox.currentText() + "'")
-        self.send_log.emit("py    path_sub=r'" + path_hdf5 + "'")
-        self.send_log.emit("py    mesh_grid2.merge_grid_and_save(file_hyd,name_sub, path_sub, defval, name_prj, "
-                           "path_prj, 'SUBSTRATE', [], True) \n")
-        self.send_log.emit("restart MERGE_GRID_SUB")
-        self.send_log.emit("restart    file_hyd: r" + self.input_hyd_combobox.currentText())
-        self.send_log.emit("restart    file_sub: r" + os.path.join(path_hdf5,
-                                                                   self.input_sub_combobox.currentText()))
+        self.create_merge_script()
+
+    def create_sub_script(self):
+        # path_prj
+        path_prj_script = self.path_prj + "_restarted"
+
+        # cli
+        if sys.argv[0][-3:] == ".py":
+            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+        else:
+            exe_cmd = '"' + sys.executable + '"'
+        script_function_name = "CREATE_SUB"
+        cmd_str = exe_cmd + ' ' + script_function_name + \
+                  ' substrate_mapping_method=' + self.sub_description["sub_mapping_method"] + \
+                  ' inputfile="' + os.path.join(self.path_prj, "input", os.path.splitext(self.sub_description["filename_source"])[0], self.sub_description["filename_source"]) + '"' + \
+                  ' outputfilename="' + self.name_hdf5 + '"' + \
+                  ' path_prj="' + path_prj_script + '"'
+        self.send_log.emit("script" + cmd_str)
+
+        # py
+        cmd_str = F"\t# CREATE_SUB\n" \
+                  F"\tfrom src.substrate_mod import get_sub_description_from_source, load_sub\n"
+        cmd_str = cmd_str + F'\tsub_description, warning_list = get_sub_description_from_source(filename_path={repr(os.path.join(self.path_prj, "input", os.path.splitext(self.sub_description["filename_source"])[0], self.sub_description["filename_source"]))}, ' \
+                  F"\tpath_prj={repr(path_prj_script)}, " \
+                  F"\tsubstrate_mapping_method={repr(self.sub_description['sub_mapping_method'])})\n"
+        cmd_str = cmd_str + F"\tif not sub_description:\n" \
+                            F"\t\tfor warn in warning_list:\n" \
+                            F"\t\t\tprint(warn)\n" \
+                            F"\tif sub_description:\n" \
+                            F"\t\tif warning_list:\n" \
+                            F"\t\t\tfor warn in warning_list:\n" \
+                            F"\t\t\t\tprint(warn)\n" \
+                            F"\t\tsub_description['name_hdf5'] = {repr(self.name_hdf5)}\n" \
+                            F"\t\tload_sub(sub_description=sub_description, " \
+                            F"\tprogress_value=Value('d', 0), " \
+                            F"\tq=Queue(), " \
+                            F"\tprint_cmd=True, " \
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+        self.send_log.emit("py" + cmd_str)
+
+    def create_merge_script(self):
+        # path_prj
+        path_prj_script = self.path_prj + "_restarted"
+
+        # cli
+        if sys.argv[0][-3:] == ".py":
+            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+        else:
+            exe_cmd = '"' + sys.executable + '"'
+        script_function_name = "MERGE_GRID_SUB"
+        cmd_str = exe_cmd + ' ' + script_function_name + \
+                  ' hyd="' + os.path.join(path_prj_script, 'hdf5', self.input_hyd_combobox.currentText()) + '"' + \
+                  ' sub="' + os.path.join(path_prj_script, 'hdf5', self.input_sub_combobox.currentText()) + '"' + \
+                  ' outputfilename="' + self.name_hdf5 + '"' + \
+                  ' path_prj="' + path_prj_script + '"'
+        self.send_log.emit("script" + cmd_str)
+
+        # py
+        cmd_str = F"\t# CREATE_HAB\n" \
+                  F"\tfrom src.hydraulic_process_mod import merge_grid_and_save\n"
+        cmd_str = cmd_str + F"\tmerge_grid_and_save(hdf5_name_hyd={repr(self.input_hyd_combobox.currentText())}, " \
+                            F"\thdf5_name_sub={repr(self.input_sub_combobox.currentText())}, " \
+                            F"\thdf5_name_hab={repr(self.name_hdf5)}, " \
+                            F"\tpath_prj={repr(path_prj_script)}, " \
+                            F"\tprogress_value=progress_value, " \
+                            F"\tq=q, " \
+                            F"\tprint_cmd=True, " \
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+        self.send_log.emit("py" + cmd_str)
+

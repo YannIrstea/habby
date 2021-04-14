@@ -28,8 +28,8 @@ from PyQt5.QtWidgets import QPushButton, \
     QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
 
-from src.hydraulic_results_manager_mod import HydraulicModelInformation
-from src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsAnalyzer
+from src.hydraulic_result_mod import HydraulicModelInformation
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
 from src_GUI.dev_tools_GUI import QListWidgetClipboard
 from src_GUI.process_manager_GUI import ProcessProgLayout
@@ -246,11 +246,6 @@ class ModelInfoGroup(QGroupBox):
         self.p = Process(target=None)
         self.model_index = None
         self.progress_value = Value("d", 0)
-        # get cmd
-        if sys.argv[0][-3:] == ".py":
-            self.exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
-        else:
-            self.exe_cmd = '"' + sys.executable + '"'
         self.mystdout = None
         self.drop_hydro.connect(lambda: self.name_last_hdf5(self.model_type))
         self.init_ui()
@@ -433,7 +428,7 @@ class ModelInfoGroup(QGroupBox):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
-                self.send_log.emit(QCoreApplication.translate("SubHydroW", 'Warning: too many information for the GUI'))
+                self.send_log.emit(QCoreApplication.translate("SubHydroW", 'Warning: Too many information for the GUI'))
             if 'Error' in str_found[i] and check_ok:
                 error = True
         if check_ok:
@@ -709,19 +704,6 @@ class ModelInfoGroup(QGroupBox):
 
         self.progress_layout.run_stop_button.setEnabled(True)
 
-    def create_script(self):
-        # path_prj
-        path_prj_script = self.path_prj + "_restarted"
-        # script
-        script_function_name = "LOAD_" + self.hydraulic_model_information.class_gui_models_list[self.model_index]
-        cmd_str = self.exe_cmd + ' ' + script_function_name + \
-                  ' inputfile="' + os.path.join(self.pathfile[0], self.namefile[0].replace(', ', ',')) + '"' + \
-                  ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list']).replace("\'", "'").replace(' ', '') + \
-                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
-                  ' outputfilename="' + self.name_hdf5 + '"' + \
-                  ' path_prj="' + path_prj_script + '"'
-        self.send_log.emit("script" + cmd_str)
-
     def load_hydraulic_create_hdf5(self):
         """
         The function which call the function which load telemac and
@@ -770,11 +752,41 @@ class ModelInfoGroup(QGroupBox):
             # process_prog_show
             self.progress_layout.start_process()
 
-            #self.send_err_log()
-            self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-            self.send_log.emit(
-                "py    selafin_habby1.load_hec_ras2d_and_cut_grid('hydro_hec_ras2d_log', file1, path1, name_prj, "
-                "path_prj, " + self.model_type + ", 2, path_prj, [], True )\n")
             # script
-            self.create_script()
-            self.send_log.emit("restart LOAD_" + self.model_type)
+            self.create_script(hydrau_description_multiple)
+
+    def create_script(self, hydrau_description_multiple):
+        # path_prj
+        path_prj_script = self.path_prj + "_restarted"
+
+        # cli
+        if sys.argv[0][-3:] == ".py":
+            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+        else:
+            exe_cmd = '"' + sys.executable + '"'
+        script_function_name = "CREATE_HYD"
+        cmd_str = exe_cmd + ' ' + script_function_name + \
+                  ' model="' + self.model_type + '"' + \
+                  ' inputfile="' + os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt") + '"' + \
+                  ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list']).replace("\'", "'").replace(' ', '') + \
+                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
+                  ' outputfilename="' + self.name_hdf5 + '"' + \
+                  ' path_prj="' + path_prj_script + '"'
+        self.send_log.emit("script" + cmd_str)
+
+        # py
+        cmd_str = F"\t# CREATE_HYD\n" \
+                  F"\tfrom src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer, load_hydraulic_cut_to_hdf5\n\n"
+        cmd_str = cmd_str + F'\thsra_value = HydraulicSimulationResultsAnalyzer(filename_path_list=[{repr(os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt"))}], ' \
+                  F"\tpath_prj={repr(path_prj_script)}, " \
+                  F"\tmodel_type={repr(self.model_type)}, " \
+                  F"\tnb_dim={repr(str(self.nb_dim))})\n"
+        cmd_str = cmd_str + F"\tfor hdf5_file_index in range(0, len(hsra_value.hydrau_description_list)):\n" \
+                            F"\t\tprogress_value = Value('d', 0.0)\n" \
+                            F"\t\tq = Queue()\n" \
+                            F"\t\tload_hydraulic_cut_to_hdf5(hydrau_description=hsra_value.hydrau_description_list[hdf5_file_index], " \
+                            F"\tprogress_value=progress_value, " \
+                            F"\tq=q, " \
+                            F"\tprint_cmd=True, " \
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+        self.send_log.emit("py" + cmd_str)
