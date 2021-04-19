@@ -238,8 +238,8 @@ class HydraulicSimulationResultsAnalyzer:
             if self.more_than_one_file_selected_by_user:
                 if self.model_type == 'rubar2d':  # change mode and remove one of them
                     self.more_than_one_file_selected_by_user = False
-                    self.filename_list = self.filename_list[0]
-                    self.filename_path_list = self.filename_path_list[0]
+                    self.filename_list = [self.filename_list[0]]
+                    self.filename_path_list = [self.filename_path_list[0]]
                 else:
                     for i, file in enumerate(self.filename_path_list):
                         # get units name from file
@@ -344,8 +344,8 @@ class HydraulicSimulationResultsAnalyzer:
                 self.more_than_one_file_selected_by_user = False
                 selectedfiles_textfiles_match = [True] * 2
                 if type(self.filename_list) == list:
-                    self.filename_list = self.filename_list[0]
-                    self.filename_path_list = self.filename_path_list[0]
+                    self.filename_list = [self.filename_list[0]]
+                    self.filename_path_list = [self.filename_path_list[0]]
 
             elif not self.index_hydrau_file_selected:  # from file
                 # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)

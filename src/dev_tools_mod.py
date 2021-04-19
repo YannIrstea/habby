@@ -80,7 +80,8 @@ def copy_hydrau_input_files(path_filename_source, filename_source_str, hdf5_name
         if not os.path.splitext(file)[1]:  # no ext (ex: rubar20)
             files_to_copy = [x for x in os.listdir(path_filename_source) if file in x]
             for file_to_copy in files_to_copy:
-                sh_copy(os.path.join(path_filename_source, file_to_copy), input_hdf5name_folder_path)
+                if not os.path.isdir(os.path.join(path_filename_source, file_to_copy)):
+                    sh_copy(os.path.join(path_filename_source, file_to_copy), input_hdf5name_folder_path)
         else:
             sh_copy(os.path.join(path_filename_source, file), input_hdf5name_folder_path)
 
