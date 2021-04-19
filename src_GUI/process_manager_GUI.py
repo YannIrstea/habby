@@ -175,7 +175,7 @@ class ProcessProgShow(QObject):
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.run_function)
 
-        sleep(2)  # wait the last send_lod.emit because it's unorganized
+        # sleep(2)  # wait the last send_lod.emit because it's unorganized
 
         if self.process_manager.process_list.stop_by_user:
             # log
