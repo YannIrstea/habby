@@ -2243,6 +2243,8 @@ class CentralW(QWidget):
                 text_log + '</br><br>')  # "<FONT COLOR='#000000'>" +
             self.write_log_file(text_log, log_file)
 
+        QApplication.processEvents()
+
     def write_restart_py_file(self, text_log, pathname_logfile):
         """
         """

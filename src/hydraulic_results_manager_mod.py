@@ -19,6 +19,7 @@ import os
 import pandas as pd
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
+from shutil import copy as sh_copy
 
 from src.data_2d_mod import Data2d
 from src.dev_tools_mod import sort_homogoeneous_dict_list_by_on_key
@@ -223,6 +224,10 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list = "Error: " + file_path + " doesn't exist."
                 return
 
+        # init
+        multi_reach = False
+        reach_presence = False
+
         # indexHYDRAU.txt absence
         if not self.index_hydrau_file_exist:
             self.warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod",
@@ -233,8 +238,8 @@ class HydraulicSimulationResultsAnalyzer:
             if self.more_than_one_file_selected_by_user:
                 if self.model_type == 'rubar2d':  # change mode and remove one of them
                     self.more_than_one_file_selected_by_user = False
-                    self.filename_list = self.filename_list[0]
-                    self.filename_path_list = self.filename_path_list[0]
+                    self.filename_list = [self.filename_list[0]]
+                    self.filename_path_list = [self.filename_path_list[0]]
                 else:
                     for i, file in enumerate(self.filename_path_list):
                         # get units name from file
@@ -314,7 +319,6 @@ class HydraulicSimulationResultsAnalyzer:
             # init variables
             discharge_presence = False  # "Q[" in headers
             time_presence = False  # "T[" in headers
-            reach_presence = False  # "reachname" in headers
             selectedfiles_textfiles_matching = False
 
             # read text file
@@ -340,8 +344,8 @@ class HydraulicSimulationResultsAnalyzer:
                 self.more_than_one_file_selected_by_user = False
                 selectedfiles_textfiles_match = [True] * 2
                 if type(self.filename_list) == list:
-                    self.filename_list = self.filename_list[0]
-                    self.filename_path_list = self.filename_path_list[0]
+                    self.filename_list = [self.filename_list[0]]
+                    self.filename_path_list = [self.filename_path_list[0]]
 
             elif not self.index_hydrau_file_selected:  # from file
                 # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
@@ -372,7 +376,6 @@ class HydraulicSimulationResultsAnalyzer:
                         return
 
             # check conditions
-            multi_reach = False
             if all(selectedfiles_textfiles_match):
                 selectedfiles_textfiles_matching = True
                 self.filename_list = data_index_file["filename"]
@@ -784,6 +787,8 @@ class HydraulicSimulationResultsAnalyzer:
                     self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
                     return
 
+            # reach_presence
+            if reach_presence:
                 # multi_reach
                 if multi_reach:
                     # check if unit nb by reach is equal
@@ -820,7 +825,7 @@ class HydraulicSimulationResultsAnalyzer:
 
                         unit_index_from_file = []
                         for item in hsr.timestep_name_list:
-                            if item in unit_name_from_index_file2:
+                            if item in unit_name_from_index_file2 or "all" in unit_name_from_index_file2:
                                 unit_index_from_file.append(True)
                             else:
                                 unit_index_from_file.append(False)
@@ -923,10 +928,92 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[hydrau_description_index]["unit_type"] = \
                 self.hydrau_description_list[hydrau_description_index]["unit_type"].replace("m3/s", "m<sup>3</sup>/s")
 
-        #print("------------------------------------------------")
-        #print("self.hydrau_case, " + self.hydrau_case)
+        # print("------------------------------------------------")
+        # print("hydrau_case in : " + self.hydrau_case)
+        # print("reach_presence", reach_presence)
+        # print("multi_reach", multi_reach)
         # print(self.hydrau_description_list[0]["unit_list"])
         # print(self.hydrau_description_list[0]["unit_list_tf"])
         # print(self.hydrau_description_list[0]["unit_number"])
 
 
+def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
+    # one case (one hdf5 produced)
+    filename_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0], "indexHYDRAU.txt")
+    # hydrau_case
+    hydrau_case = description_from_indexHYDRAU_file["hydrau_case"]
+
+    # column filename
+    filename_column = description_from_indexHYDRAU_file["filename_source"].split(", ")
+
+    if hydrau_case == "unknown":
+        """ CASE 3.a of 3.b ? """
+        for reach_num in range(len(description_from_indexHYDRAU_file["unit_list"])):
+            if description_from_indexHYDRAU_file["unit_list"][reach_num] == \
+                    description_from_indexHYDRAU_file["unit_list_full"][reach_num]:
+                hydrau_case = "3.a"
+            else:
+                hydrau_case = "3.b"
+
+        # create new
+        if hydrau_case == "3.a" or hydrau_case == "3.b":
+            if "unknown" in description_from_indexHYDRAU_file["reach_list"]:
+                reach_column_presence = False
+            else:
+                reach_column_presence = True
+                reach_column = description_from_indexHYDRAU_file["reach_list"][0]
+
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
+            start = unit_type.find('[')
+            end = unit_type.find(']')
+            time_unit = unit_type[start + 1:end]
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
+            # headers
+            headers = "filename" + "\t" + "T[" + time_unit + "]"
+            if reach_column_presence:
+                headers = headers + "\t" + "reachname"
+
+            # first line
+            if description_from_indexHYDRAU_file["unit_list"] == description_from_indexHYDRAU_file[
+                "unit_list_full"]:
+                unit_data = "all"
+            else:
+                index = [i for i, item in enumerate(description_from_indexHYDRAU_file["unit_list_full"]) if
+                         item in description_from_indexHYDRAU_file["unit_list"]]
+                my_sequences = []
+                for idx, item in enumerate(index):
+                    if not idx or item - 1 != my_sequences[-1][-1]:
+                        my_sequences.append([item])
+                    else:
+                        my_sequences[-1].append(item)
+                from_to_string_list = []
+                for sequence in my_sequences:
+                    start = min(sequence)
+                    start_string = description_from_indexHYDRAU_file["unit_list_full"][start]
+                    end = max(sequence)
+                    end_string = description_from_indexHYDRAU_file["unit_list_full"][end]
+                    if start == end:
+                        start_end_string = start_string
+                    if start != end:
+                        start_end_string = start_string + "/" + end_string
+                    from_to_string_list.append(start_end_string)
+
+                unit_data = ";".join(from_to_string_list)
+            linetowrite = filename_column[0] + "\t" + unit_data
+            if reach_column_presence:
+                linetowrite = linetowrite + "\t" + reach_column
+            # text
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
+
+            # write text file
+            with open(filename_path, 'wt', encoding="utf-8") as f:
+                f.write(text)
+    else:
+        # copy original
+        sh_copy(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt"),
+                os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0]))
+    #
+    # import sys
+    # sys.stdout = sys.__stdout__
+    # print("hydrau_case out : " + hydrau_case)
