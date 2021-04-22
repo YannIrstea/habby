@@ -30,6 +30,7 @@ from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
 import matplotlib as mpl
 from src.bio_info_mod import read_pref
+from src.user_preferences_mod import user_preferences
 
 
 class Stathab:
@@ -500,8 +501,11 @@ class Stathab:
         #EN TRAVAUX .il faudra boucler sur les poissons....
         fish_num=0
         # get the preference info based on the files known
-        xml_filename = self.fish_chosen[fish_num].split(" - ")[-1] + ".xml"
-        xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
+        code_bio_model = self.fish_chosen[fish_num].split(" - ")[-1]
+        index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        # xml_filename = code_bio_model+ ".xml"
+        # xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
+        xmlfile = user_preferences.biological_models_dict["path_xml"][index_fish]
         h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
         stage = self.fish_chosen[fish_num].split(" - ")[-2]
         stage_index = stages.index(stage)
@@ -833,7 +837,8 @@ class Stathab:
     def power_law(self, qwh_r):
         """
         The function to calculate power law for discharge and width
-        ln(h0 = a1 + a2 ln(Q)
+        ln(h) = a1 + a2 ln(Q)=h_coeff[1] +h_coeff[0]*ln(Q)
+        ln(w) = w_coeff[1] +w_coeff[0]*ln(Q)
 
         :param qwh_r: an array where each line in one observatino of Q, width and height
         :return: the coeff of the regression
