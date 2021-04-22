@@ -186,7 +186,7 @@ class HydrauTab(QScrollArea):
             self.msgi.setDetailedText('No detailed info yet.')
         # detailed text erase the red x
         self.msgi.setEscapeButton(QMessageBox.Ok)
-        name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+        name_icon = os.path.join(os.getcwd(), "file_dep", "habby_icon.png")
         self.msgi.setWindowIcon(QIcon(name_icon))
         self.msgi.show()
 

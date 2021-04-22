@@ -407,21 +407,21 @@ class VisualGroup(QGroupBoxCollapsible):
         self.axe_mod_1_radio = QRadioButton()
         if self.axe_mod_choosen == 1:
             self.axe_mod_1_radio.setChecked(True)
-        self.axe_mod_1_radio.setIcon(QIcon(r"translation/axe_mod_1.PNG"))
+        self.axe_mod_1_radio.setIcon(QIcon(r"file_dep/axe_mod_1.png"))
         self.axe_mod_1_radio.setIconSize(QSize(75, 75))
         self.axe_mod_1_radio.clicked.connect(self.change_axe_mod)
 
         self.axe_mod_2_radio = QRadioButton()
         if self.axe_mod_choosen == 2:
             self.axe_mod_2_radio.setChecked(True)
-        self.axe_mod_2_radio.setIcon(QIcon(r"translation/axe_mod_2.PNG"))
+        self.axe_mod_2_radio.setIcon(QIcon(r"file_dep/axe_mod_2.png"))
         self.axe_mod_2_radio.setIconSize(QSize(75, 75))
         self.axe_mod_2_radio.clicked.connect(self.change_axe_mod)
 
         self.axe_mod_3_radio = QRadioButton()
         if self.axe_mod_choosen == 3:
             self.axe_mod_3_radio.setChecked(True)
-        self.axe_mod_3_radio.setIcon(QIcon(r"translation/axe_mod_3.PNG"))
+        self.axe_mod_3_radio.setIcon(QIcon(r"file_dep/axe_mod_3.png"))
         self.axe_mod_3_radio.setIconSize(QSize(75, 75))
         self.axe_mod_3_radio.clicked.connect(self.change_axe_mod)
 

@@ -61,12 +61,12 @@ class StatModUseful(QScrollArea):
         self.eqmax = QLineEdit()
         self.target_lineedit_list = []
         self.add_qtarget_button = QPushButton()
-        self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "plus.png")))
+        self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "file_dep", "icon", "plus.png")))
         self.add_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
         self.add_qtarget_button.setToolTip(self.tr("Click to add one target discharge."))
         # self.add_qtarget_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.remove_qtarget_button = QPushButton()
-        self.remove_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "translation", "icon", "moins.png")))
+        self.remove_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "file_dep", "icon", "moins.png")))
         self.remove_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
         self.remove_qtarget_button.setToolTip(self.tr("Click to remove one target discharge."))
 

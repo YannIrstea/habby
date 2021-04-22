@@ -94,7 +94,7 @@ class HydraulicVariableUnitList(list):
         self.sort_by_names_gui()
 
     def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, aquatic_animal_type, model_type,
-                                    pref_file):
+                                    pref_file, path_img):
         # animal name
         name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt
         # create variable
@@ -109,6 +109,7 @@ class HydraulicVariableUnitList(list):
         # extra attributes
         hab_variable.precomputable_tohdf5 = True
         hab_variable.pref_file = pref_file
+        hab_variable.path_img = path_img
         hab_variable.aquatic_animal_type = aquatic_animal_type
         hab_variable.model_type = model_type
         hab_variable.code_alternative = code_bio_model

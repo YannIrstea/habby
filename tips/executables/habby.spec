@@ -64,7 +64,7 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=False,
-          icon='translation\\habby_icon.ico')
+          icon='file_dep\\habby_icon.ico')
 
 coll = COLLECT(exe,
                a.binaries,

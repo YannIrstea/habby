@@ -372,7 +372,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     for animal in animal_variable_list:
         if "INRAE_EDF_OFB" in os.path.dirname(animal.pref_file):  # user case
             name_xml = os.path.basename(animal.pref_file)
-            name_png = os.path.splitext(os.path.basename(animal.pref_file))[0] + ".png"
+            name_png = animal.path_img
             names.append(name_xml)
             names.append(name_png)
             path = os.path.dirname(animal.pref_file)

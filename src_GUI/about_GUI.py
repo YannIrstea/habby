@@ -325,11 +325,11 @@ class SoftInformationDialog(QDialog):
 
         """ last line """
         inrae_label = QLabel()
-        inrae_label.setPixmap(QPixmap("translation/INRAE.png").scaled(inrae_label.size() * 0.2, Qt.KeepAspectRatio))
+        inrae_label.setPixmap(QPixmap("file_dep/INRAE.png").scaled(inrae_label.size() * 0.2, Qt.KeepAspectRatio))
         ofb_label = QLabel()
-        ofb_label.setPixmap(QPixmap("translation/OFB.png").scaled(ofb_label.size() * 0.2, Qt.KeepAspectRatio))
+        ofb_label.setPixmap(QPixmap("file_dep/OFB.png").scaled(ofb_label.size() * 0.2, Qt.KeepAspectRatio))
         edf_label = QLabel()
-        edf_label.setPixmap(QPixmap("translation/EDF.png").scaled(edf_label.size() * 0.2, Qt.KeepAspectRatio))
+        edf_label.setPixmap(QPixmap("file_dep/EDF.png").scaled(edf_label.size() * 0.2, Qt.KeepAspectRatio))
         self.close_button = QPushButton(self.tr("Close"))
         self.close_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.close_button.clicked.connect(self.close_dialog)
@@ -370,11 +370,11 @@ class SoftInformationDialog(QDialog):
     def set_licence_string(self):
         # change language
         if user_preferences.data["language"] == 'english':
-            self.licence_file_path = "Licence_CeCILL_V2.1-en.txt"
+            self.licence_file_path = r"file_dep/Licence_CeCILL_V2.1-en.txt"
         elif user_preferences.data["language"] == "french":
-            self.licence_file_path = "Licence_CeCILL_V2.1-fr.txt"
+            self.licence_file_path = r"file_dep/Licence_CeCILL_V2.1-fr.txt"
         else:
-            self.licence_file_path = "Licence_CeCILL_V2.1-en.txt"
+            self.licence_file_path = r"file_dep/Licence_CeCILL_V2.1-en.txt"
 
         # read
         with open(self.licence_file_path, "r") as fh:
