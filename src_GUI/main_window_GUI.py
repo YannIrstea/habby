@@ -235,7 +235,7 @@ class MainWindows(QMainWindow):
         """ Used by __init__() to create an instance of the class MainWindows """
 
         # set window icon
-        self.name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+        self.name_icon = os.path.join(os.getcwd(), "file_dep", "habby_icon.png")
         self.setWindowIcon(QIcon(self.name_icon))
 
         # position theme
@@ -1275,23 +1275,23 @@ class MainWindows(QMainWindow):
 
         # create the icon
         icon_closefig = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation", "icon", "close.png")
+        name1 = os.path.join(os.getcwd(), "file_dep", "icon", "close.png")
         icon_closefig.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_open = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation", "icon", "openproject.png")
+        name1 = os.path.join(os.getcwd(), "file_dep", "icon", "openproject.png")
         icon_open.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_see = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation", "icon", "see_project.png")
+        name1 = os.path.join(os.getcwd(), "file_dep", "icon", "see_project.png")
         icon_see.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_new = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation", "icon", "newfile.png")
+        name1 = os.path.join(os.getcwd(), "file_dep", "icon", "newfile.png")
         icon_new.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_kill = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation", "icon", "stop.png")
+        name1 = os.path.join(os.getcwd(), "file_dep", "icon", "stop.png")
         icon_kill.addPixmap(QPixmap(name1), QIcon.Normal)
 
         # create the actions of the toolbar
@@ -1854,7 +1854,7 @@ class CreateNewProjectDialog(QDialog):
         self.setLayout(layoutl)
 
         self.setWindowTitle(self.tr('HABBY- New Project'))
-        name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+        name_icon = os.path.join(os.getcwd(), "file_dep", "habby_icon.png")
         self.setWindowIcon(QIcon(name_icon))
         self.setMinimumWidth(650)
         self.setMinimumHeight(100)

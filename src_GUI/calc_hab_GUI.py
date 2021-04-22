@@ -913,7 +913,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                              sub_opt,
                                                              user_preferences.biological_models_dict["aquatic_animal_type"][index_fish],
                                                              user_preferences.biological_models_dict["model_type"][index_fish],
-                                                             user_preferences.biological_models_dict["path_xml"][index_fish])
+                                                             user_preferences.biological_models_dict["path_xml"][index_fish],
+                                                                  user_preferences.biological_models_dict["path_img"][index_fish])
 
         if self.user_target_list:
             # get the name of the merged file

@@ -215,7 +215,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         if project_preferences['font_size'] > 7:
             mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     # get translation
-    # qt_tr = get_translator(project_preferences['path_prj'])
+    if not qt_tr:
+        qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams['font.family'] = project_preferences['font_family']
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -2007,7 +2008,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     ax_north.name = "north"
     ax_north.xaxis.set_ticks([])  # remove ticks
     ax_north.yaxis.set_ticks([])  # remove ticks
-    north_im = plt.imread(os.path.join(os.getcwd(), "translation", "icon", "north.png"))
+    north_im = plt.imread(os.path.join(os.getcwd(), "translation", "north.png"))
     ax_north.imshow(north_im)
 
     # ax_legend_border

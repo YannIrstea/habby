@@ -1330,7 +1330,8 @@ def cli_calc_hab(arguments, project_preferences):
                                                          run_choice["sub_opt"][i],
                                                          information_model_dict["aquatic_animal_type"],
                                                          information_model_dict["ModelType"],
-                                                         run_choice["pref_file_list"][i])
+                                                         run_choice["pref_file_list"][i],
+                                                         information_model_dict["path_img"])
     if user_target_list:
         # run calculation
         progress_value = Value("d", 0)

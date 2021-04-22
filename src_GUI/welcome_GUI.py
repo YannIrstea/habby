@@ -61,7 +61,7 @@ class WelcomeW(QScrollArea):
 
         super().__init__()
         self.tab_name = "welcome"
-        self.imname = os.path.join('translation', 'banner.png')  # image should be in the translation folder
+        self.imname = os.path.join('file_dep', 'banner.png')  # image should be in the translation folder
         self.image_background_path = os.path.join(os.getcwd(), self.imname)
         self.path_prj = path_prj
         self.name_prj = name_prj

@@ -137,7 +137,7 @@ def main():
         time_between_image = 0.02
         delta_opacity = 0.1
         splash = QSplashScreen()
-        splash.setPixmap(QPixmap('translation/splash_screen.png'))
+        splash.setPixmap(QPixmap('file_dep/splash_screen.png'))
         # splashscreen progressively displayed (with transparency)
         effect = QGraphicsOpacityEffect()
         splash.setGraphicsEffect(effect)

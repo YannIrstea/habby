@@ -77,7 +77,7 @@ base = None
 # icon
 ico = None
 if sys.platform == "win32":
-    ico = "translation/habby_icon.ico"
+    ico = "file_dep/habby_icon.ico"
 target = Executable(
     script="habby.py",
     base=base,

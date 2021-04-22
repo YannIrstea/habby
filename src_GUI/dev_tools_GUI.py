@@ -162,15 +162,15 @@ class QGroupBoxCollapsible(QGroupBox):
         self.setCheckable(True)
         self.setStyleSheet('QGroupBox::indicator {width: 20px; height: 20px;}'
                            
-            'QGroupBox::indicator:unchecked {image: url(translation//icon//triangle_black_closed_50_50.png);}'  # close
-            'QGroupBox::indicator:unchecked:hover {image: url(translation//icon//triangle_black_closed_50_50.png);}'
-            'QGroupBox::indicator:unchecked:pressed {image: url(translation//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked {image: url(file_dep//icon//triangle_black_closed_50_50.png);}'  # close
+            'QGroupBox::indicator:unchecked:hover {image: url(file_dep//icon//triangle_black_closed_50_50.png);}'
+            'QGroupBox::indicator:unchecked:pressed {image: url(file_dep//icon//triangle_black_closed_50_50.png);}'
                            
-            'QGroupBox::indicator:checked {image: url(translation//icon//triangle_black_open_50_50.png);}'  # open
-            'QGroupBox::indicator:checked:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:checked:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:hover {image: url(translation//icon//triangle_black_open_50_50.png);}'
-            'QGroupBox::indicator:indeterminate:pressed {image: url(translation//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked {image: url(file_dep//icon//triangle_black_open_50_50.png);}'  # open
+            'QGroupBox::indicator:checked:hover {image: url(file_dep//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:checked:pressed {image: url(file_dep//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:hover {image: url(file_dep//icon//triangle_black_open_50_50.png);}'
+            'QGroupBox::indicator:indeterminate:pressed {image: url(file_dep//icon//triangle_black_open_50_50.png);}'
         )
         #'QGroupBox::indicator:checked:hover {image: url(translation//triangle_black_closed.png);}'
         self.toggled.connect(self.toggle_group)
