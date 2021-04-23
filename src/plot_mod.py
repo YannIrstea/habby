@@ -2008,7 +2008,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     ax_north.name = "north"
     ax_north.xaxis.set_ticks([])  # remove ticks
     ax_north.yaxis.set_ticks([])  # remove ticks
-    north_im = plt.imread(os.path.join(os.getcwd(), "translation", "north.png"))
+    north_im = plt.imread(os.path.join(os.getcwd(), "file_dep", "north.png"))
     ax_north.imshow(north_im)
 
     # ax_legend_border

@@ -38,7 +38,7 @@ from src.hydraulic_results_manager_mod import HydraulicModelInformation
 
 hidden_imports.extend(["src." + s for s in HydraulicModelInformation().file_mod_models_list])
 
-a = Analysis(['habby.py'],
+a = Analysis([os.path.join(habby_dev_path, "habby", 'habby.py')],
              pathex=[],
              binaries=osgeo_pyds,
              datas=[],
@@ -64,7 +64,7 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=False,
-          icon='file_dep\\habby_icon.ico')
+          icon=os.path.join(habby_dev_path, "habby", "file_dep", "habby_icon.ico"))
 
 coll = COLLECT(exe,
                a.binaries,
