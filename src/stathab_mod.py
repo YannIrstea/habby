@@ -506,6 +506,12 @@ class Stathab:
         # xml_filename = code_bio_model+ ".xml"
         # xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
         xmlfile = user_preferences.biological_models_dict["path_xml"][index_fish]
+        indexmodeltype=0
+        if user_preferences.biological_models_dict["model_type"][index_fish].lower()=='univariate suitability index curves':
+            indexmodeltype=1
+        elif user_preferences.biological_models_dict["model_type"][index_fish].lower()=='bivariate suitability index models':
+            indexmodeltype =2
+        # TODO a modifier quand Quentin aura changé la fonction
         h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
         stage = self.fish_chosen[fish_num].split(" - ")[-2]
         stage_index = stages.index(stage)
