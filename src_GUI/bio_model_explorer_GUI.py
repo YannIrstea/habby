@@ -568,7 +568,7 @@ class BioModelInfoSelection(QScrollArea):
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.selected_fish_cd_biological_model = None
+        self.selected_fish_code_biological_model = None
         self.selected_aquatic_animal_list = []
         self.msg2 = QMessageBox()
         self.init_iu()
@@ -716,7 +716,7 @@ class BioModelInfoSelection(QScrollArea):
                         if stage_wish in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
                             item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + " - " +
                                              self.bio_model_explorer_selection_dict["stage_and_size"][0][selected_stage_ind] + " - " +
-                                             self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
+                                             self.biological_models_dict_gui["code_biological_model"][selected_xml_ind])
 
         self.available_aquatic_animal_listwidget.model().blockSignals(True)
         self.available_aquatic_animal_listwidget.addItems(item_list)
@@ -790,10 +790,10 @@ class BioModelInfoSelection(QScrollArea):
 
         # get info
         name_fish, stage, code_bio_model = bio_info_mod.get_name_stage_codebio_fromstr(i1.text())
-        self.selected_fish_cd_biological_model = code_bio_model
+        self.selected_fish_code_biological_model = code_bio_model
         self.selected_fish_stage = stage
         self.selected_name_fish = name_fish
-        i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
+        i = self.biological_models_dict_gui["code_biological_model"].index(self.selected_fish_code_biological_model)
 
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
         img_file = self.biological_models_dict_gui["path_img"][i]
@@ -874,7 +874,7 @@ class BioModelInfoSelection(QScrollArea):
         read_pref and figure_pref of bio_info_mod.py. Hence, this function justs makes the link between the GUI and
         the functions effectively doing the image.
         """
-        if not self.selected_fish_cd_biological_model:
+        if not self.selected_fish_code_biological_model:
             self.send_log.emit("Warning: " + self.tr("No fish selected to show Habitat Suitability Index"))
             return
 
@@ -884,7 +884,7 @@ class BioModelInfoSelection(QScrollArea):
             plot_attr.selected_fish_stage = None
         else:
             plot_attr.selected_fish_stage = self.selected_fish_stage
-        plot_attr.i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
+        plot_attr.i = self.biological_models_dict_gui["code_biological_model"].index(self.selected_fish_code_biological_model)
         plot_attr.aquatic_animal_type = self.biological_models_dict_gui["aquatic_animal_type"][plot_attr.i]
         plot_attr.xmlfile = self.biological_models_dict_gui["path_xml"][plot_attr.i]
         plot_attr.information_model_dict = bio_info_mod.get_biomodels_informations_for_database(plot_attr.xmlfile)
@@ -903,12 +903,12 @@ class BioModelInfoSelection(QScrollArea):
         to the hydrosignature.
         """
 
-        if not self.selected_fish_cd_biological_model:
+        if not self.selected_fish_code_biological_model:
             self.send_log.emit("Warning: " + self.tr("No fish selected to hydrosignature."))
             return
 
         # get the file
-        i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
+        i = self.biological_models_dict_gui["code_biological_model"].index(self.selected_fish_code_biological_model)
 
         plot_attr = lambda: None
         plot_attr.fishname = self.biological_models_dict_gui["latin_name"][i]
@@ -933,7 +933,7 @@ class BioModelInfoSelection(QScrollArea):
             selected_aquatic_animal_list.append(new_item_to_merge)
             # get info
             name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(new_item_to_merge)
-            index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+            index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
             # get stage index
             index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
 

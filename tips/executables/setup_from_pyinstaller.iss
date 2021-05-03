@@ -4,7 +4,7 @@
 #define MyAppName "HABBY"
 #define MyAppVersion "1.00"
 #define MyAppPublisher "Irstea"
-#define MyAppURL "https://github.com/YannIrstea/habby"
+#define MyAppURL "https://habby.wiki.inrae.fr/"
 #define MyAppExeName "habby.exe"
 
 [Setup]
@@ -22,13 +22,13 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=file_dep\Licence_CeCILL_V2.1-fr.txt
-InfoBeforeFile=disclamer.txt
-OutputDir=build\pyinstaller
+LicenseFile=C:\habby_dev\habby\file_dep\Licence_CeCILL_V2.1-fr.txt
+InfoBeforeFile=C:\habby_dev\habby\tips\executables\disclamer.txt
+OutputDir=C:\habby_dev\habby\build\pyinstaller
 OutputBaseFilename=HABBY-setup-64
 Compression=lzma
 SolidCompression=yes
-ChangesAssociations = yes
+ChangesAssociations=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -39,8 +39,8 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "build\pyinstaller\habby\habby.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\pyinstaller\habby\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\habby_dev\habby\build\pyinstaller\habby\habby.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\habby_dev\habby\build\pyinstaller\habby\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

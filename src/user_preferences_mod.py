@@ -34,14 +34,6 @@ class UserPreferences(AppDataFolders):
         # state
         self.modified = False
         self.user_attempt_to_add_preference_curve = False
-        # biological models allowed by HABBY dict
-        self.biological_models_requirements_dict = dict(ModelType=["univariate suitability index curves"],
-                                                        UnitVariable=[
-                                                            ["PreferenceHeightOfWater", "HeightOfWaterClasses"],
-                                                            ["PreferenceVelocity", "VelocityClasses"]],
-                                                        UnitSymbol=[["m", "cm"], ["m/s", "cm/s"]],
-                                                        UnitFactor=[[1, 0.01], [1, 0.01]])
-
         # default preferences data
         self.data = dict(language="english",  # english, french, spanish
                          name_prj="",
@@ -148,7 +140,7 @@ class UserPreferences(AppDataFolders):
                                       substrate_type=[],  # sortable
                                       substrate_type_available=[],  # unsortable
                                       code_alternative=[],  # sortable
-                                      cd_biological_model=[],  # unsortable
+                                      code_biological_model=[],  # unsortable
                                       modification_date=[],  # unsortable
                                       latin_name=[],  # unsortable
                                       path_xml=[],  # unsortable
@@ -179,7 +171,7 @@ class UserPreferences(AppDataFolders):
                 # append in dict
                 biological_models_dict["country"].append(information_model_dict["country"])
                 biological_models_dict["aquatic_animal_type"].append(information_model_dict["aquatic_animal_type"])
-                biological_models_dict["model_type"].append(information_model_dict["ModelType"])
+                biological_models_dict["model_type"].append(information_model_dict["model_type"])
                 biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
                 biological_models_dict["hydraulic_type"].append(information_model_dict["hydraulic_type"])
                 biological_models_dict["hydraulic_type_available"].append(
@@ -189,19 +181,19 @@ class UserPreferences(AppDataFolders):
                     information_model_dict["substrate_type_available"])
                 biological_models_dict["guild"].append(information_model_dict["guild"])
                 biological_models_dict["xml_origine"].append(xml_origine)
-                biological_models_dict["made_by"].append(information_model_dict["MadeBy"])
+                biological_models_dict["made_by"].append(information_model_dict["made_by"])
                 # last sortable
-                biological_models_dict["code_alternative"].append(information_model_dict["CdAlternative"])
+                biological_models_dict["code_alternative"].append(information_model_dict["code_alternative"])
                 # save data unsortable
-                biological_models_dict["cd_biological_model"].append(information_model_dict["CdBiologicalModel"])
+                biological_models_dict["code_biological_model"].append(information_model_dict["code_biological_model"])
                 biological_models_dict["modification_date"].append(information_model_dict["modification_date"])
-                biological_models_dict["latin_name"].append(information_model_dict["LatinName"])
+                biological_models_dict["latin_name"].append(information_model_dict["latin_name"])
                 biological_models_dict["path_xml"].append(path_xml)
                 biological_models_dict["path_img"].append(information_model_dict["path_img"])
 
         # sort by latin name
         self.biological_models_dict = sort_homogoeneous_dict_list_by_on_key(biological_models_dict,
-                                                                            "cd_biological_model")
+                                                                            "code_biological_model")
 
     def create_biology_models_json(self):
         # save database

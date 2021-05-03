@@ -23,9 +23,40 @@ class HydraulicVariable:
     """
     Represent one Hydraulic, substrate and habitat variable or value.
     """
-
     def __init__(self, name="", name_gui="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
-                 sub=False, habitat=False, index_gui=-1, depend_on_h=True):
+                 sub=False, index_gui=-1, depend_on_h=True):
+        self.name = name  # to manage them
+        self.name_gui = name_gui  # to gui
+        self.descr = descr  # description string
+        self.unit = unit  # string unit
+        self.dtype = dtype  # float64 or int64
+        self.position = position  # node, mesh, (possible face ?)
+        self.value = value  # for ro, g, .. (constant but possible varying ?)
+        self.hdf5 = hdf5  # hdf5 or computable
+        self.sub = sub  # False: hydraulic (default) True: substrate
+        self.index_gui = index_gui  # position index in gui
+        self.data = [[]]
+        self.min = 0.0  # min for all reach and unit
+        self.max = 0.0  # max for all reach and unit
+        self.software_attributes_list = []  # software string names list to link with them
+        self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
+        self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
+        self.habitat = False  # False: hydraulic and substrate (default) True: Habitat
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+
+class HabitatVariable(HydraulicVariable):
+    """
+    Represent one Hydraulic, substrate and habitat variable or value.
+    """
+    def __init__(self, name="", name_gui="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
+                 sub=False, index_gui=-1, depend_on_h=True):
+        super().__init__()
         self.name = name  # to manage them
         self.name_gui = name_gui  # to gui
         self.descr = descr  # description string
@@ -43,19 +74,13 @@ class HydraulicVariable:
         self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
         self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
         # hab data
-        self.habitat = habitat  # False: hydraulic and substrate (default) True: Habitat
+        self.habitat = True  # False: hydraulic and substrate (default) True: Habitat
         self.wua = [[]]
         self.hv = [[]]
         self.percent_area_unknown = [[]]
         self.pref_file = ""
         self.stage = ""
         self.aquatic_animal_type = ""
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return self.name
 
 
 class HydraulicVariableUnitList(list):
@@ -73,14 +98,15 @@ class HydraulicVariableUnitList(list):
         if hydraulic_variable:
             hydraulic_variable2 = deepcopy(hydraulic_variable)
             # set manually attr
-            hydraulic_variable2.wua = hydraulic_variable.wua
-            hydraulic_variable2.hv = hydraulic_variable.hv
-            hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
-            hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
-            hydraulic_variable2.pref_file = hydraulic_variable.pref_file
-            hydraulic_variable2.stage = hydraulic_variable.stage
-            hydraulic_variable2.name = hydraulic_variable.name
-            hydraulic_variable2.aquatic_animal_type = hydraulic_variable.aquatic_animal_type
+            if type(hydraulic_variable) == HabitatVariable:
+                hydraulic_variable2.wua = hydraulic_variable.wua
+                hydraulic_variable2.hv = hydraulic_variable.hv
+                hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
+                hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
+                hydraulic_variable2.pref_file = hydraulic_variable.pref_file
+                hydraulic_variable2.stage = hydraulic_variable.stage
+                hydraulic_variable2.name = hydraulic_variable.name
+                hydraulic_variable2.aquatic_animal_type = hydraulic_variable.aquatic_animal_type
             hydraulic_variable2.min = hydraulic_variable.min
             hydraulic_variable2.max = hydraulic_variable.max
             super(HydraulicVariableUnitList, self).append(hydraulic_variable2)
@@ -94,28 +120,30 @@ class HydraulicVariableUnitList(list):
         self.sort_by_names_gui()
 
     def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, aquatic_animal_type, model_type,
-                                    pref_file, path_img):
+                                    pref_file, path_img, hyd_opt_available=[], sub_opt_available=[], variable_list=None):
         # animal name
         name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt
         # create variable
-        hab_variable = HydraulicVariable(value=None,
+        hab_variable = HabitatVariable(value=None,
                                          unit="HSI",
                                          name=name,
                                          name_gui=name,
                                          position="mesh",
                                          dtype=np.float64,
-                                         index_gui=1,
-                                         habitat=True)
+                                         index_gui=1)
         # extra attributes
+        hab_variable.variable_list = variable_list
         hab_variable.precomputable_tohdf5 = True
         hab_variable.pref_file = pref_file
         hab_variable.path_img = path_img
         hab_variable.aquatic_animal_type = aquatic_animal_type
         hab_variable.model_type = model_type
-        hab_variable.code_alternative = code_bio_model
+        hab_variable.code_bio_model = code_bio_model
         hab_variable.stage = stage
         hab_variable.hyd_opt = hyd_opt
+        hab_variable.hyd_opt_available = hyd_opt_available
         hab_variable.sub_opt = sub_opt
+        hab_variable.sub_opt_available = sub_opt_available
         # append
         super(HydraulicVariableUnitList, self).append(hab_variable)
 
@@ -653,15 +681,14 @@ class HydraulicVariableUnitManagement:
         varnames.sort(key=str.lower)  # sort alphanumeric
         # detect_variable_from_software_attribute
         for varname_index, varname in enumerate(varnames):
-            variable = HydraulicVariable(value=None,
+            variable = HabitatVariable(value=None,
                                          unit="HSI",
                                          name=varname,
                                          name_gui=varname,
                                          hdf5=True,
                                          position="mesh",
                                          dtype=np.float64,
-                                         index_gui=1,
-                                         habitat=True)
+                                         index_gui=1)
             self.hdf5_and_computable_list.append(variable)
 
     def get_original_computable_mesh_and_node_from_hyd(self, mesh_variable_original_name_list,

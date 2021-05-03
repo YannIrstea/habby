@@ -36,21 +36,10 @@ from src.translator_mod import get_translator
 
 
 # other
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, sub_type, sub_code, project_preferences, get_fig=False, qt_tr=False):
+def plot_suitability_curve(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
     """
-    This function is used to plot the preference curves.
-
-    :param height: the height preference data (list of list)
-    :param vel: the height preference data (list of list)
-    :param sub: the height preference data (list of list)
-    :param code_fish: the three letter code which indiate which fish species
-        is analyzed
-    :param name_fish: the name of the fish analyzed
-    :param stade: the name of the stade analyzed (ADU, JUV, ...)
-    :param get_fig: usually False, If True return the figure
-        (to modfied it more)
+    This function is used to plot the univariate preference curves of one or all stages.
     """
-
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     if not get_fig:
@@ -70,70 +59,63 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     else:
         mar = None
 
-    height_values = np.array(height[0][0])
-    height_pref = np.array(height[0][1])
-    vel_values = np.array(vel[0][0])
-    vel_pref = np.array(vel[0][1])
-    sub_values = np.array(sub[0][0])
-    sub_pref = np.array(sub[0][1])
-
-    # title and filename
-    title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
+    name_fish = information_model_dict["latin_name"]
+    code_fish = information_model_dict["code_biological_model"]
+    title_plot = 'HSI' + " : "
 
     # one stage
-    if len(stade) == 1:
+    if selected_fish_stage is not None:
+        stage_index = information_model_dict["stage_and_size"].index(selected_fish_stage)
+        stade = [selected_fish_stage]
+        sub_var_list = information_model_dict["hab_variable_list"][stage_index].variable_list.subs()
         # preplot
-        if len(sub_values) > 2:  # check if sub data exist
+        if sub_var_list:  # check if sub data exist
             fig, ax = plt.subplots(3, 1)
         else:  # no sub
             fig, ax = plt.subplots(2, 1)
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
 
-        # height
-        ax[0].plot(height_values,
-                   height_pref,
-                   color="blue",
-                   marker=mar)
-        ax[0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
-        ax[0].set_ylim([-0.1, 1.1])
-
-        # velocity
-        ax[1].plot(vel_values,
-                   vel_pref,
-                   color="red",
-                   marker=mar)
-        ax[1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/s]'))
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
-        ax[1].set_ylim([-0.1, 1.1])
+        for index_var, hyd_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()):
+            # height
+            ax[index_var].plot(hyd_var.data[0],
+                       hyd_var.data[1],
+                       color="blue",
+                       marker=mar)
+            ax[index_var].set_xlabel(hyd_var.name_gui + " [" + hyd_var.unit + "]")
+            ax[index_var].set_ylabel('HSI []')
+            ax[index_var].set_ylim([-0.1, 1.1])
 
         # sub
-        if len(sub_values) > 2:
-            ax[2].bar(sub_values,
-                      sub_pref,
+        if sub_var_list:
+            ax[2].bar(sub_var_list[0].data[0],
+                      sub_var_list[0].data[1],
                       facecolor='c',
                       align='center')
-            ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[0] + ' [' + sub_code[0] + ']')
-            ax[2].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
+            ax[2].set_xlabel(sub_var_list[0].name_gui + ' [' + sub_var_list[0].unit + ']')
+            ax[2].set_ylabel('HSI []')
             ax[2].set_ylim([-0.1, 1.1])
-            ax[2].set_xlim([0.4, len(sub_values) + 0.6])
+            ax[2].set_xlim([0.4, len(sub_var_list[0].data[0]) + 0.6])
 
     # multi stage
     else:
-        # get min_max_height_all_stages and min_max_velocity_all_stages
-        min_height_all_stages = []
-        max_height_all_stages = []
-        min_velocity_all_stages = []
-        max_velocity_all_stages = []
-        for s in range(0, len(stade)):
-            min_height_all_stages.append(min(height[s][0]))
-            max_height_all_stages.append(max(height[s][0]))
-            min_velocity_all_stages.append(min(vel[s][0]))
-            max_velocity_all_stages.append(max(vel[s][0]))
-        min_height_all_stages = min(min_height_all_stages) - 0.1
-        max_height_all_stages = max(max_height_all_stages) + 0.1
-        min_velocity_all_stages = min(min_velocity_all_stages) - 0.1
-        max_velocity_all_stages = max(max_velocity_all_stages) + 0.1
+        # # get min_max_height_all_stages and min_max_velocity_all_stages
+        # min_height_all_stages = []
+        # max_height_all_stages = []
+        # min_velocity_all_stages = []
+        # max_velocity_all_stages = []
+        # for s in range(0, len(stade)):
+        #     min_height_all_stages.append(min(height[s][0]))
+        #     max_height_all_stages.append(max(height[s][0]))
+        #     min_velocity_all_stages.append(min(vel[s][0]))
+        #     max_velocity_all_stages.append(max(vel[s][0]))
+        # min_height_all_stages = min(min_height_all_stages) - 0.1
+        # max_height_all_stages = max(max_height_all_stages) + 0.1
+        # min_velocity_all_stages = min(min_velocity_all_stages) - 0.1
+        # max_velocity_all_stages = max(max_velocity_all_stages) + 0.1
+        stade = information_model_dict["stage_and_size"]
+
+        for stage_index, stage in enumerate(information_model_dict["hab_variable_list"]):
+            for indexhyd_var, hyd_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()):
 
         # preplot
         if len(sub[0][0]) > 2:  # check if sub data exist
@@ -179,9 +161,6 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     # output for plot_GUI
     if state is not None:
         state.value = 100  # process finished
-
-    # qt_tr.quit()
-    qt_tr.exit()
 
     # show ?
     if not get_fig:
@@ -2008,7 +1987,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     ax_north.name = "north"
     ax_north.xaxis.set_ticks([])  # remove ticks
     ax_north.yaxis.set_ticks([])  # remove ticks
-    north_im = plt.imread(os.path.join(os.getcwd(), "translation", "north.png"))
+    north_im = plt.imread(os.path.join(os.getcwd(), "file_dep", "north.png"))
     ax_north.imshow(north_im)
 
     # ax_legend_border

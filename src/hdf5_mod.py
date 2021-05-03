@@ -50,9 +50,9 @@ class Hdf5Management:
         self.hdf5_version = h5py.version.hdf5_version
         # project attributes
         self.path_prj = path_prj  # relative path to project
-        self.path_shp = os.path.join(self.path_prj, "output", "GIS")
+        self.path_gis = os.path.join(self.path_prj, "output", "GIS")
         self.path_txt = os.path.join(self.path_prj, "output", "text")
-        self.path_visualisation = os.path.join(self.path_prj, "output", "3D")
+        self.path_3d = os.path.join(self.path_prj, "output", "3D")
         self.path_figure = os.path.join(self.path_prj, "output", "figures")
         self.name_prj = os.path.basename(path_prj)  # name of project
         self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -383,9 +383,9 @@ class Hdf5Management:
                     self.basename_output_reach_unit[reach_number].append(self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
                     if unit_type != 'unknown':
                         # ["/", ".", "," and " "] are forbidden for gpkg in ArcMap
-                        unit_name2 = unit_name.replace(".", "_") + "_" + unit_type.split("[")[1][:-1].replace("/", "")
+                        unit_name2 = unit_name.replace(".", "_")  # + "_" + unit_type.split("[")[1][:-1].replace("/", "")
                     else:
-                        unit_name2 = unit_name.replace(".", "_") + "_" + unit_type
+                        unit_name2 = unit_name.replace(".", "_")  # + "_" + unit_type
                     self.units_name_output[reach_number].append(unit_name2)
 
         if close_file:
@@ -1277,7 +1277,7 @@ class Hdf5Management:
         for reach_number in range(0, self.data_2d.reach_number):
             # name
             filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
-            filename_path = os.path.join(self.path_shp, filename)
+            filename_path = os.path.join(self.path_gis, filename)
 
             # for all units
             filename_path_list = []
@@ -1352,7 +1352,7 @@ class Hdf5Management:
         for reach_number in range(0, self.data_2d.reach_number):
             # name
             filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
-            filename_path = os.path.join(self.path_shp, filename)
+            filename_path = os.path.join(self.path_gis, filename)
 
             # for all units
             filename_path_list = []
@@ -1419,7 +1419,7 @@ class Hdf5Management:
         for reach_number in range(0, self.data_2d.reach_number):
             # name
             filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
-            filename_path = os.path.join(self.path_shp, filename)
+            filename_path = os.path.join(self.path_gis, filename)
 
             # for all units
             filename_path_list = []
@@ -1494,7 +1494,7 @@ class Hdf5Management:
         for reach_number in range(0, self.data_2d.reach_number):
             # name
             filename = self.basename + "_" + self.data_2d.reach_list[reach_number] + ".gpkg"
-            filename_path = os.path.join(self.path_shp, filename)
+            filename_path = os.path.join(self.path_gis, filename)
 
             # for all units
             filename_path_list = []
@@ -1575,19 +1575,19 @@ class Hdf5Management:
                                 unit_number] + "_wholeprofile_mesh.stl")
 
                 if self.project_preferences['erase_id']:  # erase file if exist ?
-                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                    if os.path.isfile(os.path.join(self.path_3d, name_file)):
                         try:
-                            os.remove(os.path.join(self.path_visualisation, name_file))
+                            os.remove(os.path.join(self.path_3d, name_file))
                         except PermissionError:
                             print(
                                 'Error: The shapefile is currently open in an other program. Could not be re-written \n')
                             return
                 else:
-                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                    if os.path.isfile(os.path.join(self.path_3d, name_file)):
                         name_file = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
                             "%d_%m_%Y_at_%H_%M_%S") + '.shp'
                 # Write the mesh to file "cube.stl"
-                stl_file.save(os.path.join(self.path_visualisation,
+                stl_file.save(os.path.join(self.path_3d,
                                            name_file))
 
         if state is not None:
@@ -1630,20 +1630,20 @@ class Hdf5Management:
                             mesh_variable.name].to_numpy()
 
                 # create the grid and the vtu files
-                name_file = os.path.join(self.path_visualisation,
+                name_file = os.path.join(self.path_3d,
                                          self.basename_output_reach_unit[reach_number][unit_number] + "_" +
                                          self.project_preferences['pvd_variable_z'])
                 if self.project_preferences['erase_id']:  # erase file if exist ?
-                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                    if os.path.isfile(os.path.join(self.path_3d, name_file)):
                         try:
-                            os.remove(os.path.join(self.path_visualisation, name_file))
+                            os.remove(os.path.join(self.path_3d, name_file))
                         except PermissionError:
                             print(
                                 'Error: The shapefile is currently open in an other program. Could not be re-written \n')
                             return
                 else:
-                    if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
-                        name_file = os.path.join(self.path_visualisation,
+                    if os.path.isfile(os.path.join(self.path_3d, name_file)):
+                        name_file = os.path.join(self.path_3d,
                                                  self.basename_output_reach_unit[reach_number][unit_number] + "_" +
                                                  self.project_preferences['pvd_variable_z']) + "_" + time.strftime(
                             "%d_%m_%Y_at_%H_%M_%S")
@@ -1656,20 +1656,20 @@ class Hdf5Management:
             'pvd_variable_z'] + ".pvd"
         file_names_all = list(map(os.path.basename, file_names_all))
         if self.project_preferences['erase_id']:  # erase file if exist ?
-            if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
+            if os.path.isfile(os.path.join(self.path_3d, name_here)):
                 try:
-                    os.remove(os.path.join(self.path_visualisation, name_here))
+                    os.remove(os.path.join(self.path_3d, name_here))
                 except PermissionError:
                     print(
                         'Error: The file .pvd is currently open in an other program. Could not be re-written \n')
                     return
         else:
-            if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
+            if os.path.isfile(os.path.join(self.path_3d, name_here)):
                 name_here = self.basename + "_" + self.reach_name[reach_number] + "_" + self.project_preferences[
                     'pvd_variable_z'] + "_" + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + '.pvd'
-        writePVD(os.path.join(self.path_visualisation, name_here), file_names_all,
-                              part_timestep_indice)
+        writePVD(os.path.join(self.path_3d, name_here), file_names_all,
+                 part_timestep_indice)
 
         if state is not None:
             state.value = 100.0  # process finished

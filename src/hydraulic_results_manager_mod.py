@@ -787,10 +787,8 @@ class HydraulicSimulationResultsAnalyzer:
                     self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
                     return
 
-            # reach_presence
-            if reach_presence:
                 # multi_reach
-                if multi_reach:
+                if multi_reach and reach_presence:
                     # check if unit nb by reach is equal
                     unit_list_all_reach = []
                     unit_list_full_all_reach = []

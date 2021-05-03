@@ -380,7 +380,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if default:
                 # get default
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
                 default_hydraulic_type = user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage]
@@ -413,7 +413,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if default:
                 # get default
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
                 # get default_substrate_type
@@ -439,7 +439,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get info
         item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-        index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         hydraulic_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
         default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
@@ -508,7 +508,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get info
         item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-        index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         substrate_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
         default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
@@ -566,7 +566,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             for index in reversed(range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]))):
                 # get bio info
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"][index])
-                if not code_bio_model in user_preferences.biological_models_dict["cd_biological_model"]:
+                if not code_bio_model in user_preferences.biological_models_dict["code_biological_model"]:
                     # remove it
                     self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].pop(index)
 
@@ -611,7 +611,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
                 # get bio info
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
 
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
@@ -903,7 +903,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if hyd_opt == "Neglect" and sub_opt == "Neglect":
                     self.send_log.emit('Warning: ' + fish_item_text + self.tr(" model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed."))
                     continue
-                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
                 name_fish_sel += fish_item_text + ","
 
                 # append_new_habitat_variable
@@ -979,9 +979,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         cmd_str = cmd_str + F"\tanimal_variable_list = HydraulicVariableUnitList()\n" \
                             F"\tfor i in range(len(run_choice['pref_file_list'])):\n" \
                             F"\t\tinformation_model_dict = get_biomodels_informations_for_database(run_choice['pref_file_list'][i])\n" \
-                            F"\t\tanimal_variable_list.append_new_habitat_variable(information_model_dict['CdBiologicalModel'], " \
+                            F"\t\tanimal_variable_list.append_new_habitat_variable(information_model_dict['code_biological_model'], " \
                             F"run_choice['stage_list'][i], run_choice['hyd_opt'][i], run_choice['sub_opt'][i], " \
-                            F"information_model_dict['aquatic_animal_type'], information_model_dict['ModelType'], " \
+                            F"information_model_dict['aquatic_animal_type'], information_model_dict['model_type'], " \
                             F"run_choice['pref_file_list'][i])\n"
         cmd_str = cmd_str + F"\tcalc_hab_and_output(hab_filename={repr(self.hdf5_file)}, " \
                             F"animal_variable_list=animal_variable_list, " \

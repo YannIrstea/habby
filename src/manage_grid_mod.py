@@ -24,7 +24,6 @@ import scipy.interpolate
 import scipy.spatial.qhull as qhull
 import triangle
 from scipy.interpolate import griddata
-from pandas import DataFrame
 
 
 def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1):

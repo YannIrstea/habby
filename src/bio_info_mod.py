@@ -18,9 +18,10 @@ import os
 import sqlite3
 from datetime import datetime
 import numpy as np
-from PyQt5.QtCore import QCoreApplication as qt_tr
 from lxml import etree as ET
 import re
+
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 def get_biomodels_informations_for_database(path_xml):
@@ -52,13 +53,13 @@ def get_biomodels_informations_for_database(path_xml):
         return
 
     # CdBiologicalModel
-    CdBiologicalModel = root.find('.//CdBiologicalModel').text
+    code_biological_model = root.find('.//CdBiologicalModel').text  # habby curve name database
 
     # Country
     country = root.find(".//Country").text
 
     # MadeBy
-    MadeBy = root.find('.//MadeBy').text
+    made_by = root.find('.//MadeBy').text
 
     # guild
     guild_element = root.find(".//Guild")
@@ -67,15 +68,15 @@ def get_biomodels_informations_for_database(path_xml):
     else:
         guild = "mono"
 
-    # CdAlternative
+    # CdAlternative  # ONEMA, .. curve name database
     if guild == "@guild":
         # get all fish guild code alternative
-        CdAlternative = guild_element.getchildren()[0].text
+        code_alternative = guild_element.getchildren()[0].text
         CdAlternativefishs = [guild_element.getchildren()[i].find("CdAlternative").text for i in
                               [1, len(guild_element.getchildren()) - 1]]
-        CdAlternative = [CdAlternative + " (" + ", ".join(CdAlternativefishs) + ")"]
+        code_alternative = [code_alternative + " (" + ", ".join(CdAlternativefishs) + ")"]
     else:
-        CdAlternative = [root.find('.//CdAlternative').text]
+        code_alternative = [root.find('.//CdAlternative').text]
 
     # aquatic_animal_type
     if root.find(".//Fish") is not None:
@@ -86,77 +87,22 @@ def get_biomodels_informations_for_database(path_xml):
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
         return
 
-    # ModelType
-    ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
+    # model_type
+    model_type = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
+    if model_type not in ("univariate suitability index curves", "bivariate suitability index models"):
+        print("Error: ModelType not recognised. Please verify this xml file :", path_xml)
+        return
 
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
-    # if "[" in stage_and_size[0]:
-    #     stage_and_size = ["class_size"] * len(stage_and_size)
-
-    # hydraulic_type
-    hydraulic_type = []
-    hydraulic_type_available = []
-    for index_stage, stage in enumerate(root.findall(".//Stage")):
-        if ModelType != 'bivariate suitability index models':
-            hydraulic_type.append([])
-            hydraulic_type_available.append([])
-            height_presence = False
-            velocity_presence = False
-            shear_presence = False
-            if stage.findall(".//HeightOfWaterValues"):
-                height_presence = True
-            if stage.findall(".//VelocityValues"):
-                velocity_presence = True
-            if stage.findall(".//PreferenceShearStress"):
-                shear_presence = True
-            # compile infor
-            if height_presence and velocity_presence:
-                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "HV")
-            if height_presence and not velocity_presence:
-                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "H")
-            if not height_presence and velocity_presence:
-                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "V")
-            if shear_presence:
-                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "HEM")
-            if not height_presence and not velocity_presence and not shear_presence:
-                hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod",
-                                                              "Neglect")  # 'Input' sera le nom de classe dans QLinguist et 'Neglect' le string à traduire.
-            # available
-            if height_presence and velocity_presence:
-                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "HV"))
-            if height_presence:
-                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "H"))
-            if velocity_presence:
-                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "V"))
-            if shear_presence:
-                hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "HEM"))
-            hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "Neglect"))
-        else:
-            hydraulic_type.append([])
-            hydraulic_type[index_stage] = qt_tr.translate("bio_info_mod", "HV")
-            hydraulic_type_available.append([])
-            hydraulic_type_available[index_stage].append(qt_tr.translate("bio_info_mod", "HV"))
-
-    # substrate
-    substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
-    if substrate_type == []:
-        substrate_type = [qt_tr.translate("bio_info_mod", "Neglect")] * len(stage_and_size)
-        substrate_type_available = [[qt_tr.translate("bio_info_mod", "Neglect")]] * len(stage_and_size)
-    else:
-        substrate_type_available = [[qt_tr.translate("bio_info_mod", "Coarser-Dominant"),
-                                     qt_tr.translate("bio_info_mod", 'Coarser'),
-                                     qt_tr.translate("bio_info_mod", 'Dominant'),
-                                     qt_tr.translate("bio_info_mod", 'Percentage'),
-                                     qt_tr.translate("bio_info_mod", 'Neglect')]] * len(stage_and_size)
 
     # LatinName
     if guild == "@guild":
-        LatinName = "@guild"
+        latin_name = "@guild"
     else:
-        LatinName = root.find(".//LatinName").text
-        if "," in LatinName:
-            LatinName = LatinName.replace(",", ".")
+        latin_name = root.find(".//LatinName").text
+        if "," in latin_name:
+            latin_name = latin_name.replace(",", ".")
 
     # modification_date
     modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
@@ -178,24 +124,227 @@ def get_biomodels_informations_for_database(path_xml):
     for common_name in common_name_el_list:
         common_name_list.append(common_name.text)
 
+    # hvum
+    hvum = HydraulicVariableUnitManagement()
+
+    # model varaible by stage
+    for index_stage, stage in enumerate(root.findall(".//Stage")):
+
+        # hvum_stage
+        hvum_stage = HydraulicVariableUnitManagement()
+
+        # stage_name
+        stage_name = stage_and_size[index_stage]
+
+        if model_type == "univariate suitability index curves": #, "bivariate suitability index models"
+            if stage.findall(".//PreferenceHeightOfWater"):
+                hvum.h.software_attributes_list = ["PreferenceHeightOfWater"]
+                hvum_stage.software_detected_list.append(hvum.h)
+            if stage.findall(".//PreferenceVelocity"):
+                hvum.v.software_attributes_list = ["PreferenceVelocity"]
+                hvum_stage.software_detected_list.append(hvum.v)
+            if stage.findall(".//PreferenceShearStress"):
+                hvum.shear_stress.software_attributes_list = ["PreferenceShearStress"]
+                hvum_stage.software_detected_list.append(hvum.shear_stress)
+            if stage.findall(".//PreferenceSubstrate"):
+                substrate_type = root.findall(".//PreferenceSubstrate")[index_stage].getchildren()[0].attrib["Variables"]
+                if substrate_type == 'Coarser':
+                    hvum.sub_coarser.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum_stage.software_detected_list.append(hvum.sub_coarser)
+                elif substrate_type == 'Dominant':
+                    hvum.sub_dom.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum_stage.software_detected_list.append(hvum.sub_dom)
+        elif model_type == "bivariate suitability index models":
+            if stage.findall(".//HeightOfWaterValues"):
+                hvum.h.software_attributes_list = ["HeightOfWaterValues"]
+                hvum_stage.software_detected_list.append(hvum.h)
+            if stage.findall(".//VelocityValues"):
+                hvum.v.software_attributes_list = ["VelocityValues"]
+                hvum_stage.software_detected_list.append(hvum.v)
+
+        # compile infor
+        detect_name_list = hvum_stage.software_detected_list.names()
+        height_presence = hvum.h.name in detect_name_list
+        velocity_presence = hvum.v.name in detect_name_list
+        shear_presence = hvum.shear_stress.name in detect_name_list
+        sub_presence = hvum.sub_coarser in detect_name_list or hvum.sub_dom in detect_name_list
+
+        # hyd_opt
+        if height_presence and velocity_presence:
+            hyd_opt = "HV"
+        elif height_presence and not velocity_presence:
+            hyd_opt = "H"
+        elif not height_presence and velocity_presence:
+            hyd_opt = "V"
+        elif shear_presence:
+            hyd_opt = "HEM"
+        elif not height_presence and not velocity_presence and not shear_presence:
+            hyd_opt = "Neglect"
+        else:
+            print("Error: hyd_opt not recognised. Please verify this xml file :", path_xml)
+            return
+
+        # hyd_opt_available
+        hyd_opt_available = []
+        if height_presence and velocity_presence:
+            hyd_opt_available.append("HV")
+        if model_type == "univariate suitability index curves":
+            # can be separated
+            if height_presence:
+                hyd_opt_available.append("H")
+            if velocity_presence:
+                hyd_opt_available.append("V")
+            if shear_presence:
+                hyd_opt_available.append("HEM")
+        hyd_opt_available.append("Neglect")
+
+        # sub_opt
+        if not sub_presence:
+            sub_opt = "Neglect"
+        else:
+            sub_opt = hvum_stage.software_detected_list.subs()
+            if sub_opt:
+                sub_opt = sub_opt[0]
+            else:
+                print("Error: substrate_type not 'Coarser' or 'Dominant'. Please verify this xml file :", path_xml)
+                return
+
+        # sub_opt_available
+        if not sub_presence:
+            sub_opt_available = ["Neglect"]
+        else:
+            sub_opt_available = ["Coarser-Dominant",
+                                        'Coarser',
+                                        'Dominant',
+                                        'Percentage',
+                                        'Neglect']
+
+        # append_new_habitat_variable
+        hvum.software_detected_list.append_new_habitat_variable(code_bio_model=code_biological_model,
+                                                                stage=stage_name,
+                                                                hyd_opt=hyd_opt,
+                                                                hyd_opt_available=hyd_opt_available,
+                                                                sub_opt=sub_opt,
+                                                                sub_opt_available=sub_opt_available,
+                                                                aquatic_animal_type=aquatic_animal_type,
+                                                                model_type=model_type,
+                                                                pref_file=path_xml,
+                                                                path_img=path_img,
+                                                                variable_list=hvum_stage.software_detected_list)
+
     # to dict
     information_model_dict = dict(country=country,
                                   aquatic_animal_type=aquatic_animal_type,
                                   guild=guild,
-                                  CdBiologicalModel=CdBiologicalModel,
+                                  code_biological_model=code_biological_model,
                                   stage_and_size=stage_and_size,
-                                  hydraulic_type=hydraulic_type,
-                                  hydraulic_type_available=hydraulic_type_available,
-                                  substrate_type=substrate_type,
-                                  substrate_type_available=substrate_type_available,
-                                  ModelType=ModelType,
-                                  MadeBy=MadeBy,
-                                  CdAlternative=CdAlternative,
-                                  LatinName=LatinName,
+                                  hydraulic_type=[hab_var.hyd_opt for hab_var in hvum.software_detected_list],
+                                  hydraulic_type_available=[hab_var.hyd_opt_available for hab_var in hvum.software_detected_list],
+                                  substrate_type=[hab_var.sub_opt for hab_var in hvum.software_detected_list],
+                                  substrate_type_available=[hab_var.sub_opt_available for hab_var in hvum.software_detected_list],
+                                  model_type=model_type,
+                                  made_by=made_by,
+                                  code_alternative=code_alternative,
+                                  latin_name=latin_name,
                                   modification_date=modification_date,
                                   path_img=path_img,
                                   description=description,
-                                  common_name_dict=common_name_list)
+                                  common_name_dict=common_name_list,
+                                  hab_variable_list=hvum.software_detected_list)
+
+    return information_model_dict
+
+
+def read_pref(xmlfile):
+    """
+    This function reads the preference curve from the xml file and
+     get the subtrate, height and velocity data.
+    It return the data in meter. Unit for space can be in centimeter,
+     milimeter or meter. Unit for time should be in
+    second .The unit attribute of the xml files should be
+     coherent with the data.
+
+    :param xmlfile: the path and name to the xml file (string)
+    :return: height, vel, sub, code_fish, name_fish, stade
+
+    """
+    failload = None
+    if os.path.split(xmlfile)[0] == '':  # without path : get classic curves
+        xmlfile = os.path.join("biology", "models", xmlfile)
+
+    xml_name = os.path.basename(xmlfile)
+
+    information_model_dict = get_biomodels_informations_for_database(xmlfile)
+
+    # load the file
+    try:
+        try:
+            docxml = ET.parse(xmlfile)
+            root = docxml.getroot()
+        except IOError:
+            print("Error: the xml file" + xml_name + " does not exist \n")
+            return failload
+    except ET.ParseError:
+        print("Error: the xml file " + xml_name + " is not well-formed.\n")
+        return failload
+
+    for hab_index, hab_var in enumerate(information_model_dict["hab_variable_list"]):  # each stage
+        for model_var in hab_var.variable_list:
+            attr = model_var.software_attributes_list[0]
+            model_el_list = root.findall(".//" + attr)
+            if information_model_dict["model_type"] == "univariate suitability index curves":
+                if information_model_dict["aquatic_animal_type"] == "invertebrate":
+                    # data = list of 3 elements (shear_stress, HEM, pref)
+                    data_el = model_el_list[hab_index].getchildren()[0]
+                    model_var.data = [list(map(float, data_el.text.split(" "))),
+                                      list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" "))),
+                                        list(map(float, model_el_list[hab_index].getchildren()[2].text.split(" ")))]
+                else:
+                    # data = list of 2 elements (data, pref)
+                    data_el = model_el_list[hab_index].getchildren()[0]
+                    if model_var.sub:
+                        model_var.data = [list(map(float, [element[1:] for element in data_el.text.split(" ")])),
+                                          list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
+                    else:
+                        model_var.data = [list(map(float, data_el.text.split(" "))),
+                                            list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
+            elif information_model_dict["model_type"] == "bivariate suitability index models":
+                # data = list of values
+                data_el = model_el_list[hab_index]
+                model_var.data = list(map(float, data_el.text.split(" ")))
+            else:
+                print('Error: model_type not recogized: ' + information_model_dict["model_type"] + " in "
+                      + xml_name + '.\n')
+                return failload
+
+            # is data
+            if not model_var.data[0]:
+                print('Error: ' + model_var.name_gui + ' data was not found in the xml file '
+                      + xml_name + '.\n')
+                return failload
+            # if h or v : check increasing
+            if model_var.name in ("h", "v"):
+                if model_var.data[0] != sorted(model_var.data[0]):
+                    print('Error: ' + model_var.name_gui + ' data is not sorted in the xml file '
+                          + xml_name + '.\n')
+                    return failload
+            # change_unit
+            if model_var.sub:
+                model_var.unit = data_el.attrib["Unit" if not model_var.sub else "ClassificationName"]
+                if model_var.unit in ("Code EVHA 2.0 (GINOT 1998)", "Code Cemagref (Malavoi 1989)"):
+                    model_var.unit = "Cemagref"
+                elif model_var.unit in ("Code Sandre (Malavoi et Souchon 1989)"):
+                    model_var.unit = "Sandre"
+                else:  # TODO : if another code
+                    print("Error: Substrate ClassificationName not recognized :", model_var.unit + " in " + xml_name +
+                          '.\n')
+                model_var.data = change_unit(model_var.data, model_var.unit)
+            else:
+                model_var.data = change_unit(model_var.data, data_el.attrib["Unit" if not model_var.sub else "ClassificationName"])
+
+        if information_model_dict["model_type"] == "bivariate suitability index models":
+            # get pref
+            hab_var.hv = list(map(float, root.findall(".//PreferenceValues")[hab_index].text.split(" ")))
 
     return information_model_dict
 
@@ -407,192 +556,6 @@ def get_hydrosignature(xmlfile):
     return data, vclass, hclass
 
 
-def read_pref(xmlfile, desired_stages=None):
-    """
-    This function reads the preference curve from the xml file and
-     get the subtrate, height and velocity data.
-    It return the data in meter. Unit for space can be in centimeter,
-     milimeter or meter. Unit for time should be in
-    second .The unit attribute of the xml files should be
-     coherent with the data.
-
-    :param xmlfile: the path and name to the xml file (string)
-    :return: height, vel, sub, code_fish, name_fish, stade
-
-    """
-    failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99]
-
-    if os.path.split(xmlfile)[0] == '':  # without path : get classic curves
-        xmlfile = os.path.join("biology", "models", xmlfile)
-
-    xml_name = os.path.basename(xmlfile)
-
-    h_all, vel_all, sub_all = [], [], []
-
-    # load the file
-    try:
-        try:
-            docxml = ET.parse(xmlfile)
-            root = docxml.getroot()
-        except IOError:
-            print("Error: the xml file" + xml_name + " does not exist \n")
-            return failload
-    except ET.ParseError:
-        print("Error: the xml file " + xml_name + " is not well-formed.\n")
-        return failload
-
-    # get all stage
-    stages = []
-    stages_data = root.findall(".//Stage")
-    if stages_data is not None:
-        for s in stages_data:
-            stages.append(s.attrib["Type"])
-    else:
-        print('Error: No stage found in ' + xml_name + ' \n')
-        return failload
-
-    # get the code of the fish
-    code_fish = root.find('.//CdAlternative')
-    if code_fish is not None:
-        if code_fish.attrib['OrgCdAlternative']:
-            code_fish = code_fish.text.strip()
-
-    # get the latin name of the fish
-    name_fish = root.find(".//LatinName")
-    # None is null for python 3
-    if name_fish is not None:
-        name_fish = name_fish.text.strip()
-
-    # ModelType
-    ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
-
-    # aquatic_animal_type
-    if root.find(".//Fish") is not None:
-        aquatic_animal_type = "fish"
-    elif root.find(".//Invertebrate") is not None:
-        aquatic_animal_type = "invertebrate"
-    else:
-        print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
-
-    # fish case
-    if aquatic_animal_type == "fish":
-        # velocity
-        vel_all = []
-        if ModelType != 'bivariate suitability index models':
-            pref_vel = root.findall(".//PreferenceVelocity")
-            for pref_vel_i in pref_vel:
-                vel = [[], []]
-                vel[0] = list(map(float, pref_vel_i.getchildren()[0].text.split(" ")))
-                vel[1] = list(map(float, pref_vel_i.getchildren()[1].text.split(" ")))
-                if not vel[0]:
-                    print('Error: Velocity data was not found \n')
-                    return failload
-
-                # check increasing velocity
-                if vel[0] != sorted(vel[0]):
-                    print('Error: Velocity data is not sorted for the xml file '
-                          + xml_name + '.\n')
-                    return failload
-
-                # manage units
-                vel = change_unit(vel, pref_vel_i.getchildren()[0].attrib["Unit"])
-                vel_all.append(vel)
-        else:
-            pref_vel = root.findall(".//VelocityValues")
-            for pref_vel_i in pref_vel:
-                vel_all.append(list(map(float, pref_vel_i.text.split(" "))))
-
-        # height
-        h_all = []
-        if ModelType != 'bivariate suitability index models':
-            pref_hei = root.findall(".//PreferenceHeightOfWater")
-            for pref_hei_i in pref_hei:
-                height = [[], []]
-                height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
-                height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
-
-                if not height[0]:
-                    print('Error: Height data was not found \n')
-                    return failload
-
-                # check increasing velocity
-                if height[0] != sorted(height[0]):
-                    print('Error: Height data is not sorted for the xml file '
-                          + xml_name + '.\n')
-                    return failload
-                # manage units
-                height = change_unit(height, pref_hei_i.getchildren()[0].attrib["Unit"])
-                h_all.append(height)
-        else:
-            pref_hei = root.findall(".//HeightOfWaterValues")
-            for pref_hei_i in pref_hei:
-                h_all.append(list(map(float, pref_hei_i.text.split(" "))))
-
-        # substrate
-        sub_all = []
-        sub_code = []
-        if ModelType != 'bivariate suitability index models':
-            pref_sub = root.findall(".//PreferenceSubstrate")
-            if pref_sub:
-                for pref_sub_i in pref_sub:
-                    sub = [[], []]
-                    sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
-                    sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
-                    sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
-                    if pref_sub_i.getchildren()[0].attrib['ClassificationName'] in ("Code EVHA 2.0 (GINOT 1998)",
-                                                                                    "Code Cemagref (Malavoi 1989)"):
-                        sub_code.append("Cemagref")
-                    elif pref_sub_i.getchildren()[0].attrib['ClassificationName'] in ("Code Sandre (Malavoi et Souchon 1989)"):
-                        sub_code.append("Sandre")
-                    else:  # TODO : if another code
-                        print("Error: Substrate ClassificationName not recognized :", pref_sub_i.getchildren()[0].attrib['ClassificationName'])
-                    if not sub[0]:
-                        # case without substrate
-                        sub = [[0, 1], [1, 1]]
-                    sub_all.append(sub)
-            else:
-                for i in range(len(stages)):
-                    sub_all.append([[0, 1], [1, 1]])
-        else:
-            pref_sub = root.findall(".//PreferenceValues")
-            for pref_sub_i in pref_sub:
-                sub_all.append(list(map(float, pref_sub_i.text.split(" "))))
-
-    # invertebrate sub_all
-    if aquatic_animal_type == "invertebrate":
-        sub_code = []
-        # shear_stress_all, hem_all, hv_all
-        h_all = []  # fake height (HEM)
-        pref_hei = root.findall(".//PreferenceShearStress")
-        for pref_hei_i in pref_hei:
-            height = [[], [], []]
-            height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))  # shear_stress_all
-            height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))  # hem_all
-            height[2] = list(map(float, pref_hei_i.getchildren()[2].text.split(" ")))  # hv_all
-
-            if not height[0]:
-                print('Error: Height data was not found \n')
-                return failload
-
-            # check increasing velocity
-            if height[0] != sorted(height[0]):
-                print('Error: Height data is not sorted for the xml file '
-                      + xml_name + '.\n')
-                return failload
-            h_all.append(height[0])
-            vel_all.append(height[1])
-            sub_all.append(height[2])
-
-    if desired_stages:
-        desired_stage_index = stages.index(desired_stages)
-        h_all = [h_all[desired_stage_index]]
-        vel_all = [vel_all[desired_stage_index]]
-        sub_all = [sub_all[desired_stage_index]]
-        stages = [stages[desired_stage_index]]
-
-    return h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages
-
-
 def change_unit(data, unit):
     """
     This function modify the unit of the data to SI unit.
@@ -606,11 +569,11 @@ def change_unit(data, unit):
 
     if unit == 'Centimeter' or unit == "CentimeterPerSecond":
         data[0] = [x / 100 for x in data[0]]
-    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Code EVHA 2.0 (GINOT 1998)" or unit == "Code Sandre (Malavoi et Souchon 1989)":
+    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Sandre" or unit == "Cemagref":
         pass
     elif unit == "Millimeter":
         data[0] = [x / 1000 for x in data[0]]
     else:
-        print('Warning: Unit not recognized')
+        print('Warning: Unit not recognized : ' + unit)
 
     return data

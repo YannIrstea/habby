@@ -1,0 +1,53 @@
+HABBY READ ME
+---------------------
+
+DISCLAMER
+
+Software downloaded from the Irstea web site is provided 'as is' without warranty of any kind, either express or implied, including, but not limited to, the implied warranties of fitness for a purpose, or the warranty of non-infringement. Without limiting the foregoing, the Irstea makes no warranty that:
+
+- the software will meet your requirements
+- the software will be uninterrupted, timely, secure or error-free
+- the results that may be obtained from the use of the software will be effective, accurate or reliable
+- the quality of the software will meet your expectations
+- any errors in the software obtained from the Irstea web site will be corrected.
+
+Software and its documentation made available on the Irstea web site:
+
+ - could include technical or other mistakes, inaccuracies or typographical errors. The Irstea may make changes to the software or documentation made available on its web site.
+ - may be out of date, and the Irstea makes no commitment to update such materials.
+
+The Irstea assumes no responsibility for errors or ommissions in the software or documentation available from its web site.
+
+In no event shall the Irstea be liable to you or any third parties for any special, punitive, incidental, indirect or consequential damages of any kind, or any damages whatsoever, including, without limitation, those resulting from loss of use, data or profits, whether or not the Irstea has been advised of the possibility of such damages, and on any theory of liability, arising out of or in connection with the use of this software.
+
+The use of the software downloaded through the Irstea site is done at your own discretion and risk and with agreement that you will be solely responsible for any damage to your computer system or loss of data that results from such activities. No advice or information, whether oral or written, obtained by you from the Irstea or from the Irstea web site shall create any warranty for the software.
+
+The paraview input module is based on the work Paulo A. Herrera and has the following copyright.
+
+# ***********************************************************************************
+# * Copyright 2010 - 2016 Paulo A. Herrera. All rights reserved.                    * 
+# *                                                                                 *
+# * Redistribution and use in source and binary forms, with or without              *
+# * modification, are permitted provided that the following conditions are met:     *
+# *                                                                                 *
+# *  1. Redistributions of source code must retain the above copyright notice,      *
+# *  this list of conditions and the following disclaimer.                          *
+# *                                                                                 *
+# *  2. Redistributions in binary form must reproduce the above copyright notice,   *
+# *  this list of conditions and the following disclaimer in the documentation      *
+# *  and/or other materials provided with the distribution.                         *
+# *                                                                                 *
+# * THIS SOFTWARE IS PROVIDED BY PAULO A. HERRERA ``AS IS'' AND ANY EXPRESS OR      *
+# * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF    *
+# * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO      *
+# * EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,        *
+# * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *
+# * BUT NOT LIMITED TO, PROCUREMEN OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,    *
+# * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY           *
+# * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING  *
+# * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS              *
+# * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.                    *
+# ***********************************************************************************
+
+Thanks to Jordi Prats-Rodríguez for translating HABBY in Spanish.
+

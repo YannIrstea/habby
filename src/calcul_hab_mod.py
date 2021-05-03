@@ -113,20 +113,20 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             # if the last value ends in 0 then change the corresponding value to x at 100 m
             if animal.model_type != 'bivariate suitability index models':
                 if pref_height[1][-1] == 0:
-                    # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m : ") + name_fish + " " + stade_bio)
+                    # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 1000m : ") + name_fish + " " + stade_bio)
                     pref_height[0].append(1000)
                     pref_height[1].append(0)
                 if pref_vel[1][-1] == 0:
                     # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x velocity value set to 100m/s : ") + name_fish + " " + stade_bio)
-                    pref_vel[0].append(1000)
+                    pref_vel[0].append(100)
                     pref_vel[1].append(0)
 
         # invertebrate case
         elif animal.aquatic_animal_type == "invertebrate":
             pref_height = pref_height[stage_index]
             if pref_height[-1] == 0:
-                # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 100m :") + name_fish + stade_bio)
-                pref_height[-1] = 100
+                # print("Warning: " + qt_tr.translate("calcul_hab_mod", "Last x height value set to 1000m :") + name_fish + stade_bio)
+                pref_height[-1] = 1000
 
         # progress
         delta_reach = delta_animal / hdf5.data_2d.reach_number
