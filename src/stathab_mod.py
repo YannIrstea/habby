@@ -502,19 +502,25 @@ class Stathab:
         fish_num=0
         # get the preference info based on the files known
         code_bio_model = self.fish_chosen[fish_num].split(" - ")[-1]
-        index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
         # xml_filename = code_bio_model+ ".xml"
         # xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
         xmlfile = user_preferences.biological_models_dict["path_xml"][index_fish]
         indexmodeltype=0
-        if user_preferences.biological_models_dict["model_type"][index_fish].lower()=='univariate suitability index curves':
-            indexmodeltype=1
-        elif user_preferences.biological_models_dict["model_type"][index_fish].lower()=='bivariate suitability index models':
-            indexmodeltype =2
+        # if user_preferences.biological_models_dict["model_type"][index_fish].lower()=='univariate suitability index curves':
+        #     indexmodeltype=1
+        # elif user_preferences.biological_models_dict["model_type"][index_fish].lower()=='bivariate suitability index models':
+        #     indexmodeltype =2
         # TODO a modifier quand Quentin aura changé la fonction
+        information_model_dict=read_pref(xmlfile)
         h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
         stage = self.fish_chosen[fish_num].split(" - ")[-2]
         stage_index = stages.index(stage)
+        #information_model_dict['hab_variable_list'][0]
+        # information_model_dict['hab_variable_list'][0].aquatic_animal_type
+        # 'fish'
+        # information_model_dict['hab_variable_list'][0].model_type
+        # 'univariate suitability index curves'
 
         # to be checked
         # pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
