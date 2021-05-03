@@ -168,28 +168,31 @@ class UserPreferences(AppDataFolders):
                 path_xml = os.path.join(path_bio, xml_filename)
                 # get_biomodels_informations_for_database
                 information_model_dict = bio_info_mod.get_biomodels_informations_for_database(path_xml)
-                # append in dict
-                biological_models_dict["country"].append(information_model_dict["country"])
-                biological_models_dict["aquatic_animal_type"].append(information_model_dict["aquatic_animal_type"])
-                biological_models_dict["model_type"].append(information_model_dict["model_type"])
-                biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
-                biological_models_dict["hydraulic_type"].append(information_model_dict["hydraulic_type"])
-                biological_models_dict["hydraulic_type_available"].append(
-                    information_model_dict["hydraulic_type_available"])
-                biological_models_dict["substrate_type"].append(information_model_dict["substrate_type"])
-                biological_models_dict["substrate_type_available"].append(
-                    information_model_dict["substrate_type_available"])
-                biological_models_dict["guild"].append(information_model_dict["guild"])
-                biological_models_dict["xml_origine"].append(xml_origine)
-                biological_models_dict["made_by"].append(information_model_dict["made_by"])
-                # last sortable
-                biological_models_dict["code_alternative"].append(information_model_dict["code_alternative"])
-                # save data unsortable
-                biological_models_dict["code_biological_model"].append(information_model_dict["code_biological_model"])
-                biological_models_dict["modification_date"].append(information_model_dict["modification_date"])
-                biological_models_dict["latin_name"].append(information_model_dict["latin_name"])
-                biological_models_dict["path_xml"].append(path_xml)
-                biological_models_dict["path_img"].append(information_model_dict["path_img"])
+                if information_model_dict is None:
+                    print("Warning: ", path_xml, " file is not valid.")
+                else:
+                    # append in dict
+                    biological_models_dict["country"].append(information_model_dict["country"])
+                    biological_models_dict["aquatic_animal_type"].append(information_model_dict["aquatic_animal_type"])
+                    biological_models_dict["model_type"].append(information_model_dict["model_type"])
+                    biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
+                    biological_models_dict["hydraulic_type"].append(information_model_dict["hydraulic_type"])
+                    biological_models_dict["hydraulic_type_available"].append(
+                        information_model_dict["hydraulic_type_available"])
+                    biological_models_dict["substrate_type"].append(information_model_dict["substrate_type"])
+                    biological_models_dict["substrate_type_available"].append(
+                        information_model_dict["substrate_type_available"])
+                    biological_models_dict["guild"].append(information_model_dict["guild"])
+                    biological_models_dict["xml_origine"].append(xml_origine)
+                    biological_models_dict["made_by"].append(information_model_dict["made_by"])
+                    # last sortable
+                    biological_models_dict["code_alternative"].append(information_model_dict["code_alternative"])
+                    # save data unsortable
+                    biological_models_dict["code_biological_model"].append(information_model_dict["code_biological_model"])
+                    biological_models_dict["modification_date"].append(information_model_dict["modification_date"])
+                    biological_models_dict["latin_name"].append(information_model_dict["latin_name"])
+                    biological_models_dict["path_xml"].append(path_xml)
+                    biological_models_dict["path_img"].append(information_model_dict["path_img"])
 
         # sort by latin name
         self.biological_models_dict = sort_homogoeneous_dict_list_by_on_key(biological_models_dict,

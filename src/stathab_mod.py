@@ -31,6 +31,7 @@ from src.project_properties_mod import load_project_properties, save_project_pro
 import matplotlib as mpl
 from src.bio_info_mod import read_pref
 from src.user_preferences_mod import user_preferences
+from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 class Stathab:
@@ -488,34 +489,35 @@ class Stathab:
         nbclagg = 12  # number of empirical roughness class
         coeff_granu = np.array(
             [0.00001, 0.0001, 0.00028, 0.00125, 0.005, 0.012, 0.024, 0.048, 0.096, 0.192, 0.640, 1.536])  # WHY?
-        nb_reach = len(self.name_reach)
-        find_one_fish = False
+        # coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
         #TODO  plus utile basé sur  Pref_latin.txt load_pref ne servira plus
         # [name_fish, coeff_all] = load_pref(name_pref, path_pref)
 
-        # choose which fish are studied
-        # coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
+        nb_reach = len(self.name_reach)
+        hvum = HydraulicVariableUnitManagement()
 
-        fish_chosen2 = np.array(self.fish_chosen)  # so we can use np.any
+        # each animal model
+        for hab_string_var in self.fish_chosen:
+            # get gui informations
+            stage = hab_string_var.split(" - ")[-2]
+            code_bio_model = hab_string_var.split(" - ")[-1]
+            index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+            # get the preference info based on the files known
+            information_model_dict = read_pref(user_preferences.biological_models_dict["path_xml"][index_fish])
+            stage_index = information_model_dict["stage_and_size"].index(stage)
+            hab_var = information_model_dict["hab_variable_list"][stage_index]
+            # get data
+            print(hab_var.model_type)
+            if hab_var.model_type == "univariate suitability index curves":
+                h_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0]
+                h_pref_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1]
+                v_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[0]
+                v_pref_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[1]
+            if hab_var.model_type == "bivariate suitability index models":
+                h_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data
+                v_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data
+                pref_data = hab_var.hv
 
-        #EN TRAVAUX .il faudra boucler sur les poissons....
-        fish_num=0
-        # get the preference info based on the files known
-        code_bio_model = self.fish_chosen[fish_num].split(" - ")[-1]
-        index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
-        # xml_filename = code_bio_model+ ".xml"
-        # xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
-        xmlfile = user_preferences.biological_models_dict["path_xml"][index_fish]
-        indexmodeltype=0
-        # if user_preferences.biological_models_dict["model_type"][index_fish].lower()=='univariate suitability index curves':
-        #     indexmodeltype=1
-        # elif user_preferences.biological_models_dict["model_type"][index_fish].lower()=='bivariate suitability index models':
-        #     indexmodeltype =2
-        # TODO a modifier quand Quentin aura changé la fonction
-        information_model_dict=read_pref(xmlfile)
-        h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
-        stage = self.fish_chosen[fish_num].split(" - ")[-2]
-        stage_index = stages.index(stage)
         #information_model_dict['hab_variable_list'][0]
         # information_model_dict['hab_variable_list'][0].aquatic_animal_type
         # 'fish'

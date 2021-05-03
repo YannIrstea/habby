@@ -136,6 +136,18 @@ def get_biomodels_informations_for_database(path_xml):
         # stage_name
         stage_name = stage_and_size[index_stage]
 
+        # model_var.data = [list(map(float, data_el.text.split(" "))),
+        #                   list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" "))),
+        #                   list(map(float, model_el_list[hab_index].getchildren()[2].text.split(" ")))]
+        # model_var.data = [list(map(float, [element[1:] for element in data_el.text.split(" ")])),
+        #                   list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
+        # model_var.data = [list(map(float, data_el.text.split(" "))),
+        #                   list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
+        # # data = list of values
+        # data_el = model_el_list[hab_index]
+        # model_var.data = list(map(float, data_el.text.split(" ")))
+
+
         if model_type == "univariate suitability index curves": #, "bivariate suitability index models"
             if stage.findall(".//PreferenceHeightOfWater"):
                 hvum.h.software_attributes_list = ["PreferenceHeightOfWater"]
@@ -146,6 +158,7 @@ def get_biomodels_informations_for_database(path_xml):
             if stage.findall(".//PreferenceShearStress"):
                 hvum.shear_stress.software_attributes_list = ["PreferenceShearStress"]
                 hvum_stage.software_detected_list.append(hvum.shear_stress)
+
             if stage.findall(".//PreferenceSubstrate"):
                 substrate_type = root.findall(".//PreferenceSubstrate")[index_stage].getchildren()[0].attrib["Variables"]
                 if substrate_type == 'Coarser':
@@ -158,9 +171,30 @@ def get_biomodels_informations_for_database(path_xml):
             if stage.findall(".//HeightOfWaterValues"):
                 hvum.h.software_attributes_list = ["HeightOfWaterValues"]
                 hvum_stage.software_detected_list.append(hvum.h)
+            else:
+                print("Error: HeightOfWaterValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
+                return
+
             if stage.findall(".//VelocityValues"):
                 hvum.v.software_attributes_list = ["VelocityValues"]
                 hvum_stage.software_detected_list.append(hvum.v)
+            else:
+                print("Error: VelocityValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
+                return
+
+            if stage.findall(".//PreferenceValues"):
+                if "DescriptionMode" in stage.findall(".//PreferenceValues")[0].attrib.keys():
+                    if not stage.findall(".//PreferenceValues")[0].attrib["DescriptionMode"] == 'VelocityIncreasingAndThenHeightOfWaterIncreasing':
+                        print("Error: DescriptionMode is not 'VelocityIncreasingAndThenHeightOfWaterIncreasing' for bivariate suitability index models. Please verify this xml file :",
+                            path_xml)
+                        return
+                else:
+                    print("Error: DescriptionMode not recognised in PreferenceValues for bivariate suitability index models. Please verify this xml file :",
+                        path_xml)
+                    return
+            else:
+                print("Error: PreferenceValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
+                return
 
         # compile infor
         detect_name_list = hvum_stage.software_detected_list.names()
@@ -318,16 +352,22 @@ def read_pref(xmlfile):
                 return failload
 
             # is data
-            if not model_var.data[0]:
+            if len(model_var.data) < 2:
                 print('Error: ' + model_var.name_gui + ' data was not found in the xml file '
                       + xml_name + '.\n')
                 return failload
             # if h or v : check increasing
             if model_var.name in ("h", "v"):
-                if model_var.data[0] != sorted(model_var.data[0]):
-                    print('Error: ' + model_var.name_gui + ' data is not sorted in the xml file '
-                          + xml_name + '.\n')
-                    return failload
+                if information_model_dict["model_type"] == "univariate suitability index curves":
+                    if model_var.data[0] != sorted(model_var.data[0]):
+                        print('Error: ' + model_var.name_gui + ' data is not sorted in the xml file '
+                              + xml_name + '.\n')
+                        return failload
+                elif information_model_dict["model_type"] == "bivariate suitability index models":
+                    if model_var.data != sorted(model_var.data):
+                        print('Error: ' + model_var.name_gui + ' data is not sorted in the xml file '
+                              + xml_name + '.\n')
+                        return failload
             # change_unit
             if model_var.sub:
                 model_var.unit = data_el.attrib["Unit" if not model_var.sub else "ClassificationName"]
