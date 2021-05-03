@@ -1329,7 +1329,7 @@ def cli_calc_hab(arguments, project_preferences):
                                                          run_choice["hyd_opt"][i],
                                                          run_choice["sub_opt"][i],
                                                          information_model_dict["aquatic_animal_type"],
-                                                         information_model_dict["ModelType"],
+                                                         information_model_dict["model_type"],
                                                          run_choice["pref_file_list"][i],
                                                          information_model_dict["path_img"])
     if user_target_list:

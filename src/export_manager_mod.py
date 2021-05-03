@@ -26,7 +26,6 @@ from matplotlib import pyplot as plt
 
 from src.bio_info_mod import get_biomodels_informations_for_database, read_pref
 from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
-from src.translator_mod import get_translator
 
 locale = QLocale()
 
@@ -53,7 +52,7 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
     path_im_bio = path_bio
     xmlfile = os.path.basename(xmlfile)
 
-    if information_model_dict["ModelType"] != "bivariate suitability index models":
+    if information_model_dict["model_type"] != "bivariate suitability index models":
         # fish
         if information_model_dict["aquatic_animal_type"] == "fish":
             # read pref
