@@ -325,8 +325,9 @@ class InterpolationTab(QScrollArea):
                 self.to_qlineedit.setText(str(max_unit))
                 self.unit_qlabel.setText(unit_type_value)
             elif len(unit_number_list) == 1:
-                self.send_log.emit("Warning: " + self.tr("Interpolation need at least two time/discharge unit. "
-                                                         "Their is only one is this file."))
+                pass
+                # self.send_log.emit("Warning: " + self.tr("Interpolation need at least two time/discharge unit. "
+                #                                          "Their is only one is this file."))
 
     def enable_seq_pushbutton(self):
         if self.by_qlineedit.text():

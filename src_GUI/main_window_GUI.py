@@ -219,7 +219,10 @@ class MainWindows(QMainWindow):
 
         # print modification biological database
         if user_preferences.diff_list:
-            self.central_widget.write_log(self.tr("Warning: ") + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
+            if "Error" in user_preferences.diff_list:
+                self.central_widget.write_log(user_preferences.diff_list)
+            else:
+                self.central_widget.write_log(self.tr("Warning: ") + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
 
         if self.habby_project_file_corrupted:
             self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' + filename_path))

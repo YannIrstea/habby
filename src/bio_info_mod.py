@@ -47,10 +47,10 @@ def get_biomodels_informations_for_database(path_xml):
             root = docxml.getroot()
         except IOError:
             print("Error: " + path_xml + " file not exist.")
-            return
+            return "Error: " + path_xml + " file not exist."
     except ET.ParseError:
         print("Error: the xml file is not well-formed.")
-        return
+        return "Error: the xml file is not well-formed."
 
     # CdBiologicalModel
     code_biological_model = root.find('.//CdBiologicalModel').text  # habby curve name database
@@ -85,13 +85,13 @@ def get_biomodels_informations_for_database(path_xml):
         aquatic_animal_type = "invertebrate"
     else:
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
-        return
+        return "Error: aquatic_animal_type not recognised. Please verify this xml file :" + path_xml
 
     # model_type
     model_type = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
     if model_type not in ("univariate suitability index curves", "bivariate suitability index models"):
         print("Error: ModelType not recognised. Please verify this xml file :", path_xml)
-        return
+        return "Error: ModelType not recognised. Please verify this xml file :" + path_xml
 
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
@@ -122,10 +122,19 @@ def get_biomodels_informations_for_database(path_xml):
     common_name_el_list = root.findall('.//ComName')
     common_name_list = []
     for common_name in common_name_el_list:
-        common_name_list.append(common_name.text)
+        if common_name.text:
+            common_name_list.append(common_name.text)
+        else:
+            common_name_list.append("")
 
     # hvum
     hvum = HydraulicVariableUnitManagement()
+
+    h_not_valid = None
+    v_not_valid = None
+    shearstress_not_valid = None
+    sub_not_valid = None
+    hv_not_valid = None
 
     # model varaible by stage
     for index_stage, stage in enumerate(root.findall(".//Stage")):
@@ -136,72 +145,133 @@ def get_biomodels_informations_for_database(path_xml):
         # stage_name
         stage_name = stage_and_size[index_stage]
 
-        # model_var.data = [list(map(float, data_el.text.split(" "))),
-        #                   list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" "))),
-        #                   list(map(float, model_el_list[hab_index].getchildren()[2].text.split(" ")))]
-        # model_var.data = [list(map(float, [element[1:] for element in data_el.text.split(" ")])),
-        #                   list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
-        # model_var.data = [list(map(float, data_el.text.split(" "))),
-        #                   list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
-        # # data = list of values
-        # data_el = model_el_list[hab_index]
-        # model_var.data = list(map(float, data_el.text.split(" ")))
-
-
-        if model_type == "univariate suitability index curves": #, "bivariate suitability index models"
-            if stage.findall(".//PreferenceHeightOfWater"):
-                hvum.h.software_attributes_list = ["PreferenceHeightOfWater"]
+        # data = list of values
+        if model_type == "univariate suitability index curves":
+            hvum.h.software_attributes_list = ["PreferenceHeightOfWater"]
+            pref_element = stage.findall(".//" + hvum.h.software_attributes_list[0])
+            if pref_element:
+                hvum.h.original_unit = pref_element[0].findall(".//HeightOfWaterValues")[0].attrib["Unit"]
                 hvum_stage.software_detected_list.append(hvum.h)
-            if stage.findall(".//PreferenceVelocity"):
-                hvum.v.software_attributes_list = ["PreferenceVelocity"]
-                hvum_stage.software_detected_list.append(hvum.v)
-            if stage.findall(".//PreferenceShearStress"):
-                hvum.shear_stress.software_attributes_list = ["PreferenceShearStress"]
-                hvum_stage.software_detected_list.append(hvum.shear_stress)
+                h_data = [list(map(float, pref_element[0].findall(".//HeightOfWaterValues")[0].text.split(" "))),
+                        list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                h_not_valid = check_if_data_model_has_error(h_data[0], "HeightOfWaterValues", increasing=True)
+                hv_not_valid = check_if_data_model_has_error(h_data[1], "PreferenceValues", increasing=False)
+                if len(h_data[0]) != len(h_data[1]):
+                    return "Error: HeightOfWaterValues and PreferenceValues are not the same length in " + path_xml
 
-            if stage.findall(".//PreferenceSubstrate"):
-                substrate_type = root.findall(".//PreferenceSubstrate")[index_stage].getchildren()[0].attrib["Variables"]
+            hvum.v.software_attributes_list = ["PreferenceVelocity"]
+            pref_element = stage.findall(".//" + hvum.v.software_attributes_list[0])
+            if pref_element:
+                hvum.v.original_unit = pref_element[0].findall(".//VelocityValues")[0].attrib["Unit"]
+                hvum_stage.software_detected_list.append(hvum.v)
+                v_data = [list(map(float, pref_element[0].findall(".//VelocityValues")[0].text.split(" "))),
+                        list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                v_not_valid = check_if_data_model_has_error(v_data[0], "VelocityValues", increasing=True)
+                hv_not_valid = check_if_data_model_has_error(v_data[1], "PreferenceValues", increasing=False)
+                if len(v_data[0]) != len(v_data[1]):
+                    return "Error: VelocityValues and PreferenceValues are not the same length in " + path_xml
+
+            hvum.shear_stress.software_attributes_list = ["PreferenceShearStress"]
+            pref_element = stage.findall(".//" + hvum.shear_stress.software_attributes_list[0])
+            if pref_element:
+                hvum.shear_stress.original_unit = pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].attrib["Unit"]
+                hvum_stage.software_detected_list.append(hvum.shear_stress)
+                shearstress_data = [list(map(float, pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].text.split(" "))),
+                                  list(map(float, pref_element[0].findall(".//HemisphereNumber")[0].text.split(" "))),
+                                  list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                shearstress_not_valid = all((check_if_data_model_has_error(shearstress_data[0], "MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues", increasing=True),
+                                         check_if_data_model_has_error(shearstress_data[1], "HemisphereNumber", increasing=True)))
+                hv_not_valid = check_if_data_model_has_error(shearstress_data[2], "PreferenceValues", increasing=False)
+                if len(shearstress_data[0]) != len(shearstress_data[1]) != len(shearstress_data[2]):
+                    return "Error: MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues and HemisphereNumber and PreferenceValues are not the same length in " + path_xml
+
+            pref_element = stage.findall(".//PreferenceSubstrate")
+            if pref_element:
+                substrate_original_unit = pref_element[0].findall(".//SubstrateValues")[0].attrib["ClassificationName"]
+                if substrate_original_unit in ("Code EVHA 2.0 (GINOT 1998)", "Code Cemagref (Malavoi 1989)"):
+                    substrate_unit = "Cemagref"
+                elif substrate_original_unit in ("Code Sandre (Malavoi et Souchon 1989)"):
+                    substrate_unit = "Sandre"
+                else:  # TODO : if another code
+                    return "Error: Substrate classification code not recognized :" + substrate_original_unit + " in " + path_xml
+                substrate_type = pref_element[0].findall(".//SubstrateValues")[0].attrib["Variables"]
                 if substrate_type == 'Coarser':
                     hvum.sub_coarser.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum.sub_coarser.original_unit = substrate_original_unit
+                    hvum.sub_coarser.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_coarser)
                 elif substrate_type == 'Dominant':
                     hvum.sub_dom.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum.sub_dom.original_unit = substrate_original_unit
+                    hvum.sub_dom.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_dom)
-        elif model_type == "bivariate suitability index models":
-            if stage.findall(".//HeightOfWaterValues"):
-                hvum.h.software_attributes_list = ["HeightOfWaterValues"]
-                hvum_stage.software_detected_list.append(hvum.h)
-            else:
-                print("Error: HeightOfWaterValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
-                return
+                else:
+                    return "Error: Substrate classification method not recognized : " + substrate_type + " in " + path_xml
 
-            if stage.findall(".//VelocityValues"):
-                hvum.v.software_attributes_list = ["VelocityValues"]
+                sub_data = [list(map(float, [element[1:] for element in pref_element[0].findall(".//SubstrateValues")[0].text.split(" ")])),
+                                  list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                sub_not_valid = check_if_data_model_has_error(sub_data[0], "SubstrateValues", increasing=True)
+                hv_not_valid = check_if_data_model_has_error(sub_data[1], "PreferenceValues", increasing=False)
+                if len(sub_data[0]) != len(sub_data[1]):
+                    return "Error: SubstrateValues and PreferenceValues are not the same length in " + path_xml
+        elif model_type == "bivariate suitability index models":
+            pref_element = stage.findall(".//HeightOfWaterValues")
+            hvum.h.software_attributes_list = ["HeightOfWaterValues"]
+            if pref_element:
+                hvum.h.original_unit = pref_element[0].attrib["Unit"]
+                hvum_stage.software_detected_list.append(hvum.h)
+                h_data = list(map(float, pref_element[0].text.split(" ")))
+                h_not_valid = check_if_data_model_has_error(h_data, "HeightOfWaterValues", increasing=True)
+            else:
+                return "Error: HeightOfWaterValues not recognised for bivariate suitability index models. Please verify this xml file :" + path_xml
+
+            pref_element = stage.findall(".//VelocityValues")
+            hvum.v.software_attributes_list = ["VelocityValues"]
+            if pref_element:
+                hvum.v.original_unit = pref_element[0].attrib["Unit"]
                 hvum_stage.software_detected_list.append(hvum.v)
+                v_data = list(map(float, pref_element[0].text.split(" ")))
+                v_not_valid = check_if_data_model_has_error(v_data, "VelocityValues", increasing=True)
             else:
                 print("Error: VelocityValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
-                return
+                return "Error: VelocityValues not recognised for bivariate suitability index models. Please verify this xml file :" + path_xml
 
-            if stage.findall(".//PreferenceValues"):
-                if "DescriptionMode" in stage.findall(".//PreferenceValues")[0].attrib.keys():
-                    if not stage.findall(".//PreferenceValues")[0].attrib["DescriptionMode"] == 'VelocityIncreasingAndThenHeightOfWaterIncreasing':
+            pref_element = stage.findall(".//PreferenceValues")
+            if pref_element:
+                if "DescriptionMode" in pref_element[0].attrib.keys():
+                    if not pref_element[0].attrib["DescriptionMode"] == 'VelocityIncreasingAndThenHeightOfWaterIncreasing':
                         print("Error: DescriptionMode is not 'VelocityIncreasingAndThenHeightOfWaterIncreasing' for bivariate suitability index models. Please verify this xml file :",
                             path_xml)
-                        return
+                        return "Error: DescriptionMode is not 'VelocityIncreasingAndThenHeightOfWaterIncreasing' for bivariate suitability index models. Please verify this xml file :" + path_xml
+                    else:
+                        hv_data = list(map(float, pref_element[0].text.split(" ")))
+                        hv_not_valid = check_if_data_model_has_error(hv_data, "PreferenceValues", increasing=False)
                 else:
                     print("Error: DescriptionMode not recognised in PreferenceValues for bivariate suitability index models. Please verify this xml file :",
                         path_xml)
-                    return
+                    return "Error: DescriptionMode not recognised in PreferenceValues for bivariate suitability index models. Please verify this xml file :" + path_xml
             else:
                 print("Error: PreferenceValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
-                return
+                return "Error: PreferenceValues not recognised for bivariate suitability index models. Please verify this xml file :" + path_xml
+            if len(h_data) * len(v_data) != len(hv_data):
+                return "Error: HeightOfWaterValues * VelocityValues length different from PreferenceValues length in " + path_xml
 
         # compile infor
         detect_name_list = hvum_stage.software_detected_list.names()
         height_presence = hvum.h.name in detect_name_list
         velocity_presence = hvum.v.name in detect_name_list
         shear_presence = hvum.shear_stress.name in detect_name_list
-        sub_presence = hvum.sub_coarser in detect_name_list or hvum.sub_dom in detect_name_list
+        sub_presence = hvum.sub_coarser.name in detect_name_list or hvum.sub_dom.name in detect_name_list
+
+        # always hv_presence
+        if hv_not_valid:
+            return hv_not_valid
+        # model data is valid ?
+        for presence, not_valid in zip([height_presence, velocity_presence, shear_presence, sub_presence],
+                                    [h_not_valid, v_not_valid, shearstress_not_valid, sub_not_valid]):
+            if presence:
+                if not_valid:
+                    return not_valid + " Please verify this xml file :" + path_xml
 
         # hyd_opt
         if height_presence and velocity_presence:
@@ -216,7 +286,7 @@ def get_biomodels_informations_for_database(path_xml):
             hyd_opt = "Neglect"
         else:
             print("Error: hyd_opt not recognised. Please verify this xml file :", path_xml)
-            return
+            return "Error: hyd_opt not recognised. Please verify this xml file :", path_xml
 
         # hyd_opt_available
         hyd_opt_available = []
@@ -236,12 +306,7 @@ def get_biomodels_informations_for_database(path_xml):
         if not sub_presence:
             sub_opt = "Neglect"
         else:
-            sub_opt = hvum_stage.software_detected_list.subs()
-            if sub_opt:
-                sub_opt = sub_opt[0]
-            else:
-                print("Error: substrate_type not 'Coarser' or 'Dominant'. Please verify this xml file :", path_xml)
-                return
+            sub_opt = substrate_type
 
         # sub_opt_available
         if not sub_presence:
@@ -351,42 +416,25 @@ def read_pref(xmlfile):
                       + xml_name + '.\n')
                 return failload
 
-            # is data
-            if len(model_var.data) < 2:
-                print('Error: ' + model_var.name_gui + ' data was not found in the xml file '
-                      + xml_name + '.\n')
-                return failload
-            # if h or v : check increasing
-            if model_var.name in ("h", "v"):
-                if information_model_dict["model_type"] == "univariate suitability index curves":
-                    if model_var.data[0] != sorted(model_var.data[0]):
-                        print('Error: ' + model_var.name_gui + ' data is not sorted in the xml file '
-                              + xml_name + '.\n')
-                        return failload
-                elif information_model_dict["model_type"] == "bivariate suitability index models":
-                    if model_var.data != sorted(model_var.data):
-                        print('Error: ' + model_var.name_gui + ' data is not sorted in the xml file '
-                              + xml_name + '.\n')
-                        return failload
             # change_unit
-            if model_var.sub:
-                model_var.unit = data_el.attrib["Unit" if not model_var.sub else "ClassificationName"]
-                if model_var.unit in ("Code EVHA 2.0 (GINOT 1998)", "Code Cemagref (Malavoi 1989)"):
-                    model_var.unit = "Cemagref"
-                elif model_var.unit in ("Code Sandre (Malavoi et Souchon 1989)"):
-                    model_var.unit = "Sandre"
-                else:  # TODO : if another code
-                    print("Error: Substrate ClassificationName not recognized :", model_var.unit + " in " + xml_name +
-                          '.\n')
-                model_var.data = change_unit(model_var.data, model_var.unit)
-            else:
-                model_var.data = change_unit(model_var.data, data_el.attrib["Unit" if not model_var.sub else "ClassificationName"])
+            model_var.data = change_unit(model_var.data, model_var.original_unit)
 
         if information_model_dict["model_type"] == "bivariate suitability index models":
             # get pref
             hab_var.hv = list(map(float, root.findall(".//PreferenceValues")[hab_index].text.split(" ")))
 
     return information_model_dict
+
+
+def check_if_data_model_has_error(data_list, balise_name, increasing=True):
+    # is data
+    if not data_list:
+        return 'Error: ' + balise_name + ' data was not found.'
+    # if h or v or shearstress or sub: check increasing
+    elif increasing:
+        if data_list != sorted(data_list):
+            return 'Error: ' + balise_name + ' data is not sorted.'
+    return ""
 
 
 def check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
@@ -606,10 +654,10 @@ def change_unit(data, unit):
     :param data: the data which has to be change to SI unti
     :param unit: the unit code
     """
-
+    sub_units_available_list = ("Sandre", "Cemagref", "Code EVHA 2.0 (GINOT 1998)", "Code Cemagref (Malavoi 1989)", "Code Sandre (Malavoi et Souchon 1989)")
     if unit == 'Centimeter' or unit == "CentimeterPerSecond":
         data[0] = [x / 100 for x in data[0]]
-    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Sandre" or unit == "Cemagref":
+    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "pascal" or unit in sub_units_available_list:
         pass
     elif unit == "Millimeter":
         data[0] = [x / 1000 for x in data[0]]

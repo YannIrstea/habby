@@ -168,9 +168,7 @@ class UserPreferences(AppDataFolders):
                 path_xml = os.path.join(path_bio, xml_filename)
                 # get_biomodels_informations_for_database
                 information_model_dict = bio_info_mod.get_biomodels_informations_for_database(path_xml)
-                if information_model_dict is None:
-                    print("Warning: ", path_xml, " file is not valid.")
-                else:
+                if type(information_model_dict) == dict:
                     # append in dict
                     biological_models_dict["country"].append(information_model_dict["country"])
                     biological_models_dict["aquatic_animal_type"].append(information_model_dict["aquatic_animal_type"])
@@ -193,6 +191,8 @@ class UserPreferences(AppDataFolders):
                     biological_models_dict["latin_name"].append(information_model_dict["latin_name"])
                     biological_models_dict["path_xml"].append(path_xml)
                     biological_models_dict["path_img"].append(information_model_dict["path_img"])
+                elif type(information_model_dict) == str:
+                    self.diff_list = information_model_dict
 
         # sort by latin name
         self.biological_models_dict = sort_homogoeneous_dict_list_by_on_key(biological_models_dict,
