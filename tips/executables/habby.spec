@@ -9,11 +9,11 @@ from platform import system as operatingsystem
 import sys
 
 
-habby_dev_path = 'C:\\habby_dev'
+habby_dev_path = r'C:/habby_dev'
 if operatingsystem() == 'Linux':
-    habby_dev_path = '\\local\\AIX\\quentin.royer\\Documents\\habby_dev'
+    habby_dev_path = r'/local/AIX/quentin.royer/Documents/habby_dev'
 elif operatingsystem() == 'Darwin':
-    habby_dev_path = '\\local\\AIX\\quentin.royer\\Documents\\habby_dev'
+    habby_dev_path = r'/local/AIX/quentin.royer/Documents/habby_dev'
 sys.path.append(os.path.join(habby_dev_path, "habby"))
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)
