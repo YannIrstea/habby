@@ -46,55 +46,34 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
     plt.rcParams['figure.figsize'] = 21, 29.7  # a4
     plt.rcParams['font.size'] = 24
 
-    information_model_dict = get_biomodels_informations_for_database(xmlfile)
-
     path_bio = os.path.dirname(xmlfile)
     path_im_bio = path_bio
-    xmlfile = os.path.basename(xmlfile)
+
+    information_model_dict = read_pref(xmlfile)
 
     if information_model_dict["model_type"] != "bivariate suitability index models":
         # fish
         if information_model_dict["aquatic_animal_type"] == "fish":
-            # read pref
-            h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
             # plot
             fig, axe_curve = plot_suitability_curve(None,
-                                   h_all,
-                                   vel_all,
-                                   sub_all,
-                                   information_model_dict["CdBiologicalModel"],
-                                   name_fish,
-                                   stages,
-                                   information_model_dict["substrate_type"],
-                                   sub_code,
-                                   project_preferences,
+                                   information_model_dict,
+                                   None,
+                                    project_preferences,
                                    True,
                                    qt_tr)
         # invertebrate
         else:
-            # open the pref
-            shear_stress_all, hem_all, hv_all, _, code_fish, name_fish, stages = read_pref(xmlfile)
             # plot
             fig, axe_curve = plot_suitability_curve_invertebrate(None,
-                                                shear_stress_all,
-                                                hem_all,
-                                                hv_all,
-                                                code_fish,
-                                                name_fish,
-                                                stages,
+                                                                 information_model_dict,
+                                                                 None,
                                                 project_preferences,
                                                 True,
                                                 qt_tr)
     else:
-        # open the pref
-        h_all, vel_all, pref_values_all, _, code_fish, name_fish, stages = read_pref(xmlfile)
         fig, axe_curve = plot_suitability_curve_bivariate(None,
-                                         h_all,
-                                         vel_all,
-                                         pref_values_all,
-                                         code_fish,
-                                         name_fish,
-                                         stages,
+                                                          information_model_dict,
+                                                          None,
                                          project_preferences,
                                          True,
                                    qt_tr)
@@ -113,7 +92,7 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
     plt.figtext(0.8, 0.97, 'HABBY - ' + time.strftime("%d %b %Y"))
 
     # REPORT title
-    plt.figtext(0.1, 0.92, "REPORT - " + name_fish,
+    plt.figtext(0.1, 0.92, "REPORT - " + information_model_dict["code_biological_model"],
                 fontsize=55,
                 weight='bold',
                 bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
@@ -132,9 +111,12 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
                 fontsize=32)
 
     # Informations text
-    text_all = name_fish + '\n\n' + information_model_dict["common_name_dict"][0] + '\n\n' + information_model_dict[
-        "CdBiologicalModel"] + '\n\n' + code_fish + '\n\n'
-    for idx, s in enumerate(stages):
+    try:
+        text_all = information_model_dict["latin_name"] + '\n\n' + information_model_dict["common_name_dict"][0] + '\n\n' + information_model_dict[
+            "code_biological_model"] + '\n\n' + information_model_dict["code_alternative"][0] + '\n\n'
+    except TypeError:
+        aa=1
+    for idx, s in enumerate(information_model_dict["stage_and_size"]):
         text_all += s + ', '
     text_all = text_all[:-2] + '\n\n'
     plt.figtext(0.4, 0.7, text_all, fontsize=32)
@@ -174,7 +156,7 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
 
     # filename
     filename = os.path.join(project_preferences['path_figure'],
-                            'report_' + information_model_dict["CdBiologicalModel"] +
+                            'report_' + information_model_dict["code_biological_model"] +
                             project_preferences["format"])
 
     # save

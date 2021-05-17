@@ -98,60 +98,50 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
 
     # multi stage
     else:
-        # # get min_max_height_all_stages and min_max_velocity_all_stages
-        # min_height_all_stages = []
-        # max_height_all_stages = []
-        # min_velocity_all_stages = []
-        # max_velocity_all_stages = []
-        # for s in range(0, len(stade)):
-        #     min_height_all_stages.append(min(height[s][0]))
-        #     max_height_all_stages.append(max(height[s][0]))
-        #     min_velocity_all_stages.append(min(vel[s][0]))
-        #     max_velocity_all_stages.append(max(vel[s][0]))
-        # min_height_all_stages = min(min_height_all_stages) - 0.1
-        # max_height_all_stages = max(max_height_all_stages) + 0.1
-        # min_velocity_all_stages = min(min_velocity_all_stages) - 0.1
-        # max_velocity_all_stages = max(max_velocity_all_stages) + 0.1
-        stade = information_model_dict["stage_and_size"]
-
-        for stage_index, stage in enumerate(information_model_dict["hab_variable_list"]):
-            for indexhyd_var, hyd_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()):
-                aa=1
         # preplot
-        if len(sub[0][0]) > 2:  # check if sub data exist
-            fig, ax = plt.subplots(len(stade), 3, sharey='row')
-        else:  # no sub
-            fig, ax = plt.subplots(len(stade), 2, sharey='row')
+        fig, ax = plt.subplots(len(information_model_dict["hab_variable_list"][0].variable_list),
+                            len(information_model_dict["stage_and_size"]),
+                               sharey='row')
+        if ax.ndim == 1:
+            ax = np.reshape(ax, (len(information_model_dict["hab_variable_list"][0].variable_list),
+                            len(information_model_dict["stage_and_size"])))
+
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + code_fish)
 
+        # get min and max limits to improve plot readability between stages (value save to the last stage)
+        variable_list_copy = copy(information_model_dict["hab_variable_list"][0].variable_list)
+        for index_model_var, model_var in enumerate(variable_list_copy):
+            for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
+                current_min = min(model_var.data[0])
+                current_max = max(model_var.data[0])
+                if stage_index == 0:
+                    model_var.min = current_min
+                    model_var.max = current_max
+                if current_min < model_var.min:
+                    model_var.min = current_min
+                if current_max > model_var.max:
+                    model_var.max = current_max
+
         # plot
-        for s in range(0, len(stade)):
-            # height
-            ax[s, 0].plot(height[s][0], height[s][1],
-                          '-b',
-                          marker=mar)
-            ax[s, 0].set_xlabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-            ax[s, 0].set_xlim([min_height_all_stages, max_height_all_stages])
-            ax[s, 0].set_ylabel(qt_tr.translate("plot_mod", 'HSI []') + "\n" + stade[s])
-            ax[s, 0].set_ylim([-0.1, 1.1])
+        for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
+            for index_model_var, model_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list):
+                if not model_var.sub:
+                    ax[index_model_var, stage_index].plot(model_var.data[0], model_var.data[1],
+                                                          '-b', marker=mar)
+                    ax[index_model_var, stage_index].set_xlim(
+                        [variable_list_copy[index_model_var].min - 0.1,
+                         variable_list_copy[index_model_var].max + 0.1])
+                else:
+                    ax[index_model_var, stage_index].bar(model_var.data[0], model_var.data[1],
+                                                         facecolor='c', align='center')
+                    ax[index_model_var, stage_index].set_xlim(
+                        [variable_list_copy[index_model_var].min - 1,
+                         variable_list_copy[index_model_var].max + 1])
 
-            # velocity
-            ax[s, 1].plot(vel[s][0], vel[s][1],
-                          '-r',
-                          marker=mar)
-            ax[s, 1].set_xlabel(qt_tr.translate("plot_mod", 'Velocity [m/s]'))
-            ax[s, 1].set_xlim([min_velocity_all_stages, max_velocity_all_stages])
-            ax[s, 1].set_ylim([-0.1, 1.1])
+                ax[index_model_var, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
 
-            if len(sub[0][0]) > 2:  # if substrate is accounted,
-                # it is accounted for all stages
-                ax[s, 2].bar(sub[s][0], sub[s][1],
-                             facecolor='c',
-                             align='center')
-                ax[s, 2].set_xlabel(
-                    qt_tr.translate("plot_mod", 'Substrate') + " " + sub_type[s] + ' [' + sub_code[s] + ']')
-                ax[s, 2].set_ylim([-0.1, 1.1])
-                ax[s, 2].set_xlim([0.4, len(sub[0][0]) + 0.6])
+                ax[index_model_var, stage_index].set_ylabel('HSI []' + "\n" + stage_var.stage)
+                ax[index_model_var, stage_index].set_ylim([-0.1, 1.1])
 
     # all cases
     plt.tight_layout()
@@ -170,7 +160,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
         return fig, ax
 
 
-def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all, code_fish, name_fish, stade, project_preferences, get_fig=False, qt_tr=False):
+def plot_suitability_curve_invertebrate(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
 
@@ -205,23 +195,24 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
     else:
         mar = None
 
+    # invertebrate one stage
+    model_var = information_model_dict["hab_variable_list"][0]
+
     # title and filename
-    title_plot = qt_tr.translate("plot_mod", 'HSI') + " : " + \
-                  name_fish + " - " + stade[0] + " - " + code_fish
+    title_plot = 'HSI' + " : " + model_var.name
 
     fig, axarr = plt.subplots(1, 1, sharey='row')
     plt.get_current_fig_manager().set_window_title(title_plot)
     # bar plot
-    axarr.bar([x + 0.5 for x in hem_all[0]],
-                         hv_all[0])
+    axarr.bar([x + 0.5 for x in model_var.variable_list[0].data[1]], model_var.variable_list[0].data[2])
     # HEM number label
-    for hem_num in range(len(hem_all[0])):
-        axarr.text(hem_all[0][hem_num] + 0.5, y=0, s=str(int(hem_all[0][hem_num])),
+    for hem_num in range(len(model_var.variable_list[0].data[1])):
+        axarr.text(model_var.variable_list[0].data[1][hem_num] + 0.5, y=0, s=str(int(model_var.variable_list[0].data[1][hem_num])),
                    horizontalalignment='center',
                    verticalalignment='bottom')
     # shearstress stick
-    plt.xticks([x for x in hem_all[0]] + [hem_all[0][-1] + 1],
-               list(map(str, [0] + shear_stress_all[0])),
+    plt.xticks([x for x in model_var.variable_list[0].data[1]] + [model_var.variable_list[0].data[1][-1] + 1],
+               list(map(str, [0] + model_var.variable_list[0].data[0])),
                rotation=45)
 
     axarr.set_xlabel(qt_tr.translate("plot_mod", 'HEM [HFST] / shear stress [N/m²]'))
@@ -233,7 +224,8 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         mplcursors.cursor()  # get data with mouse
 
     # output for plot_GUI
-    state.value = 100  # process finished
+    if state is not None:
+        state.value = 100  # process finished
 
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])
@@ -242,7 +234,7 @@ def plot_suitability_curve_invertebrate(state, shear_stress_all, hem_all, hv_all
         return fig, axarr
 
 
-def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish, name_fish, stade, project_preferences, get_fig=False, qt_tr=False):
+def plot_suitability_curve_bivariate(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
 
@@ -273,34 +265,39 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
     mpl.rcParams['axes.grid'] = project_preferences['grid']
     cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
 
-    # title and filename
-    title_plot = qt_tr.translate("plot_mod", 'HSI') + " : "
-    if len(stade) > 1:  # if you take this out, the command
+    if selected_fish_stage is not None:
         print("Error: No figure for all stages.")
         # TODO : do pcolormesh for each stage
         _ = 1
     else:
+        # invertebrate one stage
+        model_var = information_model_dict["hab_variable_list"][0]
+
         # prep data
-        pref_values_array = np.array(pref_values).reshape((len(height[0]), len(vel[0])))
+        pref_values_array = np.array(model_var.hv).reshape((len(model_var.variable_list.get_from_name("h").data),
+                                                            len(model_var.variable_list.get_from_name("v").data)))
 
         # pre plot
         fig, ax = plt.subplots(1, 1)
-        plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
+        plt.get_current_fig_manager().set_window_title('HSI' + " : " + model_var.name)
 
         # plot
         meshcolor = ax.imshow(pref_values_array,
                               cmap=cmap,
                               origin="lower",
                               aspect="auto",
-                              extent=[min(vel[0]), max(vel[0]), min(height[0]), max(height[0])])
+                              extent=[min(model_var.variable_list.get_from_name("v").data),
+                                      max(model_var.variable_list.get_from_name("v").data),
+                                      min(model_var.variable_list.get_from_name("h").data),
+                                      max(model_var.variable_list.get_from_name("h").data)])
 
         # axe label
-        ax.set_ylabel(qt_tr.translate("plot_mod", 'Water height [m]'))
-        ax.set_xlabel(qt_tr.translate("plot_mod", 'Water velocity [m/s]'))
+        ax.set_ylabel('Water height [m]')
+        ax.set_xlabel('Water velocity [m/s]')
 
         # color_bar bar
         color_bar = plt.colorbar(meshcolor)
-        color_bar.set_label(qt_tr.translate("plot_mod", 'HSI []'))
+        color_bar.set_label('HSI []')
 
         ax = [ax]
 
@@ -309,7 +306,8 @@ def plot_suitability_curve_bivariate(state, height, vel, pref_values, code_fish,
         mplcursors.cursor(meshcolor)  # get data with mouse
 
     # output for plot_GUI
-    state.value = 100  # process finished
+    if state is not None:
+        state.value = 100  # process finished
 
     if not get_fig:
         fig.set_size_inches(default_size[0], default_size[1])

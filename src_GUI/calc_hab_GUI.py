@@ -992,8 +992,5 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit("py" + cmd_str)
 
 
-
-
-
 if __name__ == '__main__':
     pass

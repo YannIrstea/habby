@@ -608,7 +608,7 @@ class MyProcessManager(QThread):
             my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_bivariate,
                                     args=(progress_value,
                                           information_model_dict,
-                                          self.plot_attr.selected_fish_stage,
+                                          None,
                                           self.project_preferences,
                                           False),
                                     name="plot_suitability_curve_bivariate"),
@@ -767,7 +767,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def start(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
+    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":
