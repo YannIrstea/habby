@@ -56,12 +56,11 @@ class Stathab:
         self.hclass_all = []  # surface height for all classes
         self.rclass_all = []  # granulo surface for all classes
         self.h_all = []  # mean height of all the reaches
-        self.v_all = []   # mean velocity of all the reaches
+        self.v_all = []  # mean velocity of all the reaches
         self.w_all = []  # mean width of all the reaches
         self.q_all = []  # discharge
         self.fish_chosen = np.array([])  # the name of the fish
         self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
-        self.name_reach = []  # the name of the reaches of the river
         self.path_im = path_prj  # path where to save the image
         self.path_hdf5 = os.path.join(path_prj, name_prj, "hdf5")
         self.load_ok = False  # a boolean to manage the errors
@@ -490,35 +489,43 @@ class Stathab:
         coeff_granu = np.array(
             [0.00001, 0.0001, 0.00028, 0.00125, 0.005, 0.012, 0.024, 0.048, 0.096, 0.192, 0.640, 1.536])  # WHY?
         # coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
-        #TODO  plus utile basé sur  Pref_latin.txt load_pref ne servira plus
+        # TODO  plus utile basé sur  Pref_latin.txt load_pref ne servira plus enlever 2 derniers element dans def stathab_calc(self, path_pref='.', name_pref='Pref_latin.txt'):
         # [name_fish, coeff_all] = load_pref(name_pref, path_pref)
 
         nb_reach = len(self.name_reach)
-        hvum = HydraulicVariableUnitManagement()
+        dict_pref_stahab = self.stahab_get_pref()
+        # hvum = HydraulicVariableUnitManagement()
+        #
+        # # each animal model
+        # dict_pref_stahab= {'code_bio_model':[],'stage':[],'bmono': [], 'h_data': [], 'v_data': [], 'h_pref_data': [], 'v_pref_data': [],'hv_pref_data': []}
+        # for hab_string_var in self.fish_chosen:
+        #     # get gui informations
+        #     stage = hab_string_var.split(" - ")[-2]
+        #     code_bio_model = hab_string_var.split(" - ")[-1]
+        #     index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+        #     # get the preference info based on the files known
+        #     information_model_dict = read_pref(user_preferences.biological_models_dict["path_xml"][index_fish])
+        #     stage_index = information_model_dict["stage_and_size"].index(stage)
+        #     hab_var = information_model_dict["hab_variable_list"][stage_index]
+        #     dict_pref_stahab['code_bio_model'].append(code_bio_model)
+        #     dict_pref_stahab['stage'].append(stage)
+        #     # get data
+        #     if hab_var.model_type == "univariate suitability index curves":
+        #         dict_pref_stahab['bmono'].append(True)
+        #         dict_pref_stahab['h_data'].append(hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0])
+        #         dict_pref_stahab['h_pref_data'].append( hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1])
+        #         dict_pref_stahab['v_data'].append( hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[0])
+        #         dict_pref_stahab['v_pref_data'].append(hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[1])
+        #         dict_pref_stahab['hv_pref_data'].append([])
+        #     if hab_var.model_type == "bivariate suitability index models":
+        #         dict_pref_stahab['bmono'].append(False)
+        #         dict_pref_stahab['h_data'].append( hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data)
+        #         dict_pref_stahab['v_data'].append(hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data)
+        #         dict_pref_stahab['hv_pref_data'].append(hab_var.hv)
+        #         dict_pref_stahab['h_pref_data'].append([])
+        #         dict_pref_stahab['v_pref_data'].append([])
 
-        # each animal model
-        for hab_string_var in self.fish_chosen:
-            # get gui informations
-            stage = hab_string_var.split(" - ")[-2]
-            code_bio_model = hab_string_var.split(" - ")[-1]
-            index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
-            # get the preference info based on the files known
-            information_model_dict = read_pref(user_preferences.biological_models_dict["path_xml"][index_fish])
-            stage_index = information_model_dict["stage_and_size"].index(stage)
-            hab_var = information_model_dict["hab_variable_list"][stage_index]
-            # get data
-            print(hab_var.model_type)
-            if hab_var.model_type == "univariate suitability index curves":
-                h_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0]
-                h_pref_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1]
-                v_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[0]
-                v_pref_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[1]
-            if hab_var.model_type == "bivariate suitability index models":
-                h_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data
-                v_data = hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data
-                pref_data = hab_var.hv
-
-        #information_model_dict['hab_variable_list'][0]
+        # information_model_dict['hab_variable_list'][0]
         # information_model_dict['hab_variable_list'][0].aquatic_animal_type
         # 'fish'
         # information_model_dict['hab_variable_list'][0].model_type
@@ -528,9 +535,7 @@ class Stathab:
         # pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
         # pref_v = np.interp(v_born, vel_all[stage_index][0], vel_all[stage_index][1])
 
-
-
-        #BLOQUE par YLC
+        # BLOQUE par YLC
         # if np.any(fish_chosen2 == 'all_fish'):
         #     coeff = coeff_all
         #     self.fish_chosen = name_fish
@@ -594,14 +599,27 @@ class Stathab:
             # #YLC test
             # nbclass=(len(self.lim_all[0]) - 1) # il faut ici que meme nombre de classes h et v
             # check=np.zeros((nbclass*nbclaq,3))
-            result=np.zeros(((nbclaq,10)))
 
             # YLC
-            h_born = (self.lim_all[0][0: -1] + self.lim_all[0][1: ]) / 2
+            h_born = (self.lim_all[0][0: -1] + self.lim_all[0][1:]) / 2
             v_born = (self.lim_all[1][0: -1] + self.lim_all[1][1:]) / 2
-            pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
-            pref_v = np.interp(v_born, vel_all[stage_index][0], vel_all[stage_index][1])
+            nb_models = len(dict_pref_stahab['code_bio_model'])
+            pref_h = np.zeros((nb_models, len(h_born)))
+            pref_v = np.zeros((nb_models, len(v_born)))
+            for index_habmodel in range(nb_models):
+                if dict_pref_stahab['bmono'][index_habmodel]:
+                    pref_h[index_habmodel, :] = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
+                                                          dict_pref_stahab['h_pref_data'][index_habmodel])
+                    pref_v[index_habmodel, :] = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
+                                                          dict_pref_stahab['v_pref_data'][index_habmodel])
+                else:
+                    # TODO bivariate for stathab
+                    pref_h[index_habmodel, :] = np.zeros((nb_models, len(h_born)))
+                    pref_v[index_habmodel, :] = np.zeros((nb_models, len(v_born)))
 
+            # result = np.zeros((nbclaq, 10))
+            result_reach_q_hyd = np.zeros((nbclaq, 4))
+            result_reach_q_models = np.zeros((nb_models, nbclaq, 6))
             # for all discharge
             for qind in range(0, nbclaq):
                 lnqs = np.log(min(qlist_r)) + (qind + 0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
@@ -618,30 +636,37 @@ class Stathab:
                 vclass[:, qind] = ws * dist_vs * hs
                 hclass[:, qind] = dist_hs * ws
                 rclass[:, qind] = dist_gs * ws
+                result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
 
                 # # YLC test
                 # check[qind*nbclass:(qind+1)*nbclass,0] = qmod[qind]
                 # check[qind * nbclass:(qind + 1) * nbclass,1] =dist_hs
                 # check[qind * nbclass:(qind + 1) * nbclass,2] =dist_vs
                 # titi=3
-                if (np.sum(dist_hs)-1)> 1E-12:
-                    toto=9
-                if (np.sum(dist_vs) - 1) > 1E-12:
-                    toto = 9
-                #vh_v	spu_v	vh_h	spu_h	vh_hv	spu_hv
-                vh_h=np.sum(dist_hs*pref_h)
-                spu_h=vh_h*ws
-                vh_v=np.sum(dist_vs*pref_v)
-                spu_v=vh_v*ws
-                vh_hv=vh_h*vh_v
-                spu_hv=vh_hv*ws
-                result[qind,:]=[qmod[qind][0],ws,hs,vs,vh_v,spu_v,vh_h,spu_h,vh_hv,spu_hv
-]
-                titi=4
+                # if (np.sum(dist_hs)-1)> 1E-12:
+                #     toto=9
+                # if (np.sum(dist_vs) - 1) > 1E-12:
+                #     toto = 9
 
+                for index_habmodel in range(nb_models):
+                    if dict_pref_stahab['bmono'][index_habmodel]:
+                        # vh_v	spu_v	vh_h	spu_h	vh_hv	spu_hv
+                        vh_h = np.sum(dist_hs * pref_h[index_habmodel, :])
+                        spu_h = vh_h * ws
+                        vh_v = np.sum(dist_vs * pref_v[index_habmodel, :])
+                        spu_v = vh_v * ws
+                        vh_hv = vh_h * vh_v
+                        spu_hv = vh_hv * ws
+                        # result[qind,:]=[qmod[qind][0],ws,hs,vs,vh_v,spu_v,vh_h,spu_h,vh_hv,spu_hv]
+                        result_reach_q_models[index_habmodel, qind, :] = [vh_v, spu_v, vh_h, spu_h, vh_hv, spu_hv]
+                    else:
+                        # TODO bivariate for stathab
+                        # result[qind,:]=[qmod[qind][0],0,0,0,0,0,0,0,0,0]
+                        result_reach_q_models[index_habmodel, qind, :] = [0, 0, 0, 0, 0, 0]
 
+                titi = 4
 
-                #YLC en TRAVAUX
+                # YLC en TRAVAUX
                 # calculate the biological preference index
                 # j = coeff[:, 0] * v
                 # for vc in range(0, len(vclass[:, qind])):
@@ -651,20 +676,38 @@ class Stathab:
                 # for rc in range(0, len(rclass[:, qind])):
                 #     j += rclass[rc, qind] * coeff[:, rc + len(hclass[:, qind]) + len(vclass[:, qind]) + 1]
                 # self.j_all[r, :, qind] = j
-            # # YLC test
-            # f_chk = open('C:\w\check.txt', 'a')
-            # np.savetxt(f_chk, check)
-            # f_chk.close()
-            f_chk2 = open('C:\w\check2.txt', 'a')
-            np.savetxt(f_chk2, result)
-            f_chk2.close()
+                # # YLC test
+                # f_chk = open('C:\w\check.txt', 'a')
+                # np.savetxt(f_chk, check)
+                # f_chk.close()
 
+            # ************************************************************************************************************
+            # Verif Stathab
+            for index_habmodel in range(nb_models):
+                nomfich = 'C:\\w\\' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
+                    index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
+                f_chk2 = open(nomfich, 'w')
+                f_chk2.write(
+                    '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
+                f_chk2.close()
+                f_chk2 = open(nomfich, 'a')
+                # np.savetxt(f_chk2, result)
+                np.savetxt(f_chk2,
+                           np.concatenate((result_reach_q_hyd, result_reach_q_models[index_habmodel, :]), axis=1))
+                f_chk2.close()
+            # ************************************************************************************************************
+
+            # adding results by reach
+            # TODO rajouter dans des listes par reach
             self.vclass_all.append(vclass)
             self.hclass_all.append(hclass)
             self.rclass_all.append(rclass)
-            self.h_all.append(hmod)
-            self.w_all.append(wmod)
-            self.q_all.append(qmod)
+            # result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
+            self.q_all.append(result_reach_q_hyd[:, 0])
+            self.w_all.append(result_reach_q_hyd[:, 1])
+            self.h_all.append(result_reach_q_hyd[:, 2])
+            self.v_all.append(result_reach_q_hyd[:, 3])
+            self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
 
         self.load_ok = True
 
@@ -752,7 +795,7 @@ class Stathab:
                     wua_hv[r, fish_num, qind] = hv_hv[r, fish_num, qind] * ws  # WUA/m of river
                     hv_h[r, fish_num, qind] = np.sum(pref_h * h_dist)
                     hv_v[r, fish_num, qind] = np.sum(pref_v * v_dist)
-                    wua_h[r, fish_num, qind] = hv_h[r, fish_num, qind] * ws #WUA/m of river
+                    wua_h[r, fish_num, qind] = hv_h[r, fish_num, qind] * ws  # WUA/m of river
                     wua_v[r, fish_num, qind] = hv_v[r, fish_num, qind] * ws  # WUA/m of river
                 self.h_all.append(hmod)
                 self.v_all.append(vmod)
@@ -839,7 +882,7 @@ class Stathab:
                     point_vh = np.array([v_born2, h_born2]).T
                     pref_here = interpolate.griddata(data_pref[:, :2], data_pref[:, 2], point_vh, method='linear')
                     hv_hv[r, f, qind] = np.sum(pref_here * biv_dist.T)
-                    wua_hv[r, f, qind] =hv_hv[r, f, qind]* ws
+                    wua_hv[r, f, qind] = hv_hv[r, f, qind] * ws
                     self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv}
                 self.h_all.append(hmod)
                 self.v_all.append(vmod)
@@ -847,6 +890,45 @@ class Stathab:
                 self.q_all.append(qmod)
 
         self.load_ok = True
+
+    def stahab_get_pref(self):
+        hvum = HydraulicVariableUnitManagement()
+        # each animal model
+        dict_pref_stahab = {'code_bio_model': [], 'stage': [], 'bmono': [], 'h_data': [], 'v_data': [],
+                            'h_pref_data': [], 'v_pref_data': [], 'hv_pref_data': []}
+        for hab_string_var in self.fish_chosen:
+            # get gui informations
+            stage = hab_string_var.split(" - ")[-2]
+            code_bio_model = hab_string_var.split(" - ")[-1]
+            index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+            # get the preference info based on the files known
+            information_model_dict = read_pref(user_preferences.biological_models_dict["path_xml"][index_fish])
+            stage_index = information_model_dict["stage_and_size"].index(stage)
+            hab_var = information_model_dict["hab_variable_list"][stage_index]
+            dict_pref_stahab['code_bio_model'].append(code_bio_model)
+            dict_pref_stahab['stage'].append(stage)
+            # get data
+            if hab_var.model_type == "univariate suitability index curves":
+                dict_pref_stahab['bmono'].append(True)
+                dict_pref_stahab['h_data'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0])
+                dict_pref_stahab['h_pref_data'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1])
+                dict_pref_stahab['v_data'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[0])
+                dict_pref_stahab['v_pref_data'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[1])
+                dict_pref_stahab['hv_pref_data'].append([])
+            if hab_var.model_type == "bivariate suitability index models":
+                dict_pref_stahab['bmono'].append(False)
+                dict_pref_stahab['h_data'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data)
+                dict_pref_stahab['v_data'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data)
+                dict_pref_stahab['hv_pref_data'].append(hab_var.hv)
+                dict_pref_stahab['h_pref_data'].append([])
+                dict_pref_stahab['v_pref_data'].append([])
+        return dict_pref_stahab
 
     def power_law(self, qwh_r):
         """
