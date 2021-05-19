@@ -169,9 +169,9 @@ def estimhab(estimhab_dict, qt_tr):
             var_const = pass_to_float_estimhab(".//var_const", root)
         except ValueError:
             print('Error: ' + qt_tr.translate("estimhab_mod",
-                                              'Some data can not be read or are not number. Check the xml file ') +
-                  fish_name[f])
-            return [-99], [-99], [-99], [-99], [-99], [-99]
+                                              'Some data can not be read or are not number. Check the xml file of ') +
+                  fish_name[f] + fish_xml[f])
+            return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
         # calculate VH
         if func_q[0] == 0.:
@@ -223,8 +223,11 @@ def pass_to_float_estimhab(var_name, root):
     """
     coeff_qe = root.findall(var_name)
     coeff_str = coeff_qe[0].text
-    coeff = coeff_str.split()
-    coeff = list(map(float, coeff))
+    if not coeff_str:
+        coeff = []
+    else:
+        coeff = coeff_str.split()
+        coeff = list(map(float, coeff))
 
     return coeff
 
