@@ -932,7 +932,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
                                                           sharex="all",
                                                           gridspec_kw={'height_ratios': [1, 1, 1]})
-    fig2.canvas.set_window_title('ESTIMHAB input - HABBY')
+    plt.get_current_fig_manager().set_window_title('ESTIMHAB input - HABBY')  # set windows title
     ax_h.set_title("ESTIMHAB input - HABBY")
     # H
     if estimhab_dict["targ_q_all"]:
