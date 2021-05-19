@@ -50,7 +50,7 @@ class Stathab:
         self.fish_chosen = []  # the name of the fish to be studied, the name should also be in pref.txt
         self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
         self.name_reach = []  # the list with the name of the reaches
-        self.j_all = []  # the suitability indices
+        self.j_all = dict()  # habitat values
         self.granulo_mean_all = []  # average granuloa
         self.vclass_all = []  # volume of each velocity classes
         self.hclass_all = []  # surface height for all classes
@@ -554,7 +554,14 @@ class Stathab:
         #     return -99
 
         # the biological preference index for all reach, all species
-        self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+        # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))  plus utilisé on se base sur un dico comme StahabSteep
+        nb_fish=len(self.fish_chosen)
+        hv_hv = np.zeros((nb_reach, nb_fish, nbclaq))
+        wua_hv = np.zeros((nb_reach, nb_fish, nbclaq))
+        hv_h = np.zeros((nb_reach, nb_fish, nbclaq))
+        hv_v = np.zeros((nb_reach, nb_fish, nbclaq))
+        wua_h = np.zeros((nb_reach, nb_fish, nbclaq))
+        wua_v = np.zeros((nb_reach, nb_fish, nbclaq))
 
         for r in range(0, nb_reach):
 
@@ -659,6 +666,21 @@ class Stathab:
                         spu_hv = vh_hv * ws
                         # result[qind,:]=[qmod[qind][0],ws,hs,vs,vh_v,spu_v,vh_h,spu_h,vh_hv,spu_hv]
                         result_reach_q_models[index_habmodel, qind, :] = [vh_v, spu_v, vh_h, spu_h, vh_hv, spu_hv]
+                        # TODO simplifier avec ce qui precede
+                        hv_hv [r, index_habmodel, qind]=vh_hv
+                        wua_hv [r, index_habmodel, qind]=spu_hv
+                        hv_h [r, index_habmodel, qind]=vh_h
+                        hv_v [r, index_habmodel, qind]=spu_h
+                        wua_h [r, index_habmodel, qind]=vh_v
+                        wua_v [r, index_habmodel, qind]=spu_v
+
+
+
+
+
+
+
+
                     else:
                         # TODO bivariate for stathab
                         # result[qind,:]=[qmod[qind][0],0,0,0,0,0,0,0,0,0]
@@ -707,7 +729,9 @@ class Stathab:
             self.w_all.append(result_reach_q_hyd[:, 1])
             self.h_all.append(result_reach_q_hyd[:, 2])
             self.v_all.append(result_reach_q_hyd[:, 3])
-            self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
+            # the biological preference index for all reach, all species
+            # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+        self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
 
         self.load_ok = True
 
@@ -1209,7 +1233,7 @@ class Stathab:
         plt.rcParams['figure.figsize'] = self.project_preferences['width'], self.project_preferences['height']
         plt.rcParams['font.size'] = self.project_preferences['font_size']
         plt.rcParams['lines.linewidth'] = self.project_preferences['line_width']
-        format = int(self.project_preferences['format'])
+        format = self.project_preferences['format']
         plt.rcParams['axes.grid'] = self.project_preferences['grid']
         mpl.rcParams['pdf.fonttype'] = 42
         if self.project_preferences['font_size'] > 7:
@@ -1294,24 +1318,12 @@ class Stathab:
 
                 # save the figures
                 if not erase1:
-                    if format == 0:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-                    if format == 1:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-                    if format == 2:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
                     fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
                                 dpi=self.project_preferences['resolution'])
                 else:
-                    if format == 0:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.pdf")
-                    if format == 1:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.png")
-                    if format == 2:
-                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.jpg")
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes" + format)
                     if os.path.isfile(name_fig):
                         os.remove(name_fig)
                     fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
@@ -1325,7 +1337,10 @@ class Stathab:
                 for e in range(0, len(self.fish_chosen)):
                     plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
             else:
-                plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
+                # # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+                # self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
+                # plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
+                plt.plot(qmod, self.j_all['hv_hv'][r,0,:], '-', label=self.fish_chosen[0])
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
             if self.project_preferences['language'] == 0:
@@ -1337,24 +1352,12 @@ class Stathab:
 
             lgd = plt.legend(fancybox=True, framealpha=0.5)
             if not erase1:
-                if format == 0 or format == 1:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-                if format == 0 or format == 3:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-                if format == 2:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+                name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
                             dpi=self.project_preferences['resolution'], transparent=True)
             else:
-                if format == 0 or format == 1:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index.png")
-                if format == 0 or format == 3:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index.pdf")
-                if format == 2:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index.jpg")
+                name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index"+ format)
                 if os.path.isfile(name_fig):
                     os.remove(name_fig)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
@@ -1368,13 +1371,13 @@ class Stathab:
         # to know if we kept the old file or we erase them
         self.project_preferences = load_project_properties(self.path_prj)
         erase1 = self.project_preferences['erase_id']
-        if not isinstance(self.j_all, np.ndarray):
+        if self.j_all :
             print('Error: The suitability index was not in the right format')
             return
 
         # save txt for each reach
         for r in range(0, len(self.name_reach)):
-            j = np.squeeze(self.j_all[r, :, :])
+            j = np.squeeze(self.j_all['hv_hv'][r, :, :])
             qmod = self.q_all[r]
             if self.riverint == 0:
                 vclass = self.vclass_all[r]
