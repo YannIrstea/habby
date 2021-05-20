@@ -129,7 +129,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
               ' run_choice.')
         print('\n')
-        print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub'
+        print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub qra1 qra2'
               '- all data in float')
         print('\n')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
@@ -202,6 +202,13 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         cli_load_hyd(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
+    elif all_arg[0] == 'CREATE_SUB':
+        # remove the first arg LOAD_SUB
+        all_arg = all_arg[1:]
+
+        cli_load_sub(all_arg, project_preferences)
+
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_LAMMI':
 
         if not 3 < len(all_arg) < 6:
@@ -229,25 +236,25 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_ESTIMHAB':
-        if not len(all_arg) == 12:
-            print('RUN_ESTIMHAB needs 12 inputs. See LIST_COMMAND for more info.')
+        all_arg = all_arg[1:]
+        if len(all_arg) < 10:
+            print('RUN_ESTIMHAB needs 9 inputs. See LIST_COMMAND for more info.')
             return
-        # path bio
-        path_bio2 = os.path.join(path_bio, 'estimhab')
         # input
         try:
-            q = [float(all_arg[2]), float(all_arg[3])]
-            w = [float(all_arg[4]), float(all_arg[5])]
-            h = [float(all_arg[6]), float(all_arg[7])]
-            q50 = float(all_arg[8])
-            qrange = [float(all_arg[9]), float(all_arg[10])]
-            sub = float(all_arg[11])
+            q = [float(all_arg[0]), float(all_arg[1])]
+            w = [float(all_arg[2]), float(all_arg[3])]
+            h = [float(all_arg[4]), float(all_arg[5])]
+            q50 = float(all_arg[6])
+            sub = float(all_arg[7])
+            qrange = [float(all_arg[8]), float(all_arg[9])]
         except ValueError:
             print('Error; Estimhab needs float as input')
             return
 
         # fish
-        all_file = glob.glob(os.path.join(path_bio2, r'*.xml'))
+        path_bio = os.path.join('biology', 'estimhab')
+        all_file = glob.glob(os.path.join(path_bio, r'*.xml'))
         for i in range(0, len(all_file)):
             all_file[i] = os.path.basename(all_file[i])
         fish_list = all_file
@@ -263,8 +270,24 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         if not fish_list:
             print('Error: no fish found for estimhab')
             return
-        estimhab_mod.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True, {}, path_prj)
-        # plt.show()  # should we let it? It stops the function butit shows the results
+
+        estimhab_dict = dict(q=q,
+                             w=w,
+                             h=h,
+                             q50=q50,
+                             qrange=qrange,
+                             qtarg=[],
+                             substrate=sub,
+                             path_bio=path_bio,
+                             xml_list=fish_list,
+                             fish_list=[]) # TODO: list name available with arg. really need?
+
+        progress_value = Value("d", 0)
+        p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
+                         args=(estimhab_dict, project_preferences, path_prj,
+                               progress_value),
+                    name="ESTIMHAB")
+        cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_STATHAB':
@@ -410,13 +433,6 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # plot output in txt
         fstress_mod.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
         # plt.show()
-
-    # ----------------------------------------------------------------------------------
-    elif all_arg[0] == 'CREATE_SUB':
-        # remove the first arg LOAD_SUB
-        all_arg = all_arg[1:]
-
-        cli_load_sub(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'MERGE_GRID_SUB':
