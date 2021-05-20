@@ -30,7 +30,7 @@ def load_evha_and_create_grid(path, name_evha=''):
 
     THIS IS NOT FUNCTIONNING YET. IT SHOULD BE FINISHED BEFORE USE!!!!!!!
 
-    :param path: the path to the folder with the evha data
+    :param path:  the path to the folder with the evha data
     :param name_evha: the name of the project (if empty, this is assumed to be
      the name of the folder)
     """
