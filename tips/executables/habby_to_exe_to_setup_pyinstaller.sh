@@ -2,7 +2,7 @@ source /datas/habby_dev/env_virtuels/env_habby_dev_pip/bin/activate
 
 cd /datas/habby_dev/habby
 
-pyinstaller tips/executables/habby.spec --distpath=build/pyinstaller --workpath=build/pyinstaller/temp
+pyinstaller tips/executables/habby.spec --distpath=build/pyinstaller --workpath=build/pyinstaller/temp --clean
 
 cp -r biology build/pyinstaller/habby/biology
 cp -r doc build/pyinstaller/habby/doc
