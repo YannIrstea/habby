@@ -16,6 +16,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
+import sys
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
@@ -1248,6 +1249,42 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
                 # process_prog_show
                 self.progress_layout.start_process()
+
+    def create_script(self, hydrau_description_multiple):
+        # path_prj
+        path_prj_script = self.path_prj + "_restarted"
+
+        # cli
+        if sys.argv[0][-3:] == ".py":
+            exe_cmd = '"' + sys.executable + '" "' + sys.argv[0] + '"'
+        else:
+            exe_cmd = '"' + sys.executable + '"'
+        script_function_name = "EXPORT"
+        cmd_str = exe_cmd + ' ' + script_function_name + \
+                  ' model="' + self.model_type + '"' + \
+                  ' inputfile="' + os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt") + '"' + \
+                  ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list']).replace("\'", "'").replace(' ', '') + \
+                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
+                  ' outputfilename="' + self.name_hdf5 + '"' + \
+                  ' path_prj="' + path_prj_script + '"'
+        self.send_log.emit("script" + cmd_str)
+
+        # py
+        cmd_str = F"\t# EXPORT\n" \
+                  F"\tfrom src.hydraulic_process_mod import HydraulicSimulationResultsAnalyzer, load_hydraulic_cut_to_hdf5\n\n"
+        cmd_str = cmd_str + F'\thsra_value = HydraulicSimulationResultsAnalyzer(filename_path_list=[{repr(os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt"))}], ' \
+                  F"\tpath_prj={repr(path_prj_script)}, " \
+                  F"\tmodel_type={repr(self.model_type)}, " \
+                  F"\tnb_dim={repr(str(self.nb_dim))})\n"
+        cmd_str = cmd_str + F"\tfor hdf5_file_index in range(0, len(hsra_value.hydrau_description_list)):\n" \
+                            F"\t\tprogress_value = Value('d', 0.0)\n" \
+                            F"\t\tq = Queue()\n" \
+                            F"\t\tload_hydraulic_cut_to_hdf5(hydrau_description=hsra_value.hydrau_description_list[hdf5_file_index], " \
+                            F"\tprogress_value=progress_value, " \
+                            F"\tq=q, " \
+                            F"\tprint_cmd=True, " \
+                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+        self.send_log.emit("py" + cmd_str)
 
 
 class HabitatValueRemover(QGroupBoxCollapsible):

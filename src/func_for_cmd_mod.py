@@ -102,45 +102,24 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
     if all_arg[0] == 'LIST_COMMAND':
         print("Here are the available command for habby:")
         print('\n')
-        print("LOAD_HECRAS_1D: load the hec-ras data in 1D. Input: name of .geo, name of the data file, interpolation "
-              "choice,(number of profile to add), (output name)")
-        print("LOAD_HECRAS_2D: load the hec-ras data in 2D. Input: name of the .h5 file, (output name)")
-        print('LOAD_HYDRO_HDF5: load an hydrological hdf5. Input: the name of the hdf5 (with the path)')
-        print("LOAD_MASCARET: load the mascaret data. Input: name of the three inputs files - xcas, geo, opt, "
-              "manning coefficient, interpolation choice, (number of profile to add), (output name), (nb_point_vel=x)")
-        print("LOAD_RIVER_2D: load the river 2d data. Input: folder containing the cdg file, (output name)")
-        print("LOAD_RUBAR_1D: load the Rubar data in 1D. Input: name of input file .rbe, name of the profile input "
-              "file, manning coefficient, interpolation choice, (number of profile to add), (output name),"
-              "(nb_point_vel=x)")
-        print("LOAD_RUBAR_2D: load the Rubar data in 2D. Input: name of .dat or .mai file, name of input .tps file "
-              "(output name)")
-        print("LOAD_SW2D: load the SW2D dataD. Input: name of .geo file, name of input .res file "
-              "(output name)")
-        print("LOAD_IBER2D: load the IBER2D dataD. Input: name of .dat file, name of input .rep files "
-              "(output name)")
-        print("LOAD_TELEMAC: load the telemac data in hdf5")
-        print("\tinputfile: input file (telemac file absolute path with extension).")
+        print("CREATE_PROJECT: Create an HABBY project")
+        print("\tpath_prj: path where to project will be created.")
+        print('\n')
+        print("CREATE_HYD: load the hydraulic data and create a .hyd file")
+        print("\tmodel: hydraulic model type. ex: rubar2d, telemac, hecras2d, iber2d, river2d, sw2d, basement2d.")
+        print("\tinputfile: input file (file absolute path with extension).")
         print("\tunits (optional): desired units index (0,1,2,3..). If not specify, all units all loaded.")
-        print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
-        print("LOAD_LAMMI: load lammi data. Input: the name of the folder containing transect.txt and facies.txt and "
-              "the name of the folder with the HydroSim result, (output name)")
-
+        print("\toutputfilename (optional): filename_output.hyd. If not specify, automatic name from input name.")
+        print('\n')
+        print("CREATE_SUB: load the substrate data and create a .sub file")
+        print("\tsubstrate_mapping_method: Substrate mapping method. ex: polygon, point, constant.")
+        print("\tinputfile: input file (file absolute path with extension).")
+        print("\toutputfilename (optional): filename_output.sub. If not specify, automatic name from input name.")
         print('\n')
         print('MERGE_GRID_SUB: merge the hydrological and substrate grid together')
-        print("\thydrauhdf5: input file (shapefile absolute path with extension).")
-        print("\tcode_type: type of substrate (Cemagref or Sandre).")
-        print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
-              "If not specify, dominant_case as 1 or -1")
-        print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
-        print('LOAD_SUB: load the substrate (polygon, point or constant) from a shp, gpkg or txt in .sub')
-        print("\tinputfile: input file (shapefile absolute path with extension).")
-        print("\tcode_type: type of substrate (Cemagref or Sandre).")
-        print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
-              "If not specify, dominant_case as 1 or -1")
-        print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
+        print("\thyd: input file (shapefile absolute path with extension).")
+        print("\tsub: type of substrate (Cemagref or Sandre).")
         print('\n')
-        print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub'
-              '- all data in float')
         print('RUN_HABITAT: Estimate the habitat value from an hdf5 merged files. It used the coarser substrate '
               'as the substrate layer if the parameter run_choice is 0. We can also choose to make the calculation'
               'on the dominant substrate (run_choice:1) or the substrate by percentage (run_choice:2). The chosen stage'
@@ -149,26 +128,34 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
               'the xml biological files by a comma without a space between the command and the filenames. '
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
               ' run_choice.')
+        print('\n')
+        print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub qra1 qra2'
+              '- all data in float')
+        print('\n')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
+        print('\n')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
               "(the river type, 0 by default, 1, or 2 for tropical rivers).")
         print('\n')
         print("RESTART: Relauch HABBY based on a list of command in a text file (restart file) Input: the name of file"
               " (with the path).")
+        print('\n')
         print("ALL: if the keywork ALL is followed by a command from HABBY, the command will be applied to all file"
               " in a folder. The name of the input file should be in the form: path_to_folder/*.ext with the "
               "right extension as ext. No output name should be given.")
+        print('\n')
         print("COMPARE_TEST: Call the small function which compare the files in two folders. Useful to test habby "
               "output. Input: The path to the folder with the reference file, the path to the folder with the "
               "files to check")
+        print('\n')
         print("COMPARE_FILE: Compares a test file to a reference file according to the values of their datasets. "
               "Input: ref_file= the path and filename of the reference file, test_file= the path and filename of the "
               "test file")
+        print('\n')
         print("COMPARE_DIR: Compares the files in a test directory and a reference directory according to the values "
               "of their datasets. Input: ref_path= the path to the reference directory, test_path= the path to the "
               "test directory")
-
         print('\n')
         print('list of options which can be added after the command: (1) path_prj= path to project, (2) '
               'name_prj= name of the project, (3) path_bio: the path to the biological files')
@@ -212,8 +199,14 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # remove the first arg CREATE_HYD
         all_arg = all_arg[1:]
 
-
         cli_load_hyd(all_arg, project_preferences)
+
+    # ----------------------------------------------------------------------------------
+    elif all_arg[0] == 'CREATE_SUB':
+        # remove the first arg LOAD_SUB
+        all_arg = all_arg[1:]
+
+        cli_load_sub(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_LAMMI':
@@ -243,25 +236,25 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_ESTIMHAB':
-        if not len(all_arg) == 12:
-            print('RUN_ESTIMHAB needs 12 inputs. See LIST_COMMAND for more info.')
+        all_arg = all_arg[1:]
+        if len(all_arg) < 10:
+            print('RUN_ESTIMHAB needs 9 inputs. See LIST_COMMAND for more info.')
             return
-        # path bio
-        path_bio2 = os.path.join(path_bio, 'estimhab')
         # input
         try:
-            q = [float(all_arg[2]), float(all_arg[3])]
-            w = [float(all_arg[4]), float(all_arg[5])]
-            h = [float(all_arg[6]), float(all_arg[7])]
-            q50 = float(all_arg[8])
-            qrange = [float(all_arg[9]), float(all_arg[10])]
-            sub = float(all_arg[11])
+            q = [float(all_arg[0]), float(all_arg[1])]
+            w = [float(all_arg[2]), float(all_arg[3])]
+            h = [float(all_arg[4]), float(all_arg[5])]
+            q50 = float(all_arg[6])
+            sub = float(all_arg[7])
+            qrange = [float(all_arg[8]), float(all_arg[9])]
         except ValueError:
             print('Error; Estimhab needs float as input')
             return
 
         # fish
-        all_file = glob.glob(os.path.join(path_bio2, r'*.xml'))
+        path_bio = os.path.join('biology', 'estimhab')
+        all_file = glob.glob(os.path.join(path_bio, r'*.xml'))
         for i in range(0, len(all_file)):
             all_file[i] = os.path.basename(all_file[i])
         fish_list = all_file
@@ -277,8 +270,24 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         if not fish_list:
             print('Error: no fish found for estimhab')
             return
-        estimhab_mod.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True, {}, path_prj)
-        # plt.show()  # should we let it? It stops the function butit shows the results
+
+        estimhab_dict = dict(q=q,
+                             w=w,
+                             h=h,
+                             q50=q50,
+                             qrange=qrange,
+                             qtarg=[],
+                             substrate=sub,
+                             path_bio=path_bio,
+                             xml_list=fish_list,
+                             fish_list=[]) # TODO: list name available with arg. really need?
+
+        progress_value = Value("d", 0)
+        p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
+                         args=(estimhab_dict, project_preferences, path_prj,
+                               progress_value),
+                    name="ESTIMHAB")
+        cli_start_process_and_print_progress(p, progress_value)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_STATHAB':
@@ -424,13 +433,6 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # plot output in txt
         fstress_mod.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
         # plt.show()
-
-    # ----------------------------------------------------------------------------------
-    elif all_arg[0] == 'CREATE_SUB':
-        # remove the first arg LOAD_SUB
-        all_arg = all_arg[1:]
-
-        cli_load_sub(all_arg, project_preferences)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'MERGE_GRID_SUB':
@@ -1112,15 +1114,18 @@ def load_fstress_text(path_fstress):
 
 def cli_load_hyd(arguments, project_preferences):
     # optionnal args
-    units_string = None
+    model_name = None
     outputfilename = None
+    cut = None
+    unit_list = None
+    filename_path = None
 
     # get args
     for arg in arguments:
         # model
         model_arg_name = 'model='
         if arg[:len(model_arg_name)] == model_arg_name:
-            model_name = arg[len(model_arg_name):]
+            model_name = arg[len(model_arg_name):].lower()
         # inputfile
         inputfile_arg_name = 'inputfile='
         if arg[:len(inputfile_arg_name)] == inputfile_arg_name:
@@ -1141,19 +1146,29 @@ def cli_load_hyd(arguments, project_preferences):
         cut_arg_name = 'cut='
         if arg[:len(cut_arg_name)] == cut_arg_name:
             cut = eval(arg[len(cut_arg_name):])
-            project_preferences['cut_mesh_partialy_dry'] = cut
         # unit_list
         unit_list_arg_name = 'unit_list='
         if arg[:len(unit_list_arg_name)] == unit_list_arg_name:
-            unit_list = eval(arg[len(unit_list_arg_name):])
+            unit_list = list(map(str, eval(arg[len(unit_list_arg_name):]))) # TODO: reach notion
 
-    # # get_hydrau_description_from_source
-    hydraulic_model_information = HydraulicModelInformation()
-
+    # get_hydrau_description_from_source
     hsra_value = src.hydraulic_results_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
                                                                                       project_preferences["path_prj"],
                                                                                       model_name,
                                                                                       2)
+
+    # cut
+    if cut:
+        project_preferences['cut_mesh_partialy_dry'] = cut
+
+    # unit_list
+    if unit_list:
+        for reach_num in range(len(hsra_value.hydrau_description_list[0]["unit_list_tf"])):
+            for unit_num in range(len(hsra_value.hydrau_description_list[0]["unit_list_tf"][reach_num])):
+                unit_name = hsra_value.hydrau_description_list[0]["unit_list_full"][reach_num][unit_num]
+                if unit_name not in unit_list:
+                    hsra_value.hydrau_description_list[0]["unit_list_tf"][reach_num][unit_num] = False
+        hsra_value.hydrau_description_list[0]["unit_list"] = [unit_list]
 
     # outputfilename
     if outputfilename:
@@ -1184,7 +1199,6 @@ def cli_load_hyd(arguments, project_preferences):
                       True,
                       project_preferences),
                 name=hsra_value.hydrau_description_list[0]["hdf5_name"] + " creation")
-
     cli_start_process_and_print_progress(p, progress_value)
 
 
@@ -1290,7 +1304,7 @@ def cli_merge(arguments, project_preferences):
     cli_start_process_and_print_progress(p, progress_value)
 
 
-""" HAB """
+""" CALC_HAB """
 
 
 def cli_calc_hab(arguments, project_preferences):

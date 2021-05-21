@@ -826,11 +826,10 @@ class EstimhabW(StatModUseful):
         state = Value("d", 0)
         self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
                          args=(self.estimhab_dict, project_preferences, self.path_prj,
-                               state))
+                               state),
+                    name="ESTIMHAB")
         self.p.start()
-        # self.process_manager.append((self.p, state))
         self.p.join()
-
 
         # plot
         plot_attr = lambda: None
