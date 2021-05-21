@@ -774,7 +774,7 @@ class Stathab:
         # the biological preference index for all reach, all species
         self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
 
-        # for each reach
+        # for each  reach
         for r in range(0, nb_reach):
 
             qmod = np.zeros((nbclaq, 1))
