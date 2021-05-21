@@ -28,8 +28,8 @@ from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
-import matplotlib as mpl
 from src.bio_info_mod import read_pref
+from src.plot_mod import plot_estimhab
 from src.user_preferences_mod import user_preferences
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
@@ -1148,140 +1148,143 @@ class Stathab:
         figure only works when stathab1 for temperate river is used.
 
         """
-        # figure option
-        self.project_preferences = load_project_properties(self.path_prj)
-        plt.rcParams['figure.figsize'] = self.project_preferences['width'], self.project_preferences['height']
-        plt.rcParams['font.size'] = self.project_preferences['font_size']
-        plt.rcParams['lines.linewidth'] = self.project_preferences['line_width']
-        format = self.project_preferences['format']
-        plt.rcParams['axes.grid'] = self.project_preferences['grid']
-        mpl.rcParams['pdf.fonttype'] = 42
-        if self.project_preferences['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = self.project_preferences['font_size'] - 2
-        plt.rcParams['legend.loc'] = 'best'
-        mpl.interactive(True)
-        erase1 = self.project_preferences['erase_id']
-        if len(self.q_all) < len(self.name_reach):
-            print('Error: Could not find discharge data. Figure not plotted. \n')
-            return
-
-        for r in range(0, len(self.name_reach)):
-
-            qmod = self.q_all[r]
-            if show_class:
-                rclass = self.rclass_all[r]
-                hclass = self.hclass_all[r]
-                vclass = self.vclass_all[r]
-                vol = self.h_all[0] * self.w_all[0]
-
-                fig = plt.figure()
-                plt.subplot(221)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Total Volume')
-                    plt.ylabel('Volume for 1m of reach [m3]')
-                    plt.title('Surface by class for the granulometry')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Volume total')
-                    plt.ylabel('Volume pour 1m de troncon [m3]')
-                else:
-                    plt.title('Total Volume')
-                    plt.ylabel('Volume for 1m of reach [m3]')
-                    plt.title('Surface by class for the granulometry')
-                plt.plot(qmod, vol)
-                plt.subplot(222)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Surface by class for the granulometry')
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Surface par classe de granulométrie')
-                    plt.ylabel('Surface par classe [m$^{2}$]')
-                else:
-                    plt.title('Surface by class for the granulometry')
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                for g in range(0, len(rclass)):
-                    plt.plot(qmod, rclass[g], '-', label='Class ' + str(g))
-                lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-                plt.subplot(223)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Surface by class for the height')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Surface par classe pour la hauteur')
-                else:
-                    plt.title('Surface by class for the height')
-                for g in range(0, len(hclass)):
-                    plt.plot(qmod, hclass[g, :], '-', label='Class ' + str(g))
-                plt.xlabel('Q [m$^{3}$/sec]')
-                if self.project_preferences['language'] == 0:
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                elif self.project_preferences['language'] == 1:
-                    plt.ylabel('Surface par classe [m$^{2}$]')
-                else:
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                lgd = plt.legend()
-                plt.subplot(224)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Volume by class for the velocity')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Volume par classe pour la vitesse')
-                else:
-                    plt.title('Volume by class for the velocity')
-                for g in range(0, len(vclass)):
-                    plt.plot(qmod, vclass[g], '-', label='Class ' + str(g))
-                plt.xlabel('Q [m$^{3}$/sec]')
-                if self.project_preferences['language'] == 0:
-                    plt.ylabel('Volume by Class [m$^{3}$]')
-                elif self.project_preferences['language'] == 1:
-                    plt.ylabel('Volume par classe [m$^{3}$]')
-                else:
-                    plt.ylabel('Volume by Class [m$^{3}$]')
-                lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-
-                # save the figures
-                if not erase1:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
-                    fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                                dpi=self.project_preferences['resolution'])
-                else:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes" + format)
-                    if os.path.isfile(name_fig):
-                        os.remove(name_fig)
-                    fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                                dpi=self.project_preferences['resolution'])
-
-            # suitability index
-            fig = plt.figure()
-            if len(self.fish_chosen) > 1:
-                j = np.squeeze(self.j_all['hv_hv'][0, :, :])
-                for e in range(0, len(self.fish_chosen)):
-                    plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
-            else:
-                # # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
-                # self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
-                # plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
-                plt.plot(qmod, self.j_all['hv_hv'][r,0,:], '-', label=self.fish_chosen[0])
-            plt.xlabel('Q [m$^{3}$/sec]')
-            plt.ylabel('Index J [ ]')
-            if self.project_preferences['language'] == 0:
-                plt.title('Suitability index J - ' + self.name_reach[r])
-            elif self.project_preferences['language'] == 1:
-                plt.title('Index de suitabilité J - ' + self.name_reach[r])
-            else:
-                plt.title('Suitability index J - ' + self.name_reach[r])
-
-            lgd = plt.legend(fancybox=True, framealpha=0.5)
-            if not erase1:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
-                fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                            dpi=self.project_preferences['resolution'], transparent=True)
-            else:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index"+ format)
-                if os.path.isfile(name_fig):
-                    os.remove(name_fig)
-                fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                            dpi=self.project_preferences['resolution'], transparent=True)
-            plt.show()
+        plot_estimhab(progress_value,
+                self.j_all,
+                self.project_preferences)
+        # # figure option
+        # self.project_preferences = load_project_properties(self.path_prj)
+        # plt.rcParams['figure.figsize'] = self.project_preferences['width'], self.project_preferences['height']
+        # plt.rcParams['font.size'] = self.project_preferences['font_size']
+        # plt.rcParams['lines.linewidth'] = self.project_preferences['line_width']
+        # format = self.project_preferences['format']
+        # plt.rcParams['axes.grid'] = self.project_preferences['grid']
+        # mpl.rcParams['pdf.fonttype'] = 42
+        # if self.project_preferences['font_size'] > 7:
+        #     plt.rcParams['legend.fontsize'] = self.project_preferences['font_size'] - 2
+        # plt.rcParams['legend.loc'] = 'best'
+        # mpl.interactive(True)
+        # erase1 = self.project_preferences['erase_id']
+        # if len(self.q_all) < len(self.name_reach):
+        #     print('Error: Could not find discharge data. Figure not plotted. \n')
+        #     return
+        #
+        # for r in range(0, len(self.name_reach)):
+        #
+        #     qmod = self.q_all[r]
+        #     if show_class:
+        #         rclass = self.rclass_all[r]
+        #         hclass = self.hclass_all[r]
+        #         vclass = self.vclass_all[r]
+        #         vol = self.h_all[0] * self.w_all[0]
+        #
+        #         fig = plt.figure()
+        #         plt.subplot(221)
+        #         if self.project_preferences['language'] == 0:
+        #             plt.title('Total Volume')
+        #             plt.ylabel('Volume for 1m of reach [m3]')
+        #             plt.title('Surface by class for the granulometry')
+        #         elif self.project_preferences['language'] == 1:
+        #             plt.title('Volume total')
+        #             plt.ylabel('Volume pour 1m de troncon [m3]')
+        #         else:
+        #             plt.title('Total Volume')
+        #             plt.ylabel('Volume for 1m of reach [m3]')
+        #             plt.title('Surface by class for the granulometry')
+        #         plt.plot(qmod, vol)
+        #         plt.subplot(222)
+        #         if self.project_preferences['language'] == 0:
+        #             plt.title('Surface by class for the granulometry')
+        #             plt.ylabel('Surface by class [m$^{2}$]')
+        #         elif self.project_preferences['language'] == 1:
+        #             plt.title('Surface par classe de granulométrie')
+        #             plt.ylabel('Surface par classe [m$^{2}$]')
+        #         else:
+        #             plt.title('Surface by class for the granulometry')
+        #             plt.ylabel('Surface by class [m$^{2}$]')
+        #         for g in range(0, len(rclass)):
+        #             plt.plot(qmod, rclass[g], '-', label='Class ' + str(g))
+        #         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
+        #         plt.subplot(223)
+        #         if self.project_preferences['language'] == 0:
+        #             plt.title('Surface by class for the height')
+        #         elif self.project_preferences['language'] == 1:
+        #             plt.title('Surface par classe pour la hauteur')
+        #         else:
+        #             plt.title('Surface by class for the height')
+        #         for g in range(0, len(hclass)):
+        #             plt.plot(qmod, hclass[g, :], '-', label='Class ' + str(g))
+        #         plt.xlabel('Q [m$^{3}$/sec]')
+        #         if self.project_preferences['language'] == 0:
+        #             plt.ylabel('Surface by class [m$^{2}$]')
+        #         elif self.project_preferences['language'] == 1:
+        #             plt.ylabel('Surface par classe [m$^{2}$]')
+        #         else:
+        #             plt.ylabel('Surface by class [m$^{2}$]')
+        #         lgd = plt.legend()
+        #         plt.subplot(224)
+        #         if self.project_preferences['language'] == 0:
+        #             plt.title('Volume by class for the velocity')
+        #         elif self.project_preferences['language'] == 1:
+        #             plt.title('Volume par classe pour la vitesse')
+        #         else:
+        #             plt.title('Volume by class for the velocity')
+        #         for g in range(0, len(vclass)):
+        #             plt.plot(qmod, vclass[g], '-', label='Class ' + str(g))
+        #         plt.xlabel('Q [m$^{3}$/sec]')
+        #         if self.project_preferences['language'] == 0:
+        #             plt.ylabel('Volume by Class [m$^{3}$]')
+        #         elif self.project_preferences['language'] == 1:
+        #             plt.ylabel('Volume par classe [m$^{3}$]')
+        #         else:
+        #             plt.ylabel('Volume by Class [m$^{3}$]')
+        #         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
+        #
+        #         # save the figures
+        #         if not erase1:
+        #             name_fig = os.path.join(self.path_im, self.name_reach[r] +
+        #                                         "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
+        #             fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+        #                         dpi=self.project_preferences['resolution'])
+        #         else:
+        #             name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes" + format)
+        #             if os.path.isfile(name_fig):
+        #                 os.remove(name_fig)
+        #             fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
+        #                         dpi=self.project_preferences['resolution'])
+        #
+        #     # suitability index
+        #     fig = plt.figure()
+        #     if len(self.fish_chosen) > 1:
+        #         j = np.squeeze(self.j_all['hv_hv'][0, :, :])
+        #         for e in range(0, len(self.fish_chosen)):
+        #             plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
+        #     else:
+        #         # # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+        #         # self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
+        #         # plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
+        #         plt.plot(qmod, self.j_all['hv_hv'][r,0,:], '-', label=self.fish_chosen[0])
+        #     plt.xlabel('Q [m$^{3}$/sec]')
+        #     plt.ylabel('Index J [ ]')
+        #     if self.project_preferences['language'] == 0:
+        #         plt.title('Suitability index J - ' + self.name_reach[r])
+        #     elif self.project_preferences['language'] == 1:
+        #         plt.title('Index de suitabilité J - ' + self.name_reach[r])
+        #     else:
+        #         plt.title('Suitability index J - ' + self.name_reach[r])
+        #
+        #     lgd = plt.legend(fancybox=True, framealpha=0.5)
+        #     if not erase1:
+        #         name_fig = os.path.join(self.path_im, self.name_reach[r] +
+        #                                     "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
+        #         fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
+        #                     dpi=self.project_preferences['resolution'], transparent=True)
+        #     else:
+        #         name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index"+ format)
+        #         if os.path.isfile(name_fig):
+        #             os.remove(name_fig)
+        #         fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
+        #                     dpi=self.project_preferences['resolution'], transparent=True)
+        #     plt.show()
 
     def savetxt_stathab(self):
         """
