@@ -494,8 +494,8 @@ class Stathab:
 
         nb_reach = len(self.name_reach)
         dict_pref_stahab = self.stahab_get_pref()
-        # hvum = HydraulicVariableUnitManagement()
-        #
+
+
         # # each animal model
         # dict_pref_stahab= {'code_bio_model':[],'stage':[],'bmono': [], 'h_data': [], 'v_data': [], 'h_pref_data': [], 'v_pref_data': [],'hv_pref_data': []}
         # for hab_string_var in self.fish_chosen:
@@ -531,37 +531,13 @@ class Stathab:
         # information_model_dict['hab_variable_list'][0].model_type
         # 'univariate suitability index curves'
 
-        # to be checked
-        # pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
-        # pref_v = np.interp(v_born, vel_all[stage_index][0], vel_all[stage_index][1])
-
-        # BLOQUE par YLC
-        # if np.any(fish_chosen2 == 'all_fish'):
-        #     coeff = coeff_all
-        #     self.fish_chosen = name_fish
-        #     find_one_fish = True
-        # else:
-        #     for f in range(0, len(self.fish_chosen)):
-        #         if self.fish_chosen[f] in name_fish:
-        #             ind_fish = name_fish.index(self.fish_chosen[f])
-        #             coeff[f, :] = coeff_all[ind_fish, :]
-        #             find_one_fish = True
-        #         else:
-        #             print('Warning: One fish species was not found in the '
-        #                   'Preference file. Fish name: ' + self.fish_chosen[f] + '\n')
-        # if not find_one_fish:
-        #     print('Error: No fish species have been given or the fish species could not be found.\n')
-        #     return -99
-
-        # the biological preference index for all reach, all species
-        # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))  plus utilisé on se base sur un dico comme StahabSteep
-        nb_fish=len(self.fish_chosen)
-        hv_hv = np.zeros((nb_reach, nb_fish, nbclaq))
-        wua_hv = np.zeros((nb_reach, nb_fish, nbclaq))
-        hv_h = np.zeros((nb_reach, nb_fish, nbclaq))
-        hv_v = np.zeros((nb_reach, nb_fish, nbclaq))
-        wua_h = np.zeros((nb_reach, nb_fish, nbclaq))
-        wua_v = np.zeros((nb_reach, nb_fish, nbclaq))
+        nb_models = len(dict_pref_stahab['code_bio_model'])
+        hv_hv = np.zeros((nb_reach, nb_models, nbclaq))
+        wua_hv = np.zeros((nb_reach, nb_models, nbclaq))
+        hv_h = np.zeros((nb_reach, nb_models, nbclaq))
+        hv_v = np.zeros((nb_reach, nb_models, nbclaq))
+        wua_h = np.zeros((nb_reach, nb_models, nbclaq))
+        wua_v = np.zeros((nb_reach, nb_models, nbclaq))
 
         for r in range(0, nb_reach):
 
@@ -603,14 +579,9 @@ class Stathab:
             if min(qlist_r) < qwh_r[0, 0] / 10 or max(qlist_r) > qwh_r[-1, 0] * 5:
                 print('Warning: Discharge range is far from measured discharge. Results might be unrealisitc. \n')
 
-            # #YLC test
-            # nbclass=(len(self.lim_all[0]) - 1) # il faut ici que meme nombre de classes h et v
-            # check=np.zeros((nbclass*nbclaq,3))
-
             # YLC
             h_born = (self.lim_all[0][0: -1] + self.lim_all[0][1:]) / 2
             v_born = (self.lim_all[1][0: -1] + self.lim_all[1][1:]) / 2
-            nb_models = len(dict_pref_stahab['code_bio_model'])
             pref_h = np.zeros((nb_models, len(h_born)))
             pref_v = np.zeros((nb_models, len(v_born)))
             for index_habmodel in range(nb_models):
@@ -626,7 +597,6 @@ class Stathab:
 
             # result = np.zeros((nbclaq, 10))
             result_reach_q_hyd = np.zeros((nbclaq, 4))
-            result_reach_q_models = np.zeros((nb_models, nbclaq, 6))
             # for all discharge
             for qind in range(0, nbclaq):
                 lnqs = np.log(min(qlist_r)) + (qind + 0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
@@ -645,16 +615,6 @@ class Stathab:
                 rclass[:, qind] = dist_gs * ws
                 result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
 
-                # # YLC test
-                # check[qind*nbclass:(qind+1)*nbclass,0] = qmod[qind]
-                # check[qind * nbclass:(qind + 1) * nbclass,1] =dist_hs
-                # check[qind * nbclass:(qind + 1) * nbclass,2] =dist_vs
-                # titi=3
-                # if (np.sum(dist_hs)-1)> 1E-12:
-                #     toto=9
-                # if (np.sum(dist_vs) - 1) > 1E-12:
-                #     toto = 9
-
                 for index_habmodel in range(nb_models):
                     if dict_pref_stahab['bmono'][index_habmodel]:
                         # vh_v	spu_v	vh_h	spu_h	vh_hv	spu_hv
@@ -664,58 +624,39 @@ class Stathab:
                         spu_v = vh_v * ws
                         vh_hv = vh_h * vh_v
                         spu_hv = vh_hv * ws
-                        # result[qind,:]=[qmod[qind][0],ws,hs,vs,vh_v,spu_v,vh_h,spu_h,vh_hv,spu_hv]
-                        result_reach_q_models[index_habmodel, qind, :] = [vh_v, spu_v, vh_h, spu_h, vh_hv, spu_hv]
-                        # TODO simplifier avec ce qui precede
                         hv_hv [r, index_habmodel, qind]=vh_hv
                         wua_hv [r, index_habmodel, qind]=spu_hv
                         hv_h [r, index_habmodel, qind]=vh_h
-                        hv_v [r, index_habmodel, qind]=spu_h
-                        wua_h [r, index_habmodel, qind]=vh_v
+                        wua_h[r, index_habmodel, qind] =spu_h
+                        hv_v [r, index_habmodel, qind]=vh_v
                         wua_v [r, index_habmodel, qind]=spu_v
-
-
-
-
-
-
-
-
                     else:
                         # TODO bivariate for stathab
-                        # result[qind,:]=[qmod[qind][0],0,0,0,0,0,0,0,0,0]
-                        result_reach_q_models[index_habmodel, qind, :] = [0, 0, 0, 0, 0, 0]
+                        # TODO simplifier avec ce qui precede
+                        hv_hv[r, index_habmodel, qind] = 0
+                        wua_hv[r, index_habmodel, qind] = 0
+                        hv_h[r, index_habmodel, qind] = 0
+                        wua_h[r, index_habmodel, qind] = 0
+                        hv_v[r, index_habmodel, qind] = 0
+                        wua_v[r, index_habmodel, qind] = 0
 
-                titi = 4
 
-                # YLC en TRAVAUX
-                # calculate the biological preference index
-                # j = coeff[:, 0] * v
-                # for vc in range(0, len(vclass[:, qind])):
-                #     j += vclass[vc, qind] * coeff[:, vc + 1]
-                # for hc in range(0, len(hclass[:, qind])):
-                #     j += hclass[hc, qind] * coeff[:, hc + len(vclass[:, qind]) + 1]
-                # for rc in range(0, len(rclass[:, qind])):
-                #     j += rclass[rc, qind] * coeff[:, rc + len(hclass[:, qind]) + len(vclass[:, qind]) + 1]
-                # self.j_all[r, :, qind] = j
-                # # YLC test
-                # f_chk = open('C:\w\check.txt', 'a')
-                # np.savetxt(f_chk, check)
-                # f_chk.close()
+
 
             # ************************************************************************************************************
             # Verif Stathab
             for index_habmodel in range(nb_models):
-                nomfich = 'C:\\w\\' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
+                nomfich = 'C:\\w\\S_' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
                     index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
                 f_chk2 = open(nomfich, 'w')
                 f_chk2.write(
                     '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
                 f_chk2.close()
                 f_chk2 = open(nomfich, 'a')
-                # np.savetxt(f_chk2, result)
                 np.savetxt(f_chk2,
-                           np.concatenate((result_reach_q_hyd, result_reach_q_models[index_habmodel, :]), axis=1))
+                           np.concatenate((result_reach_q_hyd, np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
+                                           hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
+                                           hv_hv[r, index_habmodel, :], wua_hv[r, index_habmodel, :]),axis=1)), axis=1),delimiter='\t')
                 f_chk2.close()
             # ************************************************************************************************************
 
@@ -748,23 +689,26 @@ class Stathab:
         # various info
         self.load_ok = False
         nb_reach = len(self.name_reach)
+        dict_pref_stahab = self.stahab_get_pref()
+        nb_models = len(dict_pref_stahab['code_bio_model'])
         nbclaq = 50  # number of discharge value where the data have to be calculated
         nbclass = 20  # number of height and velcoity class (do not change without changing dist_h_trop and _dist_v_trop)
 
         # TODO: loop on fishs
-        nb_fish = len(self.fish_chosen)
-        hv_hv = np.zeros((nb_reach, nb_fish, nbclaq))
-        wua_hv = np.zeros((nb_reach, nb_fish, nbclaq))
-        hv_h = np.zeros((nb_reach, nb_fish, nbclaq))
-        hv_v = np.zeros((nb_reach, nb_fish, nbclaq))
-        wua_h = np.zeros((nb_reach, nb_fish, nbclaq))
-        wua_v = np.zeros((nb_reach, nb_fish, nbclaq))
-        if nb_fish == 0:
+        if nb_models == 0:
             print('Error: No fish found \n')
             return
 
+        hv_hv = np.zeros((nb_reach, nb_models, nbclaq))
+        wua_hv = np.zeros((nb_reach, nb_models, nbclaq))
+        hv_h = np.zeros((nb_reach, nb_models, nbclaq))
+        wua_h = np.zeros((nb_reach, nb_models, nbclaq))
+        hv_v = np.zeros((nb_reach, nb_models, nbclaq))
+        wua_v = np.zeros((nb_reach, nb_models, nbclaq))
+
+
         # the biological preference index for all reach, all species
-        self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+        # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
 
         # for each reach
         for r in range(0, nb_reach):
@@ -802,29 +746,51 @@ class Stathab:
                 [v_dist, v_born] = self.dist_v_trop(vs, hs, self.data_ii[r][1], self.data_ii[r][2])
 
                 # calculate J
-                for fish_num in range(0, nb_fish):
-                    # get the preference info based on the files known
-                    xml_filename = self.fish_chosen[fish_num].split(" - ")[-1] + ".xml"
-                    xmlfile = os.path.join(load_project_properties(self.path_prj)["path_bio"], xml_filename)
-                    h_all, vel_all, sub_all, sub_code, code_fish, name_fish, stages = read_pref(xmlfile)
-                    stage = self.fish_chosen[fish_num].split(" - ")[-2]
-                    stage_index = stages.index(stage)
 
+                for index_habmodel in range(nb_models):
                     # to be checked
-                    pref_h = np.interp(h_born, h_all[stage_index][0], h_all[stage_index][1])
-                    pref_v = np.interp(v_born, vel_all[stage_index][0], vel_all[stage_index][1])
+                    if dict_pref_stahab['bmono'][index_habmodel]:
+                        pref_h = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
+                                                              dict_pref_stahab['h_pref_data'][index_habmodel])
+                        pref_v = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
+                                                              dict_pref_stahab['v_pref_data'][index_habmodel])
+                    else:
+                        # TODO bivariate for StathabSteep
+                        pref_h= np.zeros(( len(h_born)))
+                        pref_v= np.zeros((len(v_born)))
                     hv_dist = np.outer(h_dist, v_dist)
                     pref_hv = np.outer(pref_h, pref_v)
-                    hv_hv[r, fish_num, qind] = np.sum(hv_dist * pref_hv)
-                    wua_hv[r, fish_num, qind] = hv_hv[r, fish_num, qind] * ws  # WUA/m of river
-                    hv_h[r, fish_num, qind] = np.sum(pref_h * h_dist)
-                    hv_v[r, fish_num, qind] = np.sum(pref_v * v_dist)
-                    wua_h[r, fish_num, qind] = hv_h[r, fish_num, qind] * ws  # WUA/m of river
-                    wua_v[r, fish_num, qind] = hv_v[r, fish_num, qind] * ws  # WUA/m of river
+                    hv_hv[r, index_habmodel, qind] = np.sum(hv_dist * pref_hv)
+                    wua_hv[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind] * ws  # WUA/m of river
+                    hv_h[r, index_habmodel, qind] = np.sum(pref_h * h_dist)
+                    hv_v[r, index_habmodel, qind] = np.sum(pref_v * v_dist)
+                    wua_h[r, index_habmodel, qind] = hv_h[r, index_habmodel, qind] * ws  # WUA/m of river
+                    wua_v[r, index_habmodel, qind] = hv_v[r, index_habmodel, qind] * ws  # WUA/m of river
                 self.h_all.append(hmod)
                 self.v_all.append(vmod)
                 self.w_all.append(wmod)
                 self.q_all.append(qmod)
+            # ************************************************************************************************************
+            # Verif Stathab
+            for index_habmodel in range(nb_models):
+                nomfich = 'C:\\w\\Ss_' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
+                    index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
+                f_chk2 = open(nomfich, 'w')
+                f_chk2.write(
+                    '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
+                f_chk2.close()
+                f_chk2 = open(nomfich, 'a')
+                np.savetxt(f_chk2,
+                           np.concatenate(
+                               (np.concatenate((qmod,wmod,hmod,vmod),axis=1), np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
+                                                              hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
+                                                              hv_hv[r, index_habmodel, :],
+                                                              wua_hv[r, index_habmodel, :]), axis=1)), axis=1),delimiter='\t')
+                f_chk2.close()
+            # ************************************************************************************************************
+
+
+
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
 
         self.load_ok = True
