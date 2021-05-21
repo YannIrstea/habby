@@ -61,8 +61,8 @@ class Stathab:
         self.q_all = []  # discharge
         self.fish_chosen = np.array([])  # the name of the fish
         self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
-        self.path_im = path_prj  # path where to save the image
-        self.path_hdf5 = os.path.join(path_prj, name_prj, "hdf5")
+        self.path_im = os.path.join(path_prj, "output", "figures")  # path where to save the image
+        self.path_hdf5 = os.path.join(path_prj, "hdf5")
         self.load_ok = False  # a boolean to manage the errors
         #  during the load of the files and the hdf5 creation and calculation
         self.path_prj = path_prj
@@ -1296,10 +1296,9 @@ class Stathab:
                                 dpi=self.project_preferences['resolution'])
 
             # suitability index
-            if len(self.fish_chosen) > 1:
-                j = np.squeeze(self.j_all[0, :, :])
             fig = plt.figure()
             if len(self.fish_chosen) > 1:
+                j = np.squeeze(self.j_all['hv_hv'][0, :, :])
                 for e in range(0, len(self.fish_chosen)):
                     plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
             else:
@@ -1337,7 +1336,7 @@ class Stathab:
         # to know if we kept the old file or we erase them
         self.project_preferences = load_project_properties(self.path_prj)
         erase1 = self.project_preferences['erase_id']
-        if self.j_all :
+        if not self.j_all:
             print('Error: The suitability index was not in the right format')
             return
 
