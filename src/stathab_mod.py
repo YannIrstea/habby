@@ -495,42 +495,6 @@ class Stathab:
         nb_reach = len(self.name_reach)
         dict_pref_stahab = self.stahab_get_pref()
 
-
-        # # each animal model
-        # dict_pref_stahab= {'code_bio_model':[],'stage':[],'bmono': [], 'h_data': [], 'v_data': [], 'h_pref_data': [], 'v_pref_data': [],'hv_pref_data': []}
-        # for hab_string_var in self.fish_chosen:
-        #     # get gui informations
-        #     stage = hab_string_var.split(" - ")[-2]
-        #     code_bio_model = hab_string_var.split(" - ")[-1]
-        #     index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
-        #     # get the preference info based on the files known
-        #     information_model_dict = read_pref(user_preferences.biological_models_dict["path_xml"][index_fish])
-        #     stage_index = information_model_dict["stage_and_size"].index(stage)
-        #     hab_var = information_model_dict["hab_variable_list"][stage_index]
-        #     dict_pref_stahab['code_bio_model'].append(code_bio_model)
-        #     dict_pref_stahab['stage'].append(stage)
-        #     # get data
-        #     if hab_var.model_type == "univariate suitability index curves":
-        #         dict_pref_stahab['bmono'].append(True)
-        #         dict_pref_stahab['h_data'].append(hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0])
-        #         dict_pref_stahab['h_pref_data'].append( hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1])
-        #         dict_pref_stahab['v_data'].append( hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[0])
-        #         dict_pref_stahab['v_pref_data'].append(hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[1])
-        #         dict_pref_stahab['hv_pref_data'].append([])
-        #     if hab_var.model_type == "bivariate suitability index models":
-        #         dict_pref_stahab['bmono'].append(False)
-        #         dict_pref_stahab['h_data'].append( hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data)
-        #         dict_pref_stahab['v_data'].append(hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data)
-        #         dict_pref_stahab['hv_pref_data'].append(hab_var.hv)
-        #         dict_pref_stahab['h_pref_data'].append([])
-        #         dict_pref_stahab['v_pref_data'].append([])
-
-        # information_model_dict['hab_variable_list'][0]
-        # information_model_dict['hab_variable_list'][0].aquatic_animal_type
-        # 'fish'
-        # information_model_dict['hab_variable_list'][0].model_type
-        # 'univariate suitability index curves'
-
         nb_models = len(dict_pref_stahab['code_bio_model'])
         hv_hv = np.zeros((nb_reach, nb_models, nbclaq))
         wua_hv = np.zeros((nb_reach, nb_models, nbclaq))
@@ -557,6 +521,7 @@ class Stathab:
             rclass = np.zeros((len(self.lim_all[2]) - 1, nbclaq))
             qmod = np.zeros((nbclaq, 1))
             hmod = np.zeros((nbclaq, 1))
+            vmod = np.zeros((nbclaq, 1))
             wmod = np.zeros((nbclaq, 1))
 
             # granulometry
@@ -613,6 +578,10 @@ class Stathab:
                 vclass[:, qind] = ws * dist_vs * hs
                 hclass[:, qind] = dist_hs * ws
                 rclass[:, qind] = dist_gs * ws
+                qmod[qind] = qmod[qind][0]
+                hmod[qind] = hs
+                vmod[qind] =vs
+                wmod[qind] = ws
                 result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
 
                 for index_habmodel in range(nb_models):
@@ -654,9 +623,12 @@ class Stathab:
                 f_chk2.close()
                 f_chk2 = open(nomfich, 'a')
                 np.savetxt(f_chk2,
-                           np.concatenate((result_reach_q_hyd, np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
-                                           hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
-                                           hv_hv[r, index_habmodel, :], wua_hv[r, index_habmodel, :]),axis=1)), axis=1),delimiter='\t')
+                           np.concatenate(
+                               (np.concatenate((qmod, wmod, hmod, vmod), axis=1),
+                                np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
+                                          hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
+                                          hv_hv[r, index_habmodel, :],
+                                          wua_hv[r, index_habmodel, :]), axis=1)), axis=1), delimiter='\t')
                 f_chk2.close()
             # ************************************************************************************************************
 
@@ -665,13 +637,13 @@ class Stathab:
             self.vclass_all.append(vclass)
             self.hclass_all.append(hclass)
             self.rclass_all.append(rclass)
-            # result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
-            self.q_all.append(result_reach_q_hyd[:, 0])
-            self.w_all.append(result_reach_q_hyd[:, 1])
-            self.h_all.append(result_reach_q_hyd[:, 2])
-            self.v_all.append(result_reach_q_hyd[:, 3])
-            # the biological preference index for all reach, all species
-            # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+            self.h_all.append(hmod)
+            self.v_all.append(vmod)
+            self.w_all.append(wmod)
+            self.q_all.append(qmod)
+
+
+        # the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
 
         self.load_ok = True
@@ -766,10 +738,10 @@ class Stathab:
                     hv_v[r, index_habmodel, qind] = np.sum(pref_v * v_dist)
                     wua_h[r, index_habmodel, qind] = hv_h[r, index_habmodel, qind] * ws  # WUA/m of river
                     wua_v[r, index_habmodel, qind] = hv_v[r, index_habmodel, qind] * ws  # WUA/m of river
-                self.h_all.append(hmod)
-                self.v_all.append(vmod)
-                self.w_all.append(wmod)
-                self.q_all.append(qmod)
+            self.h_all.append(hmod)
+            self.v_all.append(vmod)
+            self.w_all.append(wmod)
+            self.q_all.append(qmod)
             # ************************************************************************************************************
             # Verif Stathab
             for index_habmodel in range(nb_models):
@@ -790,7 +762,7 @@ class Stathab:
             # ************************************************************************************************************
 
 
-
+        ## the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
 
         self.load_ok = True
