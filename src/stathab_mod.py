@@ -1170,7 +1170,7 @@ class Stathab:
         #
         # for r in range(0, len(self.name_reach)):
         #
-        #     qmod = self.q_all[r]
+        #     qmod = self.q_all[r] 
         #     if show_class:
         #         rclass = self.rclass_all[r]
         #         hclass = self.hclass_all[r]
