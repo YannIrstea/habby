@@ -106,8 +106,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.dir_hdf5 = self.path_prj
         self.typeload = 'txt'  # txt or hdf5
         self.riverint = 0  # the type of river (default 0, tropical river 1, tropical river bivarate 2)
-        self.rivtype_str = [self.tr('Temperate River - Default'), self.tr('Tropical River - Univariate'),
-                            self.tr('Tropical River - Bivariate')]
+        self.rivtype_str = [self.tr('Stathab'), self.tr('Stathab steep')]
         self.selected_aquatic_animal_list = []
 
         self.init_iu()
