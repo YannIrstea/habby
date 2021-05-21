@@ -531,7 +531,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         sys.stdout = self.mystdout = StringIO()
         self.mystathab.load_stathab_from_txt(self.listrivname, end_file_reach_here, file_name_all_reach_here,
                                              self.dir_name)
-        self.mystathab.create_hdf5()
+        # self.mystathab.create_hdf5()
         # self.mystathab.save_xml_stathab()
         sys.stdout = sys.__stdout__
         self.send_err_log()

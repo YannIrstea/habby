@@ -454,24 +454,6 @@ class Stathab:
             project_preferences["path_last_file_loaded"] = self.dir_name  # change value
             project_preferences["STATHAB"]["path"] = fname_no_path  # change value
             save_project_properties(self.path_prj, project_preferences)  # save_project_properties
-            # parser = ET.XMLParser(remove_blank_text=True)
-            # doc = ET.parse(filename_prj, parser)
-            # root = doc.getroot()
-            # child = root.find(".//Stathab")
-            # if child is None:
-            #     stathab_element = ET.SubElement(root, "Stathab")
-            #     hdf5file = ET.SubElement(stathab_element, "hdf5Stathab")
-            #     hdf5file.text = fname_no_path
-            #     hdf5file.set('riverint', str(self.riverint))  # attribute
-            # else:
-            #     hdf5file = root.find(".//hdf5Stathab")
-            #     if hdf5file is None:
-            #         hdf5file = ET.SubElement(child, "hdf5Stathab")
-            #         hdf5file.text = fname_no_path
-            #     else:
-            #         hdf5file.text = fname_no_path
-            #     hdf5file.set('riverint', str(self.riverint))  # attribute
-            # doc.write(filename_prj, pretty_print=True)
 
     def stathab_calc(self, path_pref='.', name_pref='Pref_latin.txt'):
         """
@@ -1825,7 +1807,7 @@ def main():
     mystathab = Stathab(name_prj, path_prj)
     mystathab.riverint = 2
     mystathab.load_stathab_from_txt('listriv', end_file_reach_trop, name_file_allreach_trop, path)
-    mystathab.create_hdf5()
+    # mystathab.create_hdf5()
     mystathab.fish_chosen = ['SIC']
 
     if biv:
