@@ -338,6 +338,11 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.firstitemreach = []
         self.mystathab.riverint = self.riverint
 
+        if self.riverint == 0:
+            self.runb.setText(self.tr("Run Stathab"))
+        elif self.riverint == 1:
+            self.runb.setText(self.tr("Run Stathab steep"))
+
         # get the new files
         if self.typeload == 'txt':
             self.load_from_txt_gui()
