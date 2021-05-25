@@ -332,7 +332,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.selected_aquatic_animal_qtablewidget.clear()
         self.list_needed.clear()
         self.list_f.clear()
         self.fish_selected = []
