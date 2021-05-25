@@ -889,11 +889,6 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.mystathab.stathab_trop_univ(self.path_bio_stathab, by_vol)
             sys.stdout = sys.__stdout__
             self.send_err_log()
-        elif self.riverint == 2:
-            sys.stdout = self.mystdout = StringIO()
-            self.mystathab.stathab_trop_biv(self.path_bio_stathab)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
         else:
             self.send_log.emit('The river type is not recognized. Stathab could not be run.')
             return
