@@ -61,7 +61,7 @@ class Stathab:
         self.w_all = []  # mean width of all the reaches
         self.q_all = []  # discharge
         self.fish_chosen = np.array([])  # the name of the fish
-        self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
+        self.riverint = 0  # the river type (0 stahab, 1 stahtab steep)
         self.path_im = os.path.join(path_prj, "output", "figures")  # path where to save the image
         self.path_hdf5 = os.path.join(path_prj, "hdf5")
         self.load_ok = False  # a boolean to manage the errors
@@ -563,7 +563,7 @@ class Stathab:
                 rclass[:, qind] = dist_gs * ws
                 qmod[qind] = qmod[qind][0]
                 hmod[qind] = hs
-                vmod[qind] =vs
+                vmod[qind] = vs
                 wmod[qind] = ws
                 result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
 
@@ -576,12 +576,12 @@ class Stathab:
                         spu_v = vh_v * ws
                         vh_hv = vh_h * vh_v
                         spu_hv = vh_hv * ws
-                        hv_hv [r, index_habmodel, qind]=vh_hv
-                        wua_hv [r, index_habmodel, qind]=spu_hv
-                        hv_h [r, index_habmodel, qind]=vh_h
-                        wua_h[r, index_habmodel, qind] =spu_h
-                        hv_v [r, index_habmodel, qind]=vh_v
-                        wua_v [r, index_habmodel, qind]=spu_v
+                        hv_hv[r, index_habmodel, qind] = vh_hv
+                        wua_hv[r, index_habmodel, qind] = spu_hv
+                        hv_h[r, index_habmodel, qind] = vh_h
+                        wua_h[r, index_habmodel, qind] = spu_h
+                        hv_v[r, index_habmodel, qind] = vh_v
+                        wua_v[r, index_habmodel, qind] = spu_v
                     else:
                         # TODO bivariate for stathab
                         # TODO simplifier avec ce qui precede
@@ -591,9 +591,6 @@ class Stathab:
                         wua_h[r, index_habmodel, qind] = 0
                         hv_v[r, index_habmodel, qind] = 0
                         wua_v[r, index_habmodel, qind] = 0
-
-
-
 
             # ************************************************************************************************************
             # Verif Stathab
@@ -624,7 +621,6 @@ class Stathab:
             self.v_all.append(vmod)
             self.w_all.append(wmod)
             self.q_all.append(qmod)
-
 
         # the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
@@ -660,7 +656,6 @@ class Stathab:
         wua_h = np.zeros((nb_reach, nb_models, nbclaq))
         hv_v = np.zeros((nb_reach, nb_models, nbclaq))
         wua_v = np.zeros((nb_reach, nb_models, nbclaq))
-
 
         # the biological preference index for all reach, all species
         # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
@@ -706,13 +701,13 @@ class Stathab:
                     # to be checked
                     if dict_pref_stahab['bmono'][index_habmodel]:
                         pref_h = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
-                                                              dict_pref_stahab['h_pref_data'][index_habmodel])
+                                           dict_pref_stahab['h_pref_data'][index_habmodel])
                         pref_v = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
-                                                              dict_pref_stahab['v_pref_data'][index_habmodel])
+                                           dict_pref_stahab['v_pref_data'][index_habmodel])
                     else:
                         # TODO bivariate for StathabSteep
-                        pref_h= np.zeros(( len(h_born)))
-                        pref_v= np.zeros((len(v_born)))
+                        pref_h = np.zeros((len(h_born)))
+                        pref_v = np.zeros((len(v_born)))
                     hv_dist = np.outer(h_dist, v_dist)
                     pref_hv = np.outer(pref_h, pref_v)
                     hv_hv[r, index_habmodel, qind] = np.sum(hv_dist * pref_hv)
@@ -743,7 +738,6 @@ class Stathab:
             #                                                   wua_hv[r, index_habmodel, :]), axis=1)), axis=1),delimiter='\t')
             #     f_chk2.close()
             # ************************************************************************************************************
-
 
         ## the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
@@ -1169,7 +1163,7 @@ class Stathab:
         for r in range(0, len(self.name_reach)):
 
             qmod = self.q_all[r]
-            if show_class:
+            if show_class and self.riverint == 0:
                 rclass = self.rclass_all[r]
                 hclass = self.hclass_all[r]
                 vclass = self.vclass_all[r]
@@ -1240,7 +1234,7 @@ class Stathab:
                 # save the figures
                 if not erase1:
                     name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
+                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
                     fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
                                 dpi=self.project_preferences['resolution'])
                 else:
@@ -1260,7 +1254,7 @@ class Stathab:
                 # # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
                 # self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
                 # plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
-                plt.plot(qmod, self.j_all['hv_hv'][r,0,:], '-', label=self.fish_chosen[0])
+                plt.plot(qmod, self.j_all['hv_hv'][r, 0, :], '-', label=self.fish_chosen[0])
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
             if self.project_preferences['language'] == 0:
@@ -1273,11 +1267,11 @@ class Stathab:
             lgd = plt.legend(fancybox=True, framealpha=0.5)
             if not erase1:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
                             dpi=self.project_preferences['resolution'], transparent=True)
             else:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index"+ format)
+                name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index" + format)
                 if os.path.isfile(name_fig):
                     os.remove(name_fig)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
@@ -1307,8 +1301,10 @@ class Stathab:
                 jj = np.concatenate((jj, np.stack(
                     (self.j_all['hv_hv'][r, index_habmodel, :], 100 * self.j_all['wua_hv'][r, index_habmodel, :]),
                     axis=1)), axis=1)
-
-            namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r])
+            typestahab='Stathab'
+            if self.riverint == 1:
+                typestahab+= 'Steep'
+            namefile = os.path.join(self.path_txt, typestahab+'_' + self.name_reach[r] + '.txt')
             header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
 
