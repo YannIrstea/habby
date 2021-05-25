@@ -916,7 +916,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # save data and fig
         # self.mystathab.path_im = self.path_im
         self.mystathab.savetxt_stathab()
-        self.mystathab.savefig_stahab(False)
+        self.mystathab.savefig_stahab(True)
         self.show_fig.emit()
 
         # log information
