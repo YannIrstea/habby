@@ -84,19 +84,20 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             input_file = True
             print('Input folder found for the restart function.')
 
-    # check if the path given are ok
-    file_prof = os.path.join(path_prj, name_prj + '.habby')
-    # create project
-    if not os.path.isdir(path_prj) or not os.path.isfile(file_prof):
-        if not all_arg[0] == 'CREATE_PROJECT':
-            # print("Warning: Specified project_path does not exist, the latter is created.")
-            # cli_create_project(path_prj, name_prj, False, HABBY_VERSION_STR)
-            # project_preferences = load_project_properties(path_prj)
-            print("Error: Specified project_path does not exist. Project creation with CREATE_PROJECT argument.")
-            return
-    # load project preferences
-    else:
-        project_preferences = load_project_properties(path_prj)
+    if 'LIST_COMMAND' not in all_arg:
+        # check if the path given are ok
+        file_prof = os.path.join(path_prj, name_prj + '.habby')
+        # create project
+        if not os.path.isdir(path_prj) or not os.path.isfile(file_prof):
+            if not all_arg[0] == 'CREATE_PROJECT':
+                # print("Warning: Specified project_path does not exist, the latter is created.")
+                # cli_create_project(path_prj, name_prj, False, HABBY_VERSION_STR)
+                # project_preferences = load_project_properties(path_prj)
+                print("Error: Specified project_path does not exist. Project creation with CREATE_PROJECT argument.")
+                return
+        # load project preferences
+        else:
+            project_preferences = load_project_properties(path_prj)
 
     # ----------------------------------------------------------------------------------
     if all_arg[0] == 'LIST_COMMAND':
@@ -129,8 +130,9 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
               ' run_choice.')
         print('\n')
-        print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub qra1 qra2'
-              '- all data in float')
+        print(
+            'RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub qra1 qra2'
+            '- all data in float')
         print('\n')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
@@ -231,7 +233,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             print('Error: Wrong number of intput')
             return
 
-        lammi_mod.open_lammi_and_create_grid(facies_path, transect_path, path_prj, name_hdf5, name_prj, path_prj, path_hdf5,
+        lammi_mod.open_lammi_and_create_grid(facies_path, transect_path, path_prj, name_hdf5, name_prj, path_prj,
+                                             path_hdf5,
                                              new_dir, [], False, 'Transect.txt', 'Facies.txt', True, [], 1, 'LAMMI')
 
     # ----------------------------------------------------------------------------------
@@ -280,12 +283,12 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                              substrate=sub,
                              path_bio=path_bio,
                              xml_list=fish_list,
-                             fish_list=[]) # TODO: list name available with arg. really need?
+                             fish_list=[])  # TODO: list name available with arg. really need?
 
         progress_value = Value("d", 0)
         p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
-                         args=(estimhab_dict, project_preferences, path_prj,
-                               progress_value),
+                    args=(estimhab_dict, project_preferences, path_prj,
+                          progress_value),
                     name="ESTIMHAB")
         cli_start_process_and_print_progress(p, progress_value)
 
@@ -532,8 +535,6 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # remove the first arg COMPARE_TEST
         all_arg = all_arg[1:]
 
-
-
         # get args
         for arg in all_arg:
             # ref_path
@@ -542,7 +543,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             # test_path
             if arg[:10] == 'test_path=':
                 folder2 = arg[10:]
-            if arg[:9] in ['path_prj=','path_bio=','name_prj=']:
+            if arg[:9] in ['path_prj=', 'path_bio=', 'name_prj=']:
                 all_arg.remove(arg)
 
         if len(all_arg) != 2:
@@ -585,18 +586,17 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         print('-----------------END TEST -------------------------')
 
     # ----------------------------------------------------------------------------------
-    elif all_arg[0]=='COMPARE_FILE':
-        #Compares a test file to a reference file, and determines whether they contain the same data
-
+    elif all_arg[0] == 'COMPARE_FILE':
+        # Compares a test file to a reference file, and determines whether they contain the same data
 
         for arg in all_arg:
-            if arg[:9]=='ref_file=':
-                ref_name=arg[9:]
+            if arg[:9] == 'ref_file=':
+                ref_name = arg[9:]
 
-            if arg[:10]=='test_file=':
-                test_name=arg[10:]
+            if arg[:10] == 'test_file=':
+                test_name = arg[10:]
 
-            if arg[:9] in ['path_prj','name_prj','path_bio']:
+            if arg[:9] in ['path_prj', 'name_prj', 'path_bio']:
                 all_arg.remove(arg)
 
         try:
@@ -614,8 +614,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             print('Error: you have not given the argument test_file')
             return
 
-        if len(all_arg) !=3:
-            #If there are any arguments other than the command name, ref_file, test_file, path_prj, name_prj and
+        if len(all_arg) != 3:
+            # If there are any arguments other than the command name, ref_file, test_file, path_prj, name_prj and
             # path_bio, the program should give an error message
             print('COMPARE_FILE takes 2 arguments: ref_file and test_file, as well as the options path_prj, '
                   'name_prj and path_bio')
@@ -623,30 +623,30 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         file1 = h5py.File(ref_name, 'r')
         file2 = h5py.File(test_name, 'r')
-        dataset_names1=hdf5_mod.get_dataset_names(file1)
-        dataset_names2=hdf5_mod.get_dataset_names(file2)
-        if dataset_names1!=dataset_names2:
+        dataset_names1 = hdf5_mod.get_dataset_names(file1)
+        dataset_names2 = hdf5_mod.get_dataset_names(file2)
+        if dataset_names1 != dataset_names2:
             print("The files contain different datasets")
         else:
-            if hdf5_mod.datasets_are_equal(file1,file2):
+            if hdf5_mod.datasets_are_equal(file1, file2):
                 print("The files are equal")
             else:
                 print("The files are different")
 
     # ----------------------------------------------------------------------------------
-    elif all_arg[0]=="COMPARE_DIR":
-        #Compares a test folder to a reference folder, and determines whether the test folder contains all the hdf5 files
-        #of the reference folder, and if the corresponding files are identical
+    elif all_arg[0] == "COMPARE_DIR":
+        # Compares a test folder to a reference folder, and determines whether the test folder contains all the hdf5 files
+        # of the reference folder, and if the corresponding files are identical
         for arg in all_arg:
-            if arg[:9]=='ref_path=':
-                ref_path=arg[9:]
-                if ref_path[-1]=='\\':
-                    ref_path=ref_path[:-1]
-            if arg[:10]=='test_path=':
-                test_path=arg[10:]
-                if test_path[-1]=='\\':
-                    test_path=test_path[:-1]
-            if arg[:9] in ['path_prj','name_prj','path_bio']:
+            if arg[:9] == 'ref_path=':
+                ref_path = arg[9:]
+                if ref_path[-1] == '\\':
+                    ref_path = ref_path[:-1]
+            if arg[:10] == 'test_path=':
+                test_path = arg[10:]
+                if test_path[-1] == '\\':
+                    test_path = test_path[:-1]
+            if arg[:9] in ['path_prj', 'name_prj', 'path_bio']:
                 all_arg.remove(arg)
 
         try:
@@ -664,51 +664,51 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             print("Error: you have not given the argument test_path")
             return
 
-        if len(all_arg) !=3:
-            #If there are too many arguments or not enough, this message should be displayed
+        if len(all_arg) != 3:
+            # If there are too many arguments or not enough, this message should be displayed
             print('COMPARE_DIR takes 2 arguments: ref_path and test_path, as well as the options path_prj, '
                   'name_prj and path_bio')
             return
 
-        ref_filenames=(hdf5_mod.get_all_filename(ref_path,".hyd")+hdf5_mod.get_all_filename(ref_path,".sub")+
-                       hdf5_mod.get_all_filename(ref_path,".hab")+hdf5_mod.get_all_filename(ref_path,".h5"))
-        #files with the above extensions are assumed to be hdf5 files
+        ref_filenames = (hdf5_mod.get_all_filename(ref_path, ".hyd") + hdf5_mod.get_all_filename(ref_path, ".sub") +
+                         hdf5_mod.get_all_filename(ref_path, ".hab") + hdf5_mod.get_all_filename(ref_path, ".h5"))
+        # files with the above extensions are assumed to be hdf5 files
 
-        n_total=len(ref_filenames)
-        n_missing=0
-        n_different=0
+        n_total = len(ref_filenames)
+        n_missing = 0
+        n_different = 0
         for filename in ref_filenames:
 
-            if not os.path.exists(test_path +'/'+ filename):
-                n_missing+=1
+            if not os.path.exists(test_path + '/' + filename):
+                n_missing += 1
             else:
-                test_file=h5py.File(test_path +'/'+ filename,'r')
-                ref_file=h5py.File(ref_path +'/'+ filename,'r')
+                test_file = h5py.File(test_path + '/' + filename, 'r')
+                ref_file = h5py.File(ref_path + '/' + filename, 'r')
                 dataset_names1 = hdf5_mod.get_dataset_names(ref_file)
                 dataset_names2 = hdf5_mod.get_dataset_names(test_file)
-                if not hdf5_mod.datasets_are_equal(ref_file,test_file):
-                    n_different+=1
+                if not hdf5_mod.datasets_are_equal(ref_file, test_file):
+                    n_different += 1
 
-        if n_missing==0 and n_different==0:
+        if n_missing == 0 and n_different == 0:
             print("Good! Every hdf5 file from the reference folder has an equal file in the test folder.")
 
         else:
             print("There is a divergence between the test and reference folders. Out of "
-                  ,n_total,"files in the reference folder, ",n_missing," are missing from the test folder, and "
-                  ,n_different," have different values in the test and reference folders")
+                  , n_total, "files in the reference folder, ", n_missing, " are missing from the test folder, and "
+                  , n_different, " have different values in the test and reference folders")
 
     # ----------------------------------------------------------------------------------
-    elif all_arg[0]=="EXPORT":
+    elif all_arg[0] == "EXPORT":
         # Given a project folder, takes as entry an hdf5 file, which should be in the hdf5 folder of the project
         # directory, and exports its content
         # Works for .hyd files, but gives error messages related to rtree module
         # Does not work for .sub files
 
         for arg in all_arg:
-            if arg[:10]=="file_name=":
-                file_name=arg[10:]
-            if arg[:7]=="format=":
-                format=arg[7:]
+            if arg[:10] == "file_name=":
+                file_name = arg[10:]
+            if arg[:7] == "format=":
+                format = arg[7:]
 
         try:
             file_name
@@ -720,7 +720,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # if not file_name or not format:
         #     print("Error: the EXPORT command takes as arguments path_prj, file_name and format")
 
-        if not os.path.exists(path_prj+"\\hdf5\\"+file_name):
+        if not os.path.exists(path_prj + "\\hdf5\\" + file_name):
             print("Error: the file ", file_name, " does not exist, or is not located in the path_prj\\hdf5 folder.")
             return
 
@@ -732,13 +732,9 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         except ValueError:
             print("The EXPORT command only allows as input hdf5 files with a .hyd or .hab extension.")
 
-
-
-
-
     # ----------------------------------------------------------------------------------
     else:
-        #print(all_arg, name_prj, path_prj, path_bio)
+        # print(all_arg, name_prj, path_prj, path_bio)
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
 
 
@@ -1149,7 +1145,7 @@ def cli_load_hyd(arguments, project_preferences):
         # unit_list
         unit_list_arg_name = 'unit_list='
         if arg[:len(unit_list_arg_name)] == unit_list_arg_name:
-            unit_list = list(map(str, eval(arg[len(unit_list_arg_name):]))) # TODO: reach notion
+            unit_list = list(map(str, eval(arg[len(unit_list_arg_name):])))  # TODO: reach notion
 
     # get_hydrau_description_from_source
     hsra_value = src.hydraulic_results_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
@@ -1335,7 +1331,8 @@ def cli_calc_hab(arguments, project_preferences):
     user_target_list = HydraulicVariableUnitList()
     for i in range(len(run_choice["pref_file_list"])):
         # check_if_habitat_variable_is_valid
-        if check_if_habitat_variable_is_valid(run_choice["pref_file_list"][i], run_choice["stage_list"][i], run_choice["hyd_opt"][i], run_choice["sub_opt"][i]):
+        if check_if_habitat_variable_is_valid(run_choice["pref_file_list"][i], run_choice["stage_list"][i],
+                                              run_choice["hyd_opt"][i], run_choice["sub_opt"][i]):
             # append_new_habitat_variable
             information_model_dict = get_biomodels_informations_for_database(run_choice["pref_file_list"][i])
             user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
@@ -1397,11 +1394,11 @@ def cli_compute_hs(arguments, project_preferences):
         progress_value = Value("d", 0)
         # run calculation
         p = Process(target=hydraulic_process_mod.load_data_and_compute_hs,
-                         args=(hydrosignature_description,
-                               progress_value,
-                               q,
-                               False,
-                               project_preferences),
+                    args=(hydrosignature_description,
+                          progress_value,
+                          q,
+                          False,
+                          project_preferences),
                     name="hydrosignature computing")
         cli_start_process_and_print_progress(p, progress_value)
 
@@ -1414,7 +1411,8 @@ def cli_start_process_and_print_progress(process, progress_value):
     process.start()
     while process.is_alive():
         running_time = time.time() - start_time
-        print(process.name + " running " + str(round(progress_value.value, 1)) + " %, since " + str(round(running_time)) + " s.\r", end="")
+        print(process.name + " running " + str(round(progress_value.value, 1)) + " %, since " + str(
+            round(running_time)) + " s.\r", end="")
     process.join()
     print("                                                                         \r", end="")  # clean line
     running_time = time.time() - start_time
@@ -1422,7 +1420,3 @@ def cli_start_process_and_print_progress(process, progress_value):
         print("# " + process.name + " finished (" + str(round(running_time)) + "s)")
     else:
         print("# Error : " + process.name + " crashed (" + str(round(running_time)) + "s)")
-
-
-
-

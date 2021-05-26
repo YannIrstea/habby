@@ -61,7 +61,7 @@ class Stathab:
         self.w_all = []  # mean width of all the reaches
         self.q_all = []  # discharge
         self.fish_chosen = np.array([])  # the name of the fish
-        self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
+        self.riverint = 0  # the river type (0 stahab, 1 stahtab steep)
         self.path_im = os.path.join(path_prj, "output", "figures")  # path where to save the image
         self.path_hdf5 = os.path.join(path_prj, "hdf5")
         self.load_ok = False  # a boolean to manage the errors
@@ -563,7 +563,7 @@ class Stathab:
                 rclass[:, qind] = dist_gs * ws
                 qmod[qind] = qmod[qind][0]
                 hmod[qind] = hs
-                vmod[qind] =vs
+                vmod[qind] = vs
                 wmod[qind] = ws
                 result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
 
@@ -576,12 +576,12 @@ class Stathab:
                         spu_v = vh_v * ws
                         vh_hv = vh_h * vh_v
                         spu_hv = vh_hv * ws
-                        hv_hv [r, index_habmodel, qind]=vh_hv
-                        wua_hv [r, index_habmodel, qind]=spu_hv
-                        hv_h [r, index_habmodel, qind]=vh_h
-                        wua_h[r, index_habmodel, qind] =spu_h
-                        hv_v [r, index_habmodel, qind]=vh_v
-                        wua_v [r, index_habmodel, qind]=spu_v
+                        hv_hv[r, index_habmodel, qind] = vh_hv
+                        wua_hv[r, index_habmodel, qind] = spu_hv
+                        hv_h[r, index_habmodel, qind] = vh_h
+                        wua_h[r, index_habmodel, qind] = spu_h
+                        hv_v[r, index_habmodel, qind] = vh_v
+                        wua_v[r, index_habmodel, qind] = spu_v
                     else:
                         # TODO bivariate for stathab
                         # TODO simplifier avec ce qui precede
@@ -592,27 +592,24 @@ class Stathab:
                         hv_v[r, index_habmodel, qind] = 0
                         wua_v[r, index_habmodel, qind] = 0
 
-
-
-
             # ************************************************************************************************************
             # Verif Stathab
-            for index_habmodel in range(nb_models):
-                nomfich = 'C:\\w\\S_' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
-                    index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
-                f_chk2 = open(nomfich, 'w')
-                f_chk2.write(
-                    '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
-                f_chk2.close()
-                f_chk2 = open(nomfich, 'a')
-                np.savetxt(f_chk2,
-                           np.concatenate(
-                               (np.concatenate((qmod, wmod, hmod, vmod), axis=1),
-                                np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
-                                          hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
-                                          hv_hv[r, index_habmodel, :],
-                                          wua_hv[r, index_habmodel, :]), axis=1)), axis=1), delimiter='\t')
-                f_chk2.close()
+            # for index_habmodel in range(nb_models):
+            #     nomfich = 'C:\\w\\S_' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
+            #         index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
+            #     f_chk2 = open(nomfich, 'w')
+            #     f_chk2.write(
+            #         '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
+            #     f_chk2.close()
+            #     f_chk2 = open(nomfich, 'a')
+            #     np.savetxt(f_chk2,
+            #                np.concatenate(
+            #                    (np.concatenate((qmod, wmod, hmod, vmod), axis=1),
+            #                     np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
+            #                               hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
+            #                               hv_hv[r, index_habmodel, :],
+            #                               wua_hv[r, index_habmodel, :]), axis=1)), axis=1), delimiter='\t')
+            #     f_chk2.close()
             # ************************************************************************************************************
 
             # adding results by reach
@@ -624,7 +621,6 @@ class Stathab:
             self.v_all.append(vmod)
             self.w_all.append(wmod)
             self.q_all.append(qmod)
-
 
         # the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
@@ -660,7 +656,6 @@ class Stathab:
         wua_h = np.zeros((nb_reach, nb_models, nbclaq))
         hv_v = np.zeros((nb_reach, nb_models, nbclaq))
         wua_v = np.zeros((nb_reach, nb_models, nbclaq))
-
 
         # the biological preference index for all reach, all species
         # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
@@ -706,13 +701,13 @@ class Stathab:
                     # to be checked
                     if dict_pref_stahab['bmono'][index_habmodel]:
                         pref_h = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
-                                                              dict_pref_stahab['h_pref_data'][index_habmodel])
+                                           dict_pref_stahab['h_pref_data'][index_habmodel])
                         pref_v = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
-                                                              dict_pref_stahab['v_pref_data'][index_habmodel])
+                                           dict_pref_stahab['v_pref_data'][index_habmodel])
                     else:
                         # TODO bivariate for StathabSteep
-                        pref_h= np.zeros(( len(h_born)))
-                        pref_v= np.zeros((len(v_born)))
+                        pref_h = np.zeros((len(h_born)))
+                        pref_v = np.zeros((len(v_born)))
                     hv_dist = np.outer(h_dist, v_dist)
                     pref_hv = np.outer(pref_h, pref_v)
                     hv_hv[r, index_habmodel, qind] = np.sum(hv_dist * pref_hv)
@@ -725,25 +720,24 @@ class Stathab:
             self.v_all.append(vmod)
             self.w_all.append(wmod)
             self.q_all.append(qmod)
+            # # ************************************************************************************************************
+            # # Verif Stathab
+            # for index_habmodel in range(nb_models):
+            #     nomfich = 'C:\\w\\Ss_' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
+            #         index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
+            #     f_chk2 = open(nomfich, 'w')
+            #     f_chk2.write(
+            #         '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
+            #     f_chk2.close()
+            #     f_chk2 = open(nomfich, 'a')
+            #     np.savetxt(f_chk2,
+            #                np.concatenate(
+            #                    (np.concatenate((qmod,wmod,hmod,vmod),axis=1), np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
+            #                                                   hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
+            #                                                   hv_hv[r, index_habmodel, :],
+            #                                                   wua_hv[r, index_habmodel, :]), axis=1)), axis=1),delimiter='\t')
+            #     f_chk2.close()
             # ************************************************************************************************************
-            # Verif Stathab
-            for index_habmodel in range(nb_models):
-                nomfich = 'C:\\w\\Ss_' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
-                    index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
-                f_chk2 = open(nomfich, 'w')
-                f_chk2.write(
-                    '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
-                f_chk2.close()
-                f_chk2 = open(nomfich, 'a')
-                np.savetxt(f_chk2,
-                           np.concatenate(
-                               (np.concatenate((qmod,wmod,hmod,vmod),axis=1), np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
-                                                              hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
-                                                              hv_hv[r, index_habmodel, :],
-                                                              wua_hv[r, index_habmodel, :]), axis=1)), axis=1),delimiter='\t')
-                f_chk2.close()
-            # ************************************************************************************************************
-
 
         ## the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
@@ -1169,7 +1163,7 @@ class Stathab:
         for r in range(0, len(self.name_reach)):
 
             qmod = self.q_all[r]
-            if show_class:
+            if show_class and self.riverint == 0:
                 rclass = self.rclass_all[r]
                 hclass = self.hclass_all[r]
                 vclass = self.vclass_all[r]
@@ -1240,7 +1234,7 @@ class Stathab:
                 # save the figures
                 if not erase1:
                     name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
+                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
                     fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
                                 dpi=self.project_preferences['resolution'])
                 else:
@@ -1260,7 +1254,7 @@ class Stathab:
                 # # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
                 # self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
                 # plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
-                plt.plot(qmod, self.j_all['hv_hv'][r,0,:], '-', label=self.fish_chosen[0])
+                plt.plot(qmod, self.j_all['hv_hv'][r, 0, :], '-', label=self.fish_chosen[0])
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
             if self.project_preferences['language'] == 0:
@@ -1273,11 +1267,11 @@ class Stathab:
             lgd = plt.legend(fancybox=True, framealpha=0.5)
             if not erase1:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
                             dpi=self.project_preferences['resolution'], transparent=True)
             else:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index"+ format)
+                name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index" + format)
                 if os.path.isfile(name_fig):
                     os.remove(name_fig)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
@@ -1288,67 +1282,31 @@ class Stathab:
         """
         A function to save the stathab result in .txt form
         """
-        # to know if we kept the old file or we erase them
-        self.project_preferences = load_project_properties(self.path_prj)
-        erase1 = self.project_preferences['erase_id']
-        if not self.j_all:
-            print('Error: The suitability index was not in the right format')
-            return
-
+        dict_pref_stahab = self.stahab_get_pref()
+        nb_models = len(dict_pref_stahab['code_bio_model'])
         # save txt for each reach
         for r in range(0, len(self.name_reach)):
-            j = np.squeeze(self.j_all['hv_hv'][r, :, :])
             qmod = self.q_all[r]
-            if self.riverint == 0:
-                vclass = self.vclass_all[r]
-                hclass = self.hclass_all[r]
-                rclass = self.rclass_all[r]
             hmod = self.h_all[r]
+            vmod = self.v_all[r]
             wmod = self.w_all[r]
-            dummy = np.zeros((len(hmod), 1)) - 99
-
-            # rrd file (only for temperate)
-            if self.riverint == 0:
-                # depth and dist Q should be added
-                data = np.hstack((np.log(qmod), dummy, hmod, wmod, vclass.T, hclass.T, rclass.T))
-                if not erase1:
-                    namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
-                                            time.strftime("%d_%m_%Y_at_%H_%M_%S") + 'rrd.txt')
-                else:
-                    namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] + 'rrd.txt')
-                    if os.path.isfile(namefile):
-                        os.remove(namefile)
-                # header
-                txt_header = 'log(Q)\tempty\thmod\twmod'
-                for i in range(0, len(vclass)):
-                    txt_header += '\tvclass'
-                for i in range(0, len(hclass)):
-                    txt_header += '\thclass'
-                for i in range(0, len(rclass)):
-                    txt_header += '\trclass'
-                txt_header += '\n'
-                # unity
-                txt_header += '[log(m3/sec)]\t[]\t[m]\t[m]'
-                for i in range(0, len(vclass)):
-                    txt_header += '\t[m3]'
-                for i in range(0, len(hclass)):
-                    txt_header += '\t[m2]'
-                for i in range(0, len(rclass)):
-                    txt_header += '\t[m2]'
-                np.savetxt(namefile, data, delimiter='\t', header=txt_header)
-
-            # rre.txt
-            if not erase1:
-                namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
-                                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + 'rre.txt')
-            else:
-                namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] + 'rre.txt')
-                if os.path.isfile(namefile):
-                    os.remove(namefile)
-            header_txt = 'Suitability Index \n '
-            for f in self.fish_chosen:
-                header_txt += f + '\t'
-            np.savetxt(namefile, j.T, delimiter='\t', header=header_txt)
+            header0_list = ['q', 'ws', 'hs', 'vs']
+            header1_list = ['[m3/s]', '[m]', '[m]', 'm/s']
+            jj = np.concatenate((qmod, wmod, hmod, vmod), axis=1)
+            for index_habmodel in range(nb_models):
+                codefish = dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][
+                    index_habmodel]
+                header0_list.extend(['hv_hv-' + codefish, 'wua_hv-' + codefish])
+                header1_list.extend(['[-]', '[m2/100m]'])
+                jj = np.concatenate((jj, np.stack(
+                    (self.j_all['hv_hv'][r, index_habmodel, :], 100 * self.j_all['wua_hv'][r, index_habmodel, :]),
+                    axis=1)), axis=1)
+            typestahab='Stathab'
+            if self.riverint == 1:
+                typestahab+= 'Steep'
+            namefile = os.path.join(self.path_txt, typestahab+'_' + self.name_reach[r] + '.txt')
+            header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
+            np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
 
     def find_path_hdf5_stat(self):
         """

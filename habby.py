@@ -123,7 +123,7 @@ def main():
         os.chdir(application_path)  # change current working directory
 
     # GUI
-    if len(sys.argv) <= 2:
+    if len(sys.argv) <= 2 and 'LIST_COMMAND' not in sys.argv:
         """
         GUI
         """
@@ -191,12 +191,13 @@ def main():
                     name_prj = os.path.basename(path_prj)
                     path_prj_index = id
 
-        if not path_prj:
+        if not path_prj and 'LIST_COMMAND' not in sys.argv:
             print("Error : Project path argument not found.")
             return
         else:
-            # remove path_prj arg
-            sys.argv.pop(path_prj_index)
+            if path_prj_index:
+                # remove path_prj arg
+                sys.argv.pop(path_prj_index)
 
         # check if enough argument
         if len(sys.argv) == 0 or len(sys.argv) == 1:

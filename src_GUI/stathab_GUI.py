@@ -341,12 +341,16 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.selected_aquatic_animal_qtablewidget.clear()
         self.list_needed.clear()
         self.list_f.clear()
         self.fish_selected = []
         self.firstitemreach = []
         self.mystathab.riverint = self.riverint
+
+        if self.riverint == 0:
+            self.runb.setText(self.tr("Run Stathab"))
+        elif self.riverint == 1:
+            self.runb.setText(self.tr("Run Stathab steep"))
 
         # get the new files
         if self.typeload == 'txt':
@@ -867,11 +871,6 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.mystathab.stathab_trop_univ(self.path_bio_stathab, by_vol)
             sys.stdout = sys.__stdout__
             self.send_err_log()
-        elif self.riverint == 2:
-            sys.stdout = self.mystdout = StringIO()
-            self.mystathab.stathab_trop_biv(self.path_bio_stathab)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
         else:
             self.send_log.emit('The river type is not recognized. Stathab could not be run.')
             return
@@ -894,7 +893,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # save data and fig
         # self.mystathab.path_im = self.path_im
         self.mystathab.savetxt_stathab()
-        self.mystathab.savefig_stahab(False)
+        self.mystathab.savefig_stahab(True)
         self.show_fig.emit()
 
         # log information

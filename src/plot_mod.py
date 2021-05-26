@@ -920,10 +920,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = "Estimhab_hv" + project_preferences['format']
+    name_pict = "Estimhab_hsi" + project_preferences['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            name_pict = "Estimhab_hsi" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)
@@ -987,7 +987,7 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     name_pict = "Estimhab_input" + project_preferences['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            name_pict = "Estimhab_input" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)
