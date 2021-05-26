@@ -1260,7 +1260,7 @@ class Hdf5Management:
         # save attrivbute
         self.estimhab_dict = estimhab_dict
 
-    def export_estimhab(self):
+    def export_estimhab_txt(self):
         # text files output
         txt_header = 'Discharge\tHeight\tWidth\tVelocity'
         q_all = self.estimhab_dict["q_all"]
@@ -1300,7 +1300,7 @@ class Hdf5Management:
                 all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_VH"], axis=1)[f]))
                 all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_SPU"], axis=1)[f]))
 
-        txt_header += '\n[m3/sec]\t[m]\t[m]\t[m/s]'
+        txt_header += '\n[m3/s]\t[m]\t[m]\t[m/s]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
 

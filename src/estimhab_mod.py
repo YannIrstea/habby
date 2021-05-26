@@ -49,7 +49,7 @@ def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, progres
     hdf5.load_hdf5_estimhab()
 
     # export
-    hdf5.export_estimhab()
+    hdf5.export_estimhab_txt()
 
     progress_value.value = 100.0
 
