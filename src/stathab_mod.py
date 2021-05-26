@@ -1149,10 +1149,6 @@ class Stathab:
         figure only works when stathab1 for temperate river is used.
 
         """
-
-        # plot_estimhab(progress_value,
-        #         self.j_all,
-        #         self.project_preferences)
         # figure option
         self.project_preferences = load_project_properties(self.path_prj)
         plt.rcParams['figure.figsize'] = self.project_preferences['width'], self.project_preferences['height']

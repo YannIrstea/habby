@@ -32,6 +32,7 @@ from src import stathab_mod
 from src import hdf5_mod
 from src_GUI import estimhab_GUI
 from src.project_properties_mod import change_specific_properties, load_project_properties
+from src.bio_info_mod import get_biomodels_informations_for_database
 
 
 class StathabW(estimhab_GUI.StatModUseful):
@@ -314,9 +315,17 @@ class StathabW(estimhab_GUI.StatModUseful):
         # add new item if not exist
         for item_str in new_item_text_list["selected_aquatic_animal_list"]:
             if item_str not in self.fish_selected:
-                # add it to selected
-                self.selected_aquatic_animal_qtablewidget.addItem(item_str)
-                self.fish_selected.append(item_str)
+                # filter : remove HEM bio models
+                splited_item_str = item_str.split()
+                model_dict = get_biomodels_informations_for_database(splited_item_str[-1] + ".xml")
+                stage = splited_item_str[-3]
+                hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
+                if "HV" in hydraulic_type_available:
+                    # add it to selected
+                    self.selected_aquatic_animal_qtablewidget.addItem(item_str)
+                    self.fish_selected.append(item_str)
+                else:
+                    self.send_log.emit('Warning: ' + item_str + " don't have height and velocity in biological model (not usable with Stathab).")
 
     def change_riv_type(self):
         """
@@ -806,37 +815,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-
-    def add_all_fish(self):
-        """
-        This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. Careful,
-        a similar function exists in Fstress_GUI. Modify both if needed.
-        """
-
-        items = []
-        for index in range(self.list_f.count()):
-            items.append(self.list_f.item(index))
-        if items:
-            for i in range(0, len(items)):
-                # avoid to have the same fish multiple times
-                if items[i].text() in self.fish_selected:
-                    pass
-                else:
-                    self.selected_aquatic_animal_qtablewidget.addItem(items[i].text())
-                    self.fish_selected.append(items[i].text())
-
-                # order the list (careful QLIstWidget do not order as sort from list)
-                if self.fish_selected:
-                    self.fish_selected.sort()
-                    self.selected_aquatic_animal_qtablewidget.clear()
-                    self.selected_aquatic_animal_qtablewidget.addItems(self.fish_selected)
-                    # bold for selected fish
-                    font = QFont()
-                    font.setItalic(True)
-                    for i in range(0, self.list_f.count()):
-                        for f in self.fish_selected:
-                            if f == self.list_f.item(i).text():
-                                self.list_f.item(i).setFont(font)
 
     def run_stathab_gui(self):
         """
