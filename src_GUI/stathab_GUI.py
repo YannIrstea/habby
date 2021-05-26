@@ -871,7 +871,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # run stathab for tropical rivers
         elif self.riverint == 1:
             sys.stdout = self.mystdout = StringIO()
-            self.mystathab.stathab_trop_univ(self.path_bio_stathab, by_vol)
+            self.mystathab.stathab_steep_calc(self.path_bio_stathab, by_vol)
             sys.stdout = sys.__stdout__
             self.send_err_log()
         else:

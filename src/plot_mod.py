@@ -840,7 +840,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     plt.show()
 
 
-def plot_estimhab(state, estimhab_dict, project_preferences):
+def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
     path_prj = project_preferences['path_prj']
@@ -858,25 +858,25 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     mpl.rcParams['pdf.fonttype'] = 42
 
     # prepare color
-    color_list, style_list = get_colors_styles_line_from_nb_input(len(estimhab_dict["fish_list"]))
+    color_list, style_list = get_colors_styles_line_from_nb_input(len(stat_data_dict["fish_list"]))
 
     """ plot hv """
     fig, (ax_vh, ax_spu) = plt.subplots(ncols=1, nrows=2,
                                                           sharex="all",
                                                           gridspec_kw={'height_ratios': [3, 3]})
-    plt.get_current_fig_manager().set_window_title('ESTIMHAB output - HABBY')
+    plt.get_current_fig_manager().set_window_title(stat_mod + ' output - HABBY')
 
     # VH
-    ax_vh.set_title("ESTIMHAB output - HABBY")
-    if estimhab_dict["targ_q_all"]:
-        for q_tar in estimhab_dict["targ_q_all"]:
+    ax_vh.set_title(stat_mod + " output - HABBY")
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
             ax_vh.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
-    for fish_index in range(len(estimhab_dict["fish_list"])):
-        ax_vh.plot(estimhab_dict["q_all"],
-                   estimhab_dict["VH"][fish_index],
-                   label=estimhab_dict["fish_list"][fish_index],
+    for fish_index in range(len(stat_data_dict["fish_list"])):
+        ax_vh.plot(stat_data_dict["q_all"],
+                   stat_data_dict["VH"][fish_index],
+                   label=stat_data_dict["fish_list"][fish_index],
                    color=color_list[fish_index],
                    linestyle=style_list[fish_index])
     ax_vh.set_ylim([-0.1, 1.1])
@@ -884,22 +884,23 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # SPU
-    if estimhab_dict["targ_q_all"]:
-        for q_tar in estimhab_dict["targ_q_all"]:
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
             ax_spu.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
-    for fish_index in range(len(estimhab_dict["fish_list"])):
-        ax_spu.plot(estimhab_dict["q_all"],
-                    estimhab_dict["SPU"][fish_index],
-                    label=estimhab_dict["fish_list"][fish_index],
+    for fish_index in range(len(stat_data_dict["fish_list"])):
+        ax_spu.plot(stat_data_dict["q_all"],
+                    stat_data_dict["SPU"][fish_index],
+                    label=stat_data_dict["fish_list"][fish_index],
                     color=color_list[fish_index],
                     linestyle=style_list[fish_index])
     ax_spu.set_ylabel(qt_tr.translate("plot_mod", "WUA by 100 m\n[m²]"))
     ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+    ax_spu.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
 
     # targ_q_all
-    if estimhab_dict["targ_q_all"]:
+    if stat_data_dict["targ_q_all"]:
         labels = ["Qtarg [m$^{3}$/sec]"]
         fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
                    labels=labels,
@@ -920,10 +921,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = "Estimhab_hsi" + project_preferences['format']
+    name_pict = stat_mod + "_hv" + project_preferences['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = "Estimhab_hsi" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
+            name_pict = stat_mod + "_hv" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)
@@ -932,47 +933,47 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
                                                           sharex="all",
                                                           gridspec_kw={'height_ratios': [1, 1, 1]})
-    plt.get_current_fig_manager().set_window_title('ESTIMHAB input - HABBY')  # set windows title
-    ax_h.set_title("ESTIMHAB input - HABBY")
+    plt.get_current_fig_manager().set_window_title(stat_mod + ' hydraulic data - HABBY')  # set windows title
+    ax_h.set_title(stat_mod + ' hydraulic data - HABBY')
     # H
-    if estimhab_dict["targ_q_all"]:
-        for q_tar in estimhab_dict["targ_q_all"]:
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
             ax_h.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
-    ax_h.plot(estimhab_dict["q_all"],
-              estimhab_dict["h_all"],
+    ax_h.plot(stat_data_dict["q_all"],
+              stat_data_dict["h_all"],
               color="black")
     ax_h.set_ylabel(qt_tr.translate("plot_mod", "height\n[m]"))
     ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # W
-    if estimhab_dict["targ_q_all"]:
-        for q_tar in estimhab_dict["targ_q_all"]:
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
             ax_w.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
-    ax_w.plot(estimhab_dict["q_all"],
-              estimhab_dict["w_all"],
+    ax_w.plot(stat_data_dict["q_all"],
+              stat_data_dict["w_all"],
               color="black")
     ax_w.set_ylabel(qt_tr.translate("plot_mod", "width\n[m]"))
     ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # V
-    if estimhab_dict["targ_q_all"]:
-        for q_tar in estimhab_dict["targ_q_all"]:
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
             ax_v.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
-    ax_v.plot(estimhab_dict["q_all"],
-              estimhab_dict["vel_all"],
+    ax_v.plot(stat_data_dict["q_all"],
+              stat_data_dict["vel_all"],
               color="black")
     ax_v.set_ylabel(qt_tr.translate("plot_mod", "velocity\n[m/s]"))
     ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
     ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
 
     # targ_q_all
-    if estimhab_dict["targ_q_all"]:
+    if stat_data_dict["targ_q_all"]:
         labels = ["Qtarg [m$^{3}$/sec]"]
         fig2.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
                    labels=labels,
@@ -984,10 +985,10 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = "Estimhab_input" + project_preferences['format']
+    name_pict = stat_mod + "_hydraulic" + project_preferences['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = "Estimhab_input" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
+            name_pict = stat_mod + "_hydraulic" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)
@@ -1002,7 +1003,9 @@ def plot_estimhab(state, estimhab_dict, project_preferences):
     plt.show()
 
     # remove file
-    os.remove(os.path.join(path_prj, "hdf5", os.path.basename(path_prj) + '_ESTIMHAB' + '.hab'))
+    file_hdf5_path = os.path.join(path_prj, "hdf5", os.path.basename(path_prj) + '_' + stat_mod + '.hab')
+    if os.path.exists(file_hdf5_path):
+        os.remove(file_hdf5_path)
 
 
 # all cases

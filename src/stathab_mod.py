@@ -24,13 +24,14 @@ import time
 import matplotlib.pyplot as plt
 import h5py
 import matplotlib as mpl
+from multiprocessing import Value
 
 from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
 from src.bio_info_mod import read_pref
-from src.plot_mod import plot_estimhab
+from src.plot_mod import plot_stat_data
 from src.user_preferences_mod import user_preferences
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
@@ -52,6 +53,7 @@ class Stathab:
         self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
         self.name_reach = []  # the list with the name of the reaches
         self.j_all = dict()  # habitat values
+        self.data_list = list()  # list by reach of dict of all reach data values
         self.granulo_mean_all = []  # average granuloa
         self.vclass_all = []  # volume of each velocity classes
         self.hclass_all = []  # surface height for all classes
@@ -464,7 +466,6 @@ class Stathab:
         :param name_pref: the name of the preference file
         :return: the biological preferrence index (np.array of [reach, specices, nbclaq] size), surface or volume by class, etc.
         """
-
         self.load_ok = False
         # various info
         nbclaq = 50  # number of discharge point where the data have to be calculate
@@ -571,11 +572,11 @@ class Stathab:
                     if dict_pref_stahab['bmono'][index_habmodel]:
                         # vh_v	spu_v	vh_h	spu_h	vh_hv	spu_hv
                         vh_h = np.sum(dist_hs * pref_h[index_habmodel, :])
-                        spu_h = vh_h * ws
+                        spu_h = vh_h * ws * 100
                         vh_v = np.sum(dist_vs * pref_v[index_habmodel, :])
-                        spu_v = vh_v * ws
+                        spu_v = vh_v * ws * 100
                         vh_hv = vh_h * vh_v
-                        spu_hv = vh_hv * ws
+                        spu_hv = vh_hv * ws * 100
                         hv_hv[r, index_habmodel, qind] = vh_hv
                         wua_hv[r, index_habmodel, qind] = spu_hv
                         hv_h[r, index_habmodel, qind] = vh_h
@@ -622,12 +623,22 @@ class Stathab:
             self.w_all.append(wmod)
             self.q_all.append(qmod)
 
+            # list of dict data for plotting
+            self.data_list.append(dict(fish_list=[dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for index_habmodel in range(nb_models)],
+                                       q_all=qmod,
+                                       h_all=hmod,
+                                       w_all=wmod,
+                                       vel_all=vmod,
+                                       VH=hv_hv[r],
+                                       SPU=wua_hv[r],
+                                        targ_q_all=[]))
+
         # the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
 
         self.load_ok = True
 
-    def stathab_trop_univ(self, path_bio, by_vol):
+    def stathab_steep_calc(self, path_bio, by_vol):
         """
         This function calculate the stathab outputs  for the univariate preference file in the case where the river is
         steep and in the tropical regions (usually the islands of Reunion and Guadeloupe).
@@ -636,7 +647,6 @@ class Stathab:
         :param by_vol: If True the output is by volum (VPU instead of SPU) from the velcoity pref file
         :return: the SPU or VPU
         """
-
         # various info
         self.load_ok = False
         nb_reach = len(self.name_reach)
@@ -711,15 +721,26 @@ class Stathab:
                     hv_dist = np.outer(h_dist, v_dist)
                     pref_hv = np.outer(pref_h, pref_v)
                     hv_hv[r, index_habmodel, qind] = np.sum(hv_dist * pref_hv)
-                    wua_hv[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind] * ws  # WUA/m of river
+                    wua_hv[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
                     hv_h[r, index_habmodel, qind] = np.sum(pref_h * h_dist)
                     hv_v[r, index_habmodel, qind] = np.sum(pref_v * v_dist)
-                    wua_h[r, index_habmodel, qind] = hv_h[r, index_habmodel, qind] * ws  # WUA/m of river
-                    wua_v[r, index_habmodel, qind] = hv_v[r, index_habmodel, qind] * ws  # WUA/m of river
+                    wua_h[r, index_habmodel, qind] = hv_h[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
+                    wua_v[r, index_habmodel, qind] = hv_v[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
             self.h_all.append(hmod)
             self.v_all.append(vmod)
             self.w_all.append(wmod)
             self.q_all.append(qmod)
+
+            # list of dict data for plotting
+            self.data_list.append(dict(fish_list=[dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for index_habmodel in range(nb_models)],
+                                       q_all=qmod,
+                                       h_all=hmod,
+                                       w_all=wmod,
+                                       vel_all=vmod,
+                                       VH=hv_hv[r],
+                                       SPU=wua_hv[r],
+                                        targ_q_all=[]))
+
             # # ************************************************************************************************************
             # # Verif Stathab
             # for index_habmodel in range(nb_models):
@@ -1136,7 +1157,7 @@ class Stathab:
 
         return v_dist, v_born
 
-    def savefig_stahab(self, show_class=True):
+    def savefig_stahab(self, show_class=False):
         """
         A function to save the results in text and the figure. If the argument show_class is True,
         it shows an extra figure with the size of the different height, granulo, and velocity classes. The optional
@@ -1145,138 +1166,13 @@ class Stathab:
         """
         # figure option
         self.project_preferences = load_project_properties(self.path_prj)
-        plt.rcParams['figure.figsize'] = self.project_preferences['width'], self.project_preferences['height']
-        plt.rcParams['font.size'] = self.project_preferences['font_size']
-        plt.rcParams['lines.linewidth'] = self.project_preferences['line_width']
-        format = self.project_preferences['format']
-        plt.rcParams['axes.grid'] = self.project_preferences['grid']
-        mpl.rcParams['pdf.fonttype'] = 42
-        if self.project_preferences['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = self.project_preferences['font_size'] - 2
-        plt.rcParams['legend.loc'] = 'best'
-        mpl.interactive(True)
-        erase1 = self.project_preferences['erase_id']
         if len(self.q_all) < len(self.name_reach):
             print('Error: Could not find discharge data. Figure not plotted. \n')
             return
 
+        # plot
         for r in range(0, len(self.name_reach)):
-
-            qmod = self.q_all[r]
-            if show_class and self.riverint == 0:
-                rclass = self.rclass_all[r]
-                hclass = self.hclass_all[r]
-                vclass = self.vclass_all[r]
-                vol = self.h_all[0] * self.w_all[0]
-
-                fig = plt.figure()
-                plt.subplot(221)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Total Volume')
-                    plt.ylabel('Volume for 1m of reach [m3]')
-                    plt.title('Surface by class for the granulometry')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Volume total')
-                    plt.ylabel('Volume pour 1m de troncon [m3]')
-                else:
-                    plt.title('Total Volume')
-                    plt.ylabel('Volume for 1m of reach [m3]')
-                    plt.title('Surface by class for the granulometry')
-                plt.plot(qmod, vol)
-                plt.subplot(222)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Surface by class for the granulometry')
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Surface par classe de granulométrie')
-                    plt.ylabel('Surface par classe [m$^{2}$]')
-                else:
-                    plt.title('Surface by class for the granulometry')
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                for g in range(0, len(rclass)):
-                    plt.plot(qmod, rclass[g], '-', label='Class ' + str(g))
-                lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-                plt.subplot(223)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Surface by class for the height')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Surface par classe pour la hauteur')
-                else:
-                    plt.title('Surface by class for the height')
-                for g in range(0, len(hclass)):
-                    plt.plot(qmod, hclass[g, :], '-', label='Class ' + str(g))
-                plt.xlabel('Q [m$^{3}$/sec]')
-                if self.project_preferences['language'] == 0:
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                elif self.project_preferences['language'] == 1:
-                    plt.ylabel('Surface par classe [m$^{2}$]')
-                else:
-                    plt.ylabel('Surface by class [m$^{2}$]')
-                lgd = plt.legend()
-                plt.subplot(224)
-                if self.project_preferences['language'] == 0:
-                    plt.title('Volume by class for the velocity')
-                elif self.project_preferences['language'] == 1:
-                    plt.title('Volume par classe pour la vitesse')
-                else:
-                    plt.title('Volume by class for the velocity')
-                for g in range(0, len(vclass)):
-                    plt.plot(qmod, vclass[g], '-', label='Class ' + str(g))
-                plt.xlabel('Q [m$^{3}$/sec]')
-                if self.project_preferences['language'] == 0:
-                    plt.ylabel('Volume by Class [m$^{3}$]')
-                elif self.project_preferences['language'] == 1:
-                    plt.ylabel('Volume par classe [m$^{3}$]')
-                else:
-                    plt.ylabel('Volume by Class [m$^{3}$]')
-                lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-
-                # save the figures
-                if not erase1:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
-                    fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                                dpi=self.project_preferences['resolution'])
-                else:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes" + format)
-                    if os.path.isfile(name_fig):
-                        os.remove(name_fig)
-                    fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                                dpi=self.project_preferences['resolution'])
-
-            # suitability index
-            fig = plt.figure()
-            if len(self.fish_chosen) > 1:
-                j = np.squeeze(self.j_all['hv_hv'][0, :, :])
-                for e in range(0, len(self.fish_chosen)):
-                    plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
-            else:
-                # # self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
-                # self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
-                # plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
-                plt.plot(qmod, self.j_all['hv_hv'][r, 0, :], '-', label=self.fish_chosen[0])
-            plt.xlabel('Q [m$^{3}$/sec]')
-            plt.ylabel('Index J [ ]')
-            if self.project_preferences['language'] == 0:
-                plt.title('Suitability index J - ' + self.name_reach[r])
-            elif self.project_preferences['language'] == 1:
-                plt.title('Index de suitabilité J - ' + self.name_reach[r])
-            else:
-                plt.title('Suitability index J - ' + self.name_reach[r])
-
-            lgd = plt.legend(fancybox=True, framealpha=0.5)
-            if not erase1:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + format)
-                fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                            dpi=self.project_preferences['resolution'], transparent=True)
-            else:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index" + format)
-                if os.path.isfile(name_fig):
-                    os.remove(name_fig)
-                fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                            dpi=self.project_preferences['resolution'], transparent=True)
-            plt.show()
+            plot_stat_data(Value("d", 0), self.data_list[r], "Stathab_steep" if self.riverint == 1 else "Stathab", self.project_preferences)
 
     def savetxt_stathab(self):
         """
@@ -1299,12 +1195,10 @@ class Stathab:
                 header0_list.extend(['hv_hv-' + codefish, 'wua_hv-' + codefish])
                 header1_list.extend(['[-]', '[m2/100m]'])
                 jj = np.concatenate((jj, np.stack(
-                    (self.j_all['hv_hv'][r, index_habmodel, :], 100 * self.j_all['wua_hv'][r, index_habmodel, :]),
+                    (self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
                     axis=1)), axis=1)
-            typestahab='Stathab'
-            if self.riverint == 1:
-                typestahab+= 'Steep'
-            namefile = os.path.join(self.path_txt, typestahab+'_' + self.name_reach[r] + '.txt')
+            mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
+            namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
             header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
 
@@ -1746,7 +1640,7 @@ def main():
         mystathab.test_stathab_trop_biv(path_ori)
     else:
         # False-> height based spu, True-> vpu
-        mystathab.stathab_trop_univ(path_bio, False)
+        mystathab.stathab_steep_calc(path_bio, False)
         mystathab.test_stathab_trop_uni(path_ori, False)
 
 

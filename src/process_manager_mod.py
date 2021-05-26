@@ -671,11 +671,12 @@ class MyProcessManager(QThread):
         hdf5.load_hdf5_estimhab()
 
         # plot
-        my_process = MyProcess(Process(target=plot_mod.plot_estimhab,
-                                         args=(progress_value,
+        my_process = MyProcess(Process(target=plot_mod.plot_stat_data,
+                                       args=(progress_value,
                                                hdf5.estimhab_dict,
+                                             "Estimhab",
                                                self.project_preferences),
-                                     name="plot_suitability_curve"),
+                                       name="plot_suitability_curve"),
                            progress_value=progress_value,
                            q=q)
 
@@ -767,7 +768,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
+    def start(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":

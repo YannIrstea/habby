@@ -381,7 +381,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                     name_fish.append(f[-7:-4])
             mystathab.fish_chosen = name_fish
             mystathab.riverint = 1
-            mystathab.stathab_trop_univ(path_bio2, True)
+            mystathab.stathab_steep_calc(path_bio2, True)
             mystathab.savetxt_stathab()
             mystathab.savefig_stahab(False)
         elif riv_int == 2:
