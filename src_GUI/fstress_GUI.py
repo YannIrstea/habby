@@ -29,8 +29,9 @@ import src.dev_tools_mod
 import src.tools_mod
 from src_GUI import estimhab_GUI
 from src import fstress_mod
-from src import hdf5_mod
 from src.project_properties_mod import load_project_properties
+from src.user_preferences_mod import user_preferences
+from src.bio_info_mod import get_biomodels_informations_for_database
 
 
 class FstressW(estimhab_GUI.StatModUseful):
@@ -676,9 +677,19 @@ class FstressW(estimhab_GUI.StatModUseful):
         # add new item if not exist
         for item_str in new_item_text_list["selected_aquatic_animal_list"]:
             if item_str not in self.fish_selected:
-                # add it to selected
-                self.selected_aquatic_animal_qtablewidget.addItem(item_str)
-                self.fish_selected.append(item_str)
+                # filter : remove HEM bio models
+                splited_item_str = item_str.split()
+                code_bio_model = splited_item_str[-1]
+                stage = splited_item_str[-3]
+                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+                model_dict = get_biomodels_informations_for_database(user_preferences.biological_models_dict["path_xml"][index_fish])
+                hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
+                if "HEM" in hydraulic_type_available:
+                    # add it to selected
+                    self.selected_aquatic_animal_qtablewidget.addItem(item_str)
+                    self.fish_selected.append(item_str)
+                else:
+                    self.send_log.emit('Warning: ' + item_str + " don't have HEM in biological model (not usable with FStress).")
 
     def runsave_fstress(self):
         """
