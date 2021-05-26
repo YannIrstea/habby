@@ -33,6 +33,7 @@ from src import hdf5_mod
 from src_GUI import estimhab_GUI
 from src.project_properties_mod import change_specific_properties, load_project_properties
 from src.bio_info_mod import get_biomodels_informations_for_database
+from src.user_preferences_mod import user_preferences
 
 
 class StathabW(estimhab_GUI.StatModUseful):
@@ -317,8 +318,10 @@ class StathabW(estimhab_GUI.StatModUseful):
             if item_str not in self.fish_selected:
                 # filter : remove HEM bio models
                 splited_item_str = item_str.split()
-                model_dict = get_biomodels_informations_for_database(splited_item_str[-1] + ".xml")
+                code_bio_model = splited_item_str[-1]
                 stage = splited_item_str[-3]
+                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+                model_dict = get_biomodels_informations_for_database(user_preferences.biological_models_dict["path_xml"][index_fish])
                 hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
                 if "HV" in hydraulic_type_available:
                     # add it to selected
