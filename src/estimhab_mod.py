@@ -186,6 +186,8 @@ def estimhab(estimhab_dict, qt_tr):
         const = coeff_const[0]
         for i in range(0, len(var_const)):
             const += coeff_const[i + 1] * np.log(q50_data[int(var_const[i])])
+        if const < 0:
+            const = 0
         VH_f = const * part_q
         SPU_f = VH_f * w_all * 100
 
