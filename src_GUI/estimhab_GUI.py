@@ -69,7 +69,6 @@ class StatModUseful(QScrollArea):
         self.remove_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "file_dep", "icon", "moins.png")))
         self.remove_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
         self.remove_qtarget_button.setToolTip(self.tr("Click to remove one target discharge."))
-
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
 
@@ -346,6 +345,7 @@ class EstimhabW(StatModUseful):
         super().__init__()
         self.tab_name = "estimhab"
         self.tab_position = 7
+        self.model_type = "Estimhab"
         self.eq50 = QLineEdit()
         self.esub = QLineEdit()
         self.path_prj = path_prj
@@ -360,7 +360,6 @@ class EstimhabW(StatModUseful):
         self.fill_input_data()
         self.fill_fish_name()
         self.check_if_ready_to_compute()
-
         self.eq1.textChanged.connect(self.check_if_ready_to_compute)
         self.eq2.textChanged.connect(self.check_if_ready_to_compute)
         self.ew1.textChanged.connect(self.check_if_ready_to_compute)
@@ -499,7 +498,7 @@ class EstimhabW(StatModUseful):
         self.setPalette(p)
 
         # send model
-        self.run_stop_button = QPushButton(self.tr('Run ESTIMHAB'), self)
+        self.run_stop_button = QPushButton(self.tr('Run Estimhab'), self)
         self.run_stop_button.clicked.connect(self.run_estmihab)
         change_button_color(self.run_stop_button, "#47B5E6")
         self.run_stop_button.setEnabled(False)
@@ -610,7 +609,7 @@ class EstimhabW(StatModUseful):
         """
         # load_project_properties
         self.estimhab_dict = load_specific_properties(self.path_prj,
-                                                      ["ESTIMHAB"])[0]
+                                                      [self.model_type])[0]
 
     def fill_fish_name(self):
         """
@@ -751,7 +750,7 @@ class EstimhabW(StatModUseful):
                     qtarget_values_list.append(float(qtarg_lineedit.text().replace(",", ".")))
             substrate = float(self.esub.text().replace(",", "."))
         except ValueError:
-            self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run ESTIMHAB'))
+            self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
             return
 
         # get the list of xml file
@@ -764,25 +763,25 @@ class EstimhabW(StatModUseful):
             fish_name2.append(fish_item_str)
         # check internal logic
         if not fish_list:
-            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run ESTIMHAB.'))
+            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
             return
         if qrange[0] >= qrange[1]:
-            self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run ESTIMHAB.'))
+            self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
             return
         if qtarget_values_list:
             for qtarg in qtarget_values_list:
                 if qtarg < qrange[0] or qtarg > qrange[1]:
                     self.send_log.emit(
-                        'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run ESTIMHAB.'))
+                        'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run Estimhab.'))
                     return
         if q[0] == q[1]:
-            self.send_log.emit('Error: ' + self.tr('ESTIMHAB needs two differents measured discharges.'))
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
             return
         if h[0] == h[1]:
-            self.send_log.emit('Error: ' + self.tr('ESTIMHAB needs two different measured height.'))
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured height.'))
             return
         if w[0] == w[1]:
-            self.send_log.emit('Error: ' + self.tr('ESTIMHAB needs two different measured width.'))
+            self.send_log.emit('Error: ' + self.tr('Estimhab needs two different measured width.'))
             return
         if (q[0] > q[1] and h[0] < h[1]) or (q[0] > q[1] and w[0] < w[1]) or (q[1] > q[0] and h[1] < h[0]) \
                 or (q[1] > q[0] and w[1] < w[0]):
@@ -790,13 +789,13 @@ class EstimhabW(StatModUseful):
             return
         if q[0] <= 0 or q[1] <= 0 or w[0] <= 0 or w[1] <= 0 or h[0] <= 0 or h[1] <= 0 or qrange[0] <= 0 or qrange[1] <= 0 \
                 or substrate <= 0 or q50 <= 0:
-            self.send_log.emit('Error: ' + self.tr('Negative or zero data found. Could not run ESTIMHAB.'))
+            self.send_log.emit('Error: ' + self.tr('Negative or zero data found. Could not run Estimhab.'))
             return
         if substrate > 3:
-            self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run ESTIMHAB.'))
+            self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run Estimhab.'))
             return
 
-        self.send_log.emit(self.tr('# Computing: ESTIMHAB...'))
+        self.send_log.emit(self.tr('# Computing: Estimhab...'))
 
         # check if the discharge range is realistic with the result
         self.qall = [q[0], q[1], qrange[0], qrange[1], q50]
@@ -819,7 +818,7 @@ class EstimhabW(StatModUseful):
 
         # change_specific_properties
         change_specific_properties(self.path_prj,
-                                   ["ESTIMHAB"],
+                                   ["Estimhab"],
                                    [self.estimhab_dict])
 
         # process
@@ -827,7 +826,7 @@ class EstimhabW(StatModUseful):
         self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
                          args=(self.estimhab_dict, project_preferences, self.path_prj,
                                state),
-                    name="ESTIMHAB")
+                    name="Estimhab")
         self.p.start()
         self.p.join()
 
@@ -849,7 +848,7 @@ class EstimhabW(StatModUseful):
                 self.send_log.emit(str_found[i])
 
         self.send_log.emit(
-            self.tr("ESTIMHAB computation done. Figure and text files created in output project folder."))
+            self.tr("Estimhab computation done. Figure and text files created in output project folder."))
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')

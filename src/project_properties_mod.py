@@ -115,10 +115,10 @@ def create_default_project_properties_dict(all_export_enabled=False):
     for attribute_model in hydraulic_model_information.attribute_models_list:
         project_preferences[attribute_model] = dict(path="", hdf5=[])
 
-    # project_preferences['STATHAB'] = dict()
-    project_preferences['ESTIMHAB'] = dict()
-    # project_preferences['FSTRESS'] = dict()
-
+    project_preferences['Estimhab'] = dict()
+    project_preferences['Stathab'] = dict(path="", fish_selected=[])
+    project_preferences['Stathab_steep'] = dict(path="", fish_selected=[])
+    project_preferences['FStress'] = dict(path="")
     project_preferences['SUBSTRATE'] = dict(path="", hdf5=[])
     project_preferences['HABITAT'] = dict(path="", hdf5=[])
 

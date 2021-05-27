@@ -1172,7 +1172,10 @@ class Stathab:
 
         # plot
         for r in range(0, len(self.name_reach)):
-            plot_stat_data(Value("d", 0), self.data_list[r], "Stathab_steep" if self.riverint == 1 else "Stathab", self.project_preferences)
+            progress_value = Value("d", 0)
+            plot_stat_data(progress_value, self.data_list[r],
+                           "Stathab_steep" if self.riverint == 1 else "Stathab",
+                           self.project_preferences)
 
     def savetxt_stathab(self):
         """

@@ -904,10 +904,10 @@ class MainWindows(QMainWindow):
 
         if item_dict["source_str"] == "calc_hab":
             self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict)
-
-        elif item_dict["source_str"] == "stat_hab":
-            self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict)
-
+        elif item_dict["source_str"] == "Stathab":
+            self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
+        elif item_dict["source_str"] == "Stathab_steep":
+            self.central_widget.stathab_steep_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
         elif item_dict["source_str"] == "fstress":
             self.central_widget.fstress_tab.fill_selected_models_listwidets(item_dict)
 
@@ -1422,6 +1422,14 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
 
+            if hasattr(self.central_widget, "stathab_steep_tab"):
+                if not self.central_widget.stathab_steep_tab:
+                    self.central_widget.stathab_steep_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj, steep=True)
+                else:
+                    self.central_widget.stathab_steep_tab.__init__(self.path_prj, self.name_prj, steep=True)
+            else:
+                self.central_widget.stathab_steep_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj, steep=True)
+
             if hasattr(self.central_widget, "fstress_tab"):
                 if not self.central_widget.fstress_tab:
                     self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
@@ -1514,13 +1522,16 @@ class MainWindows(QMainWindow):
             if self.name_prj:
                 self.central_widget.tab_widget.insertTab(self.central_widget.estimhab_tab.tab_position,
                                                          self.central_widget.estimhab_tab,
-                                                         self.tr("ESTIMHAB"))  # 6
+                                                         self.tr("Estimhab"))  # 6
                 self.central_widget.tab_widget.insertTab(self.central_widget.stathab_tab.tab_position,
                                                          self.central_widget.stathab_tab,
-                                                         self.tr("STATHAB"))  # 7
+                                                         self.tr("Stathab"))  # 7
+                self.central_widget.tab_widget.insertTab(self.central_widget.stathab_steep_tab.tab_position,
+                                                         self.central_widget.stathab_steep_tab,
+                                                         self.tr("Stathab_steep"))  # 8
                 self.central_widget.tab_widget.insertTab(self.central_widget.fstress_tab.tab_position,
                                                          self.central_widget.fstress_tab,
-                                                         self.tr("FStress"))  # 8
+                                                         self.tr("FStress"))  # 9
             self.stat_tabs = True
         # save xml
         if self.name_prj:
@@ -1931,6 +1942,7 @@ class CentralW(QWidget):
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
             self.estimhab_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
+            self.stathab_steep_tab = stathab_GUI.StathabW(path_prj, name_prj, steep=True)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
 
         self.logon = True  # do we save the log in .log file or not
@@ -2036,12 +2048,13 @@ class CentralW(QWidget):
                 self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
             if go_stat:
-                self.tab_widget.addTab(self.estimhab_tab, self.tr("ESTIMHAB"))  # 7
-                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 8
-                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 9
+                self.tab_widget.addTab(self.estimhab_tab, "Estimhab")  # 7
+                self.tab_widget.addTab(self.stathab_tab, "Stathab")  # 8
+                self.tab_widget.addTab(self.stathab_steep_tab, "Stathab_steep")  # 9
+                self.tab_widget.addTab(self.fstress_tab, "FStress")  # 10
             if go_research:
-                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 10
-                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 11
+                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 11
+                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 12
             self.welcome_tab.current_prj_groupbox.setEnabled(True)
         # if the project do not exist, do not add new tab
         else:

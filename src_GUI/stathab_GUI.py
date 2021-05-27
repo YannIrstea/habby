@@ -31,7 +31,7 @@ import src.tools_mod
 from src import stathab_mod
 from src import hdf5_mod
 from src_GUI import estimhab_GUI
-from src.project_properties_mod import change_specific_properties, load_project_properties
+from src.project_properties_mod import change_specific_properties, load_project_properties, save_project_properties
 from src.bio_info_mod import get_biomodels_informations_for_database
 from src.user_preferences_mod import user_preferences
 
@@ -74,12 +74,7 @@ class StathabW(estimhab_GUI.StatModUseful):
     """
     A PyQtsignal used to write the log.
     """
-    show_fig = pyqtSignal()
-    """
-    A PyQtsignal used to show the figures.
-    """
-
-    def __init__(self, path_prj, name_prj):
+    def __init__(self, path_prj, name_prj, steep=False):
 
         super().__init__()
 
@@ -90,7 +85,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.path_im = self.path_prj
         self.path_bio_stathab = './/biology/stathab'
         self.fish_selected = []
-        self.dir_name = self.tr("No directory selected")
         self.mystdout = StringIO()
         self.msge = QMessageBox()
         self.firstitemreach = []  # the first item of a reach
@@ -107,11 +101,17 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.dir_hdf5 = self.path_prj
         self.typeload = 'txt'  # txt or hdf5
-        self.riverint = 0  # the type of river (default 0, tropical river 1, tropical river bivarate 2)
-        self.rivtype_str = [self.tr('Stathab'), self.tr('Stathab steep')]
+        self.riverint = 0  # stathab or stathab_steep
+        self.model_type = self.tr('Stathab')
+        if steep:
+            self.riverint = 1
+            self.model_type = self.tr('Stathab_steep')
+            self.tab_position = 9
         self.selected_aquatic_animal_list = []
-
+        project_properties = load_project_properties(self.path_prj)
+        self.dir_name = project_properties[self.model_type]["path"]
         self.init_iu()
+        self.fill_selected_models_listwidets(project_properties[self.model_type]["fish_selected"])
 
     def init_iu(self):
 
@@ -189,9 +189,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.setPalette(p)
 
         # add a switch for tropical rivers
-        self.rivtype = QComboBox()
-        self.rivtype.addItems(self.rivtype_str)
-        self.rivtype.setCurrentIndex(self.riverint)
         self.mystathab.riverint = self.riverint
 
         # explore_bio_model
@@ -218,10 +215,9 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         #self.fishall.clicked.connect(self.add_all_fish)
-        self.rivtype.currentIndexChanged.connect(self.change_riv_type)
 
         # update label and list
-        if self.dir_name != self.tr("No directory selected") and self.typeload == 'txt':
+        if self.dir_name and self.typeload == 'txt':
             if os.path.isdir(self.dir_name):
                 self.load_from_txt_gui()
                 if not self.mystathab.load_ok:
@@ -262,7 +258,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.list_re, 2, 0)
         self.layout.addWidget(self.list_file, 2, 1)
         self.layout.addWidget(self.list_needed, 2, 2)
-        self.layout.addWidget(self.rivtype, 3, 2)
         self.layout.addWidget(l6, 4, 0)
         # self.layout.addWidget(loadhdf5b, 5, 2)
         self.layout.addWidget(self.selected_aquatic_animal_qtablewidget, 5, 0, 2, 1)
@@ -274,6 +269,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
+        self.change_riv_type()
+
     def select_dir(self):
         """
         This function is used to select the directory and find the files to laod stathab from txt files. It calls
@@ -281,7 +278,11 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         """
         # load last dir
-        self.dir_name = load_project_properties(self.path_prj)["path_last_file_loaded"]
+        self.project_properties = load_project_properties(self.path_prj)
+        if not self.dir_name:
+            self.dir_name = self.project_properties["path_last_file_loaded"]
+        if not self.dir_name:
+            self.dir_name = self.path_prj
 
         # get the directory
         self.dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.dir_name)
@@ -289,14 +290,14 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit("Warning: No selected directory for stathab\n")
             return
 
+        self.save_xml()
+
         # clear all list
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.selected_aquatic_animal_qtablewidget.clear()
         self.list_needed.clear()
         self.list_f.clear()
-        self.fish_selected = []
         self.firstitemreach = []
 
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -304,17 +305,15 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit('Error: No project saved. Please create a project first in the General tab.')
             return
         else:
-            change_specific_properties(self.path_prj, ["path_last_file_loaded"], [self.dir_name])
-
             # fill the lists with the existing files
             self.load_from_txt_gui()
 
     def open_bio_model_explorer(self):
-        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("stat_hab")
+        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer(self.model_type)
 
     def fill_selected_models_listwidets(self, new_item_text_list):
         # add new item if not exist
-        for item_str in new_item_text_list["selected_aquatic_animal_list"]:
+        for item_str in new_item_text_list:
             if item_str not in self.fish_selected:
                 # filter : remove HEM bio models
                 splited_item_str = item_str.split()
@@ -329,6 +328,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     self.fish_selected.append(item_str)
                 else:
                     self.send_log.emit('Warning: ' + item_str + " don't have height and velocity in biological model (not usable with Stathab).")
+        self.save_xml()
 
     def change_riv_type(self):
         """
@@ -336,10 +336,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         tropical river to temperate river and vice-versa. Indeed the fish species and the input files are not
         the same for tropical and temperate river.
         """
-
-        # get the new river type
-        self.riverint = self.rivtype.currentIndex()
-
         # clear the different list
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
@@ -553,7 +549,7 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # copy the input in the input folder
         input_folder = self.find_path_input_est()
-        new_dir = os.path.join(input_folder, 'input_stathab')
+        new_dir = os.path.join(input_folder, 'input_' + self.model_type.lower())
         all_files = os.listdir(self.dir_name)
         paths = [self.dir_name] * len(all_files)
         if not os.path.exists(new_dir):
@@ -702,7 +698,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         if self.riverint != self.mystathab.riverint:
             self.send_log.emit('Warning: This river type could not be selected with the current hdf5.')
             self.riverint = self.mystathab.riverint
-            self.rivtype.setCurrentIndex(self.mystathab.riverint)
             self.change_riv_type()
         if not self.mystathab.load_ok:
             self.send_log.emit('Error: Data from  hdf5 not loaded.\n')
@@ -823,13 +818,26 @@ class StathabW(estimhab_GUI.StatModUseful):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
 
+    def save_xml(self):
+        # save the name and the path in the xml .prj file
+        if not os.path.isfile(os.path.join(self.path_prj, self.name_prj + ".habby")):
+            self.send_log.emit('Error: The project is not saved. '
+                              'Save the project in the General tab before saving hydrological data. \n')
+        else:
+            # change path_last_file_loaded, model_type (path)
+            project_preferences = load_project_properties(self.path_prj)  # load_project_properties
+            project_preferences["path_last_file_loaded"] = self.dir_name  # change value
+            project_preferences[self.model_type]["path"] = self.dir_name  # change value
+            project_preferences[self.model_type]["fish_selected"] = self.fish_selected  # change value
+            save_project_properties(self.path_prj, project_preferences)  # save_project_properties
+
     def run_stathab_gui(self):
         """
         This is the function which calls the function to run the Stathab model.  First it read the list called
         self.selected_aquatic_animal_qtablewidget. This is the list with the fishes selected by the user. Then, it calls the function to run
         stathab and the one to create the figure if the figures were asked by the user. Finally, it writes the log.
         """
-        self.send_log.emit('# Run Stathab from loaded data')
+        self.send_log.emit('# Run ' + self.model_type + ' from loaded data')
 
         # get the chosen fish
         self.mystathab.fish_chosen = []
@@ -837,8 +845,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         by_vol = True
         if self.selected_aquatic_animal_qtablewidget.count() == 0:
             self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("STATHAB"))
-            self.msge.setText(self.tr("Unable to load the STATHAB data!"))
+            self.msge.setWindowTitle(self.model_type)
+            self.msge.setText(self.tr("Unable to load the " + self.model_type + " data !"))
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             self.send_log.emit('Error: no fish chosen')
@@ -862,65 +870,44 @@ class StathabW(estimhab_GUI.StatModUseful):
                 if self.mystathab.data_ii[r][0] > 24:
                     self.send_log.emit('Warning: Slope is higher than 24%. Results might be unrealisitc \n')
 
-        # run stathab for temperate rivers
+        # run Stathab
         if self.riverint == 0:
             sys.stdout = self.mystdout = StringIO()
             self.mystathab.stathab_calc(self.path_bio_stathab, self.name_file_allreach[3])
             sys.stdout = sys.__stdout__
             self.send_err_log()
-        # run stathab for tropical rivers
+        # run Stathab_steep
         elif self.riverint == 1:
             sys.stdout = self.mystdout = StringIO()
             self.mystathab.stathab_steep_calc(self.path_bio_stathab, by_vol)
             sys.stdout = sys.__stdout__
             self.send_err_log()
         else:
-            self.send_log.emit('The river type is not recognized. Stathab could not be run.')
+            self.send_log.emit("The river type is not recognized. " + self.model_type + " could not be run.")
             return
 
         # caught some errors, special cases.
         if self.riverint == 0:
             if len(self.mystathab.disthmes) == 0:  # you cannot use seld.list_needed.count()
-                self.send_log.emit('Error: Stathab could not be run. Are all files available?')
+                self.send_log.emit("Error: " + self.model_type + " could not be run. Are all files available?")
                 return
             if len(self.mystathab.disthmes[0]) == 1:
                 if self.mystathab.disthmes[0] == -99:
                     return
         else:
             if len(self.mystathab.data_ii) == 0:
-                self.send_log.emit('Error: Stathab could not be run. Are all files available?')
+                self.send_log.emit('Error: ' + self.model_type + ' could not be run. Are all files available?')
         if not self.mystathab.load_ok:
-            self.send_log.emit('Error: Stathab could not be run. \n')
+            self.send_log.emit('Error: ' + self.model_type + ' could not be run. \n')
             return
 
         # save data and fig
-        # self.mystathab.path_im = self.path_im
         self.mystathab.savetxt_stathab()
         self.mystathab.savefig_stahab(True)
-        self.show_fig.emit()
 
         # log information
-        sys.stdout = sys.__stdout__
+        # sys.stdout = sys.__stdout__
         self.send_err_log()
-
-        self.send_log.emit("py    path_bio2 = os.path.join(os.path.dirname(path_bio),'" + self.path_bio_stathab + "')")
-        # mystathab created before
-        if self.riverint == 0:
-            self.send_log.emit("py    mystathab.stathab_calc(path_bio2)")
-        elif self.riverint == 1:
-            self.send_log.emit("py    by_vol = " + str(by_vol))
-            self.send_log.emit('py    mystathab.fish_chosen = ' + "['" + "', '".join(self.mystathab.fish_chosen) + "']")
-            self.send_log.emit("py    mystathab.stathab_trop_univ(path_bio2, by_vol)")
-        elif self.riverint == 2:
-            self.send_log.emit('py    mystathab.fish_chosen = ' + "['" + "', '".join(self.mystathab.fish_chosen) + "']")
-            self.send_log.emit("py    mystathab.stathab_trop_biv(path_bio2)")
-        if self.riverint == 0:
-            self.send_log.emit("py    mystathab.savetxt_stathab()")
-        self.send_log.emit("py    mystathab.path_im = '.'")
-        self.send_log.emit("py    mystathab.savefig_stahab(False)")
-        self.send_log.emit("restart RUN_STATHAB")
-        self.send_log.emit("restart    folder: " + self.dir_name)
-        self.send_log.emit("restart    river type: " + str(self.riverint))
 
 
 if __name__ == '__main__':
