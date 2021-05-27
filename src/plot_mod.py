@@ -160,7 +160,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
         return fig, ax
 
 
-def plot_suitability_curve_invertebrate(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
+def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
 

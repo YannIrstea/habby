@@ -25,7 +25,7 @@ from pandas import DataFrame
 from matplotlib import pyplot as plt
 
 from src.bio_info_mod import get_biomodels_informations_for_database, read_pref
-from src.plot_mod import plot_suitability_curve, plot_suitability_curve_invertebrate, plot_suitability_curve_bivariate
+from src.plot_mod import plot_suitability_curve, plot_suitability_curve_hem, plot_suitability_curve_bivariate
 
 locale = QLocale()
 
@@ -52,8 +52,7 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
     information_model_dict = read_pref(xmlfile)
 
     if information_model_dict["model_type"] != "bivariate suitability index models":
-        # fish
-        if information_model_dict["aquatic_animal_type"] == "fish":
+        if "HV" in information_model_dict["hydraulic_type_available"][0]:
             # plot
             fig, axe_curve = plot_suitability_curve(None,
                                    information_model_dict,
@@ -61,15 +60,14 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
                                     project_preferences,
                                    True,
                                    qt_tr)
-        # invertebrate
         else:
             # plot
-            fig, axe_curve = plot_suitability_curve_invertebrate(None,
-                                                                 information_model_dict,
-                                                                 None,
-                                                project_preferences,
-                                                True,
-                                                qt_tr)
+            fig, axe_curve = plot_suitability_curve_hem(None,
+                                                        information_model_dict,
+                                                        None,
+                                                        project_preferences,
+                                                        True,
+                                                        qt_tr)
     else:
         fig, axe_curve = plot_suitability_curve_bivariate(None,
                                                           information_model_dict,

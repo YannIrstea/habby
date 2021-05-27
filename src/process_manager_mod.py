@@ -594,13 +594,13 @@ class MyProcessManager(QThread):
                                        q=q)
             else:
                 # HEM
-                my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_invertebrate,
-                                        args=(progress_value,
+                my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_hem,
+                                                 args=(progress_value,
                                               information_model_dict,
                                               self.plot_attr.selected_fish_stage,
                                               self.project_preferences,
                                               False),
-                                        name="plot_suitability_curve_invertebrate"),
+                                                 name="plot_suitability_curve_invertebrate"),
                                        progress_value=progress_value,
                                        q=q)
         else:
