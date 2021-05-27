@@ -105,7 +105,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         model_var = information_model_dict["hab_variable_list"][stage_index]
 
         if animal.model_type == 'univariate suitability index curves':
-            if animal.aquatic_animal_type == "fish":
+            if "HV" in information_model_dict["hydraulic_type_available"][stage_index]:
                 pref_height = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.h.name).data
                 pref_vel = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.v.name).data
                 if model_var.variable_list.subs():
@@ -117,11 +117,11 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                     if pref_vel[1][-1] == 0:
                         pref_vel[0].append(100)
                         pref_vel[1].append(0)
-            elif animal.aquatic_animal_type == "invertebrate":
+            else:  # HEM
                 pref_invertebrate = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.shear_stress.name).data
                 if pref_invertebrate[0][-1] == 0:
                     pref_invertebrate[0][-1] = 1000
-        else:
+        else:  # bivariate
             pref_height = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.h.name).data
             pref_vel = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.v.name).data
 
@@ -142,7 +142,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 height_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.h.name].to_numpy()
                 vel_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.v.name].to_numpy()
 
-                if animal.aquatic_animal_type == "invertebrate":
+                if animal.aquatic_animal_type == "invertebrate" and "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
                     shear_stress_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.shear_stress.name].to_numpy()
                 ikle_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"]
                 area = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name]
@@ -151,7 +151,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 # univariate
                 if animal.model_type == 'univariate suitability index curves':
                     # HEM
-                    if animal.aquatic_animal_type == "invertebrate":
+                    if animal.aquatic_animal_type == "invertebrate" and "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
                         """ HEM pref """
                         # get pref x and y
                         pref_shearstress = pref_invertebrate[0]
@@ -170,8 +170,8 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         if any(np.isnan(shear_stress_t)):
                             warning_shearstress_list.append(unit_number)
 
-                    # fish case
-                    elif animal.aquatic_animal_type == "fish":
+                    #
+                    else:
                         """ hydraulic pref """
                         # get H pref value
                         if animal.hyd_opt in ["HV", "H"]:
@@ -368,12 +368,13 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     for animal in animal_variable_list:
         if "INRAE_EDF_OFB" in os.path.dirname(animal.pref_file):  # user case
             name_xml = os.path.basename(animal.pref_file)
-            name_png = os.path.basename(animal.path_img)
             names.append(name_xml)
-            names.append(name_png)
             path = os.path.dirname(animal.pref_file)
             paths.append(path)
-            paths.append(path)
+            if animal.path_img:
+                name_png = os.path.basename(animal.path_img)
+                names.append(name_png)
+                paths.append(path)
     if names:
         if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
             os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))

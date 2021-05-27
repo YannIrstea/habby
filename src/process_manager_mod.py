@@ -581,7 +581,7 @@ class MyProcessManager(QThread):
 
         # univariate
         if self.plot_attr.information_model_dict["model_type"] == "univariate suitability index curves":
-            if self.plot_attr.aquatic_animal_type == "fish":
+            if "HV" in self.plot_attr.information_model_dict["hydraulic_type_available"][information_model_dict["stage_and_size"].index(self.plot_attr.selected_fish_stage)]:
                 # classic univariate suitability_curve
                 my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve,
                                                  args=(progress_value,
@@ -593,7 +593,7 @@ class MyProcessManager(QThread):
                                        progress_value=progress_value,
                                        q=q)
             else:
-                # invertebrate univariate suitability_curve
+                # HEM
                 my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_invertebrate,
                                         args=(progress_value,
                                               information_model_dict,
@@ -768,7 +768,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def start(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
+    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":
@@ -1008,8 +1008,9 @@ class MyProcess(QObject):
             if self.state == self.tr("stopped"):
                 if not error:
                     if self.progress_value.value == 100:
-                        print("- " + self.p.name.replace("_", " ") + self.tr(" closed by user after ") + str(
-                            round(self.total_time)) + " s")
+                        # print("- " + self.p.name.replace("_", " ") + self.tr(" closed by user after ") + str(
+                        #     round(self.total_time)) + " s")
+                        pass
                     else:
                         self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" stopped (process time = ") + str(
                             round(self.total_time)) + " s).")
@@ -1024,8 +1025,9 @@ class MyProcess(QObject):
                         self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
                             round(self.total_time)) + " s).")
         else:
-            print("- " + self.p.name.replace("_", " ") + " " + self.state + self.tr(" (process time = ") + str(
-                            round(self.total_time)) + " s).")
+            # print("- " + self.p.name.replace("_", " ") + " " + self.state + self.tr(" (process time = ") + str(
+            #                 round(self.total_time)) + " s).")
+            pass
 
     def send_err_log(self, check_ok=False):
         """
