@@ -1182,7 +1182,7 @@ class Stathab:
         dict_pref_stahab = self.stahab_get_pref()
         nb_models = len(dict_pref_stahab['code_bio_model'])
         mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
-        z0namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
+        z0namefile = os.path.join(self.path_txt,'z0'+ mode_name + '.txt')
         z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n' + '\t'.join([' ', ' ','[m3/s]', '[m]', '[m]', '[m/s]','[-]', '[m2/100m]','[-]', '[m2/100m]','[-]', '[m2/100m]'])
         # save txt for each reach
         for r in range(0, len(self.name_reach)):
@@ -1192,7 +1192,8 @@ class Stathab:
             wmod = self.w_all[r]
             header0_list = ['q', 'ws', 'hs', 'vs']
             header1_list = ['[m3/s]', '[m]', '[m]', '[m/s]']
-            jj = np.concatenate((qmod, wmod, hmod, vmod), axis=1)
+            jj0 = np.concatenate((qmod, wmod, hmod, vmod), axis=1)
+            jj = np.copy(jj0)
             z0a = np.array([self.name_reach[r] for _ in range(len(qmod))], dtype=object)
             for index_habmodel in range(nb_models):
                 codefish = dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][
@@ -1203,10 +1204,20 @@ class Stathab:
                     (self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
                     axis=1)), axis=1)
                 z0b=np.array([codefish for _ in range(len(qmod))], dtype=object)
+                z0c = np.concatenate((np.column_stack((z0a, z0b)), jj0, np.stack(
+                    (self.j_all['hv_v'][r, index_habmodel, :], self.j_all['wua_v'][r, index_habmodel, :],
+                     self.j_all['hv_h'][r, index_habmodel, :], self.j_all['wua_h'][r, index_habmodel, :],
+                     self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
+                    axis=1)), axis=1)
+                if r == 0 and index_habmodel==0:
+                    z0jj = np.copy(z0c)
+                else:
+                    z0jj = np.concatenate((z0jj, z0c), axis=0)
             namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
             header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
 
+        np.savetxt(z0namefile, z0jj, delimiter='\t', header=z0header_txt, fmt='%s')
 
     def find_path_hdf5_stat(self):
         """
