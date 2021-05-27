@@ -286,7 +286,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                              fish_list=[])  # TODO: list name available with arg. really need?
 
         progress_value = Value("d", 0)
-        p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
+        p = Process(target=estimhab_mod.estimhab_process,
                     args=(estimhab_dict, project_preferences, path_prj,
                           progress_value),
                     name="ESTIMHAB")
@@ -383,7 +383,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             mystathab.riverint = 1
             mystathab.stathab_steep_calc(path_bio2, True)
             mystathab.savetxt_stathab()
-            mystathab.savefig_stahab(False)
+            mystathab.savefig_stahab()
         elif riv_int == 2:
             name_fish = []
             filenames = hdf5_mod.get_all_filename(path_bio2, '.csv')
@@ -394,7 +394,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             mystathab.riverint = 2
             mystathab.stathab_trop_biv(path_bio2)
             mystathab.savetxt_stathab()
-            mystathab.savefig_stahab(False)
+            mystathab.savefig_stahab()
 
         plt.show()
 

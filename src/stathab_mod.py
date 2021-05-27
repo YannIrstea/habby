@@ -20,10 +20,8 @@ from scipy import stats
 from scipy import optimize
 from scipy import interpolate
 import re
-import time
 import matplotlib.pyplot as plt
 import h5py
-import matplotlib as mpl
 from multiprocessing import Value
 
 from lxml import etree as ET
@@ -1157,7 +1155,7 @@ class Stathab:
 
         return v_dist, v_born
 
-    def savefig_stahab(self, show_class=False):
+    def savefig_stahab(self, ):
         """
         A function to save the results in text and the figure. If the argument show_class is True,
         it shows an extra figure with the size of the different height, granulo, and velocity classes. The optional

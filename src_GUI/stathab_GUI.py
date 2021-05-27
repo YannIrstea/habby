@@ -15,13 +15,10 @@ https://github.com/YannIrstea/habby
 
 """
 from io import StringIO
-import matplotlib.pyplot as plt
-
 import os
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
-    QListWidget, QListWidgetItem, QMessageBox, QComboBox, QAbstractItemView, QFrame
-from PyQt5.QtGui import QFont
+    QListWidget, QListWidgetItem, QMessageBox, QAbstractItemView, QFrame
 import sys
 import copy
 from lxml import etree as ET
@@ -31,7 +28,7 @@ import src.tools_mod
 from src import stathab_mod
 from src import hdf5_mod
 from src_GUI import estimhab_GUI
-from src.project_properties_mod import change_specific_properties, load_project_properties, save_project_properties
+from src.project_properties_mod import load_project_properties, save_project_properties
 from src.bio_info_mod import get_biomodels_informations_for_database
 from src.user_preferences_mod import user_preferences
 
@@ -114,56 +111,12 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.fill_selected_models_listwidets(project_properties[self.model_type]["fish_selected"])
 
     def init_iu(self):
-
         # see if a directory was selected before for Stathab
         # see if an hdf5 was selected before for Stathab
         # if both are there, reload as the last time
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if os.path.isfile(filename_prj):
-            aa = 1
-            # parser = ET.XMLParser(remove_blank_text=True)
-            # doc = ET.parse(filename_prj, parser)
-            # root = doc.getroot()
-            # child = root.find(".//Stathab")
-            # if child is not None:
-            #     dirxml = root.find(".//DirStathab")
-            #     if dirxml is not None:
-            #         self.dir_name = dirxml.text
-            #     hdf5xml = root.find(".//hdf5Stathab")
-            #     if hdf5xml is not None:
-            #         self.hdf5_name = hdf5xml.text
-            #     typeloadxml = root.find(".//TypeloadStathab")
-            #     if typeloadxml is not None:
-            #         self.typeload = typeloadxml.text
-        else:
+        if not os.path.isfile(filename_prj):
             self.send_log.emit('Warning: Project was not saved. Save the project in the general tab \n')
-
-        # check if there is a path where to save the figures
-        # and if there is a type of river selected
-        # if os.path.isfile(filename_prj):
-        #     parser = ET.XMLParser(remove_blank_text=True)
-        #     doc = ET.parse(filename_prj, parser)
-        #     root = doc.getroot()
-        #     child = root.find(".//" + 'path_figure')
-        #     if child is not None:
-        #         self.path_im = os.path.join(self.path_prj, child.text)
-        #     # river type
-        #     child = root.find(".//hdf5Stathab")
-        #     if child is not None:
-        #         try:
-        #             try:
-        #                 rivintstr = child.attrib['riverint']
-        #             except KeyError:
-        #                 self.send_log.emit('Warning: River type not recongnized')
-        #                 rivintstr = '0'
-        #             self.riverint = int(rivintstr)
-        #             if self.riverint > 2:
-        #                 self.riverint = 0
-        #         except ValueError:
-        #             self.send_log.emit('Warning: River type not recongnized')
-        #             self.riverint = 0
-        # if not os.path.exists(self.path_im):
-        #     os.makedirs(self.path_im)
 
         # prepare QLabel
         self.l1 = QLabel(self.tr('Stathab Input Files (.txt)'))
@@ -176,7 +129,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.l3 = QLabel(self.tr("File found"))
         self.l4 = QLabel(self.tr("File still needed"))
         l6 = QLabel(self.tr("Selected models"))
-        #self.fishall = QPushButton(self.tr('Select all fishes'))
         # not used anymore (not really helpful). I let it ehre anyway for completness.
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Run Stathab"))
@@ -214,7 +166,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
         self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        #self.fishall.clicked.connect(self.add_all_fish)
 
         # update label and list
         if self.dir_name and self.typeload == 'txt':
@@ -259,7 +210,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.list_file, 2, 1)
         self.layout.addWidget(self.list_needed, 2, 2)
         self.layout.addWidget(l6, 4, 0)
-        # self.layout.addWidget(loadhdf5b, 5, 2)
         self.layout.addWidget(self.selected_aquatic_animal_qtablewidget, 5, 0, 2, 1)
         self.layout.addWidget(self.runb, 7, 2)
         self.layout.addWidget(self.explore_bio_model_pushbutton, 7, 0)
@@ -903,10 +853,9 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # save data and fig
         self.mystathab.savetxt_stathab()
-        self.mystathab.savefig_stahab(True)
+        self.mystathab.savefig_stahab()
 
         # log information
-        # sys.stdout = sys.__stdout__
         self.send_err_log()
 
 
