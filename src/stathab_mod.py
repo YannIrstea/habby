@@ -60,6 +60,10 @@ class Stathab:
         self.v_all = []  # mean velocity of all the reaches
         self.w_all = []  # mean width of all the reaches
         self.q_all = []  # discharge
+        self.hborn_Stahabsteep=[]# only for Stahab_steep the mean values of h for each class of height per reach X discharge
+        self.vborn_Stahabsteep = []  # only for Stahab_steep the mean values of v for each class of velocity per reach X discharge
+        self.dist_hs_all = [] #frequency distribution for height per reach X discharge
+        self.dist_vs_all = []  # frequency distribution for velocity per reach X discharge
         self.fish_chosen = np.array([])  # the name of the fish
         self.riverint = 0  # the river type (0 stahab, 1 stahtab steep)
         self.path_im = os.path.join(path_prj, "output", "figures")  # path where to save the image
@@ -544,6 +548,8 @@ class Stathab:
 
             # result = np.zeros((nbclaq, 10))
             result_reach_q_hyd = np.zeros((nbclaq, 4))
+            dist_hs_reach=[]
+            dist_vs_reach = []
             # for all discharge
             for qind in range(0, nbclaq):
                 lnqs = np.log(min(qlist_r)) + (qind + 0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
@@ -555,6 +561,8 @@ class Stathab:
                 vs = np.exp(lnqs) / (hs * ws)
                 dist_hs = self.dist_h(sh0, h0, self.lim_all[0], hs)
                 dist_vs = self.dist_v(hs, granulo_mean, self.lim_all[1], vs)
+                dist_hs_reach.append(dist_hs)
+                dist_vs_reach.append(dist_vs)
                 # multiply by width and surface
                 v = ws * hs  # total volume
                 vclass[:, qind] = ws * dist_vs * hs
@@ -612,7 +620,6 @@ class Stathab:
             # ************************************************************************************************************
 
             # adding results by reach
-            # TODO rajouter dans des listes par reach
             self.vclass_all.append(vclass)
             self.hclass_all.append(hclass)
             self.rclass_all.append(rclass)
@@ -620,6 +627,8 @@ class Stathab:
             self.v_all.append(vmod)
             self.w_all.append(wmod)
             self.q_all.append(qmod)
+            self.dist_hs_all.append(dist_hs_reach)
+            self.dist_vs_all.append(dist_vs_reach)
 
             # list of dict data for plotting
             self.data_list.append(dict(fish_list=[dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for index_habmodel in range(nb_models)],
@@ -685,7 +694,11 @@ class Stathab:
             # get the power law
             [h_coeff, w_coeff] = self.power_law(qwh_r)
 
-            # for each Q
+            dist_hs_reach = []
+            dist_vs_reach = []
+            h_born_reach = []
+            v_born_reach = []
+            # for all discharge
             for qind in range(0, nbclaq):
 
                 # discharge, height and velcoity data
@@ -702,6 +715,10 @@ class Stathab:
                 [h_dist, h_born] = self.dist_h_trop(vs, hs, self.data_ii[r][0])
                 # get dist v
                 [v_dist, v_born] = self.dist_v_trop(vs, hs, self.data_ii[r][1], self.data_ii[r][2])
+                dist_hs_reach.append(h_dist)
+                dist_vs_reach.append(v_dist)
+                h_born_reach.append(h_born)
+                v_born_reach.append(v_born)
 
                 # calculate J
 
@@ -728,6 +745,10 @@ class Stathab:
             self.v_all.append(vmod)
             self.w_all.append(wmod)
             self.q_all.append(qmod)
+            self.dist_hs_all.append(dist_hs_reach)
+            self.dist_vs_all.append(dist_vs_reach)
+            self.hborn_Stahabsteep.append(h_born_reach)
+            self.vborn_Stahabsteep.append(v_born_reach)
 
             # list of dict data for plotting
             self.data_list.append(dict(fish_list=[dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for index_habmodel in range(nb_models)],
@@ -1182,15 +1203,16 @@ class Stathab:
         dict_pref_stahab = self.stahab_get_pref()
         nb_models = len(dict_pref_stahab['code_bio_model'])
         mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
-        z0namefile = os.path.join(self.path_txt,'z0'+ mode_name + '.txt')
+        z0namefile = os.path.join(self.path_txt,'z'+ mode_name + '.txt')
         z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n' + '\t'.join([' ', ' ','[m3/s]', '[m]', '[m]', '[m/s]','[-]', '[m2/100m]','[-]', '[m2/100m]','[-]', '[m2/100m]'])
-        # save txt for each reach
+
+        # save in txt hydraulic information and habitat results for each reach X biological models selected
         for r in range(0, len(self.name_reach)):
             qmod = self.q_all[r]
             hmod = self.h_all[r]
             vmod = self.v_all[r]
             wmod = self.w_all[r]
-            header0_list = ['q', 'ws', 'hs', 'vs']
+            header0_list = ['Q', 'W', 'H', 'V']
             header1_list = ['[m3/s]', '[m]', '[m]', '[m/s]']
             jj0 = np.concatenate((qmod, wmod, hmod, vmod), axis=1)
             jj = np.copy(jj0)
@@ -1218,6 +1240,45 @@ class Stathab:
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
 
         np.savetxt(z0namefile, z0jj, delimiter='\t', header=z0header_txt, fmt='%s')
+
+        # save in txt stathab calculations of depth and  velocity distribution for each reach X discharge Q
+        z1namefile = os.path.join(self.path_txt, 'z' + mode_name + '_dist_h.txt')
+        z1header_txt = '\t'.join(['site', 'Q', 'frequency', 'Hmin', 'Hmax']) + '\n' + '\t'.join(
+            [' ', '[m3/s]', ' ', '[m]', '[m]'])
+        z2namefile = os.path.join(self.path_txt, 'z' + mode_name + '_dist_v.txt')
+        z2header_txt = '\t'.join(['site', 'Q', 'frequency', 'Vmin', 'Vmax']) + '\n' + '\t'.join(
+            [' ', '[m3/s]', ' ', '[m/s]', '[m/s]'])
+        if mode_name == "Stathab":
+            nb_h = len(self.lim_all[0]) - 1
+            nb_v = len(self.lim_all[1]) - 1
+        elif mode_name == "Stathab_steep":
+            nb_h = len(self.hborn_Stahabsteep[0][0])
+            nb_v = len(self.vborn_Stahabsteep[0][0])
+        for r in range(0, len(self.name_reach)):
+            qmod = self.q_all[r]
+            for iq in range(len(qmod)):
+                z1r = np.array([self.name_reach[r] for _ in range(nb_h)], dtype=object)
+                z2r = np.array([self.name_reach[r] for _ in range(nb_v)], dtype=object)
+                z1q = np.array([qmod[iq] for _ in range(nb_h)])
+                z2q = np.array([qmod[iq] for _ in range(nb_v)])
+                if mode_name == "Stathab":
+                    z1all = np.column_stack(
+                        (z1r, z1q, self.dist_hs_all[r][iq], self.lim_all[0][0: -1], self.lim_all[0][1:]))
+                    z2all = np.column_stack(
+                        (z2r, z2q, self.dist_vs_all[r][iq], self.lim_all[1][0: -1], self.lim_all[1][1:]))
+                elif mode_name == "Stathab_steep":
+                    deltah,deltav=self.hborn_Stahabsteep[r][iq][0],self.vborn_Stahabsteep[r][iq][0]
+                    z1all = np.column_stack(
+                        (z1r, z1q, self.dist_hs_all[r][iq], self.hborn_Stahabsteep[r][iq]-deltah, self.hborn_Stahabsteep[r][iq]+deltah))
+                    z2all = np.column_stack(
+                        (z2r, z2q, self.dist_vs_all[r][iq], self.vborn_Stahabsteep[r][iq]-deltav, self.vborn_Stahabsteep[r][iq]+deltav))
+                if r == 0 and iq == 0:
+                    z1jj, z2jj = np.copy(z1all), np.copy(z2all)
+                else:
+                    z1jj, z2jj = np.concatenate((z1jj, z1all), axis=0), np.concatenate((z2jj, z2all), axis=0)
+        np.savetxt(z1namefile, z1jj, delimiter='\t', header=z1header_txt, fmt='%s')
+        np.savetxt(z2namefile, z2jj, delimiter='\t', header=z2header_txt, fmt='%s')
+
 
     def find_path_hdf5_stat(self):
         """
