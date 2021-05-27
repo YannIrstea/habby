@@ -1183,6 +1183,9 @@ class Stathab:
         """
         dict_pref_stahab = self.stahab_get_pref()
         nb_models = len(dict_pref_stahab['code_bio_model'])
+        mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
+        z0namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
+        z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n' + '\t'.join([' ', ' ','[m3/s]', '[m]', '[m]', '[m/s]','[-]', '[m2/100m]','[-]', '[m2/100m]','[-]', '[m2/100m]'])
         # save txt for each reach
         for r in range(0, len(self.name_reach)):
             qmod = self.q_all[r]
@@ -1190,8 +1193,9 @@ class Stathab:
             vmod = self.v_all[r]
             wmod = self.w_all[r]
             header0_list = ['q', 'ws', 'hs', 'vs']
-            header1_list = ['[m3/s]', '[m]', '[m]', 'm/s']
+            header1_list = ['[m3/s]', '[m]', '[m]', '[m/s]']
             jj = np.concatenate((qmod, wmod, hmod, vmod), axis=1)
+            z0a = np.array([self.name_reach[r] for _ in range(len(qmod))], dtype=object)
             for index_habmodel in range(nb_models):
                 codefish = dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][
                     index_habmodel]
@@ -1200,10 +1204,11 @@ class Stathab:
                 jj = np.concatenate((jj, np.stack(
                     (self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
                     axis=1)), axis=1)
-            mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
+                z0b=np.array([codefish for _ in range(len(qmod))], dtype=object)
             namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
             header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
+
 
     def find_path_hdf5_stat(self):
         """
