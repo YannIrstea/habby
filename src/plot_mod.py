@@ -36,7 +36,8 @@ from src.translator_mod import get_translator
 
 
 # other
-def plot_suitability_curve(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
+def plot_suitability_curve(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False,
+                           qt_tr=False):
     """
     This function is used to plot the univariate preference curves of one or all stages.
     """
@@ -75,12 +76,13 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
             fig, ax = plt.subplots(2, 1)
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
 
-        for index_var, hyd_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()):
+        for index_var, hyd_var in enumerate(
+                information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()):
             # height
             ax[index_var].plot(hyd_var.data[0],
-                       hyd_var.data[1],
-                       color="blue",
-                       marker=mar)
+                               hyd_var.data[1],
+                               color="blue",
+                               marker=mar)
             ax[index_var].set_xlabel(hyd_var.name_gui + " [" + hyd_var.unit + "]")
             ax[index_var].set_ylabel('HSI []')
             ax[index_var].set_ylim([-0.1, 1.1])
@@ -100,11 +102,11 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
     else:
         # preplot
         fig, ax = plt.subplots(len(information_model_dict["hab_variable_list"][0].variable_list),
-                            len(information_model_dict["stage_and_size"]),
+                               len(information_model_dict["stage_and_size"]),
                                sharey='row')
         if ax.ndim == 1:
             ax = np.reshape(ax, (len(information_model_dict["hab_variable_list"][0].variable_list),
-                            len(information_model_dict["stage_and_size"])))
+                                 len(information_model_dict["stage_and_size"])))
 
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + code_fish)
 
@@ -124,7 +126,8 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
 
         # plot
         for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
-            for index_model_var, model_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list):
+            for index_model_var, model_var in enumerate(
+                    information_model_dict["hab_variable_list"][stage_index].variable_list):
                 if not model_var.sub:
                     ax[index_model_var, stage_index].plot(model_var.data[0], model_var.data[1],
                                                           '-b', marker=mar)
@@ -160,7 +163,8 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
         return fig, ax
 
 
-def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
+def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False,
+                               qt_tr=False):
     """
     This function is used to plot the preference curves.
 
@@ -207,7 +211,8 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
     axarr.bar([x + 0.5 for x in model_var.variable_list[0].data[1]], model_var.variable_list[0].data[2])
     # HEM number label
     for hem_num in range(len(model_var.variable_list[0].data[1])):
-        axarr.text(model_var.variable_list[0].data[1][hem_num] + 0.5, y=0, s=str(int(model_var.variable_list[0].data[1][hem_num])),
+        axarr.text(model_var.variable_list[0].data[1][hem_num] + 0.5, y=0,
+                   s=str(int(model_var.variable_list[0].data[1][hem_num])),
                    horizontalalignment='center',
                    verticalalignment='bottom')
     # shearstress stick
@@ -234,7 +239,8 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
         return fig, axarr
 
 
-def plot_suitability_curve_bivariate(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False, qt_tr=False):
+def plot_suitability_curve_bivariate(state, information_model_dict, selected_fish_stage, project_preferences,
+                                     get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
 
@@ -324,7 +330,6 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
-
 
     # axe_mod_choosen
     if axe_mod_choosen == 1:
@@ -492,7 +497,8 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
         ax[0].set_xticks(y_pos)
         ax[0].set_xticklabels([])
         ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(unit_name[0]) + " " + unit_type_only_scientific)
+        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(
+            unit_name[0]) + " " + unit_type_only_scientific)
 
         # VH
         vh = data_bar2 / area_all[reach_number]
@@ -548,10 +554,10 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
             y_data_spu = list(map(float, habitat_variable.wua[reach_number]))
             # plot line
             ax[0].plot(x_data,
-                     y_data_spu,
-                     label=habitat_variable.name_gui,
-                     color=color_list[fish_index],
-                     linestyle=style_list[fish_index],
+                       y_data_spu,
+                       label=habitat_variable.name_gui,
+                       color=color_list[fish_index],
+                       linestyle=style_list[fish_index],
                        marker=mar)
         ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
         ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
@@ -568,10 +574,10 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
             y_data_hv = list(map(float, habitat_variable.hv[reach_number]))
             # plot line
             ax[1].plot(x_data,
-                     y_data_hv,
-                    label=habitat_variable.name_gui,
-                     color=color_list[fish_index],
-                     linestyle=style_list[fish_index],
+                       y_data_hv,
+                       label=habitat_variable.name_gui,
+                       color=color_list[fish_index],
+                       linestyle=style_list[fish_index],
                        marker=mar)
 
         ax[1].set_ylim([-0.1, 1.1])
@@ -590,10 +596,10 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
             y_data_percent = list(map(float, habitat_variable.percent_area_unknown[reach_number]))
             # plot line
             ax[2].plot(x_data,
-                     y_data_percent,
-                    label=habitat_variable.name_gui,
-                     color=color_list[fish_index],
-                     linestyle=style_list[fish_index],
+                       y_data_percent,
+                       label=habitat_variable.name_gui,
+                       color=color_list[fish_index],
+                       linestyle=style_list[fish_index],
                        marker=mar)
 
         ax[2].set_xlabel(unit_type_scientific)
@@ -651,7 +657,8 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
         plt.close(fig)
 
 
-def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_number, types, project_preferences):
+def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_number, types,
+                               project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -734,7 +741,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
     ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
     if len(sim_name) < 25:
-        ax[0].set_xticks(x_data)  #, rotation=rot
+        ax[0].set_xticks(x_data)  # , rotation=rot
     elif len(sim_name) < 100:
         ax[0].set_xticks(x_data[::3])
     elif len(sim_name) < 200:
@@ -756,7 +763,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
     ax[1].set_ylim([-0.1, 1.1])
     if len(sim_name) < 25:
-        ax[1].set_xticks(x_data)  #, rotation=rot
+        ax[1].set_xticks(x_data)  # , rotation=rot
         if not date_presence and is_constant:
             ax[1].set_xticklabels(sim_name)
     elif len(sim_name) < 100:
@@ -842,7 +849,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
 
 def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
+    # qt_tr = get_translator(project_preferences['path_prj'])
     path_prj = project_preferences['path_prj']
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
@@ -860,10 +867,74 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     # prepare color
     color_list, style_list = get_colors_styles_line_from_nb_input(len(stat_data_dict["fish_list"]))
 
+    """ plot hyd data """
+    fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
+                                            sharex="all",
+                                            gridspec_kw={'height_ratios': [1, 1, 1]})
+    plt.get_current_fig_manager().set_window_title(stat_mod + ' hydraulic data - HABBY')  # set windows title
+    ax_h.set_title(stat_mod + ' hydraulic data - HABBY')
+    # H
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
+            ax_h.axvline(x=q_tar,
+                         linestyle=":",
+                         color="black")
+    ax_h.plot(stat_data_dict["q_all"],
+              stat_data_dict["h_all"],
+              color="black")
+    ax_h.set_ylabel("height\n[m]")
+    ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # W
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
+            ax_w.axvline(x=q_tar,
+                         linestyle=":",
+                         color="black")
+    ax_w.plot(stat_data_dict["q_all"],
+              stat_data_dict["w_all"],
+              color="black")
+    ax_w.set_ylabel("width\n[m]")
+    ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+
+    # V
+    if stat_data_dict["targ_q_all"]:
+        for q_tar in stat_data_dict["targ_q_all"]:
+            ax_v.axvline(x=q_tar,
+                         linestyle=":",
+                         color="black")
+    ax_v.plot(stat_data_dict["q_all"],
+              stat_data_dict["vel_all"],
+              color="black")
+    ax_v.set_ylabel("velocity\n[m/s]")
+    ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+    ax_v.set_xlabel("Discharge [m$^{3}$/sec]")
+
+    # targ_q_all
+    if stat_data_dict["targ_q_all"]:
+        labels = ["Qtarg [m$^{3}$/sec]"]
+        fig2.legend(handler_map={plt.Line2D: HandlerLine2D(update_func=update_prop)},
+                    labels=labels,
+                    loc="lower left",
+                    borderaxespad=0.5,
+                    fancybox=False,
+                    bbox_to_anchor=(0.73, 0.1))
+
+    plt.subplots_adjust(right=0.73)
+
+    # save image
+    name_pict = stat_mod + "_hydraulic" + project_preferences['format']
+    if os.path.exists(os.path.join(path_im, name_pict)):
+        if not erase1:
+            name_pict = stat_mod + "_hydraulic" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
+    plt.savefig(os.path.join(path_im, name_pict),
+                dpi=project_preferences['resolution'],
+                transparent=True)
+
     """ plot hv """
     fig, (ax_vh, ax_spu) = plt.subplots(ncols=1, nrows=2,
-                                                          sharex="all",
-                                                          gridspec_kw={'height_ratios': [3, 3]})
+                                        sharex="all",
+                                        gridspec_kw={'height_ratios': [3, 3]})
     plt.get_current_fig_manager().set_window_title(stat_mod + ' output - HABBY')
 
     # VH
@@ -880,29 +951,29 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
                    color=color_list[fish_index],
                    linestyle=style_list[fish_index])
     ax_vh.set_ylim([-0.1, 1.1])
-    ax_vh.set_ylabel(qt_tr.translate("plot_mod", "Habitat Value\n[]"))
+    ax_vh.set_ylabel("Habitat Value\n[]")
     ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # SPU
     if stat_data_dict["targ_q_all"]:
         for q_tar in stat_data_dict["targ_q_all"]:
             ax_spu.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
+                           linestyle=":",
+                           color="black")
     for fish_index in range(len(stat_data_dict["fish_list"])):
         ax_spu.plot(stat_data_dict["q_all"],
                     stat_data_dict["SPU"][fish_index],
                     label=stat_data_dict["fish_list"][fish_index],
                     color=color_list[fish_index],
                     linestyle=style_list[fish_index])
-    ax_spu.set_ylabel(qt_tr.translate("plot_mod", "WUA by 100 m\n[m²]"))
+    ax_spu.set_ylabel("WUA by 100 m\n[m²]")
     ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-    ax_spu.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
+    ax_spu.set_xlabel("Discharge [m$^{3}$/sec]")
 
     # targ_q_all
     if stat_data_dict["targ_q_all"]:
         labels = ["Qtarg [m$^{3}$/sec]"]
-        fig.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
+        fig.legend(handler_map={plt.Line2D: HandlerLine2D(update_func=update_prop)},
                    labels=labels,
                    loc="lower left",
                    borderaxespad=0.5,
@@ -925,70 +996,6 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
             name_pict = stat_mod + "_hv" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
-    plt.savefig(os.path.join(path_im, name_pict),
-                dpi=project_preferences['resolution'],
-                transparent=True)
-
-    """ plot hyd data """
-    fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
-                                                          sharex="all",
-                                                          gridspec_kw={'height_ratios': [1, 1, 1]})
-    plt.get_current_fig_manager().set_window_title(stat_mod + ' hydraulic data - HABBY')  # set windows title
-    ax_h.set_title(stat_mod + ' hydraulic data - HABBY')
-    # H
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_h.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    ax_h.plot(stat_data_dict["q_all"],
-              stat_data_dict["h_all"],
-              color="black")
-    ax_h.set_ylabel(qt_tr.translate("plot_mod", "height\n[m]"))
-    ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-
-    # W
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_w.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    ax_w.plot(stat_data_dict["q_all"],
-              stat_data_dict["w_all"],
-              color="black")
-    ax_w.set_ylabel(qt_tr.translate("plot_mod", "width\n[m]"))
-    ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-
-    # V
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_v.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
-    ax_v.plot(stat_data_dict["q_all"],
-              stat_data_dict["vel_all"],
-              color="black")
-    ax_v.set_ylabel(qt_tr.translate("plot_mod", "velocity\n[m/s]"))
-    ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-    ax_v.set_xlabel(qt_tr.translate("plot_mod", "Discharge [m$^{3}$/sec]"))
-
-    # targ_q_all
-    if stat_data_dict["targ_q_all"]:
-        labels = ["Qtarg [m$^{3}$/sec]"]
-        fig2.legend(handler_map={plt.Line2D:HandlerLine2D(update_func=update_prop)},
-                   labels=labels,
-                   loc="lower left",
-                   borderaxespad=0.5,
-                   fancybox=False,
-                   bbox_to_anchor=(0.73, 0.1))
-
-    plt.subplots_adjust(right=0.73)
-
-    # save image
-    name_pict = stat_mod + "_hydraulic" + project_preferences['format']
-    if os.path.exists(os.path.join(path_im, name_pict)):
-        if not erase1:
-            name_pict = stat_mod + "_hydraulic" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)
@@ -1043,15 +1050,16 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1126,7 +1134,7 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
     sub_edgecolor = "orange"
     merge_edgecolor = "black"
 
-    data_min = min(min(sub_data),min(merge_data))
+    data_min = min(min(sub_data), min(merge_data))
     data_max = max(max(sub_data), max(merge_data))
     # hyd
     axs[0, 0].set_title("hydraulic")
@@ -1230,22 +1238,25 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
 
 
 # 3d
-def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_number, data_description, project_preferences):
+def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_number, data_description,
+                project_preferences):
     state.value = 100  # process finished
     # BOTOM
     bottom_mesh = mlab.triangular_mesh(data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 0],
                                        data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 1],
-                                       data_2d_whole[reach_number][unit_number]["node"]["z"] * project_preferences["vertical_exaggeration"],
+                                       data_2d_whole[reach_number][unit_number]["node"]["z"] * project_preferences[
+                                           "vertical_exaggeration"],
                                        data_2d_whole[reach_number][unit_number]["mesh"]["tin"],
                                        representation="surface")  # , scalars=t
 
     # OTHER
     other_mesh = mlab.triangular_mesh(data_2d[reach_number][unit_number]["node"]["xy"][:, 0],
-                                       data_2d[reach_number][unit_number]["node"]["xy"][:, 1],
-                                       data_2d[reach_number][unit_number]["node"]["data"][varname].to_numpy() * project_preferences["vertical_exaggeration"],
+                                      data_2d[reach_number][unit_number]["node"]["xy"][:, 1],
+                                      data_2d[reach_number][unit_number]["node"]["data"][varname].to_numpy() *
+                                      project_preferences["vertical_exaggeration"],
                                       data_2d[reach_number][unit_number]["mesh"]["tin"],
                                       color=(0, 0, 1),
-                                       representation="surface")  # , scalars=t
+                                      representation="surface")  # , scalars=t
 
     # SHOW
     mlab.show()
@@ -1286,15 +1297,16 @@ def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, da
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     data_min_str = len(str(data_min).split(".")[0])
     data_max_str = len(str(data_max).split(".")[0])
     if data_min_str > 2 or data_max_str > 2:  # two before decimal
@@ -1341,15 +1353,16 @@ def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1390,15 +1403,16 @@ def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, dat
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1439,22 +1453,24 @@ def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, d
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict, data_description,
+                           project_preferences):
     mpl_map_change_parameters(project_preferences)
 
     # title and filename
@@ -1488,22 +1504,24 @@ def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
+def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dict, data_description,
+                            project_preferences):
     mpl_map_change_parameters(project_preferences)
 
     # title and filename
@@ -1537,15 +1555,16 @@ def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dic
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1586,15 +1605,16 @@ def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, 
     # all values are null
     if data_min == data_max and bounds_nb == 1:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1, levels=np.array([0.0, 0.1]))
+                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
+                                         levels=np.array([0.0, 0.1]))
     # normal case
     else:
         data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
+                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     data_min_str = len(str(data_min).split(".")[0])
     data_max_str = len(str(data_max).split(".")[0])
     if data_min_str > 2 or data_max_str > 2:  # two before decimal
@@ -1702,7 +1722,7 @@ def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict,
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1751,7 +1771,7 @@ def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict,
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1800,7 +1820,7 @@ def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict,
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1867,7 +1887,7 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, li
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     listcathegories_stick = [x + 0.5 for x in range(1, color_bar.vmax)]
     listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
     color_bar.set_ticks(listcathegories_stick)
@@ -1894,7 +1914,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     data_min = 0
     data_max = 1
     decimal_nb = 2
-    extent_list = light_data_2d.data_extent # get extent [xMin, yMin, xMax, yMax]
+    extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
     cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
@@ -1920,7 +1940,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
 
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                 format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
+                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
@@ -1957,7 +1977,7 @@ def mpl_map_change_parameters(project_preferences):
 
 def pre_plot_map(title, variable_title, reach_title, unit_title):
     # to debug/update plot after show (need fig.canvas.draw() and fig.canvas.flush_events() instead of plt.show())
-    #plt.ion()
+    # plt.ion()
     # plot
     fig, ax_border = plt.subplots(1, 1)  # plot creation
     plt.get_current_fig_manager().set_window_title(title)  # set windows title
@@ -2062,7 +2082,7 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
 
     # auto update size
     ax_map.callbacks.connect('xlim_changed', update_scalebar)
-    #fig.canvas.mpl_connect('draw_event', update_scalebar)
+    # fig.canvas.mpl_connect('draw_event', update_scalebar)
 
     # ax_scale
     ax_scale = fig.add_axes(scale_position)
@@ -2159,7 +2179,9 @@ def compute_scale_value(fig, ax_map):
 def create_gif_from_files(state, variable, reach_name, unit_names, name_hdf5, project_preferences):
     path_im = project_preferences['path_figure']
 
-    list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + '_' + unit_name.replace(".", "_") + "_" + variable.replace(" ", "_") + "_map" + project_preferences['format']) for unit_name in unit_names]
+    list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + '_' + unit_name.replace(".",
+                                                                                                           "_") + "_" + variable.replace(
+        " ", "_") + "_map" + project_preferences['format']) for unit_name in unit_names]
     print("list_of_file_path", list_of_file_path)
     list_of_exist_tf = [False] * len(list_of_file_path)
 
@@ -2175,7 +2197,8 @@ def create_gif_from_files(state, variable, reach_name, unit_names, name_hdf5, pr
     # old
     img, *imgs = [Image.open(file_path) for file_path in list_of_file_path]
 
-    img.save(fp=os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + "_" + variable.replace(" ", "_") + "_map" + ".gif"),
+    img.save(fp=os.path.join(path_im,
+                             name_hdf5[:-4] + "_" + reach_name + "_" + variable.replace(" ", "_") + "_map" + ".gif"),
              format='GIF',
              append_images=imgs,
              save_all=True,
@@ -2196,7 +2219,7 @@ def get_colors_styles_line_from_nb_input(input_nb):
     """
     colors_number = 8
     cm = mpl.cm.get_cmap('gist_ncar')
-    color_base_list = [cm(i/colors_number) for i in range(colors_number)] * input_nb
+    color_base_list = [cm(i / colors_number) for i in range(colors_number)] * input_nb
     color_list = color_base_list[:input_nb]
     line_styles_base_list = ['solid', 'dotted', 'dashed', 'dashdot']  # 4 style
     style_list = []
@@ -2212,8 +2235,8 @@ def get_colors_styles_line_from_nb_input(input_nb):
 
 def update_prop(handle, orig):
     handle.update_from(orig)
-    x,y = handle.get_data()
-    handle.set_data([np.mean(x)]*2, [0, 2*y[0]])
+    x, y = handle.get_data()
+    handle.set_data([np.mean(x)] * 2, [0, 2 * y[0]])
 
 
 def main():
@@ -2224,7 +2247,8 @@ if __name__ == '__main__':
     main()
 
 
-def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr, variable_info=""):
+def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr,
+                                variable_info=""):
     # colorbar_label and variable_info
     if variable_info:
         colorbar_label = variable_info.split(" = ")[0] + " [" + variable_unit + "]"
@@ -2236,16 +2260,21 @@ def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, var
     plot_string_dict = dict(reach_name=reach_name,
                             unit_name=unit_name,
                             title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
-                            variable_title=variable.replace("_", " ") + ' [' + variable_unit + ']' + " " + variable_info,
+                            variable_title=variable.replace("_",
+                                                            " ") + ' [' + variable_unit + ']' + " " + variable_info,
                             reach_title=string_tr[0] + " : " + reach_name,
-                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s", "$m^3$/s") + "]",
+                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s",
+                                                                                                   "$m^3$/s") + "]",
                             colorbar_label=colorbar_label,
-                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_") + "_map"
+                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".",
+                                                                                                                 "_") + '_' + variable.replace(
+                                " ", "_") + "_map"
                             )
     return plot_string_dict
 
 
-def create_biomodel_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr, variable_info=""):
+def create_biomodel_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr,
+                                     variable_info=""):
     # colorbar_label and variable_info
     if variable_info:
         colorbar_label = variable_info.split(" = ")[0] + " [" + variable_unit + "]"
@@ -2257,11 +2286,15 @@ def create_biomodel_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type
     plot_string_dict = dict(reach_name=reach_name,
                             unit_name=unit_name,
                             title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
-                            variable_title=variable.replace("_", " ") + ' [' + variable_unit + ']' + " " + variable_info,
+                            variable_title=variable.replace("_",
+                                                            " ") + ' [' + variable_unit + ']' + " " + variable_info,
                             reach_title=string_tr[0] + " : " + reach_name,
-                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s", "$m^3$/s") + "]",
+                            unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s",
+                                                                                                   "$m^3$/s") + "]",
                             colorbar_label=colorbar_label,
-                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".", "_") + '_' + variable.replace(" ", "_") + "_map"
+                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".",
+                                                                                                                 "_") + '_' + variable.replace(
+                                " ", "_") + "_map"
                             )
     return plot_string_dict
 

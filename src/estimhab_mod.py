@@ -21,7 +21,7 @@ from src import hdf5_mod
 from src.translator_mod import get_translator
 
 
-def estimhab_and_save_hdf5(estimhab_dict, project_preferences, path_prj, progress_value):
+def estimhab_process(estimhab_dict, project_preferences, path_prj, progress_value):
     qt_tr = get_translator(project_preferences['path_prj'])
 
     # compute

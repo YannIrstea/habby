@@ -823,10 +823,10 @@ class EstimhabW(StatModUseful):
 
         # process
         state = Value("d", 0)
-        self.p = Process(target=estimhab_mod.estimhab_and_save_hdf5,
+        self.p = Process(target=estimhab_mod.estimhab_process,
                          args=(self.estimhab_dict, project_preferences, self.path_prj,
                                state),
-                    name="Estimhab")
+                         name="Estimhab")
         self.p.start()
         self.p.join()
 

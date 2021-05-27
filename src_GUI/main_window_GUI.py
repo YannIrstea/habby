@@ -49,6 +49,7 @@ from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
 from src import hdf5_mod
 from src.about_mod import get_last_version_number_from_github
+import matplotlib.pyplot as plt
 
 
 class MainWindows(QMainWindow):
@@ -2111,6 +2112,12 @@ class CentralW(QWidget):
         if hasattr(self, 'estimhab_tab'):
             if hasattr(self.estimhab_tab, 'process_manager'):
                 self.estimhab_tab.process_manager.stop_by_user()
+        # stathab
+        if hasattr(self, 'stathab_tab'):
+            plt.close("all")
+        # stathab_steep
+        if hasattr(self, 'stathab_steep_tab'):
+            plt.close("all")
 
     def kill_process_list(self):
         """
