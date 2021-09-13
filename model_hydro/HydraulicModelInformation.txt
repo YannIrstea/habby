@@ -1,5 +1,5 @@
 name_models_gui_list	available_models_tf_list	attribute_models_list	class_gui_models_list	class_mod_models_list	file_mod_models_list	dimensions	model_dimension_direction	reach_number	one_timestep_serie	equation	numerical_method	structured_mesh	varying_mesh	mesh_variables	node_variables	nb_point_by_mesh	simulation_condition	sens rotation maille	extensions	version	website_models_list
-LAMMI	False	lammi	LAMMI	LammiResult	lammi_mod	1													.txt		https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847
+LAMMI	True	lammi	LAMMI	LammiResult	lammi_mod	1													.txt		https://www.edf.fr/en/the-edf-group/world-s-largest-power-company/activities/research-and-development/scientific-communities/simulation-softwares?logiciel=10847
 RubarBE 1D	False	rubar1d	Rubar1D	Rubar1dResult	rubar1d2d_mod	1													.txt		https://riverhydraulics.inrae.fr/outils/modelisation-numerique/modelisation-1d-avec-evolution-des-fonds-rubarbe/
 Mascaret 1D	False	mascaret	Mascaret	MascaretResult	mascaret_mod	1													.xcas, .geo, .opt, .rub		http://www.openmascaret.org/
 HEC-RAS 1D	False	hecras1d	HEC_RAS1D	HecRas2dResult	hec_ras1D_mod	1													.g*, .G*, .xml, .rep, .sdf		https://www.hec.usace.army.mil/software/hec-ras/

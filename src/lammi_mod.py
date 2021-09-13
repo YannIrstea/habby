@@ -27,6 +27,128 @@ from src import manage_grid_mod
 from src import hdf5_mod
 import matplotlib as mpl
 
+from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
+
+
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
+    """Represent Telemac hydraulic simulation results.
+
+    Keyword arguments:
+    filename -- filename, type: str
+    folder_path -- relative path to filename, type: str
+    model_type -- type of hydraulic model, type: str
+    path_prj -- absolute path to project, type: str
+    """
+    def __init__(self, filename, folder_path, model_type, path_prj):
+        super().__init__(filename, folder_path, model_type, path_prj)
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
+        # file attributes
+        self.extensions_list = [".res", ".slf"]
+        self.file_type = "binary"
+        # simulation attributes
+        self.hyd_equation_type = "FE"
+        # reach
+        self.multi_reach = False
+        self.reach_number = 1
+        self.reach_name_list = ["unknown"]
+        self.morphology_available = True
+        # hydraulic variables
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["BOTTOM", "FOND"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["WATER DEPT", "HAUTEUR D'EAU"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_x.name,
+                                                    attribute_list=['VITESSE U', 'VELOCITY U'],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_y.name,
+                                                    attribute_list=['VITESSE V', 'VELOCITY V'],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.temp.name,
+                                                    attribute_list=["TEMP"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_frict.name,
+                                                    attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
+                                                    position="node")
+
+        # readable file ?
+        try:
+            self.results_data_file = Selafin(self.filename_path)
+        except OSError:
+            self.warning_list.append("Error: The file can not be opened.")
+            self.valid_file = False
+
+        # # result_file ?
+        # if not "RESULTS" in self.results_data_file.keys():
+        #     self.warning_list.append('Error: The file is not BASEMENT results type.')
+        #     self.valid_file = False
+
+        # is extension ok ?
+        if os.path.splitext(self.filename)[1] not in self.extensions_list:
+            self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
+            self.valid_file = False
+
+        # if valid get informations
+        if self.valid_file:
+            # get_time_step ?
+            self.get_time_step()
+            # get hydraulic variables list (mesh and node)
+            self.get_hydraulic_variable_list()
+        else:
+            self.warning_list.append("Error: File not valid.")
+
+    def get_hydraulic_variable_list(self):
+        """Get hydraulic variable list from file."""
+        # get list from source
+        varnames = [varname.decode('utf-8') for varname in self.results_data_file.varnames]
+
+        # check witch variable is available
+        self.hvum.detect_variable_from_software_attribute(varnames)
+
+    def get_time_step(self):
+        """Get time step information from file."""
+
+        timestep_float_list = self.results_data_file.tags['times']
+        self.timestep_name_list = list(map(str, timestep_float_list))  # always one reach
+        self.timestep_nb = len(self.timestep_name_list)
+        self.timestep_unit = "time [s]"
+
+    def load_hydraulic(self, timestep_name_wish_list):
+        """Retrun Data2d from file.
+
+        Keyword arguments:
+        timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
+        """
+        self.load_specific_timestep(timestep_name_wish_list)
+
+        # prepare original data for data_2d
+        for reach_number in range(self.reach_number):  # for each reach
+            for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
+                val_all = self.results_data_file.getvalues(timestep_index)
+                for variables_wish in self.hvum.software_detected_list:  # .varunits
+                    if not variables_wish.precomputable_tohdf5:
+                        variables_wish.data[reach_number].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
+
+                # struct
+                self.hvum.xy.data[reach_number] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_number] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
+
+        # prepare computable data for data_2d
+        if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
+            for reach_number in range(self.reach_number):  # for each reach
+                for timestep_index in range(len(self.timestep_name_wish_list_index)):
+                    # compute from v_x v_y
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_number].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_number][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_number][timestep_index] ** 2))
+                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
+
+        return self.get_data_2d()
+
 
 def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, name_prj, path_prj, path_hdf5,
                                new_dir='', project_preferences=[], savefig1d=False, transect_name='Transect.txt',
