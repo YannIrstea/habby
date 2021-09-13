@@ -634,6 +634,10 @@ class Hdf5Management:
                         fish_data_set = mesh_hv_data_group[animal.name]
 
                         # get summary data
+                        if len(animal.wua) < len(reach_list):
+                            animal.wua.append([])
+                            animal.hv.append([])
+                            animal.percent_area_unknown.append([])
                         animal.wua[reach_number].append(float(fish_data_set.attrs['wua']))
                         animal.hv[reach_number].append(float(fish_data_set.attrs['hv']))
                         animal.percent_area_unknown[reach_number].append(

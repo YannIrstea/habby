@@ -319,6 +319,10 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                     percent_area_unknown = 0.0
 
                 # get data
+                if len(animal.wua) < hdf5.data_2d.reach_number:
+                    animal.wua.append([])
+                    animal.hv.append([])
+                    animal.percent_area_unknown.append([])
                 animal.wua[reach_number].append(wua)
                 animal.hv[reach_number].append(global_hv)
                 animal.percent_area_unknown[reach_number].append(percent_area_unknown)
