@@ -1145,7 +1145,7 @@ def cli_load_hyd(arguments, project_preferences):
         # unit_list
         unit_list_arg_name = 'unit_list='
         if arg[:len(unit_list_arg_name)] == unit_list_arg_name:
-            unit_list = list(map(str, eval(arg[len(unit_list_arg_name):])))  # TODO: reach notion
+            unit_list = eval(arg[len(unit_list_arg_name):])  # TODO: reach notion
 
     # get_hydrau_description_from_source
     hsra_value = src.hydraulic_results_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
@@ -1165,6 +1165,16 @@ def cli_load_hyd(arguments, project_preferences):
                 if unit_name not in unit_list:
                     hsra_value.hydrau_description_list[0]["unit_list_tf"][reach_num][unit_num] = False
         hsra_value.hydrau_description_list[0]["unit_list"] = [unit_list]
+
+        # refresh filename_source
+        if hsra_value.hydrau_case in {'2.a', '2.b'}:
+            filename_source_list = hsra_value.hydrau_description_list[0]["filename_source"].split(", ")
+            new_filename_source_list = []
+            for reach_number in range(len(hsra_value.hydrau_description_list[0]["unit_list_tf"])):
+                for file_num, file in enumerate(filename_source_list):
+                    if hsra_value.hydrau_description_list[0]["unit_list_tf"][reach_number][file_num]:
+                        new_filename_source_list.append(filename_source_list[file_num])
+            hsra_value.hydrau_description_list[0]["filename_source"] = ", ".join(new_filename_source_list)
 
     # outputfilename
     if outputfilename:
@@ -1335,7 +1345,7 @@ def cli_calc_hab(arguments, project_preferences):
                                               run_choice["hyd_opt"][i], run_choice["sub_opt"][i]):
             # append_new_habitat_variable
             information_model_dict = get_biomodels_informations_for_database(run_choice["pref_file_list"][i])
-            user_target_list.append_new_habitat_variable(information_model_dict["CdBiologicalModel"],
+            user_target_list.append_new_habitat_variable(information_model_dict["code_biological_model"],
                                                          run_choice["stage_list"][i],
                                                          run_choice["hyd_opt"][i],
                                                          run_choice["sub_opt"][i],
@@ -1414,9 +1424,9 @@ def cli_start_process_and_print_progress(process, progress_value):
         print(process.name + " running " + str(round(progress_value.value, 1)) + " %, since " + str(
             round(running_time)) + " s.\r", end="")
     process.join()
-    print("                                                                         \r", end="")  # clean line
-    running_time = time.time() - start_time
-    if progress_value.value == 100:
-        print("# " + process.name + " finished (" + str(round(running_time)) + "s)")
-    else:
-        print("# Error : " + process.name + " crashed (" + str(round(running_time)) + "s)")
+    # print("                                                                         \r", end="")  # clean line
+    # running_time = time.time() - start_time
+    # if progress_value.value == 100:
+    #     print("# " + process.name + " finished (" + str(round(running_time)) + "s)")
+    # else:
+    #     print("# Error : " + process.name + " crashed (" + str(round(running_time)) + "s)")
