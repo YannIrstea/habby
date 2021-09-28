@@ -255,12 +255,18 @@ class BioModelFilterTab(QScrollArea):
         self.inv_code_alternative_listwidget.setObjectName("inv_code_alternative")
         self.inv_code_alternative_listwidget.itemSelectionChanged.connect(self.result_from_selected_dispatch)
 
+        # crustacean
+        crust_code_alternative_label = QLabel(self.tr("Crustacean"))
+        self.crust_code_alternative_listwidget = QListWidget()
+        self.crust_code_alternative_listwidget.setObjectName("crust_code_alternative")
+        self.crust_code_alternative_listwidget.itemSelectionChanged.connect(self.result_from_selected_dispatch)
+
         # filters_list_widget
         self.filters_list_widget = [self.country_listwidget, self.aquatic_animal_type_listwidget,
                                     self.model_type_listwidget,
                                     self.stage_and_size_listwidget, self.guild_listwidget, self.xml_origine_listwidget,
                                     self.made_by_listwidget, self.fish_code_alternative_listwidget,
-                                    self.inv_code_alternative_listwidget]
+                                    self.inv_code_alternative_listwidget, self.crust_code_alternative_listwidget]
         [filter_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection) for filter_listwidget in
          self.filters_list_widget]
 
@@ -290,6 +296,8 @@ class BioModelFilterTab(QScrollArea):
         self.last_filter_layout.addWidget(self.fish_code_alternative_listwidget, 1, 0)
         self.last_filter_layout.addWidget(inv_code_alternative_label, 0, 1)
         self.last_filter_layout.addWidget(self.inv_code_alternative_listwidget, 1, 1)
+        self.last_filter_layout.addWidget(crust_code_alternative_label, 0, 2)
+        self.last_filter_layout.addWidget(self.crust_code_alternative_listwidget, 1, 2)
 
         """ GENERAL """
         # tools frame
@@ -318,16 +326,20 @@ class BioModelFilterTab(QScrollArea):
             self.bio_model_explorer_selection_dict[ky] = [s1, s2, True]
         self.bio_model_explorer_selection_dict[self.biological_models_dict_gui['orderedKeys'][0]][2] = True
         # dispatching 'code_alternative' into 'fish_code_alternative' and 'inv_code_alternative'
-        lkyf, lkyi = [], []
+        lkyf, lkyi, lkyc = [], [], []
         for i, item in enumerate(self.biological_models_dict_gui['code_alternative']):
             if self.biological_models_dict_gui['aquatic_animal_type'][i] == 'fish':
                 lkyf.append(item)
+            elif self.biological_models_dict_gui['aquatic_animal_type'][i] == 'crustacean':
+                lkyc.append(item)
             else:
                 lkyi.append(item)
         skyf = sorted({x for l in lkyf for x in l})
         skyi = sorted({x for l in lkyi for x in l})
+        skyc = sorted({x for l in lkyc for x in l})
         self.bio_model_explorer_selection_dict['fish_code_alternative'] = [skyf, [True] * len(skyf), True]
         self.bio_model_explorer_selection_dict['inv_code_alternative'] = [skyi, [True] * len(skyi), True]
+        self.bio_model_explorer_selection_dict['crust_code_alternative'] = [skyc, [True] * len(skyc), True]
         self.bio_model_explorer_selection_dict['selected'] = np.ones((len(self.biological_models_dict_gui['country']),), dtype=bool)
 
     def fill_first_time(self):
@@ -381,7 +393,7 @@ class BioModelFilterTab(QScrollArea):
                                 list(bio_models_selected)) if y]
         sp = {x for y in sp for x in y}
 
-        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
+        for kyi in ['fish_code_alternative', 'inv_code_alternative', 'crust_code_alternative']:
             if self.bio_model_explorer_selection_dict[kyi][2]:
                 listwidget = eval("self." + kyi + "_listwidget")
                 listwidget.blockSignals(True)
@@ -397,7 +409,7 @@ class BioModelFilterTab(QScrollArea):
 
     def clear_filter(self, first_time=False):
         """
-        clearing 'fish_code_alternative' and 'inv_code_alternative' associated listwidgets
+        clearing 'fish_code_alternative' and 'inv_code_alternative' and "crust_code_alternative" associated listwidgets
         """
         for kyi in self.biological_models_dict_gui['orderedKeys']:
             listwidget = eval("self." + kyi + "_listwidget")
@@ -492,7 +504,7 @@ class BioModelFilterTab(QScrollArea):
         """
         clearing 'fish_code_alternative' and 'inv_code_alternative' associated listwidgets
         """
-        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
+        for kyi in ['fish_code_alternative', 'inv_code_alternative', 'crust_code_alternative']:
             listwidget = eval("self." + kyi + "_listwidget")
             if not first_time:
                 self.bio_model_explorer_selection_dict[kyi][2] = False  # all subkeys are off
@@ -504,10 +516,10 @@ class BioModelFilterTab(QScrollArea):
     def result_from_selected_dispatch(self):
         """
         building the view selection of biological models
-        after selection in the ' key/filter 'fish_code_alternative' or 'inv_code_alternative' key/listwidgets
+        after selection in the ' key/filter 'fish_code_alternative' or 'inv_code_alternative' or 'crust_code_alternative' key/listwidgets
         determining  the biological_models_dict_gui['selected']
         """
-        ky = self.sender().objectName()  # 'fish_code_alternative' or 'inv_code_alternative']:
+        ky = self.sender().objectName()  # 'fish_code_alternative' or 'inv_code_alternative' or 'crust_code_alternative':
         listwidget = self.sender()
         selection = listwidget.selectedItems()
         self.bio_model_explorer_selection_dict['selected'] = np.ones((len(self.bio_model_explorer_selection_dict['selected']),),
@@ -522,7 +534,7 @@ class BioModelFilterTab(QScrollArea):
             self.bio_model_explorer_selection_dict['selected'] = np.logical_and(self.bio_model_explorer_selection_dict['selected'],
                                                                                 np.array(sky))
             self.bio_model_explorer_selection_dict[kyi][2] = True
-        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
+        for kyi in ['fish_code_alternative', 'inv_code_alternative', "crust_code_alternative"]:
             if kyi != ky:
                 lkyi = {x for x, y in zip(self.bio_model_explorer_selection_dict[kyi][0], self.bio_model_explorer_selection_dict[kyi][1]) if y}
                 skyi = [len(lkyi & set(x)) != 0 for x in self.biological_models_dict_gui['code_alternative']]
@@ -543,7 +555,7 @@ class BioModelFilterTab(QScrollArea):
                                 list(self.bio_model_explorer_selection_dict['selected']))
               if y]
         sp = {x for y in sp for x in y}
-        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
+        for kyi in ['fish_code_alternative', 'inv_code_alternative', 'crust_code_alternative']:
             self.bio_model_explorer_selection_dict[kyi][1] = [x in sp for x in self.bio_model_explorer_selection_dict[kyi][0]]
             self.bio_model_explorer_selection_dict[kyi][2] = False  # the key is off
             listwidget = eval("self." + kyi + "_listwidget")

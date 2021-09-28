@@ -188,7 +188,7 @@ class MainWindows(QMainWindow):
         last_name_prj = user_preferences.data["name_prj"]
         filename_path = os.path.join(last_path_prj, last_name_prj + ".habby")
 
-        # direct open (with habby.exe + arg path)
+        # direct open (with habby.exe + arg)
         if name_path:
             filename_path = name_path
         if os.path.exists(filename_path):

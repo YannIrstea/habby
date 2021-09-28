@@ -83,6 +83,8 @@ def get_biomodels_informations_for_database(path_xml):
         aquatic_animal_type = "fish"
     elif root.find(".//Invertebrate") is not None:
         aquatic_animal_type = "invertebrate"
+    elif root.find(".//Crustacean") is not None:
+        aquatic_animal_type = "crustacean"
     else:
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
         return "Error: aquatic_animal_type not recognised. Please verify this xml file :" + path_xml
@@ -392,7 +394,7 @@ def read_pref(xmlfile):
             attr = model_var.software_attributes_list[0]
             model_el_list = root.findall(".//" + attr)
             if information_model_dict["model_type"] == "univariate suitability index curves":
-                if information_model_dict["aquatic_animal_type"] == "invertebrate" and information_model_dict["hydraulic_type"] == ['HEM']:
+                if information_model_dict["aquatic_animal_type"] in {"invertebrate", "crustacean"} and information_model_dict["hydraulic_type"] == ['HEM']:
                     # data = list of 3 elements (shear_stress, HEM, pref)
                     data_el = model_el_list[hab_index].getchildren()[0]
                     model_var.data = [list(map(float, data_el.text.split(" "))),
