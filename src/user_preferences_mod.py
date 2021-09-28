@@ -160,7 +160,7 @@ class UserPreferences(AppDataFolders):
                 # check if user model added exist in habby database
                 if xml_origine == "user":
                     if xml_filename in self.models_from_habby:
-                        self.user_preference_cruve_list.append("Warning: The recently added preference curve " + xml_filename + " already exists in the HABBY database (filename and code alternative). Please change filename and CdBiologicalModel and re-run HABBY.")
+                        self.user_preference_cruve_list.append("Warning: The recently added preference curve " + xml_filename + " already exists in the HABBY database (filename and CdBiologicalModel). Please change filename and CdBiologicalModel and re-run HABBY.")
                         self.models_from_user_appdata = []
                         xml_list = []
                         continue
