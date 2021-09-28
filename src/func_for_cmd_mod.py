@@ -1424,9 +1424,9 @@ def cli_start_process_and_print_progress(process, progress_value):
         print(process.name + " running " + str(round(progress_value.value, 1)) + " %, since " + str(
             round(running_time)) + " s.\r", end="")
     process.join()
-    # print("                                                                         \r", end="")  # clean line
-    # running_time = time.time() - start_time
-    # if progress_value.value == 100:
-    #     print("# " + process.name + " finished (" + str(round(running_time)) + "s)")
-    # else:
-    #     print("# Error : " + process.name + " crashed (" + str(round(running_time)) + "s)")
+    print("                                                                         \r", end="")  # clean line
+    running_time = time.time() - start_time
+    if progress_value.value == 100:
+        print("# " + process.name + " finished (" + str(round(running_time)) + "s)")
+    else:
+        print("# Error : " + process.name + " crashed (" + str(round(running_time)) + "s)")
