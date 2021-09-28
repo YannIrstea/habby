@@ -768,7 +768,7 @@ class ModelInfoGroup(QGroupBox):
         cmd_str = exe_cmd + ' ' + script_function_name + \
                   ' model="' + self.model_type + '"' + \
                   ' inputfile="' + os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt") + '"' + \
-                  ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list']).replace("\'", "'").replace(' ', '') + \
+                  ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list'][0]).replace("\'", "'").replace(' ', '') + \
                   ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
                   ' outputfilename="' + self.name_hdf5 + '"' + \
                   ' path_prj="' + path_prj_script + '"'
