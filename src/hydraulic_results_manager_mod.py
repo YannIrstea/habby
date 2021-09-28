@@ -938,66 +938,56 @@ class HydraulicSimulationResultsAnalyzer:
 def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
     # one case (one hdf5 produced)
     filename_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0], "indexHYDRAU.txt")
-    # hydrau_case
+    filename_column = description_from_indexHYDRAU_file["filename_source"].split(", ")
     hydrau_case = description_from_indexHYDRAU_file["hydrau_case"]
 
-    # column filename
-    filename_column = description_from_indexHYDRAU_file["filename_source"].split(", ")
-
-    if hydrau_case == "unknown":
-        """ CASE 3.a of 3.b ? """
+    """ CASE .a or .b ? user can select specific timesteps or discharges """
+    if hydrau_case in {"unknown", "2.a", "2.b", "3.a", "3.b"}:
         for reach_num in range(len(description_from_indexHYDRAU_file["unit_list"])):
             if description_from_indexHYDRAU_file["unit_list"][reach_num] == \
                     description_from_indexHYDRAU_file["unit_list_full"][reach_num]:
-                hydrau_case = "3.a"
+                hydrau_case = hydrau_case[:-1] + "a"
             else:
-                hydrau_case = "3.b"
+                hydrau_case = hydrau_case[:-1] + "b"
+                break
 
-        # create new
-        if hydrau_case == "3.a" or hydrau_case == "3.b":
+        if hydrau_case == "2.b" or hydrau_case == "3.b":
             if "unknown" in description_from_indexHYDRAU_file["reach_list"]:
                 reach_column_presence = False
             else:
                 reach_column_presence = True
                 reach_column = description_from_indexHYDRAU_file["reach_list"][0]
 
-            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s")
-            start = unit_type.find('[')
-            end = unit_type.find(']')
-            time_unit = unit_type[start + 1:end]
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s").replace("discharge", "Q")
             # epsg_code
             epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
             # headers
-            headers = "filename" + "\t" + "T[" + time_unit + "]"
+            headers = "filename" + "\t" + unit_type
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
 
             # first line
-            if description_from_indexHYDRAU_file["unit_list"] == description_from_indexHYDRAU_file[
-                "unit_list_full"]:
-                unit_data = "all"
-            else:
-                index = [i for i, item in enumerate(description_from_indexHYDRAU_file["unit_list_full"]) if
-                         item in description_from_indexHYDRAU_file["unit_list"]]
-                my_sequences = []
-                for idx, item in enumerate(index):
-                    if not idx or item - 1 != my_sequences[-1][-1]:
-                        my_sequences.append([item])
-                    else:
-                        my_sequences[-1].append(item)
-                from_to_string_list = []
-                for sequence in my_sequences:
-                    start = min(sequence)
-                    start_string = description_from_indexHYDRAU_file["unit_list_full"][start]
-                    end = max(sequence)
-                    end_string = description_from_indexHYDRAU_file["unit_list_full"][end]
-                    if start == end:
-                        start_end_string = start_string
-                    if start != end:
-                        start_end_string = start_string + "/" + end_string
-                    from_to_string_list.append(start_end_string)
+            index = [i for i, item in enumerate(description_from_indexHYDRAU_file["unit_list_full"][0]) if
+                     item in description_from_indexHYDRAU_file["unit_list"][0]]
+            my_sequences = []
+            for idx, item in enumerate(index):
+                if not idx or item - 1 != my_sequences[-1][-1]:
+                    my_sequences.append([item])
+                else:
+                    my_sequences[-1].append(item)
+            from_to_string_list = []
+            for sequence in my_sequences:
+                start = min(sequence)
+                start_string = description_from_indexHYDRAU_file["unit_list_full"][0][start]
+                end = max(sequence)
+                end_string = description_from_indexHYDRAU_file["unit_list_full"][0][end]
+                if start == end:
+                    start_end_string = start_string
+                if start != end:
+                    start_end_string = start_string + "/" + end_string
+                from_to_string_list.append(start_end_string)
 
-                unit_data = ";".join(from_to_string_list)
+            unit_data = ";".join(from_to_string_list)
             linetowrite = filename_column[0] + "\t" + unit_data
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
