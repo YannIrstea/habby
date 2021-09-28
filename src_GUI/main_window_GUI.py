@@ -214,9 +214,10 @@ class MainWindows(QMainWindow):
         # create the menu bar
         self.my_menu_bar()
 
-        # user_attempt_to_add_preference_curve
-        if user_preferences.user_attempt_to_add_preference_curve:
-            self.central_widget.write_log(user_preferences.user_attempt_to_add_preference_curve)
+        # user_preference_cruve_list
+        if user_preferences.user_preference_cruve_list:
+            for warning_to_write in user_preferences.user_preference_cruve_list:
+                self.central_widget.write_log(warning_to_write)
 
         # print modification biological database
         if user_preferences.diff_list:

@@ -33,7 +33,7 @@ class UserPreferences(AppDataFolders):
         super().__init__()
         # state
         self.modified = False
-        self.user_attempt_to_add_preference_curve = False
+        self.user_preference_cruve_list = []
         # default preferences data
         self.data = dict(language="english",  # english, french, spanish
                          name_prj="",
@@ -160,7 +160,7 @@ class UserPreferences(AppDataFolders):
                 # check if user model added exist in habby database
                 if xml_origine == "user":
                     if xml_filename in self.models_from_habby:
-                        self.user_attempt_to_add_preference_curve = "Warning: The recently added preference curve " + xml_filename + " already exists in the HABBY database (filename and code alternative). Please change filename and code alternative and re-run HABBY."
+                        self.user_preference_cruve_list.append("Warning: The recently added preference curve " + xml_filename + " already exists in the HABBY database (filename and code alternative). Please change filename and CdBiologicalModel and re-run HABBY.")
                         self.models_from_user_appdata = []
                         xml_list = []
                         continue
