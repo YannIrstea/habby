@@ -394,7 +394,7 @@ def read_pref(xmlfile):
             attr = model_var.software_attributes_list[0]
             model_el_list = root.findall(".//" + attr)
             if information_model_dict["model_type"] == "univariate suitability index curves":
-                if information_model_dict["aquatic_animal_type"] in {"invertebrate", "crustacean"} and information_model_dict["hydraulic_type"] == ['HEM']:
+                if information_model_dict["hydraulic_type"][hab_index] == 'HEM':
                     # data = list of 3 elements (shear_stress, HEM, pref)
                     data_el = model_el_list[hab_index].getchildren()[0]
                     model_var.data = [list(map(float, data_el.text.split(" "))),
