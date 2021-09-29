@@ -951,7 +951,39 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 hydrau_case = hydrau_case[:-1] + "b"
                 break
 
-        if hydrau_case == "2.b" or hydrau_case == "3.b":
+        if hydrau_case == "2.b":
+            if "unknown" in description_from_indexHYDRAU_file["reach_list"]:
+                reach_column_presence = False
+            else:
+                reach_column_presence = True
+                reach_column = description_from_indexHYDRAU_file["reach_list"][0]
+
+            unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s").replace("discharge", "Q").replace(" ", "")
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
+            # headers
+            headers = "filename" + "\t" + unit_type
+            if reach_column_presence:
+                headers = headers + "\t" + "reachname"
+
+            # first line
+            index = [i for i, item in enumerate(description_from_indexHYDRAU_file["unit_list_full"][0]) if
+                     item in description_from_indexHYDRAU_file["unit_list"][0]]
+            linetowrite = ""
+
+            filename_list = description_from_indexHYDRAU_file["filename_source"].split(", ")
+
+            for ind, unit_name in enumerate(description_from_indexHYDRAU_file["unit_list"][0]):
+                linetowrite = linetowrite + filename_list[ind] + "\t" + unit_name + "\t" + reach_column + "\n"
+
+            # text
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
+
+            # write text file
+            with open(filename_path, 'wt', encoding="utf-8") as f:
+                f.write(text)
+
+        if hydrau_case == "3.b":
             if "unknown" in description_from_indexHYDRAU_file["reach_list"]:
                 reach_column_presence = False
             else:
