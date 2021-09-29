@@ -867,12 +867,17 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     # prepare color
     color_list, style_list = get_colors_styles_line_from_nb_input(len(stat_data_dict["fish_list"]))
 
+    try:
+        reach_name = stat_data_dict["name_reach"]
+    except KeyError:
+        reach_name = ""
+
     """ plot hyd data """
     fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
                                             sharex="all",
                                             gridspec_kw={'height_ratios': [1, 1, 1]})
-    plt.get_current_fig_manager().set_window_title(stat_mod + ' hydraulic data ' + stat_data_dict["name_reach"] + ' - HABBY')  # set windows title
-    ax_h.set_title(stat_mod + ' hydraulic data ' + stat_data_dict["name_reach"] + ' - HABBY')
+    plt.get_current_fig_manager().set_window_title(stat_mod + ' hydraulic data ' + reach_name + ' - HABBY')  # set windows title
+    ax_h.set_title(stat_mod + ' hydraulic data ' + reach_name + ' - HABBY')
     # H
     if stat_data_dict["targ_q_all"]:
         for q_tar in stat_data_dict["targ_q_all"]:
@@ -923,10 +928,10 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = stat_mod + "_hydraulic_" + stat_data_dict["name_reach"] + project_preferences['format']
+    name_pict = stat_mod + "_hydraulic_" + reach_name + project_preferences['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = stat_mod + "_hydraulic_" + stat_data_dict["name_reach"] + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
+            name_pict = stat_mod + "_hydraulic_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)
@@ -935,10 +940,10 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     fig, (ax_vh, ax_spu) = plt.subplots(ncols=1, nrows=2,
                                         sharex="all",
                                         gridspec_kw={'height_ratios': [3, 3]})
-    plt.get_current_fig_manager().set_window_title(stat_mod + " output " + stat_data_dict["name_reach"] + ' - HABBY')
+    plt.get_current_fig_manager().set_window_title(stat_mod + " output " + reach_name + ' - HABBY')
 
     # VH
-    ax_vh.set_title(stat_mod + " output " + stat_data_dict["name_reach"] + ' - HABBY')
+    ax_vh.set_title(stat_mod + " output " + reach_name + ' - HABBY')
     if stat_data_dict["targ_q_all"]:
         for q_tar in stat_data_dict["targ_q_all"]:
             ax_vh.axvline(x=q_tar,
@@ -992,10 +997,10 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = stat_mod + "_hv_" + stat_data_dict["name_reach"] + project_preferences['format']
+    name_pict = stat_mod + "_hv_" + reach_name + project_preferences['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = stat_mod + "_hv_" + stat_data_dict["name_reach"] + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
+            name_pict = stat_mod + "_hv_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_preferences['resolution'],
                 transparent=True)
