@@ -967,12 +967,8 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 headers = headers + "\t" + "reachname"
 
             # first line
-            index = [i for i, item in enumerate(description_from_indexHYDRAU_file["unit_list_full"][0]) if
-                     item in description_from_indexHYDRAU_file["unit_list"][0]]
             linetowrite = ""
-
             filename_list = description_from_indexHYDRAU_file["filename_source"].split(", ")
-
             for ind, unit_name in enumerate(description_from_indexHYDRAU_file["unit_list"][0]):
                 linetowrite = linetowrite + filename_list[ind] + "\t" + unit_name + "\t" + reach_column + "\n"
 

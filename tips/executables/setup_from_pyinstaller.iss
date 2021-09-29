@@ -29,6 +29,9 @@ OutputBaseFilename=HABBY-setup-64
 Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
+SetupIconFile=C:\habby_dev\habby\file_dep\habby_icon.ico
+UninstallDisplayIcon=C:\habby_dev\habby\file_dep\habby_icon.ico
+
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
