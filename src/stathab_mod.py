@@ -1188,6 +1188,7 @@ class Stathab:
 
         # plot
         for r in range(0, len(self.name_reach)):
+            self.data_list[r]["name_reach"] = self.name_reach[r]
             progress_value = Value("d", 0)
             plot_stat_data(progress_value, self.data_list[r],
                            "Stathab_steep" if self.riverint == 1 else "Stathab",
