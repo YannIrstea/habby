@@ -76,14 +76,13 @@ class Stathab:
         self.project_preferences = []
         self.path_txt = path_prj  # path where to save the text
 
-    def load_stathab_from_txt(self, reachname_file, end_file_reach, name_file_allreach, path):
+    def load_stathab_from_txt(self, end_file_reach, name_file_allreach, path):
         """
         A function to read and check the input from stathab based on the text files.
         All files should be in the same folder.
         The file Pref.txt is read in run_stathab.
         If self.fish_chosen is not present, all fish in the preference file are read.
 
-        :param reachname_file: the file with the name of the reaches to study (usually listirv)
         :param end_file_reach: the ending of the files whose names depends on the reach (with .txt or .csv)
         :param name_file_allreach: the name of the file common to all reaches
         :param path: the path to the file
@@ -91,7 +90,7 @@ class Stathab:
         """
         self.load_ok = False
         # self.name_reach
-        self.name_reach = load_namereach(path, reachname_file)
+        self.name_reach = load_namereach(path )
         if self.name_reach == [-99]:
             return
         nb_reach = len(self.name_reach)
@@ -460,12 +459,11 @@ class Stathab:
             project_preferences["STATHAB"]["path"] = fname_no_path  # change value
             save_project_properties(self.path_prj, project_preferences)  # save_project_properties
 
-    def stathab_calc(self, path_pref='.', name_pref='Pref_latin.txt'):
+    def stathab_calc(self):
         """
         The function to calculate stathab output.
 
-        :param path_pref: the path to the preference file
-        :param name_pref: the name of the preference file
+
         :return: the biological preferrence index (np.array of [reach, specices, nbclaq] size), surface or volume by class, etc.
         """
         self.load_ok = False
@@ -475,8 +473,7 @@ class Stathab:
         coeff_granu = np.array(
             [0.00001, 0.0001, 0.00028, 0.00125, 0.005, 0.012, 0.024, 0.048, 0.096, 0.192, 0.640, 1.536])  # WHY?
         # coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
-        # TODO  plus utile basé sur  Pref_latin.txt load_pref ne servira plus enlever 2 derniers element dans def stathab_calc(self, path_pref='.', name_pref='Pref_latin.txt'):
-        # [name_fish, coeff_all] = load_pref(name_pref, path_pref)
+
 
         nb_reach = len(self.name_reach)
         dict_pref_stahab = self.stahab_get_pref()
@@ -504,23 +501,23 @@ class Stathab:
                 return
             hclass = np.zeros((len(self.lim_all[0]) - 1, nbclaq))
             vclass = np.zeros((len(self.lim_all[1]) - 1, nbclaq))
-            rclass = np.zeros((len(self.lim_all[2]) - 1, nbclaq))
+            # rclass = np.zeros((len(self.lim_all[2]) - 1, nbclaq))
             qmod = np.zeros((nbclaq, 1))
             hmod = np.zeros((nbclaq, 1))
             vmod = np.zeros((nbclaq, 1))
             wmod = np.zeros((nbclaq, 1))
 
-            # granulometry
+            # # granulometry
             granulo_mean = np.sum(coeff_granu * dist_gran_r)
             self.granulo_mean_all.append(granulo_mean)
-            lim_g = self.lim_all[2]
-            lim_g[lim_g < 0] = 0
-            lim_g[lim_g > 11] = 11
-            dist_gs = np.zeros(len(lim_g) - 1, )
-            for cg in range(0, len(lim_g) - 1):
-                lim_cg = [np.int(np.floor(lim_g[cg])), np.floor(lim_g[cg + 1])]
-                dist_chosen = dist_gran_r[np.int(lim_cg[0]):np.int(lim_cg[1])]
-                dist_gs[cg] = np.sum(dist_chosen)
+            # lim_g = self.lim_all[2]
+            # lim_g[lim_g < 0] = 0
+            # lim_g[lim_g > 11] = 11
+            # dist_gs = np.zeros(len(lim_g) - 1, )
+            # for cg in range(0, len(lim_g) - 1):
+            #     lim_cg = [np.int(np.floor(lim_g[cg])), np.floor(lim_g[cg + 1])]
+            #     dist_chosen = dist_gran_r[np.int(lim_cg[0]):np.int(lim_cg[1])]
+            #     dist_gs[cg] = np.sum(dist_chosen)
 
             # get the distributions and power law ready
             [h_coeff, w_coeff] = self.power_law(qwh_r)
@@ -567,7 +564,7 @@ class Stathab:
                 v = ws * hs  # total volume
                 vclass[:, qind] = ws * dist_vs * hs
                 hclass[:, qind] = dist_hs * ws
-                rclass[:, qind] = dist_gs * ws
+                # rclass[:, qind] = dist_gs * ws
                 qmod[qind] = qmod[qind][0]
                 hmod[qind] = hs
                 vmod[qind] = vs
@@ -622,7 +619,7 @@ class Stathab:
             # adding results by reach
             self.vclass_all.append(vclass)
             self.hclass_all.append(hclass)
-            self.rclass_all.append(rclass)
+            # self.rclass_all.append(rclass)
             self.h_all.append(hmod)
             self.v_all.append(vmod)
             self.w_all.append(wmod)
@@ -1639,7 +1636,7 @@ def load_pref_trop_biv(code_fish, path):
     return data_all
 
 
-def load_namereach(path, name_file_reach='listriv'):
+def load_namereach(path):
     """
     A function to only load the reach names (useful for the GUI). The extension must be .txt or .csv
 
@@ -1648,25 +1645,34 @@ def load_namereach(path, name_file_reach='listriv'):
     :return: the list of reach name
     """
     # find the reaches
-    filename = os.path.join(path, name_file_reach + '.txt')
-    filename2 = os.path.join(path, name_file_reach + '.csv')
-    if os.path.isfile(filename):
-        with open(filename, 'rt') as f:
-            data = f.read()
-    elif os.path.isfile(filename2):
-        with open(filename2, 'rt') as f:
-            data = f.read()
-    else:
-        print('Error:  The file containing the names of the reaches was not found (listriv).\n')
-        print(filename2)
-        return [-99]
-    if not data:
-        print('Error:  The file containing the names of the reaches could not be read (listriv.txt).\n')
-        return [-99]
-    # get reach name line by line
-    name_reach = data.split('\n')  # in case there is a space in the names of the reaches
-    # in case we have an empty line between reaches
-    name_reach = [x for x in name_reach if x]
+    # filename = os.path.join(path, name_file_reach + '.txt')
+    # filename2 = os.path.join(path, name_file_reach + '.csv')
+    # if os.path.isfile(filename):
+    #     with open(filename, 'rt') as f:
+    #         data = f.read()
+    # elif os.path.isfile(filename2):
+    #     with open(filename2, 'rt') as f:
+    #         data = f.read()
+    # else:
+    #     print('Error:  The file containing the names of the reaches was not found (listriv).\n')
+    #     print(filename2)
+    #     return [-99]
+    # if not data:
+    #     print('Error:  The file containing the names of the reaches could not be read (listriv.txt).\n')
+    #     return [-99]
+    # # get reach name line by line
+    # name_reach = data.split('\n')  # in case there is a space in the names of the reaches
+    # # in case we have an empty line between reaches
+    # name_reach = [x for x in name_reach if x]
+
+    name_reach = []
+    if path !='':
+        for file in os.listdir(path):
+            if file.endswith('csv'):
+                if 'deb.csv'  in file.lower() or 'qhw.csv' in file.lower():
+                    reach=file.lower()[:-7]
+                    if not(reach in name_reach):
+                        name_reach.append(reach)
 
     return name_reach
 

@@ -92,7 +92,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.listrivname = 'listriv'
         self.end_file_reach = ['deb', 'qhw', 'gra', 'dis']  # .txt or .csv
         self.end_file_reach_trop = ['deb', 'qhw', 'ii']  # .txt or .csv
-        self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref_latin.txt']
+        self.name_file_allreach = ['bornh', 'bornv'] # old :  self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref_latin.txt']
         self.name_file_allreach_trop = []
         self.hdf5_name = self.tr('No hdf5 selected')
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
@@ -219,7 +219,9 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
-        self.change_riv_type()
+        if self.dir_name and self.typeload == 'txt':
+            if os.path.isdir(self.dir_name):
+                self.change_riv_type()
 
     def select_dir(self):
         """
@@ -337,19 +339,15 @@ class StathabW(estimhab_GUI.StatModUseful):
         Afterwards, it checks if the files needed by Stathab are here. The list of file is given in the
         self.end_file_reach list. The form of the file is always the name of the reach + one item of
         self.end_file_reach. If it does not find all files, it add the name of the files not found to self.list_needed,
-        so that the user can be aware of which file he needs. The exception is Pref_latin.txt. If HABBY do not find
-        it in the directory, it uses the default “Pref_latin.txt” . All files (apart from Pref_latin.txt) should be in
-        the same directory. There is also a file called "Pref.txt" file. It is a very similar file as Pref_latin.txt
-        and can also be used as intput. The fish name are however in code and not in latin name.
+        so that the user can be aware of which file he needs.
 
         If the river is temperate, the files needed are not the same than if the river is in the tropic. This is
         accounted using the variable rivint. If rivint is zero, the river is temparate and this function looks for the
         file needed for temperate type (list of file contained in self.end_file_reach and self.name_file_allreach).
         If riverin is equal to 1 or 2, the river is tropical (list of file contained in self.end_file_reach_top and
-        biological data in the stathab folder in the biology folder (many files). If the river is temperate,
-        all preference coeff are in one file called Pref_latin.txt (also in the stathab folder of the biology folder).
+        biological data in the stathab folder in the biology folder (many files).
 
-        Then, it calls a method of the Stathab class (in src) which reads the “pref_latin.txt” file and adds the name
+        Then, it calls a method of the Stathab class (in src) which reads the “pref”  and adds the name
         of the fish to the GUI. If the "tropical river" option is selected, it looks which preference file are present
         in self.path_bio_stathab. The name of the tropical preference file needs to be in this form: YuniYh_XXX.csv and
         YuniYh_XX.csv for the univariate case and YbivYXXX.csv for the bivarate where XX is the three letter fish code
@@ -376,7 +374,7 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # read the reaches name
         sys.stdout = self.mystdout = StringIO()
-        name_reach = stathab_mod.load_namereach(self.dir_name, self.listrivname)
+        name_reach = stathab_mod.load_namereach(self.dir_name)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         if name_reach == [-99]:
@@ -463,29 +461,29 @@ class StathabW(estimhab_GUI.StatModUseful):
                     else:
                         self.list_needed.addItem(self.name_file_allreach[i])
 
-        # read the name of the available fish
-        name_fish = []
-        if self.riverint == 0:
-            sys.stdout = self.mystdout = StringIO()
-            [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
-        if self.riverint == 1:  # univariate
-            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
-            for f in filenames:
-                if 'uni' in f and f[-7:-4] not in name_fish:
-                    name_fish.append(f[-7:-4])
-        if self.riverint == 2:
-            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
-            for f in filenames:
-                if 'biv' in f:
-                    name_fish.append(f[-7:-4])
-
-        if name_fish == [-99]:
-            return
-        self.list_f.clear()
-        for r in range(0, len(name_fish)):
-            self.list_f.addItem(name_fish[r])
+        # # read the name of the available fish
+        # name_fish = []
+        # if self.riverint == 0:
+        #     sys.stdout = self.mystdout = StringIO()
+        #     [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+        #     sys.stdout = sys.__stdout__
+        #     self.send_err_log()
+        # if self.riverint == 1:  # univariate
+        #     filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
+        #     for f in filenames:
+        #         if 'uni' in f and f[-7:-4] not in name_fish:
+        #             name_fish.append(f[-7:-4])
+        # if self.riverint == 2:
+        #     filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
+        #     for f in filenames:
+        #         if 'biv' in f:
+        #             name_fish.append(f[-7:-4])
+        #
+        # if name_fish == [-99]:
+        #     return
+        # self.list_f.clear()
+        # for r in range(0, len(name_fish)):
+        #     self.list_f.addItem(name_fish[r])
 
         # load now the text data, create the hdf5 and write in the project file
         if self.list_needed.count() > 0:
@@ -496,7 +494,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.list_needed.addItem('All files found')
         self.send_log.emit('# Found all STATHAB files. Load Now.')
         sys.stdout = self.mystdout = StringIO()
-        self.mystathab.load_stathab_from_txt(self.listrivname, end_file_reach_here, file_name_all_reach_here,
+        self.mystathab.load_stathab_from_txt( end_file_reach_here, file_name_all_reach_here,
                                              self.dir_name)
         # self.mystathab.create_hdf5()
         # self.mystathab.save_xml_stathab()
@@ -530,7 +528,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.send_log.emit(var1)
         if self.riverint == 0:
             var2 = 'py    var2 = ['
-            for i in range(0, len(self.end_file_reach)):
+            for i in range(0, len(self.name_file_allreach)):
                 if '.txt' in self.name_file_allreach[i]:
                     var2 += "'" + self.name_file_allreach[i] + "',"
                 else:
@@ -542,7 +540,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
         self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
         self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
-        self.send_log.emit("py    mystathab.load_stathab_from_txt('listriv', var1, var2, dir_name)")
+        self.send_log.emit("py    mystathab.load_stathab_from_txt( var1, var2, dir_name)")
         self.send_log.emit("py    mystathab.create_hdf5()")
         self.send_log.emit("py    mystathab.save_xml_stathab()")
 
@@ -703,25 +701,25 @@ class StathabW(estimhab_GUI.StatModUseful):
                 else:
                     self.list_needed.addItem(lim_str[i])
 
-            # see if a preference file is available in the same folder than the hdf5 file
-            preffile = os.path.join(self.dir_hdf5, self.name_file_allreach[3])
-            if os.path.isfile(preffile):
-                self.path_bio_stathab = self.dir_hdf5
-                itemp = QListWidgetItem(self.name_file_allreach[3])
-                self.list_file.addItem(itemp)
-                itemp.setBackground(Qt.lightGray)
-            else:
-                itemp = QListWidgetItem(self.name_file_allreach[3] + '(default)')
-                self.list_file.addItem(itemp)
-                itemp.setBackground(Qt.lightGray)
+            # # see if a preference file is available in the same folder than the hdf5 file
+            # preffile = os.path.join(self.dir_hdf5, self.name_file_allreach[3])
+            # if os.path.isfile(preffile):
+            #     self.path_bio_stathab = self.dir_hdf5
+            #     itemp = QListWidgetItem(self.name_file_allreach[3])
+            #     self.list_file.addItem(itemp)
+            #     itemp.setBackground(Qt.lightGray)
+            # else:
+            #     itemp = QListWidgetItem(self.name_file_allreach[3] + '(default)')
+            #     self.list_file.addItem(itemp)
+            #     itemp.setBackground(Qt.lightGray)
 
         # read the available fish
         name_fish = []
-        if self.riverint == 0:
-            sys.stdout = self.mystdout = StringIO()
-            [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
+        # if self.riverint == 0:
+        #     sys.stdout = self.mystdout = StringIO()
+        #     [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+        #     sys.stdout = sys.__stdout__
+        #     self.send_err_log()
         if self.riverint == 1:  # univariate
             filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
             for f in filenames:
@@ -829,7 +827,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # run Stathab
         if self.riverint == 0:
             sys.stdout = self.mystdout = StringIO()
-            self.mystathab.stathab_calc(self.path_bio_stathab, self.name_file_allreach[3])
+            self.mystathab.stathab_calc()
             sys.stdout = sys.__stdout__
             self.send_err_log()
         # run Stathab_steep
