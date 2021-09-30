@@ -155,6 +155,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.input_class_pushbutton.clicked.connect(self.select_input_class_dialog)
         hs_export_txt_label = QLabel(self.tr("Export results (.txt)"))
         self.hs_export_txt_checkbox = QCheckBox()
+        self.hs_export_txt_checkbox.setChecked(True)
         hs_export_mesh_label = QLabel(self.tr("Export mesh results (.hyd or .hab)"))
         self.hs_export_mesh_checkbox = QCheckBox()
 
