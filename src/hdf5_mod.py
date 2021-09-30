@@ -1407,7 +1407,7 @@ class Hdf5Management:
                 self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
                 # append args to list
-                filename_path_list.append(filename_path.split(".")[0])
+                filename_path_list.append(os.path.splitext(filename_path)[0])
                 layer_name_list.append(layer_name)
                 crs_list.append(self.data_2d.epsg_code)
                 unit_data_list.append(self.data_2d_whole[reach_number][unit_number])
@@ -1477,7 +1477,7 @@ class Hdf5Management:
                 self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
                 # append args to list
-                filename_path_list.append(filename_path.split(".")[0])
+                filename_path_list.append(os.path.splitext(filename_path)[0])
                 layer_name_list.append(layer_name)
                 crs_list.append(self.data_2d.epsg_code)
                 unit_data_list.append(self.data_2d[reach_number][unit_number])
@@ -1549,7 +1549,7 @@ class Hdf5Management:
                 self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
                 # append args to list
-                filename_path_list.append(filename_path.split(".")[0])
+                filename_path_list.append(os.path.splitext(filename_path)[0])
                 layer_name_list.append(layer_name)
                 crs_list.append(self.data_2d.epsg_code)
                 unit_data_list.append(self.data_2d_whole[reach_number][unit_number])
@@ -1619,7 +1619,7 @@ class Hdf5Management:
                 self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
 
                 # append args to list
-                filename_path_list.append(filename_path.split(".")[0])
+                filename_path_list.append(os.path.splitext(filename_path)[0])
                 layer_name_list.append(layer_name)
                 crs_list.append(self.data_2d.epsg_code)
                 unit_data_list.append(self.data_2d[reach_number][unit_number])
