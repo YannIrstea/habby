@@ -41,7 +41,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
     StatModUseful. StatModuseful is a QWidget, with some practical signal (send_log and show_fig) and some functions
     to find path_im and path_bio (the path where to save image) and to manage lists.
     """
-    get_list_merge = pyqtSignal()
     allmodels_presence = pyqtSignal()
     """
      A Pyqtsignal which indicates to chronice_GUI.py that the merge list should be changed. In Main_Windows.py,
@@ -868,7 +867,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # save
         save_project_properties(self.path_prj, project_preferences)
 
-        self.get_list_merge.emit()
         self.habitat_file_combobox.blockSignals(False)
 
         # check_uncheck_allmodels_presence

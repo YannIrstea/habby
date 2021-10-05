@@ -2183,11 +2183,10 @@ class CentralW(QWidget):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
             self.tools_tab.hs_tab.computing_group.send_refresh_filenames.connect(self.update_combobox_filenames)
-            self.hydro_tab.model_group.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.hydro_tab.model_group.drop_merge.connect(self.update_combobox_filenames)
             self.substrate_tab.sub_and_merge.drop_hydro.connect(self.update_combobox_filenames)
-            self.substrate_tab.sub_and_merge.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.substrate_tab.sub_and_merge.drop_merge.connect(self.update_combobox_filenames)
             self.bioinfo_tab.allmodels_presence.connect(self.update_combobox_filenames)
-            self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_gui)
 
     def write_log(self, text_log):
         """
@@ -2246,20 +2245,20 @@ class CentralW(QWidget):
         elif text_log[:6] == 'script':
             self.write_restart_cli_file(text_log[6:], restart_cli_file)
 
-        # warning and error
-        elif ":" in text_log:
-            # error
-            if text_log[0:text_log.index(":")] == self.tr('Error'):
-                self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                    "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
-                self.scrolldown_log()
-                self.write_log_file(text_log, log_file)
-            # warning
-            elif text_log[0:text_log.index(":")] == self.tr('Warning'):
-                self.scrolldown_log()
-                self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                    "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
-                self.write_log_file(text_log, log_file)
+        # error
+        elif self.tr('Error') + ":" in text_log or 'Error:' in text_log:
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
+            self.scrolldown_log()
+            self.write_log_file(text_log, log_file)
+
+        # warning
+        elif self.tr('Warning') + ":" in text_log or 'Warning:' in text_log:
+            self.scrolldown_log()
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
+            self.write_log_file(text_log, log_file)
+
         # other case not accounted for
         else:
             self.scrolldown_log()
