@@ -64,7 +64,7 @@ class Stathab:
         self.vborn_Stahabsteep = []  # only for Stahab_steep the mean values of v for each class of velocity per reach X discharge
         self.dist_hs_all = [] #frequency distribution for height per reach X discharge
         self.dist_vs_all = []  # frequency distribution for velocity per reach X discharge
-        self.fish_chosen = np.array([])  # the name of the fish
+        self.fish_chosen = []  # the name of the fish
         self.riverint = 0  # the river type (0 stahab, 1 stahtab steep)
         self.path_im = os.path.join(path_prj, "output", "figures")  # path where to save the image
         self.path_hdf5 = os.path.join(path_prj, "hdf5")

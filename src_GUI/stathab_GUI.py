@@ -798,7 +798,8 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # get the chosen fish
         self.mystathab.fish_chosen = []
-        fish_list = []
+        self.mystathab.data_list = []
+        
         by_vol = True
         if self.selected_aquatic_animal_qtablewidget.count() == 0:
             self.msge.setIcon(QMessageBox.Warning)
