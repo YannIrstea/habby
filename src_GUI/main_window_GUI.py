@@ -1308,11 +1308,11 @@ class MainWindows(QMainWindow):
         newAction.setStatusTip(self.tr('Create a new project'))
         newAction.triggered.connect(self.open_new_project_dialog)
 
-        self.seeAction = QAction(icon_see, "clic = See current HABBY project files\n"
-                                          "CTRL+clic = See user HABBY AppData files\n"
-                                          "SHIFT+clic = See HABBY installation files", self)
-        self.seeAction.setStatusTip(self.tr("clic = See current HABBY project files / "
-                                          "CTRL+clic == See user HABBY AppData files / "
+        self.seeAction = QAction(icon_see, self.tr("Open project folder\n"
+                                          "CTRL+clic = See user HABBY files\n"
+                                          "SHIFT+clic = See HABBY installation files"), self)
+        self.seeAction.setStatusTip(self.tr("Open project folder / "
+                                          "CTRL+clic == See user HABBY files / "
                                           "SHIFT+clic = See HABBY installation files"))
         self.seeAction.triggered.connect(self.see_file)
 
