@@ -540,8 +540,8 @@ class Stathab:
                                                           dict_pref_stahab['v_pref_data'][index_habmodel])
                 else:
                     # TODO bivariate for stathab
-                    pref_h[index_habmodel, :] = np.zeros((nb_models, len(h_born)))
-                    pref_v[index_habmodel, :] = np.zeros((nb_models, len(v_born)))
+                    pref_h[index_habmodel, :] = np.zeros((len(h_born)))
+                    pref_v[index_habmodel, :] = np.zeros((len(v_born)))
 
             # result = np.zeros((nbclaq, 10))
             result_reach_q_hyd = np.zeros((nbclaq, 4))
