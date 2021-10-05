@@ -1,6 +1,6 @@
 pyinstaller
 h5py
-pyqt5
+PyQt5==5.9.2
 matplotlib
 scipy
 pandas
