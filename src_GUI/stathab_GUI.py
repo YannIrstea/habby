@@ -132,6 +132,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         # not used anymore (not really helpful). I let it ehre anyway for completness.
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Run Stathab"))
+        if self.riverint == 1:
+            self.runb.setText(self.tr("Run Stathab steep"))
         self.runb.setStyleSheet("background-color: #47B5E6; color: black")
 
         # insist on white background color (for linux, mac)
