@@ -388,6 +388,8 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # first let's look for the files where one file by reach is needed
         c = -1
+        file_name_all_reach_here = []
+        end_file_reach_here = []
         for r in range(0, len(name_reach)):
 
             # see which files are need based on the current river type
@@ -486,63 +488,64 @@ class StathabW(estimhab_GUI.StatModUseful):
         #     self.list_f.addItem(name_fish[r])
 
         # load now the text data, create the hdf5 and write in the project file
-        if self.list_needed.count() > 0:
+        if self.list_needed.count() > 0 or not file_name_all_reach_here or not end_file_reach_here:
             self.send_log.emit('Error: Found only a part of the needed STATHAB files. '
                                'Need to re-load before execution\n')
             # self.mystathab.save_xml_stathab(True)
             return
-        self.list_needed.addItem('All files found')
-        self.send_log.emit('# Found all STATHAB files. Load Now.')
-        sys.stdout = self.mystdout = StringIO()
-        self.mystathab.load_stathab_from_txt( end_file_reach_here, file_name_all_reach_here,
-                                             self.dir_name)
-        # self.mystathab.create_hdf5()
-        # self.mystathab.save_xml_stathab()
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-
-        # copy the input in the input folder
-        input_folder = self.find_path_input_est()
-        new_dir = os.path.join(input_folder, 'input_' + self.model_type.lower())
-        all_files = os.listdir(self.dir_name)
-        paths = [self.dir_name] * len(all_files)
-        if not os.path.exists(new_dir):
-            os.makedirs(new_dir)
-        src.dev_tools_mod.copy_files(all_files, paths, new_dir)
-
-        # log info
-        if not self.mystathab.load_ok:
-            self.send_log.emit('Error: Could not load stathab data.\n')
-            return
-        var1 = 'py    var1 = ['
-        if self.riverint == 0:
-            for i in range(0, len(self.end_file_reach) - 1):  # Pref by default
-                if '.txt' in self.end_file_reach[i]:
-                    var1 += "'" + self.end_file_reach[i] + "',"
-                else:
-                    var1 += "'" + self.end_file_reach[i] + ".txt',"
         else:
-            for i in range(0, len(self.end_file_reach_trop)):
-                var1 += "'" + self.end_file_reach_trop[i] + ".csv',"
-        var1 = var1[:-1] + "]"
-        self.send_log.emit(var1)
-        if self.riverint == 0:
-            var2 = 'py    var2 = ['
-            for i in range(0, len(self.name_file_allreach)):
-                if '.txt' in self.name_file_allreach[i]:
-                    var2 += "'" + self.name_file_allreach[i] + "',"
-                else:
-                    var2 += "'" + self.name_file_allreach[i] + ".txt',"
-            var2 = var2[:-1] + "]"
-        else:
-            var2 = 'py    var2 = []'
-        self.send_log.emit(var2)
-        self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
-        self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
-        self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
-        self.send_log.emit("py    mystathab.load_stathab_from_txt( var1, var2, dir_name)")
-        self.send_log.emit("py    mystathab.create_hdf5()")
-        self.send_log.emit("py    mystathab.save_xml_stathab()")
+            self.list_needed.addItem('All files found')
+            self.send_log.emit('# Found all STATHAB files. Load Now.')
+            sys.stdout = self.mystdout = StringIO()
+            self.mystathab.load_stathab_from_txt(end_file_reach_here, file_name_all_reach_here,
+                                                 self.dir_name)
+            # self.mystathab.create_hdf5()
+            # self.mystathab.save_xml_stathab()
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+
+            # copy the input in the input folder
+            input_folder = self.find_path_input_est()
+            new_dir = os.path.join(input_folder, 'input_' + self.model_type.lower())
+            all_files = os.listdir(self.dir_name)
+            paths = [self.dir_name] * len(all_files)
+            if not os.path.exists(new_dir):
+                os.makedirs(new_dir)
+            src.dev_tools_mod.copy_files(all_files, paths, new_dir)
+
+            # log info
+            if not self.mystathab.load_ok:
+                self.send_log.emit('Error: Could not load stathab data.\n')
+                return
+            var1 = 'py    var1 = ['
+            if self.riverint == 0:
+                for i in range(0, len(self.end_file_reach) - 1):  # Pref by default
+                    if '.txt' in self.end_file_reach[i]:
+                        var1 += "'" + self.end_file_reach[i] + "',"
+                    else:
+                        var1 += "'" + self.end_file_reach[i] + ".txt',"
+            else:
+                for i in range(0, len(self.end_file_reach_trop)):
+                    var1 += "'" + self.end_file_reach_trop[i] + ".csv',"
+            var1 = var1[:-1] + "]"
+            self.send_log.emit(var1)
+            if self.riverint == 0:
+                var2 = 'py    var2 = ['
+                for i in range(0, len(self.name_file_allreach)):
+                    if '.txt' in self.name_file_allreach[i]:
+                        var2 += "'" + self.name_file_allreach[i] + "',"
+                    else:
+                        var2 += "'" + self.name_file_allreach[i] + ".txt',"
+                var2 = var2[:-1] + "]"
+            else:
+                var2 = 'py    var2 = []'
+            self.send_log.emit(var2)
+            self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
+            self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
+            self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
+            self.send_log.emit("py    mystathab.load_stathab_from_txt( var1, var2, dir_name)")
+            self.send_log.emit("py    mystathab.create_hdf5()")
+            self.send_log.emit("py    mystathab.save_xml_stathab()")
 
     def select_hdf5(self):
         """
