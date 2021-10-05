@@ -23,13 +23,10 @@ from PyQt5.QtCore import QLocale
 
 
 def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_prj):
-    # get unit type
-    start = unit_type.find('[')
-    end = unit_type.find(']')
-    unit_type = unit_type[start + 1:end]
-
     # headers
-    headers = "unit[" + unit_type + "]"
+    headers = unit_type.replace(" ", "")
+    headers = headers.replace("discharge", "Q")
+    headers = headers.replace(" ", "")
 
     # lines
     linetext1 = str(unit_min)
@@ -68,7 +65,7 @@ def read_chronicle_from_text_file(chronicle_filepath):
             unit_type = headers[units_index]
 
     if units_index is None:
-        return False, "Error : Interpolation not done. 'unit[' header not found in " + chronicle_filepath + "."
+        return False, "Error: Interpolation not done. 'unit[' header not found in " + chronicle_filepath + "."
 
     # create dict
     if type(date_index) == int and type(units_index) == int:
