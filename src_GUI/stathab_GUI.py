@@ -393,7 +393,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         file_name_all_reach_here = []
         end_file_reach_here = []
         for r in range(0, len(name_reach)):
-
             # see which files are need based on the current river type
             if self.riverint == 0:  # temperate rivers
                 end_file_reach_here = copy.deepcopy(self.end_file_reach)
@@ -490,11 +489,19 @@ class StathabW(estimhab_GUI.StatModUseful):
         #     self.list_f.addItem(name_fish[r])
 
         # load now the text data, create the hdf5 and write in the project file
-        if self.list_needed.count() > 0 or not file_name_all_reach_here or not end_file_reach_here:
-            self.send_log.emit('Error: Found only a part of the needed STATHAB files. '
-                               'Need to re-load before execution\n')
-            # self.mystathab.save_xml_stathab(True)
-            return
+        if self.list_needed.count() > 0:
+            if self.riverint == 0:
+                if not file_name_all_reach_here or not end_file_reach_here:
+                    self.send_log.emit('Error: Found only a part of the needed STATHAB files. '
+                                       'Need to re-load before execution\n')
+                    # self.mystathab.save_xml_stathab(True)
+                    return
+            elif self.riverint == 1:
+                if not file_name_all_reach_here:
+                    self.send_log.emit('Error: Found only a part of the needed STATHAB steep files. '
+                                       'Need to re-load before execution\n')
+                    # self.mystathab.save_xml_stathab(True)
+                    return
         else:
             self.list_needed.addItem('All files found')
             self.send_log.emit('# Found all STATHAB files. Load Now.')
