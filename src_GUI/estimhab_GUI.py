@@ -860,17 +860,17 @@ class EstimhabW(StatModUseful):
         self.send_log.emit(fish_list_str)
         self.send_log.emit("py    [VH, SPU] = estimhab.estimhab(data[0], data[1], data[2], data[3] ,"
                            " qrange, data[4], path1, fish_list, '.', True, {}, '.')\n")
-        self.send_log.emit("restart RUN_ESTIMHAB")
-        self.send_log.emit("restart    q0: " + str(q[0]))
-        self.send_log.emit("restart    q1: " + str(q[1]))
-        self.send_log.emit("restart    w0: " + str(w[0]))
-        self.send_log.emit("restart    w1: " + str(w[1]))
-        self.send_log.emit("restart    h0: " + str(h[0]))
-        self.send_log.emit("restart    h1: " + str(h[1]))
-        self.send_log.emit("restart    q50: " + str(q50))
-        self.send_log.emit("restart    sub: " + str(substrate))
-        self.send_log.emit("restart    min qrange: " + str(qrange[0]))
-        self.send_log.emit("restart    max qrange: " + str(qrange[1]))
+        # self.send_log.emit("restart RUN_ESTIMHAB")
+        # self.send_log.emit("restart    q0: " + str(q[0]))
+        # self.send_log.emit("restart    q1: " + str(q[1]))
+        # self.send_log.emit("restart    w0: " + str(w[0]))
+        # self.send_log.emit("restart    w1: " + str(w[1]))
+        # self.send_log.emit("restart    h0: " + str(h[0]))
+        # self.send_log.emit("restart    h1: " + str(h[1]))
+        # self.send_log.emit("restart    q50: " + str(q50))
+        # self.send_log.emit("restart    sub: " + str(substrate))
+        # self.send_log.emit("restart    min qrange: " + str(qrange[0]))
+        # self.send_log.emit("restart    max qrange: " + str(qrange[1]))
 
 
 if __name__ == '__main__':
