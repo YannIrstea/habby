@@ -307,9 +307,9 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
         feat.SetGeometry(poly)
         # create
         layer.CreateFeature(feat)
-        # # progress
-        # with lock:
-        #     progress_value.value = progress_value.value + delta_mesh
+        # progress
+        with lock:
+            progress_value.value = progress_value.value + delta_mesh
 
     # Save and close everything
     layer.CommitTransaction()  # faster
