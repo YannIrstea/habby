@@ -105,22 +105,26 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         model_var = information_model_dict["hab_variable_list"][stage_index]
 
         if animal.model_type == 'univariate suitability index curves':
-            if "HV" in information_model_dict["hydraulic_type_available"][stage_index]:
-                pref_height = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.h.name).data
-                pref_vel = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.v.name).data
-                if model_var.variable_list.subs():
-                    pref_sub = np.array(model_var.variable_list.get_from_name(model_var.variable_list.subs()[0].name).data)
-                # if the last value ends in 0 then change the corresponding value to x at 100 m
+            if "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
+                pref_hem_data = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.shear_stress.name).data
+                if pref_hem_data[0][-1] == 0:
+                    pref_hem_data[0][-1] = 1000
+            else:
+                if hdf5.data_2d.hvum.h.name in model_var.variable_list.names():
+                    pref_height = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.h.name).data
+                    # if the last value ends in 0 then change the corresponding value to x at 100 m
                     if pref_height[1][-1] == 0:
                         pref_height[0].append(1000)
                         pref_height[1].append(0)
+                if hdf5.data_2d.hvum.v.name in model_var.variable_list.names():
+                    pref_vel = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.v.name).data
+                    # if the last value ends in 0 then change the corresponding value to x at 100 m
                     if pref_vel[1][-1] == 0:
                         pref_vel[0].append(100)
                         pref_vel[1].append(0)
-            else:  # HEM
-                pref_invertebrate = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.shear_stress.name).data
-                if pref_invertebrate[0][-1] == 0:
-                    pref_invertebrate[0][-1] = 1000
+                if model_var.variable_list.subs():
+                    pref_sub = np.array(model_var.variable_list.get_from_name(model_var.variable_list.subs()[0].name).data)
+
         else:  # bivariate
             pref_height = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.h.name).data
             pref_vel = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.v.name).data
@@ -150,12 +154,11 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 """ compute habitat """
                 # univariate
                 if animal.model_type == 'univariate suitability index curves':
-                    # HEM
-                    if animal.aquatic_animal_type in {"invertebrate", "crustacean"} and "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
+                    if "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
                         """ HEM pref """
                         # get pref x and y
-                        pref_shearstress = pref_invertebrate[0]
-                        pref_values = pref_invertebrate[2]
+                        pref_shearstress = pref_hem_data[0]
+                        pref_values = pref_hem_data[2]
                         # nterp1d(...... kind='previous') for values <0.0771
                         pref_shearstress = [0.0] + pref_shearstress
                         pref_values = pref_values + [pref_values[-1]]
@@ -169,21 +172,15 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                             hv = hem_interp_f(shear_stress_t.flatten())
                         if any(np.isnan(shear_stress_t)):
                             warning_shearstress_list.append(unit_number)
-
-                    #
                     else:
                         """ hydraulic pref """
-                        # get H pref value
-                        if animal.hyd_opt in ["HV", "H"]:
+                        if animal.hyd_opt in ["HV", "H"]:  # get H pref value
                             if max(pref_height[0]) < height_t.max():  # check range suitability VS range input data
                                 warning_range_list.append(unit_number)
                             h_pref_c = np.interp(height_t, pref_height[0], pref_height[1], left=np.nan,
                                                  right=np.nan)
-
-                        # get V pref value
-                        if animal.hyd_opt in ["HV", "V"]:
-                            if max(pref_vel[
-                                       0]) < vel_t.max():  # check range suitability VS range input data
+                        if animal.hyd_opt in ["HV", "V"]:  # get V pref value
+                            if max(pref_vel[0]) < vel_t.max():  # check range suitability VS range input data
                                 warning_range_list.append(unit_number)
                             v_pref_c = np.interp(vel_t, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
 
