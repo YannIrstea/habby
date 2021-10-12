@@ -581,18 +581,8 @@ class MyProcessManager(QThread):
 
         # univariate
         if self.plot_attr.information_model_dict["model_type"] == "univariate suitability index curves":
-            if "HV" in self.plot_attr.information_model_dict["hydraulic_type_available"][information_model_dict["stage_and_size"].index(self.plot_attr.selected_fish_stage)]:
-                # classic univariate suitability_curve
-                my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve,
-                                                 args=(progress_value,
-                                              information_model_dict,
-                                            self.plot_attr.selected_fish_stage,
-                                              self.project_preferences,
-                                              False),
-                                                 name="plot_suitability_curve"),
-                                       progress_value=progress_value,
-                                       q=q)
-            else:
+            hydraulic_type_list = self.plot_attr.information_model_dict["hydraulic_type_available"][information_model_dict["stage_and_size"].index(self.plot_attr.selected_fish_stage)]
+            if "HEM" in hydraulic_type_list:
                 # HEM
                 my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_hem,
                                                  args=(progress_value,
@@ -603,6 +593,18 @@ class MyProcessManager(QThread):
                                                  name="plot_suitability_curve_invertebrate"),
                                        progress_value=progress_value,
                                        q=q)
+            else:
+                # classic univariate suitability_curve
+                my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve,
+                                                 args=(progress_value,
+                                              information_model_dict,
+                                            self.plot_attr.selected_fish_stage,
+                                              self.project_preferences,
+                                              False),
+                                                 name="plot_suitability_curve"),
+                                       progress_value=progress_value,
+                                       q=q)
+
         else:
             # bivariate suitability_curve
             my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_bivariate,
@@ -768,7 +770,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
+    def start(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":

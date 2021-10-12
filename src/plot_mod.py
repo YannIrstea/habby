@@ -70,10 +70,9 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
         stade = [selected_fish_stage]
         sub_var_list = information_model_dict["hab_variable_list"][stage_index].variable_list.subs()
         # preplot
-        if sub_var_list:  # check if sub data exist
-            fig, ax = plt.subplots(3, 1)
-        else:  # no sub
-            fig, ax = plt.subplots(2, 1)
+        fig, ax = plt.subplots(len(information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()), 1)
+        if len(information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()) == 1:
+            ax = [ax]
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
 
         for index_var, hyd_var in enumerate(
