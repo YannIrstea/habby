@@ -581,7 +581,12 @@ class MyProcessManager(QThread):
 
         # univariate
         if self.plot_attr.information_model_dict["model_type"] == "univariate suitability index curves":
-            hydraulic_type_list = self.plot_attr.information_model_dict["hydraulic_type_available"][information_model_dict["stage_and_size"].index(self.plot_attr.selected_fish_stage)]
+            # specific stage of the same xml pref curve
+            if self.plot_attr.selected_fish_stage:
+                hydraulic_type_list = self.plot_attr.information_model_dict["hydraulic_type_available"][information_model_dict["stage_and_size"].index(self.plot_attr.selected_fish_stage)]
+            # all stage of the same xml pref curve (get first because homogeneous model)
+            else:
+                hydraulic_type_list = self.plot_attr.information_model_dict["hydraulic_type_available"][0]
             if "HEM" in hydraulic_type_list:
                 # HEM
                 my_process = MyProcess(p=Process(target=plot_mod.plot_suitability_curve_hem,
