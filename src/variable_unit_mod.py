@@ -327,6 +327,14 @@ class HydraulicVariableUnitManagement:
                                          dtype=np.int64,
                                          index_gui=getframeinfo(currentframe()).lineno,
                                          depend_on_h=False)
+        self.hydraulic_class = HydraulicVariable(value=None,
+                                         unit="",
+                                         name="hydraulic_class",
+                                         name_gui="hydraulic class",
+                                         descr="Hydrosignature class",
+                                         dtype=np.int64,
+                                         index_gui=getframeinfo(currentframe()).lineno,
+                                         depend_on_h=False)
         # coordinate variables
         self.tin = HydraulicVariable(value=None,
                                      unit="",

@@ -1104,6 +1104,10 @@ class Hdf5Management:
                     self.data_2d[reach_number][unit_number].hydrosignature["hsvolume"] = hsvolume
 
                     if export_mesh:
+                        self.data_2d.hvum.hydraulic_class.hdf5 = True
+                        self.data_2d.hvum.hydraulic_class.position = "mesh"
+                        self.data_2d.hvum.hdf5_and_computable_list.append(self.data_2d.hvum.hydraulic_class)
+                        self.set_hdf5_attributes()
                         self.replace_dataset_in_file(unitpath + "/mesh/data", mesh_data_out)
                         self.replace_dataset_in_file(unitpath + "/mesh/tin", tin_out)
                         self.replace_dataset_in_file(unitpath + "/mesh/i_whole_profile", i_whole_profile_out)
