@@ -67,3 +67,4 @@ TRANSLATIONS += translation/Zen_EN.ts
 TRANSLATIONS += translation/Zen_FR.ts
 TRANSLATIONS += translation/Zen_ES.ts
 TRANSLATIONS += translation/Zen_PO.ts
+TRANSLATIONS += translation/Zen_IT.ts

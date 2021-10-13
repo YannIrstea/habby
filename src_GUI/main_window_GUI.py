@@ -122,8 +122,8 @@ class MainWindows(QMainWindow):
         # set up translation
         self.languageTranslator = QTranslator()
         self.path_trans = os.path.abspath('translation')
-        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm', r'Zen_PO.qm']
-        try:  # english, french, spanish
+        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm', r'Zen_PO.qm', r'Zen_IT.qm']
+        try:  # english, french, spanish,
             if language_set == "english":
                 self.lang = 0
             if language_set == "french":
@@ -132,6 +132,8 @@ class MainWindows(QMainWindow):
                 self.lang = 2
             if language_set == "portuguese":
                 self.lang = 3
+            if language_set == "italian":
+                self.lang = 4
         except:
             self.lang = 0
         self.app = QApplication.instance()
@@ -168,6 +170,8 @@ class MainWindows(QMainWindow):
             lang_bio = 'French'
         elif self.lang == 3:
             lang_bio = 'Portuguese'
+        elif self.lang == 4:
+            lang_bio = 'Italian'
         else:
             lang_bio = 'English'
 
@@ -955,12 +959,18 @@ class MainWindows(QMainWindow):
         elif nb_lang == 1:
             if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'French'
+        elif nb_lang == 2:
+            if hasattr(self.central_widget, "bioinfo_tab"):
+                self.central_widget.bioinfo_tab.lang = 'Spanish'
         elif nb_lang == 3:
             if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'Portuguese'
+        elif nb_lang == 4:
+            if hasattr(self.central_widget, "bioinfo_tab"):
+                self.central_widget.bioinfo_tab.lang = 'Italian'
         else:
             if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'Spanish'
+                self.central_widget.bioinfo_tab.lang = 'English'
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         if os.path.exists(self.path_prj):
@@ -1005,6 +1015,8 @@ class MainWindows(QMainWindow):
             language = "spanish"
         if self.lang == 3:
             language = "portuguese"
+        if self.lang == 4:
+            language = "italian"
         if user_preferences.data["language"] != language:
             user_preferences.data["language"] = language
             user_preferences.save_user_preferences_json()
@@ -1114,6 +1126,9 @@ class MainWindows(QMainWindow):
         self.portuguese_action = QAction(self.tr('&Portuguese'), self, checkable=True)
         self.portuguese_action.setStatusTip(self.tr('click here for Portuguese'))
         self.portuguese_action.triggered.connect(lambda: self.setlangue(3))
+        self.italian_action = QAction(self.tr('&Italian'), self, checkable=True)
+        self.italian_action.setStatusTip(self.tr('click here for Italian'))
+        self.italian_action.triggered.connect(lambda: self.setlangue(4))
         if self.lang == 0:
             self.english_action.setChecked(True)
             self.french_action.setChecked(False)
@@ -1134,6 +1149,12 @@ class MainWindows(QMainWindow):
             self.french_action.setChecked(False)
             self.spanish_action.setChecked(False)
             self.portuguese_action.setChecked(True)
+        if self.lang == 4:
+            self.english_action.setChecked(False)
+            self.french_action.setChecked(False)
+            self.spanish_action.setChecked(False)
+            self.portuguese_action.setChecked(False)
+            self.italian_action.setChecked(True)
         self.fullscreen_action = QAction(self.tr('Toggle full screen mode'), self, checkable=True)
         self.fullscreen_action.triggered.connect(self.set_unset_fullscreen)
         self.fullscreen_action.setShortcut('F11')
@@ -1204,6 +1225,7 @@ class MainWindows(QMainWindow):
         language_menu.addAction(self.french_action)
         language_menu.addAction(self.spanish_action)
         language_menu.addAction(self.portuguese_action)
+        language_menu.addAction(self.italian_action)
 
         # view menu
         view_menu.addAction(self.fullscreen_action)

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1" language="fr">
+<!DOCTYPE TS><TS version="2.0" language="fr" sourcelanguage="">
 <context>
     <name>@default</name>
     <message>
@@ -118,7 +117,7 @@
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="248"/>
-        <source>HEM [HFST] / shear stress [N/mÂ²]</source>
+        <source>HEM [HFST] / shear stress [N/m&#xc2;&#xb2;]</source>
         <translation type="obsolete">HEM [HFST] / force tractrice [N/mÂ²]</translation>
     </message>
     <message>
@@ -206,7 +205,7 @@
     <message>
         <location filename="../src/plot_mod.py" line="921"/>
         <source>WUA by 100 m
-[mÂ²]</source>
+[m&#xc2;&#xb2;]</source>
         <translation type="obsolete">SPU par 10 m [mÂ²]</translation>
     </message>
     <message>
@@ -589,17 +588,17 @@
         <translation type="obsolete">Pourcentage</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="133"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="132"/>
         <source>Add models</source>
         <translation>Ajouter des modèles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="137"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="136"/>
         <source>Remove all models</source>
         <translation>Supprimer tous les modèles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="140"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="139"/>
         <source>Remove selected models</source>
         <translation>Supprimer les modèles sélectionnés</translation>
     </message>
@@ -609,17 +608,17 @@
         <translation type="obsolete">Doubler le(s) modèle(s) sélectionné(s)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="146"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="145"/>
         <source>Remove duplicates models</source>
         <translation>Supprimer les doublons de modèle</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="150"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="149"/>
         <source>Biological models choosen</source>
         <translation>Modèle(s) d&apos;habitat choisi(s)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="193"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="192"/>
         <source>exist in .hab</source>
         <translation>existent dans le .hab</translation>
     </message>
@@ -634,7 +633,7 @@
         <translation type="obsolete">Option substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="713"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="712"/>
         <source>Biological models choosen (</source>
         <translation>Modèles biologiques choisis (</translation>
     </message>
@@ -659,22 +658,22 @@
         <translation type="obsolete">&lt;b&gt; Fichier(s) d&apos;habitat &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="592"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="591"/>
         <source>Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values).</source>
         <translation>L&apos;option de calcul hydraulique HEM est désactivée pour le calcul d&apos;habitat (les données hydrauliques du .hab ne sont pas de type 2D ou ne contiennent pas de valeurs z).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="601"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="600"/>
         <source>Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage).</source>
         <translation>L&apos;option de calcul substrat pourcentage est désactivée pour le calcul d&apos;habitat (la méthode de classification du substrat dans le .hab n&apos;est pas de type pourcentage).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="863"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="862"/>
         <source>, this .hab file has been deleted by the user.</source>
         <translation>, ce fichier.hab a été supprimé par l&apos;utilisateur.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="927"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="925"/>
         <source>No merged hydraulic files available.</source>
         <translation>Aucun fichier habitat (.hab) n&apos;est disponible.</translation>
     </message>
@@ -689,12 +688,12 @@
         <translation type="obsolete">Nettoyage de la barre de status</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="836"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="835"/>
         <source>The .habby project file does not exist.</source>
         <translation>Le fichier de projet .habby n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="839"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="838"/>
         <source>The .habby project file is not well-formed.</source>
         <translation>Le fichier de projet .habby n&apos;est pas bien formé.</translation>
     </message>
@@ -723,7 +722,7 @@
         <translation type="obsolete">Le calcul d&apos;habitat est terminé (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="726"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="725"/>
         <source>Create a .hab file before adding models.</source>
         <translation>Créez un fichier .hab avant d&apos;ajouter des modèles.</translation>
     </message>
@@ -743,12 +742,12 @@
         <translation type="obsolete">Les données de sorties peuveut être affichées et exportées dans l&apos;onglet &apos;Explorateur de données&apos;.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="905"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="903"/>
         <source> model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed.</source>
         <translation> les options du modèle sont &apos;Négliger&apos; et &apos;Négliger&apos; pour les options hydrauliques et substrat. Ce calcul ne sera pas effectué.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="949"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="947"/>
         <source>Warning: Nothing to compute !</source>
         <translation>Warning : Rien à calculer !</translation>
     </message>
@@ -758,7 +757,7 @@
         <translation type="obsolete">Aucun modèle sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="126"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="125"/>
         <source>Habitat file(s)</source>
         <translation>Fichier(s) d&apos;habitat</translation>
     </message>
@@ -768,49 +767,49 @@
         <translation type="obsolete">Calculer les valeurs d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="143"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="142"/>
         <source>Create duplicate from selection</source>
         <translation>Créer un doublon à partir de la séléction</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="576"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="575"/>
         <source>No models added (no selection).</source>
         <translation>Aucun modèle n&apos;a été ajouté (pas de sélection).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="300"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="299"/>
         <source>Warning: too many information for the GUI</source>
         <translation>Warning: Trop d&apos;information pour l&apos;interface graphique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="646"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="645"/>
         <source>.hab data not adapted :
 not 2d data, not z node data or no shear_stress data.</source>
         <translation>Donnée du .hab non adaptée :
 pas de données 2D, pas de données z, pas de données de force tractrice.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="671"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="670"/>
         <source>.hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged.</source>
         <translation>Les données de substrat du .hab sont de type constant. Le calcul d&apos;habitat avec des données de substrat constante n&apos;est pas conseillé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="206"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="205"/>
         <source>Compute habitat</source>
         <translation>Calcul habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="238"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="237"/>
         <source>Model to compute</source>
         <translation>Modèle(s) à calculer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="253"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="252"/>
         <source>hydraulic option</source>
         <translation>option hydraulique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="259"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="258"/>
         <source>substrate option</source>
         <translation>option substrat</translation>
     </message>
@@ -1227,12 +1226,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation>HABBY dit :</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2260"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2257"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2266"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2264"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
@@ -1242,12 +1241,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Attention: Le fichier journal n&apos;est pas indiqué dans le fichier .habby. Aucun journal écrit.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2366"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2365"/>
         <source>Error: </source>
         <translation>Erreur: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2235"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2234"/>
         <source>Warning: The project file is not found. No restart file created.</source>
         <translation>Attention: Le fichier de projet n&apos;est pas trouvé. Pas de fichier restart créé.</translation>
     </message>
@@ -1257,22 +1256,22 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Attention: Le fichier python restart n&apos;est pas trouvé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2305"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2304"/>
         <source>Warning: Restart CLI file not found. New created.</source>
         <translation>Attention: Le fichier restart CLI n&apos;est pas trouvé. Un nouveau a été créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2320"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2319"/>
         <source>Warning: Log file not found. New created.</source>
         <translation>Attention: Le fichier .log n&apos;est pas trouvé. Un nouveau a été créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2291"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2290"/>
         <source>Error: Restart python file not found. New created.</source>
         <translation>Erreur : Fichier restart python non trouvé. Un nouveau a été créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2366"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2365"/>
         <source>The project file is not found : </source>
         <translation>Le fichier du projet n&apos;a pas été trouvé : </translation>
     </message>
@@ -1815,7 +1814,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2428"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2427"/>
         <source>I am a button</source>
         <translation>Je suis un bouton</translation>
     </message>
@@ -5411,22 +5410,22 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
 <context>
     <name>MyProcess</name>
     <message>
-        <location filename="../src/process_manager_mod.py" line="981"/>
+        <location filename="../src/process_manager_mod.py" line="983"/>
         <source>started</source>
         <translation>commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1008"/>
+        <location filename="../src/process_manager_mod.py" line="1010"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1017"/>
+        <location filename="../src/process_manager_mod.py" line="1019"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1052"/>
+        <location filename="../src/process_manager_mod.py" line="1054"/>
         <source>Warning: too many information for the GUI</source>
         <translation>Warning: Trop d&apos;information pour l&apos;interface graphique</translation>
     </message>
@@ -5436,22 +5435,22 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete"> stoppé par l&apos;utilisateur aprés </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1015"/>
+        <location filename="../src/process_manager_mod.py" line="1017"/>
         <source> stopped (process time = </source>
         <translation> stoppé (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1018"/>
+        <location filename="../src/process_manager_mod.py" line="1020"/>
         <source>not started.</source>
         <translation>non commencé </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1022"/>
+        <location filename="../src/process_manager_mod.py" line="1024"/>
         <source> done (process time = </source>
         <translation> finit (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1025"/>
+        <location filename="../src/process_manager_mod.py" line="1027"/>
         <source> crashed (process time = </source>
         <translation> crash (temps de calcul = </translation>
     </message>
@@ -5557,22 +5556,22 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation>surface inconnue</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="714"/>
+        <location filename="../src/process_manager_mod.py" line="716"/>
         <source>interpolated figure</source>
         <translation>figure interpolée</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="748"/>
+        <location filename="../src/process_manager_mod.py" line="750"/>
         <source>interpolated export</source>
         <translation>export interpolé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="893"/>
+        <location filename="../src/process_manager_mod.py" line="895"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="885"/>
+        <location filename="../src/process_manager_mod.py" line="887"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
@@ -6877,12 +6876,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Pas de dossier selectionné</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="182"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="184"/>
         <source>No hdf5 selected</source>
         <translation>Pas de fichier hdf5 selectionné</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="371"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="373"/>
         <source>Stathab Input Files (.txt)</source>
         <translation>Fichiers d&apos;entrée Stathab (.txt)</translation>
     </message>
@@ -6897,12 +6896,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation>Rivières</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="372"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="374"/>
         <source>File found</source>
         <translation>Fichier trouvé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="373"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="375"/>
         <source>File still needed</source>
         <translation>Fichiers non trouvés</translation>
     </message>
@@ -6937,32 +6936,32 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Créer images</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="179"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="181"/>
         <source>Stathab: The selected directory for stathab does not exist.</source>
         <translation>Stathab: Le dossier selectionné pour Stathab n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="194"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="196"/>
         <source>Stathab: The selected hdf5 file for stathab does not exist.</source>
         <translation>Stathab: Le fichier hdf5 selectionné pour Stathab n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="240"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="242"/>
         <source>Open Directory</source>
         <translation>Ouvrir le dossier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="639"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="648"/>
         <source>Stathab Input Files (.hdf5)</source>
         <translation>Fichiers d&apos;entrée Stathab (.hdf5)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="644"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="653"/>
         <source>Data found</source>
         <translation>Données trouvées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="645"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="654"/>
         <source>Data still needed</source>
         <translation>Données non trouvées</translation>
     </message>
@@ -7002,17 +7001,17 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation>Modèles sélectionnés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="147"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="149"/>
         <source>Choose biological models</source>
         <translation>Choisir les modèles biologiques</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="193"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="195"/>
         <source>Stathab</source>
         <translation>Stathab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="308"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="310"/>
         <source>Run Stathab</source>
         <translation>Lancer Stathab</translation>
     </message>
@@ -7022,12 +7021,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation>Stathab_steep</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="310"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="312"/>
         <source>Run Stathab steep</source>
         <translation>Lancer Stathab steep</translation>
     </message>
     <message>
-        <location filename="../src_GUI/stathab_GUI.py" line="807"/>
+        <location filename="../src_GUI/stathab_GUI.py" line="816"/>
         <source>Unable to load the </source>
         <translation>Impossible de charger le </translation>
     </message>
@@ -8474,12 +8473,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
 </translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="279"/>
+        <location filename="../src/calcul_hab_mod.py" line="276"/>
         <source>One time step misses substrate, velocity or water height value.</source>
         <translation>Donnée de substrat ou de vitesse ou de hauteur d&apos;eau manquante pour un pas de temps.</translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="356"/>
+        <location filename="../src/calcul_hab_mod.py" line="353"/>
         <source>Unknown habitat values produced for </source>
         <translation>Valeurs d&apos;habitat inconnues produites pour </translation>
     </message>
@@ -8565,17 +8564,17 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="462"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n°</source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0;</source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante en fonction de l&apos;hydraulique de l&apos;unité n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source> of reach n°</source>
+        <source> of reach n&#xb0;</source>
         <translation type="obsolete"> du tronçon n°</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="467"/>
-        <source>, the shear stress data present unknown values in unit n°</source>
+        <source>, the shear stress data present unknown values in unit n&#xb0;</source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n°</translation>
     </message>
     <message>
@@ -8585,31 +8584,31 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="456"/>
-        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n° </source>
+        <source>, his suitability curve range is not sufficient according to the hydraulics of unit n&#xb0; </source>
         <translation type="obsolete">, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique de l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source>, the shear stress data present unknown values in unit n° </source>
+        <source>, the shear stress data present unknown values in unit n&#xb0; </source>
         <translation type="obsolete">, les données de force tractrice présentent des valeurs inconnues dans l&apos;unité n° </translation>
     </message>
     <message>
         <location filename="../src/calcul_hab_mod.py" line="461"/>
-        <source> of reach n° </source>
+        <source> of reach n&#xb0; </source>
         <translation type="obsolete"> du tronçon n° </translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="341"/>
+        <location filename="../src/calcul_hab_mod.py" line="338"/>
         <source>, his suitability curve range is not sufficient according to the hydraulics of unit(s) : </source>
         <translation>, sa courbe de préférence n&apos;est pas suffisante vis-à-vis de l&apos;hydraulique des unités suivantes : </translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="356"/>
+        <location filename="../src/calcul_hab_mod.py" line="353"/>
         <source> of reach : </source>
         <translation> du tronçon : </translation>
     </message>
     <message>
-        <location filename="../src/calcul_hab_mod.py" line="356"/>
+        <location filename="../src/calcul_hab_mod.py" line="353"/>
         <source>, the shear stress data present unknown values in unit(s) : </source>
         <translation>, la donnée de force tractrice présente des valeurs inconnues pour les unités suivantes : </translation>
     </message>
@@ -9301,7 +9300,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
 <context>
     <name>plot_mod</name>
     <message>
-        <location filename="../src/plot_mod.py" line="471"/>
+        <location filename="../src/plot_mod.py" line="470"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
         <translation>Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
     </message>
@@ -9311,7 +9310,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">SPU [m^2]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="563"/>
+        <location filename="../src/plot_mod.py" line="562"/>
         <source>Weighted Usable Area - </source>
         <translation>Surface Pondérée Utile - </translation>
     </message>
@@ -9331,7 +9330,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">SPU_</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="741"/>
+        <location filename="../src/plot_mod.py" line="740"/>
         <source>WUA [m$^2$]</source>
         <translation>SPU [m$^2$]</translation>
     </message>
@@ -9376,12 +9375,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">VH []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="763"/>
+        <location filename="../src/plot_mod.py" line="762"/>
         <source>Habitat Value interpolated</source>
         <translation>Valeur d&apos;habitat interpolée</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="802"/>
+        <location filename="../src/plot_mod.py" line="801"/>
         <source>Units</source>
         <translation>Unités</translation>
     </message>
@@ -9396,7 +9395,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="804"/>
+        <location filename="../src/plot_mod.py" line="803"/>
         <source>Chronicle [</source>
         <translation>Chronique [</translation>
     </message>
@@ -9410,7 +9409,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="1859"/>
         <source>WUA by 100 m
-[m²]</source>
+[m&#xb2;]</source>
         <translation type="obsolete">SPU pour 100 m
 [m²]</translation>
     </message>
@@ -9471,7 +9470,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Hydrosignature</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="512"/>
+        <location filename="../src/plot_mod.py" line="511"/>
         <source>Habitat value</source>
         <translation>Valeur d&apos;habitat</translation>
     </message>
@@ -9481,17 +9480,17 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Surface inconnue [%]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="794"/>
+        <location filename="../src/plot_mod.py" line="793"/>
         <source>Unknown area</source>
         <translation>Surface inconnue</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="585"/>
+        <location filename="../src/plot_mod.py" line="584"/>
         <source>Habitat Value</source>
         <translation>Valeur d&apos;habitat</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="742"/>
+        <location filename="../src/plot_mod.py" line="741"/>
         <source>Weighted Usable Area interpolated - </source>
         <translation>Surface pondérée utile interpolée - </translation>
     </message>
@@ -9677,12 +9676,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="197"/>
-        <source>HEM [HFST] / shear stress [N/m²]</source>
+        <source>HEM [HFST] / shear stress [N/m&#xb2;]</source>
         <translation type="obsolete">HEM [HFST] / force tractrice [N/m²]</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="1193"/>
-        <source>Conveyance [m²/s]</source>
+        <source>Conveyance [m&#xb2;/s]</source>
         <translation type="obsolete">Débitance [m²/s]</translation>
     </message>
     <message>
@@ -9731,22 +9730,22 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">substrat dominant</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="793"/>
+        <location filename="../src/plot_mod.py" line="792"/>
         <source>UA [%]</source>
         <translation>SI [%]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="584"/>
+        <location filename="../src/plot_mod.py" line="583"/>
         <source>HSI (WUA/A) []</source>
         <translation>VH (SPU/A) []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="762"/>
+        <location filename="../src/plot_mod.py" line="761"/>
         <source>HSI []</source>
         <translation>VH []</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="638"/>
+        <location filename="../src/plot_mod.py" line="637"/>
         <source>HSI</source>
         <translation>VH</translation>
     </message>
@@ -9756,14 +9755,19 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Vitesse [m/s]</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="716"/>
+        <location filename="../src/plot_mod.py" line="715"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Unit : </source>
         <translation>VH et SPU interpolées - Unité : </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="809"/>
+        <location filename="../src/plot_mod.py" line="808"/>
         <source>Desired </source>
         <translation>Souhaité(e) </translation>
+    </message>
+    <message encoding="UTF-8">
+        <location filename="../src/plot_mod.py" line="222"/>
+        <source>HEM [HFST] / shear stress [N/m²]</source>
+        <translation type="unfinished">HEM [HFST] / force tractrice [N/mÂ²]</translation>
     </message>
 </context>
 <context>
