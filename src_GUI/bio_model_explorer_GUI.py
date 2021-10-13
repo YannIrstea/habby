@@ -823,10 +823,10 @@ class BioModelInfoSelection(QScrollArea):
                 docxml = ET.parse(xmlfile)
                 root = docxml.getroot()
             except IOError:
-                print("Warning: the xml file does not exist \n")
+                print("Warning: " + xmlfile + " file does not exist \n")
                 return
         except ET.ParseError:
-            print("Warning: the xml file is not well-formed.\n")
+            print("Warning: " + xmlfile + " file is not well-formed.\n")
             return
 
         # get the description from xml
@@ -928,6 +928,7 @@ class BioModelInfoSelection(QScrollArea):
         plot_attr = lambda: None
         plot_attr.fishname = self.biological_models_dict_gui["latin_name"][i]
         plot_attr.xmlfile = self.biological_models_dict_gui["path_xml"][i]
+        plot_attr.nb_plot = 1
 
         self.process_manager_sc_hs_plot.set_sc_hs_plot_mode(self.path_prj,
                                                  plot_attr,

@@ -711,9 +711,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
             if self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]:
                 self.progress_layout.run_stop_button.setEnabled(True)
-                self.progress_layout.progress_bar.setValue(0.0)
-                self.progress_layout.progress_label.setText(
-                    "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
             # save model selection calhab
             self.save_selected_aquatic_animal_list_prj()

@@ -859,9 +859,6 @@ class SubstrateAndMerge(QWidget):
                 self.hdf5_merge_lineedit.setText(name_hdf5merge)
                 self.hdf5_merge_lineedit.setFocus()
                 self.progress_layout_merge.run_stop_button.setEnabled(True)
-                self.progress_layout_merge.progress_bar.setValue(0.0)
-                self.progress_layout_merge.progress_label.setText(
-                    "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
     def log_txt(self, code_type):
         """

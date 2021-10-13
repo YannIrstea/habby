@@ -775,7 +775,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def start(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
+    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":

@@ -49,8 +49,8 @@ def get_biomodels_informations_for_database(path_xml):
             print("Error: " + path_xml + " file not exist.")
             return "Error: " + path_xml + " file not exist."
     except ET.ParseError:
-        print("Error: the xml file is not well-formed.")
-        return "Error: the xml file is not well-formed."
+        print("Error: " + path_xml + " file is not well-formed.")
+        return "Error: " + path_xml + " file is not well-formed."
 
     # CdBiologicalModel
     code_biological_model = root.find('.//CdBiologicalModel').text  # habby curve name database
