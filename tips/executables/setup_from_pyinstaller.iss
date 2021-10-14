@@ -62,3 +62,6 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{localappdata}\INRAE_EDF_OFB\HABBY\user_settings"
+
+[InstallDelete]
+Type: filesandordirs; Name: "{localappdata}\INRAE_EDF_OFB\HABBY\user_settings"

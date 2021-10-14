@@ -19,7 +19,7 @@ import os
 from shutil import copy as sh_copy
 from time import strftime
 
-from habby import AppDataFolders
+from habby import AppDataFolders, HABBY_VERSION_STR
 from src import bio_info_mod
 from src.dev_tools_mod import sort_homogoeneous_dict_list_by_on_key
 
@@ -35,13 +35,7 @@ class UserPreferences(AppDataFolders):
         self.modified = False
         self.user_preference_cruve_list = []
         # default preferences data
-        self.data = dict(language="english",  # english, french, spanish
-                         name_prj="",
-                         path_prj="",
-                         recent_project_path=[],
-                         recent_project_name=[],
-                         theme="classic",  # classic, dark
-                         wind_position=(50, 75, 950, 720))  # X position, Y position, height, width
+        self.create_defaut_user_preferences()
         # biological models
         self.path_bio = os.path.join("biology", "models")  # path to biological
         # biological_models_dict
@@ -82,11 +76,25 @@ class UserPreferences(AppDataFolders):
                 print("Error: Can't remove temps files. They are opened by another programme. Close them "
                       "and try again.")
 
+    def create_defaut_user_preferences(self):
+        self.data = dict(habby_version=HABBY_VERSION_STR,
+                        language="english",  # english, french, spanish
+                         name_prj="",
+                         path_prj="",
+                         recent_project_path=[],
+                         recent_project_name=[],
+                         theme="classic",  # classic, dark
+                         wind_position=(50, 75, 950, 720))  # X position, Y position, height, width
+
     def create_or_load_user_preferences(self):
         if not os.path.isfile(self.user_pref_habby_file_path):  # check if preferences file exist
             self.save_user_preferences_json()  # create it
         else:
             self.load_user_preferences_json()  # load it
+            # if new version of habby : recreate a new
+            if self.data["habby_version"] < HABBY_VERSION_STR:
+                self.create_defaut_user_preferences()
+                self.save_user_preferences_json()  # create it
 
     def save_user_preferences_json(self):
         with open(self.user_pref_habby_file_path, "wt") as write_file:
