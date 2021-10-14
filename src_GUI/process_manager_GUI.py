@@ -16,7 +16,6 @@ https://github.com/YannIrstea/habby
 """
 from PyQt5.QtCore import QObject, QTimer
 from PyQt5.QtWidgets import QHBoxLayout, QComboBox, QProgressBar, QLabel, QPushButton
-from time import sleep
 
 from src.process_manager_mod import MyProcessManager
 from src_GUI.dev_tools_GUI import change_button_color

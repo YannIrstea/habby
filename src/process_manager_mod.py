@@ -21,6 +21,7 @@ from multiprocessing import Value, Queue, Process
 import psutil
 import numpy as np
 from PyQt5.QtCore import QThread, QObject
+from time import sleep
 
 from src import plot_mod
 from src.calcul_hab_mod import calc_hab_and_output
@@ -949,6 +950,7 @@ class MyProcessList(list):
                         self.get_progress_value()
 
         self.all_started = True
+        sleep(0.1)  # wait the last send_lod.emit because it's unorganized
         # print("all_started !!!")
 
         # get progress value
