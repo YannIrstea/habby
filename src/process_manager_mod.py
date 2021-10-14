@@ -942,6 +942,10 @@ class MyProcessList(list):
                 if process.progress_value.value == 0.0:
                     process.start_process()
                     self.get_progress_value()
+                    # to wait end of each process (block multiprocessing)
+                    while process.p.is_alive():
+                        self.get_progress_value()
+
         self.all_started = True
         # print("all_started !!!")
 
@@ -1003,7 +1007,11 @@ class MyProcess(QObject):
         #     self.send_log.emit(process_info)
 
     def get_total_time(self):
-        self.total_time = time.time() - self.start_time  # total time in s
+        if self.start_time:
+            self.total_time = time.time() - self.start_time  # total time in s
+        else:
+            # not started
+            self.total_time = 0
         self.total_time_computed = True
         self.mystdout = None
         # print(self.p.name, self.send_log, self.q.empty())
