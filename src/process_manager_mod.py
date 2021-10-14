@@ -944,6 +944,8 @@ class MyProcessList(list):
                     self.get_progress_value()
                     # to wait end of each process (block multiprocessing)
                     while process.p.is_alive():
+                        if self.stop_by_user:
+                            break
                         self.get_progress_value()
 
         self.all_started = True
