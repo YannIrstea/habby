@@ -92,7 +92,11 @@ class UserPreferences(AppDataFolders):
         else:
             self.load_user_preferences_json()  # load it
             # if new version of habby : recreate a new
-            if self.data["habby_version"] < HABBY_VERSION_STR:
+            try:
+                user_old_habby_version = self.data["habby_version"]
+            except KeyError:
+                user_old_habby_version = 0.0
+            if user_old_habby_version < HABBY_VERSION_STR:
                 self.create_defaut_user_preferences()
                 self.save_user_preferences_json()  # create it
 
