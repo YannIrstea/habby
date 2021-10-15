@@ -7,3 +7,4 @@ habby_test_method.py
 build
 *.profile
 *.yml
+.DS_Store
