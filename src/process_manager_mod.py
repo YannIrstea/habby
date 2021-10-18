@@ -809,8 +809,11 @@ class MyProcessManager(QThread):
 
         self.add_send_log_to_each_process()
 
-        # all cases
-        self.process_list.start_all_process()
+        # start
+        if self.process_type in {"plot", "hs_plot"}:
+            self.process_list.start_all_process(parallel=True)
+        else:
+            self.process_list.start_all_process(parallel=False)  # risk of crash if all exports are enabled
         self.all_process_runned = True
 
     def add_send_log_to_each_process(self):
@@ -927,7 +930,7 @@ class MyProcessList(list):
         self.start_time = time.time()
         self.total_time = 0
 
-    def start_all_process(self):
+    def start_all_process(self, parallel):
         # init
         self.nb_total = len(self)
         self.nb_finished = 0
@@ -936,6 +939,7 @@ class MyProcessList(list):
         self.progress_value = 0.0
         self.start_time = time.time()
         self.total_time = 0
+        self.parallel = parallel
 
         # start
         for process in self:
@@ -944,7 +948,7 @@ class MyProcessList(list):
                     process.start_process()
                     self.get_progress_value()
                     # to wait end of each process (block multiprocessing)
-                    while process.p.is_alive():
+                    while process.p.is_alive() and not self.parallel:
                         if self.stop_by_user:
                             break
                         self.get_progress_value()
