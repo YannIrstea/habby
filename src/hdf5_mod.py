@@ -2032,21 +2032,18 @@ class Hdf5Management:
                             # HV
                             for animal in animal_list:
                                 try:
-                                    wua_fish = animal.hv[reach_number][unit_number]
-                                    data_here += '\t' + str(float(wua_fish) / float(area_reach))
+                                    data_here += '\t' + str(animal.hv[reach_number][unit_number])
                                 except:
                                     data_here += '\t' + 'NaN'
                             # WUA
                             for animal in animal_list:
                                 try:
-                                    wua_fish = animal.wua[reach_number][unit_number]
-                                    data_here += '\t' + str(wua_fish)
+                                    data_here += '\t' + str(animal.wua[reach_number][unit_number])
                                 except:
                                     data_here += '\t' + 'NaN'
                             # %unknwon
                             for animal in animal_list:
-                                wua_fish = animal.percent_area_unknown[reach_number][unit_number]
-                                data_here += '\t' + str(wua_fish)
+                                data_here += '\t' + str(animal.percent_area_unknown[reach_number][unit_number])
 
                             data_here += '\n'
 
