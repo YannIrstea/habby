@@ -244,12 +244,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                     s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
                             # Percentage
                             else:
-                                if information_model_dict["substrate_type"][stage_index] == "Dominant":  # dominant curve
-                                    s_pref_c = pref_substrate_dominant_from_percentage_description(
-                                        pref_sub[1], sub_t)
-                                if information_model_dict["substrate_type"][stage_index] == "Dominant":  # dominant curve
-                                    s_pref_c = pref_substrate_coarser_from_percentage_description(
-                                        pref_sub[1], sub_t)
+                                s_pref_c = np.sum((sub_t / 100) * pref_sub[1], axis=1)
 
                         """ compute habitat value """
                         try:
