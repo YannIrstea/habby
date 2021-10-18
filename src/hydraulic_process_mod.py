@@ -416,6 +416,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             hyd_data_node_list = []
             hyd_tin_list = []
             iwholeprofile_list = []
+            i_split_list = []
             hyd_data_mesh_list = []
             sub_xy_list = []
             sub_tin_list = []
@@ -439,6 +440,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     hyd_data_node_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["node"]["data"].to_numpy())
                     hyd_tin_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"])
                     iwholeprofile_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"])
+                    i_split_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["data"]["i_split"])
                     hyd_data_mesh_list.append(hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["data"].to_numpy())
                     sub_xy_list.append(hdf5_sub.data_2d[0][0]["node"]["xy"])
                     sub_tin_list.append(hdf5_sub.data_2d[0][0]["mesh"]["tin"])
@@ -452,6 +454,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                              hyd_data_node_list,
                              hyd_tin_list,
                              iwholeprofile_list,
+                             i_split_list,
                              hyd_data_mesh_list,
                              sub_xy_list,
                              sub_tin_list,
@@ -482,9 +485,8 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                         elif colname == "i_split":
                             data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_i_whole_profile[:, 1]
                         else:
-                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_data_mesh[:,
-                                                                                          colname_num]
-                    data_2d_merge[reach_number][unit_number]["mesh"]["i_whole_profile"] = merge_i_whole_profile
+                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_data_mesh[:, colname_num]
+                    data_2d_merge[reach_number][unit_number]["mesh"]["i_whole_profile"] = merge_i_whole_profile[:, 0]
                     # sub_defaut
                     data_2d_merge[reach_number][unit_number]["mesh"]["data"][data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
 

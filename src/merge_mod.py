@@ -29,7 +29,7 @@ def setup(t, l):
     lock = l
 
 
-def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
+def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
           coeffgrid, delta_mesh=None):
     """
     Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
@@ -43,9 +43,11 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
     :param hyd_data_node: The hydraulic data of the hydraulic nodes (eg : z, wather depth, mean velocity...)
     :param hyd_tin: The hydraulic TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a
             mesh/triangle
-    :param iwholeprofile: A two columns numpy array describing each hydraulic mesh:
+    :param iwholeprofile: A numpy array describing each hydraulic mesh:
             first column an index corresponding to the original hydraulic TIN (before taking away the dry part for
-            instance) 2nd column i_split 0 if the hydraulic original mesh have never been partitioned, 1 if it has been
+            instance)
+    :param i_split: A numpy array describing each hydraulic mesh:
+            0 if the hydraulic original mesh have never been partitioned, 1 if it has been
             partitioned by taking away a dry part
     :param hyd_data_mesh: hydraulic data affected to each hydraulic mesh
     :param sub_xy: the x,y nodes coordinates of a substrate TIN (Triangular Irregular Network)
@@ -71,6 +73,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
     # # progress
     # prog += delta
     # progress_value.value = int(prog)
+    iwholeprofile = np.stack((iwholeprofile, i_split), axis=-1)
 
     translationxy = np.min(np.vstack((hyd_xy, sub_xy)), axis=0)
     hyd_xy -= translationxy
@@ -369,8 +372,9 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, hyd_data_mesh, sub_xy, 
             merge_mark_sub_default.extend(marksubdefaultnew)
             lwp = iwholeprofile[i].tolist()
             if nbmeshmergeadd != 1:
-                lwp[
-                    1] += 2  # marking the second column of iwholprofile with +2 that indicates that the merge operation have partitionned a hydraulic mesh
+                # marking the second column of iwholprofile with +2 that indicates
+                # that the merge operation have partitionned a hydraulic mesh
+                lwp[1] += 2
             iwholeprofilemerge.extend([lwp] * nbmeshmergeadd)
             merge_data_mesh.extend([hyd_data_mesh[i].tolist()] * nbmeshmergeadd)
             xymergepointlinkstohydr.extend(nxynewpointlinkstohydr.tolist())
@@ -833,11 +837,13 @@ if __name__ == '__main__':
     coeffgrid = 10  # at first approach 10 is a optimal value  according to Leonardo DA COSTA LIMA XAVIER MENDONCA the more the  coeffgrid is high the more the grid is dense
 
     hyd_data, iwholeprofile, hyd_data_c = build_hyd_data(hyd_xy, hyd_tin, 7, 22, 33)
+    i_split = None  # TODO: if need modify build_hyd_data function to return  i_split variable
     ti = datetime.now()
     merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, merge_data_mesh, merge_data_sub_mesh = merge(hyd_xy,
                                                                                                              hyd_data,
                                                                                                              hyd_tin,
                                                                                                              iwholeprofile,
+                                                                                                             i_split,
                                                                                                              hyd_data_c,
                                                                                                              sub_xy,
                                                                                                              sub_tin,

@@ -583,8 +583,7 @@ class Data2d(list):
                     self[reach_number][unit_number]["mesh"]["data"] = self[reach_number][unit_number]["mesh"]["data"].iloc[
                         ind_whole]
                 self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = iklekeep
-                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack(
-                    [ind_whole, i_split])
+                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
                 self[reach_number][unit_number]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
                 if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
                     self.hvum.i_split.position = "mesh"
