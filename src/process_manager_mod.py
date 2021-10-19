@@ -66,6 +66,8 @@ class MyProcessManager(QThread):
             self.process_type_gui = self.process_type.capitalize()
         self.process_list = MyProcessList()
         self.save_process = []
+        self.interp_attr = lambda: None
+        self.interp_attr.mode = None
         self.export_hdf5_mode = False
         self.progress_value = 0.0
 
@@ -272,7 +274,7 @@ class MyProcessManager(QThread):
                                                                        light_data_2d,
                                                                        self.project_preferences
                                                                    ),
-                                                                   name=variable.name_gui),
+                                                                   name=plot_string_dict["title"]),
                                                                progress_value=progress_value,
                                                                q=q)
                                     else:
@@ -286,7 +288,7 @@ class MyProcessManager(QThread):
                                                                        light_data_2d,
                                                                        self.project_preferences
                                                                    ),
-                                                                   name=variable.name_gui),
+                                                                   name=plot_string_dict["title"]),
                                                                progress_value=progress_value,
                                                                q=q)
                                     self.process_list.append(my_process)
@@ -316,7 +318,7 @@ class MyProcessManager(QThread):
                                                                       light_data_2d,
                                                                       self.project_preferences
                                                                   ),
-                                                                  name=animal.name),
+                                                                  name=plot_string_dict["title"]),
                                                            progress_value=progress_value,
                                                            q=q)
                                     self.process_list.append(my_process)
@@ -810,7 +812,7 @@ class MyProcessManager(QThread):
         self.add_send_log_to_each_process()
 
         # start
-        if self.process_type in {"plot", "hs_plot"}:
+        if self.process_type in {"plot", "hs_plot"} or self.interp_attr.mode == "plot":
             self.process_list.start_all_process(parallel=True)
         else:
             self.process_list.start_all_process(parallel=False)  # risk of crash if all exports are enabled
@@ -903,7 +905,7 @@ class MyProcessManager(QThread):
                     if process.progress_value.value == 0.0:
                         process.state = self.tr("not started")
                         if self.process_type in {"plot", "hs_plot"}:
-                            pass
+                            process.get_total_time()
                         else:
                             process.get_total_time()
 
@@ -929,6 +931,7 @@ class MyProcessList(list):
         self.progress_value = 0.0
         self.start_time = time.time()
         self.total_time = 0
+        self.parallel = False
 
     def start_all_process(self, parallel):
         # init
@@ -948,10 +951,13 @@ class MyProcessList(list):
                     process.start_process()
                     self.get_progress_value()
                     # to wait end of each process (block multiprocessing)
-                    while process.p.is_alive() and not self.parallel:
-                        if self.stop_by_user:
-                            break
-                        self.get_progress_value()
+                    if not self.parallel:
+                        # one by one
+                        while process.p.is_alive():
+                            # print("wait1")
+                            if self.stop_by_user:
+                                break
+                            self.get_progress_value()
 
         self.all_started = True
         sleep(0.1)  # wait the last send_lod.emit because it's unorganized
@@ -959,6 +965,7 @@ class MyProcessList(list):
 
         # get progress value
         while self.nb_finished != self.nb_total:
+            # print("wait2")
             if self.stop_by_user:
                 break
             self.get_progress_value()
@@ -1009,7 +1016,13 @@ class MyProcess(QObject):
 
     def start_process(self):
         self.start_time = time.time()  # start time in s
-        self.p.start()
+        try:
+            try:
+                self.p.start()
+            except BrokenPipeError:
+                print("BrokenPipeError", self.p.name)
+        except MemoryError:
+            print("MemoryError", self.p.name)
         # if self.send_log is not None:
         #     process_info = "- " + self.tr(self.p.name.replace("_", " ") + " started with " + str(psutil.Process(self.p.pid).memory_info()[0] / 1000000) + " Mo.")
         #     self.send_log.emit(process_info)

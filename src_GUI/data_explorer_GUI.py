@@ -537,6 +537,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.hvum = HydraulicVariableUnitManagement()
         self.gif_export = False
         self.nb_plot = 0
+        self.nb_plot_max = 15
         self.init_ui()
 
     def init_ui(self):
@@ -874,12 +875,12 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # get 32 first element list
             self.hvum.user_target_list = self.hvum.user_target_list[:32]
         # check if number of display plot are > 30
-        if plot_attr.export_type in ("interactive", "both") and self.nb_plot > 30:  # "interactive", "image export", "both
+        if plot_attr.export_type in ("interactive", "both") and self.nb_plot > self.nb_plot_max:  # "interactive", "image export", "both
             qm = QMessageBox
             ret = qm.question(self, self.tr("Warning"),
-                              self.tr("Displaying a large number of plots may crash HABBY. "
+                              self.tr("Displaying a large number of interactive plots may crash HABBY. "
                                       "It is recommended not to exceed a total number of plots "
-                                      "greater than 30 at a time. \n\nDo you still want to display ") + str(
+                                      "greater than " + str(self.nb_plot_max) + " at a time. \n\nDo you still want to display ") + str(
                                   self.nb_plot) + self.tr(" figures ?"
                                                           "\n\nNB : There is no limit for exports."), qm.Yes | qm.No)
             if ret == qm.No:  # pas de plot
