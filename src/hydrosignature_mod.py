@@ -307,8 +307,12 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
             node_data_out = np.zeros(new_xy_unique.shape[0], dtype=hyd_data_node.dtype)
             for varname in hyd_data_node.dtype.names:
                 original_values = hyd_data_node[varname]
+                if varname=='h' or varname=='v':
+                    epsilonnul=True
+                else:
+                    epsilonnul = False
                 node_data_out[varname] = interpolate_from_triangle(new_xy_unique, hyd_xy_node, original_values, hyd_tin,
-                                                                   original_triangle_unique)
+                                                                   original_triangle_unique,epsilonnul)
         else:
             node_data_out = None
 
@@ -544,14 +548,16 @@ def interpol0(x, xa, ya, xb, yb):
     return (x - xa) * (yb - ya) / (xb - xa) + ya
 
 
-def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_triangle):
+def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_triangle,epsilonnul=False):
     """
     Linearly interpolates the value of a variable z inside the mesh elements
+    epsilonnul to avoid numerical problem with negative values calculated for h or v <1e-12
     :param new_xy: (m,2) array
     :param old_xy: (n,2) array
     :param old_values: (n,) array containing z-values in each node of original mesh
     :param old_tin: (l,3) array containing tin of old mesh (referring to old mesh indices)
-    :param original_triangle: (m,) array containing the index of the triangle each new node is inside of
+    :param original_triangle: (m,) array containing the index of the triangle each new node is inside
+    :param epsilonnul a bolean if true any z value interpolated whith a négative value <10e-12 will be corrected to 0
     :return z: (m,) array of interpolated z-values in the positions of the new nodes
     """
     ordered_tin = old_tin[original_triangle]
@@ -564,6 +570,8 @@ def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_tria
     z = z1 + (((x - x1) * ((y2 - y1) * (z2 - z3) - (y2 - y3) * (z2 - z1))) + (
             (y - y1) * ((x2 - x3) * (z2 - z1) - (x2 - x1) * (z2 - z3)))) / (
                 (x2 - x3) * (y2 - y1) - (x2 - x1) * (y2 - y3))
+    if  epsilonnul:
+        z[np.logical_and(z < 0,np.abs(z) < 1e-12)]=0
     return z
 
 
