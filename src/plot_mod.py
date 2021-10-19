@@ -34,6 +34,21 @@ from copy import copy
 
 from src.translator_mod import get_translator
 
+# plot tool
+right_limit_position = 0.88
+top_limit_position = 0.90
+banner_position = (0.00, top_limit_position,  # x0, y0
+                   right_limit_position, 1.00 - top_limit_position)  # width, height
+north_position = (right_limit_position, top_limit_position,  # x0, y0
+                  1.00 - right_limit_position, 1.00 - top_limit_position)  # width, height
+legend_position = (right_limit_position, 1.00 - top_limit_position,  # x0, y0
+                   1.00 - right_limit_position, 1.00 - (1.00 - top_limit_position) * 2)  # width, height
+scale_position = (right_limit_position, 0.00,  # x0, y0
+                  1.00 - right_limit_position, 1.00 - top_limit_position)  # width, height
+map_position = (0.00, 0.00,  # x0, y0
+                right_limit_position, top_limit_position)  # width, height
+lwd_rect = 1.0
+
 
 # other
 def plot_suitability_curve(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False,
@@ -1951,22 +1966,6 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
-# plot tool
-right_limit_position = 0.88
-top_limit_position = 0.90
-banner_position = (0.00, top_limit_position,  # x0, y0
-                   right_limit_position, 1.00 - top_limit_position)  # width, height
-north_position = (right_limit_position, top_limit_position,  # x0, y0
-                  1.00 - right_limit_position, 1.00 - top_limit_position)  # width, height
-legend_position = (right_limit_position, 1.00 - top_limit_position,  # x0, y0
-                   1.00 - right_limit_position, 1.00 - (1.00 - top_limit_position) * 2)  # width, height
-scale_position = (right_limit_position, 0.00,  # x0, y0
-                  1.00 - right_limit_position, 1.00 - top_limit_position)  # width, height
-map_position = (0.00, 0.00,  # x0, y0
-                right_limit_position, top_limit_position)  # width, height
-lwd_rect = 1.0
-
-
 def mpl_map_change_parameters(project_preferences):
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
@@ -2243,14 +2242,6 @@ def update_prop(handle, orig):
     handle.set_data([np.mean(x)] * 2, [0, 2 * y[0]])
 
 
-def main():
-    print("aaa")
-
-
-if __name__ == '__main__':
-    main()
-
-
 def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr,
                                 variable_info=""):
     # colorbar_label and variable_info
@@ -2324,10 +2315,3 @@ def remove_image(name, path, ext):
                 return False
     return True
 
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()
