@@ -19,9 +19,6 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
 
     """
 
-
-    # TODO modify iwholeprofile
-
     g = 9.80665  # value of gravitational acceleration on Earth [m**2/s]
     uncertainty = 0.01  # a checking parameter for the algorithm
     translationxy = np.min(hyd_xy_node,
@@ -315,7 +312,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
         else:
             node_data_out = None
 
-        if not hyd_data_mesh is None:
+        if hyd_data_mesh is not None:
             mesh_data_out = np.zeros(new_tin_unique.shape[0], dtype=hyd_data_mesh.dtype)
             # varnames=hyd_data_mesh.dtypes.keys()
             for varname in hyd_data_mesh.dtype.names:
@@ -323,23 +320,15 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                     original_i_split = hyd_data_mesh["i_split"]
                     mesh_data_out["i_split"] = original_i_split[enclosing_triangle_unique]
                     mesh_data_out["i_split"] += iscut_newmesh * 5
-
-                    # mesh_data_out["i_split"] += (new_xy_unique[new_tin_unique] != hyd_xy_node[
-                    #     hyd_tin[enclosing_triangle_unique]]).any(axis=(1, 2)) * 5
                 else:
                     original_values = hyd_data_mesh[varname]
                     mesh_data_out[varname] = original_values[enclosing_triangle_unique]
             mesh_data_out = np.lib.recfunctions.append_fields(mesh_data_out, "hydraulic_class", hydro_classes_unique,
                                                               usemask=False)
-
         else:
             mesh_data_out = None
 
-        if not i_whole_profile is None:
-            i_whole_profile_out = i_whole_profile[enclosing_triangle_unique]
-            i_whole_profile_out[:, 1] += iscut_newmesh * 5
-        else:
-            i_whole_profile_out = None
+        i_whole_profile_out = i_whole_profile[enclosing_triangle_unique]
 
         new_xy += translationxy
         new_xy_unique += translationxy
