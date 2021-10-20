@@ -557,7 +557,7 @@ def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_tria
     :param old_values: (n,) array containing z-values in each node of original mesh
     :param old_tin: (l,3) array containing tin of old mesh (referring to old mesh indices)
     :param original_triangle: (m,) array containing the index of the triangle each new node is inside
-    :param epsilonnul a bolean if true any z value interpolated whith a négative value <10e-12 will be corrected to 0
+    :param epsilonnul a bolean if true any z value interpolated (mainly whith a négative value) <10e-12 will be corrected to 0
     :return z: (m,) array of interpolated z-values in the positions of the new nodes
     """
     ordered_tin = old_tin[original_triangle]
@@ -571,7 +571,7 @@ def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_tria
             (y - y1) * ((x2 - x3) * (z2 - z1) - (x2 - x1) * (z2 - z3)))) / (
                 (x2 - x3) * (y2 - y1) - (x2 - x1) * (y2 - y3))
     if  epsilonnul:
-        z[np.logical_and(z < 0,np.abs(z) < 1e-12)]=0
+        z[np.abs(z) < 1e-12]=0
     return z
 
 
