@@ -334,20 +334,15 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
 
         i_whole_profile_out = i_whole_profile[enclosing_triangle_unique]
 
-        new_xy += translationxy
-        new_xy_unique += translationxy
-        hyd_xy_node += translationxy
-        node_xy_out = new_xy_unique
 
-        return nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out
+        # hyd_xy_node += translationxy
+        ##making sure every point is unique, as numerical errors can make it not so
+        node_xy_out, indices2,indices3 = np.unique(new_xy_unique, axis=0, return_inverse=True,return_index=True)
+        tin_out2=indices2[tin_out]
+        node_data_out3=node_data_out[indices3]
+        node_xy_out += translationxy
+        return nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out3, mesh_data_out, tin_out2, i_whole_profile_out
     else:
-        # TODO necessary for Horizontal Ramping Rate calculation
-        # hs_xy_node +=translationxy
-        # return hs_xy_node, hs_data_node, hs_tin, iwholeprofilehs, hs_data_mesh,hs_data_sub_mesh
-        new_xy += translationxy
-        hyd_xy_node += translationxy
-        node_xy_out = new_xy_unique
-
         return nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume
 
 
