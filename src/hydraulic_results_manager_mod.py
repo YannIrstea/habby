@@ -327,7 +327,7 @@ class HydraulicSimulationResultsAnalyzer:
             # get epsg code
             epsg_code = dataraw.split("\n")[0].split("EPSG=")[1].strip()
             # read headers and nb row
-            headers = dataraw.split("\n")[1].split("\t")
+            headers = dataraw.split("\n")[1].split()
             nb_row = len(dataraw.split("\n"))
             # create one dict for all column
             data_index_file = dict((key, []) for key in headers)
@@ -338,7 +338,7 @@ class HydraulicSimulationResultsAnalyzer:
                     pass
                 else:
                     for index, column_name in enumerate(headers):
-                        data_index_file[column_name].append(line.split("\t")[index])
+                        data_index_file[column_name].append(line.split()[index])
 
             if self.model_type == 'rubar2d':
                 self.more_than_one_file_selected_by_user = False
