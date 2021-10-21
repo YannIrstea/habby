@@ -173,6 +173,12 @@ class SubstrateAndMerge(QWidget):
         self.polyg_radiobutton = QRadioButton(self.tr('polygons\n(.shp, .gpkg)'))
         self.point_radiobutton = QRadioButton(self.tr('points\n(.txt, .shp, .gpkg)'))
         self.constant_radiobutton = QRadioButton(self.tr('constant values\n(.txt)'))
+
+        self.radio_choices_layout = QHBoxLayout()
+        self.radio_choices_layout.addWidget(self.polyg_radiobutton)
+        self.radio_choices_layout.addWidget(self.point_radiobutton)
+        self.radio_choices_layout.addWidget(self.constant_radiobutton)
+
         self.polyg_radiobutton.setChecked(True)
         self.polyg_radiobutton.clicked.connect(lambda: self.btnstate(self.polyg_radiobutton, self.point_radiobutton, self.constant_radiobutton))
         self.polyg_radiobutton.clicked.connect(self.add_polygon_widgets)
@@ -383,14 +389,15 @@ class SubstrateAndMerge(QWidget):
         # SUBSTRATE GROUP
         self.layout_sub = QGridLayout()  # 4 rows et 4 columns
         self.layout_sub.addWidget(l1, 0, 0, 1, 1)  # index row, index column, nb row, nb column
-        self.layout_sub.addWidget(self.polyg_radiobutton, 0, 1, 1, 1)  # index row, index column, nb row, nb column
-        self.layout_sub.addWidget(self.point_radiobutton, 0, 2, 1, 1)  # index row, index column, nb row, nb column
-        self.layout_sub.addWidget(self.constant_radiobutton, 0, 3, 1, 1)  # index row, index column, nb row, nb column
-        self.layout_sub.addItem(sub_spacer, 1, 0, 1, 4)  # index row, index column, nb row, nb column
-        self.layout_sub.addWidget(self.polygon_group, 2, 0, 1, 4)  # index row, index column, nb row, nb column
-        self.layout_sub.addWidget(self.point_group, 3, 0, 1, 4)  # index row, index column, nb row, nb column
-        self.layout_sub.addWidget(self.constant_group, 4, 0, 1, 4)  # index row, index column, nb row, nb column
-        self.layout_sub.addItem(sub_spacer, 5, 0, 1, 4)  # index row, index column, nb row, nb columna
+        self.layout_sub.addItem(self.radio_choices_layout, 1, 0, 1, 1)  # index row, index column, nb row, nb column
+        # self.layout_sub.addWidget(self.polyg_radiobutton, 0, 1, 1, 1)  # index row, index column, nb row, nb column
+        # self.layout_sub.addWidget(self.point_radiobutton, 0, 2, 1, 1)  # index row, index column, nb row, nb column
+        # self.layout_sub.addWidget(self.constant_radiobutton, 0, 3, 1, 1)  # index row, index column, nb row, nb column
+        self.layout_sub.addItem(sub_spacer, 2, 0, 1, 4)  # index row, index column, nb row, nb column
+        self.layout_sub.addWidget(self.polygon_group, 3, 0, 1, 4)  # index row, index column, nb row, nb column
+        self.layout_sub.addWidget(self.point_group, 4, 0, 1, 4)  # index row, index column, nb row, nb column
+        self.layout_sub.addWidget(self.constant_group, 5, 0, 1, 4)  # index row, index column, nb row, nb column
+        self.layout_sub.addItem(sub_spacer, 6, 0, 1, 4)  # index row, index column, nb row, nb columna
         laste_hdf5_sub_layout = QHBoxLayout()
         laste_hdf5_sub_layout.addWidget(
             last_sub_file_title_label)  # ,     6, 0, 1, 1)  # index row, index column, nb row, nb column
@@ -398,7 +405,7 @@ class SubstrateAndMerge(QWidget):
             QSpacerItem(45, 1))  # ,     6, 0, 1, 1)  # index row, index column, nb row, nb column
         laste_hdf5_sub_layout.addWidget(
             self.last_sub_file_name_label)  # ,    6, 1, 1, 1, Qt.AlignLeft)  # index row, index column, nb row, nb column
-        self.layout_sub.addItem(laste_hdf5_sub_layout, 6, 0, 1, 4, Qt.AlignLeft)
+        self.layout_sub.addItem(laste_hdf5_sub_layout, 7, 0, 1, 4, Qt.AlignLeft)
         self.point_group.hide()
         self.constant_group.hide()
         susbtrate_group = QGroupBoxCollapsible()
