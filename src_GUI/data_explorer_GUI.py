@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 """
 import os
 import sys
+from multiprocessing import cpu_count
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
@@ -537,7 +538,7 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.hvum = HydraulicVariableUnitManagement()
         self.gif_export = False
         self.nb_plot = 0
-        self.nb_plot_max = 15
+        self.nb_plot_max = cpu_count()
         self.init_ui()
 
     def init_ui(self):
@@ -874,17 +875,16 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 self.total_fish_result) + self.tr(". Only the first 32 will be displayed."))
             # get 32 first element list
             self.hvum.user_target_list = self.hvum.user_target_list[:32]
-        # check if number of display plot are > 30
+        # check if number of display plot are > cpu_count()
         if plot_attr.export_type in ("interactive", "both") and self.nb_plot > self.nb_plot_max:  # "interactive", "image export", "both
             qm = QMessageBox
-            ret = qm.question(self, self.tr("Warning"),
+            qm.question(self, self.tr("Warning"),
                               self.tr("Displaying a large number of interactive plots may crash HABBY. "
-                                      "It is recommended not to exceed a total number of plots "
-                                      "greater than " + str(self.nb_plot_max) + " at a time. \n\nDo you still want to display ") + str(
-                                  self.nb_plot) + self.tr(" figures ?"
-                                                          "\n\nNB : There is no limit for exports."), qm.Yes | qm.No)
-            if ret == qm.No:  # pas de plot
-                return
+                                      "It is not possible to exceed a total number of plots "
+                                      "greater than " + str(self.nb_plot_max) + " at a time. \n\n"
+                                                          "\n\nNB : There is no limit for exports."),
+                              qm.Ok)
+            return
 
         # Go plot
         if types_hdf5 and names_hdf5 and self.hvum.user_target_list and plot_attr.reach and plot_attr.units and plot_attr.plot_type:
