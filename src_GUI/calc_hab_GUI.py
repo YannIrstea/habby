@@ -679,6 +679,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if not self.current_hab_informations_dict["percentage_ok"]:
                     if "Percentage" in substrate_type_available:
                         item_combobox_sub.model().item(substrate_type_available.index("Percentage")).setEnabled(False)
+                        if choosen_index == substrate_type_available.index("Percentage"):
+                            choosen_index = 0
                 item_combobox_sub.setCurrentIndex(choosen_index)
                 item_combobox_sub.currentIndexChanged.connect(self.color_sub_combobox)
                 item_combobox_sub.activated.connect(self.change_general_sub_combobox)
