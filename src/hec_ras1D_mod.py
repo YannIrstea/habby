@@ -25,10 +25,206 @@ import time
 from matplotlib.pyplot import axis, plot, step, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
     show, subplot, fill_between, savefig, close, rcParams, suptitle
 import matplotlib as mpl
+import h5py
+import pandas as pd
 
 from src import manage_grid_mod
 from src import hdf5_mod
-from src.project_properties_mod import create_default_project_properties_dict
+from src.project_properties_mod import create_default_project_properties_dict, load_project_properties
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
+from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.hydraulic_result_mod import HydraulicModelInformation
+
+
+class HydraulicSimulationResults(HydraulicSimulationResultsBase):
+    """Represent HECRAS 1D hydraulic simulation results.
+    """
+    def __init__(self, filename, folder_path, model_type, path_prj):
+        super().__init__(filename, folder_path, model_type, path_prj)
+        # HydraulicVariableUnit
+        self.hvum = HydraulicVariableUnitManagement()
+        # HydraulicModelInformation
+        self.hmi = HydraulicModelInformation()
+        # file attributes
+        self.extensions_list = self.hmi.extensions[self.hmi.attribute_models_list.index(self.model_type)].split(", ")
+        self.file_type = "ascii"
+        # simulation attributes
+        self.hyd_equation_type = self.hmi.equation[self.hmi.attribute_models_list.index(self.model_type)]
+        self.morphology_available = True
+        # reach
+        self.multi_reach = False  # ?
+        self.reach_number = int(self.hmi.reach_number[self.hmi.attribute_models_list.index(self.model_type)])
+        self.reach_name_list = ["unknown"]
+        # simulation info
+        self.simulation_name = "unknown"
+        # hydraulic variables
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["BottomEl"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["always h"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["VELOCITIES"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.shear_stress.name,
+                                                    attribute_list=["SHEAR STRESS"],
+                                                    position="mesh")
+
+        # is extension ok ?
+        if os.path.splitext(self.filename)[1] not in self.extensions_list:
+            self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
+            self.valid_file = False
+
+        # if valid get informations
+        if self.valid_file:
+            # get_list_of_files ?
+            self.get_list_of_files()
+            # get_time_step ?
+            self.get_time_step()
+            # get hydraulic variables list (mesh and node)
+            self.get_hydraulic_variable_list()
+        else:
+            self.warning_list.append("Error: File not valid.")
+
+    def get_list_of_files(self):
+        name = os.path.splitext(os.path.splitext(os.path.basename(self.filename))[0])[0]
+        self.name_geo = name + '.g02'
+        self.name_sdf = name + '.RASexport.sdf'
+
+    def get_time_step(self):
+        """Get time step information from file."""
+
+        path, filename = os.path.dirname(self.filename_path), os.path.basename(self.filename_path)
+        file_path = os.path.join(path, filename)
+        blob, ext = os.path.splitext(filename)
+
+        sim_name = None
+        # XML
+        if ext == ".xml":
+            # load the xml file
+            root = load_xml(filename, path)
+            if root == [-99]:  # if error arised
+                print("Error: the XML file could not be read.\n")
+                # return [-99], [-99], [-99], [-99]
+            # find profile name and if there is more than one profile
+            try:
+                sim_name = root.findall(".//ProfileNames")
+                sim_name = str(sim_name[0].text)
+                sim_name = sim_name[1:-1]  # erase firt and last " sign
+                sim_name = sim_name.split('" "')
+                nb_sim = len(sim_name)
+                for si in range(0, nb_sim):
+                    sim_name[si] = sim_name[si].replace(':', '_')
+            except AttributeError:
+                print("Warning: the number and name of the simulation cannot be read from the XML file.\n")
+                nb_sim = 1
+
+        # REP
+        elif ext == ".rep":
+            # open the rep file
+            try:
+                with open(file_path, 'rt') as f:
+                    data_rep = f.read()
+            except IOError:
+                print("Error: the file " + filename + " does not exist.\n")
+                # return [-99], [-99], -99, '-99'
+            # obtain the name of the time steps
+            exp_reg4 = 'Profile #(.+)'
+            sim_name_all = re.findall(exp_reg4, data_rep)
+            if not sim_name_all:
+                print('Warning: the name of the time steps was not found. \n')
+            sim_name = []
+            for s in sim_name_all:
+                if s not in sim_name:
+                    sim_name.append(s)
+                else:
+                    # simulation name are all given in the first cross section
+                    break
+
+        # SDF
+        elif ext == ".sdf":
+            # open the sdf file
+            try:
+                with open(file_path, 'rt') as f:
+                    data_sdf = f.read()
+            except IOError:
+                print("Error: the file " + filename + " does not exist.\n")
+                # return [-99], [-99], '-99', -99
+
+            # get the reach and river name
+            exp_reg_extra = "BEGIN CROSS-SECTIONS:(.+)END CROSS-SECTION"
+            data_sdf2 = re.findall(exp_reg_extra, data_sdf, re.DOTALL)
+            if not data_sdf2:
+                print('Error: No data on cross section found. \n')
+                # return [-99], [-99], '-99', -99
+
+            # get the simulation name or the name of the time steps
+            exp_reg_n = "PROFILE ID:(.+)\n|$"  # $ to avoid problem if no match is found
+            sim_name_all = re.findall(exp_reg_n, data_sdf2[0])
+            sim_name = []
+            for s in sim_name_all:
+                if s not in sim_name:
+                    sim_name.append(s)
+                else:
+                    # the sim_name are ordered, so we get all the simulation name in the first cross-section
+                    break
+            if not sim_name:
+                print('Warning: the names of the time steps could not be extracted from the sdf file. \n')
+
+        self.timestep_name_list = sim_name
+        self.timestep_nb = len(sim_name)
+        self.timestep_unit = "time [s]"
+
+    def get_hydraulic_variable_list(self):
+        # get list from source
+        varnames = ["Coordnts", "BottomEl", "always h", "always v"]
+
+        # check witch variable is available
+        self.hvum.detect_variable_from_software_attribute(varnames)
+
+    def load_hydraulic(self, timestep_name_wish_list):
+        """Retrun Data2d from file.
+
+        Keyword arguments:
+        timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
+        """
+
+        # load specific timestep
+        self.load_specific_timestep(timestep_name_wish_list)
+
+        # open_hecras  # TODO: read only RASexport.sdf (v>=v5)
+        coord_pro, vh_pro, nb_pro_reach, sim_name = open_hecras(self.name_geo,
+                                                                self.name_sdf,
+                                                                self.folder_path,
+                                                                self.folder_path,
+                                                                load_project_properties(self.path_prj))
+        # create the 2d grid  # TODO: convert to 2d mesh
+        ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t = manage_grid_mod.grid_and_interpo(
+                                                                                                    vh_pro,
+                                                                                                    coord_pro,
+                                                                                                    nb_pro_reach,
+                                                                                                    interpo_choice=0)
+        # self.warning_list  # TODO: link printed warnings self.warning_list
+
+        # TODO: assign data
+        # prepare original and computed data for data_2d
+        for reach_number in range(self.reach_number):  # for each reach
+            for timestep_index in range(self.timestep_wish_nb):  # for each timestep
+                for variables_wish in self.hvum.hdf5_and_computable_list:  # .varunits
+                    if variables_wish.position == "node":
+                        if variables_wish.name == self.hvum.z.name:
+                            variables_wish.data[reach_number].append(point_all_t[timestep_index][:, 2].astype(variables_wish.dtype))
+                        elif variables_wish.name == self.hvum.h.name:
+                            variables_wish.data[reach_number].append(inter_h_all_t[timestep_index].astype(variables_wish.dtype))
+                        elif variables_wish.name == self.hvum.v.name:
+                            variables_wish.data[reach_number].append(inter_vel_all_t[timestep_index].astype(variables_wish.dtype))
+
+            # coord
+            self.hvum.xy.data[reach_number] = point_all_t
+            self.hvum.tin.data[reach_number] = ikle_all_t
+
+        return self.get_data_2d()
 
 
 def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
@@ -151,7 +347,7 @@ def open_hec_hec_ras_and_create_grid(hydrau_description, progress_value, q=[], p
         return
 
 
-def open_hecras(geo_file, res_file, path_geo, path_res, project_preferences=None):
+def open_hecras(geo_file, res_file, path_geo, path_res, project_preferences):
     """
     This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS.
     All arguments from this function are string.
@@ -226,7 +422,8 @@ def open_hecras(geo_file, res_file, path_geo, path_res, project_preferences=None
             return [-99], [-99], [-99], [-99]
 
     elif ext == ".rep":
-        [vel, wse, riv_name, nb_sim, sim_name] = open_repfile(res_file, reach_name, path_res, data_profile, data_bank)
+        [vel, wse, riv_name, nb_sim, sim_name] = open_repfile(res_file, reach_name, path_res, data_profile,
+                                                              data_bank)
     else:
         print("Warning: The file containing the results is not "
               "in XML, rep or sdf format. HABBY try to read it as XML file.\n")
@@ -260,93 +457,15 @@ def open_hecras(geo_file, res_file, path_geo, path_res, project_preferences=None
     for t in tfig:
         t = int(t)
         if t < len(xy_h):
-            path_im = os.path.join(project_preferences["path_prj"], "output", "figures")
-            figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, blob,
-                       project_preferences, t, riv_name)
+            # path_im = os.path.join(project_preferences["path_prj"], "output", "figures")
+            # figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, blob,
+            #            project_preferences, t, riv_name)
+            print("figure_xml")
 
     # update the form of the vector to be coherent with rubar and mascaret
     [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
 
     return coord_pro, vh_pro, nb_pro_reach, sim_name
-
-
-def get_time_step(path, filename):
-    file_path = os.path.join(path, filename)
-    blob, ext = os.path.splitext(filename)
-
-    # XML
-    if ext == ".xml":
-        # load the xml file
-        root = load_xml(filename, path)
-        if root == [-99]:  # if error arised
-            print("Error: the XML file could not be read.\n")
-            return [-99], [-99], [-99], [-99]
-        # find profile name and if there is more than one profile
-        try:
-            sim_name = root.findall(".//ProfileNames")
-            sim_name = str(sim_name[0].text)
-            sim_name = sim_name[1:-1]  # erase firt and last " sign
-            sim_name = sim_name.split('" "')
-            nb_sim = len(sim_name)
-            for si in range(0, nb_sim):
-                sim_name[si] = sim_name[si].replace(':', '_')
-        except AttributeError:
-            print("Warning: the number and name of the simulation cannot be read from the XML file.\n")
-            nb_sim = 1
-
-    # REP
-    elif ext == ".rep":
-        # open the rep file
-        try:
-            with open(file_path, 'rt') as f:
-                data_rep = f.read()
-        except IOError:
-            print("Error: the file " + filename + " does not exist.\n")
-            return [-99], [-99], -99, '-99'
-        # obtain the name of the time steps
-        exp_reg4 = 'Profile #(.+)'
-        sim_name_all = re.findall(exp_reg4, data_rep)
-        if not sim_name_all:
-            print('Warning: the name of the time steps was not found. \n')
-        sim_name = []
-        for s in sim_name_all:
-            if s not in sim_name:
-                sim_name.append(s)
-            else:
-                # simulation name are all given in the first cross section
-                break
-
-    # SDF
-    elif ext == ".sdf":
-        # open the sdf file
-        try:
-            with open(file_path, 'rt') as f:
-                data_sdf = f.read()
-        except IOError:
-            print("Error: the file " + filename + " does not exist.\n")
-            return [-99], [-99], '-99', -99
-
-        # get the reach and river name
-        exp_reg_extra = "BEGIN CROSS-SECTIONS:(.+)END CROSS-SECTION"
-        data_sdf2 = re.findall(exp_reg_extra, data_sdf, re.DOTALL)
-        if not data_sdf2:
-            print('Error: No data on cross section found. \n')
-            return [-99], [-99], '-99', -99
-
-        # get the simulation name or the name of the time steps
-        exp_reg_n = "PROFILE ID:(.+)\n|$"  # $ to avoid problem if no match is found
-        sim_name_all = re.findall(exp_reg_n, data_sdf2[0])
-        sim_name = []
-        for s in sim_name_all:
-            if s not in sim_name:
-                sim_name.append(s)
-            else:
-                # the sim_name are ordered, so we get all the simulation name in the first cross-section
-                break
-        if not sim_name:
-            print('Warning: the names of the time steps could not be extracted from the sdf file. \n')
-
-    return len(sim_name), sim_name
 
 
 def open_xmlfile(xml_file, reach_name, path):
@@ -1704,14 +1823,16 @@ def main():
     This is not the main() of HABBY. This function is used to test this module independently of the rest of HABBY.
     """
 
-    path_test = r'D:\Diane_work\version\file_test'
+    path_test = r'E:\Mes docs\Mes emplois\IRSTEA\AIX\TAF\DATA\HABBY\HYDRAULIQUE\HEC-RAS_1D\Ludovic_Cassan_10_2021'
     # path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-    name = 'thames'
-    name_xml = name + '.O01.xml'
+    name = 'station1_claire'
     name_geo = name + '.g01'
-    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    name_sdf = name + '.RASexport.sdf'
+    path_prj = r'C:\Users\Quentin\Documents\HABBY_projects\DefaultProj'
+    project_properties = load_project_properties(path_prj)
 
-    [coord_pro, vh_pro, nb_pro_reach] = open_hecras(name_geo, name_xml, path_test, path_test, path_im, True)
+
+    [coord_pro, vh_pro, nb_pro_reach] = open_hecras(name_geo, name_sdf, path_test, path_test, project_properties)
 
 
 if __name__ == '__main__':
