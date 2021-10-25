@@ -2242,29 +2242,32 @@ def update_prop(handle, orig):
     handle.set_data([np.mean(x)] * 2, [0, 2 * y[0]])
 
 
-def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, variable_unit, string_tr,
-                                variable_info=""):
+def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, variable, string_tr, variable_info=""):
     # colorbar_label and variable_info
     if variable_info:
-        colorbar_label = variable_info.split(" = ")[0] + " [" + variable_unit + "]"
+        colorbar_label = variable_info.split(" = ")[0] + " [" + variable.unit + "]"
         variable_info = " (" + variable_info + ")"
     else:
-        colorbar_label = "[" + variable_unit + "]"
+        colorbar_label = "[" + variable.unit + "]"
 
     # plot_string_dict
     plot_string_dict = dict(reach_name=reach_name,
                             unit_name=unit_name,
-                            title=variable + ' - ' + reach_name + ' - ' + unit_name + " [" + unit_type + "]",
-                            variable_title=variable.replace("_",
-                                                            " ") + ' [' + variable_unit + ']' + " " + variable_info,
+                            title=variable.position + ' - ' +
+                                  variable.name_gui.replace("_", " ") + ' - ' +
+                                  reach_name + ' - '
+                                  + unit_name + " [" + unit_type + "]",
+                            variable_title=variable.position + ' - ' + variable.name_gui.replace("_", " ") + ' [' + variable.unit + ']' + " " + variable_info,
                             reach_title=string_tr[0] + " : " + reach_name,
                             unit_title=string_tr[1] + " : " + unit_name + " [" + unit_type.replace("m3/s",
                                                                                                    "$m^3$/s") + "]",
                             colorbar_label=colorbar_label,
-                            filename=os.path.splitext(name_hdf5)[0] + "_" + reach_name + "_" + unit_name.replace(".",
-                                                                                                                 "_") + '_' + variable.replace(
-                                " ", "_") + "_map"
-                            )
+                            filename=os.path.splitext(name_hdf5)[0] + "_" +
+                                     reach_name + "_" +
+                                     unit_name.replace(".", "_") + '_' +
+                                     variable.position + "_" +
+                                     variable.name_gui.replace(" ", "_") + "_" +
+                                     "map")
     return plot_string_dict
 
 

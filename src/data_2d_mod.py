@@ -48,6 +48,7 @@ class Data2d(list):
         self.hyd_equation_type = "unknown"
         # hs
         self.hs_summary_data = []
+        self.sub_mapping_method = None
 
     def get_informations(self):
         self.reach_number = len(self)

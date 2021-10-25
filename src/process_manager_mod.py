@@ -257,8 +257,7 @@ class MyProcessManager(QThread):
                                                                                    reach_name,
                                                                                    units[unit_number],
                                                                                    unit_type,
-                                                                                   self.tr(variable.name_gui),
-                                                                                   variable.unit,
+                                                                                   variable,
                                                                                    string_tr)
                                     # class MyProcess
                                     progress_value = Value("d", 0.0)
@@ -300,8 +299,7 @@ class MyProcessManager(QThread):
                                                                                    reach_name,
                                                                                    units[unit_number],
                                                                                    unit_type,
-                                                                                   animal.name,
-                                                                                    "",
+                                                                                   animal,
                                                                                    string_tr,
                                                                                    self.tr('HSI = ') + '{0:3.2f}'.format(animal.hv[reach_number][unit_number]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
 
