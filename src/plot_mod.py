@@ -58,6 +58,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
     """
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
     if not get_fig:
         default_size = plt.rcParams['figure.figsize']
         mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
@@ -194,6 +195,7 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
     """
 
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         default_size = plt.rcParams['figure.figsize']
@@ -270,6 +272,7 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
     """
 
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         default_size = plt.rcParams['figure.figsize']
@@ -688,6 +691,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     # get translation
     qt_tr = get_translator(project_preferences['path_prj'])
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     if project_preferences['font_size'] > 7:
@@ -866,6 +870,7 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     # qt_tr = get_translator(project_preferences['path_prj'])
     path_prj = project_preferences['path_prj']
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
     mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
@@ -1281,371 +1286,6 @@ def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_numbe
     mlab.show()
 
 
-# map node
-def plot_map_elevation(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
-    while not np.all(np.diff(bounds) > 0):  # check if constant or null
-        bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
-    # all values are null
-    if data_min == data_max and bounds_nb == 1:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
-                                         levels=np.array([0.0, 0.1]))
-    # normal case
-    else:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    data_min_str = len(str(data_min).split(".")[0])
-    data_max_str = len(str(data_max).split(".")[0])
-    if data_min_str > 2 or data_max_str > 2:  # two before decimal
-        color_bar.ax.tick_params(labelsize=6)
-    elif data_min_str > 1 or data_max_str > 1:  # two before decimal
-        color_bar.ax.tick_params(labelsize=8)
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_height(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
-    while not np.all(np.diff(bounds) > 0):  # check if constant or null
-        bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
-    # all values are null
-    if data_min == data_max and bounds_nb == 1:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
-                                         levels=np.array([0.0, 0.1]))
-    # normal case
-    else:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_velocity(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
-    while not np.all(np.diff(bounds) > 0):  # check if constant or null
-        bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
-    # all values are null
-    if data_min == data_max and bounds_nb == 1:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
-                                         levels=np.array([0.0, 0.1]))
-    # normal case
-    else:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_conveyance(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
-    while not np.all(np.diff(bounds) > 0):  # check if constant or null
-        bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
-    # all values are null
-    if data_min == data_max and bounds_nb == 1:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
-                                         levels=np.array([0.0, 0.1]))
-    # normal case
-    else:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_froude_number(state, data_xy, data_tin, data_plot, plot_string_dict, data_description,
-                           project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
-    while not np.all(np.diff(bounds) > 0):  # check if constant or null
-        bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
-    # all values are null
-    if data_min == data_max and bounds_nb == 1:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
-                                         levels=np.array([0.0, 0.1]))
-    # normal case
-    else:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_hydraulic_head(state, data_xy, data_tin, data_plot, plot_string_dict, data_description,
-                            project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
-    while not np.all(np.diff(bounds) > 0):  # check if constant or null
-        bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
-    # all values are null
-    if data_min == data_max and bounds_nb == 1:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
-                                         levels=np.array([0.0, 0.1]))
-    # normal case
-    else:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_water_level(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    bounds_nb = 50  # number of bound (color level)
-    bounds = np.linspace(data_min, data_max, bounds_nb)  # create sequence list of bounds
-    while not np.all(np.diff(bounds) > 0):  # check if constant or null
-        bounds_nb += - 1  # remove one bound
-        bounds = np.linspace(data_min, data_max, bounds_nb)  # recreate sequence list of bounds
-    # all values are null
-    if data_min == data_max and bounds_nb == 1:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         colors=colors.rgb2hex(cmap(0)), vmin=data_min, vmax=0.1,
-                                         levels=np.array([0.0, 0.1]))
-    # normal case
-    else:
-        data_ploted = ax_map.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_plot,
-                                         cmap=cmap, vmin=data_min, vmax=data_max, levels=bounds)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    data_min_str = len(str(data_min).split(".")[0])
-    data_max_str = len(str(data_max).split(".")[0])
-    if data_min_str > 2 or data_max_str > 2:  # two before decimal
-        color_bar.ax.tick_params(labelsize=6)
-    elif data_min_str > 1 or data_max_str > 1:  # two before decimal
-        color_bar.ax.tick_params(labelsize=8)
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
 # map mesh
 def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
     mpl_map_change_parameters(project_preferences)
@@ -1694,153 +1334,6 @@ def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_descripti
 
     # color_bar
     ax_legend.remove()
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_slope_bottom(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
-    patches = []
-    for i in range(0, n):
-        verts = []
-        for j in range(0, 3):
-            verts_j = data_xy[int(data_tin[i][j]), :]
-            verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)
-        patches.append(polygon)
-    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    data_ploted.set_array(masked_array)
-    ax_map.add_collection(data_ploted)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_slope_energy(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 2
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
-    patches = []
-    for i in range(0, n):
-        verts = []
-        for j in range(0, 3):
-            verts_j = data_xy[int(data_tin[i][j]), :]
-            verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)
-        patches.append(polygon)
-    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    data_ploted.set_array(masked_array)
-    ax_map.add_collection(data_ploted)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
-
-    # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
-
-
-def plot_map_shear_stress(state, data_xy, data_tin, data_plot, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
-
-    # title and filename
-    title = plot_string_dict["title"]
-    variable_title = plot_string_dict["variable_title"]
-    reach_title = plot_string_dict["reach_title"]
-    unit_title = plot_string_dict["unit_title"]
-    filename = plot_string_dict["filename"]
-    colorbar_label = plot_string_dict["colorbar_label"]
-
-    # data
-    masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
-    data_min = masked_array.min()
-    data_max = masked_array.max()
-    decimal_nb = 0
-    extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
-
-    # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
-    cmap.set_bad(color='black', alpha=1.0)
-
-    # pre_plot_map
-    fig, ax_map, ax_legend = pre_plot_map(title, variable_title, reach_title, unit_title)
-
-    # ax_map plot
-    n = len(data_plot)
-    norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
-    patches = []
-    for i in range(0, n):
-        verts = []
-        for j in range(0, 3):
-            verts_j = data_xy[int(data_tin[i][j]), :]
-            verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)
-        patches.append(polygon)
-    data_ploted = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    data_ploted.set_array(masked_array)
-    ax_map.add_collection(data_ploted)
-
-    # color_bar
-    color_bar = fig.colorbar(data_ploted, cax=ax_legend,
-                             format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    color_bar.set_label(colorbar_label)
 
     # post_plot_map
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
@@ -1966,8 +1459,10 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
 
 
+# param
 def mpl_map_change_parameters(project_preferences):
     mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
     mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
     mpl.rcParams['font.size'] = project_preferences['font_size']
