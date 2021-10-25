@@ -165,7 +165,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
     def get_hydraulic_variable_list(self):
         # get list from source
-        varnames = ["Coordnts", "BottomEl", "always h", "always v"]
+        varnames = ["Coordnts", "BottomEl", "always h", "VELOCITIES"]
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)

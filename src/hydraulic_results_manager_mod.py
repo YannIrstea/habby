@@ -25,6 +25,7 @@ from src.data_2d_mod import Data2d
 from src.dev_tools_mod import sort_homogoeneous_dict_list_by_on_key
 from src.hydraulic_result_mod import HydraulicModelInformation
 from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.project_properties_mod import load_project_properties
 
 
 class HydraulicSimulationResultsSelector:
@@ -65,7 +66,7 @@ class HydraulicSimulationResultsBase:
         self.filename_path = os.path.join(self.folder_path, self.filename)
         self.blob, self.ext = os.path.splitext(self.filename)
         self.extensions_list = self.hmi.extensions[self.hmi.attribute_models_list.index(self.model_type)].split(", ")
-
+        self.project_properties = load_project_properties(self.path_prj)
         # index_hydrau
         self.index_hydrau_file_exist = False
         if os.path.isfile(self.filename_path):

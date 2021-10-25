@@ -47,43 +47,32 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.morphology_available = True
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
-                                                    attribute_list=["BOTTOM", "FOND"],
+                                                    attribute_list=["BottomEl"],
                                                     position="node")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
-                                                    attribute_list=["WATER DEPT", "HAUTEUR D'EAU"],
+                                                    attribute_list=["always h"],
                                                     position="node")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
-                                                    attribute_list=["VITESSE MOY", "MEAN VELOCITY"],
+                                                    attribute_list=["VELOCITIES"],
                                                     position="node")
-        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_x.name,
-                                                    attribute_list=['VITESSE U', 'VELOCITY U'],
-                                                    position="node")
-        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_y.name,
-                                                    attribute_list=['VITESSE V', 'VELOCITY V'],
-                                                    position="node")
-        self.hvum.link_unit_with_software_attribute(name=self.hvum.temp.name,
-                                                    attribute_list=["TEMP"],
-                                                    position="node")
-        self.hvum.link_unit_with_software_attribute(name=self.hvum.v_frict.name,
-                                                    attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
-                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.shear_stress.name,
+                                                    attribute_list=["SHEAR STRESS"],
+                                                    position="mesh")
 
-        # readable file ?
-        try:
-            self.results_data_file = Selafin(self.filename_path)
-        except OSError:
-            self.warning_list.append("Error: The file can not be opened.")
-            self.valid_file = False
+        self.input_path = os.path.join(self.filename_path, "Entree")
+        self.new_dir = os.path.join(self.filename_path, "Resu", "SimHydro")
+
+        # # readable file ?
+        # try:
+        #     self.results_data_file = Selafin(self.filename_path)
+        # except OSError:
+        #     self.warning_list.append("Error: The file can not be opened.")
+        #     self.valid_file = False
 
         # # result_file ?
         # if not "RESULTS" in self.results_data_file.keys():
         #     self.warning_list.append('Error: The file is not BASEMENT results type.')
         #     self.valid_file = False
-
-        # is extension ok ?
-        if os.path.splitext(self.filename)[1] not in self.extensions_list:
-            self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
-            self.valid_file = False
 
         # if valid get informations
         if self.valid_file:
@@ -97,18 +86,24 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     def get_hydraulic_variable_list(self):
         """Get hydraulic variable list from file."""
         # get list from source
-        varnames = [varname.decode('utf-8') for varname in self.results_data_file.varnames]
+        varnames = ["Coordnts", "BottomEl", "always h", "always v"]
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """Get time step information from file."""
-
-        timestep_float_list = self.results_data_file.tags['times']
-        self.timestep_name_list = list(map(str, timestep_float_list))  # always one reach
+        _, _, _, _, _, timestep_name_list = load_lammi(facies_path=self.input_path,
+                   transect_path=self.input_path,
+                   path_im="",
+                   new_dir=self.new_dir,
+                   project_preferences=self.project_properties,
+                   savefig1d=False,
+                   transect_name='Transect.txt',
+               facies_name='Facies.txt')
+        self.timestep_name_list = list(map(str, timestep_name_list))  # always one reach
         self.timestep_nb = len(self.timestep_name_list)
-        self.timestep_unit = "time [s]"
+        self.timestep_unit = "discharge [s]"
 
     def load_hydraulic(self, timestep_name_wish_list):
         """Retrun Data2d from file.
@@ -1116,8 +1111,8 @@ def main():
     filename_habby = r'D:\Diane_work\dummy_folder\prt5\text_output\spu_Merge_LAMMI_04_08_2017_at_10_10_55.txt'
     filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
     # filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\FacTRF.txt'
-    filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
-    compare_lammi(filename_habby, filename_lammi, filename_sur)
+    # filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
+    # compare_lammi(filename_habby, filename_lammi, filename_sur)
 
 
 if __name__ == '__main__':
