@@ -36,24 +36,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
-        # HydraulicVariableUnit
-        self.hvum = HydraulicVariableUnitManagement()
-        # file attributes
-        self.extensions_list = [".txt"]
         self.file_type = "ascii"
-        # simulation attributes
-        self.hyd_equation_type = ""  # FE or FV
         # reach
-        self.multi_reach = False
-        self.reach_number = 1
-        self.reach_name_list = ["unknown"]
         self.morphology_available = True
-        # # readable file ?
-        # try:
-        #     self.results_data_file = Selafin(self.filename_path)
-        # except OSError:
-        #     self.warning_list.append("Error: The file can not be opened.")
-        #     self.valid_file = False
 
         # is extension ok ?
         if os.path.splitext(self.filename)[1] not in self.extensions_list:

@@ -27,7 +27,6 @@ from src import manage_grid_mod
 from src import hdf5_mod
 import matplotlib as mpl
 
-from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
@@ -42,17 +41,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
-        # HydraulicVariableUnit
-        self.hvum = HydraulicVariableUnitManagement()
         # file attributes
-        self.extensions_list = [".res", ".slf"]
         self.file_type = "binary"
-        # simulation attributes
-        self.hyd_equation_type = "FE"
         # reach
-        self.multi_reach = False
-        self.reach_number = 1
-        self.reach_name_list = ["unknown"]
         self.morphology_available = True
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
@@ -1115,12 +1106,12 @@ def main():
     """
 
     # path where the station.txt, transect.txt, secteur.txt
-    # path = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Entree'
-    # new_dir = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\SimHydro'
-    # path_im = '.'
-    #
-    # open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
-    #                            'Transect.txt', 'Facies.txt', True)
+    path = r'E:\Mes docs\Mes emplois\IRSTEA\AIX\TAF\DATA\HABBY\HYDRAULIQUE\LAMMI\Entree'
+    new_dir = r'E:\Mes docs\Mes emplois\IRSTEA\AIX\TAF\DATA\HABBY\HYDRAULIQUE\LAMMI\Resu\SimHydro'
+    path_im = '.'
+
+    open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
+                               'Transect.txt', 'Facies.txt', True)
 
     filename_habby = r'D:\Diane_work\dummy_folder\prt5\text_output\spu_Merge_LAMMI_04_08_2017_at_10_10_55.txt'
     filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'

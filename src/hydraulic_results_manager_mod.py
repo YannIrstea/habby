@@ -51,18 +51,20 @@ class HydraulicSimulationResultsBase:
         model_type -- type of hydraulic model, type: str
         path_prj -- absolute path to project, type: str
         """
-        # HydraulicVariableUnit
-        self.hvum = HydraulicVariableUnitManagement()
         # init
+        self.filename = filename
+        self.folder_path = folder_path
+        self.model_type = model_type
+        self.path_prj = path_prj
+        self.hvum = HydraulicVariableUnitManagement()
+        self.hmi = HydraulicModelInformation()
         self.valid_file = True
         self.warning_list = []  # text warning output
         self.name_prj = os.path.splitext(os.path.basename(path_prj))[0]
-        self.path_prj = path_prj
         self.hydrau_case = "unknown"
-        self.filename = filename
-        self.folder_path = folder_path
         self.filename_path = os.path.join(self.folder_path, self.filename)
         self.blob, self.ext = os.path.splitext(self.filename)
+        self.extensions_list = self.hmi.extensions[self.hmi.attribute_models_list.index(self.model_type)].split(", ")
 
         # index_hydrau
         self.index_hydrau_file_exist = False
@@ -71,13 +73,13 @@ class HydraulicSimulationResultsBase:
         self.index_hydrau_file = "indexHYDRAU.txt"
         self.index_hydrau_file_path = os.path.join(self.folder_path, self.index_hydrau_file)
         # hydraulic attributes
-        self.model_type = model_type
-        self.hyd_equation_type = "unknown"
+        self.hyd_equation_type = self.hmi.equation[self.hmi.attribute_models_list.index(self.model_type)]
         # exist ?
         if not os.path.isfile(self.filename_path) and os.path.splitext(self.filename_path)[1]:
             self.warning_list.append("Error: The file does not exist.")
             self.valid_file = False
 
+        # results_data_file
         self.results_data_file = None
 
         self.sub = False
@@ -87,8 +89,13 @@ class HydraulicSimulationResultsBase:
         self.epsg_code = "unknown"
 
         # reach_number
-        self.multi_reach = False
-        self.reach_number = 1
+        self.reach_number = int(self.hmi.reach_number[self.hmi.attribute_models_list.index(self.model_type)])
+        if self.reach_number == "n":
+            self.reach_number = 1  # init
+            self.multi_reach = True
+        else:
+            self.reach_number = 1  # init
+            self.multi_reach = False
         self.reach_name_list = ["unknown"]
 
         # timestep

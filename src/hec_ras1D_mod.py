@@ -41,21 +41,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
-        # HydraulicVariableUnit
-        self.hvum = HydraulicVariableUnitManagement()
-        # HydraulicModelInformation
-        self.hmi = HydraulicModelInformation()
-        # file attributes
-        self.extensions_list = self.hmi.extensions[self.hmi.attribute_models_list.index(self.model_type)].split(", ")
         self.file_type = "ascii"
-        # simulation attributes
-        self.hyd_equation_type = self.hmi.equation[self.hmi.attribute_models_list.index(self.model_type)]
         self.morphology_available = True
-        # reach
-        self.multi_reach = False  # ?
-        self.reach_number = int(self.hmi.reach_number[self.hmi.attribute_models_list.index(self.model_type)])
-        self.reach_name_list = ["unknown"]
-        # simulation info
         self.simulation_name = "unknown"
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,

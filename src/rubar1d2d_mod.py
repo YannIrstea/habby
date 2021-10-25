@@ -47,19 +47,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
-        # HydraulicVariableUnit
-        self.hvum = HydraulicVariableUnitManagement()
         # file attributes
-        self.extensions_list = [".dat", ".tps"]
         self.file_type = "hdf5"
         # simulation attributes
-        self.hyd_equation_type = "FV"
         self.morphology_available = True
         self.second_file_suffix = "_aux"
-        # reach
-        self.multi_reach = False  # ?
-        self.reach_number = 1
-        self.reach_name_list = ["unknown"]
 
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
