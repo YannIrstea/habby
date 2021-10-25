@@ -173,11 +173,16 @@ class SubstrateAndMerge(QWidget):
         self.polyg_radiobutton = QRadioButton(self.tr('polygons\n(.shp, .gpkg)'))
         self.point_radiobutton = QRadioButton(self.tr('points\n(.txt, .shp, .gpkg)'))
         self.constant_radiobutton = QRadioButton(self.tr('constant values\n(.txt)'))
+        self.sub_choosefile = QPushButton('...', self)
+        self.sub_choosefile.setFixedHeight(widget_height)
+        self.sub_choosefile.setFixedWidth(widget_height)
+        self.sub_choosefile.clicked.connect(self.show_dialog_substrate)
 
         self.radio_choices_layout = QHBoxLayout()
         self.radio_choices_layout.addWidget(self.polyg_radiobutton)
         self.radio_choices_layout.addWidget(self.point_radiobutton)
         self.radio_choices_layout.addWidget(self.constant_radiobutton)
+        self.radio_choices_layout.addWidget(self.sub_choosefile)
 
         self.polyg_radiobutton.setChecked(True)
         self.polyg_radiobutton.clicked.connect(lambda: self.btnstate(self.polyg_radiobutton, self.point_radiobutton, self.constant_radiobutton))
@@ -191,13 +196,8 @@ class SubstrateAndMerge(QWidget):
         filetitle_polygon_label = QLabel(self.tr('File (.shp, .gpkg)'))
         self.file_polygon_label = QLabel("", self)
         self.file_polygon_label.setToolTip(self.pathfile_polygon)
-        self.sub_choosefile_polygon = QPushButton(self.tr('...'), self)
-        self.sub_choosefile_polygon.setFixedHeight(widget_height)
-        self.sub_choosefile_polygon.setFixedWidth(widget_height)
-        self.sub_choosefile_polygon.clicked.connect(lambda: self.show_dialog_substrate("polygon"))
         self.selection_layout_polygon = QHBoxLayout()  # selection_layout
         self.selection_layout_polygon.addWidget(self.file_polygon_label)
-        self.selection_layout_polygon.addWidget(self.sub_choosefile_polygon)
         # POLYGON (1 line)
         classification_codetitle_polygon_label = QLabel(self.tr('Classification code'))
         self.sub_classification_code_polygon_label = QLabel(self.tr('unknown'))
@@ -219,15 +219,8 @@ class SubstrateAndMerge(QWidget):
         filetitle_point_label = QLabel(self.tr('File (.txt, .shp, .gpkg)'))
         self.file_point_label = QLabel(self.namefile[0], self)
         self.file_point_label.setToolTip(self.pathfile[0])
-        self.sub_choosefile_point = QPushButton(self.tr('...'), self)
-        self.sub_choosefile_point.setFixedHeight(widget_height)
-        self.sub_choosefile_point.setFixedWidth(widget_height)
-        self.sub_choosefile_point.clicked.connect(lambda: self.show_dialog_substrate("point"))
-        self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setToolTip(self.pathfile[0]))
-        self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setText(self.namefile[0]))
         self.selection_layout_point = QHBoxLayout()  # selection_layout
         self.selection_layout_point.addWidget(self.file_point_label)
-        self.selection_layout_point.addWidget(self.sub_choosefile_point)
 
         # POINT (1 line)
         classification_codetitle_point_label = QLabel(self.tr('Classification code'))
@@ -250,15 +243,8 @@ class SubstrateAndMerge(QWidget):
         filetitle_constant_label = QLabel(self.tr('File (.txt)'))
         self.file_constant_label = QLabel(self.namefile[0], self)
         self.file_constant_label.setToolTip(self.pathfile[0])
-        self.sub_choosefile_constant = QPushButton(self.tr('...'), self)
-        self.sub_choosefile_constant.setFixedHeight(widget_height)
-        self.sub_choosefile_constant.setFixedWidth(widget_height)
-        self.sub_choosefile_constant.clicked.connect(lambda: self.show_dialog_substrate("constant"))
-        self.sub_choosefile_constant.clicked.connect(lambda: self.file_constant_label.setToolTip(self.pathfile[0]))
-        self.sub_choosefile_constant.clicked.connect(lambda: self.file_constant_label.setText(self.namefile[0]))
         self.selection_layout_constant = QHBoxLayout()  # selection_layout
         self.selection_layout_constant.addWidget(self.file_constant_label)
-        self.selection_layout_constant.addWidget(self.sub_choosefile_constant)
         # CONSTANT (1 line)
         classification_codetitle_constant_label = QLabel(self.tr('Classification code'))
         self.sub_classification_code_constant_label = QLabel(self.tr('unknown'))
@@ -614,18 +600,23 @@ class SubstrateAndMerge(QWidget):
         self.point_group.hide()
         self.constant_group.show()
 
-    def show_dialog_substrate(self, substrate_mapping_method):
+    def show_dialog_substrate(self):
         """
         Selecting shapefile by user and verify integrity of .txt and .prj files.
         Add informations to GUI
         """
-        # prepare the filter to show only useful files
-        if substrate_mapping_method == "polygon":
+        substrate_mapping_method = None
+        if not self.polygon_group.isHidden():
+            substrate_mapping_method = "polygon"
             extensions = [".shp", "gpkg"]
-        if substrate_mapping_method == "point":
+        elif not self.point_group.isHidden():
+            substrate_mapping_method = "point"
             extensions = [".txt", ".shp", "gpkg"]
-        if substrate_mapping_method == "constant":
+        elif not self.constant_group.isHidden():
+            substrate_mapping_method = "constant"
             extensions = [".txt"]
+
+        # prepare the filter to show only useful files
         filter = "File ("
         for ext in extensions:
             filter += '*' + ext + ' '
@@ -714,7 +705,6 @@ class SubstrateAndMerge(QWidget):
                     self.progress_layout_polygon.progress_bar.setValue(0.0)
                     self.progress_layout_polygon.progress_label.setText(
                         "{0:.0f}/{1:.0f}".format(0.0, 1.0))
-
                 # POINT
                 elif substrate_mapping_method == "point":
                     # save to attributes
@@ -755,6 +745,7 @@ class SubstrateAndMerge(QWidget):
                     self.progress_layout_constant.progress_bar.setValue(0.0)
                     self.progress_layout_constant.progress_label.setText(
                         "{0:.0f}/{1:.0f}".format(0.0, 1.0))
+
 
     def load_sub_gui(self, sub_mapping_method):
         """
