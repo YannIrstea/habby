@@ -288,106 +288,15 @@ class DataExplorerFrame(QFrame):
                 # hydraulic
                 if index_type == 1:
                     self.set_hydraulic_layout()
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().names_gui():
-                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs():
-                            mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                            mesh_item.setData(Qt.UserRole, mesh)
-                            if not mesh.hdf5:
-                                mesh_item.setText(mesh_item.text() + " *")
-                                mesh_item.setToolTip("computable : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            else:
-                                mesh_item.setToolTip("exist in file : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
-                        for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
-                            node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                            node_item.setData(Qt.UserRole, node)
-                            if not node.hdf5:
-                                node_item.setText(node_item.text() + " *")
-                                node_item.setToolTip("computable : \n" + node.name_gui + "\n" + node.descr)
-                            else:
-                                node_item.setToolTip("exist in file : \n" + node.name_gui + "\n" + node.descr)
-                            self.plot_group.node_variable_QListWidget.addItem(node_item)
-
-                    if self.hdf5.data_2d.reach_list:
-                        self.plot_group.reach_QListWidget.addItems(self.hdf5.data_2d.reach_list)
-                        if len(self.hdf5.data_2d.reach_list) == 1:
-                            self.plot_group.reach_QListWidget.selectAll()
-                            if self.hdf5.data_2d.unit_list == 1:
-                                self.plot_group.units_QListWidget.selectAll()
-                            else:
-                                self.plot_group.units_QListWidget.setCurrentRow(0)
-
                 # substrat
                 if index_type == 2:
                     self.set_substrate_layout()
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().names_gui():
-                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs():
-                            mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                            mesh_item.setData(Qt.UserRole, mesh)
-                            if not mesh.hdf5:
-                                mesh_item.setText(mesh_item.text() + " *")
-                                mesh_item.setToolTip("computable : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            else:
-                                mesh_item.setToolTip("exist in file : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
-                        for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
-                            node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                            node_item.setData(Qt.UserRole, node)
-                            if not node.hdf5:
-                                node_item.setText(node_item.text() + " *")
-                                node_item.setToolTip("computable : \n" + node.name_gui + "\n" + node.descr)
-                            else:
-                                node_item.setToolTip("exist in file : \n" + node.name_gui + "\n" + node.descr)
-                            self.plot_group.node_variable_QListWidget.addItem(node_item)
-
-                    if self.hdf5.data_2d.sub_mapping_method != "constant":
-                        if self.hdf5.data_2d.reach_list:
-                            self.plot_group.reach_QListWidget.addItems(self.hdf5.data_2d.reach_list)
-                            if len(self.hdf5.data_2d.reach_list) == 1:
-                                self.plot_group.reach_QListWidget.selectAll()
-                                if self.hdf5.data_2d.unit_list == 1:
-                                    self.plot_group.units_QListWidget.selectAll()
-                                else:
-                                    self.plot_group.units_QListWidget.setCurrentRow(0)
-
                 # habitat
                 if index_type == 3:
                     self.set_habitat_layout()
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().names_gui():
-                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs():
-                            mesh_item = QListWidgetItem(mesh.name_gui, self.plot_group.mesh_variable_QListWidget)
-                            mesh_item.setData(Qt.UserRole, mesh)
-                            if not mesh.hdf5:
-                                mesh_item.setText(mesh_item.text() + " *")
-                                mesh_item.setToolTip("computable : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            else:
-                                mesh_item.setToolTip("exist in file : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            self.plot_group.mesh_variable_QListWidget.addItem(mesh_item)
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes().names_gui():
-                        for node in self.hdf5.data_2d.hvum.hdf5_and_computable_list.nodes():
-                            node_item = QListWidgetItem(node.name_gui, self.plot_group.node_variable_QListWidget)
-                            node_item.setData(Qt.UserRole, node)
-                            if not node.hdf5:
-                                node_item.setText(node_item.text() + " *")
-                                node_item.setToolTip("computable : \n" + node.name_gui + "\n" + node.descr)
-                            else:
-                                node_item.setToolTip("exist in file : \n" + node.name_gui + "\n" + node.descr)
-                            self.plot_group.node_variable_QListWidget.addItem(node_item)
 
-                    # habitatvalueremover_group
-                    if self.hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names_gui():
-                        for mesh in self.hdf5.data_2d.hvum.hdf5_and_computable_list.habs().meshs():
-                            mesh_item = QListWidgetItem(mesh.name_gui, self.habitatvalueremover_group.existing_animal_QListWidget)
-                            mesh_item.setData(Qt.UserRole, mesh)
-                            if not mesh.hdf5:
-                                mesh_item.setText(mesh_item.text() + " *")
-                                mesh_item.setToolTip("computable : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            else:
-                                mesh_item.setToolTip("exist in file : \n" + mesh.name_gui + "\n" + mesh.descr)
-                            self.habitatvalueremover_group.existing_animal_QListWidget.addItem(mesh_item)
-
+                # reach and units
+                if self.hdf5.data_2d.sub_mapping_method != "constant":
                     if self.hdf5.data_2d.reach_list:
                         self.plot_group.reach_QListWidget.addItems(self.hdf5.data_2d.reach_list)
                         if len(self.hdf5.data_2d.reach_list) == 1:
@@ -396,6 +305,37 @@ class DataExplorerFrame(QFrame):
                                 self.plot_group.units_QListWidget.selectAll()
                             else:
                                 self.plot_group.units_QListWidget.setCurrentRow(0)
+
+                # variables
+                for variable in self.hdf5.data_2d.hvum.hdf5_and_computable_list:
+                    if variable.position == "mesh":
+                        list_widget_position = self.plot_group.mesh_variable_QListWidget
+                    elif variable.position == "node":
+                        list_widget_position = self.plot_group.node_variable_QListWidget
+                    variable_item = QListWidgetItem(variable.name_gui, list_widget_position)
+                    variable_item.setData(Qt.UserRole, variable)
+                    # tooltip
+                    if not variable.hdf5:
+                        variable_item.setText(variable_item.text() + " *")
+                        variable_item.setToolTip(
+                            variable.name_gui + "\n" +
+                            "exist in file : no \n" +
+                            "position : " + variable.position + "\n" +
+                            "unit : " + variable.unit + "\n" +
+                            "description : " + variable.descr
+                                                 )
+                    else:
+                        variable_item.setToolTip(
+                             variable.name_gui + "\n" +
+                             "exist in file : yes" + "\n" +
+                             "position : " + variable.position + "\n" +
+                             "unit : " + variable.unit + "\n" +
+                             "description : " + variable.descr
+                        )
+                    if variable.position == "mesh":
+                        self.plot_group.mesh_variable_QListWidget.addItem(variable_item)
+                    elif variable.position == "node":
+                        self.plot_group.node_variable_QListWidget.addItem(variable_item)
 
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(self.hdf5.hdf5_attributes_name_text, self.hdf5.hdf5_attributes_info_text)), self)
