@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import re
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, \
     QMessageBox, QTabWidget, QApplication, QStatusBar,\
@@ -615,6 +615,10 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget.model().rowsInserted.connect(self.count_models_listwidgets)
         self.available_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
 
+        # arrow available to selected
+        self.arrow = QLabel()
+        self.arrow.setPixmap(QPixmap(os.path.join(os.getcwd(), "file_dep", "icon", "triangle_black_closed_50_50.png")).copy(20, 0, 16, 50))
+
         self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.setObjectName("selected_aquatic_animal")
@@ -679,10 +683,11 @@ class BioModelInfoSelection(QScrollArea):
         """ GROUP ET LAYOUT """
         # aquatic_animal
         self.aquatic_animal_layout = QGridLayout()
-        self.aquatic_animal_layout.addWidget(self.available_aquatic_animal_label, 0, 0)
+        self.aquatic_animal_layout.addWidget(self.available_aquatic_animal_label, 0, 0, Qt.AlignRight)
         self.aquatic_animal_layout.addWidget(self.available_aquatic_animal_listwidget, 1, 0)
-        self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_label, 0, 1)
-        self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_listwidget, 1, 1)
+        self.aquatic_animal_layout.addWidget(self.arrow, 1, 1)
+        self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_label, 0, 2)
+        self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_listwidget, 1, 2)
 
         # information_curve
         self.information_curve_group = QGroupBox(self.tr("Habitat Suitability Index information"))
