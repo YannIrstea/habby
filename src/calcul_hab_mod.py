@@ -295,22 +295,18 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                     # calc from model points
                     hv = griddata(pref_xy_repeated, model_var.hv, xy_input, method='linear')[0]
 
-                # get data
-                hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name] = hv
-
                 # compute summary
                 wua = np.nansum(hv * area)
                 if any(np.isnan(hv)):
-                    area = np.sum(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name][
-                                      ~np.isnan(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name])])
-                    global_hv = wua / area
-                    percent_area_unknown = (1 - (area / hdf5.data_2d[reach_number][
-                        unit_number].total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
+                    area = np.sum(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name][~np.isnan(hv)])
+                    # global_hv = wua / area
+                    percent_area_unknown = (1 - (area / hdf5.data_2d[reach_number][unit_number].total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
                 else:
-                    global_hv = wua / hdf5.data_2d[reach_number][unit_number].total_wet_area
                     percent_area_unknown = 0.0
+                global_hv = wua / hdf5.data_2d[reach_number][unit_number].total_wet_area
 
                 # get data
+                hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name] = hv
                 if len(animal.wua) < hdf5.data_2d.reach_number:
                     animal.wua.append([])
                     animal.hv.append([])
