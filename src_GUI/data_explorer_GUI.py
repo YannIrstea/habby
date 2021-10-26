@@ -296,7 +296,12 @@ class DataExplorerFrame(QFrame):
                     self.set_habitat_layout()
 
                 # reach and units
-                if self.hdf5.data_2d.sub_mapping_method != "constant":
+                show_tf = True
+                if self.hdf5.hdf5_type == "substrate":
+                    if self.hdf5.data_2d.sub_mapping_method == "constant":
+                        show_tf = False
+
+                if show_tf:
                     if self.hdf5.data_2d.reach_list:
                         self.plot_group.reach_QListWidget.addItems(self.hdf5.data_2d.reach_list)
                         if len(self.hdf5.data_2d.reach_list) == 1:
