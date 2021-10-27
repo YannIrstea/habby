@@ -505,7 +505,7 @@ def hydraulic_class_from_file(filename):
     f = open(filename, "r")
     hvclass = [[], []]
     for i in [0, 1]:
-        hvcstr = f.readline().rstrip("\n").split(" ")
+        hvcstr = f.readline().rstrip("\n").split()
 
         for item in hvcstr[1:]:
             if item == "":
