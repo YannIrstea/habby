@@ -1,10 +1,10 @@
-habby_dev_path='/home/quentin/Documents/TAF/habby_dev'
+habby_dev_path='/datas/habby_dev'
 
-source $habby_dev_path/env_virtuels/venv/bin/activate
+source $habby_dev_path/env_virtuels/env_habby_dev_pip/bin/activate
 
 cd $habby_dev_path/habby
 
-$habby_dev_path/env_virtuels/venv/bin/pyinstaller tips/executables/habby.spec --distpath=build/pyinstaller --workpath=build/pyinstaller/temp --noconfirm
+$habby_dev_path/env_virtuels/env_habby_dev_pip/bin/pyinstaller tips/executables/habby.spec --distpath=build/pyinstaller --workpath=build/pyinstaller/temp --noconfirm
 
 cp -r biology build/pyinstaller/habby/biology
 cp -r doc build/pyinstaller/habby/doc
