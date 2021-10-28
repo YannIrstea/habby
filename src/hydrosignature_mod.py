@@ -308,11 +308,12 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
             for varname in hyd_data_node.dtype.names:
                 original_values = hyd_data_node[varname]
                 if varname=='h' or varname=='v':
-                    epsilonnul=True
+                    k7=0 if varname=='h' else 1
+                    node_data_out[varname]=new_hv_unique[:,k7]
+                    node_data_out[varname][np.abs(node_data_out[varname]) < 1e-12] = 0 #(mainly for small négative value) <10e-12 will be corrected to 0
                 else:
-                    epsilonnul = False
-                node_data_out[varname] = interpolate_from_triangle(new_xy_unique, hyd_xy_node, original_values, hyd_tin,
-                                                                   original_triangle_unique,epsilonnul)
+                    node_data_out[varname] = interpolate_from_triangle(new_xy_unique, hyd_xy_node, original_values, hyd_tin,
+                                                                   original_triangle_unique)
         else:
             node_data_out = None
 
@@ -325,8 +326,9 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                     mesh_data_out["i_split"] = original_i_split[enclosing_triangle_unique]
                     mesh_data_out["i_split"] += iscut_newmesh * 5
                 else:
-                    original_values = hyd_data_mesh[varname]
-                    mesh_data_out[varname] = original_values[enclosing_triangle_unique]
+                    if varname != "area":
+                        original_values = hyd_data_mesh[varname]
+                        mesh_data_out[varname] = original_values[enclosing_triangle_unique]
             mesh_data_out = np.lib.recfunctions.append_fields(mesh_data_out, "hydraulic_class", hydro_classes_unique,
                                                               usemask=False)
         else:
@@ -340,7 +342,10 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
         node_xy_out, indices2,indices3 = np.unique(new_xy_unique, axis=0, return_inverse=True,return_index=True)
         tin_out2=indices2[tin_out]
         node_data_out3=node_data_out[indices3]
+        if "area" in hyd_data_mesh.dtype.names:
+            mesh_data_out["area" ]=0.5 * (np.abs((node_xy_out[tin_out2[:, 1]][:, 0] - node_xy_out[tin_out2[:, 0]][:, 0]) * (node_xy_out[tin_out2[:, 2]][:, 1] - node_xy_out[tin_out2[:, 0]][:, 1]) - (node_xy_out[tin_out2[:, 2]][:, 0] - node_xy_out[tin_out2[:, 0]][:, 0]) * (node_xy_out[tin_out2[:, 1]][:, 1] - node_xy_out[tin_out2[:, 0]][:, 1])))
         node_xy_out += translationxy
+
         return nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out3, mesh_data_out, tin_out2, i_whole_profile_out
     else:
         return nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume
@@ -543,7 +548,7 @@ def interpol0(x, xa, ya, xb, yb):
     return (x - xa) * (yb - ya) / (xb - xa) + ya
 
 
-def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_triangle,epsilonnul=False):
+def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_triangle):
     """
     Linearly interpolates the value of a variable z inside the mesh elements
     epsilonnul to avoid numerical problem with negative values calculated for h or v <1e-12
@@ -552,7 +557,6 @@ def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_tria
     :param old_values: (n,) array containing z-values in each node of original mesh
     :param old_tin: (l,3) array containing tin of old mesh (referring to old mesh indices)
     :param original_triangle: (m,) array containing the index of the triangle each new node is inside
-    :param epsilonnul a bolean if true any z value interpolated (mainly whith a négative value) <10e-12 will be corrected to 0
     :return z: (m,) array of interpolated z-values in the positions of the new nodes
     """
     ordered_tin = old_tin[original_triangle]
@@ -565,8 +569,6 @@ def interpolate_from_triangle(new_xy, old_xy, old_values, old_tin, original_tria
     z = z1 + (((x - x1) * ((y2 - y1) * (z2 - z3) - (y2 - y3) * (z2 - z1))) + (
             (y - y1) * ((x2 - x3) * (z2 - z1) - (x2 - x1) * (z2 - z3)))) / (
                 (x2 - x3) * (y2 - y1) - (x2 - x1) * (y2 - y3))
-    if  epsilonnul:
-        z[np.abs(z) < 1e-12]=0
     return z
 
 
