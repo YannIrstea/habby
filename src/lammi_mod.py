@@ -31,7 +31,7 @@ from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
-    """Represent Telemac hydraulic simulation results.
+    """Represent LAMMI simulation results.
 
     Keyword arguments:
     filename -- filename, type: str

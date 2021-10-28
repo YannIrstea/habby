@@ -62,10 +62,10 @@ class CheckVersionDialog(QDialog):
         self.setPalette(p)
 
         """ WIDGETS """
-        actual_version_label_title = QLabel(self.tr('Current'))
+        actual_version_label_title = QLabel(self.tr('Current software'))
         actual_version_label = QLabel(str(self.actual_version))
 
-        last_version_label_title = QLabel(self.tr('Last'))
+        last_version_label_title = QLabel(self.tr('Last on web'))
         self.last_version_label = QLabel("-")
 
         self.close_button = QPushButton(self.tr("Close"))
@@ -92,7 +92,8 @@ class CheckVersionDialog(QDialog):
         self.setModal(True)
 
     def get_last_version_number_from_github(self):
-        last_version_str = get_last_version_number_from_github()
+        last_version_str = get_last_version_number_from_github()  # Only X.Y version
+        last_version_str = last_version_str + ".0"
         self.last_version_label.setText(last_version_str)
 
     def showEvent(self, event):
@@ -146,7 +147,7 @@ class SoftInformationDialog(QDialog):
         home_page_label.setOpenExternalLinks(True)
         github_page_label = QLabel("<a href='https://github.com/YannIrstea/habby'>https://github.com/YannIrstea/habby</a>")
         github_page_label.setOpenExternalLinks(True)
-        about_layout.addRow(QLabel(self.tr("HABBY version")), QLabel(str(HABBY_VERSION_STR)))
+        about_layout.addRow(QLabel(self.tr("HABBY version")), QLabel(HABBY_VERSION_STR))
         about_layout.addRow(QLabel(self.tr("Qt version")), QLabel(PYQT_VERSION_STR))
         about_layout.addRow(QLabel(self.tr("GDAL/OGR version")), QLabel(GDAL_VERSION_STR))
         about_layout.addRow(QLabel(self.tr("triangle version")), QLabel(TRIANGLE_VERSION_STR))

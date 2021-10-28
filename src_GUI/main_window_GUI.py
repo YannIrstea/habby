@@ -93,7 +93,7 @@ class MainWindows(QMainWindow):
         self.stat_tabs = False
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = str(HABBY_VERSION_STR)
+        self.version = HABBY_VERSION_STR
         self.limited_edition = True  # if set to True : GUI version mode is runned with blocked fonctionalities
 
         # operating system
@@ -605,9 +605,18 @@ class MainWindows(QMainWindow):
         self.my_menu_bar()
 
         # check version
-        project_version = project_preferences["version_habby"]
-        if float(self.version) > float(project_version):
-            self.central_widget.write_log(self.tr('Warning: Current project is an old HABBY project. Working with this can lead to software crashes. It is advisable to recreate a new project.'))
+        project_version_tuple = tuple(map(int, project_preferences["version_habby"].split('.')))  # version tuple
+        if len(project_version_tuple) == 2:
+            # old semantic versioning with 'only X.Y'. New is 'X.Y.Z'
+            project_version_tuple = project_version_tuple + (0, )
+        habby_version_tuple = tuple(map(int, self.version.split('.')))  # version tuple
+        if project_version_tuple[:-1] < habby_version_tuple[:-1]:  # Only if Y level version change
+            print(project_version_tuple[:-1], habby_version_tuple[:-1])
+            self.central_widget.write_log(self.tr('Warning: Current project is an old HABBY project produced by '
+                                                  'HABBY v' + project_preferences["version_habby"] + '. '
+                                                  'Working with this can lead to software crashes. '
+                                                  'It is advisable to recreate a new project. '
+                                                  'Actual HABBY version : v' + self.version))
 
         self.central_widget.write_log(self.tr('Project opened.'))
 
@@ -861,8 +870,8 @@ class MainWindows(QMainWindow):
                     f.write('open')
 
     def check_need_of_update_sofware(self):
-        last_float = 0
-        actual_float = 0
+        last_tupe = "0.0.0"
+        actual_tupe = "0.0.0"
         last = get_last_version_number_from_github()
         actual = HABBY_VERSION_STR
 
@@ -870,15 +879,15 @@ class MainWindows(QMainWindow):
             pass
         else:
             try:
-                last_float = float(last)
+                last_tupe = tuple(map(int, last.split('.')))  # version tuple
             except:
                 print("Error: Can't convert last version to float number :", last)
             try:
-                actual_float = float(actual)
+                actual_tupe = tuple(map(int, actual.split('.')))  # version tuple
             except:
                 print("Error: Can't convert actual version to float number :", actual)
 
-            if actual_float < last_float:
+            if actual_tupe < last_tupe:
                 self.central_widget.write_log(self.tr("Warning: A new version of the HABBY software is available! "
                                                                                                "It is strongly advised to update from " + str(actual_float) + self.tr(" to ") + str(last_float) + " and take into consideration the latest changes."))
 

@@ -136,7 +136,7 @@ class Hdf5Management:
             self.file_object.attrs['hdf5_version'] = self.hdf5_version
             self.file_object.attrs['h5py_version'] = self.h5py_version
             self.file_object.attrs['software'] = 'HABBY'
-            self.file_object.attrs['software_version'] = str(HABBY_VERSION_STR)
+            self.file_object.attrs['software_version'] = HABBY_VERSION_STR
             self.file_object.attrs['path_project'] = self.path_prj
             self.file_object.attrs['name_project'] = self.name_prj
             self.file_object.attrs['filename'] = self.filename
@@ -617,13 +617,15 @@ class Hdf5Management:
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
             desired_units_list = [available_unit_list[unit_index] for unit_index in self.data_2d.units_index]  # get only desired_units
+            self.whole_profile_unit_corresp.append([])
             for unit_number, unit_group_name in enumerate(desired_units_list):
                 # group name
                 unit_group = reach_group + "/" + unit_group_name
-
                 if self.extension == ".hyd" or self.extension == ".hab":
                     self.data_2d[reach_number][unit_number].total_wet_area = self.file_object[unit_group].attrs[
                         'total_wet_area']
+                    self.data_2d[reach_number][unit_number].whole_profile_corresp = self.file_object[unit_group].attrs['whole_profile_corresp']
+                    self.whole_profile_unit_corresp[reach_number].append(self.file_object[unit_group].attrs['whole_profile_corresp'])
 
                 if self.extension == ".hab":
                     # group
@@ -1104,6 +1106,7 @@ class Hdf5Management:
                     self.data_2d[reach_number][unit_number].hydrosignature["hsvolume"] = hsvolume
 
                     if export_mesh:
+                        self.data_2d[reach_number][unit_number].total_wet_area = total_area
                         self.data_2d.hvum.hydraulic_class.hdf5 = True
                         self.data_2d.hvum.hydraulic_class.position = "mesh"
                         if self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
@@ -1115,6 +1118,7 @@ class Hdf5Management:
                         self.replace_dataset_in_file(unitpath + "/node/data", node_data_out)
                         self.replace_dataset_in_file(unitpath + "/node/xy", node_xy_out)
 
+            self.write_data_2d_info()
             self.write_hydrosignature()
 
         else:
