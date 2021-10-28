@@ -610,7 +610,7 @@ class MainWindows(QMainWindow):
             # old semantic versioning with 'only X.Y'. New is 'X.Y.Z'
             project_version_tuple = project_version_tuple + (0, )
         habby_version_tuple = tuple(map(int, self.version.split('.')))  # version tuple
-        if project_version_tuple[:-1] < habby_version_tuple[:-1]:  # Only if Y level version change
+        if project_version_tuple[:-1] < habby_version_tuple[:-1]:  # Only if X.Y version level
             print(project_version_tuple[:-1], habby_version_tuple[:-1])
             self.central_widget.write_log(self.tr('Warning: Current project is an old HABBY project produced by '
                                                   'HABBY v' + project_preferences["version_habby"] + '. '
@@ -887,7 +887,7 @@ class MainWindows(QMainWindow):
             except:
                 print("Error: Can't convert actual version to float number :", actual)
 
-            if actual_tupe < last_tupe:
+            if actual_tupe[-1] < last_tupe[-1]:  # X.Y version level
                 self.central_widget.write_log(self.tr("Warning: A new version of the HABBY software is available! "
                                                                                                "It is strongly advised to update from " + str(actual_float) + self.tr(" to ") + str(last_float) + " and take into consideration the latest changes."))
 

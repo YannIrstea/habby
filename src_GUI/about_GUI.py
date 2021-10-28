@@ -92,8 +92,8 @@ class CheckVersionDialog(QDialog):
         self.setModal(True)
 
     def get_last_version_number_from_github(self):
-        last_version_str = get_last_version_number_from_github()  # Only X.Y version
-        last_version_str = last_version_str + ".0"
+        last_version_str = get_last_version_number_from_github()  # X.Y.Z version level
+        last_version_str = last_version_str
         self.last_version_label.setText(last_version_str)
 
     def showEvent(self, event):

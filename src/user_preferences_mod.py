@@ -98,7 +98,7 @@ class UserPreferences(AppDataFolders):
                 user_old_habby_version = "0.0.0"
             user_old_habby_version = tuple(map(int, user_old_habby_version.split('.')))  # version tuple
             HABBY_VERSION_TUPLE = tuple(map(int, HABBY_VERSION_STR.split('.')))  # version tuple
-            if user_old_habby_version < HABBY_VERSION_TUPLE:
+            if user_old_habby_version < HABBY_VERSION_TUPLE:  # X.Y.Z version level
                 self.create_defaut_user_preferences()
                 self.save_user_preferences_json()  # create it
 

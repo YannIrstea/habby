@@ -529,10 +529,16 @@ class ModelInfoGroup(QGroupBox):
             model_path = self.path_prj  # path proj
 
         # find the filename based on user choice
-        filename_list = QFileDialog().getOpenFileNames(self,
+        if self.extension:
+            filename_list = QFileDialog().getOpenFileNames(self,
                                                      self.tr("Select file(s)"),
                                                      model_path,
                                                      filter2)
+        else:
+            filename_list = QFileDialog().getExistingDirectory(self,
+                                                     self.tr("Select directory"),
+                                                     model_path)
+            filename_list = [filename_list]
 
         # if file has been selected
         if filename_list[0]:
