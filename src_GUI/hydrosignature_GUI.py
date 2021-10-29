@@ -117,8 +117,8 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.project_preferences = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
-        input_class_file_info = self.read_attribute_xml("HS_input_class")
-        self.read_input_class(os.path.join(input_class_file_info["path"], input_class_file_info["file"]))
+        self.input_class_file_info = self.read_attribute_xml("HS_input_class")
+        self.read_input_class(os.path.join(self.input_class_file_info["path"], self.input_class_file_info["file"]))
         # process_manager
         self.process_manager = MyProcessManager("hs")
 
@@ -151,7 +151,7 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         input_class_label = QLabel(self.tr("Input class (.txt)"))
         self.input_class_filename = QLabel("")
-        self.input_class_pushbutton = QPushButton(self.tr("Select file"))
+        self.input_class_pushbutton = QPushButton("...")
         self.input_class_pushbutton.clicked.connect(self.select_input_class_dialog)
         hs_export_txt_label = QLabel(self.tr("Export results (.txt)"))
         self.hs_export_txt_checkbox = QCheckBox()
@@ -264,10 +264,10 @@ class ComputingGroup(QGroupBoxCollapsible):
             self.progress_layout.run_stop_button.setEnabled(False)
 
     def select_input_class_dialog(self):
-        input_class_file_info = self.read_attribute_xml("HS_input_class")
+        self.input_class_file_info = self.read_attribute_xml("HS_input_class")
         # get last path
-        if input_class_file_info["path"] != self.path_prj and input_class_file_info["path"] != "":
-            model_path = input_class_file_info["path"]  # path spe
+        if self.input_class_file_info["path"] != self.path_prj and self.input_class_file_info["path"] != "":
+            model_path = self.input_class_file_info["path"]  # path spe
         elif self.read_attribute_xml("path_last_file_loaded") != self.path_prj and self.read_attribute_xml("path_last_file_loaded") != "":
             model_path = self.read_attribute_xml("path_last_file_loaded")  # path last
         else:
@@ -335,6 +335,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                                               hdf5_name_list=[selection_el.text() for selection_el in
                                                               self.file_selection_listwidget.selectedItems()],
                                               hs_export_txt=self.hs_export_txt_checkbox.isChecked(),
+                                              classhv_input_class_file_info=self.input_class_file_info,
                                               classhv=self.classhv)
 
             self.progress_layout.process_manager.set_hs_hdf5_mode(self.path_prj,
