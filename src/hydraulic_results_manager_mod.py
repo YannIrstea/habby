@@ -948,7 +948,6 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
     filename_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0], "indexHYDRAU.txt")
     filename_column = description_from_indexHYDRAU_file["filename_source"].split(", ")
     hydrau_case = description_from_indexHYDRAU_file["hydrau_case"]
-
     """ CASE .a or .b ? user can select specific timesteps or discharges """
     if hydrau_case in {"unknown", "2.a", "2.b", "3.a", "3.b"}:
         for reach_num in range(len(description_from_indexHYDRAU_file["unit_list"])):
@@ -987,7 +986,7 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
             with open(filename_path, 'wt', encoding="utf-8") as f:
                 f.write(text)
 
-        if hydrau_case == "3.b":
+        elif hydrau_case == "3.b":
             if "unknown" in description_from_indexHYDRAU_file["reach_list"]:
                 reach_column_presence = False
             else:
@@ -1033,11 +1032,18 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
             # write text file
             with open(filename_path, 'wt', encoding="utf-8") as f:
                 f.write(text)
+
+        else:
+            # copy original
+            sh_copy(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt"),
+                    os.path.join(description_from_indexHYDRAU_file["path_prj"], "input",
+                                 os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0]))
     else:
         # copy original
         sh_copy(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt"),
-                os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0]))
-    #
+                os.path.join(description_from_indexHYDRAU_file["path_prj"], "input",
+                             os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0]))
+
     # import sys
     # sys.stdout = sys.__stdout__
     # print("hydrau_case out : " + hydrau_case)
