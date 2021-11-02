@@ -889,7 +889,7 @@ class MainWindows(QMainWindow):
 
             if actual_tupe[-1] < last_tupe[-1]:  # X.Y version level
                 self.central_widget.write_log(self.tr("Warning: A new version of the HABBY software is available! "
-                                                                                               "It is strongly advised to update from " + str(actual_float) + self.tr(" to ") + str(last_float) + " and take into consideration the latest changes."))
+                                                                                               "It is strongly advised to update from " + str(".".join([str(value) for value in actual_tupe])) + self.tr(" to ") + str(".".join([str(value) for value in last_tupe])) + " and take into consideration the latest changes."))
 
     def end_concurrency(self):
         """
