@@ -551,9 +551,6 @@ class ProjectPropertiesDialog(QDialog):
         """
         project_preferences = self.collect_project_preferences_choice()
 
-        # project_preferences['cut_mesh_partialy_dry'] to change suffix no_cut
-        self.cut_mesh_partialy_dry_signal.emit(project_preferences['cut_mesh_partialy_dry'])
-
         # save the data in the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
 
@@ -569,6 +566,10 @@ class ProjectPropertiesDialog(QDialog):
             save_project_properties(self.path_prj, project_preferences)
 
         self.send_log.emit(self.tr('# Project properties saved.'))
+
+        # project_preferences['cut_mesh_partialy_dry'] to change suffix no_cut
+        self.cut_mesh_partialy_dry_signal.emit(project_preferences['cut_mesh_partialy_dry'])
+
         self.close()
 
     def close_preferences(self):

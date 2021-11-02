@@ -124,23 +124,27 @@ class HydrauTab(QScrollArea):
         self.model_list_combobox = QComboBox()
         self.model_list_combobox.setMaxVisibleItems(len(self.hydraulic_model_information.name_models_gui_list) + 4)
         self.model_list_combobox.addItems([""] + self.hydraulic_model_information.name_models_gui_list)  # available model
-        self.info_model_pushbutton = QPushButton(self.tr('?'))
+        self.info_model_pushbutton = QPushButton('?')
         widget_height = self.model_list_combobox.minimumSizeHint().height()
         self.info_model_pushbutton.setFixedHeight(widget_height)
         self.info_model_pushbutton.setFixedWidth(widget_height)
-        self.info_model_pushbutton.clicked.connect(self.give_info_model)
+        self.info_model_pushbutton.clicked.connect(self.give_info_model_dialog)
+
+        # info_model_label
+        self.info_model_label = QLabel("")
 
         # model
         model_layout = QHBoxLayout()
         model_layout.addWidget(model_list_title_label)
         model_layout.addWidget(self.model_list_combobox)
         model_layout.addWidget(self.info_model_pushbutton)
+        model_layout.addWidget(self.info_model_label)
         model_layout.addStretch()
 
         # model_group
         self.model_group = ModelInfoGroup(self.path_prj, self.name_prj, self.send_log, self.tr(""))
         self.model_group.hide()
-        self.model_list_combobox.currentIndexChanged.connect(self.model_group.change_model_type_gui)
+        self.model_list_combobox.currentIndexChanged.connect(self.change_model_type_gui)
 
         # vertical layout
         self.setWidget(hydrau_frame)
@@ -157,7 +161,27 @@ class HydrauTab(QScrollArea):
         # self.installEventFilter(self.keyboard_change_tab_filter)
         # self.keyboard_change_tab_filter.enter_signal.connect(self.model_group.load_hydraulic_create_hdf5)
 
-    def give_info_model(self):
+    def change_model_type_gui(self, i):
+        """
+        """
+        self.model_group.hide()
+        self.model_group.model_index = i - 1
+        self.model_group.extension = self.hydraulic_model_information.extensions[self.model_group.model_index]
+        self.model_group.model_type = self.hydraulic_model_information.attribute_models_list[self.model_group.model_index]
+        self.model_group.nb_dim = self.hydraulic_model_information.dimensions[self.model_group.model_index]
+
+        if i > 0:
+            self.give_info_model_label()
+
+            # model_group
+            self.model_group.clean_gui()
+            # extensions
+            # self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
+            self.model_group.result_file_title_label.setText(self.tr('Result file (') + self.model_group.extension + ')')
+            self.model_group.name_last_hdf5(self.model_group.model_type)
+            self.model_group.show()
+
+    def give_info_model_dialog(self):
         """
         A function to show extra information about each hydrological model.
         The information should be in a text file with the same name as the
@@ -190,38 +214,50 @@ class HydrauTab(QScrollArea):
         self.msgi.setWindowIcon(QIcon(name_icon))
         self.msgi.show()
 
+    def give_info_model_label(self):
+        # 2d informations
+        if self.model_group.nb_dim == "2":
+            self.info_model_label.setText(
+                self.tr("Semi wet cut mesh enable : ") + str(
+                    load_specific_properties(self.path_prj, ["cut_mesh_partialy_dry"])[0]) + "\n" +
+                self.tr("Water depth value considered to be zero : ") + str(
+                    load_specific_properties(self.path_prj, ["min_height_hyd"])[0]) + " m")
+        else:
+            self.info_model_label.setText("\n")
+
     def set_suffix_no_cut(self, no_cut_bool):
-        if self.hydraulic_model_information.name_models_gui_list[self.model_index]:
-            # get class
-            current_model_class = getattr(self, self.hydraulic_model_information.attribute_models_list[self.model_index].lower())
-            # get hdf5_name
-            current_hdf5_name = current_model_class.hname.text()
-            # add no_cut suffix if not exist
-            if not no_cut_bool:
-                # check if no_cut suffix exist
-                if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                    # check if there is extension
-                    if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                        extension = os.path.splitext(current_hdf5_name)[1]
-                    else:
-                        extension = ""
-                    # create new name
-                    new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
-                    # set new name
-                    current_model_class.hname.setText(new_hdf5_name)
-            # remove no_cut suffix if exist
-            elif no_cut_bool:
-                # check if no_cut suffix exist
-                if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                    # check if there is extension
-                    if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                        extension = os.path.splitext(current_hdf5_name)[1]
-                    else:
-                        extension = ""
-                    # create new name
-                    new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
-                    # set new name
-                    current_model_class.hname.setText(new_hdf5_name)
+        if self.model_list_combobox.currentIndex() > 0:
+            if self.hydraulic_model_information.name_models_gui_list[self.model_group.model_index]:
+                # give_info_model_label
+                self.give_info_model_label()
+                # get hdf5_name
+                current_hdf5_name = self.model_group.hdf5_name_lineedit.text()
+                # add no_cut suffix if not exist
+                if not no_cut_bool:
+                    # check if no_cut suffix exist
+                    if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                        # check if there is extension
+                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                            extension = os.path.splitext(current_hdf5_name)[1]
+                        else:
+                            extension = ""
+                        # create new name
+                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
+                        # set new name
+                        self.model_group.hdf5_name_lineedit.setText(new_hdf5_name)
+                # remove no_cut suffix if exist
+                elif no_cut_bool:
+                    # check if no_cut suffix exist
+                    if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                        # check if there is extension
+                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                            extension = os.path.splitext(current_hdf5_name)[1]
+                        else:
+                            extension = ""
+                        # create new name
+                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
+                        # set new name
+                        self.model_group.hdf5_name_lineedit.setText(new_hdf5_name)
 
 
 class ModelInfoGroup(QGroupBox):
@@ -343,23 +379,6 @@ class ModelInfoGroup(QGroupBox):
         layout_ascii.addWidget(self.last_hydraulic_file_name_label, 10, 1)
         self.setLayout(layout_ascii)
 
-    def change_model_type_gui(self, i):
-        """
-        """
-        self.hide()
-        self.model_index = i - 1
-        self.extension = self.hydraulic_model_information.extensions[self.model_index]
-        self.model_type = self.hydraulic_model_information.attribute_models_list[self.model_index]
-        self.nb_dim = self.hydraulic_model_information.dimensions[self.model_index]
-
-        if i > 0:
-            self.clean_gui()
-            # extensions
-            # self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
-            self.result_file_title_label.setText(self.tr('Result file (') + self.extension + ')')
-            self.name_last_hdf5(self.model_type)
-            self.show()
-
     def read_attribute_xml(self, att_here):
         """
         A function to read the text of an attribute in the xml project file.
@@ -452,40 +471,6 @@ class ModelInfoGroup(QGroupBox):
                 name = project_preferences[type]["hdf5"][-1]
 
             self.last_hydraulic_file_name_label.setText(name)
-
-    def set_suffix_no_cut(self, no_cut_bool):
-        if self.model_index:
-            if self.hydraulic_model_information.name_models_gui_list[self.model_index]:
-                # get hdf5_name
-                current_hdf5_name = self.hdf5_name_lineedit.text()
-                # add no_cut suffix if not exist
-                if not no_cut_bool:
-                    # check if no_cut suffix exist
-                    if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                        # check if there is extension
-                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                            extension = os.path.splitext(current_hdf5_name)[1]
-                        else:
-                            extension = ""
-                        # create new name
-                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
-                        # set new name
-                        self.hdf5_name_lineedit.setText(new_hdf5_name)
-                        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = new_hdf5_name
-                # remove no_cut suffix if exist
-                elif no_cut_bool:
-                    # check if no_cut suffix exist
-                    if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                        # check if there is extension
-                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                            extension = os.path.splitext(current_hdf5_name)[1]
-                        else:
-                            extension = ""
-                        # create new name
-                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
-                        # set new name
-                        self.hdf5_name_lineedit.setText(new_hdf5_name)
-                        self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = new_hdf5_name
 
     def clean_gui(self):
         self.input_file_combobox.clear()

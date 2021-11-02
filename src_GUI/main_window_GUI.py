@@ -1489,15 +1489,15 @@ class MainWindows(QMainWindow):
                 if not self.preferences_dialog:
                     self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
                 else:
                     self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
             else:
                 self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
+                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
 
         else:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
