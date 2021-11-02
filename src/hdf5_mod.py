@@ -2020,7 +2020,7 @@ class Hdf5Management:
                     header += '\n'
                     f.write(header)
                     # header 3
-                    header = 'all\tall\tall '
+                    header = 'all\tall\tall'
                     for animal in animal_list * 3:
                         header += '\t' + animal.name.replace(' ', '_')
                     header += '\n'
