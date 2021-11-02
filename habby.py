@@ -21,6 +21,7 @@ import traceback
 import time
 from datetime import datetime
 from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QGraphicsOpacityEffect
 from appdirs import AppDirs
 
@@ -130,8 +131,10 @@ def main():
         #print("GUI")
         from src_GUI import main_window_GUI
         import numpy as np
+        # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "2"  # try to ajust font size widget for windows
         # create app
         app = QApplication(sys.argv)
+        # app.setAttribute(Qt.AA_EnableHighDpiScaling)  # try to ajust font size widget for windows
 
         # Create and display image splash screen
         time_between_image = 0.02
