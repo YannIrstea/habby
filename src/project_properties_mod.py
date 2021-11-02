@@ -23,6 +23,7 @@ from datetime import datetime
 
 from src.hydraulic_result_mod import HydraulicModelInformation
 from src.variable_unit_mod import HydraulicVariableUnitManagement
+from habby import HABBY_VERSION_STR
 
 available_export_list = ["mesh_whole_profile",  # GPKG
                          "point_whole_profile",  # GPKG
@@ -45,6 +46,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     # general
     project_preferences['name_prj'] = ""
     project_preferences['path_prj'] = ""
+    project_preferences['old_path_prj'] = ""
     project_preferences['path_last_file_loaded'] = ""
     project_preferences['restart_py_file'] = ""
     project_preferences['restart_cli_file'] = ""
@@ -52,7 +54,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_preferences['save_log'] = True
     project_preferences['user_name'] = ""
     project_preferences['description'] = ""
-    project_preferences['version_habby'] = ""
+    project_preferences['version_habby'] = HABBY_VERSION_STR
     project_preferences['path_bio'] = os.path.join("biology", "models")
     project_preferences['path_input'] = 'input'
     project_preferences['path_hdf5'] = 'hdf5'
@@ -235,7 +237,7 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
 
 
 def save_project_properties(path_prj, project_preferences):
-    name_prj = os.path.basename(path_prj)
+    name_prj = project_preferences["name_prj"]
 
     with open(os.path.join(path_prj, name_prj + '.habby'), "w") as write_file:
         json.dump(project_preferences, write_file, indent=4)
@@ -252,7 +254,16 @@ def load_project_properties(path_prj):
     :return: the dictionary containing the figure options
     """
     # name_prj
-    name_prj = os.path.basename(path_prj)
+    os.listdir(path_prj)
+    name_prj = None
+    for file in os.listdir(path_prj):
+        if ".habby" in file:
+            name_prj = os.path.splitext(file)[0]
+            break
+    if not name_prj:
+        print("Error: No project file (.habby) found in " + path_prj + "\n")
+        return create_default_project_properties_dict()
+
     project_file_abs_path = os.path.join(path_prj, name_prj + '.habby')
 
     if not os.path.isfile(project_file_abs_path) and name_prj != '':  # no project exists
@@ -267,25 +278,30 @@ def load_project_properties(path_prj):
 
     # check if project move
     if path_prj != project_preferences["path_prj"]:  # update all path
-        project_preferences["name_prj"] = name_prj
-        project_preferences["path_prj"] = path_prj
-        project_preferences["restart_py_file"] = os.path.join(path_prj, name_prj + '_restart.py')
-        if operatingsystem_str == "Linux":
-            script_ext = ".sh"
-        elif operatingsystem_str == "Windows":
-            script_ext = ".bat"
-        else:
-            script_ext = ".sh"
-        project_preferences["log_file"] = os.path.join(path_prj, name_prj + ".log")
-        project_preferences["restart_cli_file"] = os.path.join(path_prj, name_prj + "_restart" + script_ext)
-        project_preferences["path_input"] = os.path.join(path_prj, 'input')  # path input
-        project_preferences["path_hdf5"] = os.path.join(path_prj, 'hdf5')  # path hdf5
-        project_preferences["path_figure"] = os.path.join(path_prj, 'output', 'figures')  # path figures
-        project_preferences["path_text"] = os.path.join(path_prj, 'output', 'text')  # path text output
-        project_preferences["path_gis"] = os.path.join(path_prj, 'output', 'GIS')  # path_gis
-        project_preferences["path_3d"] = os.path.join(path_prj, 'output', '3D')  # path_3d
+        update_path_prj_if_change(project_preferences, path_prj, name_prj)
 
     return project_preferences
+
+
+def update_path_prj_if_change(project_preferences, path_prj, name_prj):
+    project_preferences['old_path_prj'] = str(project_preferences["path_prj"])
+    project_preferences["name_prj"] = name_prj
+    project_preferences["path_prj"] = path_prj
+    project_preferences["restart_py_file"] = os.path.join(path_prj, name_prj + '_restart.py')
+    if operatingsystem_str == "Linux":
+        script_ext = ".sh"
+    elif operatingsystem_str == "Windows":
+        script_ext = ".bat"
+    else:
+        script_ext = ".sh"
+    project_preferences["log_file"] = os.path.join(path_prj, name_prj + ".log")
+    project_preferences["restart_cli_file"] = os.path.join(path_prj, name_prj + "_restart" + script_ext)
+    project_preferences["path_input"] = os.path.join(path_prj, 'input')  # path input
+    project_preferences["path_hdf5"] = os.path.join(path_prj, 'hdf5')  # path hdf5
+    project_preferences["path_figure"] = os.path.join(path_prj, 'output', 'figures')  # path figures
+    project_preferences["path_text"] = os.path.join(path_prj, 'output', 'text')  # path text output
+    project_preferences["path_gis"] = os.path.join(path_prj, 'output', 'GIS')  # path_gis
+    project_preferences["path_3d"] = os.path.join(path_prj, 'output', '3D')  # path_3d
 
 
 def change_specific_properties(path_prj, preference_names, preference_values):
