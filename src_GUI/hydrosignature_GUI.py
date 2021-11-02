@@ -224,6 +224,9 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         self.file_selection_listwidget.blockSignals(False)
         self.hs_computed_listwidget.blockSignals(False)
+        # preselection if one
+        if self.file_selection_listwidget.count() == 1:
+            self.file_selection_listwidget.selectAll()
 
     def change_scroll_position(self, index):
         self.file_selection_listwidget.verticalScrollBar().setValue(index)
@@ -280,6 +283,7 @@ class ComputingGroup(QGroupBoxCollapsible):
             self.namefile = os.path.basename(filename)  # source file name
             self.save_xml("HS_input_class")
             self.read_input_class(filename)
+            self.input_class_file_info = self.read_attribute_xml("HS_input_class")
 
     def read_attribute_xml(self, att_here):
         """

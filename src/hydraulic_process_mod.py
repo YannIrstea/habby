@@ -605,15 +605,18 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
             return
 
     # hs input hydraulic class save to input folder
-    if hydrosignature_description["hs_export_mesh"]:
-        folder_name = os.path.splitext(hdf5_new.filename)[0]
-    else:
-        folder_name = os.path.splitext(hdf5.filename)[0]
+    folder_name = os.path.splitext(hdf5.filename)[0]
     hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name)
     if not os.path.exists(hs_input_class_folder_path_out):
         os.makedirs(hs_input_class_folder_path_out)
     hs_input_class_folder_path_in = os.path.join(hydrosignature_description["classhv_input_class_file_info"]["path"], hydrosignature_description["classhv_input_class_file_info"]["file"])
     sh_copy(hs_input_class_folder_path_in, os.path.join(hs_input_class_folder_path_out, hydrosignature_description["classhv_input_class_file_info"]["file"]))
+    if hydrosignature_description["hs_export_mesh"]:
+        folder_name_new_hs = os.path.splitext(hdf5_new.filename)[0]
+        new_hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name_new_hs)
+        if not os.path.exists(new_hs_input_class_folder_path_out):
+            os.makedirs(new_hs_input_class_folder_path_out)
+        sh_copy(hs_input_class_folder_path_in, os.path.join(new_hs_input_class_folder_path_out, hydrosignature_description["classhv_input_class_file_info"]["file"]))
 
     # warnings
     if not print_cmd:
