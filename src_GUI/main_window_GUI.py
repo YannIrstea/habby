@@ -206,7 +206,8 @@ class MainWindows(QMainWindow):
                 self.habby_project_file_corrupted = True
                 self.path_prj = ''
         else:
-            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project.') + '</br><br>')
+            self.central_widget.write_log(self.tr('Error: ') + filename_path + " project file doesn't exist.")
+            self.central_widget.write_log(self.tr('Create or open a project.'))
 
         # bio_model_explorer_dialog
         if hasattr(self.central_widget, "data_explorer_tab"):
@@ -521,15 +522,23 @@ class MainWindows(QMainWindow):
         if self.path_prj:
             self.central_widget.save_info_projet()
 
+        # check if exist
+        if not os.path.exists(filename_path):
+            self.central_widget.write_log("Error: " + self.tr("The selected project file does not exist.\n"))
+            return
+
         # get name and path
         self.path_prj = os.path.dirname(filename_path)
         self.name_prj = os.path.splitext(os.path.basename(filename_path))[0]
 
-        # check if exist
-        if not os.path.exists(os.path.join(self.path_prj, self.name_prj + ".habby")):
-            self.central_widget.write_log("Error: " + self.tr("The selected project file does not exist.\n"))
-            self.close_project()
-            return
+        project_properties = load_project_properties(self.path_prj)
+
+        # check if project has been renamed or moved
+        if project_properties["old_path_prj"]:
+            self.central_widget.write_log(self.tr("Warning: The selected project path changed from ") + project_properties["old_path_prj"] +
+                                                              self.tr(" to ") + os.path.dirname(filename_path) + ".")
+            # re-update .habby (after update_path_prj_if_change()) to remove next warning
+            change_specific_properties(self.path_prj, ["old_path_prj"], [""])
 
         # load_project_properties
         project_preferences = load_project_properties(self.path_prj)
@@ -559,7 +568,8 @@ class MainWindows(QMainWindow):
 
         # update hydro
         self.central_widget.update_combobox_filenames()
-        self.central_widget.substrate_tab.sub_and_merge.update_sub_hdf5_name()
+        if hasattr(self.central_widget, "substrate_tab"):
+            self.central_widget.substrate_tab.sub_and_merge.update_sub_hdf5_name()
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
@@ -611,7 +621,6 @@ class MainWindows(QMainWindow):
             project_version_tuple = project_version_tuple + (0, )
         habby_version_tuple = tuple(map(int, self.version.split('.')))  # version tuple
         if project_version_tuple[:-1] < habby_version_tuple[:-1]:  # Only if X.Y version level
-            print(project_version_tuple[:-1], habby_version_tuple[:-1])
             self.central_widget.write_log(self.tr('Warning: Current project is an old HABBY project produced by '
                                                   'HABBY v' + project_preferences["version_habby"] + '. '
                                                   'Working with this can lead to software crashes. '
@@ -1489,15 +1498,15 @@ class MainWindows(QMainWindow):
                 if not self.preferences_dialog:
                     self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
                 else:
                     self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
+                    self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
             else:
                 self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
-                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.model_group.set_suffix_no_cut)
+                self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
 
         else:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
