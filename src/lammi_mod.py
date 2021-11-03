@@ -1115,5 +1115,261 @@ def main():
     # compare_lammi(filename_habby, filename_lammi, filename_sur)
 
 
+
+
+
+
+
+
+
+
+
+def is_number(n):
+    try:
+        float(n)   # Type-casting the string to `float`.
+                   # If string is not a valid `float`,
+                   # it'll raise `ValueError` exception
+    except ValueError:
+        return False
+    return True
+def is_integer(n):
+    try:
+        int(n)   # Type-casting the string to `float`.
+                   # If string is not a valid `float`,
+                   # it'll raise `ValueError` exception
+    except ValueError:
+        return False
+    return True
+
+def  main2(sourcedirectory):
+    '''
+    :param sourcedirectory: the directory containing the output files from LAMMI Transect.txt which describes the .prn associated files
+    :return: stationname : the name of the sation, lq the list of discharges [m3/s], lqdico a list given a dictionnary of numpy arrays for each discharge
+    if iq is index of a discharge in lq ( lq[iq]=a discharge in [m3/s] )
+    lqdico[iq]={'tin':tin,'mesh_substrate':mesh_substrate,'node_xy':node_xy,'node_hvz':node_hvz}
+    tin the connexion table for the Triangular Irregular Network
+    mesh_substrate the substrate percentages in the 8 classes Cemagref EVHA classification
+    node_xy the x,y coordinate for nodes
+    node_hvz the heigth of water, the velocity and the altitude of each node
+    '''
+    transectsfiledefintion = os.path.join(sourcedirectory, 'Transect.txt')
+    if not os.path.isfile(transectsfiledefintion):
+        print('Transect.txt this file is required in the LAMMI input directory ',sourcedirectory)
+        #Todo break
+    #PHASE 1 getting transectprn
+    transectprn = []  # a list of pair of lists containing the exact [filename of each prn transect, Length of representativeness]
+    with open(transectsfiledefintion, 'rt', encoding='utf8') as transectf:
+
+        cheklevel,ldr=0,0
+        level=['Longueur de représentativité','','Localisation du fichier de simulation transect']
+        cheklevell=[x.split() for x in level]
+        lines = transectf.readlines()
+        bok = True
+        for iline0, line in enumerate(lines):
+            iline = iline0 + 1
+            if '\n' in line:
+                line = line[:-1]
+            splline=line.split()
+            if len(splline)!=0:
+                if cheklevel == 0 or cheklevel == 2:
+                    if len(splline)==len(cheklevell[cheklevel]):
+                        for i,item in enumerate(splline):
+                            if item.lower() !=cheklevell[cheklevel][i].lower():
+                                bok = False
+                                break
+                    else:
+                        bok=False
+                    if not bok:
+                        print('Transect.txt','line',iline,'the mention',level[cheklevel], 'is mandatory' )
+                        # Todo break
+                    else:
+                        cheklevel+=1
+                elif cheklevel == 1:
+                    if len(splline)!=1 or not(is_number(splline[0])):
+                        print('Transect.txt','line',iline,'a single number for the transect length is mandatory' )
+                        # Todo break
+                    else:
+                        ldr=float(line)
+                        cheklevel+=1
+                elif cheklevel == 3:
+                    try:
+                        filenameprn=os.path.join(sourcedirectory,os.path.basename(line))
+                    except ValueError:
+                        print('Transect.txt', 'line', iline, 'a path with a namefile.prn is mandatory')
+                        # Todo break
+                    if not os.path.isfile(filenameprn):
+                        print(filenameprn,'This file is required in the LAMMI input directory according to the Transect.txt file definition', sourcedirectory)
+                        # Todo break
+                    transectprn.append([filenameprn,ldr])
+                    cheklevel =0
+
+    #PHASE2 reading each prn transect
+    lq=[]
+    lqdico=[]
+    newnodeindex=[]
+    nbiq=0
+    y0,z0,slope=500,500,0.04
+    for iprn in range(len(transectprn)):
+        if iprn==0:# for a given cross-section  for each discharge the mesh description of the river began at the same xdep
+            xdep = 0 # the current upstream abcissa for the current discharge
+        else:
+            xdep += transectprn[iprn-1][1]
+
+        if iprn==1:
+            nbiq=iq
+        if iprn>1 and nbiq!=iq:
+            print(transectprn[iprn][0], 'the number of discharges provided is less than what was expected in ', referencefile)
+            # Todo break
+        with open(transectprn[iprn][0], 'rt') as prnf: #, encoding='utf8'
+            cheklevel,iq = 0,0
+            level = ['# Rivière NesteOueilStation 1Facies 1Transect 1', '# Hauteur et vitesses moyennes calculees', 'S1 S2 S3 S4 S5 S6 S7 S8 Hauteur Vitesse Largeur','I3 I3 I3 I3 I3 I3 I3 I3 F7.2 F7.2 F7.2','.  .  .  .  .  .  .  .   m     m/s  m']
+            cheklevell = [x.split() for x in level]
+            bok = True
+            lines = prnf.readlines()
+            for iline0, line in enumerate(lines):
+                iline=iline0+1
+                if '\n' in line:
+                    line = line[:-1]
+                splline = line.split()
+                if len(splline) != 0:
+                    if cheklevel <5: # Head of the file
+                        if len(splline) == len(cheklevell[cheklevel]):
+                            for i, item in enumerate(splline):
+                                if item.lower() != cheklevell[cheklevel][i].lower():
+                                    if not(cheklevel==0 and i>1):
+                                        bok = False
+                                        break
+                        else:
+                            bok = False
+                        if cheklevel == 0:
+                            stationname=splline[2]
+                        if not bok:
+                            print(transectprn[iprn][0], 'line', iline, 'the mention', level[cheklevel], 'is mandatory')
+                            # Todo break
+                        else:
+                            cheklevel += 1
+                    elif  cheklevel ==5: # Q number_of_vertices
+                        if len(splline) != 2:
+                            bok = False
+                        else:
+                            if not( is_number(splline[0]) and is_integer(splline[1]) ):
+                                bok = False
+                        if not bok:
+                            print(transectprn[iprn][0], 'line', iline, 'two numbers are required : one for the discharge, the other for the vertices number describing the corss-section')
+                            # Todo break
+                        else:
+                            if iprn==0:
+                                lq.append(splline[0])
+                                if iq==0:
+                                    referencefile=transectprn[0][0]
+                            else:
+                                if splline[0] !=lq[iq]:
+                                    print(transectprn[iprn][0], 'line', iline,
+                                          'the discharge value is not the expected one accordign to the refererence file :',referencefile)
+                                    # Todo break
+                            if iq!=0:
+                                if nbvertices!=ivertices:
+                                    print(transectprn[iprn][0], 'line', iline,
+                                          'the number of verticals provided previously was not what was expected')
+                                    # Todo break
+                            nbvertices,ivertices=int(splline[1]),0
+                            cheklevel += 1
+                            iq += 1 # next Q index
+                            if iprn>0 and nbiq<iq:
+                                print(transectprn[iprn][0], 'line', iline,
+                                      'the number of discharges provided is more than what was expected in ',referencefile)
+                                # Todo break
+                            subpercentagecemagref=np.zeros((nbvertices,8 ), dtype=np.int64)
+                            hv=np.zeros((nbvertices,2 ), dtype=np.float64)
+                            la=np.zeros( nbvertices, dtype=np.float64)
+                    elif cheklevel == 6:
+                        if len(splline) != 11:
+                            print(transectprn[iprn][0], 'line', iline,
+                                  '11 numbers are required  for a vertical description, eight of percentages of substrate Code EDF R&D  then depth ,velocity and represetative width of the present vertical')
+                            # Todo break
+                        else:
+                            for j in range(8):
+                                if not (is_number(splline[j]) ):
+                                    bok = False
+                                else:
+                                    k=j+1 if j<5 else j # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
+                                    subpercentagecemagref[ivertices][k]+=float(splline[j])
+                            if not bok:
+                                print(transectprn[iprn][0], 'line', iline, ' the first eight value must be integer values of percentages of substrate Code EDF R&D (Cailleux 1954) ')
+                                # Todo break
+                            if np.sum(subpercentagecemagref[ivertices,:]) !=100:
+                                print(transectprn[iprn][0], 'line', iline,
+                                      'the sum of the first eight value  describing percentages of substrate Code EDF R&D (Cailleux 1954) must be 100%')
+                                # Todo break
+                            for j in (8,9,10):
+                                if not (is_number(splline[j])):
+                                    bok = False
+                                else:
+                                    if float(splline[j])<0:
+                                        bok = False
+                                if not bok:
+                                    print(transectprn[iprn][0], 'line', iline,
+                                          ' the last three values must be numericals and positives for depth velocity and represetative width of the present vertical ')
+                                    # Todo break
+                            hv[ivertices][0],hv[ivertices][1],la[ivertices]=float(splline[8]),float(splline[9]),float(splline[10])
+                            ivertices+=1
+                            if nbvertices == ivertices:
+                                cheklevel =5
+                                #PHASE A building one tin for a cross-section at a fixed discharge
+                                ldr=transectprn[iprn][1]
+                                tin= np.zeros((4*nbvertices, 3), dtype=np.int64)
+                                mesh_substrate = np.zeros((4*nbvertices, 8), dtype=np.int64)
+                                node_xy = np.zeros((4*nbvertices+2, 2), dtype=np.float64)
+                                node_hvz = np.zeros((4*nbvertices+2, 3), dtype=np.float64)
+                                for k in range(0,4*nbvertices-1,2):
+                                    tin[k,:]=[k,k+1,k+2]
+                                    tin[k+1, :] = [k+1, k + 3, k + 2]
+                                imesh=0
+                                for k in range(nbvertices):
+                                    for kk in range(4):
+                                        mesh_substrate[imesh+kk,:]=subpercentagecemagref[k,:]
+                                    imesh +=4
+                                ytop=(y0+np.sum(la))/2
+                                #left river edge
+                                node_xy[0,:]=[xdep,ytop]
+                                node_xy[1, :] = [xdep+ldr, ytop]
+                                node_hvz[0,:]=[0,0,z0-xdep*slope]
+                                node_hvz[1, :] = [0, 0, z0 - (xdep +ldr)* slope]
+                                for k in range(nbvertices): #inside river
+                                    #each vertical build 2 points
+                                    ytop -= la[k] / 2
+                                    node_xy[4*k+2, :] = [xdep, ytop]
+                                    node_xy[4*k+3, :] = [xdep + ldr, ytop]
+                                    node_hvz[4*k+2, :] = [hv[k][0], hv[k][1], z0 - xdep * slope-hv[k][0]]
+                                    node_hvz[4*k+3, :] = [hv[k][0], hv[k][1], z0 - (xdep+ ldr) * slope-hv[k][0]]
+                                    #interpolated verticals/points
+                                    ytop -= la[k] / 2
+                                    node_xy[4 * k + 4, :] = [xdep, ytop]
+                                    node_xy[4 * k + 5, :] = [xdep + ldr, ytop]
+                                    if k!=nbvertices-1:
+                                        hi=(hv[k][0]*la[k+1]+hv[k+1][0]*la[k])/(la[k]+la[k+1])
+                                        vi = (hv[k][1] * la[k + 1] + hv[k + 1][1] * la[k]) / (la[k] + la[k + 1])
+                                    else: #right river edge
+                                        hi,vi=0,0
+                                    node_hvz[4 * k + 4, :] = [hi,vi, z0 - xdep * slope - hi]
+                                    node_hvz[4 * k + 5, :] = [hi,vi, z0 - (xdep + ldr) * slope - hi]
+                                # PHASE B building a complete set of tin/nodes for each discharge by adding tin/nodes builds for each cross section
+                                if iprn==0:
+                                    lqdico.append({'tin':tin,'mesh_substrate':mesh_substrate,'node_xy':node_xy,'node_hvz':node_hvz})
+                                    newnodeindex.append(4*nbvertices+2)
+                                else:
+                                    lqdico[iq - 1]['tin'] = np.vstack((lqdico[iq - 1]['tin'], tin+newnodeindex[iq - 1]))
+                                    lqdico[iq - 1]['mesh_substrate'] = np.vstack((lqdico[iq - 1]['mesh_substrate'], mesh_substrate))
+                                    lqdico[iq - 1]['node_xy'] = np.vstack((lqdico[iq - 1]['node_xy'], node_xy))
+                                    lqdico[iq - 1]['node_hvz'] = np.vstack((lqdico[iq - 1]['node_hvz'], node_hvz))
+                                    newnodeindex[iq - 1]+=4*nbvertices+2
+
+    if  nbiq != iq:
+        print(transectprn[iprn][0], 'the number of discharges provided is less than what was expected in ', referencefile)
+        # Todo break
+
+    return stationname,lq,lqdico
+
 if __name__ == '__main__':
-    main()
+    # main()
+    stationname,lq,lqdico=main2(r'E:\HABBY\LAMMI\2021\Test')
