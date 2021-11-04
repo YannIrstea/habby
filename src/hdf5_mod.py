@@ -29,7 +29,7 @@ from src.hl_mod import unstructuredGridToVTK
 from src.paraview_mod import writePVD
 from src.export_manager_mod import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, export_mesh_txt,\
     setup, export_point_txt, export_report
-from src.project_properties_mod import load_project_properties, save_project_properties
+from src.project_properties_mod import load_project_properties, save_project_properties, get_name_prj
 from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, txt_file_convert_dot_to_comma, strip_accents
 from src.data_2d_mod import Data2d
 from src.hydrosignature_mod import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
@@ -54,7 +54,7 @@ class Hdf5Management:
         self.path_txt = os.path.join(self.path_prj, "output", "text")
         self.path_3d = os.path.join(self.path_prj, "output", "3D")
         self.path_figure = os.path.join(self.path_prj, "output", "figures")
-        self.name_prj = os.path.basename(path_prj)  # name of project
+        self.name_prj = get_name_prj(path_prj)  # name of project
         self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.habby')
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions

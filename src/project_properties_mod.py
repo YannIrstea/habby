@@ -255,11 +255,9 @@ def load_project_properties(path_prj):
     """
     # name_prj
     os.listdir(path_prj)
-    name_prj = None
-    for file in os.listdir(path_prj):
-        if ".habby" in file:
-            name_prj = os.path.splitext(file)[0]
-            break
+
+    name_prj = get_name_prj(path_prj)
+
     if not name_prj:
         print("Error: No project file (.habby) found in " + path_prj + "\n")
         return create_default_project_properties_dict()
@@ -281,6 +279,19 @@ def load_project_properties(path_prj):
         update_path_prj_if_change(project_preferences, path_prj, name_prj)
 
     return project_preferences
+
+
+def get_name_prj(path_prj):
+    """
+    get_name_prj from path_prj first file with .habby extension.
+    return name_prj : str without extension
+    """
+    name_prj = None
+    for file in os.listdir(path_prj):
+        if ".habby" in file:
+            name_prj = os.path.splitext(file)[0]
+            break
+    return name_prj
 
 
 def update_path_prj_if_change(project_preferences, path_prj, name_prj):
