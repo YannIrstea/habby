@@ -187,27 +187,23 @@ class MainWindows(QMainWindow):
         # call an additional function during initialization
         self.init_ui()
 
-        # open_project
-        last_path_prj = user_preferences.data["path_prj"]
-        last_name_prj = user_preferences.data["name_prj"]
-        filename_path = os.path.join(last_path_prj, last_name_prj + ".habby")
-
         # direct open (with habby.exe + arg)
-        if name_path:
-            filename_path = name_path
-        if os.path.exists(filename_path):
-            if os.stat(filename_path).st_size != 0:
-                try:
-                    self.open_project(filename_path)
-                except decoder.JSONDecodeError:
+        if user_preferences.data["path_prj"] and user_preferences.data["name_prj"]:
+            filename_path = os.path.join(user_preferences.data["path_prj"], user_preferences.data["name_prj"] + ".habby")
+            if name_path:
+                filename_path = name_path
+            if os.path.exists(filename_path):
+                if os.stat(filename_path).st_size != 0:
+                    try:
+                        self.open_project(filename_path)
+                    except decoder.JSONDecodeError:
+                        self.habby_project_file_corrupted = True
+                        self.path_prj = ''
+                else:
                     self.habby_project_file_corrupted = True
                     self.path_prj = ''
             else:
-                self.habby_project_file_corrupted = True
-                self.path_prj = ''
-        else:
-            self.central_widget.write_log(self.tr('Error: ') + filename_path + " project file doesn't exist.")
-            self.central_widget.write_log(self.tr('Create or open a project.'))
+                self.central_widget.write_log(self.tr('Error: ') + filename_path + " project file doesn't exist.")
 
         # bio_model_explorer_dialog
         if hasattr(self.central_widget, "data_explorer_tab"):
@@ -231,9 +227,13 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.write_log(self.tr("Warning: ") + self.tr("Biological models database has been modified : ") + user_preferences.diff_list)
 
-        if self.habby_project_file_corrupted:
-            self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' + filename_path))
-            self.central_widget.write_log(self.tr('Create or open another project.'))
+        if user_preferences.data["path_prj"] and user_preferences.data["name_prj"]:
+            if self.habby_project_file_corrupted:
+                self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' +
+                                                      os.path.join(user_preferences.data["path_prj"], user_preferences.data["name_prj"] + ".habby")))
+            self.central_widget.write_log(self.tr('Create or open a project.'))
+        else:
+            self.central_widget.write_log(self.tr('Create or open a project.'))
 
         # run_as_limited_edition
         self.run_as_limited_edition()
