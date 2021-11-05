@@ -85,6 +85,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.sub_classification_method = "percentage"  # "coarser-dominant" / "percentage"
         self.sub_classification_code = "Cemagref"  # "Cemagref" / "Sandre"
 
+        self.hyd_varying_mesh = True
+
         # readable file ?
         try:
             valid, _, error_str = construct_from_lammi(os.path.dirname(self.filename_path))

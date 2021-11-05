@@ -140,7 +140,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         if len(set(hyd_varying_z_index[reach_number])) == 1:
             hyd_unit_z_equal = True
         else:
-            hyd_unit_z_equal = True
+            hyd_unit_z_equal = False
 
         # one file : one reach, varying_mesh==False
         if len(filename_source) == 1:
