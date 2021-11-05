@@ -814,7 +814,7 @@ class BioModelInfoSelection(QScrollArea):
             return
 
         # get info
-        name_fish, stage, code_bio_model = bio_info_mod.get_name_stage_codebio_fromstr(i1.text()[:i1.text().index(" (")])
+        name_fish, stage, code_bio_model = bio_info_mod.get_name_stage_codebio_fromstr(i1.text()[:i1.text().rindex(" (")])
         self.selected_fish_code_biological_model = code_bio_model
         self.selected_fish_stage = stage
         self.selected_name_fish = name_fish
@@ -955,7 +955,7 @@ class BioModelInfoSelection(QScrollArea):
         hydraulic_mode_list = []
         substrate_mode_list = []
         for item_index in range(self.selected_aquatic_animal_listwidget.count()):
-            new_item_to_merge = self.selected_aquatic_animal_listwidget.item(item_index).text()[:self.selected_aquatic_animal_listwidget.item(item_index).text().index(" (")]
+            new_item_to_merge = self.selected_aquatic_animal_listwidget.item(item_index).text()[:self.selected_aquatic_animal_listwidget.item(item_index).text().rindex(" (")]
             selected_aquatic_animal_list.append(new_item_to_merge)
             # get info
             name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(new_item_to_merge)
