@@ -1136,9 +1136,7 @@ def construct_from_lammi(sourcedirectory):
     '''
     transectsfiledefintion = os.path.join(sourcedirectory, 'Transect.txt')
     if not os.path.isfile(transectsfiledefintion):
-        print()
         return None, None, 'Transect.txt this file is required in the LAMMI input directory ' + sourcedirectory
-    # PHASE 1 reading Transect.txt
     transectprn = []  # a list of pair of lists containing the exact [filename of each prn transect, Length of representativeness]
     with open(transectsfiledefintion, 'rt', encoding='utf8') as transectf:
 
@@ -1182,12 +1180,13 @@ def construct_from_lammi(sourcedirectory):
                     transectprn.append([filenameprn, ldr])
                     cheklevel = 0
 
-    # PHASE2 reading each prn transect
+    # PHASE2 : reading each prn transect #################################################
     lq = []
     lqdico = []
     newnodeindex = []
     nbiq = 0
-    y0, z0, slope = 500, 500, 0.04
+    y0, z00, slope = 500, 500, 0.04
+    hmoyupstreamq=[]
     for iprn in range(len(transectprn)):
         if iprn == 0:  # for a given cross-section  for each discharge the mesh description of the river began at the same xdep
             xdep = 0  # the current upstream abcissa for the current discharge
@@ -1298,7 +1297,7 @@ def construct_from_lammi(sourcedirectory):
                             ivertices += 1
                             if nbvertices == ivertices:
                                 cheklevel = 5
-                                # PHASE A building one tin for a cross-section at a fixed discharge
+                                # PHASE A : building one tin for a cross-section at a fixed discharge #################################################
                                 ldr = transectprn[iprn][1]
                                 tin = np.zeros((4 * nbvertices, 3), dtype=np.int64)
                                 mesh_substrate = np.zeros((4 * nbvertices, 8), dtype=np.int64)
@@ -1313,6 +1312,31 @@ def construct_from_lammi(sourcedirectory):
                                         mesh_substrate[imesh + kk, :] = subpercentagecemagref[k, :]
                                     imesh += 4
                                 ytop = (y0 + np.sum(la)) / 2
+                                # Defining/calclulating z0 the upstream altitude of the water surface for each discharge
+                                if iprn == 0:
+                                    for k in range(nbvertices):
+                                        if k == 0:
+                                            area = la[k] * (hv[k][0] + (
+                                                        hv[k][0] + (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
+                                                            la[k] + la[k + 1])) / 2) / 2
+                                        elif k == nbvertices - 1:
+                                            area += la[k] * (hv[k][0] + (
+                                                    hv[k][0] + (hv[k][0] * la[k - 1] + hv[k - 1][0] * la[k]) / (
+                                                    la[k] + la[k - 1])) / 2) / 2
+                                        else:
+                                            area += la[k] * ((hv[k][0] + (
+                                                        hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
+                                                                          la[k] + la[k + 1])) + (
+                                                                     hv[k][0] + (
+                                                                         hv[k][0] * la[k - 1] + hv[k - 1][0] * la[
+                                                                     k]) / (
+                                                                             la[k] + la[k - 1]))) / 4
+                                    hmoyupstreamq.append(area / np.sum(la))
+                                iqq = iq - 1
+                                if iqq == 0:
+                                    z0 = z00
+                                else:
+                                    z0 = z00 + hmoyupstreamq[iqq] - hmoyupstreamq[0]
                                 # left river edge
                                 node_xy[0, :] = [xdep, ytop]
                                 node_xy[1, :] = [xdep + ldr, ytop]
@@ -1336,7 +1360,7 @@ def construct_from_lammi(sourcedirectory):
                                         hi, vi = 0, 0
                                     node_hvz[4 * k + 4, :] = [hi, vi, z0 - xdep * slope - hi]
                                     node_hvz[4 * k + 5, :] = [hi, vi, z0 - (xdep + ldr) * slope - hi]
-                                # PHASE B building a complete set of tin/nodes for each discharge by adding tin/nodes builds for each cross section
+                                # PHASE B : building a complete set of tin/nodes for each discharge by adding tin/nodes builds for each cross section #################################################
                                 if iprn == 0:
                                     lqdico.append({'tin': tin, 'mesh_substrate': mesh_substrate, 'node_xy': node_xy,
                                                    'node_hvz': node_hvz})
