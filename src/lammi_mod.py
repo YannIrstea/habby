@@ -1156,7 +1156,7 @@ def construct_from_lammi(sourcedirectory):
     transectsfiledefintion = os.path.join(sourcedirectory, 'Transect.txt')
     if not os.path.isfile(transectsfiledefintion):
         print('Transect.txt this file is required in the LAMMI input directory ', sourcedirectory)
-        return None
+        return None, None, None
     # PHASE 1 reading Transect.txt
     transectprn = []  # a list of pair of lists containing the exact [filename of each prn transect, Length of representativeness]
     with open(transectsfiledefintion, 'rt', encoding='utf8') as transectf:
@@ -1182,13 +1182,13 @@ def construct_from_lammi(sourcedirectory):
                         bok = False
                     if not bok:
                         print('Transect.txt', 'line', iline, 'the mention', level[cheklevel], 'is mandatory')
-                        return None
+                        return None, None, None
                     else:
                         cheklevel += 1
                 elif cheklevel == 1:
                     if len(splline) != 1 or not (is_number(splline[0])):
                         print('Transect.txt', 'line', iline, 'a single number for the transect length is mandatory')
-                        return None
+                        return None, None, None
                     else:
                         ldr = float(line)
                         cheklevel += 1
@@ -1197,12 +1197,12 @@ def construct_from_lammi(sourcedirectory):
                         filenameprn = os.path.join(sourcedirectory, os.path.basename(line))
                     except ValueError:
                         print('Transect.txt', 'line', iline, 'a path with a namefile.prn is mandatory')
-                        return None
+                        return None, None, None
                     if not os.path.isfile(filenameprn):
                         print(filenameprn,
                               'This file is required in the LAMMI input directory according to the Transect.txt file definition',
                               sourcedirectory)
-                        return None
+                        return None, None, None
                     transectprn.append([filenameprn, ldr])
                     cheklevel = 0
 
@@ -1223,7 +1223,7 @@ def construct_from_lammi(sourcedirectory):
         if iprn > 1 and nbiq != iq:
             print(transectprn[iprn][0], 'the number of discharges provided is less than what was expected in ',
                   referencefile)
-            return None
+            return None, None, None
         with open(transectprn[iprn][0], 'rt') as prnf:  # , encoding='utf8'
             cheklevel, iq = 0, 0
             level = ['# Rivière NesteOueilStation 1Facies 1Transect 1', '# Hauteur et vitesses moyennes calculees',
@@ -1251,7 +1251,7 @@ def construct_from_lammi(sourcedirectory):
                             stationname = splline[2]
                         if not bok:
                             print(transectprn[iprn][0], 'line', iline, 'the mention', level[cheklevel], 'is mandatory')
-                            return None
+                            return None, None, None
                         else:
                             cheklevel += 1
                     elif cheklevel == 5:  # Q number_of_vertices
@@ -1263,7 +1263,7 @@ def construct_from_lammi(sourcedirectory):
                         if not bok:
                             print(transectprn[iprn][0], 'line', iline,
                                   'two numbers are required : one for the discharge, the other for the vertices number describing the corss-section')
-                            return None
+                            return None, None, None
                         else:
                             if iprn == 0:
                                 lq.append(splline[0])
@@ -1274,12 +1274,12 @@ def construct_from_lammi(sourcedirectory):
                                     print(transectprn[iprn][0], 'line', iline,
                                           'the discharge value is not the expected one accordign to the refererence file :',
                                           referencefile)
-                                    return None
+                                    return None, None, None
                             if iq != 0:
                                 if nbvertices != ivertices:
                                     print(transectprn[iprn][0], 'line', iline,
                                           'the number of verticals provided previously was not what was expected')
-                                    return None
+                                    return None, None, None
                             nbvertices, ivertices = int(splline[1]), 0
                             cheklevel += 1
                             iq += 1  # next Q index
@@ -1287,7 +1287,7 @@ def construct_from_lammi(sourcedirectory):
                                 print(transectprn[iprn][0], 'line', iline,
                                       'the number of discharges provided is more than what was expected in ',
                                       referencefile)
-                                return None
+                                return None, None, None
                             subpercentagecemagref = np.zeros((nbvertices, 8), dtype=np.int64)
                             hv = np.zeros((nbvertices, 2), dtype=np.float64)
                             la = np.zeros(nbvertices, dtype=np.float64)
@@ -1295,7 +1295,7 @@ def construct_from_lammi(sourcedirectory):
                         if len(splline) != 11:
                             print(transectprn[iprn][0], 'line', iline,
                                   '11 numbers are required  for a vertical description, eight of percentages of substrate Code EDF R&D  then depth ,velocity and represetative width of the present vertical')
-                            return None
+                            return None, None, None
                         else:
                             for j in range(8):
                                 if not (is_number(splline[j])):
@@ -1306,11 +1306,11 @@ def construct_from_lammi(sourcedirectory):
                             if not bok:
                                 print(transectprn[iprn][0], 'line', iline,
                                       ' the first eight value must be integer values of percentages of substrate Code EDF R&D (Cailleux 1954) ')
-                                return None
+                                return None, None, None
                             if np.sum(subpercentagecemagref[ivertices, :]) != 100:
                                 print(transectprn[iprn][0], 'line', iline,
                                       'the sum of the first eight value  describing percentages of substrate Code EDF R&D (Cailleux 1954) must be 100%')
-                                return None
+                                return None, None, None
                             for j in (8, 9, 10):
                                 if not (is_number(splline[j])):
                                     bok = False
@@ -1320,7 +1320,7 @@ def construct_from_lammi(sourcedirectory):
                                 if not bok:
                                     print(transectprn[iprn][0], 'line', iline,
                                           ' the last three values must be numericals and positives for depth velocity and represetative width of the present vertical ')
-                                    return None
+                                    return None, None, None
                             hv[ivertices][0], hv[ivertices][1], la[ivertices] = float(splline[8]), float(
                                 splline[9]), float(splline[10])
                             ivertices += 1
@@ -1381,7 +1381,7 @@ def construct_from_lammi(sourcedirectory):
     if nbiq != iq:
         print(transectprn[iprn][0], 'the number of discharges provided is less than what was expected in ',
               referencefile)
-        return None
+        return None, None, None
 
     return stationname, lq, lqdico
 
