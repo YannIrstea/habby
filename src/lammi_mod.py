@@ -47,32 +47,27 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.morphology_available = True
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
-                                                    attribute_list=["BottomEl"],
+                                                    attribute_list=["z"],
                                                     position="node")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
-                                                    attribute_list=["always h"],
+                                                    attribute_list=["h"],
                                                     position="node")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
-                                                    attribute_list=["VELOCITIES"],
+                                                    attribute_list=["v"],
                                                     position="node")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.shear_stress.name,
                                                     attribute_list=["SHEAR STRESS"],
                                                     position="mesh")
 
-        self.input_path = os.path.join(self.filename_path, "Entree")
-        self.new_dir = os.path.join(self.filename_path, "Resu", "SimHydro")
-
-        # # readable file ?
-        # try:
-        #     self.results_data_file = Selafin(self.filename_path)
-        # except OSError:
-        #     self.warning_list.append("Error: The file can not be opened.")
-        #     self.valid_file = False
-
-        # # result_file ?
-        # if not "RESULTS" in self.results_data_file.keys():
-        #     self.warning_list.append('Error: The file is not BASEMENT results type.')
-        #     self.valid_file = False
+        # readable file ?
+        try:
+            valid, _, error_str = construct_from_lammi(os.path.dirname(self.filename_path))
+            if not valid:
+                self.warning_list.append(error_str)
+                self.valid_file = False
+        except OSError:
+            self.warning_list.append("Error: The file can not be opened.")
+            self.valid_file = False
 
         # if valid get informations
         if self.valid_file:
@@ -86,24 +81,17 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     def get_hydraulic_variable_list(self):
         """Get hydraulic variable list from file."""
         # get list from source
-        varnames = ["Coordnts", "BottomEl", "always h", "always v"]
+        varnames = ["z", "h", "v", "SHEAR STRESS"]
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """Get time step information from file."""
-        _, _, _, _, _, timestep_name_list = load_lammi(facies_path=self.input_path,
-                   transect_path=self.input_path,
-                   path_im="",
-                   new_dir=self.new_dir,
-                   project_preferences=self.project_properties,
-                   savefig1d=False,
-                   transect_name='Transect.txt',
-               facies_name='Facies.txt')
-        self.timestep_name_list = list(map(str, timestep_name_list))  # always one reach
+        stationname, lq, lqdico = construct_from_lammi(os.path.dirname(self.filename_path))
+        self.timestep_name_list = list(map(str, lq))  # always one reach
         self.timestep_nb = len(self.timestep_name_list)
-        self.timestep_unit = "discharge [s]"
+        self.timestep_unit = "discharge [m3/s]"
 
     def load_hydraulic(self, timestep_name_wish_list):
         """Retrun Data2d from file.
@@ -113,25 +101,18 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         """
         self.load_specific_timestep(timestep_name_wish_list)
 
+        stationname, lq, lqdico = construct_from_lammi(self.filename_path)
+
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
-                val_all = self.results_data_file.getvalues(timestep_index)
-                for variables_wish in self.hvum.software_detected_list:  # .varunits
+                for variables_wish in self.hvum.software_detected_list:
                     if not variables_wish.precomputable_tohdf5:
-                        variables_wish.data[reach_number].append(val_all[:, variables_wish.varname_index].astype(variables_wish.dtype))
+                        variables_wish.data[reach_number].append(lqdico[timestep_index][variables_wish.name].astype(variables_wish.dtype))
 
                 # struct
-                self.hvum.xy.data[reach_number] = [np.array([self.results_data_file.meshx, self.results_data_file.meshy]).T] * self.timestep_wish_nb
-                self.hvum.tin.data[reach_number] = [self.results_data_file.ikle2.astype(np.int64)] * self.timestep_wish_nb
-
-        # prepare computable data for data_2d
-        if self.hvum.v.precomputable_tohdf5:  # compute v for hdf5 ?
-            for reach_number in range(self.reach_number):  # for each reach
-                for timestep_index in range(len(self.timestep_name_wish_list_index)):
-                    # compute from v_x v_y
-                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_number].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_number][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_number][timestep_index] ** 2))
-                    self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
+                self.hvum.xy.data[reach_number] = [lqdico[timestep_index]["xy"]] * self.timestep_wish_nb
+                self.hvum.tin.data[reach_number] = [lqdico[timestep_index]["tin"].astype(np.int64)] * self.timestep_wish_nb
 
         return self.get_data_2d()
 
@@ -1155,8 +1136,8 @@ def construct_from_lammi(sourcedirectory):
     '''
     transectsfiledefintion = os.path.join(sourcedirectory, 'Transect.txt')
     if not os.path.isfile(transectsfiledefintion):
-        print('Transect.txt this file is required in the LAMMI input directory ', sourcedirectory)
-        return None, None, None
+        print()
+        return None, None, 'Transect.txt this file is required in the LAMMI input directory ' + sourcedirectory
     # PHASE 1 reading Transect.txt
     transectprn = []  # a list of pair of lists containing the exact [filename of each prn transect, Length of representativeness]
     with open(transectsfiledefintion, 'rt', encoding='utf8') as transectf:
@@ -1181,14 +1162,12 @@ def construct_from_lammi(sourcedirectory):
                     else:
                         bok = False
                     if not bok:
-                        print('Transect.txt', 'line', iline, 'the mention', level[cheklevel], 'is mandatory')
-                        return None, None, None
+                        return None, None, 'Transect.txt' + 'line' + str(iline) + 'the mention' + level[cheklevel] + 'is mandatory'
                     else:
                         cheklevel += 1
                 elif cheklevel == 1:
                     if len(splline) != 1 or not (is_number(splline[0])):
-                        print('Transect.txt', 'line', iline, 'a single number for the transect length is mandatory')
-                        return None, None, None
+                        return None, None, 'Transect.txt' + 'line' + str(iline) + 'a single number for the transect length is mandatory'
                     else:
                         ldr = float(line)
                         cheklevel += 1
@@ -1196,13 +1175,10 @@ def construct_from_lammi(sourcedirectory):
                     try:
                         filenameprn = os.path.join(sourcedirectory, os.path.basename(line))
                     except ValueError:
-                        print('Transect.txt', 'line', iline, 'a path with a namefile.prn is mandatory')
-                        return None, None, None
+                        return None, None, 'Transect.txt' + 'line' + str(iline) + 'a path with a namefile.prn is mandatory'
                     if not os.path.isfile(filenameprn):
-                        print(filenameprn,
-                              'This file is required in the LAMMI input directory according to the Transect.txt file definition',
-                              sourcedirectory)
-                        return None, None, None
+                        return None, None, filenameprn + 'This file is required in the LAMMI input directory ' \
+                                                         'according to the Transect.txt file definition' + sourcedirectory
                     transectprn.append([filenameprn, ldr])
                     cheklevel = 0
 
@@ -1221,9 +1197,8 @@ def construct_from_lammi(sourcedirectory):
         if iprn == 1:
             nbiq = iq
         if iprn > 1 and nbiq != iq:
-            print(transectprn[iprn][0], 'the number of discharges provided is less than what was expected in ',
-                  referencefile)
-            return None, None, None
+            return None, None, transectprn[iprn][0] + 'the number of discharges provided is less than what was ' \
+                                                      'expected in ' + referencefile
         with open(transectprn[iprn][0], 'rt') as prnf:  # , encoding='utf8'
             cheklevel, iq = 0, 0
             level = ['# Rivière NesteOueilStation 1Facies 1Transect 1', '# Hauteur et vitesses moyennes calculees',
@@ -1250,8 +1225,7 @@ def construct_from_lammi(sourcedirectory):
                         if cheklevel == 0:
                             stationname = splline[2]
                         if not bok:
-                            print(transectprn[iprn][0], 'line', iline, 'the mention', level[cheklevel], 'is mandatory')
-                            return None, None, None
+                            return None, None, transectprn[iprn][0] + 'line' + str(iline) + 'the mention' + level[cheklevel] + 'is mandatory'
                         else:
                             cheklevel += 1
                     elif cheklevel == 5:  # Q number_of_vertices
@@ -1261,9 +1235,9 @@ def construct_from_lammi(sourcedirectory):
                             if not (is_number(splline[0]) and is_integer(splline[1])):
                                 bok = False
                         if not bok:
-                            print(transectprn[iprn][0], 'line', iline,
-                                  'two numbers are required : one for the discharge, the other for the vertices number describing the corss-section')
-                            return None, None, None
+                            return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
+                                   'two numbers are required : one for the discharge, the other for the ' \
+                                   'vertices number describing the corss-section'
                         else:
                             if iprn == 0:
                                 lq.append(splline[0])
@@ -1271,31 +1245,28 @@ def construct_from_lammi(sourcedirectory):
                                     referencefile = transectprn[0][0]
                             else:
                                 if splline[0] != lq[iq]:
-                                    print(transectprn[iprn][0], 'line', iline,
-                                          'the discharge value is not the expected one accordign to the refererence file :',
-                                          referencefile)
-                                    return None, None, None
+                                    return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
+                                           'the discharge value is not the expected one accordign to the ' \
+                                           'refererence file :' + referencefile
                             if iq != 0:
                                 if nbvertices != ivertices:
-                                    print(transectprn[iprn][0], 'line', iline,
-                                          'the number of verticals provided previously was not what was expected')
-                                    return None, None, None
+                                    return None, None, transectprn[iprn][0] + 'line' + str(iline) +\
+                                           'the number of verticals provided previously was not what was expected'
                             nbvertices, ivertices = int(splline[1]), 0
                             cheklevel += 1
                             iq += 1  # next Q index
                             if iprn > 0 and nbiq < iq:
-                                print(transectprn[iprn][0], 'line', iline,
-                                      'the number of discharges provided is more than what was expected in ',
-                                      referencefile)
-                                return None, None, None
+                                return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
+                                       'the number of discharges provided is more than what was expected in ' + referencefile
                             subpercentagecemagref = np.zeros((nbvertices, 8), dtype=np.int64)
                             hv = np.zeros((nbvertices, 2), dtype=np.float64)
                             la = np.zeros(nbvertices, dtype=np.float64)
                     elif cheklevel == 6:
                         if len(splline) != 11:
-                            print(transectprn[iprn][0], 'line', iline,
-                                  '11 numbers are required  for a vertical description, eight of percentages of substrate Code EDF R&D  then depth ,velocity and represetative width of the present vertical')
-                            return None, None, None
+                            return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
+                                   '11 numbers are required  for a vertical description, eight of percentages of ' \
+                                   'substrate Code EDF R&D  then depth ,velocity and represetative width of ' \
+                                   'the present vertical'
                         else:
                             for j in range(8):
                                 if not (is_number(splline[j])):
@@ -1304,13 +1275,13 @@ def construct_from_lammi(sourcedirectory):
                                     k = j + 1 if j < 5 else j  # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
                                     subpercentagecemagref[ivertices][k] += float(splline[j])
                             if not bok:
-                                print(transectprn[iprn][0], 'line', iline,
-                                      ' the first eight value must be integer values of percentages of substrate Code EDF R&D (Cailleux 1954) ')
-                                return None, None, None
+                                return None, None, transectprn[iprn][0] + 'line' + str(iline) +\
+                                       ' the first eight value must be integer values of percentages of ' \
+                                       'substrate Code EDF R&D (Cailleux 1954) '
                             if np.sum(subpercentagecemagref[ivertices, :]) != 100:
-                                print(transectprn[iprn][0], 'line', iline,
-                                      'the sum of the first eight value  describing percentages of substrate Code EDF R&D (Cailleux 1954) must be 100%')
-                                return None, None, None
+                                return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
+                                       'the sum of the first eight value  describing percentages of ' \
+                                       'substrate Code EDF R&D (Cailleux 1954) must be 100%'
                             for j in (8, 9, 10):
                                 if not (is_number(splline[j])):
                                     bok = False
@@ -1318,9 +1289,10 @@ def construct_from_lammi(sourcedirectory):
                                     if float(splline[j]) < 0:
                                         bok = False
                                 if not bok:
-                                    print(transectprn[iprn][0], 'line', iline,
-                                          ' the last three values must be numericals and positives for depth velocity and represetative width of the present vertical ')
-                                    return None, None, None
+                                    print()
+                                    return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
+                                           ' the last three values must be numericals and positives for ' \
+                                           'depth velocity and represetative width of the present vertical '
                             hv[ivertices][0], hv[ivertices][1], la[ivertices] = float(splline[8]), float(
                                 splline[9]), float(splline[10])
                             ivertices += 1
@@ -1379,9 +1351,8 @@ def construct_from_lammi(sourcedirectory):
                                     newnodeindex[iq - 1] += 4 * nbvertices + 2
 
     if nbiq != iq:
-        print(transectprn[iprn][0], 'the number of discharges provided is less than what was expected in ',
-              referencefile)
-        return None, None, None
+        return None, None, transectprn[iprn][0] + 'the number of discharges provided is less ' \
+                                                  'than what was expected in ' + referencefile
 
     return stationname, lq, lqdico
 

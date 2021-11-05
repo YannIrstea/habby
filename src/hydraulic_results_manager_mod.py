@@ -101,8 +101,8 @@ class HydraulicSimulationResultsBase:
 
         # timestep
         self.timestep_name_list = []
-        self.timestep_nb = None
-        self.timestep_unit = None
+        self.timestep_nb = 1
+        self.timestep_unit = ""
         self.timestep_name_wish_list_index = []
         self.timestep_name_wish_list = []
         self.timestep_wish_nb = None

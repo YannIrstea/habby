@@ -559,6 +559,9 @@ class ModelInfoGroup(QGroupBox):
             if hsra_value.warning_list:
                 for warn in hsra_value.warning_list:
                     self.send_log.emit(warn)
+                    if "Error:" in warn:
+                        self.clean_gui()
+                        return
 
             # error
             if type(hsra_value.hydrau_description_list) == str:
