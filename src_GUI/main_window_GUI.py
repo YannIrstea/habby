@@ -534,11 +534,14 @@ class MainWindows(QMainWindow):
         project_properties = load_project_properties(self.path_prj)
 
         # check if project has been renamed or moved
-        if project_properties["old_path_prj"]:
-            self.central_widget.write_log(self.tr("Warning: The selected project path changed from ") + project_properties["old_path_prj"] +
-                                                              self.tr(" to ") + os.path.dirname(filename_path) + ".")
-            # re-update .habby (after update_path_prj_if_change()) to remove next warning
-            change_specific_properties(self.path_prj, ["old_path_prj"], [""])
+        if "old_path_prj" in project_properties.keys():
+            if project_properties["old_path_prj"]:
+                self.central_widget.write_log(self.tr("Warning: The selected project path changed from ") + project_properties["old_path_prj"] +
+                                                                  self.tr(" to ") + os.path.dirname(filename_path) + ".")
+                # re-update .habby (after update_path_prj_if_change()) to remove next warning
+                change_specific_properties(self.path_prj, ["old_path_prj"], [""])
+        else:
+            project_properties["old_path_prj"] = self.path_prj
 
         # load_project_properties
         project_preferences = load_project_properties(self.path_prj)
