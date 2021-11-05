@@ -63,7 +63,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         try:
             valid, _, error_str = construct_from_lammi(os.path.dirname(self.filename_path))
             if not valid:
-                self.warning_list.append(error_str)
+                self.warning_list.append("Error: " + error_str)
                 self.valid_file = False
         except OSError:
             self.warning_list.append("Error: The file can not be opened.")
@@ -1160,12 +1160,12 @@ def construct_from_lammi(sourcedirectory):
                     else:
                         bok = False
                     if not bok:
-                        return None, None, 'Transect.txt' + 'line' + str(iline) + 'the mention' + level[cheklevel] + 'is mandatory'
+                        return None, None, 'Transect.txt line ' + str(iline) + ' the mention' + level[cheklevel] + ' is mandatory'
                     else:
                         cheklevel += 1
                 elif cheklevel == 1:
                     if len(splline) != 1 or not (is_number(splline[0])):
-                        return None, None, 'Transect.txt' + 'line' + str(iline) + 'a single number for the transect length is mandatory'
+                        return None, None, 'Transect.txt line ' + str(iline) + ' a single number for the transect length is mandatory'
                     else:
                         ldr = float(line)
                         cheklevel += 1
@@ -1173,10 +1173,10 @@ def construct_from_lammi(sourcedirectory):
                     try:
                         filenameprn = os.path.join(sourcedirectory, os.path.basename(line))
                     except ValueError:
-                        return None, None, 'Transect.txt' + 'line' + str(iline) + 'a path with a namefile.prn is mandatory'
+                        return None, None, 'Transect.txt line ' + str(iline) + ' a path with a namefile.prn is mandatory'
                     if not os.path.isfile(filenameprn):
-                        return None, None, filenameprn + 'This file is required in the LAMMI input directory ' \
-                                                         'according to the Transect.txt file definition' + sourcedirectory
+                        return None, None, filenameprn + ' This file is required in the LAMMI input directory ' \
+                                                         'according to the Transect.txt file definition ' + sourcedirectory
                     transectprn.append([filenameprn, ldr])
                     cheklevel = 0
 
@@ -1196,7 +1196,7 @@ def construct_from_lammi(sourcedirectory):
         if iprn == 1:
             nbiq = iq
         if iprn > 1 and nbiq != iq:
-            return None, None, transectprn[iprn][0] + 'the number of discharges provided is less than what was ' \
+            return None, None, transectprn[iprn][0] + ' the number of discharges provided is less than what was ' \
                                                       'expected in ' + referencefile
         with open(transectprn[iprn][0], 'rt') as prnf:  # , encoding='utf8'
             cheklevel, iq = 0, 0
@@ -1224,7 +1224,7 @@ def construct_from_lammi(sourcedirectory):
                         if cheklevel == 0:
                             stationname = splline[2]
                         if not bok:
-                            return None, None, transectprn[iprn][0] + 'line' + str(iline) + 'the mention' + level[cheklevel] + 'is mandatory'
+                            return None, None, transectprn[iprn][0] + ' line ' + str(iline) + ' the mention ' + level[cheklevel] + ' is mandatory'
                         else:
                             cheklevel += 1
                     elif cheklevel == 5:  # Q number_of_vertices
@@ -1234,8 +1234,8 @@ def construct_from_lammi(sourcedirectory):
                             if not (is_number(splline[0]) and is_integer(splline[1])):
                                 bok = False
                         if not bok:
-                            return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
-                                   'two numbers are required : one for the discharge, the other for the ' \
+                            return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
+                                   ' two numbers are required : one for the discharge, the other for the ' \
                                    'vertices number describing the corss-section'
                         else:
                             if iprn == 0:
@@ -1244,26 +1244,26 @@ def construct_from_lammi(sourcedirectory):
                                     referencefile = transectprn[0][0]
                             else:
                                 if splline[0] != lq[iq]:
-                                    return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
-                                           'the discharge value is not the expected one accordign to the ' \
-                                           'refererence file :' + referencefile
+                                    return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
+                                           ' the discharge value is not the expected one accordign to the ' \
+                                           'refererence file : ' + referencefile
                             if iq != 0:
                                 if nbvertices != ivertices:
-                                    return None, None, transectprn[iprn][0] + 'line' + str(iline) +\
-                                           'the number of verticals provided previously was not what was expected'
+                                    return None, None, transectprn[iprn][0] + ' line ' + str(iline) +\
+                                           ' the number of verticals provided previously was not what was expected'
                             nbvertices, ivertices = int(splline[1]), 0
                             cheklevel += 1
                             iq += 1  # next Q index
                             if iprn > 0 and nbiq < iq:
-                                return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
-                                       'the number of discharges provided is more than what was expected in ' + referencefile
+                                return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
+                                       ' the number of discharges provided is more than what was expected in ' + referencefile
                             subpercentagecemagref = np.zeros((nbvertices, 8), dtype=np.int64)
                             hv = np.zeros((nbvertices, 2), dtype=np.float64)
                             la = np.zeros(nbvertices, dtype=np.float64)
                     elif cheklevel == 6:
                         if len(splline) != 11:
-                            return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
-                                   '11 numbers are required  for a vertical description, eight of percentages of ' \
+                            return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
+                                   ' 11 numbers are required  for a vertical description, eight of percentages of ' \
                                    'substrate Code EDF R&D  then depth ,velocity and represetative width of ' \
                                    'the present vertical'
                         else:
@@ -1274,12 +1274,12 @@ def construct_from_lammi(sourcedirectory):
                                     k = j + 1 if j < 5 else j  # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
                                     subpercentagecemagref[ivertices][k] += float(splline[j])
                             if not bok:
-                                return None, None, transectprn[iprn][0] + 'line' + str(iline) +\
+                                return None, None, transectprn[iprn][0] + ' line ' + str(iline) +\
                                        ' the first eight value must be integer values of percentages of ' \
                                        'substrate Code EDF R&D (Cailleux 1954) '
                             if np.sum(subpercentagecemagref[ivertices, :]) != 100:
-                                return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
-                                       'the sum of the first eight value  describing percentages of ' \
+                                return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
+                                       ' the sum of the first eight value  describing percentages of ' \
                                        'substrate Code EDF R&D (Cailleux 1954) must be 100%'
                             for j in (8, 9, 10):
                                 if not (is_number(splline[j])):
@@ -1289,7 +1289,7 @@ def construct_from_lammi(sourcedirectory):
                                         bok = False
                                 if not bok:
                                     print()
-                                    return None, None, transectprn[iprn][0] + 'line' + str(iline) + \
+                                    return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
                                            ' the last three values must be numericals and positives for ' \
                                            'depth velocity and represetative width of the present vertical '
                             hv[ivertices][0], hv[ivertices][1], la[ivertices] = float(splline[8]), float(
@@ -1375,7 +1375,7 @@ def construct_from_lammi(sourcedirectory):
                                     newnodeindex[iq - 1] += 4 * nbvertices + 2
 
     if nbiq != iq:
-        return None, None, transectprn[iprn][0] + 'the number of discharges provided is less ' \
+        return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
                                                   'than what was expected in ' + referencefile
 
     return stationname, lq, lqdico
