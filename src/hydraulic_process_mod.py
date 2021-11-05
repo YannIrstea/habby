@@ -166,8 +166,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                 sleep(0.1)  # to wait q.put() ..
         return
 
-    """ semi_wetted_mesh_cutting """
-    if project_preferences["cut_mesh_partialy_dry"]:
+    """ semi_wetted_mesh_cutting for only 2d models"""
+    if project_preferences["cut_mesh_partialy_dry"] and hydrau_description["model_dimension"] != "1":
         data_2d.semi_wetted_mesh_cutting(hydrau_description["unit_list"],
                                          progress_value,
                                          delta_file)

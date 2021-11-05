@@ -289,6 +289,8 @@ class HydraulicSimulationResultsAnalyzer:
                     filename, _ = os.path.splitext(filename)
                 if self.model_type == "basement2d":
                     hdf5_name = hsr.simulation_name + ".hyd"
+                elif self.model_type == "lammi":
+                    hdf5_name = hsr.simulation_name + ".hab"
                 else:
                     hdf5_name = os.path.splitext(filename)[0].replace(".", "_") + ".hyd"
 
@@ -534,6 +536,8 @@ class HydraulicSimulationResultsAnalyzer:
 
                 if self.model_type == "basement2d":
                     self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
+                elif self.model_type == "lammi":
+                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
@@ -667,6 +671,8 @@ class HydraulicSimulationResultsAnalyzer:
 
                 if self.model_type == "basement2d":
                     self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
+                elif self.model_type == "lammi":
+                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
@@ -726,6 +732,8 @@ class HydraulicSimulationResultsAnalyzer:
 
                 if self.model_type == "basement2d":
                     self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
+                elif self.model_type == "lammi":
+                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
 
                 # self.hydrau_description_list
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])

@@ -55,9 +55,35 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
                                                     attribute_list=["v"],
                                                     position="node")
-        self.hvum.link_unit_with_software_attribute(name=self.hvum.shear_stress.name,
-                                                    attribute_list=["SHEAR STRESS"],
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s1.name,
+                                                    attribute_list=["s1"],
                                                     position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s2.name,
+                                                    attribute_list=["s2"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s3.name,
+                                                    attribute_list=["s3"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s4.name,
+                                                    attribute_list=["s4"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s5.name,
+                                                    attribute_list=["s5"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s6.name,
+                                                    attribute_list=["s6"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s7.name,
+                                                    attribute_list=["s7"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s8.name,
+                                                    attribute_list=["s8"],
+                                                    position="mesh")
+
+        self.sub = True
+        self.sub_mapping_method = "point"
+        self.sub_classification_method = "percentage"  # "coarser-dominant" / "percentage"
+        self.sub_classification_code = "Cemagref"  # "Cemagref" / "Sandre"
 
         # readable file ?
         try:
@@ -65,6 +91,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             if not valid:
                 self.warning_list.append("Error: " + error_str)
                 self.valid_file = False
+            else:
+                self.simulation_name = valid
         except OSError:
             self.warning_list.append("Error: The file can not be opened.")
             self.valid_file = False
@@ -81,7 +109,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     def get_hydraulic_variable_list(self):
         """Get hydraulic variable list from file."""
         # get list from source
-        varnames = ["z", "h", "v", "SHEAR STRESS"]
+        varnames = ["z", "h", "v", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"]
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)
@@ -101,18 +129,30 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         """
         self.load_specific_timestep(timestep_name_wish_list)
 
-        stationname, lq, lqdico = construct_from_lammi(self.filename_path)
+        stationname, lq, lqdico = construct_from_lammi(os.path.dirname(self.filename_path))
 
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
+                sub_case = 0
                 for variables_wish in self.hvum.software_detected_list:
                     if not variables_wish.precomputable_tohdf5:
-                        variables_wish.data[reach_number].append(lqdico[timestep_index][variables_wish.name].astype(variables_wish.dtype))
+                        if variables_wish.position == "node":
+                            if variables_wish.name == self.hvum.h.name:
+                                index_variable = 0
+                            elif variables_wish.name == self.hvum.v.name:
+                                index_variable = 1
+                            elif variables_wish.name == self.hvum.z.name:
+                                index_variable = 2
+                            variables_wish.data[reach_number].append(lqdico[timestep_index]["node_hvz"][:, index_variable].astype(variables_wish.dtype))
+                        if variables_wish.position == "mesh":
+                            variables_wish.data[reach_number].append(
+                                lqdico[timestep_index]["mesh_substrate"][:, sub_case].astype(variables_wish.dtype))
+                            sub_case += 1
 
                 # struct
-                self.hvum.xy.data[reach_number] = [lqdico[timestep_index]["xy"]] * self.timestep_wish_nb
-                self.hvum.tin.data[reach_number] = [lqdico[timestep_index]["tin"].astype(np.int64)] * self.timestep_wish_nb
+                self.hvum.xy.data[reach_number].append(lqdico[timestep_index]["node_xy"])
+                self.hvum.tin.data[reach_number].append(lqdico[timestep_index]["tin"].astype(np.int64))
 
         return self.get_data_2d()
 
