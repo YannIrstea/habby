@@ -318,10 +318,16 @@ class Data2d(list):
                 water_height = self[reach_number][unit_number]["node"]["data"][self.hvum.h.name].to_numpy()
                 ind_whole = self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name]
 
-                bhw = (water_height > 0).astype(self.hvum.i_whole_profile.dtype)
-                ikle_bit = bhw[ikle]
-                ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
-                mikle_keep = ikle_type != 0
+                # Finite volume
+                if self.hvum.h.name in self[reach_number][unit_number]["mesh"]["data"].columns:
+                    ikle_type = np.array(self[reach_number][unit_number]["mesh"]["data"][self.hvum.h.name] == 0)
+                    mikle_keep = ikle_type != True
+                # Finite element
+                else:
+                    bhw = (water_height > 0).astype(self.hvum.i_whole_profile.dtype)
+                    ikle_bit = bhw[ikle]
+                    ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
+                    mikle_keep = ikle_type != 0
 
                 # all meshes are entirely dry
                 if not True in mikle_keep:

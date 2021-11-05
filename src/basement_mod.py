@@ -190,7 +190,6 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # result data
         mesh_h = np.zeros((mesh_nb, self.timestep_wish_nb), dtype=np.float64)
         mesh_v = np.zeros((mesh_nb, self.timestep_wish_nb), dtype=np.float64)
-        data_mesh_pd = pd.DataFrame()
         dataset_name_list = list(RESULTS_group["CellsAll"]["HydState"])
         for timestep_index, timestep_num in enumerate(self.timestep_name_wish_list_index):
             result_hyd_array = RESULTS_group["CellsAll"]["HydState"][dataset_name_list[timestep_num]][:]
