@@ -1034,10 +1034,11 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
                 f.write(text)
 
         else:
-            # copy original
-            sh_copy(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt"),
-                    os.path.join(description_from_indexHYDRAU_file["path_prj"], "input",
-                                 os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0]))
+            if os.path.exists(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt")):
+                # copy original
+                sh_copy(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt"),
+                        os.path.join(description_from_indexHYDRAU_file["path_prj"], "input",
+                                     os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0]))
     else:
         # copy original
         sh_copy(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt"),
