@@ -341,6 +341,13 @@ class DataExplorerFrame(QFrame):
                         self.plot_group.mesh_variable_QListWidget.addItem(variable_item)
                     elif variable.position == "node":
                         self.plot_group.node_variable_QListWidget.addItem(variable_item)
+                    # remover add to existing_animal_QListWidget
+                    if variable.habitat:
+                        # copy
+                        variable_item2 = QListWidgetItem(variable_item)
+                        # change associated listwidget
+                        variable_item2.listWidget = self.habitatvalueremover_group.existing_animal_QListWidget
+                        self.habitatvalueremover_group.existing_animal_QListWidget.addItem(variable_item2)
 
             # display hdf5 attributes
             tablemodel = MyTableModel(list(zip(self.hdf5.hdf5_attributes_name_text, self.hdf5.hdf5_attributes_info_text)), self)
@@ -1272,9 +1279,7 @@ class HabitatValueRemover(QGroupBoxCollapsible):
 
     def remove_animal_selected(self):
         file_selection = self.parent().names_hdf5_QListWidget.selectedItems()
-        if len(file_selection) == 1:
-            hdf5name = file_selection[0].text()
-        else:
+        if not len(file_selection) == 1:
             self.send_log.emit(self.tr('Warning: ') + self.tr('No file selected.'))
             return
 
